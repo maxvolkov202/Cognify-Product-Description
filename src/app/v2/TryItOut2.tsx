@@ -104,27 +104,34 @@ export default function TryItOut() {
     }
   }, [scenarioCategory]);
 
+  const loadRepHistory = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.user?.id) return;
+
+    const { data, error } = await supabase
+      .from("reps")
+      .select(`
+        *,
+        delivery_scores (*)
+      `)
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) setRepHistory(data as RepRow[]);
+  };
+
   useEffect(() => {
-    const loadRepHistory = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-  
-      if (!session?.user?.id) return;
-  
-      const { data, error } = await supabase
-        .from("reps")
-        .select(`
-          *,
-          delivery_scores (*)
-        `)
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
-  
-      if (!error && data) setRepHistory(data as RepRow[]);
-    };
     loadRepHistory();
   }, []);
+
+  useEffect(() => {
+    if (location.pathname.includes("/history")) {
+      loadRepHistory();
+    }
+  }, [location.pathname]);
 
   const handleSelectScenario = (scenario: string, category: string) => {
     setSelectedScenario(scenario);
