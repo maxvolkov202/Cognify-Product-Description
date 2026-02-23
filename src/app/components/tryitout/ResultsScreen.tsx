@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Play, Pause, RotateCcw, SkipBack, SkipForward, Download, CheckCircle2, AlertTriangle, XCircle, ArrowRight, Edit3, Users, Clock, Volume2, FileText } from "lucide-react";
 import { FRAMEWORKS } from "../../types/rep";
-import { analyzeTranscript, analyzeFrameworkCoverage } from "../../../../app/utils/transcriptAnalyzer";
-import { evaluateExecutiveCommunication } from "../../../../app/utils/executiveEvaluator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../app/components/ui/tabs";
+import { analyzeTranscript, analyzeFrameworkCoverage } from "../../utils/transcriptAnalyzer";
+import { evaluateExecutiveCommunication } from "../../utils/executiveEvaluator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 interface ResultsScreenProps {
   repNumber: number;
@@ -130,8 +130,10 @@ export function ResultsScreen({
   };
 
   // Analyze transcript with fallback
-  let analysis, feedback, frameworkCoverage, selectedFramework;
-  let overallScore = 0;
+  let analysis: any;
+  let feedback: any;
+  let frameworkCoverage: any;
+  let selectedFramework: any;  let overallScore = 0;
   let detailedScores = {
     clarity: 0,
     structure: 0,

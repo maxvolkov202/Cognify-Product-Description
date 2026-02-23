@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { RepHistoryPage } from "../components/tryitout/RepHistoryPage";
+import { RepHistoryPage } from "../v2/components/tryitout/RepHistoryPage";
 import { Rep } from "../types/rep";
 
 interface HistoryPageProps {

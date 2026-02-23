@@ -22,12 +22,23 @@ export interface Rep {
     nextStep: string;
   };
   completedAt: Date;
-  // Detailed feedback scores for comparison
+  /** Database-driven scores from score-rep (replaces legacy computed scores) */
+  overall_score?: number;
+  delivery_score?: number;
+  content_score?: number;
+  /** Nested from delivery_scores table (array or single object depending on query) */
+  delivery_scores?: { pace: number; clarity: number; filler_words: number; confidence: number; pauses: number; tone: number; overall_delivery: number } | { pace: number; clarity: number; filler_words: number; confidence: number; pauses: number; tone: number; overall_delivery: number }[];
+  // Detailed feedback scores for comparison (legacy)
   detailedScores?: {
     clarity: number;
     structure: number;
     brevity: number;
     confidence: number;
+  
+    // V2 Delivery Metrics
+    specificity: number;
+    pacing: number;
+    presence: number;
   };
   // Analysis metrics for comparison
   analysisMetrics?: {

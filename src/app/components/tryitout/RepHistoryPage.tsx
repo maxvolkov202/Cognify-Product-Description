@@ -404,7 +404,6 @@ export function RepHistoryPage({ reps, onBack, onRepClick }: RepHistoryPageProps
             })}
           </div>
         </div>
-
         {/* Pattern Insights */}
         <PatternInsights reps={reps} />
       </div>

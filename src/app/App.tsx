@@ -13,6 +13,8 @@ import About from "./About";
 import LogIn from "./LogIn";
 import SignUp from "./SignUp";
 import TryItOut from "./TryItOut";
+import TryItOut2 from "./v2/TryItOut2";
+
 import { ScrollToTop } from "./components/ScrollToTop";
 
 // Wrapper component for marketing pages layout
@@ -96,9 +98,10 @@ function AppContent() {
         }
       >
         <Route index element={<AppHome reps={repHistory} />} />
-        <Route path="rep" element={<TryItOut />} />
+        <Route path="rep" element={<TryItOut2 />} />
+        <Route path="try-it-out-v2" element={<TryItOut2 />} />
         <Route path="history" element={<HistoryPage reps={repHistory} />} />
-        <Route path="reps/:id" element={<RepDetailPage reps={repHistory} />} />
+        <Route path="reps/:id" element={<RepDetailPage />} />
       </Route>
 
       {/* Fallback */}

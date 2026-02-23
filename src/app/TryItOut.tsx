@@ -32,6 +32,8 @@ export default function TryItOut() {
     duration: number;
   } | null>(null);
   const [repsCompleted, setRepsCompleted] = useState(0);
+  const [preRepIntent, setPreRepIntent] = useState("");
+
   const [currentClarityScore, setCurrentClarityScore] = useState(0);
   const [currentPrimaryFocus, setCurrentPrimaryFocus] = useState<{ title: string; nextStep: string } | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -61,6 +63,14 @@ export default function TryItOut() {
   }) => {
     setRepConfig(config);
     setViewState("perform");
+  };
+
+  const handleChangeScenario = () => {
+    setViewState("setup"); // or whatever your setup state is
+  };
+
+  const handleDoAnotherRep = () => {
+    setViewState("perform"); // or whatever your perform state is
   };
 
   const handleSetupBack = () => {
@@ -211,28 +221,35 @@ export default function TryItOut() {
       )}
 
       {viewState === "processing" && (
-        <ProcessingScreen />
+        <ProcessingScreen
+        repNumber={repsCompleted + 1}
+        scenario={repConfig?.scenario ?? ""}
+        />
       )}
 
       {viewState === "feedback" && repConfig && currentRepData && (
-        <TextFeedbackScreen
-          scenario={repConfig.scenario}
-          audience={repConfig.audience}
-          framework={repConfig.framework}
-          preRepIntent={currentRepData.preRepIntent}
-          transcript={currentRepData.transcript}
-          repNumber={repsCompleted + 1}
-          onFeedbackGenerated={handleFeedbackGenerated}
-          onNextRep={handleNextRep}
-          onViewHistory={handleViewHistory}
-        />
+       <TextFeedbackScreen
+       scenario={repConfig?.scenario ?? ""}
+       audience={repConfig?.audience ?? ""}
+       framework={repConfig?.framework ?? ""}
+       preRepIntent={preRepIntent }
+       repNumber={repsCompleted + 1}
+       repContent={{
+         point: "",
+         example: "",
+         meaning: ""
+       }}
+       onFeedbackGenerated={handleFeedbackGenerated}
+       onDoAnotherRep={handleDoAnotherRep}
+       onChangeScenario={handleChangeScenario}
+     />
+     
       )}
 
       {viewState === "history" && (
         <RepHistoryPage
           reps={repHistory}
           onBack={handleBackToFeedback}
-          onSelectRep={handleSelectHistoryRep}
         />
       )}
     </div>

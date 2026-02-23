@@ -1,41 +1,86 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { ArrowLeft, Calendar, User, BookOpen, PlayCircle, Target, ChevronDown, ChevronUp } from "lucide-react";
-import { Rep } from "../types/rep";
-import { format } from "date-fns";
-import { FRAMEWORKS } from "../types/rep";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Calendar, Clock, User, BookOpen, Volume2, ChevronDown, ChevronUp } from "lucide-react";
+import type { RepRow } from "../v2/components/tryitout/ResultsScreen";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../context/AuthContext";
 
-interface RepDetailPageProps {
-  reps: Rep[];
-}
-
-export function RepDetailPage({ reps }: RepDetailPageProps) {
+export function RepDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [contentExpanded, setContentExpanded] = useState(true);
+  const { session } = useAuth();
+  const [rep, setRep] = useState<RepRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [transcriptExpanded, setTranscriptExpanded] = useState(false);
 
-  const rep = reps.find(r => r.id === id);
+  useEffect(() => {
+    const loadRep = async () => {
+      if (!id || !session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("reps")
+        .select(`
+          id,
+          transcript,
+          transcript_word_count,
+          overall_score,
+          delivery_score,
+          content_score,
+          status,
+          audio_url,
+          vertical,
+          scenario,
+          audience,
+          framework,
+          time_limit,
+          created_at,
+          feedback_good,
+          feedback_improve,
+          next_focus,
+          delivery_scores (*)
+        `)
+        .eq("id", id)
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (!error && data) {
+        setRep(data as RepRow);
+      }
+
+      setLoading(false);
+    };
+
+    loadRep();
+  }, [id, session?.user?.id]);
+
+  if (loading) {
+    return <div className="p-12 text-center">Loading...</div>;
+  }
 
   if (!rep) {
     return (
+      <div className="p-12 text-center">
+        <h2 className="text-xl font-bold">Rep Not Found</h2>
+      </div>
+    );
+  }
+
+  if (rep.status === "processing") {
+    return (
       <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Rep Not Found</h2>
-          <p className="text-gray-600 mb-6">This rep doesn't exist or has been deleted.</p>
-          <Link
-            to="/app/history"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to History
-          </Link>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+          <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Still Processing</h2>
+          <p className="text-gray-600">This rep is still being evaluated. Please check back in a moment.</p>
         </div>
       </div>
     );
   }
 
-  // Handle processing/error states
-  if (rep.status === "error") {
+  if (rep.status === "failed" || rep.status === "error") {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
@@ -53,14 +98,7 @@ export function RepDetailPage({ reps }: RepDetailPageProps) {
     );
   }
 
-  const scores = rep.detailedScores || {
-    clarity: rep.clarityScore,
-    structure: rep.clarityScore,
-    brevity: rep.clarityScore,
-    confidence: rep.clarityScore
-  };
-
-  const overallScore = rep.clarityScore;
+  const overallScore = rep.overall_score ?? 0;
 
   const performanceLabel =
     overallScore >= 90 ? "Elite" :
@@ -74,7 +112,27 @@ export function RepDetailPage({ reps }: RepDetailPageProps) {
     overallScore >= 60 ? "text-yellow-700 bg-yellow-50 border-yellow-200" :
     "text-red-700 bg-red-50 border-red-200";
 
-  const framework = FRAMEWORKS.find(f => f.id === rep.framework);
+  const createdDate = rep.created_at
+    ? (() => {
+        const d = new Date(rep.created_at);
+        return isNaN(d.getTime()) ? null : d;
+      })()
+    : null;
+
+  // Format in user's local timezone (Supabase stores UTC)
+  const formatLocalDate = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const formatLocalTime = (d: Date) =>
+    d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+  // Normalize delivery_scores: Supabase can return array or single object
+  const rawDelivery = rep.delivery_scores;
+  const deliveryRow =
+    Array.isArray(rawDelivery) && rawDelivery.length > 0
+      ? rawDelivery[0]
+      : rawDelivery && typeof rawDelivery === "object" && !Array.isArray(rawDelivery)
+        ? rawDelivery
+        : null;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
@@ -87,7 +145,7 @@ export function RepDetailPage({ reps }: RepDetailPageProps) {
           <ArrowLeft className="w-4 h-4" />
           Back to History
         </button>
-        <h1 className="text-3xl font-bold text-gray-900">{rep.scenario}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{rep.scenario ?? "—"}</h1>
       </div>
 
       {/* Overall Score Card */}
@@ -102,103 +160,90 @@ export function RepDetailPage({ reps }: RepDetailPageProps) {
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-600 mb-1">
-              {format(new Date(rep.completedAt), "MMM d, yyyy")}
+          {createdDate && (
+            <div className="text-right">
+              <div className="text-sm text-gray-600 mb-1">
+                {formatLocalDate(createdDate)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {formatLocalTime(createdDate)}
+              </div>
             </div>
-            <div className="text-xs text-gray-500">
-              {format(new Date(rep.completedAt), "h:mm a")}
-            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 5 Core Dimensions - from delivery_scores (array or single object) */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">5 CORE DIMENSIONS</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <DimensionCard title="Pace" score={(deliveryRow as { pace?: number | null } | null)?.pace ?? 0} insight="Rhythm & timing" color="green" />
+          <DimensionCard title="Clarity" score={(deliveryRow as { clarity?: number | null } | null)?.clarity ?? 0} insight="Simple, direct language" color="blue" />
+          <DimensionCard title="Confidence" score={(deliveryRow as { confidence?: number | null } | null)?.confidence ?? 0} insight="Assured delivery" color="purple" />
+          <DimensionCard title="Pauses" score={(deliveryRow as { pauses?: number | null } | null)?.pauses ?? 0} insight="Effective use of silence" color="orange" />
+          <DimensionCard title="Tone" score={(deliveryRow as { tone?: number | null } | null)?.tone ?? 0} insight="Vocal expression" color="pink" />
+        </div>
+      </div>
+
+      {/* Audio Playback - only if audio_url exists */}
+      {rep.audio_url && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Volume2 className="w-5 h-5 text-gray-700" />
+            <h3 className="text-sm font-semibold text-gray-900">AUDIO PLAYBACK</h3>
+          </div>
+          <audio controls src={rep.audio_url} className="w-full" />
+        </div>
+      )}
+
+      {/* Coach Insights */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 mb-6">
+        <h3 className="text-sm font-semibold text-blue-900 mb-4">
+          COACH INSIGHTS
+        </h3>
+
+        <div className="space-y-4 text-sm">
+          <div>
+            <p className="font-semibold text-gray-900 mb-1">What Worked</p>
+            <p className="text-gray-700">
+              {rep.feedback_good ?? "—"}
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold text-gray-900 mb-1">Needs Improvement</p>
+            <p className="text-gray-700">
+              {rep.feedback_improve ?? "—"}
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold text-gray-900 mb-1">Next Rep Focus</p>
+            <p className="text-gray-700 font-medium">
+              {rep.next_focus ?? "—"}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* 4 Core Dimensions - Compact Layout */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">4 CORE DIMENSIONS</h3>
-        <div className="grid grid-cols-4 gap-4">
-          <DimensionCard
-            title="Clarity"
-            score={scores.clarity}
-            insight="Direct language"
-            color="blue"
-          />
-          <DimensionCard
-            title="Structure"
-            score={scores.structure}
-            insight="Logical flow"
-            color="purple"
-          />
-          <DimensionCard
-            title="Brevity"
-            score={scores.brevity}
-            insight="Conciseness"
-            color="pink"
-          />
-          <DimensionCard
-            title="Confidence"
-            score={scores.confidence}
-            insight="Strong voice"
-            color="green"
-          />
-        </div>
-      </div>
-
-      {/* Rep Content Section (Collapsible) */}
+      {/* Transcript Section (Collapsible) */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
         <button
-          onClick={() => setContentExpanded(!contentExpanded)}
+          onClick={() => setTranscriptExpanded(!transcriptExpanded)}
           className="w-full flex items-center justify-between text-left"
         >
-          <h3 className="text-sm font-semibold text-gray-900">YOUR REP</h3>
-          {contentExpanded ? (
+          <h3 className="text-sm font-semibold text-gray-900">TRANSCRIPT</h3>
+          {transcriptExpanded ? (
             <ChevronUp className="w-5 h-5 text-gray-500" />
           ) : (
             <ChevronDown className="w-5 h-5 text-gray-500" />
           )}
         </button>
-        {contentExpanded && (
-          <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Point</p>
-              <p className="text-sm text-gray-900 leading-relaxed">{rep.repContent.point}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Example</p>
-              <p className="text-sm text-gray-900 leading-relaxed">{rep.repContent.example}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Meaning</p>
-              <p className="text-sm text-gray-900 leading-relaxed">{rep.repContent.meaning}</p>
-            </div>
-            {rep.analysisMetrics && (
-              <div className="mt-4 pt-4 border-t border-gray-200 flex gap-6 text-xs text-gray-600">
-                <span>Words: {rep.analysisMetrics.wordCount}</span>
-                {rep.analysisMetrics.hasAllFields && (
-                  <span className="text-green-600">✓ All fields complete</span>
-                )}
-              </div>
-            )}
+        {transcriptExpanded && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-700 leading-relaxed">{rep.transcript ?? "No transcript."}</p>
           </div>
         )}
-      </div>
-
-      {/* Pre-Rep Intent */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 mb-6">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">PRE-REP INTENT</h3>
-        <p className="text-sm text-gray-700">{rep.preRepIntent}</p>
-      </div>
-
-      {/* Improvement Focus Section */}
-      <div className="bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-200 rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-3">
-          <Target className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-semibold text-orange-900 mb-2">NEXT REP FOCUS</h3>
-            <h4 className="text-lg font-bold text-gray-900 mb-2">{rep.primaryFocus.title}</h4>
-            <p className="text-sm text-gray-700">{rep.primaryFocus.nextStep}</p>
-          </div>
-        </div>
       </div>
 
       {/* Metadata */}
@@ -210,40 +255,51 @@ export function RepDetailPage({ reps }: RepDetailPageProps) {
               <User className="w-4 h-4" />
               <span>Audience</span>
             </div>
-            <div className="font-medium text-gray-900">{rep.audience}</div>
+            <div className="font-medium text-gray-900">{rep.audience ?? "—"}</div>
           </div>
           <div>
             <div className="flex items-center gap-2 text-gray-600 mb-1">
               <BookOpen className="w-4 h-4" />
               <span>Framework</span>
             </div>
-            <div className="font-medium text-gray-900">{framework?.name || rep.framework}</div>
+            <div className="font-medium text-gray-900">{rep.framework ?? "—"}</div>
           </div>
           <div>
             <div className="flex items-center gap-2 text-gray-600 mb-1">
-              <PlayCircle className="w-4 h-4" />
-              <span>Rep Type</span>
+              <Clock className="w-4 h-4" />
+              <span>Time Limit</span>
             </div>
-            <div className="font-medium text-gray-900 capitalize">{rep.repType.replace('-', ' ')}</div>
+            <div className="font-medium text-gray-900">{rep.time_limit != null ? `${rep.time_limit}s` : "—"}</div>
           </div>
           <div>
             <div className="flex items-center gap-2 text-gray-600 mb-1">
               <Calendar className="w-4 h-4" />
-              <span>Category</span>
+              <span>Vertical</span>
             </div>
-            <div className="font-medium text-gray-900">{rep.scenarioCategory}</div>
+            <div className="font-medium text-gray-900">{rep.vertical ?? "—"}</div>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="mt-8 flex gap-3">
-        <Link
-          to="/app/rep"
+        <button
+          onClick={() =>
+            navigate("/app/rep", {
+              state: {
+                carryFocus: rep.next_focus,
+                vertical: rep.vertical,
+                scenario: rep.scenario,
+                audience: rep.audience,
+                framework: rep.framework,
+                time_limit: rep.time_limit
+              }
+            })
+          }
           className="flex-1 px-6 py-3 bg-gradient-to-r from-[#5CB3FF] to-[#9D7BF5] text-white rounded-lg font-medium text-center hover:shadow-lg transition-all"
         >
           Do Another Rep
-        </Link>
+        </button>
         <button
           onClick={() => navigate("/app/history")}
           className="flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all"
@@ -271,7 +327,7 @@ function DimensionCard({ title, score, insight, color }: DimensionCardProps) {
     orange: "bg-orange-50 border-orange-200 text-orange-900"
   };
 
-  const scoreColor = 
+  const scoreColor =
     score >= 80 ? "text-green-700" :
     score >= 65 ? "text-blue-700" :
     score >= 50 ? "text-yellow-700" :
