@@ -97,7 +97,7 @@ function AppContent() {
           )
         }
       >
-        <Route index element={<AppHome reps={repHistory} />} />
+        <Route index element={<AppHome />} />
         <Route path="rep" element={<TryItOut2 />} />
         <Route path="try-it-out-v2" element={<TryItOut2 />} />
         <Route path="history" element={<HistoryPage />} />

@@ -1,31 +1,41 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { TrendingUp, Flame, BarChart3, Target, ArrowRight, TrendingDown, Minus } from "lucide-react";
-import { Rep } from "../types/rep";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { CognifyHeroLogo } from "../../components/branding/CognifyHeroLogo";
+import { supabase } from "../../lib/supabase";
+import type { RepRow } from "../v2/components/tryitout/ResultsScreen";
 
-interface AppHomeProps {
-  reps: Rep[];
-}
-
-export function AppHome({ reps }: AppHomeProps) {
+export function AppHome() {
   const navigate = useNavigate();
+  const [reps, setReps] = useState<RepRow[]>([]);
+
+  useEffect(() => {
+    const loadReps = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+      if (!userId) return;
+
+      const { data } = await supabase
+        .from("reps")
+        .select(`
+          *,
+          delivery_scores (*)
+        `)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (data) setReps(data as RepRow[]);
+    };
+
+    loadReps();
+  }, []);
+
   // Calculate stats
   const totalReps = reps.length;
-  
-  // Calculate overall score (weighted average across all dimensions)
-  const calculateOverallScore = (rep: Rep) => {
-    if (rep.detailedScores) {
-      return Math.round(
-        (rep.detailedScores.clarity * 0.2) +
-        (rep.detailedScores.structure * 0.25) +
-        (rep.detailedScores.specificity * 0.2) +
-        (rep.detailedScores.pacing * 0.15) +
-        (rep.detailedScores.presence * 0.2)
-      );
-    }
-    return rep.clarityScore || 0;
-  };
+
+  // Calculate overall score (DB-backed overall_score per rep)
+  const calculateOverallScore = (rep: RepRow) => rep.overall_score ?? 0;
 
   const avgScore = reps.length > 0
     ? Math.round(reps.reduce((sum, rep) => sum + calculateOverallScore(rep), 0) / reps.length)
@@ -42,7 +52,7 @@ export function AppHome({ reps }: AppHomeProps) {
   
   while (true) {
     const hasRepOnDate = reps.some(rep => {
-      const repDate = new Date(rep.completedAt);
+      const repDate = new Date(rep.created_at ?? 0);
       repDate.setHours(0, 0, 0, 0);
       return repDate.getTime() === checkDate.getTime();
     });
@@ -71,11 +81,10 @@ export function AppHome({ reps }: AppHomeProps) {
   
     let count = 0;
   
+    type DeliveryRow = { pace: number | null; clarity: number | null; confidence: number | null; pauses: number | null; tone: number | null };
     reps.forEach(rep => {
-      const delivery = Array.isArray(rep.delivery_scores)
-        ? rep.delivery_scores[0]
-        : null;
-  
+      const delivery = (rep.delivery_scores ?? null) as DeliveryRow | null;
+
       if (delivery) {
         dimensionTotals.pace += delivery.pace ?? 0;
         dimensionTotals.clarity += delivery.clarity ?? 0;
