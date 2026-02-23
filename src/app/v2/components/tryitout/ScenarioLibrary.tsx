@@ -153,8 +153,8 @@ export function ScenarioLibrary({ onSelectScenario, onCreateCustom }: ScenarioLi
         </div>
       )}
 
-      {/* Custom Prompt Builder */}
-      <div className="pt-4 border-t border-gray-200">
+      {/* Custom Prompt Builder temporarily disabled (v2 simplification) */}
+      {/* <div className="pt-4 border-t border-gray-200">
         <button
           onClick={onCreateCustom}
           className="w-full px-6 py-5 bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-[#9D7BF5] hover:bg-[#9D7BF5]/5 transition-all group text-left"
@@ -173,7 +173,7 @@ export function ScenarioLibrary({ onSelectScenario, onCreateCustom }: ScenarioLi
             </div>
           </div>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

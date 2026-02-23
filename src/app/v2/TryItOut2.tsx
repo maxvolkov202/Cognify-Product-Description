@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 //import { Navigation } from "../components/Navigation";
 import { ScenarioLibrary, scenarioCategories } from "./components/tryitout/ScenarioLibrary";
-import { CustomScenarioBuilder } from "./components/tryitout/CustomScenarioBuilder";
+// Custom Prompt Builder temporarily disabled (v2 simplification)
+// import { CustomScenarioBuilder } from "./components/tryitout/CustomScenarioBuilder";
 import { ScenarioSelection } from "./components/tryitout/ScenarioSelection";
 import { RecordingArea } from "./components/tryitout/RecordingArea";
 import { RecordingConfirmationScreen } from "./components/tryitout/RecordingConfirmationScreen";
@@ -139,15 +140,16 @@ export default function TryItOut() {
     setViewState("configure");
   };
 
-  const handleCreateCustom = () => {
-    setViewState("custom");
-  };
+  // Custom Prompt Builder temporarily disabled (v2 simplification)
+  // const handleCreateCustom = () => {
+  //   setViewState("custom");
+  // };
 
-  const handleCustomConfirm = (scenario: string, context: string) => {
-    setSelectedScenario(scenario);
-    setScenarioCategory("Custom");
-    setViewState("configure");
-  };
+  // const handleCustomConfirm = (scenario: string, context: string) => {
+  //   setSelectedScenario(scenario);
+  //   setScenarioCategory("Custom");
+  //   setViewState("configure");
+  // };
 
   const handleBackToBrowse = () => {
     setViewState("browse");
@@ -318,13 +320,14 @@ export default function TryItOut() {
     <div className="max-w-5xl mx-auto">
       <ScenarioLibrary
         onSelectScenario={handleSelectScenario}
-        onCreateCustom={handleCreateCustom}
+        onCreateCustom={() => {}}
       />
     </div>
   </section>
 )}
 
-      {viewState === "custom" && (
+      {/* Custom Prompt Builder temporarily disabled (v2 simplification) */}
+      {/* {viewState === "custom" && (
         <section className="py-16 px-6">
           <div className="max-w-4xl mx-auto">
             <CustomScenarioBuilder
@@ -333,7 +336,7 @@ export default function TryItOut() {
             />
           </div>
         </section>
-      )}
+      )} */}
 
 {viewState === "configure" && (
   <>
