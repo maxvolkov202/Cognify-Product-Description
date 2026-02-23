@@ -31,8 +31,9 @@ export function AppHome({ reps }: AppHomeProps) {
     ? Math.round(reps.reduce((sum, rep) => sum + calculateOverallScore(rep), 0) / reps.length)
     : 0;
 
-  const lastScore = reps.length > 0 ? calculateOverallScore(reps[reps.length - 1]) : 0;
-
+    const lastScore = reps.length > 0
+    ? calculateOverallScore(reps[0])
+    : 0;
   // Calculate current streak (consecutive days with reps)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -56,35 +57,44 @@ export function AppHome({ reps }: AppHomeProps) {
     }
   }
 
-  // Calculate weakest dimension
+  //calculate weakest dimension
   const getWeakestDimension = () => {
     if (reps.length === 0) return null;
-
-    const dimensionAverages = {
+  
+    const dimensionTotals = {
+      pace: 0,
       clarity: 0,
-      structure: 0,
-      specificity: 0,
-      pacing: 0,
-      presence: 0
+      confidence: 0,
+      pauses: 0,
+      tone: 0
     };
-
+  
+    let count = 0;
+  
     reps.forEach(rep => {
-      if (rep.detailedScores) {
-        dimensionAverages.clarity += rep.detailedScores.clarity;
-        dimensionAverages.structure += rep.detailedScores.structure;
-        dimensionAverages.specificity += rep.detailedScores.specificity;
-        dimensionAverages.pacing += rep.detailedScores.pacing;
-        dimensionAverages.presence += rep.detailedScores.presence;
-      } else {
-        dimensionAverages.clarity += rep.clarityScore;
+      const delivery = Array.isArray(rep.delivery_scores)
+        ? rep.delivery_scores[0]
+        : null;
+  
+      if (delivery) {
+        dimensionTotals.pace += delivery.pace ?? 0;
+        dimensionTotals.clarity += delivery.clarity ?? 0;
+        dimensionTotals.confidence += delivery.confidence ?? 0;
+        dimensionTotals.pauses += delivery.pauses ?? 0;
+        dimensionTotals.tone += delivery.tone ?? 0;
+        count++;
       }
     });
-
-    Object.keys(dimensionAverages).forEach(key => {
-      dimensionAverages[key as keyof typeof dimensionAverages] /= reps.length;
+  
+    if (count === 0) return null;
+  
+    Object.keys(dimensionTotals).forEach(key => {
+      dimensionTotals[key as keyof typeof dimensionTotals] /= count;
     });
-
-    const weakest = Object.entries(dimensionAverages).sort((a, b) => a[1] - b[1])[0];
+  
+    const weakest = Object.entries(dimensionTotals)
+      .sort((a, b) => a[1] - b[1])[0];
+  
     return {
       dimension: weakest[0].charAt(0).toUpperCase() + weakest[0].slice(1),
       score: Math.round(weakest[1])
