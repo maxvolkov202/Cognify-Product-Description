@@ -11,7 +11,7 @@ import {
   MicOff,
 } from "lucide-react";
 import { FRAMEWORKS } from "../../../types/rep";
-import { FrameworkWorkspace } from "../../../components/tryitout/FrameworkWorkspace";
+import { FrameworkWorkspace } from "../../components/tryitout/FrameworkWorkspace";
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
 import { supabase } from "../../../../lib/supabase";
 
