@@ -101,21 +101,27 @@ export function RecordingArea({
 
   // Countdown
   useEffect(() => {
-    if (recordingState === "countdown" && countdown > 0) {
-      const timer = setTimeout(
-        () => setCountdown(countdown - 1),
-        1000
-      );
+    if (recordingState !== "countdown") return;
+  
+    if (countdown > 1) {
+      const timer = setTimeout(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
       return () => clearTimeout(timer);
     }
-
-    if (recordingState === "countdown" && countdown === 0) {
-      startRecording()
-        .then(() => {
+  
+    if (countdown === 1) {
+      const timer = setTimeout(async () => {
+        try {
+          await startRecording();
           setRecordingState("recording");
           setTimeRemaining(timeConstraint);
-        })
-        .catch(() => setRecordingState("ready"));
+        } catch {
+          setRecordingState("ready");
+        }
+      }, 1000);
+  
+      return () => clearTimeout(timer);
     }
   }, [recordingState, countdown, startRecording, timeConstraint]);
 

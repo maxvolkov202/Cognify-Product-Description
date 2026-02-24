@@ -38,6 +38,27 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     typeof MediaRecorder !== "undefined";
 
   // ────────────────────────────────────────────────────────────
+  // PRE-WARM MICROPHONE (eliminates startup delay)
+  // ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const initStream = async () => {
+      if (!isSupported) return;
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+
+        streamRef.current = stream;
+      } catch {
+        // Silent fail — handled in startRecording if needed
+      }
+    };
+
+    initStream();
+  }, [isSupported]);
+
+  // ────────────────────────────────────────────────────────────
   // START RECORDING
   // ────────────────────────────────────────────────────────────
   const startRecording = useCallback(async () => {
@@ -55,27 +76,29 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
     setError(null);
 
-    // Request microphone access
-    let stream: MediaStream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
-    } catch (err: any) {
-      let msg = "Microphone access required. Please allow access and try again.";
-      if (err.name === "NotFoundError") {
-        msg = "No microphone found. Please connect one and try again.";
-      } else if (err.name === "NotReadableError") {
-        msg = "Microphone is in use by another app.";
-      } else if (err.name === "SecurityError") {
-        msg = "Microphone blocked by browser security policy.";
-      }
-      setError(msg);
-      setState("error");
-      throw new Error(msg);
-    }
+    // Use pre-warmed stream or request microphone access
+    let stream = streamRef.current;
 
-    streamRef.current = stream;
+    if (!stream) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+        streamRef.current = stream;
+      } catch (err: any) {
+        let msg = "Microphone access required. Please allow access and try again.";
+        if (err.name === "NotFoundError") {
+          msg = "No microphone found. Please connect one and try again.";
+        } else if (err.name === "NotReadableError") {
+          msg = "Microphone is in use by another app.";
+        } else if (err.name === "SecurityError") {
+          msg = "Microphone blocked by browser security policy.";
+        }
+        setError(msg);
+        setState("error");
+        throw new Error(msg);
+      }
+    }
 
     // Create new MediaRecorder
     let recorder: MediaRecorder;
@@ -102,7 +125,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     };
 
     // Start recording
-    recorder.start(250);
+    recorder.start();
     setState("recording");
   }, [isSupported]);
 
@@ -122,12 +145,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       recorder.onstop = () => {
         const finalMime = recorder.mimeType || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: finalMime });
-
-        // CRITICAL: Stop all audio tracks to release microphone
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-        }
 
         recorderRef.current = null;
 
@@ -156,11 +173,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       try {
         recorder.stop();
       } catch {
-        // If stop() fails, clean up manually
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-        }
         recorderRef.current = null;
         resolve(null);
       }
