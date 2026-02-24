@@ -63,6 +63,10 @@ export default function TryItOut() {
   const isContinuation = !!carriedFocus;
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [viewState]);
+
+  useEffect(() => {
     if (!incomingState) return;
 
     if (incomingState.vertical) {

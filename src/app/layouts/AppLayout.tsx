@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { Flame, Activity, User } from "lucide-react";
 import { Rep } from "../types/rep";
 import { CognifyHeroLogo } from "../../components/branding/CognifyHeroLogo";
@@ -16,9 +16,15 @@ interface AppLayoutProps {
 
 export function AppLayout({ context, disableNavigation: disableNavigationProp }: AppLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [disableNavInternal, setDisableNavigation] = useState(false);
   const disableNavigation = disableNavigationProp ?? disableNavInternal;
   const reps = context?.reps || [];
+
+  useEffect(() => {
+    
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
 
   // Calculate today's reps
   const today = new Date();
