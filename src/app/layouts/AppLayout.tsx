@@ -14,15 +14,67 @@ interface AppLayoutProps {
   disableNavigation?: boolean;
 }
 
+type RepSummary = { id: string; completedAt: Date };
+
 export function AppLayout({ context, disableNavigation: disableNavigationProp }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [disableNavInternal, setDisableNavigation] = useState(false);
   const disableNavigation = disableNavigationProp ?? disableNavInternal;
-  const reps = context?.reps || [];
+  const [reps, setReps] = useState<RepSummary[]>([]);
+
+  const loadReps = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return;
+
+    const { data } = await supabase
+      .from("reps")
+      .select("id, created_at")
+      .eq("user_id", session.user.id);
+
+    if (data) {
+      setReps(data.map((r) => ({ id: r.id, completedAt: new Date(r.created_at) })));
+    }
+  };
 
   useEffect(() => {
-    
+    loadReps();
+  }, []);
+
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const subscribe = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      channel = supabase
+        .channel("reps-header-updates")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "reps",
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          () => {
+            loadReps();
+          }
+        )
+        .subscribe();
+    };
+
+    subscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [location.pathname]);
 
