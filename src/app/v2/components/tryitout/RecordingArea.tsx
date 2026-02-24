@@ -272,50 +272,12 @@ export function RecordingArea({
   ]);
 
   return (
-    <section className="py-8 px-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="bg-white rounded-xl border p-6">
-          <h2 className="text-2xl font-bold mb-2">{scenario}</h2>
-          <div className="text-sm text-gray-600 flex gap-4">
-            <span><strong>Audience:</strong> {audience}</span>
-            <span><strong>Framework:</strong> {selectedFrameworkObj?.name}</span>
-            <span><strong>Time:</strong> {timeConstraint}s</span>
-          </div>
-        </div>
-
-        {/* Framework Prep */}
-        {recordingState === "ready" &&
-          selectedFrameworkObj && (
-            <div className="bg-white rounded-xl border p-6">
-              <FrameworkWorkspace
-                frameworkName={selectedFrameworkObj.name}
-                frameworkSteps={
-                  selectedFrameworkObj.structure
-                }
-                isRecording={false}
-                isLocked={false}
-              />
-            </div>
-          )}
-
-        {/* Intent */}
-        {recordingState === "ready" &&
-          preRepIntent && (
-            <div className="bg-gray-50 border rounded-xl p-5">
-              <p className="text-xs font-bold uppercase mb-2">
-                Your Intent
-              </p>
-              <p className="text-sm whitespace-pre-wrap">
-                {preRepIntent}
-              </p>
-            </div>
-          )}
+    <section className="py-8">
+      <div className="max-w-7xl mx-auto px-6 space-y-6">
 
         {nextRepFocus && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-            <p className="text-xs font-semibold text-yellow-800 mb-1 uppercase tracking-wide">
+          <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-6">
+            <p className="text-xs font-semibold text-yellow-800 mb-2 uppercase tracking-wide">
               Focus for This Rep
             </p>
             <p className="text-sm font-medium text-gray-900">
@@ -324,75 +286,108 @@ export function RecordingArea({
           </div>
         )}
 
-        {/* Recording UI */}
-        <div className="bg-white rounded-xl border p-6 text-center">
-
-          {recordingState === "ready" && (
-            <>
-              <Mic className="w-12 h-12 mx-auto mb-4 text-[#9D7BF5]" />
-              <button
-                onClick={handleStartRecording}
-                className="px-8 py-3 bg-gradient-to-r from-[#5CB3FF] via-[#9D7BF5] to-[#E86DE1] text-white rounded-lg font-semibold"
-              >
-                Start Recording
-              </button>
-            </>
-          )}
-
-          {recordingState === "countdown" && (
-            <div className="text-6xl font-bold animate-pulse">
-              {countdown}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          {/* LEFT: Framework */}
+          {selectedFrameworkObj && (
+            <div className="bg-white rounded-xl border p-6">
+              <FrameworkWorkspace
+                frameworkName={selectedFrameworkObj.name}
+                frameworkSteps={selectedFrameworkObj.structure}
+                isRecording={recordingState === "recording"}
+                isLocked={recordingState !== "ready"}
+              />
             </div>
           )}
 
-          {recordingState === "recording" && (
-            <>
-              <div className="text-3xl font-bold mb-6">
-                {Math.floor(timeRemaining / 60)}:
-                {(timeRemaining % 60)
-                  .toString()
-                  .padStart(2, "0")}
+          {/* RIGHT: Scenario + Recording */}
+          <div className="space-y-6">
+            {/* Scenario Panel */}
+            <div className="bg-white rounded-xl border p-6">
+              <h2 className="text-xl font-bold mb-3">{scenario}</h2>
+              <div className="text-sm text-gray-600 space-y-1">
+                <div><strong>Audience:</strong> {audience}</div>
+                <div><strong>Time:</strong> {timeConstraint}s</div>
               </div>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handlePauseRecording}
-                  className="px-6 py-3 bg-yellow-500 text-white rounded-lg"
-                >
-                  <Pause /> Pause
-                </button>
-                <button
-                  onClick={handleStopRecording}
-                  className="px-6 py-3 bg-gray-900 text-white rounded-lg"
-                >
-                  <Square /> Stop
-                </button>
-              </div>
-            </>
-          )}
-
-          {recordingState === "paused" && (
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={handleResumeRecording}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg"
-              >
-                <Play /> Resume
-              </button>
-              <button
-                onClick={handleStopRecording}
-                className="px-6 py-3 bg-gray-900 text-white rounded-lg"
-              >
-                <Square /> Stop
-              </button>
             </div>
-          )}
 
-          {recordingState === "stopping" && (
-            <>
-              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-[#9D7BF5]" />
-              <p>Analyzing your rep...</p>
-            </>
-          )}
+            {/* Recording UI */}
+            <div className="bg-white rounded-xl border p-6 text-center">
+              {recordingState === "ready" && (
+                <>
+                  <Mic className="w-12 h-12 mx-auto mb-4 text-[#9D7BF5]" />
+                  <button
+                    onClick={handleStartRecording}
+                    className="px-8 py-3 bg-gradient-to-r from-[#5CB3FF] via-[#9D7BF5] to-[#E86DE1] text-white rounded-lg font-semibold"
+                  >
+                    Start Recording
+                  </button>
+                </>
+              )}
+
+              {recordingState === "countdown" && (
+                <div className="text-6xl font-bold animate-pulse">
+                  {countdown}
+                </div>
+              )}
+
+              {recordingState === "recording" && (
+                <>
+                  <p className="text-sm text-gray-500 mb-2">
+                    ● Recording in progress
+                  </p>
+                  <div className="text-3xl font-bold mb-6">
+                    {Math.floor(timeRemaining / 60)}:
+                    {(timeRemaining % 60)
+                      .toString()
+                      .padStart(2, "0")}
+                  </div>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handlePauseRecording}
+                      className="px-6 py-3 bg-yellow-500 text-white rounded-lg"
+                    >
+                      <Pause /> Pause
+                    </button>
+                    <button
+                      onClick={handleStopRecording}
+                      className="px-6 py-3 bg-gray-900 text-white rounded-lg"
+                    >
+                      <Square /> Stop
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {recordingState === "paused" && (
+                <>
+                  <p className="text-sm text-yellow-600 mb-4">
+                    Paused
+                  </p>
+                  <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={handleResumeRecording}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg"
+                  >
+                    <Play /> Resume
+                  </button>
+                  <button
+                    onClick={handleStopRecording}
+                    className="px-6 py-3 bg-gray-900 text-white rounded-lg"
+                  >
+                    <Square /> Stop
+                  </button>
+                </div>
+                </>
+              )}
+
+              {recordingState === "stopping" && (
+                <>
+                  <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-[#9D7BF5]" />
+                  <p>Analyzing your rep...</p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
