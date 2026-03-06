@@ -67,14 +67,25 @@ export function ResultsScreen({
   const [audioUrlLoading, setAudioUrlLoading] = useState(false);
   const [audioUrlError, setAudioUrlError] = useState(false);
 
+  const loadDeliveryScores = async (id: string) => {
+    const { data: deliveryData, error: deliveryErr } = await supabase
+      .from("delivery_scores")
+      .select("pace, clarity, filler_words, confidence, pauses, tone, overall_delivery")
+      .eq("rep_id", id)
+      .maybeSingle();
+    if (!deliveryErr) {
+      setDeliveryScores(deliveryData as DeliveryScoresRow | null);
+    }
+  };
+
   useEffect(() => {
     if (!repId) return;
     let cancelled = false;
 
-    const poll = async () => {
+    (async () => {
       const { data: repData, error: repErr } = await supabase
         .from("reps")
-        .select("id, transcript, transcript_word_count, overall_score, delivery_score, content_score, status, audio_url, vertical, scenario, audience, framework, time_limit, feedback_good, feedback_improve, next_focus")
+        .select("*")
         .eq("id", repId)
         .single();
 
@@ -99,25 +110,47 @@ export function ResultsScreen({
       }
 
       if (repData.status === "completed") {
-        const { data: deliveryData, error: deliveryErr } = await supabase
-          .from("delivery_scores")
-          .select("pace, clarity, filler_words, confidence, pauses, tone, overall_delivery")
-          .eq("rep_id", repId)
-          .maybeSingle();
-
-        if (!cancelled && !deliveryErr) {
-          setDeliveryScores(deliveryData as DeliveryScoresRow | null);
-        }
-        setLoading(false);
+        await loadDeliveryScores(repId);
+        if (!cancelled) setLoading(false);
         return;
       }
 
-      setTimeout(poll, 2000);
-    };
+      setLoading(false);
+    })();
+  }, [repId]);
 
-    poll();
+  useEffect(() => {
+    if (!repId) return;
+
+    const channel = supabase
+      .channel(`rep-${repId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "reps",
+          filter: `id=eq.${repId}`,
+        },
+        (payload) => {
+          const updatedRep = payload.new as RepRow;
+
+          if (updatedRep.status === "completed") {
+            setRep(updatedRep);
+            loadDeliveryScores(repId);
+            setLoading(false);
+          }
+
+          if (updatedRep.status === "failed") {
+            setError("Rep processing failed.");
+            setLoading(false);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [repId]);
 
