@@ -122,7 +122,37 @@ serve(async (req) => {
       const transcript = transcription.text ?? ""
       const transcriptWordCount = transcript.trim().split(/\s+/).filter(Boolean).length
 
-      const systemPrompt = `You evaluate executive communication quality. Return STRICT JSON only, no other text.
+      const vertical = rep.vertical ?? ""
+      const scenario = rep.scenario ?? ""
+      const audience = rep.audience ?? ""
+      const framework = rep.framework ?? ""
+
+      const systemPrompt = `You are an expert evaluator of executive communication.
+
+Score the speaker using this rubric.
+
+DELIVERY (0–100)
+- pace: speaking speed appropriate for clarity
+- clarity: articulation and intelligibility
+- filler_words: frequency of "um", "uh", "like"
+- confidence: certainty and authority
+- pauses: effective pauses instead of filler words
+- tone: professional and engaging vocal tone
+
+CONTENT (0–100)
+- clarity: clear main message
+- structure: logical progression of ideas
+- brevity: concise communication without rambling
+- confidence: decisive recommendation
+
+Scoring guidelines:
+90–100 = exceptional executive communication
+70–89 = strong but improvable
+50–69 = average
+below 50 = weak communication
+
+Return STRICT JSON only.
+
 JSON structure:
 {
   "overall_score": number,
@@ -141,15 +171,26 @@ JSON structure:
     "brevity": number,
     "confidence": number
   }
-}
-Scores are 0-100. Return only valid JSON.`
+}`
 
       console.log("[score-rep] Before GPT scoring call", { repId })
       const chatResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
+        temperature: 0.2,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: transcript },
+          {
+            role: "user",
+            content: `
+Vertical: ${vertical}
+Scenario: ${scenario}
+Audience: ${audience}
+Framework: ${framework}
+
+Transcript:
+${transcript}
+`,
+          },
         ],
         response_format: { type: "json_object" },
       })
@@ -201,44 +242,128 @@ Scores are 0-100. Return only valid JSON.`
       const overallScore = num(scores.overall_score)
       const finalContentScore = Math.round(contentScore * 100) / 100
 
-      const vertical = rep.vertical ?? ""
-      const scenario = rep.scenario ?? ""
-      const audience = rep.audience ?? ""
-      const framework = rep.framework ?? ""
+      const diagnosisPrompt = `You are analyzing executive communication.
+
+Identify the primary communication issue in the transcript.
+
+Return JSON:
+
+{
+  "primary_issue": "short description",
+  "evidence": "specific quote or behavior from transcript",
+  "impact": "why this weakens the communication",
+  "recommended_focus": "the highest-leverage improvement"
+}
+
+Focus on the single most important issue.`
+
+      const diagnosisResponse = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        temperature: 0.2,
+        messages: [
+          { role: "system", content: diagnosisPrompt },
+          {
+            role: "user",
+            content: `
+Vertical: ${vertical}
+Scenario: ${scenario}
+Audience: ${audience}
+Framework: ${framework}
+
+Transcript:
+${transcript}
+`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      })
+
+      const diagnosisText = diagnosisResponse.choices[0]?.message?.content
+
+      let diagnosis: {
+        primary_issue?: string
+        evidence?: string
+        impact?: string
+        recommended_focus?: string
+      } | null = null
+
+      if (diagnosisText) {
+        try {
+          diagnosis = JSON.parse(diagnosisText)
+        } catch {
+          diagnosis = null
+        }
+      }
 
       let feedbackGood: string | null = null
       let feedbackImprove: string | null = null
       let nextFocus: string | null = null
 
-      const coachingSystemPrompt = `You are a high-performance communication coach.
-Given the following context:
+      const coachingSystemPrompt = `You are an elite executive communication coach.
+
+Your goal is to help the speaker improve ONE skill per rep.
+
+Training philosophy:
+• Improvement comes from focusing on ONE change at a time.
+• Choose the highest-leverage improvement.
+• Be concrete and actionable.
+
+Context:
 Vertical: ${vertical}
 Scenario: ${scenario}
 Audience: ${audience}
 Framework: ${framework}
-Overall Score: ${overallScore}
-Delivery Score: ${deliveryScore}
-Content Score: ${finalContentScore}
+
+Scores:
+Overall: ${overallScore}
+Delivery: ${deliveryScore}
+Content: ${finalContentScore}
+
+Diagnosis:
+Primary Issue: ${diagnosis?.primary_issue ?? "unknown"}
+Evidence: ${diagnosis?.evidence ?? "unknown"}
+Impact: ${diagnosis?.impact ?? "unknown"}
+Recommended Focus: ${diagnosis?.recommended_focus ?? "unknown"}
 
 Transcript:
 ${transcript}
 
-Respond ONLY in valid JSON with this exact structure:
+Instructions:
+
+1. Identify what the speaker did well.
+2. Identify the single biggest improvement opportunity.
+3. Provide one clear instruction for the next rep.
+
+Focus rules:
+• Choose ONE improvement only.
+• Prefer behaviors that can be practiced immediately.
+• Avoid generic advice.
+
+Examples:
+
+Example 1
+feedback_good: Clear recommendation and confident tone.
+feedback_improve: The answer rambles before reaching the main point.
+next_focus: State your recommendation in the first sentence.
+
+Example 2
+feedback_good: You explained the idea clearly and logically.
+feedback_improve: Frequent filler words reduce authority.
+next_focus: Pause instead of saying "um" or "uh".
+
+Return STRICT JSON only.
 
 {
-  "feedback_good": "1-2 concise, specific sentences about what was effective.",
-  "feedback_improve": "1-2 concise sentences about what needs improvement.",
-  "next_focus": "One clear, actionable instruction for the next rep."
-}
-
-No extra commentary. No markdown.
-Be specific to the scenario and audience.
-Avoid generic praise.`
+  "feedback_good": "1–2 sentences",
+  "feedback_improve": "1–2 sentences",
+  "next_focus": "ONE clear instruction"
+}`
 
       console.log("[score-rep] Before GPT coaching call", { repId })
       try {
         const coachingResponse = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4.1-mini",
+          temperature: 0.2,
           messages: [
             { role: "system", content: coachingSystemPrompt },
             { role: "user", content: "Generate the feedback JSON." },
