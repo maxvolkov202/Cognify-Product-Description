@@ -109,7 +109,7 @@ export function AppLayout({ context, disableNavigation: disableNavigationProp }:
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* App Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-3.5">
@@ -192,9 +192,13 @@ export function AppLayout({ context, disableNavigation: disableNavigationProp }:
       </header>
 
       {/* Main Content */}
-      <main>
+      <main className="flex-1">
         <Outlet context={{ ...context, setDisableNavigation }} />
       </main>
+
+      <footer className="text-center text-xs text-gray-400 py-4">
+        © {new Date().getFullYear()} Cognify
+      </footer>
     </div>
   );
 }
