@@ -50,10 +50,33 @@ serve(async (req) => {
       )
     }
 
-    await supabase
+    if (rep.status !== "pending") {
+      return new Response(
+        JSON.stringify({ message: "Rep already processed or processing" }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      )
+    }
+
+    const { data: claimed, error: claimError } = await supabase
       .from("reps")
       .update({ status: "processing" })
       .eq("id", repId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle()
+
+    if (claimError || !claimed) {
+      return new Response(
+        JSON.stringify({ message: "Rep already processed or processing" }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      )
+    }
 
     try {
       if (!rep.audio_url) {

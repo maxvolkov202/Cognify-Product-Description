@@ -5,6 +5,14 @@ import type { RepRow } from "../v2/components/tryitout/ResultsScreen";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
 
+async function getSignedAudioUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from("rep-audio")
+    .createSignedUrl(path, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
 export function RepDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -12,6 +20,7 @@ export function RepDetailPage() {
   const [rep, setRep] = useState<RepRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [transcriptExpanded, setTranscriptExpanded] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const loadRep = async () => {
@@ -55,6 +64,23 @@ export function RepDetailPage() {
 
     loadRep();
   }, [id, session?.user?.id]);
+
+  useEffect(() => {
+    async function loadAudio() {
+      if (!rep?.audio_url) return;
+      if (rep.audio_url.startsWith("http")) {
+        setAudioUrl(rep.audio_url);
+        return;
+      }
+      try {
+        const url = await getSignedAudioUrl(rep.audio_url);
+        setAudioUrl(url);
+      } catch {
+        setAudioUrl(null);
+      }
+    }
+    loadAudio();
+  }, [rep?.audio_url]);
 
   if (loading) {
     return <div className="p-12 text-center">Loading...</div>;
@@ -185,14 +211,14 @@ export function RepDetailPage() {
         </div>
       </div>
 
-      {/* Audio Playback - only if audio_url exists */}
+      {/* Audio Playback - only if audio_url exists (signed URL for storage path) */}
       {rep.audio_url && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
           <div className="flex items-center gap-3 mb-3">
             <Volume2 className="w-5 h-5 text-gray-700" />
             <h3 className="text-sm font-semibold text-gray-900">AUDIO PLAYBACK</h3>
           </div>
-          <audio controls src={rep.audio_url} className="w-full" />
+          <audio controls src={audioUrl ?? undefined} className="w-full" />
         </div>
       )}
 
