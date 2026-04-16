@@ -1,0 +1,213 @@
+"use server";
+
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import {
+  users,
+  reps,
+  dimensionScores,
+  callouts as calloutsTable,
+  practiceSessions,
+  progressSnapshots,
+  activityEvents,
+  scenarios,
+  externalValidations,
+} from "@/lib/db/schema";
+import { currentUser } from "@/lib/session/current-user";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { safeDb } from "@/lib/db/safe";
+
+export type AccountActionResult = {
+  ok: boolean;
+  message: string;
+};
+
+/**
+ * Trigger a Supabase Auth password-reset email. Only works for
+ * authenticated users with an email on file (not guests). Returns a
+ * non-revealing message so we don't leak account existence.
+ */
+export async function sendPasswordResetEmail(): Promise<AccountActionResult> {
+  const user = await currentUser();
+  if (!user || user.kind !== "authenticated" || !user.email) {
+    return {
+      ok: false,
+      message:
+        "Password reset only works for signed-in accounts with an email.",
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://cognifygym.com"}/auth/callback?next=/settings`;
+  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+    redirectTo,
+  });
+  if (error) {
+    return { ok: false, message: `Couldn't send reset email: ${error.message}` };
+  }
+  return {
+    ok: true,
+    message: `Sent a reset link to ${user.email}. Check your inbox.`,
+  };
+}
+
+/**
+ * Build a JSON export of everything the user has created: profile,
+ * reps, scores, callouts, scenarios, validations. Returned as a
+ * serialized string the client can download as a blob.
+ */
+type ExportResult =
+  | { ok: true; data: string; filename: string }
+  | { ok: false; message: string };
+
+export async function exportUserData(): Promise<ExportResult> {
+  const user = await currentUser();
+  if (!user) return { ok: false, message: "Not signed in." };
+
+  const fallback: ExportResult = {
+    ok: false,
+    message: "Database unavailable.",
+  };
+
+  return safeDb<ExportResult>(async () => {
+    const [profile] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, user.id));
+    const userReps = await db
+      .select()
+      .from(reps)
+      .where(eq(reps.userId, user.id));
+    const repIds = userReps.map((r) => r.id);
+
+    const [userSessions, userCallouts, userProgressSnapshots] = await Promise.all([
+      db
+        .select()
+        .from(practiceSessions)
+        .where(eq(practiceSessions.userId, user.id)),
+      Promise.all(
+        repIds.map((id) =>
+          db.select().from(calloutsTable).where(eq(calloutsTable.repId, id)),
+        ),
+      ).then((arr) => arr.flat()),
+      db
+        .select()
+        .from(progressSnapshots)
+        .where(eq(progressSnapshots.userId, user.id)),
+    ]);
+
+    const allDimensionScores = await Promise.all(
+      repIds.map((id) =>
+        db.select().from(dimensionScores).where(eq(dimensionScores.repId, id)),
+      ),
+    ).then((arr) => arr.flat());
+
+    const [userScenarios, userValidations, userActivity] = await Promise.all([
+      db.select().from(scenarios).where(eq(scenarios.userId, user.id)),
+      db
+        .select()
+        .from(externalValidations)
+        .where(eq(externalValidations.userId, user.id)),
+      db
+        .select()
+        .from(activityEvents)
+        .where(eq(activityEvents.userId, user.id)),
+    ]);
+
+    const exportedAt = new Date().toISOString();
+    const payload = {
+      exportedAt,
+      note: "This is a personal data export from Cognify. Your reps, scores, and feedback history.",
+      profile: {
+        id: profile?.id,
+        email: profile?.email,
+        name: profile?.name,
+        vertical: profile?.vertical,
+        personas: profile?.personas,
+        improvementGoals: profile?.improvementGoals,
+        onboardedAt: profile?.onboardedAt,
+        createdAt: profile?.createdAt,
+      },
+      counts: {
+        reps: userReps.length,
+        sessions: userSessions.length,
+        dimensionScores: allDimensionScores.length,
+        callouts: userCallouts.length,
+        scenarios: userScenarios.length,
+        validations: userValidations.length,
+        progressSnapshots: userProgressSnapshots.length,
+        activityEvents: userActivity.length,
+      },
+      reps: userReps,
+      sessions: userSessions,
+      dimensionScores: allDimensionScores,
+      callouts: userCallouts,
+      progressSnapshots: userProgressSnapshots,
+      scenarios: userScenarios,
+      validations: userValidations,
+      activityEvents: userActivity,
+    };
+
+    const date = exportedAt.slice(0, 10);
+    return {
+      ok: true as const,
+      data: JSON.stringify(payload, null, 2),
+      filename: `cognify-export-${date}.json`,
+    };
+  }, fallback);
+}
+
+/**
+ * Delete the user's account. Requires the user to type their email as
+ * confirmation so we don't delete on a stray click. Cascade-delete on our
+ * schema's FKs handles the practice data; we also remove the auth.users
+ * row so sign-in no longer works.
+ */
+export async function deleteAccount(
+  confirmationEmail: string,
+): Promise<AccountActionResult> {
+  const user = await currentUser();
+  if (!user || user.kind !== "authenticated" || !user.email) {
+    return {
+      ok: false,
+      message: "Can't delete — sign in first.",
+    };
+  }
+
+  if (
+    confirmationEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()
+  ) {
+    return {
+      ok: false,
+      message: "Email didn't match. Type your exact email to confirm.",
+    };
+  }
+
+  const fallback: AccountActionResult = {
+    ok: false,
+    message: "Delete failed — try again or contact support.",
+  };
+
+  return safeDb<AccountActionResult>(async () => {
+    // Remove our user row — cascade removes reps, sessions, scores, etc.
+    // per the ON DELETE CASCADE FKs in schema.ts.
+    await db.delete(users).where(eq(users.id, user.id));
+
+    // Remove the Supabase auth user so the email can't sign in again.
+    const admin = supabaseAdmin();
+    const { data } = await admin.auth.admin.listUsers();
+    const authUser = data.users.find(
+      (u) => u.email?.toLowerCase() === user.email!.toLowerCase(),
+    );
+    if (authUser) {
+      await admin.auth.admin.deleteUser(authUser.id);
+    }
+
+    // Sign out the current session
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut();
+
+    return { ok: true, message: "Account deleted." };
+  }, fallback);
+}

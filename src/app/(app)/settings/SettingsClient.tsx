@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Save } from "lucide-react";
+import { Check, Save, KeyRound, Download, Trash2, AlertTriangle } from "lucide-react";
 import {
   VERTICALS,
   PERSONAS,
@@ -15,11 +15,18 @@ import {
   setPersonasAction,
   setImprovementGoalsAction,
 } from "@/server/actions/onboarding";
+import {
+  sendPasswordResetEmail,
+  exportUserData,
+  deleteAccount,
+} from "@/server/actions/account";
 
 type Props = {
   initialVertical: VerticalId | null;
   initialPersonas: PersonaId[];
   initialGoals: ImprovementGoalId[];
+  userEmail: string | null;
+  userKind: "authenticated" | "guest";
 };
 
 type SavedSection = "vertical" | "personas" | "goals" | null;
@@ -28,6 +35,8 @@ export function SettingsClient({
   initialVertical,
   initialPersonas,
   initialGoals,
+  userEmail,
+  userKind,
 }: Props) {
   const [vertical, setVertical] = useState<VerticalId | null>(initialVertical);
   const [personas, setPersonas] = useState<Set<PersonaId>>(
@@ -261,7 +270,205 @@ export function SettingsClient({
           </div>
         </div>
       </section>
+
+      {userKind === "authenticated" && (
+        <AccountSection userEmail={userEmail} />
+      )}
     </div>
+  );
+}
+
+function AccountSection({ userEmail }: { userEmail: string | null }) {
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetError, setResetError] = useState(false);
+  const [resetPending, startResetTransition] = useTransition();
+  const [exportPending, startExportTransition] = useTransition();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePending, startDeleteTransition] = useTransition();
+
+  function handleResetPassword() {
+    setResetMessage(null);
+    startResetTransition(async () => {
+      const res = await sendPasswordResetEmail();
+      setResetError(!res.ok);
+      setResetMessage(res.message);
+    });
+  }
+
+  function handleExport() {
+    startExportTransition(async () => {
+      const res = await exportUserData();
+      if (!res.ok) {
+        setResetMessage(res.message);
+        setResetError(true);
+        return;
+      }
+      const blob = new Blob([res.data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  function handleDelete() {
+    setDeleteError(null);
+    startDeleteTransition(async () => {
+      const res = await deleteAccount(deleteConfirm);
+      if (!res.ok) {
+        setDeleteError(res.message);
+        return;
+      }
+      // Redirect to landing on success
+      window.location.href = "/";
+    });
+  }
+
+  return (
+    <>
+      <section className="surface-card overflow-hidden">
+        <div className="h-1 bg-ink-200" aria-hidden="true" />
+        <div className="p-6">
+          <h2 className="text-lg font-bold text-ink-900">Account &amp; data</h2>
+          <p className="mt-1 text-xs text-ink-500">
+            Signed in as{" "}
+            <span className="font-semibold text-ink-700">{userEmail}</span>
+          </p>
+
+          <div className="mt-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4">
+              <div>
+                <p className="text-sm font-semibold text-ink-900">
+                  Reset password
+                </p>
+                <p className="text-xs text-ink-500">
+                  We&apos;ll email you a link to set a new one.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={resetPending}
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+              >
+                <KeyRound className="size-3.5" />
+                {resetPending ? "Sending…" : "Send reset email"}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4">
+              <div>
+                <p className="text-sm font-semibold text-ink-900">
+                  Export your data
+                </p>
+                <p className="text-xs text-ink-500">
+                  Every rep, score, callout, and session you&apos;ve recorded —
+                  downloaded as JSON.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={exportPending}
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+              >
+                <Download className="size-3.5" />
+                {exportPending ? "Preparing…" : "Download JSON"}
+              </button>
+            </div>
+
+            {resetMessage && (
+              <div
+                className={
+                  resetError
+                    ? "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+                    : "rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700"
+                }
+              >
+                {resetMessage}
+              </div>
+            )}
+
+            <div className="rounded-xl border-2 border-red-200 bg-red-50/40 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-red-900">
+                    Delete account
+                  </p>
+                  <p className="text-xs text-red-700/80">
+                    Permanently removes your reps, scores, and sign-in. Can&apos;t
+                    be undone.
+                  </p>
+                </div>
+                {!deleteOpen && (
+                  <button
+                    type="button"
+                    onClick={() => setDeleteOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-full border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Delete my account
+                  </button>
+                )}
+              </div>
+
+              {deleteOpen && (
+                <div className="mt-4 border-t border-red-200/80 pt-4">
+                  <p className="flex items-start gap-2 text-xs text-red-900">
+                    <AlertTriangle className="size-4 shrink-0" />
+                    <span>
+                      Type your email{" "}
+                      <span className="font-mono font-semibold">
+                        {userEmail}
+                      </span>{" "}
+                      to confirm. This is irreversible.
+                    </span>
+                  </p>
+                  <input
+                    type="email"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="your@email.com"
+                    className="mt-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-red-400 focus:outline-none"
+                  />
+                  {deleteError && (
+                    <p className="mt-2 text-xs text-red-700">{deleteError}</p>
+                  )}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={deletePending || !deleteConfirm}
+                      className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"
+                    >
+                      <Trash2 className="size-3.5" />
+                      {deletePending ? "Deleting…" : "Yes, delete permanently"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteOpen(false);
+                        setDeleteConfirm("");
+                        setDeleteError(null);
+                      }}
+                      className="inline-flex items-center rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
 

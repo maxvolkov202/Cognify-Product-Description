@@ -79,30 +79,83 @@ export function ValidationCreator({ topics, initialTopic, initialRepIds }: Props
   };
 
   if (created) {
+    const selectedCount = Array.from(selectedIds).length;
     return (
-      <div className="surface-card p-10 text-center">
-        <div className="brand-gradient mx-auto grid size-14 place-items-center rounded-2xl shadow-[0_16px_48px_-12px_rgba(151,136,255,0.65)]">
-          <Check className="size-7 text-white" />
+      <div className="space-y-6">
+        <div className="surface-card p-10 text-center">
+          <div className="brand-gradient mx-auto grid size-14 place-items-center rounded-2xl shadow-[0_16px_48px_-12px_rgba(151,136,255,0.65)]">
+            <Check className="size-7 text-white" />
+          </div>
+          <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-ink-900">
+            Your blind-ranking link is ready.
+          </h2>
+          <p className="mt-3 text-sm text-ink-600">
+            Share with someone who hasn&rsquo;t heard you speak on this topic.
+          </p>
+          <div className="mt-8 flex items-center gap-2 rounded-xl border border-ink-200 bg-ink-50 px-4 py-3">
+            <code className="flex-1 truncate text-left text-sm text-ink-800">
+              {created.url}
+            </code>
+            <button
+              type="button"
+              onClick={copyLink}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-sm hover:bg-ink-100"
+            >
+              {copied ? (
+                <Check className="size-3" />
+              ) : (
+                <Copy className="size-3" />
+              )}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
         </div>
-        <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-ink-900">
-          Your blind-ranking link is ready.
-        </h2>
-        <p className="mt-3 text-sm text-ink-600">
-          Share it with someone who hasn&rsquo;t heard you speak on this topic. They rank
-          your reps without seeing scores. Results land on your dashboard.
-        </p>
-        <div className="mt-8 flex items-center gap-2 rounded-xl border border-ink-200 bg-ink-50 px-4 py-3">
-          <code className="flex-1 truncate text-left text-sm text-ink-800">{created.url}</code>
-          <button
-            type="button"
-            onClick={copyLink}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-sm hover:bg-ink-100"
-          >
-            {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-            {copied ? "Copied" : "Copy"}
-          </button>
+
+        {/* ——— What the listener sees ——— */}
+        <div className="surface-card overflow-hidden">
+          <div className="h-1 bg-ink-200" aria-hidden="true" />
+          <div className="p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+              What your listener sees
+            </p>
+            <h3 className="mt-1 text-lg font-bold text-ink-900">
+              {selectedCount} unlabeled reps in random order.
+            </h3>
+            <p className="mt-1 text-sm text-ink-600">
+              No names, no dates, no scores. They listen and rank 1st → last by
+              which version landed best. Pure human feedback.
+            </p>
+            <ol className="mt-4 space-y-2 text-sm text-ink-700">
+              {Array.from({ length: Math.min(selectedCount, 3) }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 rounded-lg border border-ink-200 bg-ink-50/60 px-4 py-3"
+                >
+                  <span className="brand-gradient grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white">
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                  <span className="flex-1 text-ink-500">
+                    Rep {String.fromCharCode(65 + i)} · audio player
+                  </span>
+                  <span className="text-xs text-ink-400">▶ 0:32</span>
+                </li>
+              ))}
+              {selectedCount > 3 && (
+                <li className="text-center text-xs text-ink-400">
+                  …{selectedCount - 3} more
+                </li>
+              )}
+            </ol>
+            <p className="mt-4 text-xs text-ink-500">
+              You&rsquo;ll be notified when they submit a ranking. Results show
+              up under <strong>Validations</strong> on your dashboard — which
+              rep landed best, which landed worst, and whether your later
+              attempts actually improved.
+            </p>
+          </div>
         </div>
-        <div className="mt-8">
+
+        <div className="text-center">
           <GradientButton href="/validate" size="md">
             Back to validations
           </GradientButton>

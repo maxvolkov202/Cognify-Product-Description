@@ -107,9 +107,16 @@ export function TalkingPointsSidebar({
       <div className="brand-gradient h-1" aria-hidden="true" />
       <div className="p-5">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-            Hold this structure
-          </p>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+              Hold this structure
+            </p>
+            <p className="mt-0.5 text-[10px] text-ink-500">
+              {displayedSections.length} sections ·{" "}
+              {displayedSections.reduce((n, s) => n + s.bullets.length, 0)}{" "}
+              bullets · review before you start
+            </p>
+          </div>
           {!editMode ? (
             <div className="flex gap-1.5">
               {onRegenerate && (

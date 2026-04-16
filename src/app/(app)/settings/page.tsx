@@ -38,11 +38,11 @@ export default async function SettingsPage() {
             Setup incomplete
           </p>
           <p className="mt-1 text-sm font-bold text-ink-900">
-            You skipped the 4-step onboarding.
+            Personalize your workouts.
           </p>
           <p className="mt-1 text-sm text-ink-600">
-            Finish it to personalize your workouts — 2 minutes, you can update
-            anything later.
+            A 2-minute 4-step setup — tells us your vertical, audience, and
+            goals so reps target what actually matters for you.
           </p>
           <Link
             href="/onboarding/vertical"
@@ -58,6 +58,8 @@ export default async function SettingsPage() {
         initialVertical={profile?.vertical ?? null}
         initialPersonas={profile?.personas ?? []}
         initialGoals={profile?.improvementGoals ?? []}
+        userEmail={user.email}
+        userKind={user.kind}
       />
 
       {!profile && (
