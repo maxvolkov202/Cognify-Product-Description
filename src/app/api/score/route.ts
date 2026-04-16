@@ -7,6 +7,7 @@ import {
   scoreConfidenceDeterministic,
 } from "@/lib/scoring/deterministic";
 import { RUBRIC_VERSION, composite } from "@/lib/scoring/rubric";
+import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import type { RepScore, SkillDimension, Callout } from "@/types/domain";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
@@ -41,6 +42,7 @@ const bodySchema = z.object({
   promptText: z.string().min(1).max(500),
   durationMs: z.number().int().min(1000).max(300000),
   timeBudgetMs: z.number().int().optional(),
+  frameworkId: z.string().optional(),
   frameworkNodes: z
     .array(
       z.object({
@@ -241,9 +243,14 @@ export async function POST(req: Request) {
 
   try {
     const calibrationBlock = await loadCalibrationForCurrentUser();
+    // Apply per-framework dimension weight adjustments so sales frameworks
+    // emphasize relevance, interview frameworks emphasize structure+pacing,
+    // etc. No-op when no frameworkId or no matching profile.
+    const frameworkWeights = getFrameworkWeights(body.frameworkId);
     const result = await scoreRep({
       ...body,
       userCalibration: calibrationBlock,
+      ...(frameworkWeights ? { weights: frameworkWeights } : {}),
     });
     return NextResponse.json(result);
   } catch (error) {

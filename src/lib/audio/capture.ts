@@ -27,18 +27,75 @@ function pickMimeType(): string {
   return "audio/webm";
 }
 
+const MIC_CONSTRAINTS: MediaStreamConstraints = {
+  audio: {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  },
+};
+
+let prewarmedStream: MediaStream | null = null;
+let prewarmedAt = 0;
+// If a pre-warmed stream hasn't been consumed within 60s, release it to
+// free the mic. Browsers may revoke getUserMedia permission otherwise.
+const PREWARM_TTL_MS = 60_000;
+
+/**
+ * Eagerly request microphone permission and cache the stream so the first
+ * tap of the record button starts capturing instantly. Pattern adopted from
+ * CTO's v1 hook (cognify-v1-cto/src/app/v2/hooks/useAudioRecorder.ts).
+ *
+ * Safe to call from a useEffect on mount. Silently no-ops in SSR and on
+ * browsers without getUserMedia. Subsequent calls within TTL reuse the
+ * existing stream.
+ */
+export async function prewarmMicrophone(): Promise<void> {
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+    return;
+  }
+  if (prewarmedStream && Date.now() - prewarmedAt < PREWARM_TTL_MS) return;
+  releasePrewarmedStream();
+  try {
+    prewarmedStream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
+    prewarmedAt = Date.now();
+    // Auto-release after TTL so the mic indicator goes away if the user
+    // never actually records.
+    setTimeout(() => {
+      if (prewarmedStream && Date.now() - prewarmedAt >= PREWARM_TTL_MS) {
+        releasePrewarmedStream();
+      }
+    }, PREWARM_TTL_MS + 100);
+  } catch {
+    // User denied permission or device unavailable — fall back to the
+    // synchronous getUserMedia call when they tap record.
+    prewarmedStream = null;
+  }
+}
+
+function releasePrewarmedStream() {
+  if (prewarmedStream) {
+    prewarmedStream.getTracks().forEach((t) => t.stop());
+    prewarmedStream = null;
+    prewarmedAt = 0;
+  }
+}
+
 export async function startRecording(): Promise<RecordingController> {
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
     throw new Error("Microphone access is not supported in this browser.");
   }
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-    },
-  });
+  // Consume the pre-warmed stream if fresh. Otherwise request one now.
+  let stream: MediaStream;
+  if (prewarmedStream && Date.now() - prewarmedAt < PREWARM_TTL_MS) {
+    stream = prewarmedStream;
+    prewarmedStream = null;
+    prewarmedAt = 0;
+  } else {
+    releasePrewarmedStream();
+    stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
+  }
 
   const mimeType = pickMimeType();
   const recorder = new MediaRecorder(stream, { mimeType });

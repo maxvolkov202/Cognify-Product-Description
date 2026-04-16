@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { startRecording, type RecordingController, type RecordingResult } from "@/lib/audio/capture";
+import {
+  startRecording,
+  prewarmMicrophone,
+  type RecordingController,
+  type RecordingResult,
+} from "@/lib/audio/capture";
 
 type Phase = "idle" | "priming" | "countdown" | "recording" | "finalizing" | "done" | "error";
 
@@ -45,6 +50,13 @@ export function RecordButton({
   }, []);
 
   useEffect(() => cleanup, [cleanup]);
+
+  // Pre-warm the microphone on mount so the first tap of record starts
+  // capturing instantly. If permission isn't granted yet, this surfaces
+  // the browser prompt proactively rather than mid-countdown.
+  useEffect(() => {
+    prewarmMicrophone().catch(() => {});
+  }, []);
 
   const tick = useCallback(() => {
     const controller = controllerRef.current;

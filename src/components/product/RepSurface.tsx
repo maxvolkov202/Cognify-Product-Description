@@ -219,6 +219,7 @@ export function RepSurface({
           ...(words.length > 0 ? { words } : {}),
           ...(framework
             ? {
+                frameworkId: framework.id,
                 frameworkNodes: framework.nodes.map((n) => ({
                   label: n.label,
                   description: n.description,
