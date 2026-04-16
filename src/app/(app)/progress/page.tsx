@@ -12,7 +12,7 @@ import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
 import { SkillRadar } from "@/components/product/SkillRadar";
 import { GradientButton } from "@/components/shared/GradientButton";
-import { Flame, Play, TrendingUp } from "lucide-react";
+import { Flame, Play, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 
 export default async function ProgressPage() {
   const user = await currentUser();
@@ -33,6 +33,29 @@ export default async function ProgressPage() {
           recentReps.reduce((sum, r) => sum + r.compositeScore, 0) / recentReps.length,
         )
       : null;
+
+  // ——— Biggest improvement across the window (celebration banner) ———
+  // Compares the first vs latest score per dimension over the trend window.
+  // Surfaces the largest positive delta as a "nice work" banner.
+  let topImprovement: { dimension: string; delta: number } | null = null;
+  for (const trend of trends) {
+    if (trend.points.length < 2) continue;
+    const first = trend.points[0]!.score;
+    const last = trend.points[trend.points.length - 1]!.score;
+    const delta = Math.round(last - first);
+    if (delta >= 5 && (!topImprovement || delta > topImprovement.delta)) {
+      topImprovement = { dimension: trend.dimension, delta };
+    }
+  }
+
+  // ——— Validate bridge — suggest blind ranking when user has 2+ reps
+  // on the same prompt. Users at this point have enough material to get
+  // honest human feedback on which attempts actually landed.
+  const promptCounts = new Map<string, number>();
+  for (const r of recentReps) {
+    promptCounts.set(r.promptText, (promptCounts.get(r.promptText) ?? 0) + 1);
+  }
+  const hasValidatable = Array.from(promptCounts.values()).some((c) => c >= 2);
 
   // currentScores is already typed with the new rubric dimensions, so
   // we pass it directly to the radar without rebuilding the object.
@@ -89,6 +112,53 @@ export default async function ProgressPage() {
 
       {totalReps > 0 || recentReps.length > 0 ? (
       <>
+      {topImprovement && (
+        <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+          <div className="flex items-start gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+              <Sparkles className="size-4" />
+            </div>
+            <div>
+              <p className="font-bold uppercase tracking-wider text-emerald-800 text-[11px]">
+                Nice — real improvement
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-emerald-900">
+                Your <strong className="capitalize">{topImprovement.dimension}</strong>{" "}
+                is up +{topImprovement.delta} points over the last 30 days. Keep
+                pushing — the gap between reps is where the growth shows.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasValidatable && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-5">
+          <div className="flex items-start gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-purple/10 text-brand-purple">
+              <TrendingUp className="size-4" />
+            </div>
+            <div>
+              <p className="font-bold uppercase tracking-wider text-brand-purple text-[11px]">
+                Ready for a blind-listener check?
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-ink-800">
+                You&rsquo;ve run the same prompt multiple times. Send your
+                attempts to a friend or coach — they rank without seeing scores,
+                giving you honest human feedback on which version landed.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/validate/new"
+            className="inline-flex items-center gap-1 rounded-full border border-brand-purple bg-white px-4 py-2 text-xs font-semibold text-brand-purple hover:bg-brand-purple/10"
+          >
+            Set up validation
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+      )}
+
       <div className="mt-10 grid gap-6 md:grid-cols-4">
         <StatCard
           icon={<Flame className="size-4 text-white" />}
@@ -135,6 +205,10 @@ export default async function ProgressPage() {
           <div className="mt-4 flex justify-center">
             <SkillRadar scores={currentScores} size={280} />
           </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
+            A balanced hexagon = you&rsquo;re consistent across all six
+            dimensions. Dents point at where work compounds fastest.
+          </p>
         </div>
       </div>
 
@@ -144,6 +218,17 @@ export default async function ProgressPage() {
           <p className="mt-1 text-xs text-ink-500">12-week heat map of your reps.</p>
           <div className="mt-6">
             <StreakHeatmap activity={activity} days={84} />
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-[11px] text-ink-500">
+            <span>Less</span>
+            <div className="flex gap-0.5">
+              <span className="size-3 rounded-sm bg-ink-100" />
+              <span className="size-3 rounded-sm bg-brand-purple/25" />
+              <span className="size-3 rounded-sm bg-brand-purple/50" />
+              <span className="size-3 rounded-sm bg-brand-purple/75" />
+              <span className="size-3 rounded-sm bg-brand-purple" />
+            </div>
+            <span>More reps that day</span>
           </div>
         </div>
 

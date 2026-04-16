@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { LoginDialog } from "./LoginDialog";
 
@@ -12,6 +16,8 @@ const links = [
 ] as const;
 
 export function Nav() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-ink-200/60 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
@@ -27,7 +33,7 @@ export function Nav() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <LoginDialog
             trigger={
               <button
@@ -38,8 +44,38 @@ export function Nav() {
               </button>
             }
           />
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="grid size-10 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 hover:border-ink-300 md:hidden"
+          >
+            {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <nav
+          aria-label="Mobile"
+          className="border-t border-ink-200/60 bg-white md:hidden"
+        >
+          <ul className="mx-auto flex w-full max-w-6xl flex-col px-6 py-3">
+            {links.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }

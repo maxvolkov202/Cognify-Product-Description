@@ -28,6 +28,44 @@ export type AccountActionResult = {
  * authenticated users with an email on file (not guests). Returns a
  * non-revealing message so we don't leak account existence.
  */
+/**
+ * Request an email change via Supabase Auth. Supabase sends a confirmation
+ * link to both the OLD and NEW address by default (double-confirm). The
+ * actual email swap happens only after both links are clicked.
+ *
+ * We don't update our cognify_v2.users.email row here — the auth callback
+ * at /auth/callback picks up the new auth.users.email on next currentUser()
+ * resolve and reconciles via the existing auth_user_id linkage.
+ */
+export async function changeEmail(
+  newEmail: string,
+): Promise<AccountActionResult> {
+  const user = await currentUser();
+  if (!user || user.kind !== "authenticated") {
+    return {
+      ok: false,
+      message: "Email changes only work for signed-in accounts.",
+    };
+  }
+  const trimmed = newEmail.trim().toLowerCase();
+  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    return { ok: false, message: "That doesn't look like a valid email." };
+  }
+  if (user.email?.toLowerCase() === trimmed) {
+    return { ok: false, message: "That's already your email." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.updateUser({ email: trimmed });
+  if (error) {
+    return { ok: false, message: `Couldn't change email: ${error.message}` };
+  }
+  return {
+    ok: true,
+    message: `Check ${trimmed} and ${user.email} for confirmation links. Email change takes effect once both are clicked.`,
+  };
+}
+
 export async function sendPasswordResetEmail(): Promise<AccountActionResult> {
   const user = await currentUser();
   if (!user || user.kind !== "authenticated" || !user.email) {

@@ -12,6 +12,7 @@ import {
   Sparkles,
   TrendingUp,
   Target,
+  Share2,
 } from "lucide-react";
 import type { Callout, RepScore, SkillDimension } from "@/types/domain";
 import { WhyThisMattersPopover } from "./WhyThisMattersPopover";
@@ -227,11 +228,51 @@ export function FeedbackPanel({
     audio.play().catch(() => {});
   };
 
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied">("idle");
+  const handleShare = async () => {
+    const topDim = [...score.dimensions].sort((a, b) => b.score - a.score)[0];
+    const bottomDim = [...score.dimensions].sort(
+      (a, b) => a.score - b.score,
+    )[0];
+    const summary = [
+      `Cognify rep — composite ${score.composite}/100`,
+      topDim ? `✓ ${topDim.dimension}: ${topDim.score}` : null,
+      bottomDim ? `↗ ${bottomDim.dimension}: ${bottomDim.score} (working on)` : null,
+      "",
+      "Train your communication at https://cognifygym.com",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "My Cognify rep", text: summary });
+        return;
+      } catch {
+        // user cancelled or error — fall through to clipboard
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(summary);
+      setShareStatus("copied");
+      setTimeout(() => setShareStatus("idle"), 2000);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ——— Composite + group bars ——————————————————————————— */}
-      <div className="surface-card overflow-hidden">
+      <div className="surface-card relative overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={handleShare}
+          className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-600 transition-colors hover:border-ink-300 hover:text-ink-900"
+          title="Share this rep"
+        >
+          <Share2 className="size-3" />
+          {shareStatus === "copied" ? "Copied" : "Share"}
+        </button>
         <div className="grid gap-8 p-8 md:grid-cols-[auto_1fr]">
           <div className="flex flex-col items-center justify-center">
             <div className="brand-gradient-text text-6xl font-extrabold tabular-nums md:text-7xl">

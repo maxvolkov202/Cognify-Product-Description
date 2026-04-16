@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Save, KeyRound, Download, Trash2, AlertTriangle } from "lucide-react";
+import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail } from "lucide-react";
 import {
   VERTICALS,
   PERSONAS,
@@ -19,6 +19,7 @@ import {
   sendPasswordResetEmail,
   exportUserData,
   deleteAccount,
+  changeEmail,
 } from "@/server/actions/account";
 
 type Props = {
@@ -279,6 +280,10 @@ export function SettingsClient({
 }
 
 function AccountSection({ userEmail }: { userEmail: string | null }) {
+  const [emailDraft, setEmailDraft] = useState("");
+  const [emailMessage, setEmailMessage] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState(false);
+  const [emailPending, startEmailTransition] = useTransition();
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [resetError, setResetError] = useState(false);
   const [resetPending, startResetTransition] = useTransition();
@@ -287,6 +292,17 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
+
+  function handleChangeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailMessage(null);
+    startEmailTransition(async () => {
+      const res = await changeEmail(emailDraft);
+      setEmailError(!res.ok);
+      setEmailMessage(res.message);
+      if (res.ok) setEmailDraft("");
+    });
+  }
 
   function handleResetPassword() {
     setResetMessage(null);
@@ -342,6 +358,51 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
           </p>
 
           <div className="mt-5 space-y-3">
+            <form
+              onSubmit={handleChangeEmail}
+              className="rounded-xl border border-ink-200 p-4"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex-1 min-w-[200px]">
+                  <p className="text-sm font-semibold text-ink-900">
+                    Change email
+                  </p>
+                  <p className="text-xs text-ink-500">
+                    We&rsquo;ll email confirmation links to both the old and new
+                    address. Both must be clicked for the change to take effect.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="email"
+                    placeholder="new@email.com"
+                    value={emailDraft}
+                    onChange={(e) => setEmailDraft(e.target.value)}
+                    className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={emailPending || !emailDraft}
+                    className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+                  >
+                    <Mail className="size-3.5" />
+                    {emailPending ? "Sending…" : "Update"}
+                  </button>
+                </div>
+              </div>
+              {emailMessage && (
+                <p
+                  className={
+                    emailError
+                      ? "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+                      : "mt-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700"
+                  }
+                >
+                  {emailMessage}
+                </p>
+              )}
+            </form>
+
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4">
               <div>
                 <p className="text-sm font-semibold text-ink-900">

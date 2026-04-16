@@ -125,12 +125,13 @@ export function TalkingPointsSidebar({
                   onClick={onRegenerate}
                   disabled={regenerating}
                   className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 disabled:opacity-50"
-                  aria-label="Regenerate structure"
+                  aria-label="Generate a different structure — unlimited, free"
+                  title="Generate a different structure — unlimited, free"
                 >
                   <RefreshCw
                     className={`size-3 ${regenerating ? "animate-spin" : ""}`}
                   />
-                  {regenerating ? "…" : "Regenerate"}
+                  {regenerating ? "…" : "New take"}
                 </button>
               )}
               <button
