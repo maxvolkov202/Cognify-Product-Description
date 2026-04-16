@@ -1,0 +1,806 @@
+import {
+  Users,
+  Swords,
+  Activity,
+  UserPlus,
+  Trophy,
+  Flame,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Clock,
+  ChevronRight,
+  Search,
+  Zap,
+  MessageCircle,
+} from "lucide-react";
+import {
+  MOCK_FRIENDS,
+  MOCK_PENDING_REQUESTS,
+  MOCK_ACTIVITY,
+  MOCK_CHALLENGES,
+  MOCK_SUGGESTED,
+} from "@/lib/friends/mock-data";
+import type {
+  FriendProfile,
+  FriendActivity,
+  Challenge,
+} from "@/lib/friends/mock-data";
+import { currentUser } from "@/lib/session/current-user";
+import {
+  getFriendsForUser,
+  getPendingRequestsForUser,
+  getChallengesForUser,
+  type FriendRow,
+  type PendingRequestRow,
+  type ChallengeRow,
+} from "@/lib/db/queries/friends";
+import {
+  getActivityFeedForUser,
+  type ActivityRow,
+} from "@/lib/db/queries/activity";
+import Link from "next/link";
+import { InviteFriendForm } from "@/components/product/InviteFriendForm";
+import { AcceptDeclineButtons } from "@/components/product/FriendActionButtons";
+
+export default async function FriendsPage() {
+  const me = await currentUser();
+  const [friends, pending, challenges, activity] = me
+    ? await Promise.all([
+        getFriendsForUser(me.id),
+        getPendingRequestsForUser(me.id),
+        getChallengesForUser(me.id),
+        getActivityFeedForUser(me.id, { limit: 20 }),
+      ])
+    : [
+        [] as FriendRow[],
+        [] as PendingRequestRow[],
+        [] as ChallengeRow[],
+        [] as ActivityRow[],
+      ];
+
+  const hasRealData =
+    friends.length > 0 || pending.length > 0 || activity.length > 0;
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-6 py-12">
+      <Header />
+      <InviteBanner hasRealData={hasRealData} />
+      {hasRealData ? (
+        <RealFriendsView
+          friends={friends}
+          pending={pending}
+          challenges={challenges}
+          activity={activity}
+        />
+      ) : (
+        <MockFriendsPreview />
+      )}
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+        Training partners
+      </p>
+      <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+        Your gym crew.
+      </h1>
+      <p className="mt-1 max-w-2xl text-lg text-ink-600">
+        Train together, challenge each other, climb together. The best
+        communicators don&rsquo;t practice alone.
+      </p>
+    </div>
+  );
+}
+
+function InviteBanner({ hasRealData }: { hasRealData: boolean }) {
+  return (
+    <div className="mt-8 surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="brand-gradient grid size-10 shrink-0 place-items-center rounded-xl shadow-sm">
+            <UserPlus
+              className="size-5 text-white"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+              Invite a friend
+            </p>
+            <p className="mt-0.5 text-sm font-bold text-ink-900">
+              {hasRealData
+                ? "Add another teammate to your gym crew."
+                : "Bring a real teammate in — this section fills out with real data once you do."}
+            </p>
+          </div>
+        </div>
+        <div className="md:w-[28rem]">
+          <InviteFriendForm />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ——— Real-data view ————————————————————————————————————————
+
+function RealFriendsView({
+  friends,
+  pending,
+  challenges,
+  activity,
+}: {
+  friends: FriendRow[];
+  pending: PendingRequestRow[];
+  challenges: ChallengeRow[];
+  activity: ActivityRow[];
+}) {
+  const activeChallenges = challenges.filter((c) => c.status !== "completed");
+  const topFriend = friends[0];
+
+  return (
+    <>
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <QuickStat
+          icon={<Users className="size-4" />}
+          label="Friends"
+          value={`${friends.length}`}
+        />
+        <QuickStat
+          icon={<Zap className="size-4" />}
+          label="Pending"
+          value={`${pending.length}`}
+        />
+        <QuickStat
+          icon={<Swords className="size-4" />}
+          label="Active challenges"
+          value={`${activeChallenges.length}`}
+        />
+        <QuickStat
+          icon={<Trophy className="size-4" />}
+          label="Top friend"
+          value={topFriend?.name?.split(" ")[0] ?? "—"}
+          sub={
+            topFriend?.composite != null
+              ? `${topFriend.composite} composite`
+              : topFriend
+                ? "No reps yet"
+                : undefined
+          }
+        />
+      </div>
+
+      {pending.length > 0 && (
+        <div className="mt-8">
+          <div className="surface-card border-brand-purple/20 bg-brand-purple/[0.02] p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple">
+              <UserPlus className="size-4" />
+              {pending.length} friend request{pending.length > 1 ? "s" : ""}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {pending.map((req) => (
+                <div
+                  key={req.friendshipId}
+                  className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white px-4 py-2.5"
+                >
+                  <Avatar initials={initials(req.name)} size="sm" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink-900">
+                      {req.name ?? "Someone"}
+                    </p>
+                    <p className="text-[11px] text-ink-500">
+                      Sent {relativeTime(req.createdAt)}
+                    </p>
+                  </div>
+                  <div className="ml-2">
+                    <AcceptDeclineButtons friendshipId={req.friendshipId} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
+            Your friends
+          </h2>
+          <div className="mt-4 space-y-3">
+            {friends.length === 0 ? (
+              <EmptyCard text="No accepted friends yet. Pending requests appear above." />
+            ) : (
+              friends.map((f) => <RealFriendCard key={f.userId} friend={f} />)
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+              <Swords className="size-3.5" /> Challenges
+            </h2>
+            <div className="mt-4 space-y-3">
+              {challenges.length === 0 ? (
+                <EmptyCard text="No challenges yet. Start one by clicking the swords icon on a friend." />
+              ) : (
+                challenges.map((c) => <RealChallengeCard key={c.id} c={c} />)
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+              <Activity className="size-3.5" /> Live feed
+            </h2>
+            <div className="mt-4 space-y-1">
+              {activity.length === 0 ? (
+                <EmptyCard text="Activity lights up as your crew records reps." />
+              ) : (
+                activity.map((a) => <RealActivityRow key={a.id} row={a} />)
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function RealActivityRow({ row }: { row: ActivityRow }) {
+  const icon: React.ReactNode = (() => {
+    switch (row.payload.type) {
+      case "workout_complete":
+        return <Flame className="size-3.5 text-orange-500" />;
+      case "new_high":
+        return <Trophy className="size-3.5 text-amber-500" />;
+      case "streak_milestone":
+        return <Flame className="size-3.5 text-brand-purple" />;
+      case "challenge_win":
+        return <Swords className="size-3.5 text-emerald-500" />;
+      case "friend_joined":
+        return <UserPlus className="size-3.5 text-blue-500" />;
+    }
+  })();
+
+  const description: string = (() => {
+    switch (row.payload.type) {
+      case "workout_complete":
+        return `Completed a workout — ${row.payload.composite} composite${
+          row.payload.topDimension ? ` · strongest: ${row.payload.topDimension}` : ""
+        }`;
+      case "new_high":
+        return `New personal best — ${row.payload.score} on ${row.payload.dimension}`;
+      case "streak_milestone":
+        return `Hit a ${row.payload.days}-day streak`;
+      case "challenge_win":
+        return `Won a challenge vs. ${row.payload.opponentName} — ${row.payload.score}`;
+      case "friend_joined":
+        return `Joined Cognify and ran their first rep`;
+    }
+  })();
+
+  return (
+    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50">
+      <Avatar initials={initials(row.userName)} size="sm" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {icon}
+          <span className="text-xs font-semibold text-ink-800">
+            {row.userName ?? "Someone"}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[11px] text-ink-600">{description}</p>
+      </div>
+      <span className="shrink-0 text-[10px] text-ink-400">
+        {relativeTime(row.createdAt)}
+      </span>
+    </div>
+  );
+}
+
+function RealFriendCard({ friend }: { friend: FriendRow }) {
+  return (
+    <div className="surface-card group flex items-center gap-4 p-4 transition-shadow hover:shadow-[var(--shadow-glow)]">
+      <Avatar initials={initials(friend.name)} size="md" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-ink-900">
+          {friend.name ?? friend.email ?? "Friend"}
+        </p>
+        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500">
+          <span>
+            Joined {relativeTime(friend.joinedAt)}
+          </span>
+          <span>{friend.totalReps} reps</span>
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-1">
+        <span className="brand-gradient-text text-xl font-extrabold tabular-nums">
+          {friend.composite ?? "—"}
+        </span>
+        <span className="text-[10px] text-ink-400">
+          {friend.composite != null ? "composite" : "no reps yet"}
+        </span>
+      </div>
+      <div className="hidden gap-1.5 md:flex">
+        <Link
+          href={`/friends/challenge?to=${friend.userId}`}
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-500 hover:border-brand-purple hover:text-brand-purple"
+          title="Challenge"
+        >
+          <Swords className="size-3.5" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function RealChallengeCard({ c }: { c: ChallengeRow }) {
+  const statusColors = {
+    pending: "bg-amber-100 text-amber-700",
+    active: "bg-brand-purple/10 text-brand-purple",
+    completed: "bg-ink-100 text-ink-600",
+  } as const;
+
+  return (
+    <Link
+      href={`/friends/challenge/${c.id}`}
+      className="surface-card block p-4 transition hover:shadow-[var(--shadow-glow)]"
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${statusColors[c.status]}`}
+        >
+          {c.status === "pending"
+            ? "Pending"
+            : c.status === "active"
+              ? "In progress"
+              : "Completed"}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-ink-400">
+          <Clock className="size-3" />
+          {c.expiresAt ? relativeTime(c.expiresAt) : "—"}
+        </span>
+      </div>
+      <p className="mt-2 text-xs font-medium text-ink-700">
+        &ldquo;{c.prompt}&rdquo;
+      </p>
+      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600">
+        <span>
+          {c.challengerName ?? "Challenger"}:{" "}
+          <strong className="brand-gradient-text text-sm tabular-nums">
+            {c.challengerScore ?? "—"}
+          </strong>
+        </span>
+        <span className="text-xs font-black text-ink-300">VS</span>
+        <span>
+          {c.opponentName ?? "Opponent"}:{" "}
+          <strong className="brand-gradient-text text-sm tabular-nums">
+            {c.opponentScore ?? "—"}
+          </strong>
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function EmptyCard({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-ink-200 bg-white/60 px-5 py-6 text-sm text-ink-500">
+      {text}
+    </div>
+  );
+}
+
+// ——— Mock preview (empty-state only) ——————————————————————————
+
+function MockFriendsPreview() {
+  const onlineFriends = MOCK_FRIENDS.filter((f) => f.status !== "offline");
+  const topFriend = MOCK_FRIENDS[0];
+
+  return (
+    <>
+      <div className="mt-8 rounded-2xl border border-brand-purple/25 bg-brand-purple/5 p-4 text-sm text-ink-700">
+        <strong className="font-semibold text-brand-purple">Preview.</strong>{" "}
+        Until you have real friends on Cognify, this page shows what the social
+        layer looks like. Invite someone above and this section flips to real
+        data.
+      </div>
+
+      <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <QuickStat
+          icon={<Users className="size-4" />}
+          label="Friends"
+          value={`${MOCK_FRIENDS.length}`}
+        />
+        <QuickStat
+          icon={<Zap className="size-4" />}
+          label="Online now"
+          value={`${onlineFriends.length}`}
+        />
+        <QuickStat
+          icon={<Swords className="size-4" />}
+          label="Active challenges"
+          value={`${MOCK_CHALLENGES.filter((c) => c.status !== "completed").length}`}
+        />
+        <QuickStat
+          icon={<Trophy className="size-4" />}
+          label="Top friend"
+          value={topFriend?.name.split(" ")[0] ?? "—"}
+          sub={topFriend ? `${topFriend.composite} composite` : undefined}
+        />
+      </div>
+
+      {MOCK_PENDING_REQUESTS.length > 0 && (
+        <div className="mt-8">
+          <div className="surface-card border-brand-purple/20 bg-brand-purple/[0.02] p-5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple">
+              <UserPlus className="size-4" />
+              {MOCK_PENDING_REQUESTS.length} friend request
+              {MOCK_PENDING_REQUESTS.length > 1 ? "s" : ""}
+              <span className="ml-2 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">
+                Demo
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {MOCK_PENDING_REQUESTS.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white px-4 py-2.5"
+                >
+                  <Avatar initials={req.initials} size="sm" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink-900">
+                      {req.name}
+                    </p>
+                    <p className="text-[11px] text-ink-500">
+                      {req.vertical} · {req.mutualFriends} mutual
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+        <div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
+              Your friends (preview)
+            </h2>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-400" />
+              <input
+                type="text"
+                placeholder="Search friends…"
+                className="rounded-lg border border-ink-200 bg-white py-1.5 pl-8 pr-3 text-xs text-ink-700 placeholder:text-ink-400 focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple/30"
+                disabled
+              />
+            </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {MOCK_FRIENDS.map((friend) => (
+              <MockFriendCard key={friend.id} friend={friend} />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+              <Activity className="size-3.5" /> Live feed (preview)
+            </h2>
+            <div className="mt-4 space-y-1">
+              {MOCK_ACTIVITY.map((activity) => (
+                <ActivityRow key={activity.id} activity={activity} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+              <Swords className="size-3.5" /> Challenges (preview)
+            </h2>
+            <div className="mt-4 space-y-3">
+              {MOCK_CHALLENGES.map((challenge) => (
+                <MockChallengeCard key={challenge.id} challenge={challenge} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
+          People you might know (preview)
+        </h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {MOCK_SUGGESTED.map((person) => (
+            <div key={person.id} className="surface-card p-4 text-center">
+              <Avatar initials={person.initials} size="md" className="mx-auto" />
+              <p className="mt-2 text-sm font-bold text-ink-900">{person.name}</p>
+              <p className="text-[11px] text-ink-500">
+                {person.vertical} · {person.composite} composite
+              </p>
+              <p className="text-[10px] text-ink-400">
+                {person.mutualFriends} mutual friends
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MockFriendCard({ friend }: { friend: FriendProfile }) {
+  return (
+    <div className="surface-card group flex items-center gap-4 p-4">
+      <div className="relative">
+        <Avatar initials={friend.initials} size="md" />
+        {friend.status !== "offline" && (
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white ${
+              friend.status === "training"
+                ? "bg-amber-400 animate-pulse"
+                : "bg-emerald-400"
+            }`}
+          />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="truncate text-sm font-bold text-ink-900">
+            {friend.name}
+          </p>
+          <StatusDot status={friend.status} />
+        </div>
+        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500">
+          <span>{friend.vertical}</span>
+          <span className="flex items-center gap-0.5">
+            <Flame className="size-3 text-ink-400" />
+            {friend.streak}d
+          </span>
+          <span>{friend.totalReps} reps</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-end gap-1">
+        <span className="brand-gradient-text text-xl font-extrabold tabular-nums">
+          {friend.composite}
+        </span>
+        <DeltaBadge delta={friend.weeklyDelta} />
+      </div>
+
+      <div className="hidden gap-1.5 md:flex">
+        <button
+          type="button"
+          disabled
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          title="Challenge (preview)"
+        >
+          <Swords className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          disabled
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          title="Message (preview)"
+        >
+          <MessageCircle className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          disabled
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          title="View profile (preview)"
+        >
+          <ChevronRight className="size-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MockChallengeCard({ challenge }: { challenge: Challenge }) {
+  const statusColors = {
+    pending: "bg-amber-100 text-amber-700",
+    active: "bg-brand-purple/10 text-brand-purple",
+    completed: "bg-ink-100 text-ink-600",
+  } as const;
+
+  return (
+    <div className="surface-card p-4">
+      <div className="flex items-center justify-between">
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${statusColors[challenge.status]}`}
+        >
+          {challenge.status === "pending"
+            ? "Your turn"
+            : challenge.status === "active"
+              ? "In progress"
+              : "Completed"}
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-ink-400">
+          <Clock className="size-3" />
+          {challenge.expiresAt}
+        </span>
+      </div>
+      <p className="mt-2 text-xs font-medium text-ink-700">
+        &ldquo;{challenge.prompt}&rdquo;
+      </p>
+      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600">
+        <span>
+          {challenge.challengerName}:{" "}
+          <strong className="brand-gradient-text text-sm tabular-nums">
+            {challenge.challengerScore ?? "—"}
+          </strong>
+        </span>
+        <span className="text-xs font-black text-ink-300">VS</span>
+        <span>
+          {challenge.opponentName}:{" "}
+          <strong className="brand-gradient-text text-sm tabular-nums">
+            {challenge.opponentScore ?? "—"}
+          </strong>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ——— Shared ————————————————————————————————————————————————
+
+function QuickStat({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <div className="surface-card flex items-center gap-3 p-4">
+      <div className="brand-gradient grid size-9 shrink-0 place-items-center rounded-lg text-white">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+          {label}
+        </p>
+        <p className="text-lg font-extrabold text-ink-900">{value}</p>
+        {sub && <p className="text-[10px] text-ink-500">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Avatar({
+  initials,
+  size = "md",
+  className = "",
+}: {
+  initials: string;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
+  const sizes = {
+    sm: "size-8 text-xs",
+    md: "size-10 text-sm",
+    lg: "size-14 text-lg",
+  };
+  return (
+    <div
+      className={`brand-gradient grid shrink-0 place-items-center rounded-full font-bold text-white ${sizes[size]} ${className}`}
+    >
+      {initials}
+    </div>
+  );
+}
+
+function StatusDot({ status }: { status: FriendProfile["status"] }) {
+  const colors = {
+    online: "bg-emerald-400",
+    training: "bg-amber-400 animate-pulse",
+    offline: "bg-ink-300",
+  };
+  const labels = {
+    online: "Online",
+    training: "Training now",
+    offline: "Offline",
+  };
+  return (
+    <span className="flex items-center gap-1.5 text-[10px] text-ink-500">
+      <span className={`inline-block size-2 rounded-full ${colors[status]}`} />
+      {labels[status]}
+    </span>
+  );
+}
+
+function DeltaBadge({ delta }: { delta: number }) {
+  if (delta > 0) {
+    return (
+      <span className="flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600">
+        <TrendingUp className="size-3" />+{delta}
+      </span>
+    );
+  }
+  if (delta < 0) {
+    return (
+      <span className="flex items-center gap-0.5 text-[10px] font-semibold text-red-500">
+        <TrendingDown className="size-3" />
+        {delta}
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-0.5 text-[10px] font-semibold text-ink-400">
+      <Minus className="size-3" />0
+    </span>
+  );
+}
+
+function ActivityRow({ activity }: { activity: FriendActivity }) {
+  const icons: Record<FriendActivity["type"], React.ReactNode> = {
+    workout_complete: <Flame className="size-3.5 text-orange-500" />,
+    streak_milestone: <Flame className="size-3.5 text-brand-purple" />,
+    new_high: <Trophy className="size-3.5 text-amber-500" />,
+    challenge_win: <Swords className="size-3.5 text-emerald-500" />,
+    joined: <UserPlus className="size-3.5 text-blue-500" />,
+  };
+
+  return (
+    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50">
+      <Avatar initials={activity.friendInitials} size="sm" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {icons[activity.type]}
+          <span className="text-xs font-semibold text-ink-800">
+            {activity.friendName}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[11px] text-ink-600">{activity.description}</p>
+      </div>
+      <span className="shrink-0 text-[10px] text-ink-400">
+        {activity.timestamp}
+      </span>
+    </div>
+  );
+}
+
+// ——— Helpers ——————————————————————————————————————————————
+
+function initials(name: string | null | undefined): string {
+  if (!name) return "??";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+}
+
+function relativeTime(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years}y ago`;
+}

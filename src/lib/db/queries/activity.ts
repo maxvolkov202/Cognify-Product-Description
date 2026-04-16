@@ -1,0 +1,155 @@
+import { and, desc, eq, gte, inArray, or } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import {
+  activityEvents,
+  friendships,
+  reps,
+  users,
+} from "@/lib/db/schema";
+import { safeDb } from "@/lib/db/safe";
+import type { SkillDimension } from "@/types/domain";
+
+/**
+ * Activity feed — emit + read. Events live in activity_events keyed by
+ * userId. The /friends live feed queries events for the current user and
+ * all their accepted friends.
+ *
+ * Event catalog:
+ *   - workout_complete  { composite, repsCount, topDimension }
+ *   - new_high          { dimension, score }
+ *   - streak_milestone  { days }
+ *   - challenge_win     { opponentName, score }
+ *   - friend_joined     { name }
+ */
+
+export type ActivityEventType =
+  | "workout_complete"
+  | "new_high"
+  | "streak_milestone"
+  | "challenge_win"
+  | "friend_joined";
+
+export type ActivityPayload =
+  | { type: "workout_complete"; composite: number; repsCount: number; topDimension: SkillDimension | null }
+  | { type: "new_high"; dimension: SkillDimension; score: number }
+  | { type: "streak_milestone"; days: number }
+  | { type: "challenge_win"; opponentName: string; score: number }
+  | { type: "friend_joined"; name: string };
+
+export type ActivityRow = {
+  id: string;
+  userId: string;
+  userName: string | null;
+  type: ActivityEventType;
+  payload: ActivityPayload;
+  createdAt: Date;
+};
+
+/** Fire-and-forget event emit. Swallows errors so the caller's primary path
+ *  is never blocked by activity bookkeeping. */
+export async function emitActivityEvent(
+  userId: string,
+  payload: ActivityPayload,
+): Promise<void> {
+  await safeDb(async () => {
+    await db.insert(activityEvents).values({
+      userId,
+      type: payload.type,
+      payload: payload as unknown as object,
+    });
+    return true;
+  }, false);
+}
+
+/**
+ * Feed for the current user: own events + events from all accepted friends,
+ * most recent first. Keeps the last 30 days by default so the feed stays
+ * fast as usage grows.
+ */
+export async function getActivityFeedForUser(
+  userId: string,
+  opts: { limit?: number; sinceDays?: number } = {},
+): Promise<ActivityRow[]> {
+  const limit = opts.limit ?? 30;
+  const sinceDays = opts.sinceDays ?? 30;
+
+  return safeDb(async () => {
+    // Resolve the set of userIds whose events we want: me + accepted friends.
+    const friendRows = await db
+      .select({
+        requesterId: friendships.requesterId,
+        recipientId: friendships.recipientId,
+      })
+      .from(friendships)
+      .where(
+        and(
+          or(
+            eq(friendships.requesterId, userId),
+            eq(friendships.recipientId, userId),
+          ),
+          eq(friendships.status, "accepted"),
+        ),
+      );
+
+    const userIds = new Set<string>([userId]);
+    for (const r of friendRows) {
+      userIds.add(r.requesterId === userId ? r.recipientId : r.requesterId);
+    }
+
+    const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        id: activityEvents.id,
+        userId: activityEvents.userId,
+        type: activityEvents.type,
+        payload: activityEvents.payload,
+        createdAt: activityEvents.createdAt,
+        userName: users.name,
+      })
+      .from(activityEvents)
+      .innerJoin(users, eq(users.id, activityEvents.userId))
+      .where(
+        and(
+          inArray(activityEvents.userId, Array.from(userIds)),
+          gte(activityEvents.createdAt, since),
+        ),
+      )
+      .orderBy(desc(activityEvents.createdAt))
+      .limit(limit);
+
+    return rows.map((r) => ({
+      id: r.id,
+      userId: r.userId,
+      userName: r.userName,
+      type: r.type as ActivityEventType,
+      payload: r.payload as ActivityPayload,
+      createdAt: r.createdAt,
+    }));
+  }, []);
+}
+
+/**
+ * Detect a new-high event by comparing the incoming score against the
+ * user's prior max composite. Returns the dimension + score if there's
+ * a per-dimension new high worth announcing; null otherwise.
+ */
+export async function detectNewHigh(
+  userId: string,
+  newComposite: number,
+): Promise<{ score: number } | null> {
+  return safeDb(async () => {
+    const prior = await db
+      .select({ s: reps.compositeScore })
+      .from(reps)
+      .where(eq(reps.userId, userId));
+    const priorMax = prior.reduce<number>(
+      (max, r) => (r.s !== null && r.s > max ? r.s : max),
+      0,
+    );
+    // Threshold: beat the prior max AND at least 70 (avoid celebrating low scores)
+    if (newComposite > priorMax && newComposite >= 70) {
+      return { score: newComposite };
+    }
+    return null;
+  }, null);
+}

@@ -1,0 +1,636 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  RotateCcw,
+  Loader2,
+  Lightbulb,
+  Target,
+  AlertTriangle,
+} from "lucide-react";
+import type {
+  Framework,
+  RepScore,
+  ModeId,
+  Callout,
+  SkillDimension,
+} from "@/types/domain";
+import { RecordButton } from "./RecordButton";
+import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
+import { RepFrameworkStrip } from "./RepFrameworkStrip";
+import type { RepTypeFramework } from "@/lib/ai/rep-types";
+import { GradientButton } from "@/components/shared/GradientButton";
+import type { RecordingResult } from "@/lib/audio/capture";
+import { saveRep } from "@/server/actions/reps";
+import { meetsSpeakingThreshold } from "@/lib/workout/pause";
+
+type SpeakingThreshold = {
+  minWords?: number;
+  minRatio?: number;
+};
+
+type Props = {
+  prompt: string;
+  framework?: Framework;
+  mode?: ModeId;
+  topic?: string;
+  maxDurationMs?: number;
+  sessionId?: string | null;
+  revealFrameworkAfterMs?: number;
+  /** Shown as a focus overlay on idle state — used for retries. */
+  retryFocus?: Callout | null;
+  /** Shown as a focus overlay on idle state — carried from the previous
+   *  rep in the same workout session. Distinct from retryFocus (same-rep). */
+  carryoverFocus?: Callout | null;
+  /** Previous rep's dimension scores (same workout) — used to render
+   *  per-dimension delta pills on the feedback surface when continuity lines
+   *  up with the current rep's scores. */
+  previousDimensionScores?: Partial<Record<SkillDimension, number>>;
+  /** Full summary of the previous rep (composite, dimensions, top weakness,
+   *  transcript). When present, the feedback surface triggers a rep-to-rep
+   *  progression comparison via /api/progression. */
+  previousRepSummary?: PreviousRepSummary | null;
+  /** Rep-type-specific framework cheat-sheet. Shown as a compact strip above
+   *  the prompt in Daily Workout mode only. No effect if not provided. */
+  repTypeFramework?: RepTypeFramework;
+  /** Enforces word-count + duration-ratio floor. Triggers a modal gate. */
+  speakingThreshold?: SpeakingThreshold;
+  /** External retry handler. If provided, RepSurface calls this instead
+   *  of resetting its own state. Used by WorkoutSession to force remount
+   *  and pop the last score on retry. */
+  onRetry?: () => void;
+  /** External discard handler for the speaking-threshold gate. */
+  onDiscard?: () => void;
+  onComplete?: (payload: {
+    score: RepScore;
+    recording: RecordingResult;
+    repId: string;
+    sessionId: string;
+    transcript: string;
+    words: { word: string; startMs: number; endMs: number }[];
+    gate?: "signup_required";
+    guestRepCount?: number;
+  }) => void;
+  onNext?: () => void;
+  nextLabel?: string;
+};
+
+type Phase =
+  | { kind: "idle" }
+  | { kind: "transcribing" }
+  | {
+      kind: "speaking-gate";
+      recording: RecordingResult;
+      wordCount: number;
+      minWords: number;
+      durationRatio: number;
+    }
+  | { kind: "scoring" }
+  | { kind: "saving" }
+  | {
+      kind: "done";
+      score: RepScore;
+      recording: RecordingResult;
+      transcript: string;
+      words: { word: string; startMs: number; endMs: number }[];
+      repId: string | null;
+      calloutIds: string[];
+      gate: "signup_required" | null;
+    }
+  | { kind: "error"; message: string; recording?: RecordingResult };
+
+export function RepSurface({
+  prompt,
+  framework,
+  mode = "scenario_training",
+  topic,
+  maxDurationMs = 90_000,
+  sessionId,
+  revealFrameworkAfterMs = 0,
+  retryFocus,
+  carryoverFocus,
+  previousDimensionScores,
+  previousRepSummary,
+  repTypeFramework,
+  speakingThreshold,
+  onRetry,
+  onDiscard,
+  onComplete,
+  onNext,
+  nextLabel = "Next rep",
+}: Props) {
+  const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const [frameworkVisible, setFrameworkVisible] = useState(
+    revealFrameworkAfterMs === 0,
+  );
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  useEffect(() => {
+    if (!framework || revealFrameworkAfterMs <= 0) {
+      setFrameworkVisible(true);
+      return;
+    }
+    setFrameworkVisible(false);
+    setReadingProgress(0);
+
+    const start = performance.now();
+    const interval = window.setInterval(() => {
+      const elapsed = performance.now() - start;
+      const pct = Math.min(100, (elapsed / revealFrameworkAfterMs) * 100);
+      setReadingProgress(pct);
+      if (pct >= 100) window.clearInterval(interval);
+    }, 80);
+
+    const reveal = window.setTimeout(() => {
+      setFrameworkVisible(true);
+    }, revealFrameworkAfterMs);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(reveal);
+    };
+  }, [framework, revealFrameworkAfterMs, prompt]);
+
+  const handleRecordingComplete = async (result: RecordingResult) => {
+    let transcript = `[No transcript — Phase B placeholder]`;
+    let words: { word: string; startMs: number; endMs: number }[] = [];
+
+    setPhase({ kind: "transcribing" });
+    try {
+      const fd = new FormData();
+      fd.append(
+        "audio",
+        new File([result.blob], "rep.webm", { type: result.mimeType }),
+      );
+      const res = await fetch("/api/transcribe", { method: "POST", body: fd });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          transcript: string;
+          words: { word: string; startMs: number; endMs: number }[];
+        };
+        transcript = data.transcript || transcript;
+        words = data.words ?? [];
+      }
+    } catch {
+      // fall through
+    }
+
+    // ——— Speaking threshold gate ——————————————————————
+    // Enforces the team-spec floor (≥ ~75% of allotted time, sufficient
+    // word count). Failing the gate surfaces a modal with Retry/Discard
+    // BEFORE any scoring or persistence — no score is saved for a rep
+    // that didn't actually produce enough content to score.
+    if (speakingThreshold) {
+      const gateCheck = meetsSpeakingThreshold({
+        transcript,
+        wordCount: words.length > 0 ? words.length : undefined,
+        durationMs: result.durationMs,
+        timeBudgetMs: maxDurationMs,
+      });
+      if (!gateCheck.passed) {
+        setPhase({
+          kind: "speaking-gate",
+          recording: result,
+          wordCount: gateCheck.wordCount,
+          minWords: gateCheck.minWords,
+          durationRatio: gateCheck.durationRatio,
+        });
+        return;
+      }
+    }
+
+    let score: RepScore;
+    setPhase({ kind: "scoring" });
+    // Client-side timeout so Claude hangs don't trap the user. 20s is
+    // generous — the Sonnet scoring path is typically under 5s.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+    try {
+      const res = await fetch("/api/score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          transcript:
+            transcript ||
+            `Rep recorded for ${Math.round(result.durationMs / 1000)}s on: ${prompt}`,
+          promptText: prompt,
+          durationMs: result.durationMs,
+          ...(words.length > 0 ? { words } : {}),
+          ...(framework
+            ? {
+                frameworkNodes: framework.nodes.map((n) => ({
+                  label: n.label,
+                  description: n.description,
+                })),
+              }
+            : {}),
+        }),
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? "Scoring failed.");
+      }
+      score = (await res.json()) as RepScore;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const isTimeout =
+        err instanceof DOMException && err.name === "AbortError";
+      const message = isTimeout
+        ? "Scoring is taking longer than expected. Your rep was captured — try again in a moment, or replay the audio below."
+        : err instanceof Error
+          ? `${err.message} — set ANTHROPIC_API_KEY in .env.local to enable Claude scoring. The recording was captured and is playable below.`
+          : "Scoring failed.";
+      setPhase({ kind: "error", message, recording: result });
+      return;
+    }
+
+    let audioUrl: string | null = null;
+    try {
+      const fd = new FormData();
+      fd.append(
+        "audio",
+        new File([result.blob], "rep.webm", { type: result.mimeType }),
+      );
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+      if (uploadRes.ok) {
+        const up = (await uploadRes.json()) as { url: string | null };
+        audioUrl = up.url;
+      }
+    } catch {
+      audioUrl = null;
+    }
+
+    setPhase({ kind: "saving" });
+    let savedRepId: string | null = null;
+    let savedCalloutIds: string[] = [];
+    let savedGate: "signup_required" | null = null;
+    try {
+      const saved = await saveRep({
+        mode,
+        promptText: prompt,
+        durationMs: result.durationMs,
+        transcript,
+        audioUrl,
+        score,
+        framework: framework ?? null,
+        topic: topic ?? null,
+        sessionId: sessionId ?? null,
+      });
+      savedRepId = saved.repId;
+      savedCalloutIds = saved.calloutIds;
+      savedGate = saved.gate ?? null;
+      onComplete?.({
+        score,
+        recording: result,
+        repId: saved.repId,
+        sessionId: saved.sessionId,
+        transcript,
+        words,
+        gate: saved.gate,
+        guestRepCount: saved.guestRepCount,
+      });
+    } catch {
+      // Persistence failed, score still shown.
+    }
+
+    setPhase({
+      kind: "done",
+      score,
+      recording: result,
+      transcript,
+      words,
+      repId: savedRepId,
+      calloutIds: savedCalloutIds,
+      gate: savedGate,
+    });
+  };
+
+  const handleRetry = () => {
+    // Revoke any outstanding blob URLs before the old phase state is
+    // discarded — prevents leaks on repeated retries within one session.
+    if (phase.kind === "done") URL.revokeObjectURL(phase.recording.url);
+    if (phase.kind === "error" && phase.recording)
+      URL.revokeObjectURL(phase.recording.url);
+    if (phase.kind === "speaking-gate")
+      URL.revokeObjectURL(phase.recording.url);
+
+    // External retry handler takes precedence. If provided, the parent
+    // (WorkoutSession) will force-remount this component with a new key.
+    if (onRetry) {
+      onRetry();
+      return;
+    }
+    setPhase({ kind: "idle" });
+  };
+
+  const handleDiscard = () => {
+    if (phase.kind === "speaking-gate")
+      URL.revokeObjectURL(phase.recording.url);
+    if (onDiscard) {
+      onDiscard();
+      return;
+    }
+    setPhase({ kind: "idle" });
+  };
+
+  // ——— Speaking threshold gate ——————————————————————————
+  if (phase.kind === "speaking-gate") {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <div className="surface-card overflow-hidden">
+          <div className="brand-gradient h-1" aria-hidden="true" />
+          <div className="p-8 md:p-10">
+            <div className="brand-gradient inline-grid size-11 place-items-center rounded-xl shadow-sm">
+              <AlertTriangle
+                className="size-5 text-white"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              />
+            </div>
+            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
+              Try to speak for most of the time.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-ink-600">
+              We caught {phase.wordCount} words — need about {phase.minWords}{" "}
+              for meaningful feedback. You used about{" "}
+              {Math.round(phase.durationRatio * 100)}% of the time budget.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="brand-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+              >
+                <RotateCcw className="size-4" />
+                Retry
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscard}
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+              >
+                Discard
+              </button>
+            </div>
+            <p className="mt-4 text-[11px] text-ink-400">
+              Nothing has been saved for this rep yet.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ——— Feedback / done state ——————————————————————————
+  if (phase.kind === "done") {
+    return (
+      <div className="space-y-8">
+        <FeedbackPanel
+          score={phase.score}
+          audioUrl={phase.recording.url}
+          durationMs={phase.recording.durationMs}
+          transcript={phase.transcript}
+          words={phase.words}
+          previousDimensionScores={previousDimensionScores}
+          previousRepSummary={previousRepSummary ?? null}
+          repId={phase.repId}
+          calloutIds={phase.calloutIds}
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {onNext && (
+            <GradientButton onClick={onNext} size="lg">
+              {nextLabel}
+            </GradientButton>
+          )}
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+          >
+            <RotateCcw className="size-4" /> Run it again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isWorking =
+    phase.kind === "transcribing" ||
+    phase.kind === "scoring" ||
+    phase.kind === "saving";
+
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+      {/* ——— Focus overlay (retry takes precedence over carryover) ——— */}
+      {(retryFocus || carryoverFocus) && phase.kind === "idle" && (
+        <FocusOverlay
+          callout={(retryFocus ?? carryoverFocus) as Callout}
+          label={retryFocus ? "Focus for this retry" : "From your last rep"}
+        />
+      )}
+
+      {/* ——— Daily Workout framework strip (cheat sheet) ——————————— */}
+      {mode === "daily_workout" &&
+        repTypeFramework &&
+        (phase.kind === "idle" || phase.kind === "error") && (
+          <RepFrameworkStrip framework={repTypeFramework} />
+        )}
+
+      <div className="surface-card overflow-hidden">
+        <div className="brand-gradient h-1" aria-hidden="true" />
+        <div className="p-8 md:p-10">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            The prompt
+          </p>
+          <h2 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-ink-900 md:text-4xl">
+            {prompt}
+          </h2>
+
+          {framework && !frameworkVisible && revealFrameworkAfterMs > 0 && (
+            <div className="mt-6 border-t border-ink-200 pt-5">
+              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+                <span>Take a moment to read</span>
+                <span>
+                  Framework in{" "}
+                  {Math.ceil(
+                    (100 - readingProgress) * (revealFrameworkAfterMs / 100_000),
+                  )}
+                  s
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100">
+                <div
+                  className="brand-gradient h-full rounded-full transition-[width] duration-100"
+                  style={{ width: `${readingProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {framework && frameworkVisible && (
+            <div className="mt-6 border-t border-ink-200 pt-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+                <Lightbulb className="size-3.5" />
+                Hold this structure · {framework.name}
+              </div>
+              <ol className="mt-4 space-y-2.5">
+                {framework.nodes.map((node, i) => (
+                  <li
+                    key={node.id}
+                    className="flex items-start gap-3 rounded-lg border border-ink-200 bg-ink-50/60 p-3"
+                  >
+                    <div className="brand-gradient grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-white">
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-ink-900">
+                        {node.label}
+                      </p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-ink-600">
+                        {node.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 p-10">
+        <RecordButton
+          maxDurationMs={maxDurationMs}
+          onComplete={handleRecordingComplete}
+          disabled={isWorking || !frameworkVisible}
+        />
+        {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
+          <p className="text-xs text-ink-400">
+            Wait for the framework to appear before recording.
+          </p>
+        )}
+      </div>
+
+      {isWorking && (
+        <>
+          <div className="surface-card flex items-center justify-center gap-3 p-6 text-sm text-ink-600">
+            <Loader2 className="size-4 animate-spin text-brand-purple" />
+            {phase.kind === "transcribing" && "Transcribing your rep…"}
+            {phase.kind === "scoring" && "Scoring with Claude…"}
+            {phase.kind === "saving" && "Saving your progress…"}
+          </div>
+          {(phase.kind === "scoring" || phase.kind === "saving") && (
+            <FeedbackSkeleton />
+          )}
+        </>
+      )}
+
+      {phase.kind === "error" && (
+        <div className="surface-card p-6">
+          <p className="text-sm font-semibold text-ink-900">
+            Recording captured
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-ink-500">
+            {phase.message}
+          </p>
+          {phase.recording && (
+            <audio
+              src={phase.recording.url}
+              controls
+              className="mt-4 w-full"
+              preload="metadata"
+            />
+          )}
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300"
+          >
+            <RotateCcw className="size-3.5" />
+            Record again
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FocusOverlay({
+  callout,
+  label,
+}: {
+  callout: Callout;
+  label: string;
+}) {
+  return (
+    <div className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="flex items-start gap-3 p-5">
+        <div className="brand-gradient grid size-9 shrink-0 place-items-center rounded-lg shadow-sm">
+          <Target
+            className="size-4 text-white"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          />
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+            {label}
+          </p>
+          <p className="mt-0.5 text-sm font-bold text-ink-900">
+            {callout.title}
+          </p>
+          {callout.suggestedRewrite && (
+            <p className="mt-1 text-xs italic leading-relaxed text-ink-700">
+              &ldquo;{callout.suggestedRewrite}&rdquo;
+            </p>
+          )}
+          <p className="mt-1 text-xs leading-relaxed text-ink-600">
+            {callout.body}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Pre-render the feedback panel's shape while Claude scores. Gives the user
+ * something to watch instead of a spinner, so the transition to real
+ * feedback feels quick even when scoring takes 3–5 seconds.
+ */
+function FeedbackSkeleton() {
+  return (
+    <div className="surface-card overflow-hidden animate-pulse">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="h-3 w-24 rounded bg-ink-100" />
+        <div className="mt-2 h-7 w-40 rounded bg-ink-100" />
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          {[0, 1].map((col) => (
+            <div key={col}>
+              <div className="h-2 w-16 rounded bg-ink-100" />
+              <div className="mt-3 space-y-2.5">
+                {[0, 1, 2].map((i) => (
+                  <div key={i}>
+                    <div className="flex items-baseline justify-between">
+                      <div className="h-2 w-16 rounded bg-ink-100" />
+                      <div className="h-2 w-8 rounded bg-ink-100" />
+                    </div>
+                    <div className="mt-1 h-1.5 w-full rounded-full bg-ink-100" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 space-y-2">
+          <div className="h-20 w-full rounded-2xl bg-ink-100" />
+          <div className="h-20 w-full rounded-2xl bg-ink-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
