@@ -42,8 +42,8 @@ export function CompetitorTable() {
         Other tools are Grammarly for speech. Cognify is Duolingo for communication.
       </p>
 
-      <div className="mt-10 overflow-hidden rounded-2xl border border-ink-200">
-        <table className="w-full text-left">
+      <div className="mt-10 overflow-x-auto rounded-2xl border border-ink-200">
+        <table className="min-w-[600px] w-full text-left">
           <thead>
             <tr className="bg-ink-50 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
               <th className="px-6 py-4">Platform</th>

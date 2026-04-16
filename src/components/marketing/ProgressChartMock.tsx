@@ -47,7 +47,7 @@ export function ProgressChartMock() {
               </div>
             ))}
           </div>
-          <div className="mt-8 grid grid-cols-3 border-t border-ink-200 pt-6 text-center">
+          <div className="mt-8 grid grid-cols-3 gap-4 border-t border-ink-200 pt-6 text-center">
             {weeklyStreak.map((n, i) => (
               <div key={i}>
                 <div className="brand-gradient-text text-3xl font-extrabold tabular-nums">
