@@ -52,7 +52,8 @@
       "Bash(npm uninstall *)",
       "Bash(npx vercel *)",
       "Bash(npm view *)",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(node scripts/build-knowledge.mjs)"
     ]
   },
   "disabledMcpjsonServers": [

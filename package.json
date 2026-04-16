@@ -4,8 +4,9 @@
   "private": true,
   "description": "Cognify v2 — the Duolingo for communication. Marketing site + training product.",
   "scripts": {
-    "dev": "next dev -p 3333 -H 0.0.0.0",
-    "build": "next build",
+    "dev": "npm run build:knowledge && next dev -p 3333 -H 0.0.0.0",
+    "build": "npm run build:knowledge && next build",
+    "build:knowledge": "node scripts/build-knowledge.mjs",
     "start": "next start -p 3333",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

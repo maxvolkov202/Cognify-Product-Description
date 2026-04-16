@@ -1,7 +1,10 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-
-const KNOWLEDGE_ROOT = join(process.cwd(), "src/lib/ai/knowledge");
+import {
+  FRAMEWORKS_BLOCKS,
+  SKILLS_BLOCKS,
+  DOMAINS_BLOCKS,
+  PATTERNS_BLOCKS,
+  PROGRESSION_BLOCKS,
+} from "./generated";
 
 export type KnowledgeCategory =
   | "framework"
@@ -16,52 +19,36 @@ export type KnowledgeBlock = {
   content: string;
 };
 
-// Module-level cache. On serverless cold start, the first call for each
-// subdir reads from disk; subsequent calls in the same warm instance hit
-// the cache. Cache is invalidated on process restart.
-const _cache: Map<string, KnowledgeBlock[]> = new Map();
+// Knowledge is pre-bundled at build time (scripts/build-knowledge.mjs →
+// ./generated.ts). This avoids any runtime fs.readFileSync — reliable in
+// Vercel serverless functions where src/lib/ai/knowledge/*.md isn't
+// guaranteed to be bundled.
 
-function loadDir(subdir: string, category: KnowledgeCategory): KnowledgeBlock[] {
-  const key = `${subdir}:${category}`;
-  const cached = _cache.get(key);
-  if (cached) return cached;
-
-  const dir = join(KNOWLEDGE_ROOT, subdir);
-  try {
-    const files = readdirSync(dir).filter(
-      (f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md",
-    );
-    const blocks = files.map((file) => ({
-      id: file.replace(/\.md$/, ""),
-      category,
-      content: readFileSync(join(dir, file), "utf-8"),
-    }));
-    _cache.set(key, blocks);
-    return blocks;
-  } catch {
-    _cache.set(key, []);
-    return [];
-  }
+function tag(
+  blocks: ReadonlyArray<{ id: string; content: string }>,
+  category: KnowledgeCategory,
+): KnowledgeBlock[] {
+  return blocks.map((b) => ({ id: b.id, category, content: b.content }));
 }
 
 export function loadFrameworks(): KnowledgeBlock[] {
-  return loadDir("frameworks", "framework");
+  return tag(FRAMEWORKS_BLOCKS, "framework");
 }
 
 export function loadSkills(): KnowledgeBlock[] {
-  return loadDir("skills", "skill");
+  return tag(SKILLS_BLOCKS, "skill");
 }
 
 export function loadDomains(): KnowledgeBlock[] {
-  return loadDir("domains", "domain");
+  return tag(DOMAINS_BLOCKS, "domain");
 }
 
 export function loadPatterns(): KnowledgeBlock[] {
-  return loadDir("patterns", "pattern");
+  return tag(PATTERNS_BLOCKS, "pattern");
 }
 
 export function loadProgression(): KnowledgeBlock[] {
-  return loadDir("progression", "progression");
+  return tag(PROGRESSION_BLOCKS, "progression");
 }
 
 export function loadProgressionFor(dimension: string): KnowledgeBlock | null {
@@ -101,14 +88,6 @@ export type KnowledgeQuery =
   | { stage: "callout_compose" }
   | { stage: "prompt_gen"; domainHint?: string };
 
-/**
- * Resolve which knowledge blocks to include for a given pipeline stage.
- *
- * Hand-rolled matching for now. Once external-validation data
- * accumulates, a calibration regression will learn which knowledge
- * blocks actually predict blind-listener preference per stage, and
- * these match rules will be replaced with learned weights.
- */
 export function resolveKnowledge(query: KnowledgeQuery): KnowledgeBlock[] {
   switch (query.stage) {
     case "framework_gen": {
@@ -130,9 +109,9 @@ export function resolveKnowledge(query: KnowledgeQuery): KnowledgeBlock[] {
 }
 
 /**
- * Force the loader to clear its cache. Exposed for debug tooling
- * and test harnesses. Do not call in production request paths.
+ * Legacy cache-clear hook. No-op now that knowledge is static at build
+ * time. Kept for API compatibility with debug tooling.
  */
 export function __clearKnowledgeCache(): void {
-  _cache.clear();
+  // no-op
 }
