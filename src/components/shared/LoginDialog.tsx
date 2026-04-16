@@ -2,8 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -14,25 +15,60 @@ type Props = {
 
 function DialogInner({ trigger, triggerClassName }: Props) {
   const [open, setOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
   const params = useSearchParams();
+  const router = useRouter();
   const next = params.get("next");
+  const callbackUrl = next ?? "/dashboard";
 
   useEffect(() => {
     if (params.get("login") === "1") setOpen(true);
   }, [params]);
 
   const handleGoogle = async () => {
-    setSubmitting(true);
+    setSubmitting("google");
+    setFormError(null);
     const supabase = createSupabaseBrowserClient();
-    const callbackUrl = next ?? "/dashboard";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
       },
     });
-    if (error) setSubmitting(false);
+    if (error) {
+      setFormError(error.message);
+      setSubmitting(null);
+    }
+  };
+
+  const handleEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting("email");
+    setFormError(null);
+    const supabase = createSupabaseBrowserClient();
+    const fn =
+      mode === "signup"
+        ? supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
+            },
+          })
+        : supabase.auth.signInWithPassword({ email, password });
+    const { error } = await fn;
+    if (error) {
+      setFormError(error.message);
+      setSubmitting(null);
+      return;
+    }
+    setOpen(false);
+    router.push(callbackUrl);
+    router.refresh();
   };
 
   const triggerEl = trigger ?? (
@@ -74,17 +110,87 @@ function DialogInner({ trigger, triggerClassName }: Props) {
               Sign in to train, track progress, and run reps.
             </Dialog.Description>
 
+            {formError && (
+              <div className="mt-4 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                {formError}
+              </div>
+            )}
+
             <div className="mt-8 w-full space-y-3">
               <button
                 type="button"
                 onClick={handleGoogle}
-                disabled={submitting}
+                disabled={submitting !== null}
                 className="flex w-full items-center justify-center gap-3 rounded-full border border-ink-200 bg-white px-5 py-3.5 text-sm font-semibold text-ink-900 transition-all hover:border-ink-300 hover:bg-ink-50 disabled:opacity-60"
               >
                 <GoogleG className="size-[18px]" />
-                {submitting ? "Redirecting to Google…" : "Continue with Google"}
+                {submitting === "google"
+                  ? "Redirecting to Google…"
+                  : "Continue with Google"}
               </button>
             </div>
+
+            <div className="mt-5 flex items-center gap-3 text-ink-300 w-full">
+              <div className="h-px flex-1 bg-ink-200" />
+              <span className="text-xs">or</span>
+              <div className="h-px flex-1 bg-ink-200" />
+            </div>
+
+            <form onSubmit={handleEmail} className="mt-5 w-full space-y-3 text-left">
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+              />
+              <input
+                type="password"
+                required
+                minLength={8}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={mode === "signup" ? "Password (8+ chars)" : "Password"}
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={submitting !== null}
+                className="brand-gradient w-full rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-95 disabled:opacity-60"
+              >
+                {submitting === "email"
+                  ? mode === "signup"
+                    ? "Creating account…"
+                    : "Signing in…"
+                  : mode === "signup"
+                    ? "Create account"
+                    : "Sign in"}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setFormError(null);
+              }}
+              className="mt-3 text-xs text-ink-500 hover:text-ink-700"
+            >
+              {mode === "signin"
+                ? "Don't have an account? Sign up"
+                : "Already have an account? Sign in"}
+            </button>
+
+            <Link
+              href="/signin"
+              onClick={() => setOpen(false)}
+              className="mt-2 text-xs text-ink-400 hover:text-ink-600"
+            >
+              More sign-in options
+            </Link>
 
             <p className="mt-6 text-xs leading-relaxed text-ink-500">
               By continuing, you agree to Cognify&rsquo;s{" "}
