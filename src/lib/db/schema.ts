@@ -1,5 +1,5 @@
 import {
-  pgTable,
+  pgSchema,
   text,
   timestamp,
   integer,
@@ -7,13 +7,16 @@ import {
   jsonb,
   boolean,
   uuid,
-  pgEnum,
   index,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-export const modeEnum = pgEnum("mode", [
+// All v2 tables live in the `cognify_v2` Postgres schema so they don't
+// collide with Bob's v1 tables in `public` on the same Supabase project.
+export const cognifyV2Schema = pgSchema("cognify_v2");
+
+export const modeEnum = cognifyV2Schema.enum("mode", [
   "daily_workout",
   "skill_lab",
   "scenario_training",
@@ -23,7 +26,7 @@ export const modeEnum = pgEnum("mode", [
 // v2-beta.1 rubric. The rep-history wipe is required when this enum
 // changes because Postgres enum values cannot be removed with existing
 // rows referencing them. See drizzle/migrations for the wipe migration.
-export const dimensionEnum = pgEnum("dimension", [
+export const dimensionEnum = cognifyV2Schema.enum("dimension", [
   "clarity",
   "structure",
   "relevance",
@@ -33,14 +36,14 @@ export const dimensionEnum = pgEnum("dimension", [
   "structural_adherence",
 ]);
 
-export const calloutToneEnum = pgEnum("callout_tone", [
+export const calloutToneEnum = cognifyV2Schema.enum("callout_tone", [
   "positive",
   "neutral",
   "warn",
   "critical",
 ]);
 
-export const verticalEnum = pgEnum("vertical", [
+export const verticalEnum = cognifyV2Schema.enum("vertical", [
   "sales",
   "consulting",
   "finance",
@@ -51,7 +54,7 @@ export const verticalEnum = pgEnum("vertical", [
   "other",
 ]);
 
-export const users = pgTable("users", {
+export const users = cognifyV2Schema.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").unique(),
   name: text("name"),
@@ -74,7 +77,7 @@ export const users = pgTable("users", {
   baselineRepId: uuid("baseline_rep_id"),
 });
 
-export const teams = pgTable("teams", {
+export const teams = cognifyV2Schema.table("teams", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   kind: text("kind").notNull(),
@@ -82,7 +85,7 @@ export const teams = pgTable("teams", {
   billingEmail: text("billing_email"),
 });
 
-export const memberships = pgTable(
+export const memberships = cognifyV2Schema.table(
   "memberships",
   {
     userId: uuid("user_id")
@@ -97,7 +100,7 @@ export const memberships = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.teamId] })],
 );
 
-export const frameworks = pgTable("frameworks", {
+export const frameworks = cognifyV2Schema.table("frameworks", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description").notNull(),
@@ -109,7 +112,7 @@ export const frameworks = pgTable("frameworks", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const scenarios = pgTable(
+export const scenarios = cognifyV2Schema.table(
   "scenarios",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -129,7 +132,7 @@ export const scenarios = pgTable(
   (t) => [index("scenarios_user_idx").on(t.userId)],
 );
 
-export const practiceSessions = pgTable(
+export const practiceSessions = cognifyV2Schema.table(
   "practice_sessions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -147,7 +150,7 @@ export const practiceSessions = pgTable(
   (t) => [index("sessions_user_started_idx").on(t.userId, t.startedAt)],
 );
 
-export const reps = pgTable(
+export const reps = cognifyV2Schema.table(
   "reps",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -169,15 +172,20 @@ export const reps = pgTable(
     compositeScore: real("composite_score"),
     modelVersion: text("model_version"),
     rubricVersion: text("rubric_version"),
+    // pending → processing → completed | failed. Default "completed" preserves
+    // backward compatibility while the sync scoring path still exists. When
+    // Phase 4 (async Edge Function scoring) lands, new reps insert as "pending".
+    status: text("status").notNull().default("completed"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("reps_session_idx").on(t.sessionId),
     index("reps_user_created_idx").on(t.userId, t.createdAt),
+    index("reps_status_idx").on(t.status),
   ],
 );
 
-export const dimensionScores = pgTable(
+export const dimensionScores = cognifyV2Schema.table(
   "dimension_scores",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -191,7 +199,7 @@ export const dimensionScores = pgTable(
   (t) => [index("dimension_scores_rep_idx").on(t.repId)],
 );
 
-export const callouts = pgTable(
+export const callouts = cognifyV2Schema.table(
   "callouts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -210,7 +218,7 @@ export const callouts = pgTable(
   (t) => [index("callouts_rep_idx").on(t.repId)],
 );
 
-export const progressSnapshots = pgTable(
+export const progressSnapshots = cognifyV2Schema.table(
   "progress_snapshots",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -224,7 +232,7 @@ export const progressSnapshots = pgTable(
   (t) => [index("progress_user_dim_idx").on(t.userId, t.dimension, t.takenAt)],
 );
 
-export const externalValidations = pgTable("external_validations", {
+export const externalValidations = cognifyV2Schema.table("external_validations", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
@@ -237,7 +245,7 @@ export const externalValidations = pgTable("external_validations", {
   isClosed: boolean("is_closed").notNull().default(false),
 });
 
-export const friendships = pgTable(
+export const friendships = cognifyV2Schema.table(
   "friendships",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -261,7 +269,7 @@ export const friendships = pgTable(
   ],
 );
 
-export const friendChallenges = pgTable(
+export const friendChallenges = cognifyV2Schema.table(
   "friend_challenges",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -289,7 +297,7 @@ export const friendChallenges = pgTable(
   ],
 );
 
-export const feedbackRatings = pgTable(
+export const feedbackRatings = cognifyV2Schema.table(
   "feedback_ratings",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -311,7 +319,7 @@ export const feedbackRatings = pgTable(
   ],
 );
 
-export const calloutCorrections = pgTable(
+export const calloutCorrections = cognifyV2Schema.table(
   "callout_corrections",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -334,7 +342,7 @@ export const calloutCorrections = pgTable(
   ],
 );
 
-export const activityEvents = pgTable(
+export const activityEvents = cognifyV2Schema.table(
   "activity_events",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -356,7 +364,7 @@ export const activityEvents = pgTable(
   ],
 );
 
-export const externalRankings = pgTable(
+export const externalRankings = cognifyV2Schema.table(
   "external_rankings",
   {
     id: uuid("id").primaryKey().defaultRandom(),
