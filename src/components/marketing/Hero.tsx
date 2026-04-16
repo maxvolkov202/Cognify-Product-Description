@@ -27,8 +27,8 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <GradientButton href="/try" size="lg">
-              Try a rep — 20 seconds, no signup →
+            <GradientButton href="/signin" size="lg">
+              Try your first rep now →
             </GradientButton>
             <GradientButton href="/signin" variant="outline" size="lg">
               Log in
@@ -36,7 +36,7 @@ export function Hero() {
           </div>
 
           <p className="mt-5 text-sm text-ink-500">
-            One rep, scored live. No email, no account — just see how it works.
+            Two minutes to set up. Four reps a day keeps the clarity sharp.
           </p>
         </div>
 

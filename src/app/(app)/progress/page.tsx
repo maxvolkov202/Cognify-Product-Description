@@ -13,6 +13,7 @@ import { StreakHeatmap } from "@/components/product/StreakHeatmap";
 import { SkillRadar } from "@/components/product/SkillRadar";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { Flame, Play, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
+import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
 export default async function ProgressPage() {
   const user = await currentUser();
@@ -175,19 +176,24 @@ export default async function ProgressPage() {
           icon={<TrendingUp className="size-4 text-white" />}
           label="Recent composite"
           value={averageComposite?.toString() ?? "—"}
+          tooltip="Weighted average of your scores across all six dimensions (0–100). Higher = all skills firing together, not just one."
         />
         <StatCard
           icon={<TrendingUp className="size-4 text-white" />}
           label="Rubric version"
           value="v2-beta.1"
           mono
+          tooltip="The scoring rubric that produced these numbers. Pinned per rep so historical scores don't shift when we tune the rubric later."
         />
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="surface-card p-8">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-xl font-extrabold text-ink-900">Skill trends</h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xl font-extrabold text-ink-900">Skill trends</h2>
+              <InfoTooltip content="One line per dimension. Trend up = consistent improvement week over week. Each point is a rep." />
+            </div>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
               last 30 days
             </span>
@@ -198,7 +204,10 @@ export default async function ProgressPage() {
         </div>
 
         <div className="surface-card p-8">
-          <h2 className="text-xl font-extrabold text-ink-900">Current shape</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-xl font-extrabold text-ink-900">Current shape</h2>
+            <InfoTooltip content="Your latest score on each of the six dimensions. The hexagon shape shows strengths vs. gaps at a glance." />
+          </div>
           <p className="mt-1 text-xs text-ink-500">
             Latest score across all six dimensions.
           </p>
@@ -286,12 +295,14 @@ function StatCard({
   value,
   suffix,
   mono,
+  tooltip,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   suffix?: string;
   mono?: boolean;
+  tooltip?: string;
 }) {
   return (
     <div className="surface-card p-5">
@@ -300,6 +311,7 @@ function StatCard({
           {icon}
         </span>
         {label}
+        {tooltip && <InfoTooltip content={tooltip} />}
       </div>
       <div className="mt-3 flex items-baseline gap-1.5">
         <span

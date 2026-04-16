@@ -76,17 +76,21 @@ export default function PricingPage() {
             Simple, <span className="brand-gradient-text">scalable model.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-600">
-            Individual adoption. Institutional scale. Freemium entry for individuals,
-            per-seat licensing for teams and career centers.
+            Start free. Upgrade when you&rsquo;re training daily. Bring your
+            team or career center on with per-seat licensing.
           </p>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-5xl px-6 pb-20">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-          Individual — B2C
+        <h2 className="text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+          For individuals
+        </h2>
+        <p className="mt-2 text-sm text-ink-600">
+          Train on your own. Free to start, upgrade when you&rsquo;re training
+          daily.
         </p>
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           {individualPlans.map((plan) => {
             const isFeatured = "featured" in plan && plan.featured === true;
             return (
@@ -136,10 +140,14 @@ export default function PricingPage() {
       </section>
 
       <section className="mx-auto w-full max-w-5xl px-6 pb-24">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-          Institutional — B2B
+        <h2 className="text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+          For teams &amp; career centers
+        </h2>
+        <p className="mt-2 text-sm text-ink-600">
+          Per-seat licensing with admin controls, aggregate reporting, and
+          blind-listener validation built in.
         </p>
-        <div className="mt-4 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           {teamPlans.map((plan) => (
             <div key={plan.name} className="surface-card p-8">
               <h3 className="text-2xl font-extrabold text-ink-900">{plan.name}</h3>

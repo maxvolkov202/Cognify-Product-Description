@@ -19,7 +19,7 @@ export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-ink-200/60 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-ink-200/60 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
         <Logo />
         <nav aria-label="Primary" className="hidden items-center gap-7 md:flex">

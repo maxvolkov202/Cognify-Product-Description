@@ -25,6 +25,7 @@ import {
 } from "@/types/domain";
 import { groupComposite } from "@/lib/scoring/rubric";
 import { cn } from "@/lib/utils/cn";
+import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
 export type PreviousRepSummary = {
   composite: number;
@@ -278,8 +279,9 @@ export function FeedbackPanel({
             <div className="brand-gradient-text text-6xl font-extrabold tabular-nums md:text-7xl">
               {score.composite}
             </div>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+            <p className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
               Out of 100
+              <InfoTooltip content="Composite score — a weighted average across all six dimensions. Higher = your skills are firing together, not just one strength masking weaknesses." />
             </p>
             <p className="mt-3 text-xs text-ink-500">{formattedDuration}</p>
           </div>
