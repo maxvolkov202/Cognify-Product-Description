@@ -53,3 +53,5 @@ next-env.d.ts
 # audio fixtures (test only)
 /tmp/audio/
 seed-operator.mjs
+
+.vercel

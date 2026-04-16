@@ -49,7 +49,10 @@
       "Bash(gh repo *)",
       "Bash(npx drizzle-kit *)",
       "Bash(node --env-file=.env.local -e ' *)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(npx vercel *)",
+      "Bash(npm view *)",
+      "Bash(find *)"
     ]
   },
   "disabledMcpjsonServers": [

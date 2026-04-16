@@ -174,10 +174,10 @@ function SignInInner() {
           </button>
 
           <Link
-            href="/dashboard"
-            className="mt-4 w-full rounded-full border border-ink-200 px-5 py-3 text-center text-sm font-semibold text-ink-700 transition-all hover:bg-ink-50"
+            href="/try"
+            className="mt-4 text-xs text-ink-500 hover:text-ink-700"
           >
-            Continue as guest
+            Try one rep without signing up →
           </Link>
 
           <p className="mt-8 text-xs text-ink-500">

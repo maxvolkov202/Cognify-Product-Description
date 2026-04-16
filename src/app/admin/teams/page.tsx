@@ -32,9 +32,14 @@ export default function TeamsPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <div className="flex flex-col gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-          Admin · Teams
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            Admin · Teams
+          </p>
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700">
+            Preview · demo data
+          </span>
+        </div>
         <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           Your teams.
         </h1>
