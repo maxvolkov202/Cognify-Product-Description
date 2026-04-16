@@ -10,9 +10,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3333"),
+  // Always show just "Cognify" in the tab. template with a literal (no %s)
+  // causes Next.js to ignore any page-level title field and render this value.
   title: {
-    default: "Cognify — The Duolingo for communication",
-    template: "%s · Cognify",
+    template: "Cognify",
+    default: "Cognify",
   },
   description:
     "Cognify is a communication training gym. Short, structured reps with instant feedback build the ability to think clearly and speak under pressure.",
