@@ -246,6 +246,10 @@ export function RepSurface({
       return;
     }
 
+    // Persist the Supabase Storage path (not the signed URL) so we can
+    // regenerate short-lived signed URLs on demand. Same-session playback
+    // uses the local Blob URL from RecordingResult.url, so no signed URL
+    // needed here.
     let audioUrl: string | null = null;
     try {
       const fd = new FormData();
@@ -255,8 +259,8 @@ export function RepSurface({
       );
       const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
       if (uploadRes.ok) {
-        const up = (await uploadRes.json()) as { url: string | null };
-        audioUrl = up.url;
+        const up = (await uploadRes.json()) as { path: string | null };
+        audioUrl = up.path;
       }
     } catch {
       audioUrl = null;

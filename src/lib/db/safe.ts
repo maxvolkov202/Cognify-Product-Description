@@ -23,6 +23,9 @@ export function hasDeepgram(): boolean {
   return Boolean(process.env.DEEPGRAM_API_KEY);
 }
 
-export function hasBlobStorage(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+export function hasAudioStorage(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
 }
