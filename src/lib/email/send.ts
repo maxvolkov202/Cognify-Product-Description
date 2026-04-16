@@ -145,7 +145,7 @@ function buildWelcomeHtml(firstName: string): string {
       </div>
 
       <div style="text-align:center;margin:28px 0 16px;">
-        <a href="${process.env.AUTH_URL ?? "https://cognify.ai"}/workout"
+        <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://cognifygym.com"}/workout"
            style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
           Start your first workout →
         </a>
