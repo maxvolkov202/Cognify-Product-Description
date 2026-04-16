@@ -177,7 +177,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const response = await anthropic.messages.create({
     model: MODELS.scoring,
-    max_tokens: 2048,
+    max_tokens: 1200,
     system: [
       {
         type: "text",
