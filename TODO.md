@@ -131,9 +131,32 @@ Do real iPhone + Android Safari/Chrome tests. Known risk areas: audio recording 
 
 ---
 
+## 🚨 Known issues to fix right now
+
+1. **Anthropic credits depleted** — production `/api/score` and `/api/talking-points` fall back to mock responses because the Anthropic account is out of credits. API returns 400 with "Your credit balance is too low to access the Anthropic API." Fix: add credits at https://console.anthropic.com/settings/billing. No redeploy needed (key is read at runtime). Until fixed, ALL AI features show placeholder output.
+2. **Supabase email confirmation is on by default** — signups don't auto-log-in, require clicking a confirmation link in email. To disable for easier demoing: Supabase Dashboard → Authentication → Providers → Email → uncheck "Confirm email" → save.
+
+## Product sweep findings (2026-04-16)
+
+See **`docs/PRODUCT_SWEEP_2026-04-16.md`** for the full first-time-user feedback. Top 10:
+
+1. **[CRITICAL]** `/try` shows scores but no transcript/callouts — defeats the product's core value prop
+2. **[CRITICAL]** Pause workout code exists but has no visible button
+3. **[HIGH]** No timer bar while speaking — users don't know if they're at 20s or 60s
+4. **[HIGH]** Settings missing password reset / email change / data export / account delete
+5. **[HIGH]** Build a Rep doesn't preview generated talking points before starting rep
+6. **[MEDIUM]** Friends/Leaderboard "Preview" badge is too subtle — use full-width banner
+7. **[MEDIUM]** Challenge buttons hidden on mobile (`hidden md:flex` — backwards)
+8. **[MEDIUM]** Validation flow unclear — no preview of shareable link / listener view
+9. **[MEDIUM]** No data export in Settings (CSV of reps / JSON of callouts)
+10. **[LOW]** Onboarding doesn't frame baseline as the anchor before the baseline rep
+
 ## Reference documents
 
 - **Plan file:** `C:\Users\MaxVolkov\.claude-personal\plans\wise-cuddling-owl.md` (original merge design — all phases done)
 - **Deployment guide:** `docs/DEPLOYMENT.md` (step-by-step with exact commands/env values)
+- **Domain cutover guide:** `docs/DOMAIN_CUTOVER.md` (3 paths to move cognifygym.com to v2)
+- **Product sweep:** `docs/PRODUCT_SWEEP_2026-04-16.md` (user-perspective feedback, all 10 journeys)
 - **Deferred work memory:** `C:\Users\MaxVolkov\.claude-personal\projects\C--Users-MaxVolkov-dev-cognify\memory\project_deferred-work.md`
 - **Git branch:** `supabase-migration` on `maxvolkov202/Cognify-Product-Description`
+- **Live preview:** https://cognify-v2-neon.vercel.app
