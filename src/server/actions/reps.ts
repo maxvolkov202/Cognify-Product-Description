@@ -50,6 +50,88 @@ export type SaveRepResult = {
   guestRepCount?: number;
 };
 
+export type InsertPendingRepInput = {
+  mode: ModeId;
+  promptText: string;
+  durationMs: number;
+  transcript: string;
+  audioPath: string | null;
+  framework: Framework | null;
+  topic: string | null;
+  sessionId: string | null;
+  timeBudgetMs?: number;
+  words?: { word: string; startMs: number; endMs: number }[];
+};
+
+export type InsertPendingRepResult = {
+  repId: string;
+  sessionId: string;
+};
+
+/**
+ * Async path — insert a rep with status='pending' and return its id.
+ * The client then invokes the `process-rep` Edge Function which claims
+ * the rep (optimistic lock → status='processing'), runs scoring, writes
+ * results, and flips status to 'completed' (or 'failed').
+ *
+ * Separate from saveRep (sync path) to keep the async flow additive
+ * during the transition. Guests keep using saveRep.
+ */
+export async function insertPendingRep(
+  input: InsertPendingRepInput,
+): Promise<InsertPendingRepResult | null> {
+  const user = await currentUser();
+  if (!user) return null;
+  if (user.kind === "guest") return null; // Guests use sync saveRep
+  const userId = user.id;
+
+  return safeDb(async () => {
+    let sessionId = input.sessionId;
+    if (!sessionId) {
+      const [session] = await db
+        .insert(practiceSessions)
+        .values({
+          userId,
+          mode: input.mode,
+          startedAt: new Date(),
+        })
+        .returning({ id: practiceSessions.id });
+      sessionId = session!.id;
+    }
+
+    const [rep] = await db
+      .insert(reps)
+      .values({
+        sessionId,
+        userId,
+        promptText: input.promptText,
+        durationMs: input.durationMs,
+        audioUrl: input.audioPath,
+        transcript: { text: input.transcript } as unknown as object,
+        topic: input.topic ?? input.promptText,
+        status: "pending",
+        frameworkSnapshot: input.framework
+          ? ({
+              id: input.framework.id,
+              name: input.framework.name,
+              description: input.framework.description,
+              nodes: input.framework.nodes,
+              timeBudgetMs: input.timeBudgetMs,
+              words: input.words,
+            } as unknown as object)
+          : input.words || input.timeBudgetMs
+            ? ({
+                timeBudgetMs: input.timeBudgetMs,
+                words: input.words,
+              } as unknown as object)
+            : null,
+      })
+      .returning({ id: reps.id });
+
+    return { repId: rep!.id, sessionId };
+  }, null);
+}
+
 export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
