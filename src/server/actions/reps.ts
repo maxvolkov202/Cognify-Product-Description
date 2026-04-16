@@ -9,7 +9,7 @@ import {
   progressSnapshots,
   practiceSessions,
 } from "@/lib/db/schema";
-import { count, eq } from "drizzle-orm";
+import { count, eq, asc } from "drizzle-orm";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
@@ -278,4 +278,75 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       guestRepCount,
     };
   }, fallback);
+}
+
+export type GetRepResultOutput = {
+  status: "pending" | "processing" | "completed" | "failed";
+  score: RepScore | null;
+  calloutIds: string[];
+};
+
+/**
+ * Fetch a finalized rep's score + callouts. Used by the async flow once
+ * useRepStatus reports status='completed' — pulls everything needed to
+ * render FeedbackPanel from the DB (vs. from the /api/score response in
+ * the sync flow).
+ *
+ * Returns status + null score when the rep hasn't completed yet. Caller
+ * uses status to decide what to render (spinner vs. results vs. error).
+ */
+export async function getRepResult(
+  repId: string,
+): Promise<GetRepResultOutput | null> {
+  const user = await currentUser();
+  if (!user) return null;
+
+  return safeDb(async () => {
+    const rep = await db.query.reps.findFirst({ where: eq(reps.id, repId) });
+    if (!rep) return null;
+    // Scope to the current user to prevent cross-user reads.
+    if (rep.userId !== user.id) return null;
+
+    const statusValue = (rep.status ?? "completed") as GetRepResultOutput["status"];
+    if (statusValue !== "completed") {
+      return { status: statusValue, score: null, calloutIds: [] };
+    }
+
+    const dims = await db
+      .select()
+      .from(dimensionScores)
+      .where(eq(dimensionScores.repId, repId));
+    const cos = await db
+      .select()
+      .from(calloutsTable)
+      .where(eq(calloutsTable.repId, repId))
+      .orderBy(asc(calloutsTable.transcriptStartMs));
+
+    const score: RepScore = {
+      composite: rep.compositeScore ?? 0,
+      dimensions: dims.map((d) => ({
+        dimension: d.dimension as SkillDimension,
+        score: d.score,
+        signals: (d.signals as string[]) ?? [],
+      })),
+      callouts: cos.map((c) => ({
+        dimension: c.dimension as SkillDimension,
+        tone: c.tone as "positive" | "neutral" | "warn" | "critical",
+        title: c.title,
+        body: c.body,
+        quote: c.quote,
+        suggestedRewrite: c.suggestedRewrite,
+        transcriptStart: c.transcriptStartMs,
+        transcriptEnd: c.transcriptEndMs,
+      })),
+      modelVersion: rep.modelVersion ?? "",
+      rubricVersion: rep.rubricVersion ?? "",
+    };
+
+    return {
+      status: "completed" as const,
+      score,
+      calloutIds: cos.map((c) => c.id),
+    };
+  }, null);
 }

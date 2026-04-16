@@ -21,8 +21,10 @@ import { RepFrameworkStrip } from "./RepFrameworkStrip";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { GradientButton } from "@/components/shared/GradientButton";
 import type { RecordingResult } from "@/lib/audio/capture";
-import { saveRep } from "@/server/actions/reps";
+import { saveRep, insertPendingRep, getRepResult } from "@/server/actions/reps";
 import { meetsSpeakingThreshold } from "@/lib/workout/pause";
+import { useRepStatus } from "@/hooks/useRepStatus";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type SpeakingThreshold = {
   minWords?: number;
@@ -88,6 +90,16 @@ type Phase =
   | { kind: "scoring" }
   | { kind: "saving" }
   | {
+      // Async path: Edge Function is processing the rep. Shows progress UI
+      // while useRepStatus subscribes via Supabase Realtime. Transitions
+      // to 'done' when status='completed', or 'error' on 'failed'.
+      kind: "processing-async";
+      repId: string;
+      recording: RecordingResult;
+      transcript: string;
+      words: { word: string; startMs: number; endMs: number }[];
+    }
+  | {
       kind: "done";
       score: RepScore;
       recording: RecordingResult;
@@ -98,6 +110,14 @@ type Phase =
       gate: "signup_required" | null;
     }
   | { kind: "error"; message: string; recording?: RecordingResult };
+
+// Feature flag — when set to "true" in .env, authenticated users run scoring
+// via the Supabase `process-rep` Edge Function with realtime status updates.
+// Guests always use the sync path (no Supabase JWT, no realtime access).
+// Sync path remains the default until Phase 4 is deployed + smoke-tested
+// on a public URL.
+const USE_ASYNC_SCORING =
+  process.env.NEXT_PUBLIC_USE_ASYNC_SCORING === "true";
 
 export function RepSurface({
   prompt,
@@ -124,6 +144,55 @@ export function RepSurface({
     revealFrameworkAfterMs === 0,
   );
   const [readingProgress, setReadingProgress] = useState(0);
+
+  // Realtime subscription for the async scoring path. Always called (React
+  // hook rules) but only subscribes when phase is processing-async. Returns
+  // { status: null } otherwise.
+  const asyncRepId =
+    phase.kind === "processing-async" ? phase.repId : null;
+  const repStatus = useRepStatus(asyncRepId);
+
+  // Drive the async→done / async→error transitions when realtime fires.
+  useEffect(() => {
+    if (phase.kind !== "processing-async") return;
+    if (repStatus.status === "completed") {
+      (async () => {
+        const fetched = await getRepResult(phase.repId);
+        if (!fetched || !fetched.score) {
+          setPhase({
+            kind: "error",
+            message: "Scoring completed but results couldn't be loaded.",
+            recording: phase.recording,
+          });
+          return;
+        }
+        setPhase({
+          kind: "done",
+          score: fetched.score,
+          recording: phase.recording,
+          transcript: phase.transcript,
+          words: phase.words,
+          repId: phase.repId,
+          calloutIds: fetched.calloutIds,
+          gate: null,
+        });
+        onComplete?.({
+          score: fetched.score,
+          recording: phase.recording,
+          repId: phase.repId,
+          sessionId: sessionId ?? phase.repId,
+          transcript: phase.transcript,
+          words: phase.words,
+        });
+      })();
+    } else if (repStatus.status === "failed") {
+      setPhase({
+        kind: "error",
+        message: "Scoring failed in the background — tap retry.",
+        recording: phase.recording,
+      });
+    }
+  }, [phase, repStatus.status, onComplete, sessionId]);
 
   useEffect(() => {
     if (!framework || revealFrameworkAfterMs <= 0) {
@@ -197,6 +266,72 @@ export function RepSurface({
         });
         return;
       }
+    }
+
+    // ——— Async fork (authenticated users only) ————————————————
+    // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
+    // Supabase session, skip the blocking /api/score call and instead:
+    //   1. Upload audio + insertPendingRep (status='pending')
+    //   2. Invoke the `process-rep` Edge Function (fire-and-forget)
+    //   3. Subscribe to reps.status via useRepStatus (a separate useEffect
+    //      drives the transition to 'done' when status='completed')
+    // Guests fall through to the sync path — they don't have a Supabase JWT,
+    // so the Edge Function's verify_jwt gate would reject them and realtime
+    // RLS would hide the row.
+    if (USE_ASYNC_SCORING) {
+      let audioUrl: string | null = null;
+      try {
+        const fd = new FormData();
+        fd.append(
+          "audio",
+          new File([result.blob], "rep.webm", { type: result.mimeType }),
+        );
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+        });
+        if (uploadRes.ok) {
+          const up = (await uploadRes.json()) as { path: string | null };
+          audioUrl = up.path;
+        }
+      } catch {
+        audioUrl = null;
+      }
+
+      const pending = await insertPendingRep({
+        mode,
+        promptText: prompt,
+        durationMs: result.durationMs,
+        transcript,
+        audioPath: audioUrl,
+        framework: framework ?? null,
+        topic: topic ?? null,
+        sessionId: sessionId ?? null,
+        timeBudgetMs: maxDurationMs,
+        words,
+      });
+
+      if (pending) {
+        // Fire-and-forget Edge Function invocation. The realtime
+        // subscription (useRepStatus) drives the phase transition.
+        const supabase = createSupabaseBrowserClient();
+        void supabase.functions
+          .invoke("process-rep", { body: { repId: pending.repId } })
+          .catch((err) => {
+            console.error("[process-rep invoke] failed:", err);
+          });
+
+        setPhase({
+          kind: "processing-async",
+          repId: pending.repId,
+          recording: result,
+          transcript,
+          words,
+        });
+        return;
+      }
+      // insertPendingRep returned null (guest or DB down) — fall through
+      // to the sync path below.
     }
 
     let score: RepScore;
@@ -424,7 +559,8 @@ export function RepSurface({
   const isWorking =
     phase.kind === "transcribing" ||
     phase.kind === "scoring" ||
-    phase.kind === "saving";
+    phase.kind === "saving" ||
+    phase.kind === "processing-async";
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -525,10 +661,11 @@ export function RepSurface({
             {phase.kind === "transcribing" && "Transcribing your rep…"}
             {phase.kind === "scoring" && "Scoring with Claude…"}
             {phase.kind === "saving" && "Saving your progress…"}
+            {phase.kind === "processing-async" && "Scoring in the background — realtime updates incoming…"}
           </div>
-          {(phase.kind === "scoring" || phase.kind === "saving") && (
-            <FeedbackSkeleton />
-          )}
+          {(phase.kind === "scoring" ||
+            phase.kind === "saving" ||
+            phase.kind === "processing-async") && <FeedbackSkeleton />}
         </>
       )}
 
