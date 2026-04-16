@@ -34,6 +34,12 @@ export function Nav() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <Link
+            href="/signin?mode=signup"
+            className="hidden rounded-full border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 sm:inline-flex"
+          >
+            Sign up
+          </Link>
           <LoginDialog
             trigger={
               <button

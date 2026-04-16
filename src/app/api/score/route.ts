@@ -29,7 +29,7 @@ async function loadCalibrationForCurrentUser(): Promise<string | null> {
 }
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const wordSchema = z.object({
   word: z.string(),

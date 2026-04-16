@@ -353,10 +353,14 @@ export function RepSurface({
 
     let score: RepScore;
     setPhase({ kind: "scoring" });
-    // Client-side timeout so Claude hangs don't trap the user. 20s is
-    // generous — the Sonnet scoring path is typically under 5s.
+    // Client-side timeout so Claude hangs don't trap the user. Bumped from
+    // 20s → 45s because the server route has maxDuration=30 AND Claude
+    // calls against the full knowledge base + rubric can run 15-25s on
+    // cold starts / slow networks (observed on mobile). 45s lets the
+    // server finish + adds network buffer; server-side timeout is still
+    // the true ceiling.
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+    const timeoutId = setTimeout(() => controller.abort(), 45_000);
     try {
       const res = await fetch("/api/score", {
         method: "POST",
@@ -391,10 +395,10 @@ export function RepSurface({
       const isTimeout =
         err instanceof DOMException && err.name === "AbortError";
       const message = isTimeout
-        ? "Scoring is taking longer than expected. Your rep was captured — try again in a moment, or replay the audio below."
+        ? "Scoring took longer than 45 seconds — your audio is saved below. Tap Retry to score again. Slow networks (mobile/hotspot) sometimes need a second try."
         : err instanceof Error
-          ? `${err.message} — set ANTHROPIC_API_KEY in .env.local to enable Claude scoring. The recording was captured and is playable below.`
-          : "Scoring failed.";
+          ? `${err.message}. Your recording was captured and is playable below — tap Retry to score again.`
+          : "Scoring failed. Your recording is saved — tap Retry.";
       setPhase({ kind: "error", message, recording: result });
       return;
     }

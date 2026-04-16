@@ -14,9 +14,12 @@ function SignInInner() {
   const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
   const error = params.get("error");
 
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    params.get("mode") === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
@@ -61,6 +64,10 @@ function SignInInner() {
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && password !== passwordConfirm) {
+      setFormError("Passwords don't match — double-check and try again.");
+      return;
+    }
     setSubmitting("email");
     setFormError(null);
     setRememberMePreference(rememberMe);
@@ -173,6 +180,27 @@ function SignInInner() {
                 placeholder={mode === "signup" ? "At least 8 characters" : ""}
               />
             </div>
+            {mode === "signup" && (
+              <div>
+                <label
+                  htmlFor="password-confirm"
+                  className="text-xs font-semibold text-ink-700"
+                >
+                  Confirm password
+                </label>
+                <input
+                  id="password-confirm"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                  placeholder="Type it again"
+                />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
                 <input
