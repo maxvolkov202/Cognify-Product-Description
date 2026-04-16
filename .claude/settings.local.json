@@ -53,7 +53,9 @@
       "Bash(npx vercel *)",
       "Bash(npm view *)",
       "Bash(find *)",
-      "Bash(node scripts/build-knowledge.mjs)"
+      "Bash(node scripts/build-knowledge.mjs)",
+      "Bash(ls -la .env*)",
+      "Bash(node -e \"console.log\\('ANTHROPIC env at node start \\(before dotenv\\):', \\(process.env.ANTHROPIC_API_KEY || ''\\).slice\\(0,40\\)\\);\")"
     ]
   },
   "disabledMcpjsonServers": [

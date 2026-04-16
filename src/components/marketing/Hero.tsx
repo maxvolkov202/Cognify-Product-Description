@@ -30,8 +30,8 @@ export function Hero() {
             <GradientButton href="/try" size="lg">
               Try a rep — 20 seconds, no signup →
             </GradientButton>
-            <GradientButton href="/dashboard" variant="outline" size="lg">
-              Enter the gym
+            <GradientButton href="/signin" variant="outline" size="lg">
+              Log in
             </GradientButton>
           </div>
 

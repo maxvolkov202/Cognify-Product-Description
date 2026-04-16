@@ -6,7 +6,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  createSupabaseBrowserClient,
+  setRememberMePreference,
+} from "@/lib/supabase/client";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -19,6 +22,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const params = useSearchParams();
   const router = useRouter();
@@ -32,6 +36,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
   const handleGoogle = async () => {
     setSubmitting("google");
     setFormError(null);
+    setRememberMePreference(rememberMe);
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -49,6 +54,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
     e.preventDefault();
     setSubmitting("email");
     setFormError(null);
+    setRememberMePreference(rememberMe);
     const supabase = createSupabaseBrowserClient();
     const fn =
       mode === "signup"
@@ -156,6 +162,15 @@ function DialogInner({ trigger, triggerClassName }: Props) {
                 placeholder={mode === "signup" ? "Password (8+ chars)" : "Password"}
                 className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
               />
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
+                />
+                <span>Remember me on this device</span>
+              </label>
               <button
                 type="submit"
                 disabled={submitting !== null}

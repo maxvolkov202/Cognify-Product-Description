@@ -3,10 +3,12 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  createSupabaseBrowserClient,
+  setRememberMePreference,
+} from "@/lib/supabase/client";
 
 function SignInInner() {
-  const supabase = createSupabaseBrowserClient();
   const router = useRouter();
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
@@ -15,12 +17,15 @@ function SignInInner() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
 
   const handleGoogle = async () => {
     setSubmitting("google");
     setFormError(null);
+    setRememberMePreference(rememberMe);
+    const supabase = createSupabaseBrowserClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -37,6 +42,8 @@ function SignInInner() {
     e.preventDefault();
     setSubmitting("email");
     setFormError(null);
+    setRememberMePreference(rememberMe);
+    const supabase = createSupabaseBrowserClient();
     if (mode === "signup") {
       const { error: signUpError } = await supabase.auth.signUp({
         email,
@@ -145,6 +152,15 @@ function SignInInner() {
                 placeholder={mode === "signup" ? "At least 8 characters" : ""}
               />
             </div>
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
+              />
+              <span>Remember me on this device</span>
+            </label>
             <button
               type="submit"
               disabled={submitting !== null}

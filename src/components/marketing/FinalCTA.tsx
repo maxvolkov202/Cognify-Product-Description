@@ -7,8 +7,8 @@ export function FinalCTA() {
         Clarity is a skill. <span className="brand-gradient-text">Train it.</span>
       </h2>
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <GradientButton href="/dashboard" size="lg">
-          Enter the gym →
+        <GradientButton href="/signin" size="lg">
+          Log in &amp; train →
         </GradientButton>
         <GradientButton href="/for-teams" variant="outline" size="lg">
           Book a pilot for your team
