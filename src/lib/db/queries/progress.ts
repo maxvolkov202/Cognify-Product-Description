@@ -2,9 +2,7 @@ import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   reps,
-  dimensionScores,
   progressSnapshots,
-  practiceSessions,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";

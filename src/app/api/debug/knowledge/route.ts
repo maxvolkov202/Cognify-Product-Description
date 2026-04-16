@@ -32,13 +32,6 @@ import {
  */
 export const dynamic = "force-dynamic";
 
-type SkillId =
-  | "clarity"
-  | "structure"
-  | "relevance"
-  | "confidence"
-  | "pacing"
-  | "tone";
 
 const VALID_STAGES = [
   "framework_gen",

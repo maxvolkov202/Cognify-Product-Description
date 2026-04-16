@@ -72,7 +72,7 @@ export default function OnboardingGoalsPage() {
           What do you want to get better at?
         </h1>
         <p className="mt-3 text-base text-ink-600">
-          Pick everything that matters. We'll bias your workouts toward these.
+          Pick everything that matters. We&apos;ll bias your workouts toward these.
         </p>
       </div>
 

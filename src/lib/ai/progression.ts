@@ -8,7 +8,6 @@ import {
 import {
   SKILL_DIMENSIONS,
   type SkillDimension,
-  type Callout,
 } from "@/types/domain";
 
 // Shape the client sends when asking for a rep-to-rep comparison.

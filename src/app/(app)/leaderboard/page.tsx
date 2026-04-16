@@ -24,7 +24,7 @@ const BIGGEST_CLIMB = { name: "James L.", delta: 7 };
 
 export default function LeaderboardPage() {
   const top3 = MOCK_LEADERBOARD.slice(0, 3);
-  const rest = MOCK_LEADERBOARD.slice(3);
+
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">

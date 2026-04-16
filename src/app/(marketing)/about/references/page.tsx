@@ -464,7 +464,7 @@ export default function ReferencesPage() {
           What Cognify is <span className="brand-gradient-text">built on</span>.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-600">
-          Cognify's training methodology is grounded in decades of research and
+          Cognify&apos;s training methodology is grounded in decades of research and
           the current generation of practitioners teaching communication at the
           highest level. We treat sourcing as load-bearing — every framework,
           every skill dimension, every domain in our knowledge base cites the
@@ -476,7 +476,7 @@ export default function ReferencesPage() {
           research findings are in the public domain as intellectual concepts;
           short attributed quotes used for educational commentary fall under
           fair use. No long verbatim passages from any copyrighted work are
-          reproduced. This page exists so every source gets the credit it's
+          reproduced. This page exists so every source gets the credit it&apos;s
           owed.
         </p>
       </section>
@@ -551,7 +551,7 @@ export default function ReferencesPage() {
           </Link>
         </div>
         <p className="mt-10 text-xs text-ink-400">
-          If you believe a source should be credited here and isn't, or if any
+          If you believe a source should be credited here and isn&apos;t, or if any
           attribution needs correction, contact the team.
         </p>
       </section>

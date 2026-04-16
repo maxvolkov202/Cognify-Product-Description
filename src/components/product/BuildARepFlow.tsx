@@ -465,7 +465,7 @@ function IntakeModeChip({
 
 // ——— Picker intake (extracted for clarity) ————————————————
 function PickerIntake({
-  vertical: _vertical,
+  vertical: _vertical /* eslint-disable-line @typescript-eslint/no-unused-vars */,
   prompts,
   selectedPromptIdx,
   customPromptMode,

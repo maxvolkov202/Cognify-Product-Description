@@ -226,7 +226,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(cleaned);
-  } catch (error) {
+  } catch {
     throw new Error(
       `Scoring response was not valid JSON. Got: ${textBlock.text.slice(0, 500)}`,
     );
