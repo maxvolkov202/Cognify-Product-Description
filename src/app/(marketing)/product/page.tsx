@@ -197,8 +197,8 @@ export default function ProductPage() {
             <GradientButton href="/how-it-works" size="lg">
               See the methodology
             </GradientButton>
-            <GradientButton href="/dashboard" size="lg" variant="outline">
-              Enter the gym →
+            <GradientButton href="/signin" size="lg" variant="outline">
+              Log in &amp; train →
             </GradientButton>
           </div>
         </div>

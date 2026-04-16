@@ -18,11 +18,11 @@ export default function AppNotFound() {
         404
       </div>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
-        That&rsquo;s not a gym room.
+        That page isn&rsquo;t part of the gym.
       </h1>
       <p className="mt-3 max-w-md text-base text-ink-600">
-        The page you&rsquo;re looking for isn&rsquo;t part of the training surface.
-        Here are the rooms that are.
+        The page you&rsquo;re looking for doesn&rsquo;t exist inside the training
+        surface. Here&rsquo;s where you probably want to go.
       </p>
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">

@@ -27,7 +27,7 @@ const SECTIONS: Array<{
       {
         question: "What's the fastest way to try it?",
         answer:
-          "Sign in, run a Daily Workout. It's 4 reps in about 10 minutes. You'll get live feedback on every rep across six dimensions with transcript-anchored callouts.",
+          "Create an account, then run a Daily Workout. It's 4 reps in about 10 minutes. You'll get live feedback on every rep across six dimensions with transcript-anchored callouts. If you want to taste it first, click 'Try a rep' on the landing page — 20 seconds, no signup.",
       },
       {
         question: "Do I need a special setup or mic?",

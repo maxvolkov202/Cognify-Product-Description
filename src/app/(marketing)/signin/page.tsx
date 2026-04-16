@@ -20,6 +20,27 @@ function SignInInner() {
   const [rememberMe, setRememberMe] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
+  const [resetSent, setResetSent] = useState<string | null>(null);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setFormError("Enter your email above first, then tap Forgot password.");
+      return;
+    }
+    setFormError(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
+      },
+    );
+    if (resetError) {
+      setFormError(resetError.message);
+      return;
+    }
+    setResetSent(email);
+  };
 
   const handleGoogle = async () => {
     setSubmitting("google");
@@ -152,15 +173,31 @@ function SignInInner() {
                 placeholder={mode === "signup" ? "At least 8 characters" : ""}
               />
             </div>
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
-              />
-              <span>Remember me on this device</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
+                />
+                <span>Remember me</span>
+              </label>
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-brand-purple hover:underline"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            {resetSent && (
+              <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+                Sent a reset link to {resetSent}. Check your inbox.
+              </p>
+            )}
             <button
               type="submit"
               disabled={submitting !== null}

@@ -1,8 +1,20 @@
 const stats = [
-  { value: "#1", label: "Most in-demand skill globally" },
-  { value: "91%", label: "Say their managers lack communication skills" },
-  { value: "86%", label: "Cite communication as the main workplace failure" },
-  { value: "75%", label: "Fear public speaking" },
+  {
+    value: "#1",
+    label: "Most in-demand skill globally",
+    source: "LinkedIn Workforce Report",
+  },
+  {
+    value: "91%",
+    label: "Say their managers lack communication skills",
+    source: "Interact / Harris Poll",
+  },
+  {
+    value: "86%",
+    label: "Cite communication as the main workplace failure",
+    source: "Salesforce State of Work",
+  },
+  { value: "75%", label: "Fear public speaking", source: "NIMH / Chapman" },
 ] as const;
 
 export function StatsBar() {
@@ -14,7 +26,12 @@ export function StatsBar() {
             <div className="brand-gradient-text text-5xl font-extrabold tracking-tight">
               {stat.value}
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-ink-500">{stat.label}</p>
+            <p className="mt-2 text-xs leading-relaxed text-ink-500">
+              {stat.label}
+            </p>
+            <p className="mt-1 text-[10px] uppercase tracking-wider text-ink-400">
+              {stat.source}
+            </p>
           </div>
         ))}
       </div>

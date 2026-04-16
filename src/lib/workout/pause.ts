@@ -78,19 +78,29 @@ export function clearPauseState(): void {
  * word count (harder to game than pure duration — mic-open-but-silent
  * still fails the word check) AND duration ratio (catches mic-dead-silent).
  *
- * Thresholds (from Cognify Home + Daily team spec):
+ * Thresholds (updated 2026-04-16 to be less punitive):
  *   - word count >= max(15, timeBudgetSec * 1.5)
- *   - duration >= 75% of time budget
+ *   - duration >= 60% of time budget
  *
- * Both must pass. Failing either triggers the "Try to speak for most of
- * the time to get meaningful feedback" modal with Retry / Discard options.
+ * Failing either surfaces a soft heads-up modal with three options
+ * (Retry / Proceed anyway / Discard). `canProceed` is false only when
+ * word count falls below the 10-word hard floor — below that there's
+ * nothing meaningful for Claude to score.
  */
+const HARD_MIN_WORDS = 10;
+
 export function meetsSpeakingThreshold(params: {
   transcript: string;
   wordCount?: number;
   durationMs: number;
   timeBudgetMs: number;
-}): { passed: boolean; wordCount: number; minWords: number; durationRatio: number } {
+}): {
+  passed: boolean;
+  canProceed: boolean;
+  wordCount: number;
+  minWords: number;
+  durationRatio: number;
+} {
   const { transcript, durationMs, timeBudgetMs } = params;
   const wordCount =
     params.wordCount ??
@@ -98,6 +108,7 @@ export function meetsSpeakingThreshold(params: {
   const timeBudgetSec = timeBudgetMs / 1000;
   const minWords = Math.max(15, Math.round(timeBudgetSec * 1.5));
   const durationRatio = durationMs / timeBudgetMs;
-  const passed = wordCount >= minWords && durationRatio >= 0.75;
-  return { passed, wordCount, minWords, durationRatio };
+  const passed = wordCount >= minWords && durationRatio >= 0.6;
+  const canProceed = wordCount >= HARD_MIN_WORDS;
+  return { passed, canProceed, wordCount, minWords, durationRatio };
 }

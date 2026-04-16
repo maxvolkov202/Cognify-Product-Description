@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { GradientButton } from "./GradientButton";
 import { LoginDialog } from "./LoginDialog";
 
 const links = [
@@ -29,12 +28,16 @@ export function Nav() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <LoginDialog />
-          </div>
-          <GradientButton href="/dashboard" size="sm">
-            Enter the gym →
-          </GradientButton>
+          <LoginDialog
+            trigger={
+              <button
+                type="button"
+                className="brand-gradient inline-flex items-center justify-center rounded-full font-semibold tracking-tight text-white shadow-sm transition-opacity hover:opacity-95 h-10 px-5 text-sm"
+              >
+                Log in
+              </button>
+            }
+          />
         </div>
       </div>
     </header>

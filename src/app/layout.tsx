@@ -32,14 +32,24 @@ export const metadata: Metadata = {
       "Short, structured reps. Instant feedback. Measurable growth. Train clear thinking into clear speech.",
     siteName: "Cognify",
     type: "website",
+    images: [
+      {
+        url: "/logo/wordmark.svg",
+        width: 1200,
+        height: 630,
+        alt: "Cognify — the Duolingo for communication",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Cognify",
     description: "The Duolingo for communication.",
+    images: ["/logo/wordmark.svg"],
   },
   icons: {
-    icon: "/logo/mark.svg",
+    icon: [{ url: "/logo/mark.svg", type: "image/svg+xml" }],
+    apple: "/logo/mark.svg",
   },
 };
 

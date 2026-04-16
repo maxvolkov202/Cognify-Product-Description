@@ -83,9 +83,12 @@ type Phase =
   | {
       kind: "speaking-gate";
       recording: RecordingResult;
+      transcript: string;
+      words: { word: string; startMs: number; endMs: number }[];
       wordCount: number;
       minWords: number;
       durationRatio: number;
+      canProceed: boolean;
     }
   | { kind: "scoring" }
   | { kind: "saving" }
@@ -245,10 +248,11 @@ export function RepSurface({
     }
 
     // ——— Speaking threshold gate ——————————————————————
-    // Enforces the team-spec floor (≥ ~75% of allotted time, sufficient
-    // word count). Failing the gate surfaces a modal with Retry/Discard
-    // BEFORE any scoring or persistence — no score is saved for a rep
-    // that didn't actually produce enough content to score.
+    // Softer floor (60% of time budget + minWords). Failing surfaces a
+    // heads-up modal with Retry / Proceed anyway / Discard. Proceed is
+    // disabled only when word count is below the 10-word hard floor
+    // (canProceed from meetsSpeakingThreshold) — nothing to score below
+    // that.
     if (speakingThreshold) {
       const gateCheck = meetsSpeakingThreshold({
         transcript,
@@ -260,14 +264,27 @@ export function RepSurface({
         setPhase({
           kind: "speaking-gate",
           recording: result,
+          transcript,
+          words,
           wordCount: gateCheck.wordCount,
           minWords: gateCheck.minWords,
           durationRatio: gateCheck.durationRatio,
+          canProceed: gateCheck.canProceed,
         });
         return;
       }
     }
 
+    await runScoringPath(result, transcript, words);
+  };
+
+  // Extracted from handleRecordingComplete so the "Proceed anyway" button
+  // on the speaking-gate modal can reuse the exact same scoring flow.
+  const runScoringPath = async (
+    result: RecordingResult,
+    transcript: string,
+    words: { word: string; startMs: number; endMs: number }[],
+  ) => {
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
     // Supabase session, skip the blocking /api/score call and instead:
@@ -477,6 +494,9 @@ export function RepSurface({
 
   // ——— Speaking threshold gate ——————————————————————————
   if (phase.kind === "speaking-gate") {
+    const handleProceed = () => {
+      void runScoringPath(phase.recording, phase.transcript, phase.words);
+    };
     return (
       <div className="mx-auto max-w-2xl">
         <div className="surface-card overflow-hidden">
@@ -490,12 +510,12 @@ export function RepSurface({
               />
             </div>
             <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
-              Try to speak for most of the time.
+              Your rep was shorter than the prompt suggested.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-ink-600">
-              We caught {phase.wordCount} words — need about {phase.minWords}{" "}
-              for meaningful feedback. You used about{" "}
-              {Math.round(phase.durationRatio * 100)}% of the time budget.
+              You used about {Math.round(phase.durationRatio * 100)}% of the
+              time budget ({phase.wordCount} words). Retry for a fuller take,
+              or proceed and score what you have.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
@@ -506,6 +526,24 @@ export function RepSurface({
                 <RotateCcw className="size-4" />
                 Retry
               </button>
+              {phase.canProceed ? (
+                <button
+                  type="button"
+                  onClick={handleProceed}
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-brand-purple bg-white px-5 py-2.5 text-sm font-semibold text-brand-purple hover:bg-brand-purple/5"
+                >
+                  Proceed anyway
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title="Too few words captured to score — try again."
+                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-ink-200 bg-ink-100 px-5 py-2.5 text-sm font-semibold text-ink-400"
+                >
+                  Proceed anyway
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleDiscard}
@@ -515,7 +553,9 @@ export function RepSurface({
               </button>
             </div>
             <p className="mt-4 text-[11px] text-ink-400">
-              Nothing has been saved for this rep yet.
+              {phase.canProceed
+                ? "Nothing has been saved yet. Proceeding scores your rep now."
+                : "Too few words captured to score — please retry."}
             </p>
           </div>
         </div>

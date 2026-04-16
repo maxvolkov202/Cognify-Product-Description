@@ -123,6 +123,11 @@ export default function PricingPage() {
                 >
                   {plan.cta.label}
                 </GradientButton>
+                {"featured" in plan && plan.featured && (
+                  <p className="mt-3 text-center text-xs text-ink-500">
+                    14-day free trial · no card required
+                  </p>
+                )}
               </div>
             </div>
             );
@@ -151,6 +156,9 @@ export default function PricingPage() {
                 <GradientButton href="/for-teams#contact" variant="outline" className="w-full">
                   Book a pilot
                 </GradientButton>
+                <p className="mt-3 text-center text-xs text-ink-500">
+                  Per-seat pricing starts low. Talk to us.
+                </p>
               </div>
             </div>
           ))}

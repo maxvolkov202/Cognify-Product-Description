@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { PERSONAS, type PersonaId } from "@/lib/onboarding/constants";
 import { setPersonasAction } from "@/server/actions/onboarding";
 import { OnboardingProgress } from "@/components/product/OnboardingProgress";
@@ -50,14 +51,21 @@ export default function OnboardingPersonasPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12 md:py-16">
+      <Link
+        href="/onboarding/vertical"
+        className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900"
+      >
+        <ArrowLeft className="size-3.5" />
+        Back
+      </Link>
       <OnboardingProgress step={2} total={4} />
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           Who do you talk to?
         </h1>
         <p className="mt-3 text-base text-ink-600">
-          Pick everyone you regularly communicate with. Optional — you can
-          skip.
+          Pick everyone you regularly communicate with. This tunes the stakeholders
+          that appear in your Build-a-Rep scenarios. Optional — you can skip.
         </p>
       </div>
 

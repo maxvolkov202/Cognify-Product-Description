@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft, Check } from "lucide-react";
 import {
   IMPROVEMENT_GOALS,
   type ImprovementGoalId,
@@ -66,13 +67,21 @@ export default function OnboardingGoalsPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12 md:py-16">
+      <Link
+        href="/onboarding/personas"
+        className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900"
+      >
+        <ArrowLeft className="size-3.5" />
+        Back
+      </Link>
       <OnboardingProgress step={3} total={4} />
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           What do you want to get better at?
         </h1>
         <p className="mt-3 text-base text-ink-600">
-          Pick everything that matters. We&apos;ll bias your workouts toward these.
+          Pick everything that matters. Your Daily Workout weights these skills
+          so reps target what moves the needle for you.
         </p>
       </div>
 

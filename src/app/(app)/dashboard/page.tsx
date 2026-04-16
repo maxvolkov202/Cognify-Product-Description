@@ -120,11 +120,15 @@ export default async function DashboardPage() {
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
               <Flame className="size-3.5 text-brand-purple" />
               Today&rsquo;s Workout
-              {streak > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                  Day {streak} streak
-                </span>
-              )}
+              <span
+                className={
+                  streak > 0
+                    ? "inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700"
+                    : "inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-bold text-ink-500"
+                }
+              >
+                {streak > 0 ? `Day ${streak} streak` : "Start your streak"}
+              </span>
             </p>
             <h2 className="mt-2 text-3xl font-extrabold text-ink-900">
               4 reps · ~10 minutes
