@@ -56,6 +56,11 @@ export const verticalEnum = cognifyV2Schema.enum("vertical", [
 
 export const users = cognifyV2Schema.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // Links our user row to Supabase's auth.users.id. Nullable because guests
+  // don't have an auth.users row yet — set at sign-in time. Unique because
+  // each Supabase auth user maps to exactly one cognify user (guest promotion
+  // flow updates the existing guest row rather than creating a duplicate).
+  authUserId: uuid("auth_user_id").unique(),
   email: text("email").unique(),
   name: text("name"),
   image: text("image"),
