@@ -2,10 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
   trigger?: React.ReactNode;
@@ -24,7 +24,15 @@ function DialogInner({ trigger, triggerClassName }: Props) {
 
   const handleGoogle = async () => {
     setSubmitting(true);
-    await signIn("google", { callbackUrl: next ?? "/dashboard" });
+    const supabase = createSupabaseBrowserClient();
+    const callbackUrl = next ?? "/dashboard";
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
+      },
+    });
+    if (error) setSubmitting(false);
   };
 
   const triggerEl = trigger ?? (

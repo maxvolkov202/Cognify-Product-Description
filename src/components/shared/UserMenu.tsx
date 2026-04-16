@@ -1,10 +1,11 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { LogOut, User, Activity, LifeBuoy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
   name?: string | null;
@@ -15,6 +16,15 @@ type Props = {
 
 export function UserMenu({ name, email, image, isOperator }: Props) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setOpen(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -61,7 +71,7 @@ export function UserMenu({ name, email, image, isOperator }: Props) {
             )}
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleSignOut}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50"
             >
               <LogOut className="size-4" />
