@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { hasDatabase, safeDb } from "@/lib/db/safe";
@@ -35,23 +34,7 @@ export async function currentUser(): Promise<ResolvedUser | null> {
     }
   }
 
-  // 2. Fall back to NextAuth (still active during Phase 2 transition)
-  try {
-    const session = await auth();
-    if (session?.user?.id) {
-      return {
-        id: session.user.id,
-        kind: "authenticated",
-        name: session.user.name ?? null,
-        email: session.user.email ?? null,
-        image: session.user.image ?? null,
-      };
-    }
-  } catch {
-    // NextAuth unavailable — fall through
-  }
-
-  // 3. Guest cookie fallback
+  // 2. Guest cookie fallback
   const store = await cookies();
   const existing = store.get(GUEST_COOKIE)?.value;
   if (!existing) return null;
