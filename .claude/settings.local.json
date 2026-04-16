@@ -46,7 +46,10 @@
       "Bash(curl -sS -o /dev/null -w \"/api/debug/knowledge: %{http_code}\\\\n\" http://localhost:3333/api/debug/knowledge)",
       "Bash(xargs grep:*)",
       "Bash(curl:*)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "Bash(npx drizzle-kit *)",
+      "Bash(node --env-file=.env.local -e ' *)",
+      "Bash(npm uninstall *)"
     ]
   },
   "disabledMcpjsonServers": [
