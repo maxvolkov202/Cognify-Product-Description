@@ -330,11 +330,12 @@ function RealFriendCard({ friend }: { friend: FriendRow }) {
           {friend.composite != null ? "composite" : "no reps yet"}
         </span>
       </div>
-      <div className="hidden gap-1.5 md:flex">
+      <div className="flex gap-1.5">
         <Link
           href={`/friends/challenge?to=${friend.userId}`}
           className="rounded-lg border border-ink-200 p-1.5 text-ink-500 hover:border-brand-purple hover:text-brand-purple"
           title="Challenge"
+          aria-label={`Challenge ${friend.name ?? "friend"}`}
         >
           <Swords className="size-3.5" />
         </Link>
@@ -408,11 +409,22 @@ function MockFriendsPreview() {
 
   return (
     <>
-      <div className="mt-8 rounded-2xl border border-brand-purple/25 bg-brand-purple/5 p-4 text-sm text-ink-700">
-        <strong className="font-semibold text-brand-purple">Preview.</strong>{" "}
-        Until you have real friends on Cognify, this page shows what the social
-        layer looks like. Invite someone above and this section flips to real
-        data.
+      <div className="mt-8 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="flex items-start gap-3">
+          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
+            🔒
+          </div>
+          <div>
+            <p className="font-bold uppercase tracking-wider text-amber-800 text-[11px]">
+              Demo mode · everything below is fake data
+            </p>
+            <p className="mt-1 leading-relaxed">
+              These friends, scores, and streaks aren&rsquo;t real. Invite a
+              real teammate using the form above to activate this page with
+              your actual network.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-4">

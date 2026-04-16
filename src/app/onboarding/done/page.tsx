@@ -14,10 +14,15 @@ export default function OnboardingDonePage() {
         <CheckCircle2 className="size-8 text-white" aria-hidden="true" />
       </div>
       <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-        You&rsquo;re ready.
+        One rep away.
       </h1>
       <p className="mt-3 max-w-md text-base text-ink-600">
-        Let&rsquo;s get you into your first workout. Four reps, about ten minutes.
+        Your next rep is your <strong className="text-ink-900">baseline</strong>
+        &nbsp;— the anchor every future rep gets measured against. Do it
+        honestly. Even a middling baseline makes your progress legible later.
+      </p>
+      <p className="mt-3 max-w-md text-sm text-ink-500">
+        60 seconds, one prompt. You can redo it from Settings if you need to.
       </p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">
         <GradientButton href="/onboarding/baseline" size="lg">

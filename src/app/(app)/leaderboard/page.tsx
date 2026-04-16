@@ -1,5 +1,5 @@
 import { LeaderboardTable } from "@/components/product/LeaderboardTable";
-import { Trophy, Flame, Globe } from "lucide-react";
+import { Trophy, Flame } from "lucide-react";
 
 const MOCK_LEADERBOARD = [
   { rank: 1, name: "Sarah K.", composite: 94, streak: 42, reps: 28, delta: 5, team: "Acme Sales" },
@@ -28,15 +28,28 @@ export default function LeaderboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-            Leaderboard
-          </p>
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700">
-            Preview · demo data
-          </span>
+      <div className="mb-8 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
+        <div className="flex items-start gap-3">
+          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
+            🔒
+          </div>
+          <div>
+            <p className="font-bold uppercase tracking-wider text-amber-800 text-[11px]">
+              Demo mode · everything below is fake data
+            </p>
+            <p className="mt-1 leading-relaxed">
+              This leaderboard shows sample names and scores so you can see
+              the format. Real rankings activate once Cognify has a cohort of
+              trained users to compare against.
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+          Leaderboard
+        </p>
         <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           The gym&rsquo;s best this week.
         </h1>
@@ -82,11 +95,6 @@ export default function LeaderboardPage() {
         </div>
       </div>
 
-      <div className="mt-10 surface-card p-6 text-center text-sm text-ink-500">
-        <Globe className="mx-auto mb-2 size-4 text-brand-purple" />
-        Substitute values shown. Real leaderboard activates when you run your first rep
-        and the database is connected.
-      </div>
     </div>
   );
 }
