@@ -281,19 +281,32 @@ export function WorkoutSession({
           Rep {currentIndex + 1} of {plan.reps.length} ·{" "}
           {currentRep.repType.name}
         </div>
-        <div className="flex gap-1.5" aria-label="Session progress">
-          {plan.reps.map((_, i) => (
-            <div
-              key={i}
-              className={
-                i < currentIndex
-                  ? "brand-gradient h-1.5 w-8 rounded-full"
-                  : i === currentIndex
-                    ? "h-1.5 w-8 rounded-full bg-ink-400"
-                    : "h-1.5 w-8 rounded-full bg-ink-200"
-              }
-            />
-          ))}
+        <div className="flex items-center gap-4">
+          <div className="flex gap-1.5" aria-label="Session progress">
+            {plan.reps.map((_, i) => (
+              <div
+                key={i}
+                className={
+                  i < currentIndex
+                    ? "brand-gradient h-1.5 w-8 rounded-full"
+                    : i === currentIndex
+                      ? "h-1.5 w-8 rounded-full bg-ink-400"
+                      : "h-1.5 w-8 rounded-full bg-ink-200"
+                }
+              />
+            ))}
+          </div>
+          {/* Save & exit — workout state auto-saves between reps to
+              localStorage. Clicking this routes away; user sees "Resume"
+              when they return to /workout. Current in-progress rep is
+              lost, but completed reps are preserved. */}
+          <a
+            href="/dashboard"
+            className="hidden items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400 hover:text-ink-700 sm:inline-flex"
+            title="Your completed reps are saved. Resume later from /workout."
+          >
+            Save &amp; exit
+          </a>
         </div>
       </div>
 

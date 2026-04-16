@@ -155,13 +155,37 @@ export function RecordButton({
       )}
 
       {(isRecording || phase === "finalizing") && (
-        <div className="text-center">
+        <div className="w-full max-w-sm text-center">
           <div className="brand-gradient-text text-5xl font-extrabold tabular-nums">
             {formatTime(remainingMs)}
           </div>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
             {phase === "finalizing" ? "Processing" : "Recording"}
           </p>
+          {isRecording && (
+            <div
+              className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-ink-100"
+              role="progressbar"
+              aria-valuenow={Math.round((elapsedMs / maxDurationMs) * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Rep time elapsed"
+            >
+              <div
+                className={cn(
+                  "h-full transition-[width,background-color] duration-100 ease-linear",
+                  elapsedMs / maxDurationMs < 0.6
+                    ? "bg-emerald-400"
+                    : elapsedMs / maxDurationMs < 0.85
+                      ? "bg-amber-400"
+                      : "bg-rose-500",
+                )}
+                style={{
+                  width: `${Math.min(100, (elapsedMs / maxDurationMs) * 100)}%`,
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -2,17 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
 import { RepSurface } from "./RepSurface";
-import type { RepScore } from "@/types/domain";
+import type { RepScore, Callout } from "@/types/domain";
 
 type Phase =
   | { kind: "intro" }
   | { kind: "recording" }
-  | { kind: "done"; score: RepScore; repId: string };
+  | {
+      kind: "done";
+      score: RepScore;
+      repId: string;
+      transcript: string;
+    };
 
 export function QuickRepFlow({ prompt }: { prompt: string }) {
   const [phase, setPhase] = useState<Phase>({ kind: "intro" });
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
 
   if (phase.kind === "intro") {
     return (
@@ -26,8 +32,17 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
             &ldquo;{prompt}&rdquo;
           </p>
           <ul className="mt-4 space-y-2 text-sm text-ink-700">
-            <li>· 20-second rep — every word has to earn its place.</li>
-            <li>· Scored live across six dimensions — clarity, structure, relevance, confidence, pacing, tone.</li>
+            <li>
+              · 20 seconds to answer. Talk as if you&rsquo;re in the meeting.
+            </li>
+            <li>
+              · Scored across six dimensions: clarity, structure, relevance,
+              confidence, pacing, tone.
+            </li>
+            <li>
+              · Get one specific thing you nailed and one you can tighten —
+              both with quotes from your transcript.
+            </li>
             <li>· No signup. No email. Mic only.</li>
           </ul>
           <button
@@ -50,16 +65,31 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
         mode="scenario_training"
         topic="Quick Rep"
         maxDurationMs={20_000}
-        onComplete={({ score, repId }) => {
-          setPhase({ kind: "done", score, repId });
+        onComplete={({ score, repId, transcript }) => {
+          setPhase({ kind: "done", score, repId, transcript });
         }}
       />
     );
   }
 
   // phase === "done"
+  const { score, transcript } = phase;
+  const sortedDims = [...score.dimensions].sort((a, b) => b.score - a.score);
+  const topDim = sortedDims[0];
+  const bottomDim = sortedDims[sortedDims.length - 1];
+
+  const positiveCallout =
+    score.callouts.find((c) => c.tone === "positive") ?? score.callouts[0];
+  const improvementCallout =
+    score.callouts.find(
+      (c) => c.tone === "warn" || c.tone === "critical",
+    ) ?? score.callouts[score.callouts.length - 1];
+
+  const hasTranscript = transcript && transcript.trim().length > 0;
+
   return (
     <div className="space-y-6">
+      {/* ——— Score summary ——— */}
       <div className="surface-card overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />
         <div className="p-8 text-center">
@@ -71,30 +101,93 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
             That&rsquo;s one rep.
           </h2>
           <p className="mt-2 text-sm text-ink-600">
-            Here&rsquo;s your composite score across all six dimensions.
+            Your composite across all six dimensions.
           </p>
           <p className="brand-gradient-text mt-6 text-7xl font-extrabold tabular-nums">
-            {phase.score.composite}
+            {score.composite}
           </p>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
             Quick Rep composite
           </p>
 
-          <div className="mt-6 grid gap-2 rounded-xl bg-ink-50/60 p-4 text-left text-sm md:grid-cols-3">
-            {phase.score.dimensions.slice(0, 3).map((d) => (
-              <div key={d.dimension}>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
-                  {d.dimension}
-                </p>
-                <p className="mt-0.5 font-bold tabular-nums text-ink-900">
-                  {d.score}
-                </p>
-              </div>
-            ))}
+          <div className="mt-6 grid gap-2 rounded-xl bg-ink-50/60 p-4 text-left text-sm md:grid-cols-6">
+            {score.dimensions.map((d) => {
+              const isTop = topDim && d.dimension === topDim.dimension;
+              const isBottom =
+                bottomDim && d.dimension === bottomDim.dimension;
+              return (
+                <div
+                  key={d.dimension}
+                  className={
+                    isTop
+                      ? "rounded-lg border border-emerald-200 bg-emerald-50/60 p-2"
+                      : isBottom
+                        ? "rounded-lg border border-amber-200 bg-amber-50/60 p-2"
+                        : "p-2"
+                  }
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+                    {d.dimension}
+                  </p>
+                  <p className="mt-0.5 font-bold tabular-nums text-ink-900">
+                    {d.score}
+                  </p>
+                </div>
+              );
+            })}
           </div>
+          <p className="mt-3 text-[11px] text-ink-500">
+            <span className="inline-block size-2 rounded-full bg-emerald-400 align-middle" />{" "}
+            strongest · <span className="inline-block size-2 rounded-full bg-amber-400 align-middle" />{" "}
+            watch this
+          </p>
         </div>
       </div>
 
+      {/* ——— Callouts ——— */}
+      {(positiveCallout || improvementCallout) && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {positiveCallout && (
+            <CalloutCard tone="positive" callout={positiveCallout} />
+          )}
+          {improvementCallout && (
+            <CalloutCard tone="improvement" callout={improvementCallout} />
+          )}
+        </div>
+      )}
+
+      {/* ——— Transcript (collapsed by default) ——— */}
+      {hasTranscript && (
+        <div className="surface-card overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setTranscriptOpen((v) => !v)}
+            className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-ink-50/40"
+            aria-expanded={transcriptOpen}
+          >
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+                Your transcript
+              </p>
+              <p className="mt-0.5 text-sm text-ink-600">
+                {transcriptOpen ? "Tap to collapse" : "Tap to see what you said"}
+              </p>
+            </div>
+            <ChevronDown
+              className={`size-4 text-ink-500 transition-transform ${transcriptOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {transcriptOpen && (
+            <div className="border-t border-ink-200/70 p-5">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">
+                {transcript}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ——— Signup CTA ——— */}
       <div className="surface-card overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />
         <div className="p-7">
@@ -126,6 +219,77 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
             </Link>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function CalloutCard({
+  tone,
+  callout,
+}: {
+  tone: "positive" | "improvement";
+  callout: Callout;
+}) {
+  const isPositive = tone === "positive";
+  return (
+    <div
+      className={`surface-card overflow-hidden ${
+        isPositive
+          ? "border-emerald-200"
+          : "border-amber-200"
+      }`}
+    >
+      <div
+        className={
+          isPositive
+            ? "h-1 bg-emerald-400"
+            : "h-1 bg-amber-400"
+        }
+        aria-hidden="true"
+      />
+      <div className="p-5">
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+              isPositive
+                ? "bg-emerald-100 text-emerald-800"
+                : "bg-amber-100 text-amber-800"
+            }`}
+          >
+            {isPositive ? "What you nailed" : "Tighten next time"}
+          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+            {callout.dimension}
+          </span>
+        </div>
+        <h4 className="mt-3 text-base font-bold text-ink-900">
+          {callout.title}
+        </h4>
+        <p className="mt-1 text-sm leading-relaxed text-ink-700">
+          {callout.body}
+        </p>
+        {callout.quote && (
+          <blockquote
+            className={`mt-3 rounded-lg border-l-2 p-3 text-sm italic ${
+              isPositive
+                ? "border-emerald-300 bg-emerald-50/50 text-ink-800"
+                : "border-amber-300 bg-amber-50/50 text-ink-800"
+            }`}
+          >
+            &ldquo;{callout.quote}&rdquo;
+          </blockquote>
+        )}
+        {!isPositive && callout.suggestedRewrite && (
+          <div className="mt-3 rounded-lg bg-ink-50/60 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+              Try instead
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-800">
+              {callout.suggestedRewrite}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
