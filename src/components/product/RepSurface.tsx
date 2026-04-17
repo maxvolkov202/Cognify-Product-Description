@@ -703,7 +703,7 @@ export function RepSurface({
           <div className="surface-card flex items-center justify-center gap-3 p-6 text-sm text-ink-600">
             <Loader2 className="size-4 animate-spin text-brand-purple" />
             {phase.kind === "transcribing" && "Transcribing your rep…"}
-            {phase.kind === "scoring" && "Scoring with Claude…"}
+            {phase.kind === "scoring" && "Scoring based on proprietary rubric…"}
             {phase.kind === "saving" && "Saving your progress…"}
             {phase.kind === "processing-async" && "Scoring in the background — realtime updates incoming…"}
           </div>

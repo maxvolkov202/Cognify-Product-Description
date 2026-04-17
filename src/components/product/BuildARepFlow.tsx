@@ -334,7 +334,7 @@ export function BuildARepFlow({
                   Building your structure…
                 </p>
                 <p className="text-xs text-ink-500">
-                  Claude is composing a tailored scaffold. Usually 1–2 seconds.
+                  Composing a tailored scaffold for your scenario. Usually 1–2 seconds.
                 </p>
               </div>
             </div>

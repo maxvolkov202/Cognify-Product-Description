@@ -98,7 +98,7 @@ export function PracticeLoopMock() {
         {phase === "recording" &&
           "Speak your answer. The mic captures, a transcript follows."}
         {phase === "scoring" &&
-          "Claude scores six dimensions against a research-grounded rubric."}
+          "Six dimensions scored against a proprietary, research-grounded rubric."}
         {phase === "feedback" &&
           "Transcript-anchored callouts show exactly what to tighten next rep."}
       </p>
@@ -217,7 +217,7 @@ export function PracticeLoopMock() {
         >
           <div className="flex items-center gap-2 text-sm font-semibold text-ink-700">
             <Sparkles className="size-4 animate-pulse text-brand-purple" />
-            Scoring with Claude…
+            Scoring based on proprietary rubric…
           </div>
           <div className="w-full max-w-[260px] space-y-2">
             {DIMENSIONS.map((d, i) => (
