@@ -99,7 +99,7 @@ async function resolveSupabaseUser(authUser: {
         where: eq(users.id, guestId),
       });
       if (guest?.isGuest) {
-        await db
+        const [promoted] = await db
           .update(users)
           .set({
             authUserId: authUser.id,
@@ -109,15 +109,18 @@ async function resolveSupabaseUser(authUser: {
             isGuest: false,
             emailVerified: new Date(),
           })
-          .where(eq(users.id, guestId));
+          .where(eq(users.id, guestId))
+          .returning({ id: users.id });
         store.delete(GUEST_COOKIE);
-        return {
-          id: guestId,
-          kind: "authenticated",
-          name: name ?? guest.name,
-          email,
-          image: image ?? guest.image,
-        };
+        if (promoted) {
+          return {
+            id: guestId,
+            kind: "authenticated",
+            name: name ?? guest.name,
+            email,
+            image: image ?? guest.image,
+          };
+        }
       }
     }
 

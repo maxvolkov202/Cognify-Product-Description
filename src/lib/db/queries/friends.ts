@@ -1,4 +1,4 @@
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, avg, count, desc, eq, inArray, min, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { friendships, friendChallenges, users, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
@@ -65,48 +65,33 @@ export async function getFriendsForUser(userId: string): Promise<FriendRow[]> {
     );
     if (friendIds.length === 0) return [];
 
-    // Pull profile + aggregate rep stats per friend.
-    const results: FriendRow[] = [];
-    for (const friendId of friendIds) {
-      const profile = await db.query.users.findFirst({
-        where: eq(users.id, friendId),
-      });
-      if (!profile) continue;
-
-      const friendReps = await db
+    const [profiles, repStats] = await Promise.all([
+      db.select().from(users).where(inArray(users.id, friendIds)),
+      db
         .select({
-          composite: reps.compositeScore,
-          createdAt: reps.createdAt,
+          userId: reps.userId,
+          totalReps: count(),
+          avgComposite: avg(reps.compositeScore),
+          firstRep: min(reps.createdAt),
         })
         .from(reps)
-        .where(eq(reps.userId, friendId));
+        .where(inArray(reps.userId, friendIds))
+        .groupBy(reps.userId),
+    ]);
 
-      const totalReps = friendReps.length;
-      const composite =
-        totalReps > 0
-          ? Math.round(
-              friendReps.reduce((s, r) => s + (r.composite ?? 0), 0) /
-                totalReps,
-            )
-          : null;
-      const joinedAt =
-        friendReps.length > 0
-          ? friendReps.reduce(
-              (min, r) => (r.createdAt < min ? r.createdAt : min),
-              friendReps[0]!.createdAt,
-            )
-          : profile.createdAt;
-
-      results.push({
-        userId: profile.id,
-        name: profile.name,
-        email: profile.email,
-        image: profile.image,
-        joinedAt,
-        totalReps,
-        composite,
-      });
-    }
+    const statsMap = new Map(repStats.map((s) => [s.userId, s]));
+    const results: FriendRow[] = profiles.map((p) => {
+      const stats = statsMap.get(p.id);
+      return {
+        userId: p.id,
+        name: p.name,
+        email: p.email,
+        image: p.image,
+        joinedAt: stats?.firstRep ?? p.createdAt,
+        totalReps: Number(stats?.totalReps ?? 0),
+        composite: stats?.avgComposite ? Math.round(Number(stats.avgComposite)) : null,
+      };
+    });
     return results.sort((a, b) => (b.composite ?? 0) - (a.composite ?? 0));
   }, []);
 }
@@ -161,35 +146,34 @@ export async function getChallengesForUser(
       )
       .orderBy(desc(friendChallenges.createdAt));
 
-    const results: ChallengeRow[] = [];
-    for (const c of rows) {
-      const [challenger, opponent] = await Promise.all([
-        db.query.users.findFirst({ where: eq(users.id, c.challengerId) }),
-        db.query.users.findFirst({ where: eq(users.id, c.opponentId) }),
-      ]);
-      const [challengerRep, opponentRep] = await Promise.all([
-        c.challengerRepId
-          ? db.query.reps.findFirst({ where: eq(reps.id, c.challengerRepId) })
-          : Promise.resolve(null),
-        c.opponentRepId
-          ? db.query.reps.findFirst({ where: eq(reps.id, c.opponentRepId) })
-          : Promise.resolve(null),
-      ]);
-      results.push({
-        id: c.id,
-        challengerId: c.challengerId,
-        challengerName: challenger?.name ?? null,
-        opponentId: c.opponentId,
-        opponentName: opponent?.name ?? null,
-        prompt: c.prompt,
-        status: (c.status as ChallengeRow["status"]) ?? "pending",
-        challengerScore: challengerRep?.compositeScore ?? null,
-        opponentScore: opponentRep?.compositeScore ?? null,
-        createdAt: c.createdAt,
-        expiresAt: c.expiresAt,
-      });
-    }
-    return results;
+    const userIds = [...new Set(rows.flatMap((c) => [c.challengerId, c.opponentId]))];
+    const repIds = [...new Set(rows.flatMap((c) => [c.challengerRepId, c.opponentRepId]).filter(Boolean))] as string[];
+
+    const [userProfiles, challengeReps] = await Promise.all([
+      userIds.length > 0
+        ? db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, userIds))
+        : Promise.resolve([]),
+      repIds.length > 0
+        ? db.select({ id: reps.id, compositeScore: reps.compositeScore }).from(reps).where(inArray(reps.id, repIds))
+        : Promise.resolve([]),
+    ]);
+
+    const nameMap = new Map(userProfiles.map((u) => [u.id, u.name]));
+    const scoreMap = new Map(challengeReps.map((r) => [r.id, r.compositeScore]));
+
+    return rows.map((c) => ({
+      id: c.id,
+      challengerId: c.challengerId,
+      challengerName: nameMap.get(c.challengerId) ?? null,
+      opponentId: c.opponentId,
+      opponentName: nameMap.get(c.opponentId) ?? null,
+      prompt: c.prompt,
+      status: (c.status as ChallengeRow["status"]) ?? "pending",
+      challengerScore: c.challengerRepId ? (scoreMap.get(c.challengerRepId) ?? null) : null,
+      opponentScore: c.opponentRepId ? (scoreMap.get(c.opponentRepId) ?? null) : null,
+      createdAt: c.createdAt,
+      expiresAt: c.expiresAt,
+    }));
   }, []);
 }
 

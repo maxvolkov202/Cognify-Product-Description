@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { getSkillExcerpt } from "@/lib/ai/knowledge/extract";
 import type { SkillDimension } from "@/types/domain";
 
-export const dynamic = "force-dynamic";
-
 const VALID_DIMENSIONS: readonly SkillDimension[] = [
   "clarity",
   "structure",

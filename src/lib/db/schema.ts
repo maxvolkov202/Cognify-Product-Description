@@ -237,18 +237,22 @@ export const progressSnapshots = cognifyV2Schema.table(
   (t) => [index("progress_user_dim_idx").on(t.userId, t.dimension, t.takenAt)],
 );
 
-export const externalValidations = cognifyV2Schema.table("external_validations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  token: text("token").notNull().unique(),
-  topic: text("topic").notNull(),
-  repIds: jsonb("rep_ids").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  closedAt: timestamp("closed_at", { withTimezone: true }),
-  isClosed: boolean("is_closed").notNull().default(false),
-});
+export const externalValidations = cognifyV2Schema.table(
+  "external_validations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    topic: text("topic").notNull(),
+    repIds: jsonb("rep_ids").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    isClosed: boolean("is_closed").notNull().default(false),
+  },
+  (t) => [index("external_validations_user_idx").on(t.userId)],
+);
 
 export const friendships = cognifyV2Schema.table(
   "friendships",

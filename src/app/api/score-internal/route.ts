@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/lib/db/client";
 import {
   reps,
@@ -34,18 +35,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  type Body = {
-    repId: string;
-    transcript: string;
-    promptText: string;
-    durationMs: number;
-    timeBudgetMs?: number;
-    frameworkId?: string;
-    frameworkNodes?: { label: string; description: string }[];
-    words?: { word: string; startMs: number; endMs: number }[];
-    userCalibration?: string | null;
-  };
-  const body = (await req.json()) as Body;
+  const bodySchema = z.object({
+    repId: z.string().uuid(),
+    transcript: z.string().min(1).max(50000),
+    promptText: z.string().min(1).max(2000),
+    durationMs: z.number().positive(),
+    timeBudgetMs: z.number().positive().optional(),
+    frameworkId: z.string().optional(),
+    frameworkNodes: z
+      .array(z.object({ label: z.string(), description: z.string() }))
+      .optional(),
+    words: z
+      .array(z.object({ word: z.string(), startMs: z.number(), endMs: z.number() }))
+      .optional(),
+    userCalibration: z.string().nullable().optional(),
+  });
+
+  const parsed = bodySchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "invalid_body", details: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+  const body = parsed.data;
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);

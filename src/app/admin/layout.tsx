@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/shared/Logo";
 import { GradientButton } from "@/components/shared/GradientButton";
+import { currentUser } from "@/lib/session/current-user";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await currentUser();
+  if (!user || user.kind !== "authenticated") {
+    redirect("/signin");
+  }
   return (
     <div className="flex min-h-screen flex-col bg-ink-50/40">
       <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-white/90 backdrop-blur-md">

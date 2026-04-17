@@ -302,7 +302,7 @@ export function WorkoutSession({
               lost, but completed reps are preserved. */}
           <a
             href="/dashboard"
-            className="hidden items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400 hover:text-ink-700 sm:inline-flex"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400 hover:text-ink-700"
             title="Your completed reps are saved. Resume later from /workout."
           >
             Save &amp; exit

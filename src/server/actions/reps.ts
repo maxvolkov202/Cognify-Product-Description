@@ -96,7 +96,8 @@ export async function insertPendingRep(
           startedAt: new Date(),
         })
         .returning({ id: practiceSessions.id });
-      sessionId = session!.id;
+      if (!session) return null;
+      sessionId = session.id;
     }
 
     const [rep] = await db
@@ -127,8 +128,9 @@ export async function insertPendingRep(
             : null,
       })
       .returning({ id: reps.id });
+    if (!rep) return null;
 
-    return { repId: rep!.id, sessionId };
+    return { repId: rep.id, sessionId };
   }, null);
 }
 
@@ -156,7 +158,8 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           compositeScore: input.score.composite,
         })
         .returning({ id: practiceSessions.id });
-      sessionId = session!.id;
+      if (!session) return fallback;
+      sessionId = session.id;
     }
 
     const [rep] = await db
@@ -181,8 +184,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           : null,
       })
       .returning({ id: reps.id });
+    if (!rep) return fallback;
 
-    const repId = rep!.id;
+    const repId = rep.id;
 
     if (input.score.dimensions.length > 0) {
       await db.insert(dimensionScores).values(
