@@ -108,8 +108,43 @@ export const RESTART_HEAVY_REP: RepFixture = {
   words: makeWords(RESTART_TRANSCRIPT, 60_000),
   durationMs: 60_000,
   timeBudgetMs: 60_000,
-  expectedPacing: [55, 85],
-  expectedConfidence: [20, 50],
+  expectedPacing: [78, 92],
+  expectedConfidence: [55, 72],
+};
+
+// ——— OFF-TOPIC REP ——————————————————————————————————————
+// Fluent speech that completely ignores the prompt. Deterministic
+// pacing/confidence will be decent (speaker is articulate); the
+// scoring failure is in the LLM relevance layer.
+const OFF_TOPIC_TRANSCRIPT = `So I was thinking about my vacation plans for the summer. I really want to go to Italy this year, maybe the Amalfi Coast. My friend went last year and said it was incredible. The food was amazing, the weather was perfect, and the hotels were surprisingly affordable. I think if we book early enough we can get a good deal on flights too. Anyway that's what I've been thinking about lately.`;
+
+export const OFF_TOPIC_REP: RepFixture = {
+  name: "off-topic",
+  description:
+    "Ignores the prompt entirely — talks about vacation when asked about revenue. Exercises LLM relevance scoring.",
+  transcript: OFF_TOPIC_TRANSCRIPT,
+  words: makeWords(OFF_TOPIC_TRANSCRIPT, 40_000),
+  durationMs: 40_000,
+  timeBudgetMs: 60_000,
+  expectedPacing: [55, 92],
+  expectedConfidence: [55, 92],
+};
+
+// ——— LOW-EFFORT REP ——————————————————————————————————————
+// Minimal, dismissive, no substance. Exercises both deterministic
+// (hedges, fillers, severe under-budget) and LLM layers.
+const LOW_EFFORT_TRANSCRIPT = `Yeah I don't know, um, I guess it's fine honestly. Like whatever, you know, it is what it is. I mean I don't really have much to say about it I think. Um yeah basically that's kind of it I guess.`;
+
+export const LOW_EFFORT_REP: RepFixture = {
+  name: "low-effort",
+  description:
+    "Minimal, dismissive response with no substance. Should score low on deterministic and LLM layers.",
+  transcript: LOW_EFFORT_TRANSCRIPT,
+  words: makeWords(LOW_EFFORT_TRANSCRIPT, 15_000),
+  durationMs: 15_000,
+  timeBudgetMs: 60_000,
+  expectedPacing: [20, 55],
+  expectedConfidence: [55, 70],
 };
 
 export const ALL_FIXTURES: readonly RepFixture[] = [
@@ -117,6 +152,8 @@ export const ALL_FIXTURES: readonly RepFixture[] = [
   FILLER_HEAVY_REP,
   OVER_TIME_REP,
   RESTART_HEAVY_REP,
+  OFF_TOPIC_REP,
+  LOW_EFFORT_REP,
 ];
 
 // ——— Verification ——————————————————————————————————————

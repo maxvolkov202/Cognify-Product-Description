@@ -80,11 +80,13 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
     const penalty = Math.min(12, overPct);
     score -= penalty;
     reasons.push(`Over time budget by ${overPct}%`);
-  } else if (signals.timeBudgetRatio < 0.50) {
-    score -= 8;
-    reasons.push(
-      `Under budget — only ${Math.round(signals.timeBudgetRatio * 100)}% used`,
-    );
+  } else if (signals.timeBudgetRatio < 0.70) {
+    const usedPct = Math.round(signals.timeBudgetRatio * 100);
+    const penalty = signals.timeBudgetRatio < 0.30 ? 18
+      : signals.timeBudgetRatio < 0.50 ? 12
+      : 6;
+    score -= penalty;
+    reasons.push(`Under budget — only ${usedPct}% used`);
   }
 
   // ——— WPM sanity check ———————————————————————————

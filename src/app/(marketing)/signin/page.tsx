@@ -246,6 +246,10 @@ function SignInInner() {
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
               setFormError(null);
+              setEmail("");
+              setPassword("");
+              setPasswordConfirm("");
+              setResetSent(null);
             }}
             className="mt-3 text-xs text-ink-500 hover:text-ink-700"
           >

@@ -20,7 +20,7 @@ import type { SkillDimension } from "@/types/domain";
  * scored under, so trend lines remain honest across rubric evolutions.
  */
 
-export const RUBRIC_VERSION = "v2-beta.1";
+export const RUBRIC_VERSION = "v2-beta.2";
 
 export type DimensionGroup = "content" | "delivery";
 
@@ -80,12 +80,13 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "relevance",
     group: "content",
     definition:
-      "The rep actually addresses the prompt. No drift onto tangents. The speaker answers the question that was asked.",
+      "The rep actually addresses the prompt. No drift onto tangents. The speaker answers the question that was asked. Off-topic, non-substantive, or junk reps score below 40 — relevance is the gatekeeper dimension.",
     lowScoreSignals: [
       "Ending on a different topic than the one asked",
       "Tangents that lose the original thread",
       "Answering a related but different question",
       "Rambling without returning to the prompt",
+      "Non-substantive or junk content: testing the mic, random words, no real attempt to address the prompt",
     ],
     highScoreSignals: [
       "Direct engagement with the prompt from the opening",

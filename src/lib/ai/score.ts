@@ -102,7 +102,7 @@ The six dimensions are grouped into two buckets:
   CONTENT  : clarity, structure, relevance     (what they said)
   DELIVERY : confidence, pacing, tone          (how they said it)
 
-Be rigorous. Scores above 90 are reserved for genuinely excellent reps. Scores below 40 indicate serious issues. Most reps will land between 55 and 80.
+Be rigorous. Scores above 90 are reserved for genuinely excellent reps. Scores below 40 indicate serious issues. Off-topic or junk reps (not addressing the prompt, testing the mic, stream-of-consciousness rambling) must score relevance below 35, and low relevance should drag content dimensions down proportionally. Do not anchor toward any default range — score authentically based on the rubric.
 
 Return ONLY valid JSON matching this exact schema, no prose:
 
