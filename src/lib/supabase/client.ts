@@ -27,6 +27,7 @@ export function createSupabaseBrowserClient(): SupabaseClient {
  * behavior (cookie-based persistent sessions via @supabase/ssr) is
  * already "remember me" — sessions survive browser restarts.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function setRememberMePreference(_rememberMe: boolean): void {
   // no-op — Supabase SSR cookies persist by default
 }
