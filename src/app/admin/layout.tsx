@@ -3,11 +3,16 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/shared/Logo";
 import { GradientButton } from "@/components/shared/GradientButton";
 import { currentUser } from "@/lib/session/current-user";
+import { getUserProfile } from "@/lib/db/queries/user";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
   if (!user || user.kind !== "authenticated") {
     redirect("/signin");
+  }
+  const profile = await getUserProfile(user.id);
+  if (!profile?.isOperator) {
+    redirect("/dashboard");
   }
   return (
     <div className="flex min-h-screen flex-col bg-ink-50/40">
