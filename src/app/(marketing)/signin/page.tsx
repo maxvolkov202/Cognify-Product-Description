@@ -17,6 +17,8 @@ function SignInInner() {
   const [mode, setMode] = useState<"signin" | "signup">(
     params.get("mode") === "signup" ? "signup" : "signin",
   );
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -24,6 +26,10 @@ function SignInInner() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
   const [resetSent, setResetSent] = useState<string | null>(null);
+
+  function capitalize(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -73,10 +79,12 @@ function SignInInner() {
     setRememberMePreference(rememberMe);
     const supabase = createSupabaseBrowserClient();
     if (mode === "signup") {
+      const fullName = `${capitalize(firstName.trim())} ${capitalize(lastName.trim())}`;
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: { full_name: fullName },
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
         },
       });
@@ -149,6 +157,42 @@ function SignInInner() {
           </div>
 
           <form onSubmit={handleEmail} className="mt-6 w-full space-y-3 text-left">
+            {mode === "signup" && (
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label htmlFor="first-name" className="text-xs font-semibold text-ink-700">
+                    First name
+                  </label>
+                  <input
+                    id="first-name"
+                    type="text"
+                    required
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    onBlur={() => setFirstName((v) => v.trim() ? capitalize(v.trim()) : v)}
+                    className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                    placeholder="Jane"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="last-name" className="text-xs font-semibold text-ink-700">
+                    Last name
+                  </label>
+                  <input
+                    id="last-name"
+                    type="text"
+                    required
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    onBlur={() => setLastName((v) => v.trim() ? capitalize(v.trim()) : v)}
+                    className="mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="text-xs font-semibold text-ink-700">
                 Email
@@ -246,6 +290,8 @@ function SignInInner() {
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
               setFormError(null);
+              setFirstName("");
+              setLastName("");
               setEmail("");
               setPassword("");
               setPasswordConfirm("");

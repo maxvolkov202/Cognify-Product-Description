@@ -90,6 +90,10 @@ export function SettingsClient({
 
   return (
     <div className="mt-10 space-y-8">
+      {userKind === "authenticated" && (
+        <AccountSection userEmail={userEmail} />
+      )}
+
       {/* ——— Vertical ——————————————————————————————— */}
       <section className="surface-card overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />
@@ -272,9 +276,6 @@ export function SettingsClient({
         </div>
       </section>
 
-      {userKind === "authenticated" && (
-        <AccountSection userEmail={userEmail} />
-      )}
     </div>
   );
 }
