@@ -3,6 +3,8 @@ import { GradientButton } from "@/components/shared/GradientButton";
 import { StatsBar } from "@/components/marketing/StatsBar";
 import { EnterpriseCTA } from "@/components/marketing/EnterpriseCTA";
 import { CompetitorTable } from "@/components/marketing/CompetitorTable";
+import { ROICalculator } from "@/components/marketing/ROICalculator";
+import { PriorArt } from "@/components/marketing/PriorArt";
 
 export const metadata: Metadata = {
   title: "For teams — brain productivity training",
@@ -89,6 +91,8 @@ export default function ForTeamsPage() {
         </div>
       </section>
 
+      <ROICalculator />
+      <PriorArt />
       <CompetitorTable />
       <EnterpriseCTA />
 
