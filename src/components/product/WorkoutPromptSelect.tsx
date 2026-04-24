@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, ArrowRight, Timer, Target } from "lucide-react";
+import { RefreshCw, ArrowRight, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
 import { refreshRepPrompts } from "@/lib/ai/workout-prompts";
 import type { FocusReason } from "@/lib/ai/workout-prompts";
 import type { PressureArchetype } from "@/lib/ai/pressure-archetypes";
 import { pickPressurePrompts } from "@/lib/ai/prompts/pressure";
 import { PressureRepIndicator } from "./PressureRepIndicator";
+import { CircleTimer } from "./CircleTimer";
+import { ProgressDots } from "./ProgressDots";
+import { DIMENSION_LABELS } from "@/types/domain";
 
 type Props = {
   repType: RepType;
@@ -58,12 +61,9 @@ export function WorkoutPromptSelect({
   const [refreshCount, setRefreshCount] = useState(0);
 
   const effectiveBudgetSec = timeBudgetSec ?? repType.timeBudgetSec;
-  const headerKicker = pressureArchetype
-    ? `Rep ${repIndex + 1} of ${totalReps} · Pressure · ${pressureArchetype.name}`
-    : `Rep ${repIndex + 1} of ${totalReps} · ${repType.name}`;
   const headerInstruction = pressureArchetype
     ? pressureArchetype.tagline
-    : repType.instruction;
+    : repType.displayTitle;
   const headerBehavior = pressureArchetype
     ? "Read the prompt carefully before you start — the pressure is baked in."
     : repType.behavior;
@@ -87,23 +87,29 @@ export function WorkoutPromptSelect({
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-            {headerKicker}
-          </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+        <div className="min-w-0 flex-1">
+          <ProgressDots
+            current={repIndex + 1}
+            total={totalReps}
+            label={
+              pressureArchetype
+                ? `Rep ${repIndex + 1} of ${totalReps} · Pressure · ${pressureArchetype.name}`
+                : `Rep ${repIndex + 1} of ${totalReps} · ${repType.name}`
+            }
+          />
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
             {headerInstruction}
           </h1>
-          <p className="mt-2 text-sm text-ink-600">{headerBehavior}</p>
+          <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-600">
+            <span
+              className="size-1.5 rounded-full bg-brand-purple"
+              aria-hidden="true"
+            />
+            Training: {DIMENSION_LABELS[repType.primaryDimension]}
+          </p>
+          <p className="mt-1 text-xs text-ink-500">{headerBehavior}</p>
         </div>
-        <div className="shrink-0 rounded-xl border border-ink-200 bg-white px-3 py-2 text-center">
-          <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-            <Timer className="size-3" /> Budget
-          </div>
-          <div className="brand-gradient-text mt-1 text-2xl font-extrabold tabular-nums">
-            {effectiveBudgetSec}s
-          </div>
-        </div>
+        <CircleTimer seconds={effectiveBudgetSec} />
       </div>
 
       {pressureArchetype ? (

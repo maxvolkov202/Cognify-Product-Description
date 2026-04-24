@@ -55,6 +55,9 @@ export type RepTypeFramework = {
 export type RepType = {
   readonly id: RepTypeId;
   readonly name: string;
+  /** Consumer-friendly H1 shown on the prompt-pick screen (mockup #2).
+   *  More human than `name` — "Teach it step by step" vs "Simplify". */
+  readonly displayTitle: string;
   readonly tagline: string;
   readonly purpose: string;
   readonly behavior: string;
@@ -76,6 +79,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "simplify",
     name: "Simplify",
+    displayTitle: "Teach it step by step",
     tagline: "Feynman Technique",
     purpose:
       "Explain a complex concept simply, as if to someone who's never heard it",
@@ -119,6 +123,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "structure",
     name: "Structure",
+    displayTitle: "Main point, support, close",
     tagline: "Main → 3 Points → Close",
     purpose:
       "Organize ideas into a clean opening, three supporting points, and a close",
@@ -168,6 +173,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "think_fast",
     name: "Think Fast",
+    displayTitle: "Respond with no prep",
     tagline: "No Prep",
     purpose: "Respond coherently with zero preparation time",
     behavior:
@@ -210,6 +216,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "be_concise",
     name: "Be Concise",
+    displayTitle: "Say the most in the fewest words",
     tagline: "Time Constraint",
     purpose:
       "Say the most with the fewest words, under a tight deadline",
@@ -247,6 +254,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "reinforce",
     name: "Reinforce",
+    displayTitle: "Walk through it like you're teaching",
     tagline: "Teach Back",
     purpose: "Explain how to do something, step by step, as if teaching",
     behavior:
@@ -289,6 +297,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "persuade",
     name: "Persuade",
+    displayTitle: "Convince them to act",
     tagline: "Elevator Pitch",
     purpose: "Convince someone to take a specific action",
     behavior:
@@ -331,6 +340,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "adapt",
     name: "Adapt",
+    displayTitle: "Same idea, two audiences",
     tagline: "Reframing",
     purpose:
       "Explain the same idea twice — once for each of two different audiences",
@@ -374,6 +384,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "deliver",
     name: "Deliver",
+    displayTitle: "Pace and pauses that hold attention",
     tagline: "Pause + Pace",
     purpose:
       "Control rhythm. Slow down. Use deliberate pauses for emphasis",
@@ -417,6 +428,7 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "handle_pressure",
     name: "Handle Pressure",
+    displayTitle: "Hold your ground under real stress",
     tagline: "Pressure Rep",
     purpose:
       "Perform under a real stressor — pushback, time compression, audience switch, interruption, or raised stakes",
