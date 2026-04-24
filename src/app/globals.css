@@ -124,3 +124,34 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
+
+/* Print-friendly rules for /report. The page is rendered for screen by
+ * default; these rules kick in when the browser enters print mode, which
+ * happens both for the Print dialog and for "Save as PDF". */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-report {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .print-report .surface-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  .print-report svg {
+    max-width: 100% !important;
+  }
+  .print-report section {
+    break-inside: avoid-page;
+  }
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}

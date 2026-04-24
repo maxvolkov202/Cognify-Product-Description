@@ -8,12 +8,16 @@ import {
   getRecentReps,
   getStreakDays,
   getPressureRepStats,
+  getDailyCompositeTrend,
+  getBeforeAfterReps,
 } from "@/lib/db/queries/progress";
 import { hasDatabase } from "@/lib/db/safe";
 import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
 import { SkillRadar } from "@/components/product/SkillRadar";
 import { WeeklyNarrativeCard } from "@/components/product/WeeklyNarrativeCard";
+import { ImprovementCurve } from "@/components/product/ImprovementCurve";
+import { BeforeAfterAudio } from "@/components/product/BeforeAfterAudio";
 import { GradientButton } from "@/components/shared/GradientButton";
 import {
   Flame,
@@ -22,6 +26,7 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
+  FileDown,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
@@ -36,6 +41,8 @@ export default async function ProgressPage() {
     recentReps,
     streakDays,
     pressureStats,
+    dailyCompositeTrend,
+    beforeAfter,
   ] = await Promise.all([
     getSkillTrends(userId, 30),
     getCurrentSkillScores(userId),
@@ -43,6 +50,8 @@ export default async function ProgressPage() {
     getRecentReps(userId, 12),
     getStreakDays(userId),
     getPressureRepStats(userId, 60),
+    getDailyCompositeTrend(userId, 90),
+    getBeforeAfterReps(userId),
   ]);
 
   const totalReps = activity.reduce((sum, a) => sum + a.count, 0);
@@ -81,17 +90,26 @@ export default async function ProgressPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
-      <div className="flex flex-col gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-          Progress
-        </p>
-        <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-          Your training, measured.
-        </h1>
-        <p className="mt-1 max-w-2xl text-lg text-ink-600">
-          Every rep scored across six dimensions. Every callout anchored to a timestamp
-          in your transcript. No grades — just signals that show improvement compound.
-        </p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            Progress
+          </p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+            Your training, measured.
+          </h1>
+          <p className="mt-1 max-w-2xl text-lg text-ink-600">
+            Every rep scored across six dimensions. Every callout anchored to a timestamp
+            in your transcript. No grades — just signals that show improvement compound.
+          </p>
+        </div>
+        <Link
+          href="/report"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900"
+        >
+          <FileDown className="size-3.5" />
+          Export report
+        </Link>
       </div>
 
       {!hasDatabase() && (
@@ -257,6 +275,29 @@ export default async function ProgressPage() {
           tooltip="The scoring rubric that produced these numbers. Pinned per rep so historical scores don't shift when we tune the rubric later."
         />
       </div>
+
+      {dailyCompositeTrend.length >= 2 && (
+        <div className="mt-10">
+          <ImprovementCurve
+            points={dailyCompositeTrend}
+            peakComposite={
+              dailyCompositeTrend.reduce(
+                (max, p) => Math.max(max, p.composite),
+                0,
+              ) || null
+            }
+          />
+        </div>
+      )}
+
+      {beforeAfter && (
+        <div className="mt-8">
+          <BeforeAfterAudio
+            oldest={beforeAfter.oldest}
+            newest={beforeAfter.newest}
+          />
+        </div>
+      )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="surface-card p-8">

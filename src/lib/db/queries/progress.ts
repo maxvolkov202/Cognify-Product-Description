@@ -589,6 +589,105 @@ export async function getRepsForDateRange(
   }, []);
 }
 
+/**
+ * Daily composite trend over the last N days — one point per day,
+ * averaged across all reps that day. Used by the ImprovementCurve on
+ * /progress to visualize macro trajectory (weeks and months), not
+ * per-rep variance. Returns chronological order (oldest → newest).
+ */
+export type DailyCompositePoint = {
+  /** YYYY-MM-DD */
+  date: string;
+  composite: number;
+  repCount: number;
+};
+
+export async function getDailyCompositeTrend(
+  userId: string,
+  days = 60,
+): Promise<DailyCompositePoint[]> {
+  return safeDb(async () => {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
+        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(reps)
+      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
+      .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`)
+      .orderBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
+
+    return rows.map((r) => ({
+      date: r.date,
+      composite: Math.round(r.composite ?? 0),
+      repCount: r.count,
+    }));
+  }, []);
+}
+
+/**
+ * Returns the oldest and newest reps that have an audio_url — used by
+ * the Before/After audio comparison card on /progress. If the user has
+ * < 2 audio-bearing reps, returns `null`. The audio URLs are live Vercel
+ * Blob URLs; transcripts ride along for context beneath each clip.
+ */
+export type BeforeAfterRep = {
+  id: string;
+  promptText: string;
+  topic: string | null;
+  compositeScore: number;
+  createdAt: Date;
+  durationMs: number;
+  audioUrl: string;
+};
+
+export async function getBeforeAfterReps(
+  userId: string,
+): Promise<{ oldest: BeforeAfterRep; newest: BeforeAfterRep } | null> {
+  return safeDb(async () => {
+    const rows = await db
+      .select({
+        id: reps.id,
+        promptText: reps.promptText,
+        topic: reps.topic,
+        compositeScore: reps.compositeScore,
+        createdAt: reps.createdAt,
+        durationMs: reps.durationMs,
+        audioUrl: reps.audioUrl,
+      })
+      .from(reps)
+      .where(
+        and(
+          eq(reps.userId, userId),
+          sql`${reps.audioUrl} IS NOT NULL`,
+        ),
+      )
+      .orderBy(reps.createdAt);
+
+    const withAudio = rows.filter(
+      (r): r is typeof r & { audioUrl: string } => Boolean(r.audioUrl),
+    );
+    if (withAudio.length < 2) return null;
+
+    const toRep = (r: (typeof withAudio)[number]): BeforeAfterRep => ({
+      id: r.id,
+      promptText: r.promptText,
+      topic: r.topic,
+      compositeScore: r.compositeScore ?? 0,
+      createdAt: r.createdAt,
+      durationMs: r.durationMs,
+      audioUrl: r.audioUrl,
+    });
+
+    return {
+      oldest: toRep(withAudio[0]!),
+      newest: toRep(withAudio[withAudio.length - 1]!),
+    };
+  }, null);
+}
+
 export async function getRepsOnSameTopic(
   userId: string,
   topic: string,
