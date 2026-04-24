@@ -134,11 +134,19 @@ CALLOUT RULES (strict — responses violating these will be rejected):
   - Every "warn"/"critical" callout MUST include a \`suggestedRewrite\` — a concrete, speakable rephrasing of the quote in the user's voice (same length or shorter; something they could actually say next time).
   - For "positive" callouts, set \`suggestedRewrite\` to null.
   - Do not invent content. If you cannot find a real quote to anchor a callout, skip that callout.
+  - Every callout's \`dimension\` MUST be one of the six rubric dimensions (or "structural_adherence" when the rep has a framework). Never omit.
 
 COPY RULES:
-  - "title": ≤80 chars, a short label of what happened (e.g., "Rushed the setup").
+  - "title": ≤80 chars, a short label of what specifically happened (e.g., "Rushed the setup", "Landed the ask").
   - "body":  ≤300 chars, 1-2 tight sentences on why this moment matters — NOT the fix itself (the fix lives in suggestedRewrite).
-  - Keep tone coaching, not clinical. Specific, not generic.`;
+  - Keep tone coaching, not clinical. Specific, not generic.
+
+BANNED (responses will be rejected if these appear anywhere in any callout title or body):
+  - "good job", "great job", "nice work", "nice job", "well done", "way to go"
+  - "you did well", "you're doing great", "keep it up", "you got this"
+  - Generic positive filler. EVERY positive callout must point at a specific moment in the transcript.
+  - Filler adverbs: "really", "very", "quite" — drop them.
+  - Hype verbs that oversell: "crushed" (only if literal), "absolutely", "completely nailed".`;
 
 function renderRubric(): string {
   return ALL_DIMENSIONS.map((d) => {
@@ -150,6 +158,80 @@ ${r.lowScoreSignals.map((s) => `- ${s}`).join("\n")}
 High-score signals:
 ${r.highScoreSignals.map((s) => `- ${s}`).join("\n")}`;
   }).join("\n\n");
+}
+
+/**
+ * Banned phrases that disqualify a callout from the user-visible feed.
+ * When found, the callout's copy is rewritten to a neutral-but-specific
+ * fallback so the 1+2 shape holds. Pattern: case-insensitive substring
+ * match against title + body combined. Short, high-signal list —
+ * expanding it is cheap but false-positive risk grows fast, so tune
+ * against real outputs if/when needed.
+ */
+const CALLOUT_BANNED_PHRASES = [
+  "good job",
+  "great job",
+  "nice work",
+  "nice job",
+  "well done",
+  "way to go",
+  "keep it up",
+  "you got this",
+  "you're doing great",
+  "you did well",
+];
+
+type RawCallout = {
+  dimension:
+    | "clarity"
+    | "structure"
+    | "relevance"
+    | "confidence"
+    | "pacing"
+    | "tone"
+    | "structural_adherence";
+  tone: "positive" | "neutral" | "warn" | "critical";
+  title: string;
+  body: string;
+  quote: string | null;
+  suggestedRewrite: string | null;
+  transcriptStart: number;
+  transcriptEnd: number;
+};
+
+function calloutContainsBanned(c: RawCallout): boolean {
+  const hay = `${c.title} ${c.body}`.toLowerCase();
+  return CALLOUT_BANNED_PHRASES.some((p) => hay.includes(p));
+}
+
+function sanitizeCallouts(callouts: RawCallout[]): RawCallout[] {
+  return callouts.map((c) => {
+    if (!calloutContainsBanned(c)) return c;
+    // Log so we can audit prompt drift. Don't drop — we need to keep
+    // the 1+2 shape intact.
+    console.warn(
+      "[score] callout tripped banned-phrase filter; sanitizing:",
+      { dimension: c.dimension, tone: c.tone, title: c.title },
+    );
+    if (c.tone === "positive") {
+      return {
+        ...c,
+        title: "Landed a specific moment",
+        body:
+          c.quote
+            ? `The line "${c.quote}" hit clearly — keep that specificity.`
+            : "A specific moment landed cleanly. Keep that specificity.",
+      };
+    }
+    return {
+      ...c,
+      title: "Tighten this moment",
+      body:
+        c.quote
+          ? `"${c.quote}" could land cleaner. See the suggested rewrite below.`
+          : "This moment could land cleaner. See the suggested rewrite below.",
+    };
+  });
 }
 
 export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
@@ -233,6 +315,15 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   }
 
   const validated = scoringResponseSchema.parse(parsed);
+
+  // WS-4: post-LLM callout validator. The scoring prompt has BANNED
+  // rules but belt-and-suspenders — we also check client-side and
+  // filter any callouts whose title/body contain banned filler. Rather
+  // than drop the whole response, we sanitize: filtered callouts get
+  // replaced by a neutral-tone fallback so the 1-positive + 2-improvement
+  // shape stays intact. In practice this is rare because the prompt's
+  // authoring rules are strict.
+  validated.callouts = sanitizeCallouts(validated.callouts);
 
   const dimensionMap: Partial<Record<SkillDimension, number>> = {};
   for (const d of validated.dimensions) {
