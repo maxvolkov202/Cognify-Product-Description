@@ -21,7 +21,10 @@ const points = [
 
 export function EnterpriseCTA() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-6 py-24">
+    <section
+      id="career-centers"
+      className="mx-auto w-full max-w-6xl px-6 py-24 scroll-mt-24"
+    >
       <div className="surface-card overflow-hidden">
         <div className="grid gap-10 p-10 md:grid-cols-[1.2fr_1fr] md:p-14">
           <div>

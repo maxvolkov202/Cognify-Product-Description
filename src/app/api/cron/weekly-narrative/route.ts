@@ -24,15 +24,17 @@ export const dynamic = "force-dynamic";
  * `curl localhost:3333/api/cron/weekly-narrative` works.
  */
 export async function GET(req: Request) {
+  // Fail closed. Either the request carries a matching Bearer secret,
+  // or it carries Vercel's own cron header (set only on real cron runs).
+  // In development we relax so `curl localhost:3333/...` still triggers
+  // the cron manually.
   const expected = process.env.CRON_SECRET;
-  if (process.env.NODE_ENV === "production" && expected) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${expected}`) {
-      return NextResponse.json(
-        { error: "unauthorized" },
-        { status: 401 },
-      );
-    }
+  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
+  const authOk = expected
+    ? req.headers.get("authorization") === `Bearer ${expected}`
+    : false;
+  if (process.env.NODE_ENV === "production" && !authOk && !isVercelCron) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const weekStartIso = currentWeekStartIso();

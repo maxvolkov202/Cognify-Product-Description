@@ -28,7 +28,7 @@ export default function ForIndividualsPage() {
             clearly under pressure.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <GradientButton href="/signup" size="lg">
+            <GradientButton href="/signin?mode=signup" size="lg">
               Start training free
             </GradientButton>
             <GradientButton href="/how-it-works" variant="outline" size="lg">
