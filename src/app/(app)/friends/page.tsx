@@ -14,6 +14,7 @@ import {
   Zap,
   MessageCircle,
 } from "lucide-react";
+import { DemoBanner } from "@/components/shared/DemoBanner";
 import {
   MOCK_FRIENDS,
   MOCK_PENDING_REQUESTS,
@@ -409,22 +410,10 @@ function MockFriendsPreview() {
 
   return (
     <>
-      <div className="mt-8 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
-        <div className="flex items-start gap-3">
-          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
-            🔒
-          </div>
-          <div>
-            <p className="font-bold uppercase tracking-wider text-amber-800 text-[11px]">
-              Demo mode · everything below is fake data
-            </p>
-            <p className="mt-1 leading-relaxed">
-              These friends, scores, and streaks aren&rsquo;t real. Invite a
-              real teammate using the form above to activate this page with
-              your actual network.
-            </p>
-          </div>
-        </div>
+      <div className="mt-8">
+        <DemoBanner
+          message="These friends, scores, and streaks aren't real. Invite a real teammate using the form above to activate this page with your actual network."
+        />
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-4">

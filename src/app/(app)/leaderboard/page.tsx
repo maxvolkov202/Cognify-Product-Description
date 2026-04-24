@@ -1,4 +1,5 @@
 import { LeaderboardTable } from "@/components/product/LeaderboardTable";
+import { DemoBanner } from "@/components/shared/DemoBanner";
 import { Trophy, Flame } from "lucide-react";
 
 const MOCK_LEADERBOARD = [
@@ -28,22 +29,10 @@ export default function LeaderboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
-      <div className="mb-8 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
-        <div className="flex items-start gap-3">
-          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
-            🔒
-          </div>
-          <div>
-            <p className="font-bold uppercase tracking-wider text-amber-800 text-[11px]">
-              Demo mode · everything below is fake data
-            </p>
-            <p className="mt-1 leading-relaxed">
-              This leaderboard shows sample names and scores so you can see
-              the format. Real rankings activate once Cognify has a cohort of
-              trained users to compare against.
-            </p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <DemoBanner
+          message="This leaderboard shows sample names and scores so you can see the format. Real rankings activate once Cognify has a cohort of trained users to compare against."
+        />
       </div>
 
       <div className="flex flex-col gap-3">
