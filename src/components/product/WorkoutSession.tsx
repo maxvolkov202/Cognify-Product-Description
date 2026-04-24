@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Pause } from "lucide-react";
 import { RepSurface } from "./RepSurface";
 import { WorkoutIntro } from "./WorkoutIntro";
 import { WorkoutCountdown } from "./WorkoutCountdown";
@@ -259,15 +260,20 @@ export function WorkoutSession({
 
   if (phase === "prompt-select") {
     return (
-      <WorkoutPromptSelect
-        key={currentIndex}
-        repType={currentRep.repType}
-        initialPrompts={currentRep.prompts}
-        repIndex={currentIndex}
-        totalReps={plan.reps.length}
-        focusReason={currentRep.focusReason ?? null}
-        onSelect={handlePromptSelected}
-      />
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <PauseWorkoutButton />
+        </div>
+        <WorkoutPromptSelect
+          key={currentIndex}
+          repType={currentRep.repType}
+          initialPrompts={currentRep.prompts}
+          repIndex={currentIndex}
+          totalReps={plan.reps.length}
+          focusReason={currentRep.focusReason ?? null}
+          onSelect={handlePromptSelected}
+        />
+      </div>
     );
   }
 
@@ -296,17 +302,7 @@ export function WorkoutSession({
               />
             ))}
           </div>
-          {/* Save & exit — workout state auto-saves between reps to
-              localStorage. Clicking this routes away; user sees "Resume"
-              when they return to /workout. Current in-progress rep is
-              lost, but completed reps are preserved. */}
-          <a
-            href="/dashboard"
-            className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400 hover:text-ink-700"
-            title="Your completed reps are saved. Resume later from /workout."
-          >
-            Save &amp; exit
-          </a>
+          <PauseWorkoutButton compact />
         </div>
       </div>
 
@@ -335,3 +331,38 @@ export function WorkoutSession({
     </div>
   );
 }
+
+/**
+ * Explicit pause button — saves the current session state to localStorage
+ * (auto-save already runs between reps) and routes to the dashboard. User
+ * returns to /workout and sees the "You paused earlier" resume banner.
+ *
+ * Mid-rep pause is intentionally not supported here (see src/lib/workout/pause.ts);
+ * tapping during an active rep completes-then-pauses at prompt-select.
+ * Mockup-grade mid-rep pause tile lands in WS-5 (rep surface redesign).
+ */
+function PauseWorkoutButton({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <a
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-900"
+        title="Pause the workout. Your completed reps are saved; resume from /workout."
+      >
+        <Pause className="size-3" strokeWidth={2.5} />
+        Pause
+      </a>
+    );
+  }
+  return (
+    <a
+      href="/dashboard"
+      className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-600 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-900"
+      title="Pause the workout. Your completed reps are saved; resume from /workout."
+    >
+      <Pause className="size-3.5" strokeWidth={2.5} />
+      Pause workout
+    </a>
+  );
+}
+
