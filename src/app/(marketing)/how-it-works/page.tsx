@@ -55,27 +55,27 @@ const dimensions = [
   },
   {
     group: "Content",
-    name: "Relevance",
-    def: "The rep actually addresses the prompt.",
-    low: "Drift onto tangents, answering a different question.",
+    name: "Conciseness",
+    def: "Maximum signal per word. Tight sentences over bloated ones.",
+    low: "Filler, hedge-stacks, preambles, going over time budget.",
   },
   {
     group: "Delivery",
-    name: "Confidence",
-    def: "Perceived composure and self-assurance.",
-    low: "Hedging, restarts, long pauses, over-apologizing.",
+    name: "Thinking Quality",
+    def: "Coherent generation under real-time conditions. Sharp recall.",
+    low: "Hedging, restarts, long pauses, logical chain breaks.",
   },
   {
     group: "Delivery",
-    name: "Pacing",
-    def: "Speed, rhythm, and time budget discipline.",
-    low: "Filler rate, rushing the close, going over time.",
+    name: "Delivery",
+    def: "How it sounds. Pacing, purposeful pauses, vocal variation.",
+    low: "Rushing the close, over time, voice tightening, monotone.",
   },
   {
     group: "Delivery",
-    name: "Tone",
-    def: "Calibration to audience and constraints.",
-    low: "Same register regardless of who's listening.",
+    name: "Adaptability",
+    def: "Calibration to audience + adjustment under pushback or audience switch.",
+    low: "Same register for any audience, defensive posture when challenged.",
   },
 ] as const;
 
@@ -149,7 +149,7 @@ export default function HowItWorksPage() {
         </div>
         <p className="mt-4 text-xs text-ink-500">
           Three Content dimensions evaluate <em>what</em> you said. Three
-          Delivery dimensions evaluate <em>how</em> you said it. Pacing is
+          Delivery dimensions evaluate <em>how</em> you said it. Delivery is
           scored deterministically from word-level timestamps so its trend
           lines are model-stable across time.
         </p>

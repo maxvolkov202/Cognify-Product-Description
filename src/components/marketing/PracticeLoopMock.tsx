@@ -26,10 +26,10 @@ const PHASE_ORDER: readonly Phase[] = [
 const DIMENSIONS = [
   { name: "Clarity", value: 84 },
   { name: "Structure", value: 78 },
-  { name: "Relevance", value: 81 },
-  { name: "Confidence", value: 72 },
-  { name: "Pacing", value: 68 },
-  { name: "Tone", value: 79 },
+  { name: "Conciseness", value: 81 },
+  { name: "Thinking", value: 72 },
+  { name: "Delivery", value: 68 },
+  { name: "Adaptability", value: 79 },
 ] as const;
 
 /**

@@ -13,14 +13,14 @@ const modes = [
     name: "Daily Workout",
     tagline: "Build the habit. Ten minutes, four reps, every day.",
     body: "A pre-built sequence of four to five speaking drills targeting different skills. General prompts — no setup required. Pick one of five prompts per rep, speak for 30–60 seconds, get feedback, retry or move on. The gym loop that compounds across days.",
-    trains: ["Clarity", "Structure", "Confidence", "Pacing"],
+    trains: ["Clarity", "Structure", "Thinking Quality", "Delivery"],
   },
   {
     n: "Mode 02",
     name: "Build a Rep",
     tagline: "Practice for a specific real moment, before it happens.",
     body: "Type a scenario you're about to face. Add context. Cognify generates a thinking structure tailored to your vertical and the specific moment. You speak to the structure, get feedback, edit it, run it again. Not a script. Not a memorized answer. A scaffold you hold in your mind while you speak.",
-    trains: ["Relevance", "Tone", "Structure", "Real-world calibration"],
+    trains: ["Adaptability", "Conciseness", "Structure", "Real-world calibration"],
   },
 ] as const;
 
@@ -39,12 +39,12 @@ const repTypes = [
 const dimensionGroups = [
   {
     name: "Content",
-    dims: ["Clarity", "Structure", "Relevance"],
+    dims: ["Clarity", "Structure", "Conciseness"],
     blurb: "What you said",
   },
   {
     name: "Delivery",
-    dims: ["Confidence", "Pacing", "Tone"],
+    dims: ["Thinking Quality", "Delivery", "Adaptability"],
     blurb: "How you said it",
   },
 ] as const;
@@ -146,7 +146,7 @@ export default function ProductPage() {
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-600">
             Every rep is scored across six dimensions grouped into Content
-            (what you said) and Delivery (how you said it). Pacing is scored
+            (what you said) and Delivery (how you said it). Delivery is scored
             deterministically from word-level timestamps so its trend lines
             are model-stable across time.
           </p>
