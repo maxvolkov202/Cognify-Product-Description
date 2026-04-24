@@ -11,10 +11,12 @@ import {
   ChevronDown,
   ChevronUp,
   Target,
+  Flame,
 } from "lucide-react";
 import { pickVerticalPrompts } from "@/lib/ai/prompts/verticals";
 import { RepSurface } from "./RepSurface";
 import { TalkingPointsSidebar } from "./TalkingPointsSidebar";
+import { PressureRepIndicator } from "./PressureRepIndicator";
 import {
   CustomScenarioBuilder,
   type CustomScenarioPayload,
@@ -22,6 +24,11 @@ import {
 import type { VerticalId, PersonaId } from "@/lib/onboarding/constants";
 import type { TalkingPoints } from "@/lib/ai/talking-points";
 import type { RepScore, Callout } from "@/types/domain";
+import {
+  PRESSURE_ARCHETYPES,
+  getPressureArchetype,
+  type PressureArchetypeId,
+} from "@/lib/ai/pressure-archetypes";
 
 type Props = {
   vertical: VerticalId;
@@ -81,6 +88,16 @@ export function BuildARepFlow({
   // before the mic surface appears. Prevents users from recording
   // without reviewing the structure they're about to speak against.
   const [repStarted, setRepStarted] = useState(false);
+
+  // Optional pressure archetype selection (Phase 5). When set, the rep is
+  // scored with that archetype's weight profile and the pressure indicator
+  // is shown above the rep surface. Users can freely add/remove before
+  // starting; locked once the rep starts to keep scoring consistent.
+  const [pressureArchetypeId, setPressureArchetypeId] =
+    useState<PressureArchetypeId | null>(null);
+  const pressureArchetype = pressureArchetypeId
+    ? getPressureArchetype(pressureArchetypeId)
+    : null;
 
   const effectivePickerPrompt = customPromptMode
     ? customPrompt.trim()
@@ -212,6 +229,7 @@ export function BuildARepFlow({
     setRetryFocus(null);
     setRepRetryNonce(0);
     setRepStarted(false);
+    setPressureArchetypeId(null);
   }
 
   function handleRepComplete({ score }: { score: RepScore }) {
@@ -376,6 +394,11 @@ export function BuildARepFlow({
                 if the whole shape is off, or hit Start when you&rsquo;re ready
                 to hold this in mind during your rep.
               </p>
+              <PressurePicker
+                selectedId={pressureArchetypeId}
+                onChange={setPressureArchetypeId}
+              />
+
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   type="button"
@@ -383,7 +406,7 @@ export function BuildARepFlow({
                   className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-sm"
                 >
                   <ArrowRight className="size-4" />
-                  Start rep
+                  {pressureArchetype ? "Start pressure rep" : "Start rep"}
                 </button>
                 <button
                   type="button"
@@ -425,14 +448,29 @@ export function BuildARepFlow({
       {/* ——— Rep + sidebar ————————————————————————— */}
       {talkingPoints && activeSource && repStarted && (
         <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
-          <div>
+          <div className="space-y-4">
+            {pressureArchetype && (
+              <PressureRepIndicator archetype={pressureArchetype} />
+            )}
             <RepSurface
-              key={`${activeRepPrompt}-${repRetryNonce}`}
+              key={`${activeRepPrompt}-${repRetryNonce}-${pressureArchetypeId ?? "noop"}`}
               prompt={activeRepPrompt}
               mode="scenario_training"
               topic={activeRepPrompt}
-              maxDurationMs={90_000}
+              maxDurationMs={
+                90_000 +
+                (pressureArchetype?.durationDeltaSec ?? 0) * 1000
+              }
               retryFocus={retryFocus}
+              pressureArchetypeId={pressureArchetypeId}
+              pressureContext={
+                pressureArchetype
+                  ? {
+                      archetypeName: pressureArchetype.name,
+                      archetypeTagline: pressureArchetype.tagline,
+                    }
+                  : null
+              }
               onComplete={handleRepComplete}
               onRetry={handleRepRetry}
               onNext={handleNewScenario}
@@ -696,6 +734,82 @@ function PickerIntake({
         </button>
       </div>
     </div>
+  );
+}
+
+// ——— Pressure picker (Phase 5) ——————————————————————————
+//
+// Shown in the preview card as an optional layer. User can apply one of
+// the five pressure archetypes before starting a Build-a-Rep scenario —
+// rep is then scored with that archetype's weight profile (server-side
+// in /api/score). "None" is the default; picking an archetype shows a
+// one-line tagline so the user knows what to expect.
+function PressurePicker({
+  selectedId,
+  onChange,
+}: {
+  selectedId: PressureArchetypeId | null;
+  onChange: (id: PressureArchetypeId | null) => void;
+}) {
+  const archetypes = Object.values(PRESSURE_ARCHETYPES);
+  return (
+    <div className="mt-6 rounded-xl border border-ink-200 bg-ink-50/60 p-4">
+      <div className="flex items-center gap-2">
+        <Flame className="size-4 text-amber-600" strokeWidth={2.5} />
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-700">
+          Add pressure (optional)
+        </p>
+      </div>
+      <p className="mt-1 text-xs text-ink-500">
+        Crank the difficulty. Picks a stress mechanism — the scoring
+        weights shift to reward how well you held up under it.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <PressureChip
+          active={selectedId === null}
+          onClick={() => onChange(null)}
+          label="None"
+        />
+        {archetypes.map((a) => (
+          <PressureChip
+            key={a.id}
+            active={selectedId === a.id}
+            onClick={() => onChange(a.id)}
+            label={a.name}
+          />
+        ))}
+      </div>
+      {selectedId && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+          {getPressureArchetype(selectedId).tagline}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PressureChip({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        active
+          ? "rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm"
+          : "rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:border-ink-300"
+      }
+    >
+      {label}
+    </button>
   );
 }
 
