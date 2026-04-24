@@ -18,7 +18,11 @@ type Phase =
 
 export function QuickRepFlow({ prompt }: { prompt: string }) {
   const [phase, setPhase] = useState<Phase>({ kind: "intro" });
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  // Transcript open by default — Product Sweep #1 flagged /try as "scores
+  // but no transcript" when the panel was collapsed behind a subtle tap.
+  // Callouts + transcript are the product's core value prop; show them
+  // by default and let users collapse if they want the score-only view.
+  const [transcriptOpen, setTranscriptOpen] = useState(true);
 
   if (phase.kind === "intro") {
     return (
