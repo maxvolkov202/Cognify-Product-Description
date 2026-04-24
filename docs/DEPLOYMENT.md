@@ -1,6 +1,44 @@
-# Cognify v2 — Production Deployment Guide
+# Cognify v2 — Deployment Guide
 
-This guide walks through everything left to go live on `cognifygym.com`. It assumes the `supabase-migration` branch is code-complete (all 9 checkpoint commits pushed).
+> **Two deploy targets, two different flows** (corrected 2026-04-23):
+> - **Preview / iteration** → `cognify-v2-neon.vercel.app` (Max-owned, under `maxvolkov202s-projects` team). Fully unblocked; deploy any time with a single CLI command.
+> - **Production** → `cognifygym.com` (Bob-owned upstream Vercel project). Gated on Bob's PR merge.
+>
+> This guide covers both. Start with §0 for the fast-path if you just want to get today's commits visible on `cognify-v2-neon.vercel.app`.
+
+---
+
+## 0. Current preview deploy (fast path)
+
+The Vercel project `cognify-v2` at team `maxvolkov202s-projects` (ID `prj_SwZBC9rMztIlOxSdJPwVpHvr5seE`) is already linked via `.vercel/project.json`. It serves **`https://cognify-v2-neon.vercel.app`** (production alias inside Max's hobby tier — this is the demo/preview URL, NOT the real `cognifygym.com` production).
+
+**As of 2026-04-23:** git integration is **not connected** on this project (`link: null` per Vercel API). That means pushes to `origin/supabase-migration` do not auto-trigger builds. Deploy manually after each push:
+
+```bash
+# From C:\Users\MaxVolkov\dev\cognify — deploys current working dir
+npx vercel@latest deploy --prod --yes --scope maxvolkov202s-projects
+
+# Output ends with:
+#   Production: https://cognify-v2-<hash>-maxvolkov202s-projects.vercel.app
+#   Aliased:    https://cognify-v2-neon.vercel.app
+```
+
+Build takes ~45–60s. The `--prod` flag promotes the deployment to the `cognify-v2-neon.vercel.app` alias. Because this project is on Max's hobby tier, `--prod` here is a misnomer — it just means "update the alias"; it does NOT touch `cognifygym.com`.
+
+To wire up auto-deploy-on-push later (optional), install the Vercel GitHub app on `maxvolkov202`'s account, then:
+
+```bash
+npx vercel@latest git connect https://github.com/maxvolkov202/Cognify-Product-Description.git \
+  --scope maxvolkov202s-projects --yes
+```
+
+If the Vercel GitHub app isn't authorized on Max's GitHub, `git connect` will 4xx. Install it at https://github.com/apps/vercel first.
+
+---
+
+## 1. Production cutover to cognifygym.com
+
+This section assumes the `supabase-migration` branch is code-complete (all 9+ checkpoint commits pushed).
 
 ## Prerequisites
 

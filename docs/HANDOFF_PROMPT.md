@@ -1,30 +1,47 @@
 # Cognify v2 — Build Handoff Prompt
 
 > Paste into a fresh Claude Code session opened in `C:\Users\MaxVolkov\dev\cognify` to resume work. Self-contained — no prior conversation needed.
+>
+> **Last refreshed: 2026-04-23** — post V2 Strategic Plan + Product Sweep fixes. Supabase migration is the active stack (not Auth.js + Neon).
 
 ---
 
 ## The prompt to paste
 
 ```
-I'm continuing work on Cognify v2. Phases A–D and Waves 1–6 have shipped.
-You're picking up a working product, not scaffolding one. Orient first, then
-propose and confirm the next wave with me before touching code.
+I'm continuing work on Cognify v2. Phases A–D, Waves 1–6, the Supabase
+migration, and a V2 strategic replan (driven by Hupe/Nahamoo/James Clear
+advisor input) have all shipped or are in flight. You're picking up a
+working product, not scaffolding one. Orient first, then propose and
+confirm the next workstream with me before touching code.
 
 ### Orientation (read these first, in this order)
 
-1. `ROADMAP.md` — what's shipped vs. open. Most recent finished work is Wave 6
-   (the "improvement pass" across feedback UX, custom scenarios, AI guardrails,
-   help/tutorial, deploy docs, friends, ops dashboard, env-aware progression).
-2. `docs/PRODUCT.md` — the three modes, the practice loop, the flywheel
-3. `docs/SCORING_METHODOLOGY.md` — scoring rubric (6 dimensions)
-4. `docs/POSITIONING.md` — tone + copy that's locked
-5. `docs/DEPLOY.md` — local → prod pipeline (Vercel + Neon + Resend)
-6. `docs/BACKLOG.md` — parked work
-7. Glob `src/` to see the current shape
+1. `docs/V2_STRATEGIC_PLAN.md` — THE master plan. 10 workstreams with
+   mini-plans (Out of scope / Design decisions / Phased execution / Test /
+   Rollout). §7 Sequencing has the recommended order. This supersedes
+   ROADMAP.md for net-new direction.
+2. `docs/DIMENSION_DECISION.md` — WS-1 blocker: strategy docs + mockups use
+   Clarity/Structure/Conciseness/Thinking Quality/Delivery/Adaptability;
+   code uses Clarity/Structure/Relevance/Confidence/Pacing/Tone. Waiting
+   on Max + Hunter sign-off on D1–D5 before refactor.
+3. `docs/proposals/rubric-v2.0.0.md` — ready-to-apply refactor package
+   (types, rubric.ts, dimension-aliases.ts, signal remap, DB migration,
+   13-step apply order). Do not land until DIMENSION_DECISION.md signed.
+4. `ROADMAP.md` — historical record of Phases A–E / Waves 1–6.
+5. `TODO.md` — deploy punch list. TWO targets: cognify-v2-neon.vercel.app
+   (Max's, working on demand) and cognifygym.com (Bob-gated production).
+6. `docs/PRODUCT.md` — the three modes, the practice loop, the flywheel.
+7. `docs/SCORING_METHODOLOGY.md` — scoring rubric (6 dimensions, v2-beta.2).
+8. `docs/POSITIONING.md` — tone + copy that's locked.
+9. `docs/DEPLOYMENT.md` — deploy pipeline (see §0 for the 1-command path
+   to get your work visible on cognify-v2-neon.vercel.app).
+10. `docs/BACKLOG.md` — parked work.
+11. Glob `src/` to see the current shape.
 
 Relevant plan files in `.claude-personal/plans/`:
-- `serene-brewing-pancake.md` — Wave 6 plan (most recent)
+- `serene-brewing-pancake.md` — Wave 6 plan
+- `wise-cuddling-owl.md` — v1/v2 merge + Supabase migration design
 - `binary-stargazing-reddy.md` — original build plan
 - `serene-brewing-pancake-agent-*.md` — session-reconstruction dumps
 
@@ -33,23 +50,31 @@ Relevant plan files in `.claude-personal/plans/`:
 Cognify is "the Duolingo for communication." Three modes (Daily Workout,
 Build a Rep, Challenge) + progress surfaces + a social layer + an ops
 dashboard. The rubric is six dimensions — clarity / structure / relevance
-(content) and confidence / pacing / tone (delivery). Rep-to-rep continuity
-is real: `planNextRep` steers the next rep toward the previous rep's
-weakest dimension.
+(content) and confidence / pacing / tone (delivery) under the current
+v2-beta.2 rubric. Per WS-1 those names are pending strategy sign-off to
+shift to Clarity/Structure/Conciseness/Thinking Quality/Delivery/
+Adaptability. Rep-to-rep continuity is real: `planNextRep` steers the
+next rep toward the previous rep's weakest dimension.
 
-Positioning is dual-track with a consumer-first lean (per user direction).
+Positioning is dual-track with a consumer-first lean. Per WS-9 the B2B
+track is being re-framed as Corporate Health & Performance (not L&D).
 Enterprise admin surface is frozen until first pilot demands it.
 
 ### Current stack
 
 - Next.js 15 (App Router) + TypeScript strict + Tailwind v4
-- Auth.js v5 (Google + Resend magic link)
-- Drizzle + Neon Postgres
+- Supabase Auth (Google + email/password + guest promotion) — migrated
+  from Auth.js v5 during the v1/v2 merge
+- Drizzle + Supabase Postgres (cognify_v2 schema; Bob's v1 tables in
+  public schema untouched) — migrated from Neon
 - Anthropic SDK — Sonnet 4.6 for scoring + progression, Opus 4.6 for
   talking-points / framework generation
-- Deepgram (transcription) + Vercel Blob (audio) + Upstash (rate limit)
-- Resend for welcome + /help support emails
-- Vercel deploy
+- Deepgram (transcription) + Supabase Storage (audio, signed URLs) +
+  Upstash (rate limit) — Storage migrated from Vercel Blob
+- Resend for welcome + /help support emails + password reset
+- Vercel deploy to cognify-v2-neon.vercel.app (Max's team, manual
+  `npx vercel deploy --prod --yes --scope maxvolkov202s-projects`
+  until Vercel GitHub app is wired up — see docs/DEPLOYMENT.md §0)
 
 ### Critical invariants (don't break)
 
@@ -134,5 +159,8 @@ code until the plan is approved.
   accessibility audit").
 - The `/ops` dashboard is operator-only. Seed your account's `is_operator`
   flag to `true` in Neon before expecting it to load.
-- Key env vars for a fresh deploy are in `docs/DEPLOY.md`. `/help` contact
+- Key env vars for a fresh deploy are in `docs/DEPLOYMENT.md`. `/help` contact
   form and welcome emails both require `RESEND_API_KEY`.
+- To get today's work visible on `cognify-v2-neon.vercel.app`, run the deploy
+  command at the top of `docs/DEPLOYMENT.md` §0. Git-auto-deploy is not yet
+  wired (Vercel GitHub app pending installation on Max's GitHub account).

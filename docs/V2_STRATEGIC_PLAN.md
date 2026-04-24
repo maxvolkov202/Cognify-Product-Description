@@ -948,13 +948,28 @@ These aren't code-heavy but they're on the critical path to making Cognify a bus
 
 ---
 
-## 6. Production launch coordination
+## 6. Deploy coordination (two targets)
 
-Ref `TODO.md` for the full blow-by-blow. Summary:
+There are **two distinct deploy targets**, and they have different blockers. Ref `TODO.md` + `docs/DEPLOYMENT.md` for details.
 
-- [!] `[!]` **Get Bob on a 10-minute call** (unblocks everything) — ⛔ blocker: Bob availability
-- [ ] Confirm Vercel project ownership + access
-- [ ] Paste env vars per `docs/DEPLOYMENT.md` § Step 2 (Supabase, Anthropic, Deepgram, Resend, Upstash)
+### 6.1 Preview / iteration — `cognify-v2-neon.vercel.app` (UNBLOCKED)
+
+Max's Vercel project `cognify-v2` under `maxvolkov202s-projects` team. Every commit can ship here immediately; this is where current work is visible to the team.
+
+- [x] `.vercel/project.json` correctly points to `prj_SwZBC9rMztIlOxSdJPwVpHvr5seE` (team `team_fAzZIbLNs3aHUdDIJ6gsCrlX` = `maxvolkov202s-projects`)
+- [x] Manual deploy works: `npx vercel@latest deploy --prod --yes --scope maxvolkov202s-projects` (~45s build, auto-aliases to `cognify-v2-neon.vercel.app`)
+- [ ] Wire Vercel GitHub app so pushes auto-deploy. Blocker: Vercel GitHub app needs to be installed on `maxvolkov202`'s GitHub account; then `vercel git connect` will complete cleanly. Low-priority — manual deploy works fine meanwhile.
+- [ ] Optional alternative: GitHub Actions workflow using `VERCEL_TOKEN` secret for auto-deploy on push.
+
+**Deploy cadence:** after each logical chunk of work, run the deploy command. Takes ~1 minute total.
+
+### 6.2 Production cutover — `cognifygym.com` (BOB-BLOCKED)
+
+Bob's upstream Vercel project serves the real production domain. Merging `maxvolkov202:supabase-migration → bobsides-AICodebase:main` triggers the cutover.
+
+- [!] **Get Bob on a 10-minute call** (unblocks everything) — ⛔ blocker: Bob availability
+- [ ] Confirm Vercel project ownership + access on the upstream (Bob-owned) project
+- [ ] Paste env vars per `docs/DEPLOYMENT.md` §2 (Supabase, Anthropic, Deepgram, Resend, Upstash)
 - [ ] **Restore Anthropic credits** (AI currently returns mocks in prod) — billing action, no deploy
 - [ ] Open PR from `maxvolkov202:supabase-migration` → `bobsides-AICodebase:main`
 - [ ] Preview deploy smoke test (sign up → rep → score → feedback)
@@ -966,7 +981,7 @@ Ref `TODO.md` for the full blow-by-blow. Summary:
 
 **Success criteria:** cognifygym.com serves V2; first real paying user can complete a rep end-to-end; scoring returns real AI output (not mocks).
 
-**Status:** `[!]` Blocked on Bob call.
+**Status:** `[!]` Still blocked on Bob call for the production cutover. Preview path is fully unblocked.
 
 ---
 
@@ -1014,6 +1029,8 @@ Format: `YYYY-MM-DD · who · what changed`
 - **2026-04-23 · CTO-agent (Claude)** · Strategic plan created. Synthesized `Cognify Strategic Update.md`, `Cognify Direction.md`, V2 Updates.docx (4 page mockups acquired from user). Flagged dimension-naming conflict as WS-1 blocker. Defined 10 workstreams + §5 BD track + §6 production-launch track. Memories saved: `project_cognify-v2-dimensions` + `project_cognify-v2-advisors` under primary memory dir.
 - **2026-04-23 · CTO-agent (Claude)** · Expanded every WS with mini-plans (Out of scope / Design decisions / Phased execution with ETAs / Test strategy / Rollout plan). Added WS-5 system-wide extension beyond the 4 mockup pages. Added WS-7 PDF export. Added 2 new risks (R11, R12). Doc now ~1000 lines and meant to be read top-to-bottom once, then by WS as work begins.
 - **2026-04-23 · CTO-agent (Claude)** · WS-1 Phase 1.1 deliverables shipped: `docs/DIMENSION_DECISION.md` (5 decisions D1–D5 staged for Max + Hunter + optional Hupe/Nahamoo sign-off) and `docs/proposals/rubric-v2.0.0.md` (the ready-to-apply refactor: full proposed `domain.ts`, `rubric.ts`, new `dimension-aliases.ts`, rep-type remap table, signal→dimension mapping, DB migration plan, 15-file knowledge base plan, apply-order checklist, 5 risks). Pre-audit counted 374 occurrences of old dimension names across 60 files. Flagged the `tone` token collision (Callout.tone vs dimension tone) as blocking a blind find-replace — proposal renames `Callout.tone` → `Callout.emphasis` to eliminate the ambiguity.
+- **2026-04-23 · CTO-agent (Claude)** · WS-2 critical UX stabilization — 7 Product Sweep items shipped as individual commits on `supabase-migration`: (1) pause workout button surfaced as proper UI, (2) mobile challenge button visibility fixed, (3) shared `DemoBanner` with stronger visual treatment on /friends + /leaderboard, (4) anchor framing + onboarding summary on baseline page, (5) pre-create listener preview on validation flow, (6) /try transcript open by default, (7) preview phase before Build a Rep records. Notes: timer progress bar already existed in RecordButton.tsx (Sweep #3 stale); Settings completeness already present via AccountSection (Sweep #4/#9 stale); Anthropic credits + Supabase email-confirmation are billing/admin actions.
+- **2026-04-23 · CTO-agent (Claude)** · Fixed Vercel deploy pipeline. Discovered `link: null` on `cognify-v2` Vercel project — git integration was never connected, so no pushes have auto-deployed. Manually deployed commit `341071eb` via `npx vercel deploy --prod --yes --scope maxvolkov202s-projects` (45s build, aliased to `cognify-v2-neon.vercel.app`). Updated `docs/DEPLOYMENT.md` §0 with the 1-command deploy flow; `TODO.md` to reflect the two-target reality (preview unblocked, production Bob-gated); `docs/HANDOFF_PROMPT.md` stack section (Supabase Auth/Postgres/Storage, not Auth.js/Neon/Blob) and added V2_STRATEGIC_PLAN.md as the top-priority read.
 
 <!-- append future sessions below -->
 

@@ -1,10 +1,17 @@
 # Cognify Merge — Remaining TODO
 
-**Status:** All code is done (12 commits on `supabase-migration`). What's left is deployment coordination + testing. Nothing below requires new code from Claude unless flagged.
+**Status:** Code continues to ship on `supabase-migration` (20+ commits and counting — V2 strategic plan + Product Sweep fixes landed 2026-04-23). **Preview deploy to `cognify-v2-neon.vercel.app` is unblocked** and works on demand via `npx vercel@latest deploy --prod --yes --scope maxvolkov202s-projects` — see `docs/DEPLOYMENT.md` §0. **Production cutover to `cognifygym.com` is still Bob-gated.**
+
+**Two deploy targets, two different states** (corrected 2026-04-23):
+
+| Target                                | Owner              | State      | How it deploys                                              |
+| ------------------------------------- | ------------------ | ---------- | ----------------------------------------------------------- |
+| `cognify-v2-neon.vercel.app` (demo)   | Max / `maxvolkov202s-projects` | ✅ Working | Manual `npx vercel deploy --prod --yes`. Git-auto-deploy not yet wired (Vercel GitHub app not installed). |
+| `cognifygym.com` (real production)    | Bob / upstream     | ⛔ Bob-gated | Merge PR `maxvolkov202:supabase-migration → bobsides-AICodebase:main`. |
 
 **The critical question — when does v2 go live on `cognifygym.com`?**
 
-The moment v2 replaces Bob's v1 on the domain is the **"Merge PR to main"** step below. Everything before that step is preparation; everything after is polish. With focused work and Bob responsive, this is realistically **half a day to a day** of real-time.
+The moment v2 replaces Bob's v1 on the domain is the **"Merge PR to main"** step below. Everything before that step is preparation; everything after is polish. With focused work and Bob responsive, this is realistically **half a day to a day** of real-time. Until then, `cognify-v2-neon.vercel.app` is the demo surface where all current work is visible.
 
 ---
 
