@@ -75,6 +75,9 @@ type Props = {
   flowTotalReps?: number;
   /** Archetype display name — surfaced by FlowFeedbackPanel. */
   flowArchetypeName?: string;
+  /** Pressure archetype id for this rep (if it's a pressure rep). Sent
+   *  to /api/score so the server applies the archetype's weight profile. */
+  pressureArchetypeId?: string | null;
   onComplete?: (payload: {
     score: RepScore;
     recording: RecordingResult;
@@ -154,6 +157,7 @@ export function RepSurface({
   flowRepIndex,
   flowTotalReps,
   flowArchetypeName,
+  pressureArchetypeId,
   onComplete,
   onNext,
   nextLabel = "Next rep",
@@ -397,6 +401,9 @@ export function RepSurface({
                   description: n.description,
                 })),
               }
+            : {}),
+          ...(pressureArchetypeId
+            ? { pressureArchetypeId }
             : {}),
         }),
       });

@@ -415,6 +415,7 @@ export function WorkoutSession({
         flowRepIndex={currentIndex + 1}
         flowTotalReps={plan.reps.length}
         flowArchetypeName={currentRep.pressureArchetype?.name}
+        pressureArchetypeId={currentRep.pressureArchetype?.id ?? null}
         onComplete={handleRepCompleteWithContext}
         onRetry={handleRepRetry}
         onNext={handleNext}

@@ -8,6 +8,7 @@ import {
 } from "@/lib/scoring/deterministic";
 import { RUBRIC_VERSION, composite } from "@/lib/scoring/rubric";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
+import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
 import type { RepScore, SkillDimension, Callout } from "@/types/domain";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
@@ -52,6 +53,19 @@ const bodySchema = z.object({
     )
     .optional(),
   words: z.array(wordSchema).optional(),
+  /** WS-3: when the rep is a pressure rep, the client sends the archetype
+   *  id so the server can apply that archetype's scoring weight profile.
+   *  Unknown / missing values → no weight override (falls back to
+   *  framework weights or rubric defaults). */
+  pressureArchetypeId: z
+    .enum([
+      "pushback",
+      "time_compression",
+      "audience_switch",
+      "clarifying_interrupt",
+      "stakes_raise",
+    ])
+    .optional(),
 });
 
 type ScoreBody = z.infer<typeof bodySchema>;
@@ -247,10 +261,22 @@ export async function POST(req: Request) {
     // emphasize relevance, interview frameworks emphasize structure+pacing,
     // etc. No-op when no frameworkId or no matching profile.
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
+
+    // WS-3: pressure reps carry a weight profile from their archetype.
+    // When present, it takes priority over framework weights — the
+    // archetype's emphasis (e.g. Time Compression boosting pacing +
+    // conciseness) is the whole point of the pressure rep, so letting
+    // a framework profile dilute it would defeat the intent.
+    const pressureWeights = body.pressureArchetypeId
+      ? getPressureArchetype(body.pressureArchetypeId).weightProfile
+      : null;
+
+    const mergedWeights = pressureWeights ?? frameworkWeights ?? null;
+
     const result = await scoreRep({
       ...body,
       userCalibration: calibrationBlock,
-      ...(frameworkWeights ? { weights: frameworkWeights } : {}),
+      ...(mergedWeights ? { weights: mergedWeights } : {}),
     });
     return NextResponse.json(result);
   } catch (error) {
