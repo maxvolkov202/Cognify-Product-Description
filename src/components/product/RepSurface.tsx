@@ -78,6 +78,11 @@ type Props = {
   /** Pressure archetype id for this rep (if it's a pressure rep). Sent
    *  to /api/score so the server applies the archetype's weight profile. */
   pressureArchetypeId?: string | null;
+  /** When set, enables the 3-tile Redo/Pause/Submit row on the record
+   *  surface (mockup #4). Callback fires after the recording is
+   *  cancelled — caller typically navigates to /dashboard so the
+   *  between-rep pause state picks up the workout on return. */
+  onMidRepPause?: () => void;
   /** Archetype metadata for the post-rep FeedbackPanel "what you trained"
    *  badge. Shown only when the rep was a pressure rep AND feedbackMode
    *  is "full" (Flow uses FlowFeedbackPanel, which has its own chrome). */
@@ -166,6 +171,7 @@ export function RepSurface({
   flowArchetypeName,
   pressureArchetypeId,
   pressureContext,
+  onMidRepPause,
   onComplete,
   onNext,
   nextLabel = "Next rep",
@@ -738,6 +744,7 @@ export function RepSurface({
           maxDurationMs={maxDurationMs}
           onComplete={handleRecordingComplete}
           disabled={isWorking || !frameworkVisible}
+          {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
         />
         {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
           <p className="text-xs text-ink-400">

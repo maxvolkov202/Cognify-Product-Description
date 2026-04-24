@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Mic, Square } from "lucide-react";
+import { Mic, Square, RotateCcw, Pause as PauseIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
   startRecording,
@@ -18,6 +18,12 @@ type Props = {
   countdownSeconds?: number;
   onComplete: (result: RecordingResult) => void;
   disabled?: boolean;
+  /** When provided, enables the 3-tile Redo/Pause/Submit action row
+   *  during recording (mockup #4). `onPause` is called after the
+   *  recording is cancelled — typically the caller then navigates away
+   *  to let the user resume the workout later. Redo + Submit are
+   *  handled internally. */
+  onPause?: () => void;
 };
 
 export function RecordButton({
@@ -26,6 +32,7 @@ export function RecordButton({
   countdownSeconds = 3,
   onComplete,
   disabled,
+  onPause,
 }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [countdown, setCountdown] = useState(countdownSeconds);
@@ -216,31 +223,37 @@ export function RecordButton({
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={phase === "idle" || phase === "error" ? start : isRecording ? stop : undefined}
-        disabled={disabled || phase === "priming" || phase === "finalizing" || phase === "countdown"}
-        aria-label={isRecording ? "Stop recording" : "Start recording"}
-        className={cn(
-          "relative grid place-items-center rounded-full text-white transition-all",
-          "size-24 md:size-28",
-          "brand-gradient shadow-[0_20px_60px_-20px_rgba(151,136,255,0.8)]",
-          "hover:shadow-[0_24px_72px_-16px_rgba(151,136,255,0.95)]",
-          "disabled:opacity-70 disabled:shadow-none",
-          isRecording && "ring-4 ring-brand-magenta/40",
-        )}
-        style={isRecording ? { transform: `scale(${scale})` } : undefined}
-      >
-        {isRecording ? <Square className="size-9 fill-white" /> : <Mic className="size-10" />}
-        {isRecording && (
-          <span
-            className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-brand-magenta/40"
-            aria-hidden="true"
-          />
-        )}
-      </button>
+      {/* Pre-record: the big mic button kicks off the flow. Hidden
+          during active recording when the 3-tile action row is shown
+          (onPause provided) — the tiles replace both the mic button
+          AND the "Stop & submit" link. */}
+      {(!isRecording || !onPause) && (
+        <button
+          type="button"
+          onClick={phase === "idle" || phase === "error" ? start : isRecording ? stop : undefined}
+          disabled={disabled || phase === "priming" || phase === "finalizing" || phase === "countdown"}
+          aria-label={isRecording ? "Stop recording" : "Start recording"}
+          className={cn(
+            "relative grid place-items-center rounded-full text-white transition-all",
+            "size-24 md:size-28",
+            "brand-gradient shadow-[0_20px_60px_-20px_rgba(151,136,255,0.8)]",
+            "hover:shadow-[0_24px_72px_-16px_rgba(151,136,255,0.95)]",
+            "disabled:opacity-70 disabled:shadow-none",
+            isRecording && "ring-4 ring-brand-magenta/40",
+          )}
+          style={isRecording ? { transform: `scale(${scale})` } : undefined}
+        >
+          {isRecording ? <Square className="size-9 fill-white" /> : <Mic className="size-10" />}
+          {isRecording && (
+            <span
+              className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-brand-magenta/40"
+              aria-hidden="true"
+            />
+          )}
+        </button>
+      )}
 
-      {isRecording && (
+      {isRecording && !onPause && (
         <button
           type="button"
           onClick={stop}
@@ -248,6 +261,49 @@ export function RecordButton({
         >
           Stop &amp; submit
         </button>
+      )}
+
+      {/* 3-tile action row — mockup #4. Only rendered when onPause is
+          provided, which is how callers (Daily Workout RepSurface) opt
+          into the mockup-style UX. Build-a-Rep + /try stay on the
+          classic single-mic UX until they explicitly opt in. */}
+      {isRecording && onPause && (
+        <div
+          className="grid w-full max-w-md grid-cols-3 gap-2"
+          role="group"
+          aria-label="Recording actions"
+        >
+          <ActionTile
+            icon={<RotateCcw className="size-5" strokeWidth={2.5} />}
+            label="Redo"
+            subLabel="Start over"
+            onClick={() => {
+              // Redo: drop audio + reset to idle so the user can tap
+              // the record button again for a fresh take.
+              reset();
+            }}
+          />
+          <ActionTile
+            icon={<PauseIcon className="size-5" strokeWidth={2.5} />}
+            label="Pause"
+            subLabel="Hold your place"
+            onClick={() => {
+              // Pause: cancel the current recording cleanly and hand off
+              // to the caller — typically they'll route to /dashboard so
+              // the workout-level pause state (saved between reps) kicks
+              // in on next visit.
+              reset();
+              onPause();
+            }}
+          />
+          <ActionTile
+            icon={<Check className="size-5" strokeWidth={2.5} />}
+            label="Submit"
+            subLabel="Get feedback"
+            primary
+            onClick={stop}
+          />
+        </div>
       )}
 
       {phase === "error" && (
@@ -275,4 +331,47 @@ function formatTime(ms: number): string {
   const mins = Math.floor(total / 60);
   const secs = total % 60;
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
+/**
+ * One of the three recording action tiles (mockup #4 Redo / Pause /
+ * Submit). Primary variant gets the brand gradient; others use a
+ * subtle translucent surface so the row reads as a coherent group.
+ */
+function ActionTile({
+  icon,
+  label,
+  subLabel,
+  onClick,
+  primary,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  subLabel: string;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-center justify-center gap-1 rounded-2xl px-3 py-4 text-center transition",
+        primary
+          ? "brand-gradient text-white shadow-[0_10px_30px_-10px_rgba(151,136,255,0.8)] hover:shadow-[0_14px_40px_-10px_rgba(151,136,255,0.95)]"
+          : "border border-ink-200 bg-white text-ink-800 hover:border-ink-300 hover:bg-ink-50",
+      )}
+    >
+      <span aria-hidden="true">{icon}</span>
+      <span className="mt-0.5 text-sm font-extrabold">{label}</span>
+      <span
+        className={cn(
+          "text-[10px] font-semibold uppercase tracking-wider",
+          primary ? "text-white/85" : "text-ink-500",
+        )}
+      >
+        {subLabel}
+      </span>
+    </button>
+  );
 }

@@ -507,6 +507,14 @@ export function WorkoutSession({
               }
             : null
         }
+        onMidRepPause={() => {
+          // Pause tile — cancel this rep cleanly and route to dashboard.
+          // The workout's between-rep pause state (already saved to
+          // localStorage) lets the user resume from /workout later.
+          if (typeof window !== "undefined") {
+            window.location.href = "/dashboard";
+          }
+        }}
         onComplete={handleRepCompleteWithContext}
         onRetry={handleRepRetry}
         onNext={handleNext}
