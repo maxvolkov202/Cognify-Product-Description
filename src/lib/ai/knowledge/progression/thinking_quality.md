@@ -1,8 +1,8 @@
-# Progression: Confidence
+# Progression: Thinking Quality
 
-Confidence is a hybrid score (deterministic hedges/restarts + LLM semantic). Improvements are visible in both the word count of hedges AND the assertiveness of the claims.
+Thinking Quality (v2.0.0 name for what was "Confidence") is a hybrid score (deterministic hedges/restarts/stalls + LLM semantic). Improvements are visible in both the word count of hedges AND the assertiveness of the claims — the thinking itself is sharper, not just the vocal delivery of it.
 
-## What improved confidence sounds like
+## What improved thinking quality sounds like
 
 - **Hedges dropped** — "sort of", "kind of", "I think", "I guess", "just", "maybe" reduced in count
 - **Restarts dropped** — fewer self-interruptions and re-phrasings

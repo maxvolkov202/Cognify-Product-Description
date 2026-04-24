@@ -1,8 +1,8 @@
-# Progression: Tone
+# Progression: Adaptability
 
-Tone measures whether the register matches the audience and the stakes. Improvements here are about *calibration* — sounding like a peer when the audience is a peer, an authority when the audience is junior, etc.
+Adaptability (v2.0.0 name for what was "Tone") measures whether the register matches the audience and the stakes — AND whether the speaker adjusts when a new audience or pushback arrives mid-rep. Improvements here are about *calibration* and *pivoting* — sounding like a peer when the audience is a peer, an authority when the audience is junior, and reshaping mid-sentence when the room shifts.
 
-## What improved tone sounds like
+## What improved adaptability sounds like
 
 - **Register matches stakeholder** — CFO-facing rep sounds like someone briefing a CFO, not a colleague venting
 - **Warmth without sycophancy** — acknowledged the listener without over-soothing

@@ -1,12 +1,12 @@
-# Skill: Pacing
+# Skill: Delivery
 
-> "Speed, rhythm, and time budget discipline."
+> "How it sounds. Pacing, pauses, vocal energy, finishing clean."
 
-Pacing is the dimension that measures whether the rep *moves* correctly — neither rushed nor dragging, finishing within the time budget, with filler and hedges under control. This is the most deterministically-scorable dimension in the rubric. Pacing maps 1:1 to Deepgram's word-level timestamps — WPM, filler rate, quartile variance, time-budget compliance — and is therefore the cleanest path to **model-stable trend lines** (the measurability story David demanded in the April 2026 advisory meeting).
+Delivery (renamed from "Pacing" in the v2.0.0 rubric and expanded to absorb the vocal side of old "tone") measures whether the rep *sounds* right — steady pacing, purposeful pauses, vocal variation matched to content stakes, and clean finishing within time. This is the most deterministically-scorable dimension in the rubric. Delivery maps closely to Deepgram's word-level timestamps — WPM, filler rate, quartile variance, time-budget compliance — and is the cleanest path to **model-stable trend lines** (the measurability story David demanded in the April 2026 advisory meeting).
 
 ## Definition
 
-WPM is stable across the rep. Filler rate is low. Hedges are rare. The rep finishes within the time budget without rushing the closer or leaving the ending half-baked. Pauses are purposeful (breath, emphasis) rather than panicked (working memory overflow).
+WPM is stable across the rep. Purposeful pauses for emphasis. Vocal variation matches content stakes. The rep finishes within the time budget without rushing the closer or leaving the ending half-baked. Pauses are intentional (breath, emphasis) rather than panicked (working memory overflow — that's a Thinking Quality tell, not a Delivery one).
 
 ## Experts and sources
 

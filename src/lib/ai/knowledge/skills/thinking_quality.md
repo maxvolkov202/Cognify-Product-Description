@@ -1,14 +1,14 @@
-# Skill: Confidence
+# Skill: Thinking Quality
 
-> "Perceived composure and self-assurance in delivery."
+> "Coherent generation under real-time conditions. Sharp recall, steady thinking."
 
-Confidence is the dimension users care about most and understand intuitively — and it's the composite of several things that were previously scored separately (thinking on the spot + handling pressure). Replacing those two older dimensions with "confidence" is a user-facing-language win: nobody wakes up thinking "I need to improve my thinking-on-the-spot" — everyone wakes up thinking "I want to sound more confident."
+Thinking Quality (renamed from "Confidence" in the v2.0.0 rubric) is the measurable side of composure: does the speaker generate coherent content under real-time conditions? It covers recall speed, logical-chain integrity, and clean recovery from stumbles. This is distinct from Delivery (how it sounds vocally) — Thinking Quality is what's happening in the thinking itself.
 
 ## Definition
 
-Perceived composure and self-assurance in the rep. Steady generation without stalling. Minimal hedging. Clean recoveries from stumbles. Stable pacing under time pressure. The listener's takeaway: *this person knows what they're talking about*.
+Coherent generation under real-time conditions. Low backtrack rate, low mid-sentence restart rate, clean recovery from stumbles, logical connectors used correctly, recall feels sharp. The listener's takeaway: *this person's thinking is holding together under load*.
 
-Important: confidence is the *perception* the listener forms, not the speaker's internal state. A nervous speaker can sound confident by managing the perceivable signals (hedges, restarts, long pauses, over-apologizing). That's what we train.
+Important: Thinking Quality measures the *content* of thinking — NOT the vocal composure (which is Delivery). A speaker can have solid Delivery (steady pace, purposeful pauses) while their Thinking Quality collapses (they hedge, restart, and abandon points). The signals separate cleanly.
 
 ## Experts and sources
 

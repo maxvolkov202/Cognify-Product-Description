@@ -1,8 +1,8 @@
-# Progression: Pacing
+# Progression: Delivery
 
-Pacing is fully deterministic — words-per-minute, pause distribution, and time-budget ratio. Improvements are numerical and objective.
+Delivery (v2.0.0 name for what was "Pacing" plus the vocal craft side of old "Tone") is fully deterministic for the pacing signals — words-per-minute, pause distribution, and time-budget ratio — with a small semantic overlay for vocal variation. Improvements are mostly numerical and objective.
 
-## What improved pacing sounds like
+## What improved delivery sounds like
 
 - **WPM moved toward the target band** (≈130–160 WPM for most reps)
 - **Long pauses cleared** — no 2+ second dead air outside intentional beats

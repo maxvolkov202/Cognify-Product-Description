@@ -1,14 +1,12 @@
-# Skill: Tone
+# Skill: Adaptability
 
-> "Calibration to audience and constraints."
+> "Calibration to audience, constraints, and mid-rep cues."
 
-Tone is the skill of *sounding right for the room*. Same content, same structure, same confidence — but delivered in the wrong register, it fails. An engineer-speak explanation to a CFO is a tone failure even if everything else is perfect. Tone is the hardest dimension to score objectively and the most valuable to train.
+Adaptability (the v2.0.0 name for what combined old "tone" plus the register/mid-rep-adjust side of speaking skill) is the skill of *sounding right for the room* AND *adjusting when the room shifts*. Same content, same structure, same thinking quality — but delivered in the wrong register or refusing to pivot when the listener needs you to, it fails. An engineer-speak explanation to a CFO is an adaptability failure even if everything else is perfect. This is the hardest dimension to score objectively and the most valuable to train.
 
 ## Definition
 
-Register matches the listener. Warmth, seriousness, or formality is appropriate to the audience and the moment. Technical detail is calibrated to the listener's expertise. Emotional weight matches the stakes. The listener's takeaway: *this person gets me*.
-
-This dimension was called "adaptability" in v2-alpha.1. The rename to "tone" is a user-facing-language win — users think about tone, not adaptability — and aligns with how the team specifies scoring in the April 2026 replan.
+Register matches the listener. Warmth, seriousness, or formality is appropriate to the audience and the moment. Technical detail is calibrated to the listener's expertise. The speaker adjusts when pushback or an audience-switch arrives mid-rep — doesn't restart, doesn't get defensive, pivots. The listener's takeaway: *this person gets me, and they can read the room shifting*.
 
 ## Experts and sources
 
