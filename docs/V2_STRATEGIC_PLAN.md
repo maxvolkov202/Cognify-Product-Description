@@ -1052,6 +1052,21 @@ Format: `YYYY-MM-DD · who · what changed`
 
 **Open items (deferred):** Web push notifications (Phase 7 stretch), mobile PWA polish beyond InstallPrompt, advisor headshots on About page.
 
+### 2026-04-24 (pm) — Phase 9 + 10 + 11 cleanup pass
+
+**Shipped to prod (https://cognify-v2-neon.vercel.app):**
+
+- **Phase 9 — UX polish bundle** (commit `5294d13e`). Five items folded into one commit:
+  - DailyScoreCard on /progress (today's composite + delta vs yesterday + 7-day avg).
+  - Notifications section on /settings with 3 disabled-toggle placeholders — Web Push retrofit slot.
+  - Real mid-rep Pause: RecordingController grew pause()/resume()/isPaused(); elapsed-time accounting excludes paused spans; RECORDING pill flips to PAUSED; max-duration guard re-anchors on resume.
+  - Flow Session auto-skip of prompt-select (the orchestrator already commits to a prompt — momentum is the point).
+  - Build→Stress→Reinforce arc verified (already correct in planCombinedWorkout — slot N-1 is the pressure rep for any session with count ≥ 4).
+- **Phase 10 — Server-side PDF export** (commit `7d1e52e5`). New /api/report/pdf route via @react-pdf/renderer. PrintButton now exposes both Print-preview + Download-PDF actions. No headless Chromium — renderToBuffer runs natively in Node runtime on Fluid Compute.
+- **Phase 11 — Prior art + Boxology** (commit `eb457ff2`). docs/PRIOR_ART.md is a patent-grade 8-tool survey with claim-mapping + summary table. Three hand-authored SVGs in docs/diagrams/ (closed-loop-training, transcript-anchored-scoring, rep-to-rep-progression) each illustrate the corresponding provisional claim.
+
+All ten workstreams + all four mockup scopes now fully shipped. Remaining deferrals are blocked (Web Push needs VAPID keys + service worker, advisor headshots need team photos, cognifygym.com cutover is Bob-gated).
+
 ---
 
 ## 10. Mockup references (all)
