@@ -8,7 +8,15 @@ export type RecordingResult = {
 export type RecordingController = {
   stop: () => Promise<RecordingResult>;
   cancel: () => void;
+  /** Pause the MediaRecorder (audio capture halts, chunks retained).
+   *  No-op if already paused or inactive. */
+  pause: () => void;
+  /** Resume a paused MediaRecorder. No-op if not paused. */
+  resume: () => void;
+  /** True while the recorder is paused. */
+  isPaused: () => boolean;
   getLevel: () => number;
+  /** Active recording time in ms — excludes time spent paused. */
   getElapsedMs: () => number;
 };
 
@@ -100,7 +108,14 @@ export async function startRecording(): Promise<RecordingController> {
   const mimeType = pickMimeType();
   const recorder = new MediaRecorder(stream, { mimeType });
   const chunks: Blob[] = [];
-  const startedAt = performance.now();
+
+  // Elapsed-time accounting that excludes paused spans: accumulate
+  // active run lengths into `accumulatedMs` each time we pause, and
+  // restart the clock from `resumedAt` when we resume. Reading elapsed
+  // = accumulated + (now - resumedAt) when active, accumulated alone
+  // when paused.
+  let resumedAt = performance.now();
+  let accumulatedMs = 0;
 
   recorder.addEventListener("dataavailable", (e) => {
     if (e.data.size > 0) chunks.push(e.data);
@@ -121,6 +136,11 @@ export async function startRecording(): Promise<RecordingController> {
     audioContext.close().catch(() => undefined);
   };
 
+  const computeElapsedMs = () => {
+    if (recorder.state === "paused") return Math.round(accumulatedMs);
+    return Math.round(accumulatedMs + (performance.now() - resumedAt));
+  };
+
   return {
     async stop() {
       return new Promise<RecordingResult>((resolve, reject) => {
@@ -128,7 +148,7 @@ export async function startRecording(): Promise<RecordingController> {
           "stop",
           () => {
             try {
-              const durationMs = Math.round(performance.now() - startedAt);
+              const durationMs = computeElapsedMs();
               const blob = new Blob(chunks, { type: mimeType });
               const url = URL.createObjectURL(blob);
               cleanup();
@@ -147,14 +167,28 @@ export async function startRecording(): Promise<RecordingController> {
       if (recorder.state !== "inactive") recorder.stop();
       cleanup();
     },
+    pause() {
+      if (recorder.state !== "recording") return;
+      accumulatedMs += performance.now() - resumedAt;
+      recorder.pause();
+    },
+    resume() {
+      if (recorder.state !== "paused") return;
+      resumedAt = performance.now();
+      recorder.resume();
+    },
+    isPaused() {
+      return recorder.state === "paused";
+    },
     getLevel() {
+      if (recorder.state === "paused") return 0;
       analyser.getByteFrequencyData(levels);
       let sum = 0;
       for (let i = 0; i < levels.length; i++) sum += levels[i] ?? 0;
       return sum / (levels.length * 255);
     },
     getElapsedMs() {
-      return performance.now() - startedAt;
+      return computeElapsedMs();
     },
   };
 }

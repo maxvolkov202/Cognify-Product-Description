@@ -18,6 +18,7 @@ import { SkillRadar } from "@/components/product/SkillRadar";
 import { WeeklyNarrativeCard } from "@/components/product/WeeklyNarrativeCard";
 import { ImprovementCurve } from "@/components/product/ImprovementCurve";
 import { BeforeAfterAudio } from "@/components/product/BeforeAfterAudio";
+import { DailyScoreCard } from "@/components/product/DailyScoreCard";
 import { GradientButton } from "@/components/shared/GradientButton";
 import {
   Flame,
@@ -149,6 +150,12 @@ export default async function ProgressPage() {
 
       {totalReps > 0 || recentReps.length > 0 ? (
       <>
+      {dailyCompositeTrend.length > 0 && (
+        <div className="mt-8">
+          <DailyScoreCard points={dailyCompositeTrend} />
+        </div>
+      )}
+
       <div className="mt-8">
         <WeeklyNarrativeCard />
       </div>

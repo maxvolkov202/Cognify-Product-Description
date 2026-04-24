@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail } from "lucide-react";
+import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail, Bell } from "lucide-react";
 import {
   VERTICALS,
   PERSONAS,
@@ -276,7 +276,91 @@ export function SettingsClient({
         </div>
       </section>
 
+      {/* ——— Notifications ——————————————————————— */}
+      <NotificationsSection />
+
     </div>
+  );
+}
+
+function NotificationsSection() {
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900">
+              Notifications
+            </h2>
+            <p className="mt-1 text-xs text-ink-500">
+              Nudges that help the habit land. All off by default; turn on
+              only what you&rsquo;ll actually use.
+            </p>
+          </div>
+        </div>
+        <ul className="mt-5 space-y-3">
+          <NotificationToggle
+            title="Daily rep reminder"
+            body="One push per day at the time you train — coming soon."
+            comingSoon
+          />
+          <NotificationToggle
+            title="Weekly recap"
+            body="Sunday evening summary of the week's reps + top weakness — coming soon."
+            comingSoon
+          />
+          <NotificationToggle
+            title="Streak-freeze applied"
+            body="Alerts you when a missed day was covered by a banked freeze — coming soon."
+            comingSoon
+          />
+        </ul>
+        <p className="mt-4 text-[11px] text-ink-500">
+          Push notifications need browser permission and run through a
+          service worker that hasn&rsquo;t been installed yet. Toggles light
+          up once that lands.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function NotificationToggle({
+  title,
+  body,
+  comingSoon,
+}: {
+  title: string;
+  body: string;
+  comingSoon?: boolean;
+}) {
+  return (
+    <li className="flex items-start gap-3 rounded-xl border border-ink-200 bg-white p-4">
+      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink-100">
+        <Bell className="size-4 text-ink-500" strokeWidth={2.25} aria-hidden="true" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-bold text-ink-900">{title}</p>
+          {comingSoon && (
+            <span className="rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+              Coming soon
+            </span>
+          )}
+        </div>
+        <p className="mt-0.5 text-xs text-ink-500">{body}</p>
+      </div>
+      <button
+        type="button"
+        disabled
+        aria-pressed={false}
+        aria-label={`${title} — coming soon`}
+        className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-ink-200 opacity-60 transition-colors disabled:cursor-not-allowed"
+      >
+        <span className="inline-block size-5 translate-x-0.5 rounded-full bg-white shadow" />
+      </button>
+    </li>
   );
 }
 

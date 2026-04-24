@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Mic, Square, RotateCcw, Pause as PauseIcon, Check } from "lucide-react";
+import { Mic, Square, RotateCcw, Pause as PauseIcon, Play as PlayIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
   startRecording,
@@ -39,11 +39,17 @@ export function RecordButton({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [level, setLevel] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   const controllerRef = useRef<RecordingController | null>(null);
   const animationRef = useRef<number | null>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks the timeout handle for the auto-stop max-duration guard so
+  // we can cancel it on pause and restart on resume — the guard must
+  // only run against active recording time, not wall-clock.
+  const maxStopMsRemainingRef = useRef<number | null>(null);
+  const maxStopAnchorRef = useRef<number | null>(null);
 
   const remainingMs = Math.max(0, maxDurationMs - elapsedMs);
 
@@ -110,6 +116,8 @@ export function RecordButton({
           if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
           setPhase("recording");
           animationRef.current = requestAnimationFrame(tick);
+          maxStopMsRemainingRef.current = maxDurationMs;
+          maxStopAnchorRef.current = performance.now();
           maxDurationTimerRef.current = setTimeout(stop, maxDurationMs);
         }
       }, 1000);
@@ -142,8 +150,47 @@ export function RecordButton({
     setElapsedMs(0);
     setLevel(0);
     setError(null);
+    setIsPaused(false);
     setCountdown(countdownSeconds);
+    maxStopMsRemainingRef.current = null;
+    maxStopAnchorRef.current = null;
   }, [cleanup, countdownSeconds]);
+
+  const togglePause = useCallback(() => {
+    const controller = controllerRef.current;
+    if (!controller) return;
+    if (isPaused) {
+      controller.resume();
+      setIsPaused(false);
+      animationRef.current = requestAnimationFrame(tick);
+      // Restart the max-duration guard with the remaining time budget.
+      const remaining = maxStopMsRemainingRef.current;
+      if (remaining !== null && remaining > 0) {
+        maxStopAnchorRef.current = performance.now();
+        maxDurationTimerRef.current = setTimeout(stop, remaining);
+      }
+    } else {
+      controller.pause();
+      setIsPaused(true);
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      if (maxDurationTimerRef.current) {
+        clearTimeout(maxDurationTimerRef.current);
+        maxDurationTimerRef.current = null;
+        // Consume whatever portion of the budget we've used up so far.
+        if (maxStopAnchorRef.current !== null && maxStopMsRemainingRef.current !== null) {
+          const used = performance.now() - maxStopAnchorRef.current;
+          maxStopMsRemainingRef.current = Math.max(
+            0,
+            maxStopMsRemainingRef.current - used,
+          );
+        }
+      }
+      setLevel(0);
+    }
+  }, [isPaused, stop, tick]);
 
   const isRecording = phase === "recording";
   const scale = 1 + Math.min(level * 2, 0.5);
@@ -168,11 +215,18 @@ export function RecordButton({
               <span
                 role="status"
                 aria-live="polite"
-                className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-sm"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-sm",
+                  isPaused ? "bg-ink-500" : "bg-rose-600",
+                )}
               >
                 <span className="relative grid size-2 place-items-center">
                   <span
-                    className="absolute size-2 rounded-full bg-white motion-safe:animate-ping motion-reduce:animate-none"
+                    className={cn(
+                      "absolute size-2 rounded-full bg-white",
+                      !isPaused &&
+                        "motion-safe:animate-ping motion-reduce:animate-none",
+                    )}
                     aria-hidden="true"
                   />
                   <span
@@ -180,7 +234,7 @@ export function RecordButton({
                     aria-hidden="true"
                   />
                 </span>
-                Recording
+                {isPaused ? "Paused" : "Recording"}
               </span>
             </div>
           )}
@@ -188,7 +242,11 @@ export function RecordButton({
             {formatTime(remainingMs)}
           </div>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-            {phase === "finalizing" ? "Processing" : "Recording"}
+            {phase === "finalizing"
+              ? "Processing"
+              : isPaused
+                ? "Paused — tap Resume"
+                : "Recording"}
           </p>
           {isRecording && (
             <div
@@ -266,7 +324,10 @@ export function RecordButton({
       {/* 3-tile action row — mockup #4. Only rendered when onPause is
           provided, which is how callers (Daily Workout RepSurface) opt
           into the mockup-style UX. Build-a-Rep + /try stay on the
-          classic single-mic UX until they explicitly opt in. */}
+          classic single-mic UX until they explicitly opt in.
+          Pause tile now halts MediaRecorder in-place (not navigation) —
+          tap again to resume. The onPause callback is still fired on the
+          first tap so callers can persist intermediate state. */}
       {isRecording && onPause && (
         <div
           className="grid w-full max-w-md grid-cols-3 gap-2"
@@ -284,17 +345,16 @@ export function RecordButton({
             }}
           />
           <ActionTile
-            icon={<PauseIcon className="size-5" strokeWidth={2.5} />}
-            label="Pause"
-            subLabel="Hold your place"
-            onClick={() => {
-              // Pause: cancel the current recording cleanly and hand off
-              // to the caller — typically they'll route to /dashboard so
-              // the workout-level pause state (saved between reps) kicks
-              // in on next visit.
-              reset();
-              onPause();
-            }}
+            icon={
+              isPaused ? (
+                <PlayIcon className="size-5" strokeWidth={2.5} />
+              ) : (
+                <PauseIcon className="size-5" strokeWidth={2.5} />
+              )
+            }
+            label={isPaused ? "Resume" : "Pause"}
+            subLabel={isPaused ? "Pick it back up" : "Hold your place"}
+            onClick={togglePause}
           />
           <ActionTile
             icon={<Check className="size-5" strokeWidth={2.5} />}

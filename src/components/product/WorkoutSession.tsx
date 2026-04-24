@@ -242,6 +242,31 @@ export function WorkoutSession({
 
   const handleCountdownComplete = () => setPhase("prompt-select");
 
+  // Flow Session auto-advance — prompt-select is skipped because Flow's
+  // orchestrator already committed to a specific prompt (momentum is
+  // the point). When phase lands in prompt-select during a Flow session,
+  // we select the first prompt and move straight to rep.
+  useEffect(() => {
+    if (
+      phase === "prompt-select" &&
+      plan.sessionType === "flow" &&
+      currentRep &&
+      !selectedPrompts[currentIndex]
+    ) {
+      const auto = currentRep.prompts[0];
+      if (auto) {
+        setSelectedPrompts((prev) => {
+          const next = [...prev];
+          next[currentIndex] = auto;
+          return next;
+        });
+        setRetryFocus(null);
+        setPhase("rep");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, currentIndex]);
+
   const handlePromptSelected = (prompt: string) => {
     setSelectedPrompts((prev) => {
       const next = [...prev];
