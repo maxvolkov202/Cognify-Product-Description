@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layers, Eye, EyeOff, Lightbulb } from "lucide-react";
+import { Layers, Eye, EyeOff, Lightbulb, PenLine } from "lucide-react";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { cn } from "@/lib/utils/cn";
 
@@ -9,6 +9,11 @@ type Props = {
   framework: RepTypeFramework;
   /** Starts hidden if false (useful when the user wants to practice blind). */
   defaultExpanded?: boolean;
+  /** When true, each section gets an inline text input the user can jot
+   *  a word or two in to anchor the rep. Notes are ephemeral (per-rep
+   *  session state only; not persisted). Matches mockup #3's
+   *  framework-with-notes behavior. */
+  allowNotes?: boolean;
 };
 
 /**
@@ -20,10 +25,18 @@ type Props = {
  *
  * Not shown in Build-a-Rep — that mode has the full TalkingPointsSidebar.
  */
-export function RepFrameworkStrip({ framework, defaultExpanded = true }: Props) {
+export function RepFrameworkStrip({
+  framework,
+  defaultExpanded = true,
+  allowNotes = false,
+}: Props) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showExample, setShowExample] = useState(false);
+  const [notes, setNotes] = useState<string[]>(() =>
+    framework.sections.map(() => ""),
+  );
+  const [notesOpen, setNotesOpen] = useState(false);
 
   if (!expanded) {
     return (
@@ -50,6 +63,23 @@ export function RepFrameworkStrip({ framework, defaultExpanded = true }: Props) 
         </p>
         <p className="text-xs font-bold text-ink-900">{framework.name}</p>
         <div className="ml-auto flex items-center gap-1">
+          {allowNotes && (
+            <button
+              type="button"
+              onClick={() => setNotesOpen((v) => !v)}
+              aria-expanded={notesOpen}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition",
+                notesOpen
+                  ? "bg-brand-purple/10 text-brand-purple"
+                  : "text-ink-500 hover:bg-ink-50",
+              )}
+              title="Jot a word per section"
+            >
+              <PenLine className="size-3" strokeWidth={2.5} />
+              {notesOpen ? "Hide notes" : "Jot notes"}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowExample((v) => !v)}
@@ -71,6 +101,7 @@ export function RepFrameworkStrip({ framework, defaultExpanded = true }: Props) 
               setExpanded(false);
               setActiveIndex(null);
               setShowExample(false);
+              setNotesOpen(false);
             }}
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-ink-500 hover:bg-ink-50"
             title="Hide framework"
@@ -110,6 +141,40 @@ export function RepFrameworkStrip({ framework, defaultExpanded = true }: Props) 
             {framework.sections[activeIndex]!.label}:
           </span>{" "}
           {framework.sections[activeIndex]!.hint}
+        </div>
+      )}
+
+      {allowNotes && notesOpen && (
+        <div className="border-t border-ink-100 bg-ink-50/50 px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+            Jot a word or two per section · optional · anchors your rep
+          </p>
+          <div className="mt-2 grid gap-2">
+            {framework.sections.map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-ink-200 text-[10px] font-bold text-ink-700">
+                  {i + 1}
+                </span>
+                <label className="flex-1">
+                  <span className="sr-only">{s.label}</span>
+                  <input
+                    type="text"
+                    value={notes[i] ?? ""}
+                    onChange={(e) =>
+                      setNotes((prev) => {
+                        const next = [...prev];
+                        next[i] = e.target.value;
+                        return next;
+                      })
+                    }
+                    placeholder={s.label}
+                    maxLength={60}
+                    className="w-full rounded-md border border-ink-200 bg-white px-2.5 py-1 text-xs text-ink-900 placeholder:text-ink-400 focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -668,7 +668,7 @@ export function RepSurface({
       {mode === "daily_workout" &&
         repTypeFramework &&
         (phase.kind === "idle" || phase.kind === "error") && (
-          <RepFrameworkStrip framework={repTypeFramework} />
+          <RepFrameworkStrip framework={repTypeFramework} allowNotes />
         )}
 
       <div className="surface-card overflow-hidden">

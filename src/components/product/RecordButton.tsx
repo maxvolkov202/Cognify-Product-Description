@@ -156,6 +156,27 @@ export function RecordButton({
 
       {(isRecording || phase === "finalizing") && (
         <div className="w-full max-w-sm text-center">
+          {isRecording && (
+            <div className="mb-3 flex justify-center">
+              <span
+                role="status"
+                aria-live="polite"
+                className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-white shadow-sm"
+              >
+                <span className="relative grid size-2 place-items-center">
+                  <span
+                    className="absolute size-2 rounded-full bg-white motion-safe:animate-ping motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                  <span
+                    className="size-1.5 rounded-full bg-white"
+                    aria-hidden="true"
+                  />
+                </span>
+                Recording
+              </span>
+            </div>
+          )}
           <div className="brand-gradient-text text-5xl font-extrabold tabular-nums">
             {formatTime(remainingMs)}
           </div>
