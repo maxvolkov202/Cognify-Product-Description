@@ -64,6 +64,28 @@ export const verticalEnum = cognifyV2Schema.enum("vertical", [
   "other",
 ]);
 
+// Session-type enum for the WS-6 Focus/Combined/Flow picker — persisted
+// on practice_sessions so per-type analytics + streak splits are possible.
+export const sessionTypeEnum = cognifyV2Schema.enum("session_type", [
+  "focus",
+  "combined",
+  "flow",
+]);
+
+// Pressure archetype enum for WS-3 reps that are pressure reps. Stored
+// on reps.pressure_archetype_id so pressure analytics no longer have to
+// parse "Pressure · X" from the topic text hack.
+export const pressureArchetypeEnum = cognifyV2Schema.enum(
+  "pressure_archetype",
+  [
+    "pushback",
+    "time_compression",
+    "audience_switch",
+    "clarifying_interrupt",
+    "stakes_raise",
+  ],
+);
+
 export const users = cognifyV2Schema.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   // Links our user row to Supabase's auth.users.id. Nullable because guests
@@ -90,6 +112,21 @@ export const users = cognifyV2Schema.table("users", {
    *  foreign key (FK would require rep.id to be stable pre-insert) — stored
    *  as uuid and joined on read. */
   baselineRepId: uuid("baseline_rep_id"),
+  // WS-7 habit system — streak freezes earned + spent. Earned after
+  // every completed 7-day streak; consumed when a day is missed. Cap at
+  // 3 freezes stored.
+  streakFreezes: integer("streak_freezes").notNull().default(0),
+  // WS-3 cross-session archetype rotation: excludes the previous
+  // session's archetype from the next session's selection so users
+  // don't see the same archetype back-to-back.
+  lastPressureArchetypeId: pressureArchetypeEnum("last_pressure_archetype_id"),
+  // WS-6 tomorrow's-focus bias: the weakest dim from the user's most
+  // recent session. Cached here so planTodaysWorkout doesn't have to
+  // re-scan progressSnapshots on every workout-page load.
+  lastSessionWeakestDimension: dimensionEnum("last_session_weakest_dimension"),
+  // WS-8 PWA install prompt gate — cross-device rep count (was
+  // previously client-localStorage only).
+  completedRepsCount: integer("completed_reps_count").notNull().default(0),
 });
 
 export const teams = cognifyV2Schema.table("teams", {
@@ -161,6 +198,12 @@ export const practiceSessions = cognifyV2Schema.table(
       onDelete: "set null",
     }),
     compositeScore: real("composite_score"),
+    // WS-6 session type — nullable for historical rows. New rows
+    // populate from the session-type picker. Drives per-type
+    // analytics + per-type streak splits on /progress.
+    sessionType: sessionTypeEnum("session_type"),
+    // WS-6 Focus Workout: populated only when sessionType='focus'.
+    focusDimension: dimensionEnum("focus_dimension"),
   },
   (t) => [index("sessions_user_started_idx").on(t.userId, t.startedAt)],
 );
@@ -191,12 +234,16 @@ export const reps = cognifyV2Schema.table(
     // backward compatibility while the sync scoring path still exists. When
     // Phase 4 (async Edge Function scoring) lands, new reps insert as "pending".
     status: text("status").notNull().default("completed"),
+    // WS-3 pressure rep tagging — replaces the "Pressure · X" topic
+    // prefix hack. Nullable for non-pressure reps + historical rows.
+    pressureArchetypeId: pressureArchetypeEnum("pressure_archetype_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("reps_session_idx").on(t.sessionId),
     index("reps_user_created_idx").on(t.userId, t.createdAt),
     index("reps_status_idx").on(t.status),
+    index("reps_pressure_archetype_idx").on(t.pressureArchetypeId),
   ],
 );
 
@@ -394,6 +441,54 @@ export const externalRankings = cognifyV2Schema.table(
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("rankings_validation_idx").on(t.validationId)],
+);
+
+/**
+ * WS-7 weekly narratives. One row per user per ISO-week-start. Cache
+ * for the Claude-generated coaching paragraph on /progress.
+ * generatedAt drives the 24h refresh window in the API route.
+ */
+export const weeklyReports = cognifyV2Schema.table(
+  "weekly_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStartIso: text("week_start_iso").notNull(),
+    narrative: jsonb("narrative").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("weekly_reports_user_week_idx").on(t.userId, t.weekStartIso),
+  ],
+);
+
+/**
+ * WS-7 personal bests. Row inserted every time the user sets a new
+ * all-time high on a dimension. Server-backed so PB detection works
+ * cross-device. Current PB per (userId, dimension) is the row with
+ * the highest score (or the latest row if ties).
+ */
+export const personalBests = cognifyV2Schema.table(
+  "personal_bests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dimension: dimensionEnum("dimension").notNull(),
+    score: real("score").notNull(),
+    repId: uuid("rep_id").notNull(),
+    achievedAt: timestamp("achieved_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("personal_bests_user_dim_idx").on(t.userId, t.dimension),
+  ],
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
