@@ -54,6 +54,7 @@ export const metadata: Metadata = {
     icon: [{ url: "/logo/mark.svg", type: "image/svg+xml" }],
     apple: "/logo/mark.svg",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {

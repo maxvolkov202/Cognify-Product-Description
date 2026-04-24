@@ -1,0 +1,20 @@
+{
+  "name": "Cognify — The Duolingo for communication",
+  "short_name": "Cognify",
+  "description": "Train clear thinking into clear speech. Short daily reps, instant feedback, measurable growth.",
+  "start_url": "/workout",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#9788ff",
+  "icons": [
+    {
+      "src": "/logo/mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "lifestyle"]
+}

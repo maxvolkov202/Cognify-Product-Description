@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/shared/AppNav";
+import { InstallPrompt } from "@/components/product/InstallPrompt";
 import { currentUser } from "@/lib/session/current-user";
 import { isUserOnboarded, getUserProfile } from "@/lib/db/queries/user";
 
@@ -44,6 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen flex-col bg-ink-50/60">
       <AppNav navItems={navItems} sessionUser={sessionUser} />
       <main className="flex-1">{children}</main>
+      <InstallPrompt />
     </div>
   );
 }

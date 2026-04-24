@@ -8,6 +8,7 @@ import { WorkoutCountdown } from "./WorkoutCountdown";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
 import { PersonalBestToast } from "./PersonalBestToast";
+import { bumpCompletedRepCount } from "./InstallPrompt";
 import type { RepScore, Callout, SkillDimension } from "@/types/domain";
 import type { PreviousRepSummary } from "./FeedbackPanel";
 import type {
@@ -253,6 +254,10 @@ export function WorkoutSession({
   const handleRepComplete = ({ score }: { score: RepScore }) => {
     // Append (or replace on retry — we already popped the old score in onRetry)
     setScores((prev) => [...prev, score]);
+    // Count completed reps for the PWA install-prompt gate. Safe on
+    // retry: we only record one increment per completion call, and the
+    // gate just needs "≥3 completed reps" as a rough engagement signal.
+    bumpCompletedRepCount();
     // Derive the next rep focus for a potential retry
     const focus =
       score.callouts.find(
