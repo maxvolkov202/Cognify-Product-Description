@@ -339,6 +339,7 @@ export function WorkoutSession({
         totalReps={plan.reps.length}
         streakDays={streakDays}
         yesterdayComposite={yesterdayComposite}
+        plan={plan}
       />
     );
   }

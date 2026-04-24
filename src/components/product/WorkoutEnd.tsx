@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, TrendingUp, Target, Flame } from "lucide-react";
+import { Check, TrendingUp, Target, Flame, Zap } from "lucide-react";
 import { GradientButton } from "@/components/shared/GradientButton";
 import type { RepScore, SkillDimension } from "@/types/domain";
 import {
@@ -9,6 +9,7 @@ import {
   SKILL_DIMENSION_GROUPS,
 } from "@/types/domain";
 import { groupComposite } from "@/lib/scoring/rubric";
+import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
 
 type Props = {
   scores: RepScore[];
@@ -16,6 +17,10 @@ type Props = {
   streakDays?: number | null;
   /** Average composite score from yesterday's reps (team spec: show delta). */
   yesterdayComposite?: number | null;
+  /** Full plan — used to surface session-type-specific sections (Flow's
+   *  archetype trajectory, Focus's dimension-specific callout). Scores
+   *  are index-aligned with plan.reps. Optional for backwards compat. */
+  plan?: WorkoutSessionPlan;
 };
 
 /**
@@ -33,6 +38,7 @@ export function WorkoutEnd({
   totalReps,
   streakDays,
   yesterdayComposite,
+  plan,
 }: Props) {
   if (scores.length === 0) {
     return (
@@ -85,6 +91,9 @@ export function WorkoutEnd({
     .sort((a, b) => a[1] - b[1]);
   const weakest = ranked[0] ?? null;
 
+  const isFlow = plan?.sessionType === "flow";
+  const isFocus = plan?.sessionType === "focus";
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* ——— Hero card: daily score ——————————————— */}
@@ -92,17 +101,33 @@ export function WorkoutEnd({
         <div className="brand-gradient h-1.5" aria-hidden="true" />
         <div className="p-10 text-center">
           <div className="brand-gradient mx-auto grid size-16 place-items-center rounded-2xl shadow-sm">
-            <Check
-              className="size-8 text-white"
-              strokeWidth={3}
-              aria-hidden="true"
-            />
+            {isFlow ? (
+              <Zap
+                className="size-8 text-white"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              />
+            ) : (
+              <Check
+                className="size-8 text-white"
+                strokeWidth={3}
+                aria-hidden="true"
+              />
+            )}
           </div>
           <h2 className="mt-6 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-            Workout complete.
+            {isFlow
+              ? "Flow complete."
+              : isFocus
+                ? "Focus session complete."
+                : "Workout complete."}
           </h2>
           <p className="mt-3 text-base text-ink-600">
-            {totalReps} reps done. One rep closer to clarity.
+            {isFlow
+              ? `${totalReps} pressure reps, back to back. That's composure under sustained load.`
+              : isFocus && plan?.focusDimension
+                ? `${totalReps} reps all drilling ${DIMENSION_LABELS[plan.focusDimension].toLowerCase()}. Focused work.`
+                : `${totalReps} reps done. One rep closer to clarity.`}
           </p>
 
           <div className="mt-8 inline-flex flex-col items-center rounded-2xl border border-ink-200 bg-white px-10 py-6">
@@ -134,6 +159,59 @@ export function WorkoutEnd({
           </div>
         </div>
       </div>
+
+      {/* ——— Flow archetype trajectory ——————————————— */}
+      {isFlow && plan && (
+        <div className="surface-card overflow-hidden">
+          <div className="brand-gradient h-1" aria-hidden="true" />
+          <div className="p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-purple">
+              Flow trajectory · the five archetypes
+            </p>
+            <h3 className="mt-2 text-lg font-extrabold text-ink-900">
+              How you held up across the ramp.
+            </h3>
+            <ol className="mt-4 space-y-2">
+              {plan.reps.map((slot, i) => {
+                const score = scores[i];
+                const composite = score ? score.composite : null;
+                const archetype = slot.pressureArchetype;
+                return (
+                  <li
+                    key={`${slot.repType.id}-${i}`}
+                    className="flex items-center gap-3 rounded-lg border border-ink-200 bg-white px-4 py-3"
+                  >
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-amber-100 text-[11px] font-extrabold text-amber-800">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-ink-900">
+                        {archetype?.name ?? slot.repType.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-[11px] text-ink-500">
+                        {archetype?.tagline ?? slot.repType.tagline}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="brand-gradient-text text-lg font-extrabold tabular-nums">
+                        {composite ?? "—"}
+                      </p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+                        composite
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            <p className="mt-4 text-xs leading-relaxed text-ink-500">
+              Flow trains recall speed under sustained pressure. Watch the
+              composite trend across the ramp — staying stable (or climbing)
+              from archetype 1 to archetype 5 is the sign of real composure.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ——— Tomorrow's focus ——————————————— */}
       {weakest && (
