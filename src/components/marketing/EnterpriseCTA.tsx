@@ -10,7 +10,7 @@ const points = [
   {
     icon: LineChart,
     title: "Progress reporting",
-    body: "Exportable PDFs your L&D team can show to the CFO.",
+    body: "Exportable PDFs that hold up to CFO scrutiny — measurable brain productivity per seat.",
   },
   {
     icon: Building2,
@@ -26,7 +26,7 @@ export function EnterpriseCTA() {
         <div className="grid gap-10 p-10 md:grid-cols-[1.2fr_1fr] md:p-14">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-              For L&amp;D and career centers
+              Corporate Health, Performance &amp; career centers
             </p>
             <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
               The system your communication training was missing.

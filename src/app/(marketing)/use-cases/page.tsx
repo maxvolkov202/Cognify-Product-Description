@@ -4,7 +4,7 @@ import { GradientButton } from "@/components/shared/GradientButton";
 export const metadata: Metadata = {
   title: "Use cases",
   description:
-    "Interview prep. Pitch training. Meeting presence. Feedback delivery. Career centers. L&D programs. Cognify trains the moments that define careers.",
+    "Interview prep. Pitch training. Meeting presence. Feedback delivery. Career centers. Corporate Health & Performance programs. Cognify trains the moments that define careers.",
 };
 
 const caseStudies = [
@@ -14,9 +14,9 @@ const caseStudies = [
     body: "Cohort onboarding. Daily reps through interview-prep prompts. Progress exports your career-services team can show to deans and employers.",
   },
   {
-    audience: "L&D teams",
+    audience: "Corporate Health & Performance",
     title: "Communication that compounds.",
-    body: "Per-seat licensing. Admin dashboards. Calibration sessions. Quantified progress per employee, ready for the CFO.",
+    body: "Per-seat licensing. Admin dashboards. Calibration sessions. Quantified brain productivity per employee — the kind of measurable benefit that earns its place next to wellness, not buried in training compliance.",
   },
   {
     audience: "Sales teams",
@@ -51,9 +51,9 @@ export default function UseCasesPage() {
             <span className="brand-gradient-text">every professional moment.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-600">
-            Start focused. Expand broadly. Cognify enters through career centers and
-            L&amp;D teams and expands into every role where communication is the
-            bottleneck.
+            Start focused. Expand broadly. Cognify enters through career
+            centers and customer-facing teams, then expands into every role
+            where communication is the bottleneck.
           </p>
         </div>
       </section>

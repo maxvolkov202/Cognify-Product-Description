@@ -5,31 +5,41 @@ import { EnterpriseCTA } from "@/components/marketing/EnterpriseCTA";
 import { CompetitorTable } from "@/components/marketing/CompetitorTable";
 
 export const metadata: Metadata = {
-  title: "For L&D teams & career centers",
+  title: "For teams — brain productivity training",
   description:
-    "Cognify is a communication training system for L&D teams and career centers. Daily reps, instant feedback, measurable progress — built to prove your training works.",
+    "Cognify is a brain productivity benefit for teams that lose real money to unclear communication. Daily reps, instant feedback, measurable growth — built as Corporate Health & Performance, not another training program.",
 };
 
 const valueProps = [
   {
     kicker: "01",
-    title: "Measurable progress per seat",
-    body: "Per-skill scores, 30-day trend lines, and exportable PDF reports your L&D team can show to the CFO. David's #1 advisory ask, built into the core.",
+    title: "A brain productivity benefit, not a training program",
+    body: "Cognify sits alongside the gym membership and the mental-health stipend, not the L&D budget that gets cut first. Subsidize cognitive EQ the way you already subsidize physical health — same economic logic, same measurable return.",
   },
   {
     kicker: "02",
-    title: "Not a course. A training system.",
-    body: "Courses teach theory. Analysis tools polish delivery. Cognify trains the underlying skill — clarity, structure, confidence under pressure — through daily reps.",
+    title: "Tribal knowledge doesn't leave when people do",
+    body: "Kraft-style losses from communication failure are real and well-documented. Cognify trains the shared language your team speaks — so structure, clarity, and composure under pressure become portable skills, not individual luck.",
   },
   {
     kicker: "03",
-    title: "Blind-listener validation",
-    body: "External validation mode: five reps on the same topic, ranked by unbiased listeners. The proof artifact that enterprise buyers have been asking for.",
+    title: "Per-seat proof that holds up in a review",
+    body: "Per-skill scores, 30-day trend lines, and exportable PDF reports that stand up to audit. Nahamoo's measurability standard — every dimension a user trains gets a ground-truth number behind it.",
   },
   {
     kicker: "04",
+    title: "Blind-listener validation",
+    body: "External validation mode: five reps on the same topic, ranked by unbiased listeners. The 5-Session Improvement Curve — David's validation protocol — is the proof artifact enterprise buyers have been asking for.",
+  },
+  {
+    kicker: "05",
+    title: "Not a course. A training system.",
+    body: "Courses teach theory. Analysis tools polish delivery. Cognify trains the underlying skill — clarity, structure, conciseness, and composure under pressure — through short daily reps that compound.",
+  },
+  {
+    kicker: "06",
     title: "Start focused. Expand broadly.",
-    body: "Entry through career centers and L&D teams. Expansion into sales, consulting, finance, healthcare, law, leadership. Communication sits behind every professional moment.",
+    body: "Entry through customer-facing teams and career centers. Expansion into sales, consulting, finance, healthcare, law, leadership — every vertical where communication sits behind the moment that decides the outcome.",
   },
 ] as const;
 
@@ -41,16 +51,18 @@ export default function ForTeamsPage() {
         <div className="mx-auto w-full max-w-6xl px-6 pb-20 pt-24 md:pt-32">
           <span className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/80 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-ink-600 backdrop-blur">
             <span className="brand-gradient size-1.5 rounded-full" />
-            For L&amp;D teams &amp; career centers
+            Corporate Health &amp; Performance
           </span>
           <h1 className="mt-6 max-w-3xl text-5xl font-extrabold leading-[1.05] tracking-[-0.03em] text-ink-900 md:text-[64px]">
             Train your team to think clearly{" "}
             <span className="brand-gradient-text">under pressure.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-600">
-            Cognify is a communication training system built for teams that need to
-            prove their training works. Daily reps. Instant feedback. Measurable growth
-            per employee — and a validation model that holds up to scrutiny.
+            Cognify is a brain productivity benefit — daily reps that build
+            the communication skill your team leans on when the stakes are
+            real. Not another training program. Not a library of content.
+            Measurable improvement per employee, positioned where it belongs:
+            Corporate Health &amp; Performance.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <GradientButton href="#contact" size="lg">

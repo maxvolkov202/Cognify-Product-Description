@@ -55,7 +55,8 @@ const teamPlans = [
   },
   {
     name: "Companies",
-    tagline: "L&D teams investing in employee communication performance and growth.",
+    tagline:
+      "Corporate Health &amp; Performance teams investing in communication as a measurable brain-productivity benefit.",
     features: [
       "Per-seat licensing",
       "Admin dashboard with team-wide scores",
