@@ -151,6 +151,133 @@ export async function getRecentReps(
   }, []);
 }
 
+/**
+ * Pressure rep stats over the last N days. Pressure reps are identified
+ * by their topic prefix `Pressure · {archetype}` — WorkoutSession sets
+ * this when saving pressure reps so historical analytics can filter
+ * without a dedicated column.
+ *
+ * Returns the count, average composite, and a per-archetype breakdown
+ * (if the topic encodes the archetype name, which it does).
+ */
+export type PressureRepStats = {
+  count: number;
+  avgComposite: number | null;
+  byArchetype: {
+    archetypeName: string;
+    count: number;
+    avgComposite: number;
+  }[];
+  /** The most recent N pressure reps with their composite for trend display. */
+  recent: {
+    archetypeName: string;
+    composite: number;
+    createdAt: Date;
+  }[];
+};
+
+export async function getPressureRepStats(
+  userId: string,
+  days = 60,
+): Promise<PressureRepStats> {
+  return safeDb(async () => {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        compositeScore: reps.compositeScore,
+        createdAt: reps.createdAt,
+        topic: reps.topic,
+      })
+      .from(reps)
+      .where(
+        and(
+          eq(reps.userId, userId),
+          gte(reps.createdAt, since),
+          // Postgres LIKE for prefix match; drizzle exposes it via sql
+          sql`${reps.topic} LIKE 'Pressure · %'`,
+        ),
+      )
+      .orderBy(desc(reps.createdAt));
+
+    if (rows.length === 0) {
+      return { count: 0, avgComposite: null, byArchetype: [], recent: [] };
+    }
+
+    const parseArchetype = (topic: string | null): string =>
+      topic?.replace(/^Pressure · /, "") ?? "Pressure";
+
+    const sum = rows.reduce((s, r) => s + (r.compositeScore ?? 0), 0);
+    const avgComposite = Math.round(sum / rows.length);
+
+    const byArchetypeMap = new Map<
+      string,
+      { count: number; total: number }
+    >();
+    for (const r of rows) {
+      const name = parseArchetype(r.topic);
+      const entry = byArchetypeMap.get(name) ?? { count: 0, total: 0 };
+      entry.count += 1;
+      entry.total += r.compositeScore ?? 0;
+      byArchetypeMap.set(name, entry);
+    }
+    const byArchetype = Array.from(byArchetypeMap.entries())
+      .map(([archetypeName, { count, total }]) => ({
+        archetypeName,
+        count,
+        avgComposite: Math.round(total / count),
+      }))
+      .sort((a, b) => b.avgComposite - a.avgComposite);
+
+    const recent = rows.slice(0, 10).map((r) => ({
+      archetypeName: parseArchetype(r.topic),
+      composite: r.compositeScore ?? 0,
+      createdAt: r.createdAt,
+    }));
+
+    return {
+      count: rows.length,
+      avgComposite,
+      byArchetype,
+      recent,
+    };
+  }, { count: 0, avgComposite: null, byArchetype: [], recent: [] });
+}
+
+/**
+ * Per-dimension all-time max (personal bests). Used by the post-rep
+ * toast to detect when a just-completed rep set a new PB. Returns an
+ * object keyed by dimension name — dimensions with no history yet
+ * resolve to `null`.
+ */
+export async function getUserDimensionMaxes(
+  userId: string,
+): Promise<Record<SkillDimension, number | null>> {
+  return safeDb(async () => {
+    const rows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        maxScore: sql<number>`MAX(${progressSnapshots.score})`,
+      })
+      .from(progressSnapshots)
+      .where(eq(progressSnapshots.userId, userId))
+      .groupBy(progressSnapshots.dimension);
+
+    const result = {} as Record<SkillDimension, number | null>;
+    for (const d of ALL_DIMENSIONS) result[d] = null;
+    for (const row of rows) {
+      const dim = row.dimension as SkillDimension;
+      result[dim] = row.maxScore ?? null;
+    }
+    return result;
+  }, ALL_DIMENSIONS.reduce(
+    (acc, d) => {
+      acc[d] = null;
+      return acc;
+    },
+    {} as Record<SkillDimension, number | null>,
+  ));
+}
+
 export async function getStreakDays(userId: string): Promise<number> {
   return safeDb(async () => {
     const rows = await db

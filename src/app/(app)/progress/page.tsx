@@ -7,25 +7,41 @@ import {
   getActivityHeatmap,
   getRecentReps,
   getStreakDays,
+  getPressureRepStats,
 } from "@/lib/db/queries/progress";
 import { hasDatabase } from "@/lib/db/safe";
 import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
 import { SkillRadar } from "@/components/product/SkillRadar";
 import { GradientButton } from "@/components/shared/GradientButton";
-import { Flame, Play, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
+import {
+  Flame,
+  Play,
+  TrendingUp,
+  Sparkles,
+  ArrowRight,
+  Zap,
+} from "lucide-react";
 import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
 export default async function ProgressPage() {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
 
-  const [trends, currentScores, activity, recentReps, streakDays] = await Promise.all([
+  const [
+    trends,
+    currentScores,
+    activity,
+    recentReps,
+    streakDays,
+    pressureStats,
+  ] = await Promise.all([
     getSkillTrends(userId, 30),
     getCurrentSkillScores(userId),
     getActivityHeatmap(userId, 84),
     getRecentReps(userId, 12),
     getStreakDays(userId),
+    getPressureRepStats(userId, 60),
   ]);
 
   const totalReps = activity.reduce((sum, a) => sum + a.count, 0);
@@ -129,6 +145,55 @@ export default async function ProgressPage() {
                 is up +{topImprovement.delta} points over the last 30 days. Keep
                 pushing — the gap between reps is where the growth shows.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pressureStats.count > 0 && (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40">
+          <div className="flex items-start gap-3 p-5">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+              <Zap className="size-4" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+                Pressure performance · last 60 days
+              </p>
+              <p className="mt-1 text-sm font-semibold text-amber-950">
+                {pressureStats.count} pressure{" "}
+                {pressureStats.count === 1 ? "rep" : "reps"} completed ·
+                avg composite{" "}
+                <strong>{pressureStats.avgComposite ?? "—"}</strong>
+                {pressureStats.byArchetype[0] && (
+                  <>
+                    {" "}
+                    · strongest under{" "}
+                    <strong>
+                      {pressureStats.byArchetype[0].archetypeName}
+                    </strong>{" "}
+                    ({pressureStats.byArchetype[0].avgComposite})
+                  </>
+                )}
+              </p>
+              {pressureStats.byArchetype.length > 1 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pressureStats.byArchetype.map((a) => (
+                    <span
+                      key={a.archetypeName}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900"
+                    >
+                      {a.archetypeName}
+                      <span className="font-mono tabular-nums text-amber-700">
+                        {a.avgComposite}
+                      </span>
+                      <span className="text-[10px] text-amber-500">
+                        × {a.count}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

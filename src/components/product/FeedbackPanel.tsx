@@ -50,6 +50,12 @@ type Props = {
    *  per-callout correction row. Empty array when the rep wasn't saved
    *  (guest without DB, or DB unavailable). */
   calloutIds?: string[];
+  /** Optional pressure archetype metadata — surfaced as a "what you
+   *  trained" badge when the rep was a pressure rep. */
+  pressureContext?: {
+    archetypeName: string;
+    archetypeTagline: string;
+  } | null;
 };
 
 type ProgressionResult = {
@@ -88,6 +94,7 @@ export function FeedbackPanel({
   previousRepSummary,
   repId,
   calloutIds = [],
+  pressureContext,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(true);
@@ -262,6 +269,20 @@ export function FeedbackPanel({
 
   return (
     <div className="space-y-6">
+      {pressureContext && (
+        <div
+          role="status"
+          className="overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 px-5 py-4"
+        >
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+            You just trained · {pressureContext.archetypeName}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-amber-950">
+            {pressureContext.archetypeTagline} Scoring weighted this rep
+            toward the dimensions the archetype stresses.
+          </p>
+        </div>
+      )}
       {/* ——— Composite + group bars ——————————————————————————— */}
       <div className="surface-card relative overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />

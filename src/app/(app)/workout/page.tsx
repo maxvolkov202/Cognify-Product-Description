@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
   getStreakDays,
+  getUserDimensionMaxes,
   getYesterdayDailyAverage,
 } from "@/lib/db/queries/progress";
 
@@ -16,12 +17,13 @@ export default async function WorkoutPage() {
   // Yesterday's avg composite feeds the end-of-workout "(+4 from yesterday)" delta.
   const user = await currentUser();
   const profile = user ? await getUserProfile(user.id) : null;
-  const [streakDays, yesterday] = user
+  const [streakDays, yesterday, dimensionMaxes] = user
     ? await Promise.all([
         getStreakDays(user.id),
         getYesterdayDailyAverage(user.id),
+        getUserDimensionMaxes(user.id),
       ])
-    : [null, null];
+    : [null, null, null];
 
   const plan = planTodaysWorkout({
     goals: profile?.improvementGoals ?? [],
@@ -35,6 +37,7 @@ export default async function WorkoutPage() {
         streakDays={streakDays}
         yesterdayComposite={yesterday?.composite ?? null}
         improvementGoals={profile?.improvementGoals ?? []}
+        initialDimensionMaxes={dimensionMaxes}
       />
     </div>
   );

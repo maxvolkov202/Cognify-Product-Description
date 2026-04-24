@@ -78,6 +78,13 @@ type Props = {
   /** Pressure archetype id for this rep (if it's a pressure rep). Sent
    *  to /api/score so the server applies the archetype's weight profile. */
   pressureArchetypeId?: string | null;
+  /** Archetype metadata for the post-rep FeedbackPanel "what you trained"
+   *  badge. Shown only when the rep was a pressure rep AND feedbackMode
+   *  is "full" (Flow uses FlowFeedbackPanel, which has its own chrome). */
+  pressureContext?: {
+    archetypeName: string;
+    archetypeTagline: string;
+  } | null;
   onComplete?: (payload: {
     score: RepScore;
     recording: RecordingResult;
@@ -158,6 +165,7 @@ export function RepSurface({
   flowTotalReps,
   flowArchetypeName,
   pressureArchetypeId,
+  pressureContext,
   onComplete,
   onNext,
   nextLabel = "Next rep",
@@ -620,6 +628,7 @@ export function RepSurface({
           previousRepSummary={previousRepSummary ?? null}
           repId={phase.repId}
           calloutIds={phase.calloutIds}
+          pressureContext={pressureContext ?? null}
         />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {onNext && (

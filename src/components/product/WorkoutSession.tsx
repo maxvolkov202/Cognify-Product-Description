@@ -7,6 +7,7 @@ import { WorkoutIntro } from "./WorkoutIntro";
 import { WorkoutCountdown } from "./WorkoutCountdown";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
+import { PersonalBestToast } from "./PersonalBestToast";
 import type { RepScore, Callout, SkillDimension } from "@/types/domain";
 import type { PreviousRepSummary } from "./FeedbackPanel";
 import type {
@@ -71,6 +72,11 @@ type Props = {
    *  when the user changes session type client-side so the regenerated
    *  plan still respects goal weighting. */
   improvementGoals?: readonly ImprovementGoalId[];
+  /** Per-dimension all-time maxes at the start of this session. The UI
+   *  detects personal-best dimension scores on each completed rep by
+   *  comparing against this baseline, then updates in-session so a user
+   *  doesn't see back-to-back PB toasts on the same dimension. */
+  initialDimensionMaxes?: Partial<Record<SkillDimension, number | null>> | null;
 };
 
 type Phase = "intro" | "countdown" | "prompt-select" | "rep" | "done";
@@ -94,8 +100,26 @@ export function WorkoutSession({
   streakDays,
   yesterdayComposite,
   improvementGoals,
+  initialDimensionMaxes,
 }: Props) {
   const [plan, setPlan] = useState(initialPlan);
+  // Running max per dimension across this session. Initialized from the
+  // server-provided historical maxes; updated in-session so a PB set on
+  // rep 1 doesn't fire again if rep 3 merely matches it.
+  const [dimensionMaxes, setDimensionMaxes] = useState<
+    Partial<Record<SkillDimension, number>>
+  >(() => {
+    const out: Partial<Record<SkillDimension, number>> = {};
+    if (initialDimensionMaxes) {
+      for (const [k, v] of Object.entries(initialDimensionMaxes)) {
+        if (typeof v === "number") out[k as SkillDimension] = v;
+      }
+    }
+    return out;
+  });
+  const [personalBests, setPersonalBests] = useState<
+    { dimension: SkillDimension; score: number }[]
+  >([]);
 
   // Apply the user's persisted session-type preference on mount. We
   // render with the server-provided `initialPlan` first so there's no
@@ -247,6 +271,33 @@ export function WorkoutSession({
     transcript: string;
   }) => {
     handleRepComplete({ score });
+
+    // Detect per-dimension personal bests. A dimension is a PB when:
+    //   - the user has a prior max (skipping the user's very-first rep,
+    //     which would trivially be a PB on every dim)
+    //   - the new score strictly beats the prior max
+    //   - OR the PB is >= 50 (skips micro-PBs on first-few-reps noise)
+    const newBests: { dimension: SkillDimension; score: number }[] = [];
+    const nextMaxes = { ...dimensionMaxes };
+    for (const d of score.dimensions) {
+      const prior = dimensionMaxes[d.dimension];
+      if (typeof prior === "number" && d.score > prior && d.score >= 50) {
+        newBests.push({ dimension: d.dimension, score: d.score });
+        nextMaxes[d.dimension] = d.score;
+      } else if (typeof prior !== "number" || d.score > prior) {
+        // Quietly bump the running max even if we didn't show a toast
+        // (e.g. user's first-ever rep, or sub-50 score). This stops
+        // later reps from triggering a toast they shouldn't.
+        nextMaxes[d.dimension] = d.score;
+      }
+    }
+    setDimensionMaxes(nextMaxes);
+    if (newBests.length > 0) {
+      // Sort highest-score first so the headline PB is the most
+      // impressive one. Cap at top 3 to keep the toast legible.
+      newBests.sort((a, b) => b.score - a.score);
+      setPersonalBests(newBests.slice(0, 3));
+    }
     // Stash the summary so the NEXT rep's FeedbackPanel can compare.
     const topWeakness =
       score.callouts.find(
@@ -316,31 +367,44 @@ export function WorkoutSession({
 
   // ——— Render per phase ——————————————————————————————
 
+  const toast = <PersonalBestToast dimensions={personalBests} />;
+
   if (phase === "intro") {
     return (
-      <WorkoutIntro
-        plan={plan}
-        hasResumeState={canResume}
-        onStart={handleStart}
-        onResume={handleResume}
-        onChangeSessionType={handleChangeSessionType}
-      />
+      <>
+        <WorkoutIntro
+          plan={plan}
+          hasResumeState={canResume}
+          onStart={handleStart}
+          onResume={handleResume}
+          onChangeSessionType={handleChangeSessionType}
+        />
+        {toast}
+      </>
     );
   }
 
   if (phase === "countdown") {
-    return <WorkoutCountdown from={3} onComplete={handleCountdownComplete} />;
+    return (
+      <>
+        <WorkoutCountdown from={3} onComplete={handleCountdownComplete} />
+        {toast}
+      </>
+    );
   }
 
   if (phase === "done") {
     return (
-      <WorkoutEnd
-        scores={scores}
-        totalReps={plan.reps.length}
-        streakDays={streakDays}
-        yesterdayComposite={yesterdayComposite}
-        plan={plan}
-      />
+      <>
+        <WorkoutEnd
+          scores={scores}
+          totalReps={plan.reps.length}
+          streakDays={streakDays}
+          yesterdayComposite={yesterdayComposite}
+          plan={plan}
+        />
+        {toast}
+      </>
     );
   }
 
@@ -348,22 +412,25 @@ export function WorkoutSession({
 
   if (phase === "prompt-select") {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-end">
-          <PauseWorkoutButton />
+      <>
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <PauseWorkoutButton />
+          </div>
+          <WorkoutPromptSelect
+            key={currentIndex}
+            repType={currentRep.repType}
+            initialPrompts={currentRep.prompts}
+            repIndex={currentIndex}
+            totalReps={plan.reps.length}
+            focusReason={currentRep.focusReason ?? null}
+            pressureArchetype={currentRep.pressureArchetype ?? null}
+            timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
+            onSelect={handlePromptSelected}
+          />
         </div>
-        <WorkoutPromptSelect
-          key={currentIndex}
-          repType={currentRep.repType}
-          initialPrompts={currentRep.prompts}
-          repIndex={currentIndex}
-          totalReps={plan.reps.length}
-          focusReason={currentRep.focusReason ?? null}
-          pressureArchetype={currentRep.pressureArchetype ?? null}
-          timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
-          onSelect={handlePromptSelected}
-        />
-      </div>
+        {toast}
+      </>
     );
   }
 
@@ -371,6 +438,7 @@ export function WorkoutSession({
   if (!activePrompt) return null;
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
@@ -402,7 +470,11 @@ export function WorkoutSession({
         key={`${currentIndex}-${repRetryNonce}`}
         prompt={activePrompt}
         mode="daily_workout"
-        topic={currentRep.repType.name}
+        topic={
+          currentRep.pressureArchetype
+            ? `Pressure · ${currentRep.pressureArchetype.name}`
+            : currentRep.repType.name
+        }
         maxDurationMs={currentRep.timeBudgetMs}
         retryFocus={retryFocus}
         carryoverFocus={carryoverFocus}
@@ -416,6 +488,14 @@ export function WorkoutSession({
         flowTotalReps={plan.reps.length}
         flowArchetypeName={currentRep.pressureArchetype?.name}
         pressureArchetypeId={currentRep.pressureArchetype?.id ?? null}
+        pressureContext={
+          currentRep.pressureArchetype
+            ? {
+                archetypeName: currentRep.pressureArchetype.name,
+                archetypeTagline: currentRep.pressureArchetype.tagline,
+              }
+            : null
+        }
         onComplete={handleRepCompleteWithContext}
         onRetry={handleRepRetry}
         onNext={handleNext}
@@ -426,6 +506,8 @@ export function WorkoutSession({
         }
       />
     </div>
+    {toast}
+    </>
   );
 }
 
