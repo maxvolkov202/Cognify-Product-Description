@@ -53,15 +53,15 @@ export function CalendarStrip({ activity, days = 30 }: Props) {
         </Link>
       </div>
 
-      <div className="overflow-x-auto px-4 py-4">
-        <div className="flex min-w-max items-end gap-1.5">
+      <div className="overflow-x-auto px-5 py-5">
+        <div className="flex min-w-max items-end gap-2 md:gap-2.5">
           {cells.map((cell) => (
             <button
               key={cell.iso}
               type="button"
               onClick={() => cell.count > 0 && setSelected(cell.iso)}
               className={cn(
-                "group relative flex min-w-[32px] flex-col items-center gap-1",
+                "group relative flex min-w-[44px] flex-col items-center gap-1.5",
                 cell.count === 0 && "cursor-default",
               )}
               title={
@@ -72,7 +72,7 @@ export function CalendarStrip({ activity, days = 30 }: Props) {
             >
               <span
                 className={cn(
-                  "text-[9px] font-bold uppercase tracking-wider",
+                  "text-[10px] font-bold uppercase tracking-wider",
                   cell.isToday ? "text-brand-purple" : "text-ink-400",
                 )}
               >
@@ -81,7 +81,7 @@ export function CalendarStrip({ activity, days = 30 }: Props) {
               <DayCircle cell={cell} />
               <span
                 className={cn(
-                  "text-[10px] font-semibold",
+                  "text-xs font-semibold tabular-nums",
                   cell.isToday ? "text-brand-purple" : "text-ink-500",
                 )}
               >
@@ -107,8 +107,8 @@ function DayCircle({ cell }: { cell: DayCell }) {
     return (
       <span
         className={cn(
-          "grid size-8 place-items-center rounded-full border-2 border-dashed border-ink-200 bg-white",
-          cell.isToday && "border-brand-purple/50",
+          "grid size-11 place-items-center rounded-full border-2 border-dashed border-ink-200 bg-white",
+          cell.isToday && "border-brand-purple/60 bg-brand-purple/5",
         )}
       />
     );
@@ -118,20 +118,20 @@ function DayCircle({ cell }: { cell: DayCell }) {
     cell.composite >= 80
       ? "bg-success text-white"
       : cell.composite >= 60
-        ? "bg-success/60 text-white"
+        ? "bg-success/70 text-white"
         : "bg-amber-400 text-ink-900";
 
   return (
     <span
       className={cn(
-        "relative grid size-8 place-items-center rounded-full text-[10px] font-bold shadow-sm transition-transform group-hover:scale-110",
+        "relative grid size-11 place-items-center rounded-full text-sm font-extrabold tabular-nums shadow-sm transition-transform group-hover:scale-110",
         bg,
-        cell.isToday && "ring-2 ring-brand-purple/70 ring-offset-1",
+        cell.isToday && "ring-2 ring-brand-purple/70 ring-offset-2",
       )}
     >
       {Math.round(cell.composite)}
       {cell.inStreak && cell.count > 0 && (
-        <span className="absolute -right-1 -top-1 grid size-3.5 place-items-center rounded-full bg-white text-[7px]">
+        <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-white shadow-sm">
           <Flame
             className="size-2.5 text-amber-500"
             fill="currentColor"

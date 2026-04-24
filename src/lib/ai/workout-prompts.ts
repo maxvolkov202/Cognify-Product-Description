@@ -1,5 +1,5 @@
 import type { Framework, SkillDimension } from "@/types/domain";
-import type { ImprovementGoalId } from "@/lib/onboarding/constants";
+import type { ImprovementGoalId, VerticalId } from "@/lib/onboarding/constants";
 import { findFrameworkById } from "./frameworks-library";
 import {
   REP_TYPES,
@@ -9,7 +9,7 @@ import {
   type RepTypeFramework,
   type RepTypeId,
 } from "./rep-types";
-import { pickWorkoutPrompts } from "./prompts/workout";
+import { pickWorkoutPrompts, pickBlendedWorkoutPrompts } from "./prompts/workout";
 import { pickPressurePrompts } from "./prompts/pressure";
 import { getFrameworkPool } from "./frameworks-rep-variants";
 import {
@@ -137,6 +137,11 @@ export function planTodaysWorkout(
      *  most recent session. Pushes rep-type selection toward drills
      *  that train this dimension. See pickRepTypes. */
     weakestDimensionBias?: SkillDimension;
+    /** User's industry vertical. When set, workout prompts blend in
+     *  ~40% vertical-specific scenarios so sales / consulting / etc.
+     *  users see prompts that echo their actual audience. No-op when
+     *  undefined — falls back to pure rep-type prompts. */
+    vertical?: VerticalId | null;
   } = {},
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
@@ -202,7 +207,7 @@ export function planTodaysWorkout(
     usedThisSession.add(framework.name);
     reps.push({
       repType,
-      prompts: pickWorkoutPrompts(typeId, 5),
+      prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
     });
@@ -239,6 +244,9 @@ export function planFocusWorkout(
     goals?: readonly ImprovementGoalId[];
     recentFrameworkNames?: readonly string[];
     previousPressureArchetypeId?: PressureArchetypeId | null;
+    /** User's vertical — blends ~40% vertical-flavored prompts into the
+     *  Focus pool. Identical semantics to planTodaysWorkout's `vertical`. */
+    vertical?: VerticalId | null;
   },
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
@@ -310,7 +318,7 @@ export function planFocusWorkout(
     usedThisSession.add(framework.name);
     reps.push({
       repType,
-      prompts: pickWorkoutPrompts(typeId, 5),
+      prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
     });

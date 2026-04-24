@@ -1,4 +1,6 @@
 import type { RepTypeId } from "@/lib/ai/rep-types";
+import type { VerticalId } from "@/lib/onboarding/constants";
+import { pickVerticalPrompts, verticalBankSize } from "./verticals";
 
 /**
  * Daily Workout prompt bank.
@@ -186,4 +188,47 @@ export function pickWorkoutPrompts(
 /** Total number of prompts available in a rep type's bank. */
 export function workoutBankSize(repType: RepTypeId): number {
   return WORKOUT_PROMPTS[repType]?.length ?? 0;
+}
+
+/**
+ * Pick N prompts blending rep-type drills with the user's vertical
+ * scenarios. Default mix: ~60% rep-type / ~40% vertical so users see
+ * industry-specific flavor without losing the drill focus.
+ *
+ * Falls back to pure rep-type prompts when no vertical is provided or
+ * the vertical bank is empty — identical to pickWorkoutPrompts in
+ * that case, so swapping this in is safe.
+ */
+export function pickBlendedWorkoutPrompts(
+  repType: RepTypeId,
+  vertical: VerticalId | undefined | null,
+  count: number = 5,
+): string[] {
+  const repTypeBank = WORKOUT_PROMPTS[repType] ?? [];
+  if (!vertical) return pickWorkoutPrompts(repType, count);
+
+  if (verticalBankSize(vertical) === 0) {
+    return pickWorkoutPrompts(repType, count);
+  }
+
+  const verticalShare = Math.max(1, Math.round(count * 0.4));
+  const repTypeShare = Math.max(1, count - verticalShare);
+
+  const repTypePicks = (() => {
+    const shuffled = [...repTypeBank].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(repTypeShare, shuffled.length));
+  })();
+  const verticalPicks = pickVerticalPrompts(vertical, verticalShare);
+
+  // De-dup + shuffle the blend so the vertical prompts don't always
+  // cluster at the top.
+  const seen = new Set<string>();
+  const blend: string[] = [];
+  for (const p of [...verticalPicks, ...repTypePicks]) {
+    if (!seen.has(p)) {
+      seen.add(p);
+      blend.push(p);
+    }
+  }
+  return blend.sort(() => Math.random() - 0.5).slice(0, count);
 }

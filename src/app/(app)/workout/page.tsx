@@ -34,6 +34,7 @@ export default async function WorkoutPage() {
     // Tomorrow's focus → actually follows into tomorrow's workout.
     // Undefined is fine if the user has no reps yet.
     ...(weakestDim ? { weakestDimensionBias: weakestDim } : {}),
+    ...(profile?.vertical ? { vertical: profile.vertical } : {}),
   });
 
   return (
@@ -44,6 +45,7 @@ export default async function WorkoutPage() {
         yesterdayComposite={yesterday?.composite ?? null}
         improvementGoals={profile?.improvementGoals ?? []}
         initialDimensionMaxes={dimensionMaxes}
+        vertical={profile?.vertical ?? null}
       />
     </div>
   );

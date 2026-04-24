@@ -17,8 +17,10 @@ export type NarrativeInsight = {
 
 type DailyDim = {
   dimension: SkillDimension;
+  /** Average for reps this ISO week (Monday → now, UTC). */
   avg7: number;
-  avg14: number;
+  /** Average for reps in the preceding ISO week. Used for delta. */
+  avgPrevWeek: number;
   count7: number;
   latest: number;
 };
@@ -27,14 +29,23 @@ export function buildNarrativeInsights(
   trends: SkillTrend[],
   compositeRecent?: number | null,
 ): NarrativeInsight[] {
-  const now = Date.now();
-  const week = 7 * 86400000;
-  const twoWeeks = 14 * 86400000;
+  // Week starts Monday UTC — matches getWeeklyRepSummary() so the
+  // dashboard's "This week" card and /progress's weekly panel agree.
+  // Rolling-7-day windows misfire on day 7 (a rep from exactly 7 days ago
+  // falls just outside depending on the hour-of-day of both timestamps),
+  // so a strict ISO-week boundary gives the user deterministic semantics.
+  const now = new Date();
+  const dayOfWeek = (now.getUTCDay() + 6) % 7; // 0 = Monday
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setUTCHours(0, 0, 0, 0);
+  thisWeekStart.setUTCDate(thisWeekStart.getUTCDate() - dayOfWeek);
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setUTCDate(lastWeekStart.getUTCDate() - 7);
 
   const perDim: DailyDim[] = trends.map((t) => {
-    const last7 = t.points.filter((p) => now - p.takenAt.getTime() <= week);
+    const last7 = t.points.filter((p) => p.takenAt >= thisWeekStart);
     const last14 = t.points.filter(
-      (p) => now - p.takenAt.getTime() <= twoWeeks,
+      (p) => p.takenAt >= lastWeekStart && p.takenAt < thisWeekStart,
     );
     const avg = (arr: { score: number }[]) =>
       arr.length === 0
@@ -43,7 +54,7 @@ export function buildNarrativeInsights(
     return {
       dimension: t.dimension,
       avg7: avg(last7),
-      avg14: avg(last14),
+      avgPrevWeek: avg(last14),
       count7: last7.length,
       latest: t.points[t.points.length - 1]?.score ?? 0,
     };
@@ -64,11 +75,11 @@ export function buildNarrativeInsights(
 
   // 1. Biggest mover (improvement OR regression)
   const movers = perDim
-    .filter((d) => d.count7 > 0 && d.avg14 > 0)
+    .filter((d) => d.count7 > 0 && d.avgPrevWeek > 0)
     .map((d) => ({
       ...d,
-      delta: d.avg7 - d.avg14,
-      pctDelta: d.avg14 > 0 ? ((d.avg7 - d.avg14) / d.avg14) * 100 : 0,
+      delta: d.avg7 - d.avgPrevWeek,
+      pctDelta: d.avgPrevWeek > 0 ? ((d.avg7 - d.avgPrevWeek) / d.avgPrevWeek) * 100 : 0,
     }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
@@ -78,13 +89,13 @@ export function buildNarrativeInsights(
       insights.push({
         kind: "improvement",
         dimension: topMover.dimension,
-        text: `${DIMENSION_LABELS[topMover.dimension]} is up ${Math.round(topMover.pctDelta)}% from the week before — average ${Math.round(topMover.avg14)} → ${Math.round(topMover.avg7)}.`,
+        text: `${DIMENSION_LABELS[topMover.dimension]} is up ${Math.round(topMover.pctDelta)}% from the week before — average ${Math.round(topMover.avgPrevWeek)} → ${Math.round(topMover.avg7)}.`,
       });
     } else {
       insights.push({
         kind: "regression",
         dimension: topMover.dimension,
-        text: `${DIMENSION_LABELS[topMover.dimension]} slipped ${Math.abs(Math.round(topMover.pctDelta))}% from last week (${Math.round(topMover.avg14)} → ${Math.round(topMover.avg7)}). Worth a focus rep.`,
+        text: `${DIMENSION_LABELS[topMover.dimension]} slipped ${Math.abs(Math.round(topMover.pctDelta))}% from last week (${Math.round(topMover.avgPrevWeek)} → ${Math.round(topMover.avg7)}). Worth a focus rep.`,
       });
     }
   }

@@ -28,7 +28,7 @@ import {
   loadPauseState,
   clearPauseState,
 } from "@/lib/workout/pause";
-import type { ImprovementGoalId } from "@/lib/onboarding/constants";
+import type { ImprovementGoalId, VerticalId } from "@/lib/onboarding/constants";
 
 const SESSION_TYPE_PREF_KEY = "cognify_session_type_v1";
 
@@ -79,6 +79,10 @@ type Props = {
    *  comparing against this baseline, then updates in-session so a user
    *  doesn't see back-to-back PB toasts on the same dimension. */
   initialDimensionMaxes?: Partial<Record<SkillDimension, number | null>> | null;
+  /** User's industry vertical — propagates to client-side plan
+   *  regeneration (Focus/Combined/Flow switches) so prompts stay
+   *  vertical-flavored after the user changes session type. */
+  vertical?: VerticalId | null;
 };
 
 type Phase = "intro" | "countdown" | "prompt-select" | "rep" | "done";
@@ -103,6 +107,7 @@ export function WorkoutSession({
   yesterdayComposite,
   improvementGoals,
   initialDimensionMaxes,
+  vertical,
 }: Props) {
   const [plan, setPlan] = useState(initialPlan);
   // Running max per dimension across this session. Initialized from the
@@ -136,7 +141,7 @@ export function WorkoutSession({
     ) {
       return;
     }
-    setPlan(buildPlan(pref, improvementGoals));
+    setPlan(buildPlan(pref, improvementGoals, vertical));
     // Intentionally not reactive — this is one-shot on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -146,7 +151,7 @@ export function WorkoutSession({
     focusDimension: SkillDimension | null;
   }) {
     saveSessionPreference(next);
-    setPlan(buildPlan(next, improvementGoals));
+    setPlan(buildPlan(next, improvementGoals, vertical));
     // Also reset in-session state (scores, cursor, completed types) so a
     // mid-intro type change doesn't leave stale data. We're still on
     // phase='intro' when this runs — no recorded reps to clobber.
@@ -572,6 +577,7 @@ export function WorkoutSession({
 function buildPlan(
   pref: SessionPreference,
   goals?: readonly ImprovementGoalId[],
+  vertical?: VerticalId | null,
 ): WorkoutSessionPlan {
   if (pref.sessionType === "flow") {
     return planFlowSession();
@@ -581,9 +587,14 @@ function buildPlan(
       focusDimension: pref.focusDimension ?? "clarity",
       count: 4,
       goals: goals ?? [],
+      ...(vertical ? { vertical } : {}),
     });
   }
-  return planTodaysWorkout({ goals: goals ?? [], count: 4 });
+  return planTodaysWorkout({
+    goals: goals ?? [],
+    count: 4,
+    ...(vertical ? { vertical } : {}),
+  });
 }
 
 function PauseWorkoutButton({ compact = false }: { compact?: boolean }) {
