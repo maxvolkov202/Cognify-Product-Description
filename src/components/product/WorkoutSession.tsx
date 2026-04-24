@@ -271,6 +271,8 @@ export function WorkoutSession({
           repIndex={currentIndex}
           totalReps={plan.reps.length}
           focusReason={currentRep.focusReason ?? null}
+          pressureArchetype={currentRep.pressureArchetype ?? null}
+          timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
           onSelect={handlePromptSelected}
         />
       </div>
@@ -285,7 +287,9 @@ export function WorkoutSession({
       <div className="flex items-center justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
           Rep {currentIndex + 1} of {plan.reps.length} ·{" "}
-          {currentRep.repType.name}
+          {currentRep.pressureArchetype
+            ? `Pressure · ${currentRep.pressureArchetype.name}`
+            : currentRep.repType.name}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex gap-1.5" aria-label="Session progress">

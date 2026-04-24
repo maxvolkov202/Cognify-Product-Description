@@ -5,6 +5,9 @@ import { RefreshCw, ArrowRight, Timer, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
 import { refreshRepPrompts } from "@/lib/ai/workout-prompts";
 import type { FocusReason } from "@/lib/ai/workout-prompts";
+import type { PressureArchetype } from "@/lib/ai/pressure-archetypes";
+import { pickPressurePrompts } from "@/lib/ai/prompts/pressure";
+import { PressureRepIndicator } from "./PressureRepIndicator";
 
 type Props = {
   repType: RepType;
@@ -12,6 +15,15 @@ type Props = {
   repIndex: number;
   totalReps: number;
   focusReason?: FocusReason | null;
+  /** When set, this rep is a pressure rep. The prompt-select header
+   *  shifts to name the archetype, PressureRepIndicator surfaces above
+   *  the prompt list, and Refresh pulls from the archetype's prompt
+   *  bank rather than the rep type's default bank. */
+  pressureArchetype?: PressureArchetype | null;
+  /** Time budget in seconds for this specific slot — overrides
+   *  repType.timeBudgetSec when the archetype shortens/lengthens the rep
+   *  (e.g. Time Compression cuts to 20s). Falls back to rep type default. */
+  timeBudgetSec?: number;
   onSelect: (prompt: string) => void;
 };
 
@@ -21,6 +33,15 @@ type Props = {
  * Shows 5 prompts from the rep type's bank with a Refresh button to
  * pull a new shuffle from the same bank. User must pick one prompt
  * before Start Rep is enabled.
+ *
+ * For pressure reps (`pressureArchetype` set), the UI shifts:
+ *   - Header reads "Pressure Rep · {archetype.name}" instead of the
+ *     rep type's name
+ *   - PressureRepIndicator surfaces above the prompts with tagline +
+ *     "What to expect" expander
+ *   - Refresh pulls from the archetype's prompt bank (not the rep
+ *     type's default pushback bank)
+ *   - Time budget respects the archetype's durationDeltaSec
  */
 export function WorkoutPromptSelect({
   repType,
@@ -28,14 +49,29 @@ export function WorkoutPromptSelect({
   repIndex,
   totalReps,
   focusReason,
+  pressureArchetype,
+  timeBudgetSec,
   onSelect,
 }: Props) {
   const [prompts, setPrompts] = useState(initialPrompts);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
 
+  const effectiveBudgetSec = timeBudgetSec ?? repType.timeBudgetSec;
+  const headerKicker = pressureArchetype
+    ? `Rep ${repIndex + 1} of ${totalReps} · Pressure · ${pressureArchetype.name}`
+    : `Rep ${repIndex + 1} of ${totalReps} · ${repType.name}`;
+  const headerInstruction = pressureArchetype
+    ? pressureArchetype.tagline
+    : repType.instruction;
+  const headerBehavior = pressureArchetype
+    ? "Read the prompt carefully before you start — the pressure is baked in."
+    : repType.behavior;
+
   function handleRefresh() {
-    const newPrompts = refreshRepPrompts(repType.id);
+    const newPrompts = pressureArchetype
+      ? pickPressurePrompts(pressureArchetype.id, 5)
+      : refreshRepPrompts(repType.id);
     setPrompts(newPrompts);
     setSelectedIdx(null);
     setRefreshCount((c) => c + 1);
@@ -53,22 +89,28 @@ export function WorkoutPromptSelect({
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-            Rep {repIndex + 1} of {totalReps} · {repType.name}
+            {headerKicker}
           </p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
-            {repType.instruction}
+            {headerInstruction}
           </h1>
-          <p className="mt-2 text-sm text-ink-600">{repType.behavior}</p>
+          <p className="mt-2 text-sm text-ink-600">{headerBehavior}</p>
         </div>
         <div className="shrink-0 rounded-xl border border-ink-200 bg-white px-3 py-2 text-center">
           <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ink-400">
             <Timer className="size-3" /> Budget
           </div>
           <div className="brand-gradient-text mt-1 text-2xl font-extrabold tabular-nums">
-            {repType.timeBudgetSec}s
+            {effectiveBudgetSec}s
           </div>
         </div>
       </div>
+
+      {pressureArchetype ? (
+        <div className="mb-4">
+          <PressureRepIndicator archetype={pressureArchetype} />
+        </div>
+      ) : null}
 
       {focusReason ? (
         <div
