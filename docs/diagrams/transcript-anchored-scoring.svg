@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" font-family="Helvetica, Arial, sans-serif">
+  <title>Transcript-anchored multi-dimensional scoring (C2)</title>
+  <desc>Audio → Deepgram word-level transcript → Claude scoring with per-dimension rubric → callouts pinned to timestamp ranges + rubric version.</desc>
+
+  <defs>
+    <linearGradient id="contentGrad" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="deliveryGrad" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#F43F5E"/>
+    </linearGradient>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0F172A"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="620" fill="#FFFFFF"/>
+
+  <text x="450" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#0F172A">Transcript-anchored multi-dimensional scoring</text>
+  <text x="450" y="60" text-anchor="middle" font-size="12" fill="#64748B">Audio → word-level transcript → 6-dim scoring + callouts tagged to [start_ms, end_ms] ranges</text>
+
+  <!-- Input: audio blob -->
+  <rect x="50" y="110" width="160" height="70" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2"/>
+  <text x="130" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">AUDIO BLOB</text>
+  <text x="130" y="158" text-anchor="middle" font-size="10" fill="#64748B">opus / webm</text>
+  <text x="130" y="172" text-anchor="middle" font-size="10" fill="#64748B">20–90s rep</text>
+
+  <!-- Deepgram -->
+  <rect x="270" y="110" width="160" height="70" rx="12" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="350" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">DEEPGRAM</text>
+  <text x="350" y="158" text-anchor="middle" font-size="10" fill="#64748B">word-level</text>
+  <text x="350" y="172" text-anchor="middle" font-size="10" fill="#64748B">{word, startMs, endMs}[]</text>
+
+  <!-- Deterministic signals -->
+  <rect x="490" y="100" width="170" height="45" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.2"/>
+  <text x="575" y="125" text-anchor="middle" font-size="10" font-weight="700" fill="#92400E">DETERMINISTIC SIGNALS</text>
+  <text x="575" y="140" text-anchor="middle" font-size="9" fill="#78350F">pacing, WPM, pauses</text>
+
+  <!-- Claude Sonnet 4.6 -->
+  <rect x="490" y="150" width="170" height="45" rx="10" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.2"/>
+  <text x="575" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#5B21B6">CLAUDE SONNET 4.6</text>
+  <text x="575" y="190" text-anchor="middle" font-size="9" fill="#5B21B6">clarity, structure, conciseness…</text>
+
+  <!-- Rubric v2.0.0 -->
+  <rect x="710" y="110" width="150" height="70" rx="12" fill="url(#contentGrad)"/>
+  <text x="785" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">RUBRIC v2.0.0</text>
+  <text x="785" y="156" text-anchor="middle" font-size="9" fill="#FFFFFF">6 dims · weights</text>
+  <text x="785" y="170" text-anchor="middle" font-size="9" fill="#FFFFFF">pinned on every rep</text>
+
+  <!-- Arrows top row -->
+  <line x1="210" y1="145" x2="265" y2="145" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <line x1="430" y1="130" x2="485" y2="122" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <line x1="430" y1="160" x2="485" y2="172" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <line x1="660" y1="122" x2="705" y2="135" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow2)"/>
+  <line x1="660" y1="172" x2="705" y2="155" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+  <!-- Content dims group -->
+  <rect x="60" y="240" width="380" height="170" rx="14" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="250" y="268" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A" letter-spacing="1.5">CONTENT · what you said</text>
+  <rect x="80" y="290" width="110" height="100" rx="8" fill="url(#contentGrad)"/>
+  <text x="135" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Clarity</text>
+  <text x="135" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">84</text>
+  <text x="135" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+  <rect x="200" y="290" width="110" height="100" rx="8" fill="url(#contentGrad)" opacity="0.85"/>
+  <text x="255" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Structure</text>
+  <text x="255" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">76</text>
+  <text x="255" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+  <rect x="320" y="290" width="110" height="100" rx="8" fill="url(#contentGrad)" opacity="0.7"/>
+  <text x="375" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Conciseness</text>
+  <text x="375" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">68</text>
+  <text x="375" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+
+  <!-- Delivery dims group -->
+  <rect x="460" y="240" width="380" height="170" rx="14" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="650" y="268" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A" letter-spacing="1.5">DELIVERY · how you said it</text>
+  <rect x="480" y="290" width="110" height="100" rx="8" fill="url(#deliveryGrad)"/>
+  <text x="535" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Thinking</text>
+  <text x="535" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">79</text>
+  <text x="535" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+  <rect x="600" y="290" width="110" height="100" rx="8" fill="url(#deliveryGrad)" opacity="0.85"/>
+  <text x="655" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Delivery</text>
+  <text x="655" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">71</text>
+  <text x="655" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+  <rect x="720" y="290" width="110" height="100" rx="8" fill="url(#deliveryGrad)" opacity="0.7"/>
+  <text x="775" y="315" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Adaptability</text>
+  <text x="775" y="350" text-anchor="middle" font-size="24" font-weight="700" fill="#FFFFFF">63</text>
+  <text x="775" y="372" text-anchor="middle" font-size="8" fill="#FFFFFF">/100</text>
+
+  <!-- Arrow from rubric to dim grid -->
+  <line x1="450" y1="435" x2="450" y2="450" stroke="#0F172A" stroke-width="1.5"/>
+
+  <!-- Callouts (timestamp-pinned) -->
+  <text x="450" y="472" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A" letter-spacing="1.5">CALLOUTS · tagged to transcript timestamps</text>
+
+  <rect x="60" y="490" width="260" height="78" rx="10" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.2"/>
+  <rect x="60" y="490" width="4" height="78" fill="#EC4899"/>
+  <text x="75" y="510" font-size="9" font-weight="700" fill="#EC4899">STRUCTURE · warn · 0:04.2 → 0:07.1</text>
+  <text x="75" y="525" font-size="10" fill="#0F172A">"three points about trust…"</text>
+  <text x="75" y="540" font-size="9" fill="#64748B">→ Suggested rewrite:</text>
+  <text x="75" y="553" font-size="9" fill="#64748B">"Trust comes from three things. First…"</text>
+
+  <rect x="320" y="490" width="260" height="78" rx="10" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.2"/>
+  <rect x="320" y="490" width="4" height="78" fill="#10B981"/>
+  <text x="335" y="510" font-size="9" font-weight="700" fill="#047857">CLARITY · positive · 0:12.0 → 0:15.8</text>
+  <text x="335" y="525" font-size="10" fill="#0F172A">"Consistency, honesty, follow-through."</text>
+  <text x="335" y="540" font-size="9" fill="#64748B">→ Concrete list, no fillers</text>
+  <text x="335" y="553" font-size="9" fill="#64748B">→ Mental model = load-bearing</text>
+
+  <rect x="580" y="490" width="260" height="78" rx="10" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.2"/>
+  <rect x="580" y="490" width="4" height="78" fill="#F59E0B"/>
+  <text x="595" y="510" font-size="9" font-weight="700" fill="#B45309">DELIVERY · warn · 0:18.5 → 0:22.0</text>
+  <text x="595" y="525" font-size="10" fill="#0F172A">WPM spike to 210</text>
+  <text x="595" y="540" font-size="9" fill="#64748B">→ Deterministic pacing signal</text>
+  <text x="595" y="553" font-size="9" fill="#64748B">→ Slow the close by 20%</text>
+
+  <!-- Footer -->
+  <text x="450" y="596" text-anchor="middle" font-size="10" fill="#64748B">
+    Every callout carries: dimension, tone, transcript_start_ms, transcript_end_ms, rubric_version. Score pins + callout pins survive rubric updates.
+  </text>
+  <text x="450" y="612" text-anchor="middle" font-size="9" fill="#94A3B8">Cognify · provisional claim C2 · rubric v2.0.0 · docs/PRIOR_ART.md</text>
+</svg>

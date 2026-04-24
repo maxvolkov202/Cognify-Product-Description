@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" font-family="Helvetica, Arial, sans-serif">
+  <title>Cognify closed-loop training system (C1)</title>
+  <desc>Six stages — Prompt, Think, Speak, Feedback, Refine, Compound — arranged in a closed loop. Input is a user-described scenario; output is a per-rep score + biased next-rep selection.</desc>
+
+  <defs>
+    <linearGradient id="purpleGrad" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0F172A"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="560" fill="#FFFFFF"/>
+
+  <text x="450" y="40" text-anchor="middle" font-size="22" font-weight="700" fill="#0F172A">Cognify · closed-loop training system</text>
+  <text x="450" y="64" text-anchor="middle" font-size="12" fill="#64748B">Six stages. Output of stage N feeds stage N+1; stage 6 conditions stage 1 of the next rep.</text>
+
+  <!-- External input: user scenario -->
+  <rect x="40" y="110" width="180" height="70" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="130" y="140" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">USER SCENARIO</text>
+  <text x="130" y="160" text-anchor="middle" font-size="10" fill="#64748B">free-text + stakeholder,</text>
+  <text x="130" y="174" text-anchor="middle" font-size="10" fill="#64748B">outcome, time pressure</text>
+
+  <!-- Stage 1: Prompt (scaffold gen) -->
+  <g>
+    <rect x="280" y="100" width="170" height="90" rx="14" fill="url(#purpleGrad)"/>
+    <text x="365" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1.5">01 · PROMPT</text>
+    <text x="365" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Generate scaffold</text>
+    <text x="365" y="170" text-anchor="middle" font-size="10" fill="#E9D5FF">/api/talking-points</text>
+    <text x="365" y="182" text-anchor="middle" font-size="10" fill="#E9D5FF">(Claude Opus)</text>
+  </g>
+
+  <!-- Stage 2: Think -->
+  <rect x="500" y="100" width="170" height="90" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="585" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">02 · THINK</text>
+  <text x="585" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A">3s ready countdown</text>
+  <text x="585" y="170" text-anchor="middle" font-size="10" fill="#64748B">user organizes</text>
+  <text x="585" y="182" text-anchor="middle" font-size="10" fill="#64748B">under pressure</text>
+
+  <!-- Stage 3: Speak -->
+  <rect x="720" y="100" width="150" height="90" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="795" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">03 · SPEAK</text>
+  <text x="795" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A">20–90s rep</text>
+  <text x="795" y="170" text-anchor="middle" font-size="10" fill="#64748B">MediaRecorder</text>
+  <text x="795" y="182" text-anchor="middle" font-size="10" fill="#64748B">+ live waveform</text>
+
+  <!-- Stage 4: Feedback -->
+  <rect x="720" y="260" width="150" height="110" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="795" y="288" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">04 · FEEDBACK</text>
+  <text x="795" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A">6-dim scoring</text>
+  <text x="795" y="328" text-anchor="middle" font-size="10" fill="#64748B">Deepgram transcript</text>
+  <text x="795" y="340" text-anchor="middle" font-size="10" fill="#64748B">+ Claude scoring</text>
+  <text x="795" y="358" text-anchor="middle" font-size="10" fill="#64748B">(rubric v2.0.0)</text>
+
+  <!-- Stage 5: Refine -->
+  <rect x="500" y="260" width="170" height="110" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="585" y="288" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">05 · REFINE</text>
+  <text x="585" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A">Retry with focus</text>
+  <text x="585" y="328" text-anchor="middle" font-size="10" fill="#64748B">rep-to-rep diff</text>
+  <text x="585" y="340" text-anchor="middle" font-size="10" fill="#64748B">surfaces weakest</text>
+  <text x="585" y="358" text-anchor="middle" font-size="10" fill="#64748B">dimension</text>
+
+  <!-- Stage 6: Compound -->
+  <g>
+    <rect x="280" y="260" width="170" height="110" rx="14" fill="url(#purpleGrad)"/>
+    <text x="365" y="288" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1.5">06 · COMPOUND</text>
+    <text x="365" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Next rep biased</text>
+    <text x="365" y="328" text-anchor="middle" font-size="10" fill="#E9D5FF">weakestDimensionBias</text>
+    <text x="365" y="340" text-anchor="middle" font-size="10" fill="#E9D5FF">→ planTodaysWorkout()</text>
+    <text x="365" y="358" text-anchor="middle" font-size="10" fill="#E9D5FF">on next session</text>
+  </g>
+
+  <!-- Output / persisted artifacts -->
+  <rect x="40" y="260" width="180" height="110" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="130" y="288" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">PERSISTED</text>
+  <text x="130" y="310" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A">reps + dim_scores</text>
+  <text x="130" y="326" text-anchor="middle" font-size="10" fill="#64748B">+ callouts + snapshots</text>
+  <text x="130" y="342" text-anchor="middle" font-size="10" fill="#64748B">+ personal_bests</text>
+  <text x="130" y="358" text-anchor="middle" font-size="10" fill="#64748B">all rubric-pinned</text>
+
+  <!-- Arrows: scenario → 01 -->
+  <line x1="220" y1="145" x2="275" y2="145" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 01 → 02 -->
+  <line x1="450" y1="145" x2="495" y2="145" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 02 → 03 -->
+  <line x1="670" y1="145" x2="715" y2="145" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 03 → 04 -->
+  <line x1="795" y1="190" x2="795" y2="255" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 04 → 05 -->
+  <line x1="720" y1="315" x2="675" y2="315" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 05 → 06 -->
+  <line x1="500" y1="315" x2="455" y2="315" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 06 → persisted -->
+  <line x1="280" y1="315" x2="225" y2="315" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <!-- 06 loops back to 01 (next rep) -->
+  <path d="M 365 260 Q 365 220 365 195" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrowPurple)"/>
+  <text x="390" y="232" font-size="10" font-style="italic" fill="#7C3AED">next rep</text>
+
+  <!-- Bottom note -->
+  <text x="450" y="450" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A">Novelty: stages 01 (scenario-personalized scaffold) + 06 (weakness-biased next-rep) are the patent-claim pillars.</text>
+  <text x="450" y="470" text-anchor="middle" font-size="10" fill="#64748B">No surveyed prior art (Poised, Yoodli, Orai, Speeko, Toastmasters, Ummo) implements this combined loop.</text>
+  <text x="450" y="490" text-anchor="middle" font-size="9" fill="#94A3B8">Cognify · provisional claim C1 · rubric v2.0.0 · docs/PRIOR_ART.md</text>
+</svg>

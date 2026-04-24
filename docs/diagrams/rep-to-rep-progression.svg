@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" font-family="Helvetica, Arial, sans-serif">
+  <title>Rep-to-rep progression (C3)</title>
+  <desc>Session N's weakest dimension biases Session N+1's rep-type selection. The multi-session improvement curve is the product artifact.</desc>
+
+  <defs>
+    <linearGradient id="brandGrad" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0F172A"/>
+    </marker>
+    <marker id="biasArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#EC4899"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="600" fill="#FFFFFF"/>
+
+  <text x="450" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#0F172A">Rep-to-rep progression · weakness-biased next session</text>
+  <text x="450" y="60" text-anchor="middle" font-size="12" fill="#64748B">Session N's lowest-scoring dimension deterministically biases Session N+1's rep-type selection</text>
+
+  <!-- Session N -->
+  <rect x="50" y="110" width="330" height="180" rx="14" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/>
+  <text x="215" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#0F172A" letter-spacing="1.5">SESSION N · MONDAY</text>
+
+  <g>
+    <!-- Mini per-dim bars -->
+    <text x="80" y="168" font-size="9" fill="#0F172A">Clarity</text>
+    <rect x="150" y="160" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="160" width="158" height="10" rx="5" fill="url(#brandGrad)"/>
+    <text x="340" y="168" font-size="9" font-weight="700" fill="#0F172A">88</text>
+
+    <text x="80" y="186" font-size="9" fill="#0F172A">Structure</text>
+    <rect x="150" y="178" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="178" width="140" height="10" rx="5" fill="url(#brandGrad)"/>
+    <text x="340" y="186" font-size="9" font-weight="700" fill="#0F172A">78</text>
+
+    <text x="80" y="204" font-size="9" fill="#0F172A">Conciseness</text>
+    <rect x="150" y="196" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="196" width="129" height="10" rx="5" fill="url(#brandGrad)"/>
+    <text x="340" y="204" font-size="9" font-weight="700" fill="#0F172A">72</text>
+
+    <text x="80" y="222" font-size="9" fill="#0F172A">Thinking</text>
+    <rect x="150" y="214" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="214" width="148" height="10" rx="5" fill="url(#brandGrad)"/>
+    <text x="340" y="222" font-size="9" font-weight="700" fill="#0F172A">82</text>
+
+    <!-- Delivery = weakest — highlight -->
+    <rect x="70" y="232" width="280" height="22" rx="6" fill="#FEF2F2" stroke="#F43F5E" stroke-width="1.2"/>
+    <text x="80" y="247" font-size="9" font-weight="700" fill="#B91C1C">Delivery</text>
+    <rect x="150" y="240" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="240" width="114" height="10" rx="5" fill="#F43F5E"/>
+    <text x="340" y="247" font-size="9" font-weight="700" fill="#B91C1C">63 ← weakest</text>
+
+    <text x="80" y="272" font-size="9" fill="#0F172A">Adaptability</text>
+    <rect x="150" y="264" width="180" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="264" width="148" height="10" rx="5" fill="url(#brandGrad)"/>
+    <text x="340" y="272" font-size="9" font-weight="700" fill="#0F172A">82</text>
+  </g>
+
+  <!-- Bias arrow -->
+  <path d="M 385 200 Q 435 200 475 200" stroke="#EC4899" stroke-width="3" fill="none" marker-end="url(#biasArrow)"/>
+  <text x="435" y="186" text-anchor="middle" font-size="10" font-style="italic" font-weight="700" fill="#EC4899">weakestDimensionBias</text>
+  <text x="435" y="220" text-anchor="middle" font-size="9" fill="#EC4899">= "delivery"</text>
+
+  <!-- Session N+1 -->
+  <rect x="485" y="110" width="370" height="180" rx="14" fill="url(#brandGrad)" opacity="0.08"/>
+  <rect x="485" y="110" width="370" height="180" rx="14" fill="none" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="670" y="138" text-anchor="middle" font-size="11" font-weight="700" fill="#7C3AED" letter-spacing="1.5">SESSION N+1 · TUESDAY (biased)</text>
+  <text x="670" y="158" text-anchor="middle" font-size="10" fill="#0F172A">planTodaysWorkout({ weakestDimensionBias: "delivery" })</text>
+
+  <g>
+    <rect x="505" y="178" width="160" height="52" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
+    <text x="515" y="196" font-size="9" font-weight="700" fill="#7C3AED">REP 1 · DELIVER</text>
+    <text x="515" y="212" font-size="10" fill="#0F172A">"Hold under pressure"</text>
+    <text x="515" y="224" font-size="8" fill="#64748B">primary: delivery</text>
+
+    <rect x="675" y="178" width="160" height="52" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
+    <text x="685" y="196" font-size="9" font-weight="700" fill="#7C3AED">REP 2 · REINFORCE</text>
+    <text x="685" y="212" font-size="10" fill="#0F172A">"Repeat with rhythm"</text>
+    <text x="685" y="224" font-size="8" fill="#64748B">primary: delivery</text>
+
+    <rect x="505" y="236" width="160" height="44" rx="8" fill="#FFF7ED" stroke="#F59E0B" stroke-width="1.2"/>
+    <text x="515" y="252" font-size="9" font-weight="700" fill="#B45309">REP 3 · PRESSURE</text>
+    <text x="515" y="266" font-size="9" fill="#0F172A">archetype: time_compression</text>
+    <text x="515" y="277" font-size="8" fill="#64748B">stresses delivery + conciseness</text>
+
+    <rect x="675" y="236" width="160" height="44" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
+    <text x="685" y="252" font-size="9" font-weight="700" fill="#7C3AED">REP 4 · DELIVER</text>
+    <text x="685" y="266" font-size="9" fill="#0F172A">carryover: delivery</text>
+    <text x="685" y="277" font-size="8" fill="#64748B">reinforce after stress</text>
+  </g>
+
+  <!-- Multi-session improvement curve -->
+  <rect x="50" y="320" width="805" height="220" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+  <text x="450" y="348" text-anchor="middle" font-size="12" font-weight="700" fill="#0F172A">MULTI-SESSION IMPROVEMENT CURVE · the product artifact</text>
+
+  <!-- axis -->
+  <line x1="90" y1="510" x2="820" y2="510" stroke="#0F172A" stroke-width="1"/>
+  <line x1="90" y1="370" x2="90" y2="510" stroke="#0F172A" stroke-width="1"/>
+
+  <!-- y labels -->
+  <text x="80" y="375" text-anchor="end" font-size="8" fill="#64748B">100</text>
+  <text x="80" y="420" text-anchor="end" font-size="8" fill="#64748B">80</text>
+  <text x="80" y="465" text-anchor="end" font-size="8" fill="#64748B">60</text>
+  <text x="80" y="510" text-anchor="end" font-size="8" fill="#64748B">40</text>
+
+  <!-- Delivery line (the biased dim) -->
+  <polyline points="100,488 160,478 220,460 280,448 340,440 400,430 460,418 520,408 580,398 640,388 700,380 760,375 820,370" fill="none" stroke="#EC4899" stroke-width="2.5"/>
+  <circle cx="100" cy="488" r="3.5" fill="#EC4899"/>
+  <circle cx="820" cy="370" r="4" fill="#EC4899"/>
+  <text x="110" y="500" font-size="9" fill="#B91C1C">starting delivery 63</text>
+  <text x="810" y="362" text-anchor="end" font-size="9" font-weight="700" fill="#B91C1C">90 (+27 over 12 wk)</text>
+
+  <!-- Overall composite (muted) -->
+  <polyline points="100,450 160,447 220,442 280,438 340,432 400,426 460,420 520,415 580,410 640,405 700,402 760,398 820,395" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="820" y="388" text-anchor="end" font-size="9" fill="#5B21B6">overall composite (slope follows)</text>
+
+  <!-- x labels -->
+  <text x="100" y="525" text-anchor="middle" font-size="8" fill="#64748B">wk 0</text>
+  <text x="460" y="525" text-anchor="middle" font-size="8" fill="#64748B">wk 6</text>
+  <text x="820" y="525" text-anchor="middle" font-size="8" fill="#64748B">wk 12</text>
+
+  <text x="450" y="560" text-anchor="middle" font-size="10" fill="#0F172A">
+    The weakest-dim bias concentrates training pressure. Target dimension rises faster than overall composite.
+  </text>
+  <text x="450" y="576" text-anchor="middle" font-size="9" fill="#64748B">
+    Slope of the pink line = the claim. No surveyed prior art has an equivalent deterministic mechanism.
+  </text>
+  <text x="450" y="592" text-anchor="middle" font-size="9" fill="#94A3B8">Cognify · provisional claim C3 · docs/PRIOR_ART.md</text>
+</svg>
