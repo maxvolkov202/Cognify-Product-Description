@@ -14,6 +14,8 @@ import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
 import { getStreakDays } from "@/lib/db/queries/progress";
+import { recordPersonalBests } from "@/lib/db/queries/personal-bests";
+import { awardStreakFreeze } from "@/lib/db/queries/streak-freeze";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
@@ -205,6 +207,20 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           takenAt: new Date(),
         })),
       );
+      // Record any per-dimension personal bests this rep set. Durable
+      // across sessions; in-session UI keeps using WorkoutSession's
+      // local detection for instant-feedback toast, but the DB row is
+      // the source of truth for /progress and /report.
+      if (userId !== "anonymous") {
+        await recordPersonalBests({
+          userId,
+          repId,
+          dimensionScores: input.score.dimensions.map((d) => ({
+            dimension: d.dimension,
+            score: d.score,
+          })),
+        });
+      }
     }
 
     let calloutIds: string[] = [];
@@ -256,6 +272,10 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           type: "streak_milestone",
           days: streak,
         });
+        // Every 7-day streak earns +1 freeze (capped at 3 in-function).
+        // The freeze persists in the users table; consumed automatically
+        // by getStreakStatus when a single-day gap appears.
+        await awardStreakFreeze(userId);
       }
     }
 

@@ -6,11 +6,11 @@ import {
   getCurrentSkillScores,
   getActivityHeatmap,
   getRecentReps,
-  getStreakDays,
   getPressureRepStats,
   getDailyCompositeTrend,
   getBeforeAfterReps,
 } from "@/lib/db/queries/progress";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { hasDatabase } from "@/lib/db/safe";
 import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
@@ -39,7 +39,7 @@ export default async function ProgressPage() {
     currentScores,
     activity,
     recentReps,
-    streakDays,
+    streakStatus,
     pressureStats,
     dailyCompositeTrend,
     beforeAfter,
@@ -48,7 +48,7 @@ export default async function ProgressPage() {
     getCurrentSkillScores(userId),
     getActivityHeatmap(userId, 84),
     getRecentReps(userId, 12),
-    getStreakDays(userId),
+    getStreakStatus(userId),
     getPressureRepStats(userId, 60),
     getDailyCompositeTrend(userId, 90),
     getBeforeAfterReps(userId),
@@ -249,12 +249,30 @@ export default async function ProgressPage() {
         </div>
       )}
 
+      {streakStatus.appliedFreezeDate && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-sky-300 bg-gradient-to-br from-sky-50 via-sky-50/70 to-sky-100/40 p-4">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-700">
+            <Flame className="size-4" strokeWidth={2.5} />
+          </div>
+          <p className="flex-1 text-sm font-semibold text-sky-950">
+            Streak freeze applied — you missed a day but your{" "}
+            {streakStatus.streakDays}-day streak is intact. {streakStatus.freezesAvailable}{" "}
+            freeze{streakStatus.freezesAvailable === 1 ? "" : "s"} left.
+          </p>
+        </div>
+      )}
+
       <div className="mt-10 grid gap-6 md:grid-cols-4">
         <StatCard
           icon={<Flame className="size-4 text-white" />}
           label="Current streak"
-          value={streakDays.toString()}
+          value={streakStatus.streakDays.toString()}
           suffix="days"
+          tooltip={
+            streakStatus.freezesAvailable > 0
+              ? `Banked freezes: ${streakStatus.freezesAvailable}. Earned every 7 consecutive days; auto-applied when you miss one day.`
+              : "Earned every 7 consecutive days. Protects your streak from a single missed day."
+          }
         />
         <StatCard
           icon={<Play className="size-4 text-white" />}

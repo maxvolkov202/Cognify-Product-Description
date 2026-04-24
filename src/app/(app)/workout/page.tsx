@@ -4,10 +4,10 @@ import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
   getLastSessionWeakestDimension,
-  getStreakDays,
   getUserDimensionMaxes,
   getYesterdayDailyAverage,
 } from "@/lib/db/queries/progress";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +18,15 @@ export default async function WorkoutPage() {
   // Yesterday's avg composite feeds the end-of-workout "(+4 from yesterday)" delta.
   const user = await currentUser();
   const profile = user ? await getUserProfile(user.id) : null;
-  const [streakDays, yesterday, dimensionMaxes, weakestDim] = user
+  const [streakStatus, yesterday, dimensionMaxes, weakestDim] = user
     ? await Promise.all([
-        getStreakDays(user.id),
+        getStreakStatus(user.id),
         getYesterdayDailyAverage(user.id),
         getUserDimensionMaxes(user.id),
         getLastSessionWeakestDimension(user.id),
       ])
     : [null, null, null, null];
+  const streakDays = streakStatus?.streakDays ?? null;
 
   const plan = planTodaysWorkout({
     goals: profile?.improvementGoals ?? [],
