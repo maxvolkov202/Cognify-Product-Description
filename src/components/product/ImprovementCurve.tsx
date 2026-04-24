@@ -40,8 +40,8 @@ export function ImprovementCurve({
     return points.filter((p) => new Date(p.date) >= cutoff);
   }, [points, range]);
 
-  const { slope, intercept } = useMemo(() => {
-    if (filtered.length < 2) return { slope: 0, intercept: 0 };
+  const { slope, intercept, stdErr } = useMemo(() => {
+    if (filtered.length < 2) return { slope: 0, intercept: 0, stdErr: 0 };
     const n = filtered.length;
     const xs = filtered.map((_, i) => i);
     const ys = filtered.map((p) => p.composite);
@@ -50,10 +50,19 @@ export function ImprovementCurve({
     const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
     const sumX2 = xs.reduce((s, x) => s + x * x, 0);
     const d = n * sumX2 - sumX * sumX;
-    if (d === 0) return { slope: 0, intercept: ys[0]! };
+    if (d === 0) return { slope: 0, intercept: ys[0]!, stdErr: 0 };
     const slope = (n * sumXY - sumX * sumY) / d;
     const intercept = (sumY - slope * sumX) / n;
-    return { slope, intercept };
+    // Standard error of the residuals — root-mean-square of
+    // (observed - predicted). With n<3 the residual degrees of freedom
+    // are zero so we use a floor of 1 to avoid divide-by-zero.
+    const resSS = ys.reduce((s, y, i) => {
+      const yhat = intercept + slope * xs[i]!;
+      return s + (y - yhat) ** 2;
+    }, 0);
+    const dof = Math.max(1, n - 2);
+    const stdErr = Math.sqrt(resSS / dof);
+    return { slope, intercept, stdErr };
   }, [filtered]);
 
   if (filtered.length < 2) {
@@ -95,6 +104,27 @@ export function ImprovementCurve({
     x: xAt(filtered.length - 1),
     y: yAt(intercept + slope * (filtered.length - 1)),
   };
+
+  // 95% confidence interval band around the trend line — ±1.96 * SE of
+  // the regression residuals, clamped to [0, 100] so the band never
+  // leaves the chart. Drawn as a filled polygon bounded above by
+  // predicted+ci and below by predicted-ci, clipped to the plot area.
+  const CI_MULTIPLIER = 1.96;
+  const ciBandPath = (() => {
+    if (stdErr === 0 || filtered.length < 3) return null;
+    const upperPts: string[] = [];
+    const lowerPts: string[] = [];
+    for (let i = 0; i < filtered.length; i++) {
+      const yhat = intercept + slope * i;
+      const upper = Math.min(100, yhat + CI_MULTIPLIER * stdErr);
+      const lower = Math.max(0, yhat - CI_MULTIPLIER * stdErr);
+      upperPts.push(`${xAt(i)},${yAt(upper)}`);
+      lowerPts.push(`${xAt(i)},${yAt(lower)}`);
+    }
+    // Build a closed polygon: upper boundary left→right, then lower
+    // boundary right→left.
+    return `M ${upperPts.join(" L ")} L ${lowerPts.reverse().join(" L ")} Z`;
+  })();
 
   const peakIdx = filtered.reduce(
     (best, p, i) => (p.composite > filtered[best]!.composite ? i : best),
@@ -229,6 +259,16 @@ export function ImprovementCurve({
             strokeLinejoin="round"
           />
 
+          {/* 95% confidence-interval band around the regression */}
+          {ciBandPath && (
+            <path
+              d={ciBandPath}
+              fill="rgb(236 72 153)"
+              fillOpacity={0.12}
+              stroke="none"
+            />
+          )}
+
           {/* Trend line (regression) */}
           <line
             x1={trendStart.x}
@@ -297,8 +337,11 @@ export function ImprovementCurve({
 
         <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
           Solid line = daily avg composite. Dashed pink = fitted trajectory.
-          Flat lines over weeks usually mean the rep variety got too narrow —
-          try a new rep type or a pressure archetype.
+          Pink band = 95% confidence interval on that trajectory — narrow
+          band means your improvement is steady; wide band means your
+          day-to-day score is still noisy. Flat lines over weeks usually
+          mean the rep variety got too narrow — try a new rep type or a
+          pressure archetype.
         </p>
       </div>
     </div>

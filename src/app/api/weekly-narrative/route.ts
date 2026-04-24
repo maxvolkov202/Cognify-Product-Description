@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/session/current-user";
 import { getWeeklyRepSummary } from "@/lib/db/queries/progress";
 import { generateWeeklyNarrative } from "@/lib/ai/weekly-summary";
+import {
+  getWeeklyReportForWeek,
+  upsertWeeklyReport,
+  currentWeekStartIso,
+} from "@/lib/db/queries/weekly-reports";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
@@ -10,13 +15,17 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/weekly-narrative
  *
- * Returns { summary, narrative } for the authenticated user's current week.
- * Narrative is generated on-demand by Claude Sonnet from the summary.
- * Client caches in localStorage for the current weekStartISO so we
- * don't re-generate on every /progress page visit.
+ * Read-through cache:
+ *   1. Look up weekly_reports for (userId, currentWeekStartIso). If a row
+ *      exists and was written in the last 24h, return it immediately —
+ *      this is the cron-produced path.
+ *   2. Otherwise call Claude, return the narrative, and write back to
+ *      weekly_reports so subsequent requests this week are free.
+ *
+ * Client still caches for 12h in localStorage — the DB cache is for
+ * cross-device consistency + cost containment, not hot-path latency.
  */
 export async function GET(req: Request) {
-  // Generous rate limit — this is a read-only recap, not a hot path.
   const rl = await rateLimit(getRateLimitIdentifier(req), {
     count: 10,
     window: "1 m",
@@ -37,14 +46,30 @@ export async function GET(req: Request) {
   }
 
   const summary = await getWeeklyRepSummary(user.id);
+  const weekStartIso = summary.weekStartISO || currentWeekStartIso();
+
+  // Cache hit path — use only if the stored narrative is < 24h old.
+  const cached = await getWeeklyReportForWeek(user.id, weekStartIso);
+  if (cached && Date.now() - cached.generatedAt.getTime() < 24 * 60 * 60 * 1000) {
+    return NextResponse.json({
+      summary,
+      narrative: cached.narrative,
+      cached: true,
+    });
+  }
+
   try {
     const narrative = await generateWeeklyNarrative(summary);
+    // Best-effort DB write — if safeDb fails, the response still works.
+    await upsertWeeklyReport({
+      userId: user.id,
+      weekStartIso,
+      narrative,
+    });
     return NextResponse.json({ summary, narrative });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[api/weekly-narrative] generation failed:", message);
-    // Graceful fallback so /progress always has something to show —
-    // a short data-only summary with no LLM-written paragraph.
     return NextResponse.json({
       summary,
       narrative: {
