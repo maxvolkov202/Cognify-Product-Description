@@ -65,6 +65,11 @@ export type RepType = {
   /** Structural scaffold shown to the user during the rep as a cheat-sheet
    *  strip. Not editable — this is fixed per rep type. */
   readonly framework: RepTypeFramework;
+  /** Rep types flagged `isPressureType: true` require a `pressureArchetype`
+   *  to be selected at orchestration time. The rep's prompt + scoring
+   *  weights + UI treatment come from the archetype, not the rep type.
+   *  See `pressure-archetypes.ts` and `docs/proposals/pressure-system.md`. */
+  readonly isPressureType?: boolean;
 };
 
 export const REP_TYPES: readonly RepType[] = [
@@ -412,14 +417,16 @@ export const REP_TYPES: readonly RepType[] = [
   {
     id: "handle_pressure",
     name: "Handle Pressure",
-    tagline: "Pushback",
-    purpose: "Respond clearly when challenged mid-answer",
+    tagline: "Pressure Rep",
+    purpose:
+      "Perform under a real stressor — pushback, time compression, audience switch, interruption, or raised stakes",
     behavior:
-      "You're making a point. Someone pushes back. Respond in 30 seconds",
+      "One of five pressure archetypes is selected per session. The prompt itself encodes the mechanism — read carefully before you start",
     primaryDimension: "confidence",
     secondaryDimensions: ["relevance", "tone"],
     timeBudgetSec: 30,
-    instruction: "Respond to the pushback",
+    instruction: "Hold composure under the mechanism",
+    isPressureType: true,
     framework: {
       name: "Acknowledge → Redirect → Land",
       exampleScenario:

@@ -10,7 +10,13 @@ import {
   type RepTypeId,
 } from "./rep-types";
 import { pickWorkoutPrompts } from "./prompts/workout";
+import { pickPressurePrompts } from "./prompts/pressure";
 import { getFrameworkPool } from "./frameworks-rep-variants";
+import {
+  selectPressureArchetype,
+  type PressureArchetype,
+  type PressureArchetypeId,
+} from "./pressure-archetypes";
 
 /**
  * ============================================================
@@ -53,6 +59,11 @@ export type WorkoutRepSlot = {
    *  weakness from the previous rep. Surfaced to the user as "Focusing on X"
    *  on the prompt-select screen. Null/absent when no adjustment happened. */
   focusReason?: FocusReason | null;
+  /** Set when the slot is a pressure rep — drives UI differentiation
+   *  (PressureRepIndicator), prompt bank (from pressure.ts instead of
+   *  workout.ts), time budget delta, and scoring weight profile. Every
+   *  session of 4+ reps has exactly one pressure slot, at position N-1. */
+  pressureArchetype?: PressureArchetype;
 };
 
 /** A human-readable explanation of why the next rep was adjusted, plus the
@@ -81,6 +92,13 @@ export type WorkoutSessionPlan = {
  * Picks rep types weighted by the user's improvement goals, then
  * presents 5 prompts per rep type for the user to choose from. Prompts
  * are general (not vertical-specific) per the team spec.
+ *
+ * **Build → Stress → Reinforce arc (WS-3)**: sessions of 4+ reps always
+ * contain a pressure rep at position `N-1`. Non-pressure slots come from
+ * the goal-weighted rep-type pool; the pressure slot is always
+ * `handle_pressure` with a randomized archetype from `pressure-archetypes.ts`.
+ * Sessions of <4 reps (rare) skip the pressure rep since the arc needs
+ * at least one build + one reinforce on either side.
  */
 export function planTodaysWorkout(
   opts: {
@@ -90,29 +108,83 @@ export function planTodaysWorkout(
      *  so we rotate away from them. Oldest allowed; these are just
      *  deprioritized, not excluded. */
     recentFrameworkNames?: readonly string[];
+    /** The pressure archetype used in the user's previous session, so we
+     *  can exclude it from archetype selection this session (prevents
+     *  back-to-back repeats). */
+    previousPressureArchetypeId?: PressureArchetypeId | null;
+    /** Disable the WS-3 pressure-rep placement. Primarily for tests and
+     *  for the legacy shim that predates the pressure system. */
+    disablePressureRep?: boolean;
   } = {},
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
   const goals = opts.goals ?? [];
-  const repTypeIds = pickRepTypes({ goals, count });
+
+  // Pressure rep placement: always at position N-1 when count >= 4. That
+  // gives us at least one "build" rep at position 0 and exactly one
+  // "reinforce" rep at position N (the last). Build→Stress→Reinforce.
+  const includesPressureRep = !opts.disablePressureRep && count >= 4;
+  const pressureIndex = includesPressureRep ? count - 2 : -1;
+
+  // Pick rep types for the non-pressure slots. We ask for `count` types
+  // then drop one if it happens to be `handle_pressure` (we'll inject
+  // that slot ourselves so the archetype is deterministic). This keeps
+  // pickRepTypes' goal-weighting + anti-consecutive-dupe rules intact.
+  // Explicit type annotation: TS would otherwise narrow this to
+  // Exclude<RepTypeId, "handle_pressure">[] via the filter, which blocks
+  // the top-up push below where fallback.id is RepTypeId.
+  const pickedTypeIds = pickRepTypes({ goals, count });
+  const nonPressureTypeIds: RepTypeId[] = pickedTypeIds.filter(
+    (id) => id !== "handle_pressure",
+  );
+  // Guarantee we have enough non-pressure types for the non-pressure
+  // slots. If filtering dropped us short, top up from REP_TYPES.
+  while (
+    nonPressureTypeIds.length < count - (includesPressureRep ? 1 : 0)
+  ) {
+    const fallback = REP_TYPES.find(
+      (rt) =>
+        rt.id !== "handle_pressure" && !nonPressureTypeIds.includes(rt.id),
+    );
+    if (!fallback) break;
+    nonPressureTypeIds.push(fallback.id);
+  }
+
+  const pressureArchetype = includesPressureRep
+    ? selectPressureArchetype({
+        previousArchetype: opts.previousPressureArchetypeId ?? null,
+      })
+    : null;
 
   const usedThisSession = new Set<string>(opts.recentFrameworkNames ?? []);
 
-  const reps: WorkoutRepSlot[] = repTypeIds.map((id) => {
-    const repType = getRepType(id);
-    const framework = pickRotatingFramework(id, repType.framework, usedThisSession);
+  const reps: WorkoutRepSlot[] = [];
+  let nonPressureCursor = 0;
+  for (let i = 0; i < count; i++) {
+    if (i === pressureIndex && pressureArchetype) {
+      reps.push(buildPressureRepSlot(pressureArchetype, usedThisSession));
+      continue;
+    }
+    const typeId =
+      nonPressureTypeIds[nonPressureCursor++] ?? REP_TYPES[0]!.id;
+    const repType = getRepType(typeId);
+    const framework = pickRotatingFramework(
+      typeId,
+      repType.framework,
+      usedThisSession,
+    );
     usedThisSession.add(framework.name);
-    return {
+    reps.push({
       repType,
-      prompts: pickWorkoutPrompts(id, 5),
+      prompts: pickWorkoutPrompts(typeId, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
-    };
-  });
+    });
+  }
 
   const estimatedDurationSec = reps.reduce(
     // rep duration + ~20s feedback/transition window per rep
-    (sum, r) => sum + r.repType.timeBudgetSec + 20,
+    (sum, r) => sum + Math.round(r.timeBudgetMs / 1000) + 20,
     0,
   );
 
@@ -123,6 +195,36 @@ export function planTodaysWorkout(
         : `workout-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     reps,
     estimatedDurationSec,
+  };
+}
+
+/**
+ * Build the pressure rep slot. The rep type is always `handle_pressure`;
+ * the archetype drives the prompt bank, time budget delta, and slot-level
+ * `pressureArchetype` field that UI surfaces and the scoring pipeline
+ * pick up.
+ */
+function buildPressureRepSlot(
+  archetype: PressureArchetype,
+  usedFrameworks: Set<string>,
+): WorkoutRepSlot {
+  const repType = getRepType("handle_pressure");
+  const timeBudgetSec = Math.max(
+    15,
+    repType.timeBudgetSec + archetype.durationDeltaSec,
+  );
+  const framework = pickRotatingFramework(
+    repType.id,
+    repType.framework,
+    usedFrameworks,
+  );
+  usedFrameworks.add(framework.name);
+  return {
+    repType,
+    prompts: pickPressurePrompts(archetype.id, 5),
+    timeBudgetMs: timeBudgetSec * 1000,
+    framework,
+    pressureArchetype: archetype,
   };
 }
 
