@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/shared/AppNav";
 import { InstallPrompt } from "@/components/product/InstallPrompt";
+import { SixSkillsBar } from "@/components/product/SixSkillsBar";
 import { currentUser } from "@/lib/session/current-user";
 import { isUserOnboarded, getUserProfile } from "@/lib/db/queries/user";
+import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 
 // Nav items. Phase 5: /scenario replaced by /build-a-rep. The /scenario
 // route still exists as a redirect to /build-a-rep for backwards compat
@@ -41,10 +43,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }
       : null;
 
+  const skillScores = user ? await getCurrentSkillScores(user.id) : null;
+
   return (
     <div className="flex min-h-screen flex-col bg-ink-50/60">
       <AppNav navItems={navItems} sessionUser={sessionUser} />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-20">{children}</main>
+      <SixSkillsBar scores={skillScores ?? {}} />
       <InstallPrompt />
     </div>
   );
