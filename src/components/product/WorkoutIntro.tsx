@@ -11,6 +11,9 @@ type Props = {
   hasResumeState?: boolean;
   onStart: () => void;
   onResume?: () => void;
+  /** Current streak in days — shown as a chip on the hero (mockup #1).
+   *  Zero/null hides the chip. */
+  streakDays?: number | null;
   /** Called when the user changes session type / focus dimension. The
    *  parent re-runs the relevant orchestrator and passes the new plan
    *  back in via the `plan` prop. */
@@ -32,6 +35,7 @@ export function WorkoutIntro({
   hasResumeState,
   onStart,
   onResume,
+  streakDays,
   onChangeSessionType,
 }: Props) {
   const repCount = plan.reps.length;
@@ -102,6 +106,17 @@ export function WorkoutIntro({
             Ready to train?
           </h1>
           <p className="mt-3 text-lg leading-relaxed text-ink-600">{tagline}</p>
+
+          {streakDays !== undefined && streakDays !== null && streakDays > 0 && (
+            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-orange-900">
+              <Flame
+                className="size-3 text-orange-600"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              />
+              {streakDays} {streakDays === 1 ? "day" : "days"} streak
+            </div>
+          )}
 
           {onChangeSessionType && (
             <div className="mt-6 border-t border-ink-200 pt-6">

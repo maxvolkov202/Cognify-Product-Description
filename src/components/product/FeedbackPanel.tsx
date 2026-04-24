@@ -456,6 +456,37 @@ export function FeedbackPanel({
 
       {/* ——— Feedback rating (calibration loop) ————————————————— */}
       <FeedbackRatingTile repId={repId ?? null} />
+
+      {/* ——— Send for human validation ———————————————————————— */}
+      {repId && (
+        <div className="rounded-2xl border border-brand-purple/20 bg-brand-purple/5 p-5">
+          <div className="flex items-start gap-3">
+            <div className="brand-gradient grid size-10 shrink-0 place-items-center rounded-xl shadow-sm">
+              <Share2 className="size-5 text-white" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+                Want human feedback?
+              </p>
+              <p className="mt-1 text-sm font-semibold text-ink-900">
+                Send this rep to 3 friends for a blind ranking.
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-600">
+                No scores, no names. They rank your attempts on which
+                landed best. Pure human signal — the proof the algorithm
+                can&rsquo;t fake.
+              </p>
+              <a
+                href="/validate/new"
+                className="brand-gradient mt-3 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:shadow-md"
+              >
+                Set up blind ranking
+                <ArrowUpRight className="size-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

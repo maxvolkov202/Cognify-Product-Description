@@ -382,6 +382,7 @@ export function WorkoutSession({
           hasResumeState={canResume}
           onStart={handleStart}
           onResume={handleResume}
+          streakDays={streakDays ?? null}
           onChangeSessionType={handleChangeSessionType}
         />
         {toast}
