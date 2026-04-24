@@ -240,6 +240,66 @@ export function ValidationCreator({ topics, initialTopic, initialRepIds }: Props
         </div>
       )}
 
+      {/* ——— Pre-create listener preview ——————————————————————————
+           Sweep #8: users wanted to know what the listener sees before
+           they send the link, not after. This mirrors the post-create
+           preview card with the same A/B/C pattern + estimated listen
+           time so expectations align before Generate is tapped. */}
+      {activeTopic && selectedIds.size >= 2 && (
+        <div className="surface-card overflow-hidden">
+          <div className="h-1 bg-ink-200" aria-hidden="true" />
+          <div className="p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+              Preview · what your listener will see
+            </p>
+            <h3 className="mt-1 text-lg font-bold text-ink-900">
+              {selectedIds.size} unlabeled reps · ~{Math.ceil(
+                (activeTopic.reps
+                  .filter((r) => selectedIds.has(r.id))
+                  .reduce((acc, r) => acc + r.durationMs, 0) /
+                  1000) /
+                  60,
+              )}{" "}
+              min listen time
+            </h3>
+            <p className="mt-1 text-sm text-ink-600">
+              No names, no dates, no scores. Randomized order. They rank
+              1st → last by which version landed best.
+            </p>
+            <ol className="mt-4 space-y-2 text-sm text-ink-700">
+              {Array.from({ length: Math.min(selectedIds.size, 3) }).map(
+                (_, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center gap-3 rounded-lg border border-ink-200 bg-ink-50/60 px-4 py-3"
+                  >
+                    <span className="brand-gradient grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white">
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    <span className="flex-1 text-ink-500">
+                      Rep {String.fromCharCode(65 + i)} · audio player
+                    </span>
+                    <span className="text-xs text-ink-400">▶ ~0:{
+                      String(
+                        Math.round(
+                          (activeTopic.reps[i]?.durationMs ?? 30_000) /
+                            1000,
+                        ),
+                      ).padStart(2, "0")
+                    }</span>
+                  </li>
+                ),
+              )}
+              {selectedIds.size > 3 && (
+                <li className="text-center text-xs text-ink-400">
+                  …{selectedIds.size - 3} more
+                </li>
+              )}
+            </ol>
+          </div>
+        </div>
+      )}
+
       {error && (
         <p className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
           {error}
