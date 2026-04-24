@@ -14,7 +14,7 @@ const groups = [
   {
     title: "For",
     links: [
-      { href: "/for-teams", label: "L&D teams" },
+      { href: "/for-teams", label: "Teams" },
       { href: "/for-teams#career-centers", label: "Career centers" },
       { href: "/for-individuals", label: "Individuals" },
     ],
@@ -23,6 +23,7 @@ const groups = [
     title: "Company",
     links: [
       { href: "/about", label: "About" },
+      { href: "/about/team", label: "Team & advisors" },
       { href: "/help", label: "Help & support" },
       { href: "/help#contact", label: "Contact" },
       { href: "/about/references", label: "Research" },

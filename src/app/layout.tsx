@@ -25,8 +25,9 @@ export const metadata: Metadata = {
     "interview prep",
     "pitch training",
     "meeting presence",
-    "AI coach",
-    "L&D",
+    "speaking reps",
+    "brain productivity",
+    "corporate health",
   ],
   openGraph: {
     title: "Cognify — The Duolingo for communication",

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Users } from "lucide-react";
 import { Logo } from "@/components/shared/Logo";
 import { GradientButton } from "@/components/shared/GradientButton";
 
@@ -113,6 +113,13 @@ export default function AboutPage() {
           <GradientButton href="/for-individuals" size="lg">
             Start your first rep
           </GradientButton>
+          <Link
+            href="/about/team"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+          >
+            <Users className="size-4" />
+            Team & advisors
+          </Link>
           <Link
             href="/about/references"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
