@@ -86,7 +86,7 @@ export const REP_TYPES: readonly RepType[] = [
     behavior:
       "You have 45 seconds to make a complex idea land for a beginner",
     primaryDimension: "clarity",
-    secondaryDimensions: ["structure", "relevance"],
+    secondaryDimensions: ["structure", "conciseness"],
     timeBudgetSec: 45,
     instruction: "Explain simply",
     framework: {
@@ -130,7 +130,7 @@ export const REP_TYPES: readonly RepType[] = [
     behavior:
       "You have 60 seconds to build an argument with visible scaffolding",
     primaryDimension: "structure",
-    secondaryDimensions: ["clarity", "relevance"],
+    secondaryDimensions: ["clarity", "conciseness"],
     timeBudgetSec: 60,
     instruction: "Main point → three supporting → close",
     framework: {
@@ -178,8 +178,8 @@ export const REP_TYPES: readonly RepType[] = [
     purpose: "Respond coherently with zero preparation time",
     behavior:
       "You have 30 seconds. You hear the prompt, you start talking",
-    primaryDimension: "confidence",
-    secondaryDimensions: ["clarity", "pacing"],
+    primaryDimension: "thinking_quality",
+    secondaryDimensions: ["clarity", "delivery"],
     timeBudgetSec: 30,
     instruction: "React immediately — no planning",
     framework: {
@@ -222,8 +222,8 @@ export const REP_TYPES: readonly RepType[] = [
       "Say the most with the fewest words, under a tight deadline",
     behavior:
       "You have 20 seconds. Every word has to carry its weight",
-    primaryDimension: "pacing",
-    secondaryDimensions: ["clarity", "relevance"],
+    primaryDimension: "conciseness",
+    secondaryDimensions: ["clarity", "delivery"],
     timeBudgetSec: 20,
     instruction: "Maximum signal per word",
     framework: {
@@ -260,7 +260,7 @@ export const REP_TYPES: readonly RepType[] = [
     behavior:
       "You have 45 seconds to walk someone through doing something",
     primaryDimension: "clarity",
-    secondaryDimensions: ["structure", "pacing"],
+    secondaryDimensions: ["structure", "delivery"],
     timeBudgetSec: 45,
     instruction: "Teach it step by step",
     framework: {
@@ -302,8 +302,8 @@ export const REP_TYPES: readonly RepType[] = [
     purpose: "Convince someone to take a specific action",
     behavior:
       "You have 45 seconds to make a case that actually moves someone",
-    primaryDimension: "relevance",
-    secondaryDimensions: ["structure", "tone"],
+    primaryDimension: "adaptability",
+    secondaryDimensions: ["structure", "conciseness"],
     timeBudgetSec: 45,
     instruction: "Convince them",
     framework: {
@@ -346,8 +346,8 @@ export const REP_TYPES: readonly RepType[] = [
       "Explain the same idea twice — once for each of two different audiences",
     behavior:
       "You have 60 seconds. Start with audience A. Then switch to audience B",
-    primaryDimension: "tone",
-    secondaryDimensions: ["clarity", "relevance"],
+    primaryDimension: "adaptability",
+    secondaryDimensions: ["clarity", "conciseness"],
     timeBudgetSec: 60,
     instruction: "Two audiences, one rep",
     framework: {
@@ -390,8 +390,8 @@ export const REP_TYPES: readonly RepType[] = [
       "Control rhythm. Slow down. Use deliberate pauses for emphasis",
     behavior:
       "You have 60 seconds. Prove you can hold attention through tempo",
-    primaryDimension: "pacing",
-    secondaryDimensions: ["confidence", "tone"],
+    primaryDimension: "delivery",
+    secondaryDimensions: ["thinking_quality", "adaptability"],
     timeBudgetSec: 60,
     instruction: "Pause for emphasis. Control the rhythm",
     framework: {
@@ -434,8 +434,8 @@ export const REP_TYPES: readonly RepType[] = [
       "Perform under a real stressor — pushback, time compression, audience switch, interruption, or raised stakes",
     behavior:
       "One of five pressure archetypes is selected per session. The prompt itself encodes the mechanism — read carefully before you start",
-    primaryDimension: "confidence",
-    secondaryDimensions: ["relevance", "tone"],
+    primaryDimension: "adaptability",
+    secondaryDimensions: ["thinking_quality", "delivery"],
     timeBudgetSec: 30,
     instruction: "Hold composure under the mechanism",
     isPressureType: true,

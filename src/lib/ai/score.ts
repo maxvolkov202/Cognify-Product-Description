@@ -11,7 +11,7 @@ import { loadSkills, loadPatterns, renderBlocks } from "./knowledge";
 import { extractSignals } from "@/lib/scoring/signals";
 import {
   scorePacing,
-  scoreConfidenceDeterministic,
+  scoreThinkingQualityDeterministic,
   blendScores,
 } from "@/lib/scoring/deterministic";
 
@@ -19,10 +19,10 @@ const dimensionScoreSchema = z.object({
   dimension: z.enum([
     "clarity",
     "structure",
-    "relevance",
-    "confidence",
-    "pacing",
-    "tone",
+    "conciseness",
+    "thinking_quality",
+    "delivery",
+    "adaptability",
   ]),
   score: z.number().min(0).max(100),
   signals: z.array(z.string()),
@@ -32,10 +32,10 @@ const calloutSchema = z.object({
   dimension: z.enum([
     "clarity",
     "structure",
-    "relevance",
-    "confidence",
-    "pacing",
-    "tone",
+    "conciseness",
+    "thinking_quality",
+    "delivery",
+    "adaptability",
     "structural_adherence",
   ]),
   tone: z.enum(["positive", "neutral", "warn", "critical"]),
@@ -99,10 +99,10 @@ function renderTimedTranscript(
 const systemPrompt = `You are the scoring model for Cognify, a communication training platform. Score the user's rep across six dimensions on a 0-100 scale, with transparent signals for each score.
 
 The six dimensions are grouped into two buckets:
-  CONTENT  : clarity, structure, relevance     (what they said)
-  DELIVERY : confidence, pacing, tone          (how they said it)
+  CONTENT  : clarity, structure, conciseness           (what they said)
+  DELIVERY : thinking_quality, delivery, adaptability  (how they said it)
 
-Be rigorous. Scores above 90 are reserved for genuinely excellent reps. Scores below 40 indicate serious issues. Off-topic or junk reps (not addressing the prompt, testing the mic, stream-of-consciousness rambling) must score relevance below 35, and low relevance should drag content dimensions down proportionally. Do not anchor toward any default range — score authentically based on the rubric.
+Be rigorous. Scores above 90 are reserved for genuinely excellent reps. Scores below 40 indicate serious issues. Off-topic or junk reps (not addressing the prompt, testing the mic, stream-of-consciousness rambling) must be scored honestly across all six dimensions — low content dimensions AND low delivery dimensions, because such reps fail in both directions. Do not anchor toward any default range — score authentically based on the rubric.
 
 Return ONLY valid JSON matching this exact schema, no prose:
 
@@ -125,7 +125,7 @@ Return ONLY valid JSON matching this exact schema, no prose:
   ]
 }
 
-The "dimensions" array must contain exactly one entry per dimension in this order: clarity, structure, relevance, confidence, pacing, tone.
+The "dimensions" array must contain exactly one entry per dimension in this order: clarity, structure, conciseness, thinking_quality, delivery, adaptability.
 
 CALLOUT RULES (strict — responses violating these will be rejected):
   - Return EXACTLY 3 callouts: one "positive" + two "warn"/"critical".
@@ -185,10 +185,10 @@ type RawCallout = {
   dimension:
     | "clarity"
     | "structure"
-    | "relevance"
-    | "confidence"
-    | "pacing"
-    | "tone"
+    | "conciseness"
+    | "thinking_quality"
+    | "delivery"
+    | "adaptability"
     | "structural_adherence";
   tone: "positive" | "neutral" | "warn" | "critical";
   title: string;
@@ -270,7 +270,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
         ? [
             {
               type: "text" as const,
-              text: `SCORING KNOWLEDGE BASE — use these expert-sourced skill notes to ground your scoring. Each block is the pedagogical definition of one dimension grouped into Content (clarity, structure, relevance) and Delivery (confidence, pacing, tone) with multi-source signals and scoring boundaries:\n\n${knowledgeText}`,
+              text: `SCORING KNOWLEDGE BASE — use these expert-sourced skill notes to ground your scoring. Each block is the pedagogical definition of one dimension grouped into Content (clarity, structure, conciseness) and Delivery (thinking_quality, delivery, adaptability) with multi-source signals and scoring boundaries:\n\n${knowledgeText}`,
               cache_control: { type: "ephemeral" as const },
             },
           ]
@@ -337,10 +337,10 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   // meeting — re-scoring the same audio returns the same pacing number.
   //
   // Confidence is BLENDED (60% deterministic / 40% LLM) because the
-  // semantic "did they sound confident" layer genuinely adds signal
+  // semantic "did they sound sharp" layer genuinely adds signal
   // on top of the measurable hedge/restart/pause baseline.
   //
-  // Clarity, structure, relevance, and tone stay LLM-scored as-is.
+  // Clarity, structure, conciseness, and adaptability stay LLM-scored as-is.
   let finalDimensions = validated.dimensions.map((d) => ({ ...d }));
   if (input.words && input.words.length > 0) {
     const signalBundle = extractSignals({
@@ -350,32 +350,32 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
       timeBudgetMs: input.timeBudgetMs ?? input.durationMs,
     });
 
-    // Pacing — pure deterministic override
-    const pacingResult = scorePacing(signalBundle);
-    dimensionMap.pacing = pacingResult.score;
+    // Delivery — pure deterministic override (was "pacing" in v2-beta.*)
+    const deliveryResult = scorePacing(signalBundle);
+    dimensionMap.delivery = deliveryResult.score;
     finalDimensions = finalDimensions.map((d) =>
-      d.dimension === "pacing"
+      d.dimension === "delivery"
         ? {
-            dimension: "pacing" as const,
-            score: pacingResult.score,
-            signals: pacingResult.signals,
+            dimension: "delivery" as const,
+            score: deliveryResult.score,
+            signals: deliveryResult.signals,
           }
         : d,
     );
 
-    // Confidence — hybrid blend with LLM layer
-    const confidenceDet = scoreConfidenceDeterministic(signalBundle);
-    const llmConfidence = dimensionMap.confidence ?? 60;
-    const confidenceBlended = blendScores(confidenceDet.score, llmConfidence, 0.6);
-    dimensionMap.confidence = confidenceBlended;
+    // Thinking Quality — hybrid blend with LLM layer (was "confidence")
+    const thinkingDet = scoreThinkingQualityDeterministic(signalBundle);
+    const llmThinking = dimensionMap.thinking_quality ?? 60;
+    const thinkingBlended = blendScores(thinkingDet.score, llmThinking, 0.6);
+    dimensionMap.thinking_quality = thinkingBlended;
     finalDimensions = finalDimensions.map((d) =>
-      d.dimension === "confidence"
+      d.dimension === "thinking_quality"
         ? {
-            dimension: "confidence" as const,
-            score: confidenceBlended,
+            dimension: "thinking_quality" as const,
+            score: thinkingBlended,
             signals: [
-              ...confidenceDet.signals,
-              `(LLM semantic layer: ${llmConfidence})`,
+              ...thinkingDet.signals,
+              `(LLM semantic layer: ${llmThinking})`,
             ],
           }
         : d,

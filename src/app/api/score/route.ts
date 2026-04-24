@@ -117,31 +117,31 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
       ],
     },
     {
-      dimension: "relevance",
+      dimension: "conciseness",
       score: 72,
       signals: [
-        "[mock mode] Claude scoring unavailable — relevance-to-prompt judgment skipped",
+        "[mock mode] Claude scoring unavailable — conciseness judgment skipped",
       ],
     },
     {
-      dimension: "confidence",
+      dimension: "thinking_quality",
       score: confidenceResult?.score ?? 70,
       signals: confidenceResult?.signals ?? [
         "[mock mode] signals unavailable without word timings",
       ],
     },
     {
-      dimension: "pacing",
+      dimension: "delivery",
       score: pacingResult?.score ?? 70,
       signals: pacingResult?.signals ?? [
         "[mock mode] signals unavailable without word timings",
       ],
     },
     {
-      dimension: "tone",
+      dimension: "adaptability",
       score: 72,
       signals: [
-        "[mock mode] Claude scoring unavailable — audience-register judgment skipped",
+        "[mock mode] Claude scoring unavailable — adaptability judgment skipped",
       ],
     },
   ];
@@ -163,8 +163,9 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
     },
   ];
 
-  // If we have real deterministic pacing data, surface it as a positive/warn
-  // callout so the user sees actual signal, not just the mock notice.
+  // If we have real deterministic delivery data, surface it as a
+  // positive/warn callout so the user sees actual signal, not just the
+  // mock notice. (Delivery = old "pacing" renamed under v2.0.0.)
   if (pacingResult) {
     const tone: Callout["tone"] =
       pacingResult.score >= 80
@@ -173,9 +174,9 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
           ? "neutral"
           : "warn";
     callouts.push({
-      dimension: "pacing",
+      dimension: "delivery",
       tone,
-      title: `Pacing (real) — ${pacingResult.score}/100`,
+      title: `Delivery (real) — ${pacingResult.score}/100`,
       body: pacingResult.signals.join(". "),
       quote: null,
       suggestedRewrite: null,
@@ -192,9 +193,9 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
           ? "neutral"
           : "warn";
     callouts.push({
-      dimension: "confidence",
+      dimension: "thinking_quality",
       tone,
-      title: `Confidence (deterministic baseline) — ${confidenceResult.score}/100`,
+      title: `Thinking Quality (deterministic baseline) — ${confidenceResult.score}/100`,
       body: confidenceResult.signals.join(". "),
       quote: null,
       suggestedRewrite: null,

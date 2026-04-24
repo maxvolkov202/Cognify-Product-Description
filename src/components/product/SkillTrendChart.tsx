@@ -4,10 +4,10 @@ import type { SkillDimension } from "@/types/domain";
 const LABELS: Record<SkillDimension, string> = {
   clarity: "Clarity",
   structure: "Structure",
-  relevance: "Relevance",
-  confidence: "Confidence",
-  pacing: "Pacing",
-  tone: "Tone",
+  conciseness: "Conciseness",
+  thinking_quality: "Thinking Quality",
+  delivery: "Delivery",
+  adaptability: "Adaptability",
 };
 
 type Props = {

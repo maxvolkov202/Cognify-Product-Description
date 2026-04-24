@@ -1,21 +1,24 @@
-// ——— Scoring dimensions (v2-beta.1 rubric) ———————————————————————
+// ——— Scoring dimensions (v2.0.0 rubric — WS-1 2026-04-24) ———————————
 // Grouped into Content (what you said) and Delivery (how you said it).
+// Dimension names aligned with strategy team + V2 mockups. Historical
+// reps retain their original `rubric_version` tag; use the
+// `src/lib/scoring/dimension-aliases.ts` helper to read them.
 // See docs/SCORING_METHODOLOGY.md and src/lib/scoring/rubric.ts.
 
 export const SKILL_DIMENSIONS = [
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ] as const;
 
 export type SkillDimension = (typeof SKILL_DIMENSIONS)[number];
 
 export const SKILL_DIMENSION_GROUPS = {
-  content: ["clarity", "structure", "relevance"],
-  delivery: ["confidence", "pacing", "tone"],
+  content: ["clarity", "structure", "conciseness"],
+  delivery: ["thinking_quality", "delivery", "adaptability"],
 } as const satisfies Record<string, readonly SkillDimension[]>;
 
 export type SkillDimensionGroup = keyof typeof SKILL_DIMENSION_GROUPS;
@@ -23,10 +26,10 @@ export type SkillDimensionGroup = keyof typeof SKILL_DIMENSION_GROUPS;
 export const DIMENSION_LABELS: Record<SkillDimension, string> = {
   clarity: "Clarity",
   structure: "Structure",
-  relevance: "Relevance",
-  confidence: "Confidence",
-  pacing: "Pacing",
-  tone: "Tone",
+  conciseness: "Conciseness",
+  thinking_quality: "Thinking Quality",
+  delivery: "Delivery",
+  adaptability: "Adaptability",
 };
 
 export const DIMENSION_GROUP_LABELS: Record<SkillDimensionGroup, string> = {
@@ -64,6 +67,10 @@ export type DimensionScore = {
 export type RepScore = {
   composite: number;
   dimensions: DimensionScore[];
+  /** Present only when the rep is scored against an externally-generated
+   *  framework (scenario mode). Measures the user's structural adherence
+   *  to the framework's nodes — a distinct dimension from the six rubric
+   *  dimensions. */
   structuralAdherence?: number;
   callouts: Callout[];
   modelVersion: string;
@@ -82,12 +89,4 @@ export type Framework = {
   description: string;
   nodes: FrameworkNode[];
   source: "library" | "generated";
-};
-
-export type ScenarioInput = {
-  scenario: string;
-  audience?: string;
-  keyPoints?: string[];
-  outcome?: string;
-  constraints?: string;
 };

@@ -5,10 +5,10 @@ import type { SkillDimension } from "@/types/domain";
 const VALID_DIMENSIONS: readonly SkillDimension[] = [
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ];
 
 function isValidDimension(s: string): s is SkillDimension {

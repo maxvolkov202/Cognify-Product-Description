@@ -23,17 +23,27 @@ export const modeEnum = cognifyV2Schema.enum("mode", [
   "baseline",
 ]);
 
-// v2-beta.1 rubric. The rep-history wipe is required when this enum
-// changes because Postgres enum values cannot be removed with existing
-// rows referencing them. See drizzle/migrations for the wipe migration.
+// v2.0.0 rubric (WS-1 apply 2026-04-24). The enum carries BOTH the
+// current dimension names AND the legacy names (relevance/confidence/
+// pacing/tone) so historical reps with those dimensions remain valid
+// reads. New writes only use the v2.0.0 names. See
+// docs/proposals/rubric-v2.0.0.md and src/lib/scoring/dimension-aliases.ts.
+// Postgres enum values cannot be removed with existing rows referencing
+// them — this append-only strategy keeps rep history intact.
 export const dimensionEnum = cognifyV2Schema.enum("dimension", [
+  // Current (v2.0.0) dimensions
   "clarity",
   "structure",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
+  "structural_adherence",
+  // Legacy (v2-beta.*) dimensions — retained for historical reads only
   "relevance",
   "confidence",
   "pacing",
   "tone",
-  "structural_adherence",
 ]);
 
 export const calloutToneEnum = cognifyV2Schema.enum("callout_tone", [

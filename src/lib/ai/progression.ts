@@ -36,10 +36,10 @@ const improvementSchema = z.object({
   dimension: z.enum([
     "clarity",
     "structure",
-    "relevance",
-    "confidence",
-    "pacing",
-    "tone",
+    "conciseness",
+    "thinking_quality",
+    "delivery",
+    "adaptability",
   ]),
   delta: z.number(),
   observation: z.string().max(320),
@@ -50,10 +50,10 @@ const stillNeedsWorkSchema = z.object({
   dimension: z.enum([
     "clarity",
     "structure",
-    "relevance",
-    "confidence",
-    "pacing",
-    "tone",
+    "conciseness",
+    "thinking_quality",
+    "delivery",
+    "adaptability",
   ]),
   score: z.number(),
   observation: z.string().max(320),
@@ -83,7 +83,7 @@ Return ONLY valid JSON matching this schema — no prose, no markdown fences:
 {
   "improvements": [
     {
-      "dimension": "clarity" | "structure" | "relevance" | "confidence" | "pacing" | "tone",
+      "dimension": "clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "adaptability",
       "delta": <current - previous, integer>,
       "observation": "Specific coaching note on what got better, anchored to a quote or moment from the current rep.",
       "quoteNow": "verbatim phrase from the current transcript that exemplifies the improvement" | null

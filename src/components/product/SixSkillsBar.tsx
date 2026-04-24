@@ -67,22 +67,22 @@ const DIM_COLOR: Record<SkillDimension, { bg: string; text: string; dot: string 
     text: "text-violet-900",
     dot: "bg-violet-500",
   },
-  relevance: {
+  conciseness: {
     bg: "bg-amber-100",
     text: "text-amber-900",
     dot: "bg-amber-500",
   },
-  confidence: {
+  thinking_quality: {
     bg: "bg-emerald-100",
     text: "text-emerald-900",
     dot: "bg-emerald-500",
   },
-  pacing: {
+  delivery: {
     bg: "bg-rose-100",
     text: "text-rose-900",
     dot: "bg-rose-500",
   },
-  tone: {
+  adaptability: {
     bg: "bg-orange-100",
     text: "text-orange-900",
     dot: "bg-orange-500",

@@ -28,7 +28,7 @@ import type { SkillDimension } from "@/types/domain";
 /** The version of the rubric these weight profiles were authored against.
  *  Bump when the rubric changes so the scoring pipeline can detect and
  *  migrate historical profiles without silent drift. */
-export const WEIGHT_PROFILE_RUBRIC_VERSION = "v2-beta.2";
+export const WEIGHT_PROFILE_RUBRIC_VERSION = "v2.0.0";
 
 export type PressureArchetypeId =
   | "pushback"
@@ -80,14 +80,14 @@ export const PRESSURE_ARCHETYPES: Record<
     whatToExpect:
       "The prompt sets up a claim you need to argue. Toward the end, a specific objection arrives in the prompt itself — a line someone might actually say. You acknowledge it and redirect without abandoning your original point. Hold structure under disagreement.",
     durationDeltaSec: 0,
-    stressedDimensions: ["confidence", "tone", "relevance"],
+    stressedDimensions: ["thinking_quality", "adaptability", "structure"],
     weightProfile: {
-      confidence: 1.4,
-      tone: 1.3,
-      relevance: 1.1,
+      thinking_quality: 1.4,
+      adaptability: 1.3,
+      structure: 1.0,
       clarity: 0.9,
-      structure: 0.9,
-      pacing: 0.8,
+      conciseness: 0.9,
+      delivery: 0.8,
     },
     accentColor: "amber",
   },
@@ -98,14 +98,14 @@ export const PRESSURE_ARCHETYPES: Record<
     whatToExpect:
       "You'll explain something that normally needs a minute — in 15 to 20 seconds. No preamble. Every word has to earn its place. If the real answer doesn't fit, say the shortest version that does.",
     durationDeltaSec: -40,
-    stressedDimensions: ["pacing", "clarity", "relevance"],
+    stressedDimensions: ["conciseness", "delivery", "clarity"],
     weightProfile: {
-      pacing: 1.5,
+      conciseness: 1.5,
+      delivery: 1.3,
       clarity: 1.2,
-      relevance: 1.2,
       structure: 0.9,
-      tone: 0.8,
-      confidence: 0.8,
+      adaptability: 0.8,
+      thinking_quality: 0.8,
     },
     accentColor: "orange",
   },
@@ -116,14 +116,14 @@ export const PRESSURE_ARCHETYPES: Record<
     whatToExpect:
       "You'll make the same point to two very different people in the same rep. Halfway through, the prompt says: \"Now tell it to [the other audience].\" The facts stay. The register, vocabulary, and stakes shift. Don't restart — pivot.",
     durationDeltaSec: 15,
-    stressedDimensions: ["tone", "clarity", "structure"],
+    stressedDimensions: ["adaptability", "clarity", "structure"],
     weightProfile: {
-      tone: 1.5,
+      adaptability: 1.5,
       clarity: 1.2,
       structure: 1.1,
-      pacing: 0.9,
-      confidence: 0.9,
-      relevance: 0.9,
+      delivery: 0.9,
+      thinking_quality: 0.9,
+      conciseness: 0.9,
     },
     accentColor: "amber",
   },
@@ -134,14 +134,14 @@ export const PRESSURE_ARCHETYPES: Record<
     whatToExpect:
       "You're explaining something. Partway through, the prompt simulates an interruption — a specific line that says you've lost them. You acknowledge, recover, and land the point. The interruption is in the prompt text; it's on you to build it into your rep.",
     durationDeltaSec: 0,
-    stressedDimensions: ["confidence", "structure", "tone"],
+    stressedDimensions: ["thinking_quality", "structure", "adaptability"],
     weightProfile: {
-      confidence: 1.4,
+      thinking_quality: 1.4,
       structure: 1.2,
-      tone: 1.2,
+      adaptability: 1.2,
       clarity: 1.0,
-      pacing: 0.9,
-      relevance: 0.9,
+      delivery: 0.9,
+      conciseness: 0.9,
     },
     accentColor: "rose",
   },
@@ -152,14 +152,14 @@ export const PRESSURE_ARCHETYPES: Record<
     whatToExpect:
       "The prompt names a real consequence — offer, promotion, deal, trust with your team. The mechanics are normal: prompt, 45 seconds, speak. What's different is the framing. The test is whether your delivery holds when the frame says it counts.",
     durationDeltaSec: 0,
-    stressedDimensions: ["confidence", "pacing", "tone"],
+    stressedDimensions: ["thinking_quality", "delivery", "adaptability"],
     weightProfile: {
-      confidence: 1.4,
-      pacing: 1.2,
-      tone: 1.2,
+      thinking_quality: 1.4,
+      delivery: 1.2,
+      adaptability: 1.2,
       clarity: 1.0,
       structure: 1.0,
-      relevance: 0.9,
+      conciseness: 0.9,
     },
     accentColor: "amber",
   },

@@ -1,14 +1,15 @@
 import type { SkillDimension } from "@/types/domain";
 
 // Labels match DIMENSION_LABELS from types/domain.ts but are kept local
-// for the short-form display (radar axes favor short labels).
+// for the short-form display (radar axes favor short labels; "Thinking
+// Quality" abbreviated to "Thinking").
 const LABELS: Record<SkillDimension, string> = {
   clarity: "Clarity",
   structure: "Structure",
-  relevance: "Relevance",
-  confidence: "Confidence",
-  pacing: "Pacing",
-  tone: "Tone",
+  conciseness: "Conciseness",
+  thinking_quality: "Thinking",
+  delivery: "Delivery",
+  adaptability: "Adaptability",
 };
 
 // Order is Content (top three) then Delivery (bottom three) — visually
@@ -17,10 +18,10 @@ const LABELS: Record<SkillDimension, string> = {
 const ORDER: SkillDimension[] = [
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ];
 
 type Props = {

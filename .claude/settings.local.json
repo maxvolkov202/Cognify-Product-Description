@@ -55,7 +55,17 @@
       "Bash(find *)",
       "Bash(node scripts/build-knowledge.mjs)",
       "Bash(ls -la .env*)",
-      "Bash(node -e \"console.log\\('ANTHROPIC env at node start \\(before dotenv\\):', \\(process.env.ANTHROPIC_API_KEY || ''\\).slice\\(0,40\\)\\);\")"
+      "Bash(node -e \"console.log\\('ANTHROPIC env at node start \\(before dotenv\\):', \\(process.env.ANTHROPIC_API_KEY || ''\\).slice\\(0,40\\)\\);\")",
+      "Bash(grep -E \"\\\\.\\(ts|json|md\\)$\")",
+      "Bash(npx tsx *)",
+      "Bash(npx next *)",
+      "Bash(git commit *)",
+      "Bash(git add *)",
+      "Bash(git push *)",
+      "Bash(grep -r \"dotenvx\\\\|dotenv-vault\\\\|DOTENV_KEY\" .env*)",
+      "Bash(npx dotenv-cli *)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const lines=fs.readFileSync\\('.env.local','utf8'\\).split\\('\\\\n'\\); for\\(const l of lines\\){const m=l.match\\(/^\\([^#=]+\\)=\\(.*\\)$/\\); if\\(m\\) process.env[m[1]]=m[2];} console.log\\('set',Object.keys\\(process.env\\).filter\\(k=>k.startsWith\\('ANTHROPIC'\\)\\).join\\(', '\\)\\)\")",
+      "Bash(node -e ' *)"
     ]
   },
   "disabledMcpjsonServers": [

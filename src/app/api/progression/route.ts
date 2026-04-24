@@ -14,10 +14,10 @@ export const maxDuration = 25;
 const dimensionEnum = z.enum([
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ]);
 
 const repSummarySchema = z.object({
@@ -35,10 +35,10 @@ const repSummarySchema = z.object({
       dimension: z.enum([
         "clarity",
         "structure",
-        "relevance",
-        "confidence",
-        "pacing",
-        "tone",
+        "conciseness",
+        "thinking_quality",
+        "delivery",
+        "adaptability",
         "structural_adherence",
       ]),
       title: z.string().max(200),

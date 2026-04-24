@@ -80,10 +80,10 @@ type ProgressionResult = {
 const RANKABLE_DIMENSIONS = [
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ] as const;
 
 export function FeedbackPanel({

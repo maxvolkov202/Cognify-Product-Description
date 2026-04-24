@@ -101,25 +101,29 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
   }
 
   return {
-    dimension: "pacing",
+    dimension: "delivery",
     score: clamp(score),
     signals:
       reasons.length > 0
         ? reasons
         : [
-            `Clean pacing — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, within budget`,
+            `Clean delivery — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, within budget`,
           ],
   };
 }
 
 /**
- * Confidence — deterministic baseline (LLM blends on top in score.ts).
+ * Thinking Quality — deterministic baseline (LLM blends on top in
+ * score.ts). Renamed from scoreConfidenceDeterministic in the v2.0.0
+ * rename — signals are unchanged (hedges/restarts/stalls all measure
+ * the same quality-of-thinking-on-spot).
  *
  * Signals: hedges, restarts, long pauses, stalls, final-quartile rush.
- * These capture the measurable components of perceived composure. The
- * LLM layer handles the semantic "did they sound confident" overlay.
+ * These capture the measurable components of real-time generation
+ * coherence. The LLM layer handles the semantic "did they sound sharp"
+ * overlay.
  */
-export function scoreConfidenceDeterministic(
+export function scoreThinkingQualityDeterministic(
   signals: SignalBundle,
 ): DeterministicScoreResult {
   let score = 85;
@@ -169,14 +173,22 @@ export function scoreConfidenceDeterministic(
   }
 
   return {
-    dimension: "confidence",
+    dimension: "thinking_quality",
     score: clamp(score),
     signals:
       reasons.length > 0
         ? reasons
-        : ["Steady composure — clean recovery, no hedges, stable pacing"],
+        : ["Steady thinking — clean recovery, no hedges, stable generation"],
   };
 }
+
+/**
+ * Legacy alias for callers still referencing the pre-rename function
+ * name. Prefer `scoreThinkingQualityDeterministic` — this shim exists
+ * only so the rename lands in one PR without breaking downstream.
+ * @deprecated use scoreThinkingQualityDeterministic
+ */
+export const scoreConfidenceDeterministic = scoreThinkingQualityDeterministic;
 
 /**
  * Blend a deterministic score with an LLM-generated score. Used for

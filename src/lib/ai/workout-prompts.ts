@@ -455,10 +455,10 @@ export function pickRotatingFramework(
 const DIMENSION_TO_REP_TYPES: Record<SkillDimension, readonly RepTypeId[]> = {
   clarity: ["simplify", "reinforce", "structure", "think_fast", "be_concise", "adapt"],
   structure: ["structure", "simplify", "reinforce", "persuade"],
-  relevance: ["persuade", "simplify", "structure", "be_concise", "adapt", "handle_pressure"],
-  confidence: ["think_fast", "handle_pressure", "deliver"],
-  pacing: ["be_concise", "deliver", "think_fast", "reinforce"],
-  tone: ["adapt", "persuade", "deliver", "handle_pressure"],
+  conciseness: ["be_concise", "simplify", "structure", "persuade", "adapt"],
+  thinking_quality: ["think_fast", "handle_pressure", "deliver"],
+  delivery: ["deliver", "be_concise", "think_fast", "reinforce", "handle_pressure"],
+  adaptability: ["adapt", "persuade", "handle_pressure", "deliver"],
 };
 
 /** Minimum score above which we DON'T bother adjusting — the user is
@@ -647,15 +647,15 @@ const LEGACY_DEFAULT_FRAMEWORK: Record<RepTypeId, string> = {
 // Default dimension focus per rep type for the legacy shim. These match
 // each rep type's primary + secondary dimensions from rep-types.ts.
 const LEGACY_DEFAULT_FOCUS: Record<RepTypeId, SkillDimension[]> = {
-  simplify: ["clarity", "structure", "relevance"],
-  structure: ["structure", "clarity", "relevance"],
-  think_fast: ["confidence", "clarity", "pacing"],
-  be_concise: ["pacing", "clarity", "relevance"],
-  reinforce: ["clarity", "structure", "pacing"],
-  persuade: ["relevance", "structure", "tone"],
-  adapt: ["tone", "clarity", "relevance"],
-  deliver: ["pacing", "confidence", "tone"],
-  handle_pressure: ["confidence", "relevance", "tone"],
+  simplify: ["clarity", "structure", "conciseness"],
+  structure: ["structure", "clarity", "conciseness"],
+  think_fast: ["thinking_quality", "clarity", "delivery"],
+  be_concise: ["conciseness", "clarity", "delivery"],
+  reinforce: ["clarity", "structure", "delivery"],
+  persuade: ["adaptability", "structure", "conciseness"],
+  adapt: ["adaptability", "clarity", "conciseness"],
+  deliver: ["delivery", "thinking_quality", "adaptability"],
+  handle_pressure: ["adaptability", "thinking_quality", "delivery"],
 };
 
 /**

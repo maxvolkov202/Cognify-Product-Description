@@ -1,26 +1,26 @@
 import type { SkillDimension } from "@/types/domain";
 
 /**
- * Cognify scoring rubric — v2-beta.1
+ * Cognify scoring rubric — v2.0.0 (WS-1 apply 2026-04-24)
  *
- * Six dimensions grouped into Content (what you said) and Delivery (how
- * you said it). Renamed in the April 2026 v2 replan to match the team's
- * user-facing vocabulary and to clean the hybrid-scoring boundary:
+ * Six dimensions aligned with strategy team + V2 mockups. Renamed from
+ * v2-beta.2:
+ *   - relevance   → (absorbed into an internal off-topic gate; see
+ *                    src/lib/scoring/dimension-aliases.ts)
+ *   - confidence  → thinking_quality (generation coherence, not vocal composure)
+ *   - pacing      → delivery (absorbs pacing + vocal side of old tone)
+ *   - tone        → adaptability (audience calibration + mid-rep adjustment)
+ *   - NEW: conciseness (tight word economy; previously rolled into pacing)
  *
- *   Content  : clarity, structure, relevance
- *   Delivery : confidence, pacing, tone
- *
- * Pacing is the cleanest deterministic dimension — it maps directly to
- * Deepgram word-level timestamps (WPM variance, filler rate, time budget
- * compliance). Relevance is pure LLM (did the rep address the prompt?).
- * Everything else is hybrid: deterministic signals feed an LLM layer.
+ * Groupings: Content = {clarity, structure, conciseness},
+ *            Delivery = {thinking_quality, delivery, adaptability}.
  *
  * When this rubric changes in a way that shifts scoring outputs, bump
  * RUBRIC_VERSION. Past rep scores stay tagged with the version they were
  * scored under, so trend lines remain honest across rubric evolutions.
  */
 
-export const RUBRIC_VERSION = "v2-beta.2";
+export const RUBRIC_VERSION = "v2.0.0";
 
 export type DimensionGroup = "content" | "delivery";
 
@@ -40,7 +40,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "clarity",
     group: "content",
     definition:
-      "Ideas land on the first hearing. No ambiguity. Concrete language. The listener does not have to re-interpret.",
+      "Ideas land on the first hearing. No ambiguity. Concrete language, audience-appropriate vocabulary, resolved pronouns, main point stated early. The listener does not have to re-interpret.",
     lowScoreSignals: [
       "Unresolved pronouns (it, they, that) without clear referents",
       "Abstract nouns where concrete ones would work",
@@ -60,7 +60,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "structure",
     group: "content",
     definition:
-      "Visible scaffolding — opening that establishes direction, logical flow, and a close that reinforces the main point.",
+      "Visible scaffolding — opening that establishes direction, logical flow connected by transitions, and a close that reinforces the main point.",
     lowScoreSignals: [
       "No visible opening or closing",
       "Topic jumps without connective tissue",
@@ -76,90 +76,93 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     defaultWeight: 1.0,
     scoringStrategy: "hybrid",
   },
-  relevance: {
-    dimension: "relevance",
+  conciseness: {
+    dimension: "conciseness",
     group: "content",
     definition:
-      "The rep actually addresses the prompt. No drift onto tangents. The speaker answers the question that was asked. Off-topic, non-substantive, or junk reps score below 40 — relevance is the gatekeeper dimension.",
+      "Maximum signal per word. Low filler rate, low repetition, words-per-point discipline, within time budget. Tight sentences over bloated ones.",
     lowScoreSignals: [
-      "Ending on a different topic than the one asked",
-      "Tangents that lose the original thread",
-      "Answering a related but different question",
-      "Rambling without returning to the prompt",
-      "Non-substantive or junk content: testing the mic, random words, no real attempt to address the prompt",
+      "High filler rate (> 4 per minute)",
+      "Repeating the same point in different words",
+      "Long preambles before getting to the point",
+      "Over-time or under-time by >20% of budget",
+      "Hedge-stacking that dilutes claims",
     ],
     highScoreSignals: [
-      "Direct engagement with the prompt from the opening",
-      "Every point serves the main question",
-      "Closing restates or reinforces the prompt's answer",
-      "No detours that don't earn their place",
+      "Low filler rate (< 2 per minute)",
+      "Each sentence advances the argument",
+      "Finishes within 10% of time budget",
+      "No repetition of ideas",
+      "Tight word economy (words-per-point < 25)",
     ],
     defaultWeight: 1.0,
-    scoringStrategy: "llm",
+    scoringStrategy: "hybrid",
   },
   // ——— Delivery ——————————————————————————————————————
-  confidence: {
-    dimension: "confidence",
+  thinking_quality: {
+    dimension: "thinking_quality",
     group: "delivery",
     definition:
-      "Perceived composure and self-assurance in delivery. Steady generation, minimal hedging, clean recoveries from stumbles.",
+      "Coherent generation under real-time conditions. Low backtrack rate, low restart rate, logical chain holds, recall feels sharp. Measures the content of thinking, not vocal composure.",
     lowScoreSignals: [
       "Hedges: 'I think', 'maybe', 'kind of', 'sort of'",
       "Verbal backtracking: 'wait, let me start over'",
       "Long pauses (>2 seconds) outside natural breaks",
-      "Over-apologizing: 'sorry', 'I'm not sure'",
       "Mid-sentence restarts",
+      "Logical chain breaks (conclusion doesn't follow premise)",
     ],
     highScoreSignals: [
       "Direct assertions without hedging",
       "Quick clean recovery from stumbles",
-      "Steady generation without stalling",
-      "No over-apologizing",
+      "Logical connectors used correctly (because, therefore, so)",
+      "Low restart count (< 1 per 30s)",
       "Purposeful pauses, not panicked ones",
     ],
     defaultWeight: 1.0,
     scoringStrategy: "hybrid",
   },
-  pacing: {
-    dimension: "pacing",
+  delivery: {
+    dimension: "delivery",
     group: "delivery",
     definition:
-      "Speed, rhythm, and time budget discipline. Stable WPM across the rep. Finishes within time. Low filler rate.",
+      "How it sounds. Pacing (stable WPM, purposeful pauses), rhythm, vocal energy, finishing cleanly within time. The craft of speech distinct from the content.",
     lowScoreSignals: [
-      "Filler words: um, uh, like, you know",
       "Rushing in the final quartile",
       "Going significantly over or under time budget",
       "Voice tightening, pitch rising",
       "Rambling run-on sentences",
+      "Monotone delivery across an emotional moment",
     ],
     highScoreSignals: [
-      "Low filler rate (< 2 per minute)",
       "Consistent WPM across rep quartiles",
+      "Purposeful pauses for emphasis",
       "Finishes within time budget",
-      "Breaks are purposeful, not accidental",
       "Final sentence lands cleanly",
+      "Vocal variation matches the content stakes",
     ],
     defaultWeight: 1.0,
     scoringStrategy: "deterministic",
   },
-  tone: {
-    dimension: "tone",
+  adaptability: {
+    dimension: "adaptability",
     group: "delivery",
     definition:
-      "Calibration to audience and constraints. Register matches the listener. Warmth, seriousness, or formality is appropriate.",
+      "Calibration to audience, constraints, and mid-rep cues. Register shifts for different listeners, adjusts when pushback or audience switch happens, stays responsive when the conversation deviates from the planned path.",
     lowScoreSignals: [
       "Same register regardless of audience",
       "Technical jargon to non-technical audience",
-      "Monotone delivery across an emotional moment",
-      "Ignoring stated tone constraints",
+      "Ignoring stated tone or time constraints",
+      "No visible adjustment after pushback or audience switch",
+      "Defensive posture when challenged",
     ],
     highScoreSignals: [
       "Audience-appropriate vocabulary",
-      "Respects tone constraints (time, formality)",
+      "Visible register shift between two audiences",
+      "Respects stated constraints (time, tone, format)",
+      "Acknowledge-redirect-land pattern under pushback",
       "Emotionally attuned to the moment",
-      "Adjusts specificity to audience expertise",
     ],
-    defaultWeight: 0.75,
+    defaultWeight: 0.9,
     scoringStrategy: "hybrid",
   },
 };
@@ -167,28 +170,32 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
 export const ALL_DIMENSIONS: readonly SkillDimension[] = [
   "clarity",
   "structure",
-  "relevance",
-  "confidence",
-  "pacing",
-  "tone",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ];
 
 export const CONTENT_DIMENSIONS: readonly SkillDimension[] = [
   "clarity",
   "structure",
-  "relevance",
+  "conciseness",
 ];
 
 export const DELIVERY_DIMENSIONS: readonly SkillDimension[] = [
-  "confidence",
-  "pacing",
-  "tone",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
 ];
 
 /**
  * Weighted composite score across dimensions. User-configurable weights
  * override defaults; absent dimensions are excluded from both numerator
  * and denominator so partial scoring stays honest.
+ *
+ * The internal off-topic gate (previously `relevance`) applies AFTER this
+ * function: if the rep is judged off-topic by the LLM, composite is
+ * floored to 40. See scoring pipeline in docs/SCORING_METHODOLOGY.md.
  */
 export function composite(
   scores: Partial<Record<SkillDimension, number>>,
