@@ -1040,6 +1040,18 @@ Format: `YYYY-MM-DD · who · what changed`
 
 <!-- append future sessions below -->
 
+### 2026-04-24 — Phase 1 + 5 + 6 + 7 + 8 execution pass
+
+**Shipped to prod (https://cognify-v2-neon.vercel.app) in this session:**
+
+- **Phase 1 — DB migrations applied** (commit `26255b38`). Hand-written additive delta (`drizzle/migrations/0001_v2_additive.sql`) executed via `scripts/apply-migration.mjs`. Added: 6 new dimension enum values (kept 4 legacy for historical reads), `session_type` enum, `pressure_archetype` enum, 4 new user columns (streak_freezes, last_pressure_archetype_id, last_session_weakest_dimension, completed_reps_count), session_type+focus_dimension on practice_sessions, pressure_archetype_id on reps + index, new `personal_bests` + `weekly_reports` tables. Drizzle-kit push hit an introspection bug on an existing CHECK constraint, so the delta is a hand-written idempotent SQL file — safe to re-run.
+- **Phase 5 — Build-a-Rep pressure** (commit `0525ecdb`). New PressurePicker in the preview card. Selecting an archetype tacks on its weight profile server-side via /api/score (RepSurface already accepted pressureArchetypeId). Duration budget shifts by the archetype's durationDeltaSec. PressureRepIndicator renders above the mic during the rep.
+- **Phase 6 — Improvement curve + Before/After + PDF report** (commit `[…]`). `ImprovementCurve` component (SVG, 30/60/90-day selector, regression trajectory, baseline + peak annotations, brand-gradient area fill). `BeforeAfterAudio` card with synced A/B audio playback and composite delta. New `/report` page with print-friendly CSS (@media print) so "Save as PDF" produces a clean downloadable report — no extra PDF library. Backed by new `getDailyCompositeTrend` + `getBeforeAfterReps` queries.
+- **Phase 7 — Streak freezes + server-backed PBs** (commit `9f82141c`). `personal_bests.ts` records new PBs from the save-rep path (only when strictly beating the per-dim max, ≥ 50). `streak-freeze.ts` implements earn/spend: +1 freeze per 7-day milestone (cap 3), auto-applied during streak computation for single-day gaps. /progress now uses getStreakStatus; surfaces a "freeze applied" banner when one is active.
+- **Phase 8 — ROI calculator + prior art** (commit `b74223b8`). `ROICalculator` on /for-teams with four sliders (team size / meeting hours / unclear % / hourly rate). Live annual loss + 30%-recovery projection + cost + ROI multiplier. `PriorArt` table placing Cognify vs Poised / Yoodli / Orai / Speeko / Toastmasters — honest lanes, clear differentiation.
+
+**Open items (deferred):** Web push notifications (Phase 7 stretch), mobile PWA polish beyond InstallPrompt, advisor headshots on About page.
+
 ---
 
 ## 10. Mockup references (all)
