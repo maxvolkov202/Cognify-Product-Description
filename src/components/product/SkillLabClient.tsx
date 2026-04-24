@@ -7,7 +7,8 @@ import {
   DIMENSION_LABELS,
   SKILL_DIMENSION_GROUPS,
 } from "@/types/domain";
-import type { SkillDimension } from "@/types/domain";
+import type { RepScore, SkillDimension } from "@/types/domain";
+import type { PreviousRepSummary } from "./FeedbackPanel";
 import {
   REP_TYPES,
   type RepType,
@@ -19,7 +20,6 @@ import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { SkillsFocusScope } from "./SkillsFocusContext";
 import { bumpCompletedRepCount } from "./InstallPrompt";
 import { cn } from "@/lib/utils/cn";
-import { GradientButton } from "@/components/shared/GradientButton";
 
 type Props = {
   currentScores: Partial<Record<SkillDimension, number | null>>;
@@ -62,6 +62,14 @@ export function SkillLabClient({ currentScores }: Props) {
   const [phase, setPhase] = useState<Phase>({ kind: "picker" });
   const [sessionCount, setSessionCount] = useState(0);
   const [lastRepTypeId, setLastRepTypeId] = useState<string | null>(null);
+  // In-session progression context — carried between reps so the
+  // FeedbackPanel can render the rep-to-rep delta pills + "what moved"
+  // callouts. Reset on switchSkill.
+  const [previousRepSummary, setPreviousRepSummary] =
+    useState<PreviousRepSummary | null>(null);
+  const [previousDimensionScores, setPreviousDimensionScores] = useState<
+    Partial<Record<SkillDimension, number>> | undefined
+  >(undefined);
 
   /**
    * Pick the next rep type for the active drill. Priority:
@@ -137,6 +145,55 @@ export function SkillLabClient({ currentScores }: Props) {
     setPhase({ kind: "picker" });
     setSessionCount(0);
     setLastRepTypeId(null);
+    setPreviousRepSummary(null);
+    setPreviousDimensionScores(undefined);
+  }
+
+  function handleRepComplete({
+    score,
+    transcript,
+  }: {
+    score: RepScore;
+    transcript?: string;
+  }) {
+    bumpCompletedRepCount();
+    // Stash this rep as the "previous" for the next one's FeedbackPanel.
+    const sortedByScore = [...score.dimensions].sort((a, b) => a.score - b.score);
+    const weakest = sortedByScore[0] ?? null;
+    const weaknessCallout =
+      weakest &&
+      (score.callouts.find((c) => c.dimension === weakest.dimension) ?? null);
+    const promptText =
+      phase.kind === "rep" ? phase.prompt : "";
+    setPreviousRepSummary({
+      composite: score.composite,
+      dimensions: score.dimensions.map((d) => ({
+        dimension: d.dimension,
+        score: d.score,
+      })),
+      topWeakness: weaknessCallout ?? null,
+      transcript: transcript ?? "",
+      promptText,
+    });
+    const nextScores: Partial<Record<SkillDimension, number>> = {};
+    for (const d of score.dimensions) nextScores[d.dimension] = d.score;
+    setPreviousDimensionScores(nextScores);
+  }
+
+  /** Ordinal suffix for session count display — handles teens + 21st/22nd/23rd. */
+  function ordinalSuffix(n: number): string {
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return "th";
+    switch (n % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
   }
 
   // ——— Picker phase ——————————————————————————————————————————
@@ -187,16 +244,27 @@ export function SkillLabClient({ currentScores }: Props) {
                       {DIMENSION_LABELS[dim]}
                     </h3>
                   </div>
-                  {hasScore && (
-                    <div className="shrink-0 text-right">
-                      <p className="brand-gradient-text text-3xl font-extrabold tabular-nums">
-                        {score}
-                      </p>
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-400">
-                        current
-                      </p>
-                    </div>
-                  )}
+                  <div className="shrink-0 text-right">
+                    {hasScore ? (
+                      <>
+                        <p className="brand-gradient-text text-3xl font-extrabold tabular-nums">
+                          {score}
+                        </p>
+                        <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-400">
+                          current
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-3xl font-extrabold tabular-nums text-ink-300">
+                          —
+                        </p>
+                        <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-400">
+                          No data yet
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-purple opacity-0 transition-opacity group-hover:opacity-100">
                   Drill {DIMENSION_LABELS[dim].toLowerCase()}
@@ -244,8 +312,7 @@ export function SkillLabClient({ currentScores }: Props) {
           </button>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
             Drilling {DIMENSION_LABELS[phase.dim]} · {sessionCount + 1}
-            {sessionCount === 0 ? "st" : sessionCount === 1 ? "nd" : "th"}{" "}
-            rep
+            {ordinalSuffix(sessionCount + 1)} rep
           </p>
         </div>
         <WorkoutPromptSelect
@@ -286,23 +353,27 @@ export function SkillLabClient({ currentScores }: Props) {
       <RepSurface
         key={phase.prompt}
         prompt={phase.prompt}
-        mode="daily_workout"
+        mode="skill_lab"
         topic={`Skill Lab · ${DIMENSION_LABELS[phase.dim]}`}
         maxDurationMs={phase.repType.timeBudgetSec * 1000}
         repTypeFramework={phase.repType.framework}
         speakingThreshold={{ minRatio: 0.6 }}
         feedbackMode="full"
-        onComplete={() => {
-          // Bump the completed-reps counter for the PWA install gate
-          bumpCompletedRepCount();
-        }}
+        previousRepSummary={previousRepSummary}
+        previousDimensionScores={previousDimensionScores}
+        onComplete={handleRepComplete}
         onNext={runAnother}
         nextLabel="Run another"
       />
       <div className="mt-4 flex justify-center">
-        <GradientButton href="/skill-lab" variant="outline" size="sm">
-          <RotateCw className="mr-2 size-3.5" /> Back to skill picker
-        </GradientButton>
+        <button
+          type="button"
+          onClick={switchSkill}
+          className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900"
+        >
+          <RotateCw className="size-3.5" strokeWidth={2.5} />
+          Back to skill picker
+        </button>
       </div>
     </>
   );

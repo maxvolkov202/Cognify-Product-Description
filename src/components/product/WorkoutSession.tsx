@@ -463,6 +463,8 @@ export function WorkoutSession({
             focusReason={currentRep.focusReason ?? null}
             pressureArchetype={currentRep.pressureArchetype ?? null}
             timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
+            sessionType={plan.sessionType}
+            focusDimension={plan.focusDimension ?? null}
             onSelect={handlePromptSelected}
           />
         </div>

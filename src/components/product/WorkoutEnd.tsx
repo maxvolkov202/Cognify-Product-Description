@@ -204,6 +204,11 @@ export function WorkoutEnd({
                 );
               })}
             </ol>
+            {deriveArcNarrative(scores) && (
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-950">
+                {deriveArcNarrative(scores)}
+              </p>
+            )}
             <p className="mt-4 text-xs leading-relaxed text-ink-500">
               Flow trains recall speed under sustained pressure. Watch the
               composite trend across the ramp — staying stable (or climbing)
@@ -213,37 +218,139 @@ export function WorkoutEnd({
         </div>
       )}
 
-      {/* ——— Tomorrow's focus ——————————————— */}
-      {weakest && (
+      {/* ——— Combined Build → Stress → Reinforce trajectory ——————————— */}
+      {!isFlow && !isFocus && plan && plan.reps.length >= 4 && (
         <div className="surface-card overflow-hidden">
           <div className="brand-gradient h-1" aria-hidden="true" />
-          <div className="flex items-start gap-4 p-6">
-            <div className="brand-gradient grid size-11 shrink-0 place-items-center rounded-xl shadow-sm">
-              <Target
-                className="size-5 text-white"
-                strokeWidth={2.5}
-                aria-hidden="true"
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-                Tomorrow&rsquo;s focus
+          <div className="p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-purple">
+              Session arc · Build → Stress → Reinforce
+            </p>
+            <h3 className="mt-2 text-lg font-extrabold text-ink-900">
+              How you moved through the phases.
+            </h3>
+            <ol className="mt-4 space-y-2">
+              {plan.reps.map((slot, i) => {
+                const score = scores[i];
+                const composite = score ? score.composite : null;
+                const total = plan.reps.length;
+                const phase =
+                  i === total - 2
+                    ? { label: "Stress", accent: "bg-amber-100 text-amber-800" }
+                    : i === total - 1
+                      ? {
+                          label: "Reinforce",
+                          accent: "bg-emerald-100 text-emerald-800",
+                        }
+                      : { label: "Build", accent: "bg-sky-100 text-sky-800" };
+                return (
+                  <li
+                    key={`${slot.repType.id}-${i}`}
+                    className="flex items-center gap-3 rounded-lg border border-ink-200 bg-white px-4 py-3"
+                  >
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink-100 text-[11px] font-extrabold text-ink-800">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-2 text-sm font-bold text-ink-900">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${phase.accent}`}
+                        >
+                          {phase.label}
+                        </span>
+                        {slot.pressureArchetype?.name ?? slot.repType.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-[11px] text-ink-500">
+                        {slot.pressureArchetype?.tagline ?? slot.repType.tagline}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="brand-gradient-text text-lg font-extrabold tabular-nums">
+                        {composite ?? "—"}
+                      </p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+                        composite
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            {deriveArcNarrative(scores) && (
+              <p className="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm font-semibold text-sky-950">
+                {deriveArcNarrative(scores)}
               </p>
-              <p className="mt-1 text-lg font-bold text-ink-900">
-                Work on {DIMENSION_LABELS[weakest[0]].toLowerCase()}
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
-                Weakest dimension today was{" "}
-                <strong className="text-ink-800">
-                  {DIMENSION_LABELS[weakest[0]]}
-                </strong>{" "}
-                at {Math.round(weakest[1])}/100. Tomorrow&rsquo;s workout will
-                bias toward drills that train it.
-              </p>
-            </div>
+            )}
+            <p className="mt-4 text-xs leading-relaxed text-ink-500">
+              Combined sessions train you to build a line of thinking, hold
+              it under stress, and land the close. Reinforce scores
+              typically exceed Build when the arc is working.
+            </p>
           </div>
         </div>
       )}
+
+      {/* ——— Tomorrow's focus ——————————————— */}
+      {weakest && (() => {
+        // Focus-session special case: if the user spent today drilling a
+        // dimension and that was also their weakest score, recommending
+        // "drill it again" feels hollow. Skip to the NEXT-weakest so the
+        // next session actually shifts ground.
+        const isDrilledDim =
+          isFocus &&
+          plan?.focusDimension !== undefined &&
+          plan.focusDimension === weakest[0];
+        const recommended = isDrilledDim && ranked[1] ? ranked[1] : weakest;
+        return (
+          <div className="surface-card overflow-hidden">
+            <div className="brand-gradient h-1" aria-hidden="true" />
+            <div className="flex items-start gap-4 p-6">
+              <div className="brand-gradient grid size-11 shrink-0 place-items-center rounded-xl shadow-sm">
+                <Target
+                  className="size-5 text-white"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+                  Tomorrow&rsquo;s focus
+                </p>
+                <p className="mt-1 text-lg font-bold text-ink-900">
+                  {isDrilledDim
+                    ? `Shift to ${DIMENSION_LABELS[recommended[0]].toLowerCase()}`
+                    : `Work on ${DIMENSION_LABELS[recommended[0]].toLowerCase()}`}
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-600">
+                  {isDrilledDim ? (
+                    <>
+                      You already drilled{" "}
+                      <strong className="text-ink-800">
+                        {DIMENSION_LABELS[weakest[0]]}
+                      </strong>{" "}
+                      today — next-weakest is{" "}
+                      <strong className="text-ink-800">
+                        {DIMENSION_LABELS[recommended[0]]}
+                      </strong>{" "}
+                      at {Math.round(recommended[1])}/100. Tomorrow&rsquo;s
+                      workout will bias toward drills that train it.
+                    </>
+                  ) : (
+                    <>
+                      Weakest dimension today was{" "}
+                      <strong className="text-ink-800">
+                        {DIMENSION_LABELS[recommended[0]]}
+                      </strong>{" "}
+                      at {Math.round(recommended[1])}/100. Tomorrow&rsquo;s
+                      workout will bias toward drills that train it.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ——— Streak card ——————————————— */}
       {streakDays !== null && streakDays !== undefined && streakDays > 0 && (
@@ -300,4 +407,36 @@ function GroupCard({ label, score }: { label: string; score: number }) {
       </p>
     </div>
   );
+}
+
+/**
+ * Plain-English one-liner describing the arc of composites across a
+ * session. Deterministic — picks from 4 templates based on the shape
+ * of the trajectory (ascending, descending, dip-and-recover, flat).
+ * Returns null when there aren't enough reps to say anything useful.
+ */
+function deriveArcNarrative(scores: RepScore[]): string | null {
+  if (scores.length < 3) return null;
+  const composites = scores.map((s) => s.composite);
+  const first = composites[0]!;
+  const last = composites[composites.length - 1]!;
+  const min = Math.min(...composites);
+  const max = Math.max(...composites);
+  const minIdx = composites.indexOf(min);
+  const maxIdx = composites.indexOf(max);
+  const overallDelta = last - first;
+
+  if (minIdx > 0 && minIdx < composites.length - 1 && last - min >= 5) {
+    return `You dipped at rep ${minIdx + 1} (${Math.round(min)}) then recovered to ${Math.round(last)}. That's control under pressure.`;
+  }
+  if (overallDelta >= 5) {
+    return `You climbed from ${Math.round(first)} to ${Math.round(last)} across the session — compound improvement in real time.`;
+  }
+  if (overallDelta <= -5) {
+    return `You opened strong at ${Math.round(first)} but slipped to ${Math.round(last)}. Fatigue or the stress phase caught up — watch pacing next time.`;
+  }
+  if (max - min <= 4) {
+    return `Remarkably steady at ~${Math.round((first + last) / 2)} across all reps. Consistency is the real win.`;
+  }
+  return `Peak was rep ${maxIdx + 1} at ${Math.round(max)}. You have the ceiling — now push the floor.`;
 }

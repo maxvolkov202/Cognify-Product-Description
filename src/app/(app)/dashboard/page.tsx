@@ -5,13 +5,14 @@ import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
   getRecentReps,
-  getStreakDays,
   getActivityHeatmap,
   getSkillTrends,
   getRepById,
 } from "@/lib/db/queries/progress";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { CalendarStrip } from "@/components/product/CalendarStrip";
 import { ThisWeekCard } from "@/components/product/ThisWeekCard";
+import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { buildNarrativeInsights } from "@/lib/insights/narrative";
 
 export default async function DashboardPage() {
@@ -19,13 +20,14 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "anonymous";
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-  const [streak, recent, activity, trends, profile] = await Promise.all([
-    getStreakDays(userId),
+  const [streakStatus, recent, activity, trends, profile] = await Promise.all([
+    getStreakStatus(userId),
     getRecentReps(userId, 5),
     getActivityHeatmap(userId, 30),
     getSkillTrends(userId, 14),
     user ? getUserProfile(user.id) : Promise.resolve(null),
   ]);
+  const streak = streakStatus.streakDays;
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -87,6 +89,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12 space-y-8">
+      <ResumeBanner />
       {/* ——— Hero ——————————————————————————————————————— */}
       <header>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
@@ -145,7 +148,7 @@ export default async function DashboardPage() {
             </GradientButton>
             {avgRecent !== null && (
               <p className="text-xs text-ink-500">
-                Recent composite:{" "}
+                Last {recent.length}-rep avg:{" "}
                 <span className="brand-gradient-text font-extrabold tabular-nums">
                   {avgRecent}
                 </span>

@@ -10,7 +10,8 @@ import { pickPressurePrompts } from "@/lib/ai/prompts/pressure";
 import { PressureRepIndicator } from "./PressureRepIndicator";
 import { CircleTimer } from "./CircleTimer";
 import { ProgressDots } from "./ProgressDots";
-import { DIMENSION_LABELS } from "@/types/domain";
+import { DIMENSION_LABELS, type SkillDimension } from "@/types/domain";
+import type { SessionType } from "@/lib/ai/workout-prompts";
 
 type Props = {
   repType: RepType;
@@ -27,6 +28,12 @@ type Props = {
    *  repType.timeBudgetSec when the archetype shortens/lengthens the rep
    *  (e.g. Time Compression cuts to 20s). Falls back to rep type default. */
   timeBudgetSec?: number;
+  /** Parent session type — renders the session-identity chip ("Focus ·
+   *  Clarity", "Build", "Stress", "Reinforce", "Flow") above the title
+   *  so the user remembers what they signed up for every rep. */
+  sessionType?: SessionType;
+  /** For Focus sessions, the dimension being drilled. */
+  focusDimension?: SkillDimension | null;
   onSelect: (prompt: string) => void;
 };
 
@@ -54,11 +61,41 @@ export function WorkoutPromptSelect({
   focusReason,
   pressureArchetype,
   timeBudgetSec,
+  sessionType,
+  focusDimension,
   onSelect,
 }: Props) {
   const [prompts, setPrompts] = useState(initialPrompts);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
+
+  // Session-identity phase chip — shown above the rep title so the user
+  // remembers the session's shape every rep. For Combined sessions with
+  // the Build→Stress→Reinforce arc:
+  //   reps 0..N-3 = Build
+  //   rep N-2    = Stress (pressure rep lives here)
+  //   rep N-1    = Reinforce
+  const sessionPhase = ((): { label: string; accent: "purple" | "amber" | "emerald" | "sky" } | null => {
+    if (sessionType === "focus" && focusDimension) {
+      return {
+        label: `Focus · ${DIMENSION_LABELS[focusDimension]}`,
+        accent: "purple",
+      };
+    }
+    if (sessionType === "flow") {
+      return { label: `Flow · rep ${repIndex + 1} of ${totalReps}`, accent: "amber" };
+    }
+    if (sessionType === "combined") {
+      if (repIndex === totalReps - 2 && pressureArchetype) {
+        return { label: "Stress phase", accent: "amber" };
+      }
+      if (repIndex === totalReps - 1) {
+        return { label: "Reinforce phase", accent: "emerald" };
+      }
+      return { label: "Build phase", accent: "sky" };
+    }
+    return null;
+  })();
 
   const effectiveBudgetSec = timeBudgetSec ?? repType.timeBudgetSec;
   const headerInstruction = pressureArchetype
@@ -97,6 +134,22 @@ export function WorkoutPromptSelect({
                 : `Rep ${repIndex + 1} of ${totalReps} · ${repType.name}`
             }
           />
+          {sessionPhase && (
+            <span
+              className={
+                "mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] " +
+                (sessionPhase.accent === "purple"
+                  ? "bg-brand-purple/10 text-brand-purple"
+                  : sessionPhase.accent === "amber"
+                    ? "bg-amber-100 text-amber-800"
+                    : sessionPhase.accent === "emerald"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-sky-100 text-sky-800")
+              }
+            >
+              {sessionPhase.label}
+            </span>
+          )}
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
             {headerInstruction}
           </h1>

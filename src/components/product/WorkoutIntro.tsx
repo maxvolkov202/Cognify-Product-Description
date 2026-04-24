@@ -180,10 +180,14 @@ export function WorkoutIntro({
           </p>
           <ol className="mt-4 space-y-3">
             {plan.reps.map((rep, i) => {
-              const hidden = i > 0;
+              // Flow sessions surface all 5 archetypes up-front so the
+              // user knows the ramp structure they're agreeing to. For
+              // other session types we still hide reps 2+ to preserve
+              // the "one rep at a time" discovery feel.
+              const hidden = plan.sessionType === "flow" ? false : i > 0;
               const durationSec = Math.round(rep.timeBudgetMs / 1000);
               const dimLabel = rep.pressureArchetype
-                ? "Adaptability · respond under pressure"
+                ? rep.pressureArchetype.tagline
                 : `${DIMENSION_LABELS[rep.repType.primaryDimension]} · ${rep.repType.tagline.toLowerCase()}`;
               return (
                 <li

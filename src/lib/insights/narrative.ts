@@ -60,13 +60,20 @@ export function buildNarrativeInsights(
     };
   });
 
-  const hasData = perDim.some((d) => d.count7 > 0);
-  if (!hasData) {
+  const hasThisWeekData = perDim.some((d) => d.count7 > 0);
+  if (!hasThisWeekData) {
+    // Distinguish "never trained" from "haven't trained this week yet".
+    // Dashboard's outer hasAnyReps check already filters brand-new users
+    // into a dedicated empty state, but this narrative is also reached
+    // via /progress where `trends` may carry prior-week data.
+    const hasEverTrained = trends.some((t) => t.points.length > 0);
     return [
       {
         kind: "opportunity",
         dimension: null,
-        text: "Log your first rep to start seeing your weekly story here.",
+        text: hasEverTrained
+          ? "No reps this week yet. A 10-minute workout puts you back on the board."
+          : "Log your first rep to start seeing your weekly story here.",
       },
     ];
   }
