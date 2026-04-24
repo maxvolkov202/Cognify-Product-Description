@@ -13,6 +13,7 @@ import { hasDatabase } from "@/lib/db/safe";
 import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
 import { SkillRadar } from "@/components/product/SkillRadar";
+import { WeeklyNarrativeCard } from "@/components/product/WeeklyNarrativeCard";
 import { GradientButton } from "@/components/shared/GradientButton";
 import {
   Flame,
@@ -130,6 +131,10 @@ export default async function ProgressPage() {
 
       {totalReps > 0 || recentReps.length > 0 ? (
       <>
+      <div className="mt-8">
+        <WeeklyNarrativeCard />
+      </div>
+
       {topImprovement && (
         <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
           <div className="flex items-start gap-3">

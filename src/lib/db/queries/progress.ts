@@ -244,6 +244,168 @@ export async function getPressureRepStats(
 }
 
 /**
+ * Build a WeeklyRepSummary for the current week (Monday → Sunday UTC)
+ * plus per-dimension delta vs the prior week. Used by
+ * generateWeeklyNarrative to produce the coaching paragraph on /progress.
+ */
+export async function getWeeklyRepSummary(
+  userId: string,
+): Promise<{
+  weekStartISO: string;
+  weekEndISO: string;
+  repCount: number;
+  averageComposite: number;
+  dimensions: {
+    dimension: SkillDimension;
+    avg: number | null;
+    delta: number | null;
+  }[];
+  bestArchetype: { name: string; avg: number } | null;
+  weakestDimension: SkillDimension | null;
+}> {
+  return safeDb(async () => {
+    // Monday-based week boundaries in UTC. Good enough for v1 — will
+    // upgrade to user-locale boundaries when we have the timezone field.
+    const now = new Date();
+    const dayOfWeek = (now.getUTCDay() + 6) % 7; // 0 = Monday
+    const weekStart = new Date(now);
+    weekStart.setUTCHours(0, 0, 0, 0);
+    weekStart.setUTCDate(weekStart.getUTCDate() - dayOfWeek);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setUTCDate(prevWeekStart.getUTCDate() - 7);
+
+    const weekRepRows = await db
+      .select({
+        id: reps.id,
+        composite: reps.compositeScore,
+        topic: reps.topic,
+      })
+      .from(reps)
+      .where(
+        and(
+          eq(reps.userId, userId),
+          gte(reps.createdAt, weekStart),
+          lte(reps.createdAt, weekEnd),
+        ),
+      );
+
+    const repCount = weekRepRows.length;
+    const averageComposite =
+      repCount > 0
+        ? Math.round(
+            weekRepRows.reduce((s, r) => s + (r.composite ?? 0), 0) /
+              repCount,
+          )
+        : 0;
+
+    // Per-dimension avg over the week (via progressSnapshots)
+    const weekDimRows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        score: progressSnapshots.score,
+      })
+      .from(progressSnapshots)
+      .where(
+        and(
+          eq(progressSnapshots.userId, userId),
+          gte(progressSnapshots.takenAt, weekStart),
+          lte(progressSnapshots.takenAt, weekEnd),
+        ),
+      );
+    const prevDimRows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        score: progressSnapshots.score,
+      })
+      .from(progressSnapshots)
+      .where(
+        and(
+          eq(progressSnapshots.userId, userId),
+          gte(progressSnapshots.takenAt, prevWeekStart),
+          lte(progressSnapshots.takenAt, weekStart),
+        ),
+      );
+
+    const weekAverage = (
+      rows: { dimension: string; score: number }[],
+    ): Partial<Record<SkillDimension, number>> => {
+      const agg = new Map<SkillDimension, { sum: number; count: number }>();
+      for (const r of rows) {
+        const dim = r.dimension as SkillDimension;
+        const entry = agg.get(dim) ?? { sum: 0, count: 0 };
+        entry.sum += r.score;
+        entry.count += 1;
+        agg.set(dim, entry);
+      }
+      const out: Partial<Record<SkillDimension, number>> = {};
+      for (const [dim, { sum, count }] of agg.entries()) {
+        out[dim] = Math.round(sum / count);
+      }
+      return out;
+    };
+
+    const thisAvg = weekAverage(weekDimRows);
+    const prevAvg = weekAverage(prevDimRows);
+
+    const dimensions = ALL_DIMENSIONS.map((dim) => {
+      const avg = thisAvg[dim] ?? null;
+      const prev = prevAvg[dim];
+      const delta =
+        avg !== null && typeof prev === "number" ? avg - prev : null;
+      return { dimension: dim, avg, delta };
+    });
+
+    const weakestDimension = dimensions
+      .filter((d) => d.avg !== null)
+      .sort((a, b) => (a.avg as number) - (b.avg as number))[0]?.dimension ?? null;
+
+    // Best pressure archetype this week (parsed from topic)
+    const pressureRows = weekRepRows.filter((r) =>
+      r.topic?.startsWith("Pressure · "),
+    );
+    let bestArchetype: { name: string; avg: number } | null = null;
+    if (pressureRows.length > 0) {
+      const byArch = new Map<string, { sum: number; count: number }>();
+      for (const r of pressureRows) {
+        const name = r.topic!.replace(/^Pressure · /, "");
+        const entry = byArch.get(name) ?? { sum: 0, count: 0 };
+        entry.sum += r.composite ?? 0;
+        entry.count += 1;
+        byArch.set(name, entry);
+      }
+      const ranked = Array.from(byArch.entries())
+        .map(([name, { sum, count }]) => ({ name, avg: Math.round(sum / count) }))
+        .sort((a, b) => b.avg - a.avg);
+      bestArchetype = ranked[0] ?? null;
+    }
+
+    return {
+      weekStartISO: weekStart.toISOString().slice(0, 10),
+      weekEndISO: new Date(weekEnd.getTime() - 1).toISOString().slice(0, 10),
+      repCount,
+      averageComposite,
+      dimensions,
+      bestArchetype,
+      weakestDimension,
+    };
+  }, {
+    weekStartISO: "",
+    weekEndISO: "",
+    repCount: 0,
+    averageComposite: 0,
+    dimensions: ALL_DIMENSIONS.map((d) => ({
+      dimension: d,
+      avg: null,
+      delta: null,
+    })),
+    bestArchetype: null,
+    weakestDimension: null,
+  });
+}
+
+/**
  * Per-dimension all-time max (personal bests). Used by the post-rep
  * toast to detect when a just-completed rep set a new PB. Returns an
  * object keyed by dimension name — dimensions with no history yet
