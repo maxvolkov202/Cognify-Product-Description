@@ -155,6 +155,66 @@ export default function HowItWorksPage() {
         </p>
       </section>
 
+      <section className="mx-auto w-full max-w-6xl px-6 py-20">
+        <div className="surface-card overflow-hidden">
+          <div className="brand-gradient h-1" aria-hidden="true" />
+          <div className="p-8 md:p-10">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+              Words we use
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+              A short glossary.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm text-ink-600">
+              Consumer apps shouldn&rsquo;t require a decoder ring.
+              Here&rsquo;s what the Cognify-specific words mean.
+            </p>
+            <dl className="mt-8 grid gap-6 md:grid-cols-2">
+              <GlossaryItem
+                term="Rep"
+                def="One timed speaking attempt against a prompt. 20–90 seconds, scored as a single unit. The atomic unit of a Cognify session."
+              />
+              <GlossaryItem
+                term="Rep type"
+                def="The kind of speaking drill — Simplify, Structure, Think Fast, Be Concise, Reinforce, Persuade, Adapt, Deliver, Handle Pressure. Nine in total. Each targets a specific skill."
+              />
+              <GlossaryItem
+                term="Daily Workout"
+                def="A 10-minute session of 4–5 reps, with rep types picked based on your goals and your recent weakest skill."
+              />
+              <GlossaryItem
+                term="Build a Rep"
+                def="The scenario mode. You describe a real upcoming conversation; Cognify generates a thinking framework and you practice against it."
+              />
+              <GlossaryItem
+                term="Callout"
+                def={'A specific feedback note on a rep — e.g. “At 0:18 you named the stakes in 4 words.” Each callout is tagged to a dimension and a timestamp in your transcript.'}
+              />
+              <GlossaryItem
+                term="Composite score"
+                def="A 0–100 average across your six dimensions, weighted by how much each matters for the rep type. Think of it like a GPA for one rep."
+              />
+              <GlossaryItem
+                term="Structural adherence"
+                def="A scenario-only score — how closely your rep followed the framework Cognify generated for the conversation. Distinct from the six core dimensions."
+              />
+              <GlossaryItem
+                term="Baseline rep"
+                def="Your first-ever 60-second self-introduction. Anchors every later rep: deltas reference this as the zero line."
+              />
+              <GlossaryItem
+                term="External validation"
+                def="Blind-ranking mode. You share a link; 3+ listeners rank your reps without seeing scores. The aggregated ranking is human proof of improvement, not algorithmic."
+              />
+              <GlossaryItem
+                term="Rubric version"
+                def="The scoring ruleset used on a rep. Pinned per rep so historical trend lines stay honest when we tune the rubric. Current: v2-beta.2."
+              />
+            </dl>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto w-full max-w-5xl px-6 py-24 text-center">
         <h2 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           Most people don&rsquo;t need more information.{" "}
@@ -173,5 +233,14 @@ export default function HowItWorksPage() {
         </div>
       </section>
     </>
+  );
+}
+
+function GlossaryItem({ term, def }: { term: string; def: string }) {
+  return (
+    <div className="rounded-xl border border-ink-200 bg-ink-50/40 p-4">
+      <dt className="text-sm font-extrabold text-ink-900">{term}</dt>
+      <dd className="mt-1 text-sm leading-relaxed text-ink-600">{def}</dd>
+    </div>
   );
 }

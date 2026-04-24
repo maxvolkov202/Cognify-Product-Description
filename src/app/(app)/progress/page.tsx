@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/session/current-user";
+import { RUBRIC_VERSION } from "@/lib/scoring/rubric";
 import {
   getSkillTrends,
   getCurrentSkillScores,
@@ -181,7 +182,7 @@ export default async function ProgressPage() {
         <StatCard
           icon={<TrendingUp className="size-4 text-white" />}
           label="Rubric version"
-          value="v2-beta.1"
+          value={RUBRIC_VERSION}
           mono
           tooltip="The scoring rubric that produced these numbers. Pinned per rep so historical scores don't shift when we tune the rubric later."
         />
