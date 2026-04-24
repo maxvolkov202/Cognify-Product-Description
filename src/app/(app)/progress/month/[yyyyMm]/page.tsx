@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, Sparkles, Target, TrendingUp } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import {
   getSkillTrends,
   getRepsForDateRange,
+  getPressureRepStats,
 } from "@/lib/db/queries/progress";
 import { buildMonthlyReport } from "@/lib/insights/narrative";
 import { DIMENSION_LABELS } from "@/types/domain";
@@ -35,9 +43,10 @@ export default async function MonthlyReportPage({
   });
 
   // 90-day trend window ensures we cover full month even for long months.
-  const [trends, reps] = await Promise.all([
+  const [trends, reps, pressureStats] = await Promise.all([
     getSkillTrends(userId, 90),
     getRepsForDateRange(userId, start.toISOString(), end.toISOString()),
+    getPressureRepStats(userId, { since: start, until: end }),
   ]);
 
   const report = buildMonthlyReport(
@@ -149,6 +158,54 @@ export default async function MonthlyReportPage({
           }
         />
       </div>
+
+      {pressureStats.count > 0 && (
+        <div className="mt-8 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40">
+          <div className="flex items-start gap-3 p-5">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+              <Zap className="size-4" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+                Pressure performance this month
+              </p>
+              <p className="mt-1 text-sm font-semibold text-amber-950">
+                {pressureStats.count} pressure{" "}
+                {pressureStats.count === 1 ? "rep" : "reps"} · avg composite{" "}
+                <strong>{pressureStats.avgComposite ?? "—"}</strong>
+                {pressureStats.byArchetype[0] && (
+                  <>
+                    {" "}
+                    · strongest under{" "}
+                    <strong>
+                      {pressureStats.byArchetype[0].archetypeName}
+                    </strong>{" "}
+                    ({pressureStats.byArchetype[0].avgComposite})
+                  </>
+                )}
+              </p>
+              {pressureStats.byArchetype.length > 1 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pressureStats.byArchetype.map((a) => (
+                    <span
+                      key={a.archetypeName}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900"
+                    >
+                      {a.archetypeName}
+                      <span className="font-mono tabular-nums text-amber-700">
+                        {a.avgComposite}
+                      </span>
+                      <span className="text-[10px] text-amber-500">
+                        × {a.count}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1.2fr_1fr]">
         {/* Month calendar grid */}

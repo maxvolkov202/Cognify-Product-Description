@@ -178,10 +178,21 @@ export type PressureRepStats = {
 
 export async function getPressureRepStats(
   userId: string,
-  days = 60,
+  optsOrDays: number | { since: Date; until?: Date } = 60,
 ): Promise<PressureRepStats> {
   return safeDb(async () => {
-    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const since =
+      typeof optsOrDays === "number"
+        ? new Date(Date.now() - optsOrDays * 24 * 60 * 60 * 1000)
+        : optsOrDays.since;
+    const until =
+      typeof optsOrDays === "number" ? null : (optsOrDays.until ?? null);
+    const whereClauses = [
+      eq(reps.userId, userId),
+      gte(reps.createdAt, since),
+      sql`${reps.topic} LIKE 'Pressure · %'`,
+    ];
+    if (until) whereClauses.push(lte(reps.createdAt, until));
     const rows = await db
       .select({
         compositeScore: reps.compositeScore,
@@ -189,14 +200,7 @@ export async function getPressureRepStats(
         topic: reps.topic,
       })
       .from(reps)
-      .where(
-        and(
-          eq(reps.userId, userId),
-          gte(reps.createdAt, since),
-          // Postgres LIKE for prefix match; drizzle exposes it via sql
-          sql`${reps.topic} LIKE 'Pressure · %'`,
-        ),
-      )
+      .where(and(...whereClauses))
       .orderBy(desc(reps.createdAt));
 
     if (rows.length === 0) {
