@@ -1045,10 +1045,24 @@ Format: `YYYY-MM-DD · who · what changed`
 ## 10. Mockup references (all)
 
 ### Shipped into this plan 2026-04-23
-- Daily Workout Home — `https://claude.ai/public/artifacts/586d0891-9180-4c45-84c5-e0526d92ab00`
-- Exercise / Prompt Pick — `https://claude.ai/public/artifacts/eba6165f-1f0e-4efb-870e-2fd95c04d446`
-- Start (pre-rep) — `https://claude.ai/public/artifacts/f9e32508-a3ed-4319-bc3a-01338037d3f0`
-- Actual Rep (recording) — `https://claude.ai/public/artifacts/4a934123-f450-491b-b902-5a706f7ec75b`
+
+Local copies are mirrored into the repo at `docs/mockups/` so anyone reading the plan can see them inline without needing the Claude artifact URLs.
+
+**#1 Daily Workout Home** — `docs/mockups/01-daily-workout-home.jpeg` · `https://claude.ai/public/artifacts/586d0891-9180-4c45-84c5-e0526d92ab00`
+
+![Daily Workout Home](./mockups/01-daily-workout-home.jpeg)
+
+**#2 Exercise / Prompt Pick** — `docs/mockups/02-exercise-prompt-pick.jpeg` · `https://claude.ai/public/artifacts/eba6165f-1f0e-4efb-870e-2fd95c04d446`
+
+![Exercise / Prompt Pick](./mockups/02-exercise-prompt-pick.jpeg)
+
+**#3 Start / pre-rep** — `docs/mockups/03-start-page.jpeg` · `https://claude.ai/public/artifacts/f9e32508-a3ed-4319-bc3a-01338037d3f0`
+
+![Start / pre-rep](./mockups/03-start-page.jpeg)
+
+**#4 Actual Rep (recording)** — `docs/mockups/04-recording-page.jpeg` · `https://claude.ai/public/artifacts/4a934123-f450-491b-b902-5a706f7ec75b`
+
+![Actual Rep (recording)](./mockups/04-recording-page.jpeg)
 
 ### Future mockups (as V2 Updates.docx evolves)
 <!-- append: page name · claude.ai URL · date added -->
