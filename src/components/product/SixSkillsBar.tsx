@@ -10,6 +10,7 @@ import {
   SKILL_DIMENSION_GROUPS,
 } from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
+import { useSkillsFocus } from "./SkillsFocusContext";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -90,8 +91,10 @@ const DIM_COLOR: Record<SkillDimension, { bg: string; text: string; dot: string 
 
 export function SixSkillsBar({ scores = {} }: Props) {
   const pathname = usePathname() ?? "/";
+  const { focus } = useSkillsFocus();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const hasFocus = focus.primary !== null;
 
   useEffect(() => {
     setHydrated(true);
@@ -164,6 +167,14 @@ export function SixSkillsBar({ scores = {} }: Props) {
             const score = scores[dim];
             const hasScore = typeof score === "number";
             const colors = DIM_COLOR[dim];
+            // Focus emphasis: when a rep/context sets a focus, active
+            // dims (primary + secondary) render bright and at full
+            // opacity; unused dims dim to ~50%. Without a focus, all
+            // dims render at full opacity — the bar is just an at-a-glance.
+            const isPrimary = focus.primary === dim;
+            const isSecondary = focus.secondary.includes(dim);
+            const isActive = isPrimary || isSecondary;
+            const muted = hasFocus && !isActive;
 
             if (effectiveCollapsed) {
               return (
@@ -172,16 +183,20 @@ export function SixSkillsBar({ scores = {} }: Props) {
                   href="/progress"
                   title={`${DIMENSION_LABELS[dim]}${
                     hasScore ? ` · ${score}` : " · no data yet"
+                  }${isPrimary ? " · primary focus" : ""}${
+                    isSecondary ? " · secondary focus" : ""
                   }`}
                   aria-label={`${DIMENSION_LABELS[dim]} current score ${
                     hasScore ? score : "unavailable"
-                  }`}
+                  }${isPrimary ? ", primary focus" : ""}`}
                   className="inline-flex shrink-0"
                 >
                   <span
                     className={cn(
-                      "size-3 rounded-full transition-transform hover:scale-125",
+                      "size-3 rounded-full transition-all hover:scale-125",
                       hasScore ? colors.dot : "bg-ink-300",
+                      isPrimary && "scale-125 ring-2 ring-offset-1 ring-brand-purple/60",
+                      muted && "opacity-40",
                     )}
                     aria-hidden="true"
                   />
@@ -193,14 +208,22 @@ export function SixSkillsBar({ scores = {} }: Props) {
                 key={dim}
                 href="/progress"
                 className={cn(
-                  "group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[11px] font-semibold transition",
+                  "group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                  isPrimary
+                    ? "border-brand-purple bg-white shadow-[var(--shadow-glow)] ring-2 ring-brand-lavender/50"
+                    : isSecondary
+                      ? "border-brand-lavender/60 bg-white"
+                      : "border-ink-200 bg-white",
                   hasScore
                     ? "hover:border-ink-300 hover:shadow-sm"
                     : "text-ink-400",
+                  muted && "opacity-50",
                 )}
                 title={`${DIMENSION_LABELS[dim]}${
                   hasScore ? ` · ${score}/100` : " · no data yet"
-                }${isContentDim(dim) ? " · Content" : " · Delivery"}`}
+                }${isContentDim(dim) ? " · Content" : " · Delivery"}${
+                  isPrimary ? " · primary focus" : ""
+                }${isSecondary ? " · secondary focus" : ""}`}
               >
                 <span
                   className={cn(
@@ -209,7 +232,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
                   )}
                   aria-hidden="true"
                 />
-                <span className={cn("text-ink-700")}>
+                <span className={cn("text-ink-700", isPrimary && "text-ink-900")}>
                   {DIMENSION_LABELS[dim]}
                 </span>
                 {hasScore && (

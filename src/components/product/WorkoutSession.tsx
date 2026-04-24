@@ -9,6 +9,7 @@ import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
 import { PersonalBestToast } from "./PersonalBestToast";
 import { bumpCompletedRepCount } from "./InstallPrompt";
+import { SkillsFocusScope } from "./SkillsFocusContext";
 import type { RepScore, Callout, SkillDimension } from "@/types/domain";
 import type { PreviousRepSummary } from "./FeedbackPanel";
 import type {
@@ -445,6 +446,10 @@ export function WorkoutSession({
 
   return (
     <>
+    <SkillsFocusScope
+      primary={currentRep.repType.primaryDimension}
+      secondary={currentRep.repType.secondaryDimensions}
+    />
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
