@@ -7,21 +7,70 @@ import { WorkoutIntro } from "./WorkoutIntro";
 import { WorkoutCountdown } from "./WorkoutCountdown";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
-import type { RepScore, Callout } from "@/types/domain";
+import type { RepScore, Callout, SkillDimension } from "@/types/domain";
 import type { PreviousRepSummary } from "./FeedbackPanel";
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
-import { planNextRep } from "@/lib/ai/workout-prompts";
+import type {
+  SessionType,
+  WorkoutSessionPlan,
+} from "@/lib/ai/workout-prompts";
+import {
+  planNextRep,
+  planTodaysWorkout,
+  planFocusWorkout,
+  planFlowSession,
+} from "@/lib/ai/workout-prompts";
 import type { RepTypeId } from "@/lib/ai/rep-types";
 import {
   savePauseState,
   loadPauseState,
   clearPauseState,
 } from "@/lib/workout/pause";
+import type { ImprovementGoalId } from "@/lib/onboarding/constants";
+
+const SESSION_TYPE_PREF_KEY = "cognify_session_type_v1";
+
+type SessionPreference = {
+  sessionType: SessionType;
+  focusDimension: SkillDimension | null;
+};
+
+function loadSessionPreference(): SessionPreference | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(SESSION_TYPE_PREF_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SessionPreference;
+    if (
+      parsed &&
+      (parsed.sessionType === "focus" ||
+        parsed.sessionType === "combined" ||
+        parsed.sessionType === "flow")
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSessionPreference(pref: SessionPreference): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SESSION_TYPE_PREF_KEY, JSON.stringify(pref));
+  } catch {
+    // localStorage unavailable — non-fatal
+  }
+}
 
 type Props = {
   plan: WorkoutSessionPlan;
   streakDays?: number | null;
   yesterdayComposite?: number | null;
+  /** User's improvement goals — passed to Focus/Combined orchestrators
+   *  when the user changes session type client-side so the regenerated
+   *  plan still respects goal weighting. */
+  improvementGoals?: readonly ImprovementGoalId[];
 };
 
 type Phase = "intro" | "countdown" | "prompt-select" | "rep" | "done";
@@ -44,8 +93,45 @@ export function WorkoutSession({
   plan: initialPlan,
   streakDays,
   yesterdayComposite,
+  improvementGoals,
 }: Props) {
   const [plan, setPlan] = useState(initialPlan);
+
+  // Apply the user's persisted session-type preference on mount. We
+  // render with the server-provided `initialPlan` first so there's no
+  // hydration mismatch, then — if the user's saved preference differs —
+  // regenerate the plan client-side.
+  useEffect(() => {
+    const pref = loadSessionPreference();
+    if (!pref) return;
+    if (
+      pref.sessionType === initialPlan.sessionType &&
+      pref.focusDimension === (initialPlan.focusDimension ?? null)
+    ) {
+      return;
+    }
+    setPlan(buildPlan(pref, improvementGoals));
+    // Intentionally not reactive — this is one-shot on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleChangeSessionType(next: {
+    sessionType: SessionType;
+    focusDimension: SkillDimension | null;
+  }) {
+    saveSessionPreference(next);
+    setPlan(buildPlan(next, improvementGoals));
+    // Also reset in-session state (scores, cursor, completed types) so a
+    // mid-intro type change doesn't leave stale data. We're still on
+    // phase='intro' when this runs — no recorded reps to clobber.
+    setCurrentIndex(0);
+    setSelectedPrompts([]);
+    setScores([]);
+    setRetryFocus(null);
+    setCarryoverFocus(null);
+    setPreviousRepSummary(null);
+    setCompletedRepTypeIds([]);
+  }
   const [phase, setPhase] = useState<Phase>("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
@@ -237,6 +323,7 @@ export function WorkoutSession({
         hasResumeState={canResume}
         onStart={handleStart}
         onResume={handleResume}
+        onChangeSessionType={handleChangeSessionType}
       />
     );
   }
@@ -323,6 +410,10 @@ export function WorkoutSession({
         }
         repTypeFramework={currentRep.framework}
         speakingThreshold={{ minRatio: 0.6 }}
+        feedbackMode={plan.sessionType === "flow" ? "flow" : "full"}
+        flowRepIndex={currentIndex + 1}
+        flowTotalReps={plan.reps.length}
+        flowArchetypeName={currentRep.pressureArchetype?.name}
         onComplete={handleRepCompleteWithContext}
         onRetry={handleRepRetry}
         onNext={handleNext}
@@ -345,6 +436,28 @@ export function WorkoutSession({
  * tapping during an active rep completes-then-pauses at prompt-select.
  * Mockup-grade mid-rep pause tile lands in WS-5 (rep surface redesign).
  */
+/**
+ * Build a new workout plan from a session-type preference, respecting
+ * the user's improvement goals. Called when the user changes session
+ * type on the intro screen.
+ */
+function buildPlan(
+  pref: SessionPreference,
+  goals?: readonly ImprovementGoalId[],
+): WorkoutSessionPlan {
+  if (pref.sessionType === "flow") {
+    return planFlowSession();
+  }
+  if (pref.sessionType === "focus") {
+    return planFocusWorkout({
+      focusDimension: pref.focusDimension ?? "clarity",
+      count: 4,
+      goals: goals ?? [],
+    });
+  }
+  return planTodaysWorkout({ goals: goals ?? [], count: 4 });
+}
+
 function PauseWorkoutButton({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (

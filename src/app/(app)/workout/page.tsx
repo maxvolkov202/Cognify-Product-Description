@@ -34,6 +34,7 @@ export default async function WorkoutPage() {
         plan={plan}
         streakDays={streakDays}
         yesterdayComposite={yesterday?.composite ?? null}
+        improvementGoals={profile?.improvementGoals ?? []}
       />
     </div>
   );

@@ -1,13 +1,30 @@
 "use client";
 
-import { Flame, Target, Timer, RotateCcw } from "lucide-react";
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import { Flame, Target, Timer, RotateCcw, Zap } from "lucide-react";
+import type { SessionType, WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import type { SkillDimension } from "@/types/domain";
+import { DIMENSION_LABELS } from "@/types/domain";
+import { SessionTypePicker } from "./SessionTypePicker";
 
 type Props = {
   plan: WorkoutSessionPlan;
   hasResumeState?: boolean;
   onStart: () => void;
   onResume?: () => void;
+  /** Called when the user changes session type / focus dimension. The
+   *  parent re-runs the relevant orchestrator and passes the new plan
+   *  back in via the `plan` prop. */
+  onChangeSessionType?: (next: {
+    sessionType: SessionType;
+    focusDimension: SkillDimension | null;
+  }) => void;
+};
+
+const SESSION_TYPE_TAGLINES: Record<SessionType, string> = {
+  focus: "Pick a muscle. Drill it. Everything today targets the same dimension.",
+  combined:
+    "A balanced mix. Multiple dimensions, goal-weighted, one pressure rep.",
+  flow: "Five reps, pressure ramps, compressed feedback. Flow state work.",
 };
 
 export function WorkoutIntro({
@@ -15,6 +32,7 @@ export function WorkoutIntro({
   hasResumeState,
   onStart,
   onResume,
+  onChangeSessionType,
 }: Props) {
   const repCount = plan.reps.length;
   const estimatedMinutes = Math.max(
@@ -25,6 +43,7 @@ export function WorkoutIntro({
   const uniqueRepTypes = Array.from(
     new Map(plan.reps.map((r) => [r.repType.id, r.repType])).values(),
   );
+  const tagline = SESSION_TYPE_TAGLINES[plan.sessionType];
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -61,16 +80,38 @@ export function WorkoutIntro({
         <div className="brand-gradient h-1.5" aria-hidden="true" />
         <div className="p-10 md:p-12">
           <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-            <Flame className="size-3.5" />
-            Today&rsquo;s Workout
+            {plan.sessionType === "flow" ? (
+              <Zap className="size-3.5" />
+            ) : plan.sessionType === "focus" ? (
+              <Target className="size-3.5" />
+            ) : (
+              <Flame className="size-3.5" />
+            )}
+            Today&rsquo;s Workout ·{" "}
+            {plan.sessionType === "focus"
+              ? `Focus${
+                  plan.focusDimension
+                    ? ` · ${DIMENSION_LABELS[plan.focusDimension]}`
+                    : ""
+                }`
+              : plan.sessionType === "flow"
+                ? "Flow"
+                : "Combined"}
           </div>
           <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl">
             Ready to train?
           </h1>
-          <p className="mt-3 text-lg leading-relaxed text-ink-600">
-            {repCount} reps across {uniqueRepTypes.length} speaking drills. No
-            notes. No prep. Just reps and structure.
-          </p>
+          <p className="mt-3 text-lg leading-relaxed text-ink-600">{tagline}</p>
+
+          {onChangeSessionType && (
+            <div className="mt-6 border-t border-ink-200 pt-6">
+              <SessionTypePicker
+                value={plan.sessionType}
+                focusDimension={plan.focusDimension ?? null}
+                onChange={onChangeSessionType}
+              />
+            </div>
+          )}
 
           <div className="mt-8 grid grid-cols-3 gap-4">
             <Stat

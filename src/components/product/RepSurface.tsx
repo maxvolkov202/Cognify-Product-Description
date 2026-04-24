@@ -17,6 +17,7 @@ import type {
 } from "@/types/domain";
 import { RecordButton } from "./RecordButton";
 import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
+import { FlowFeedbackPanel } from "./FlowFeedbackPanel";
 import { RepFrameworkStrip } from "./RepFrameworkStrip";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { GradientButton } from "@/components/shared/GradientButton";
@@ -63,6 +64,17 @@ type Props = {
   onRetry?: () => void;
   /** External discard handler for the speaking-threshold gate. */
   onDiscard?: () => void;
+  /** Which feedback surface to render in the `done` phase.
+   *  - `"full"` (default): standard FeedbackPanel with full dimension
+   *    breakdown, callouts, transcript, retry + next buttons.
+   *  - `"flow"`: compressed FlowFeedbackPanel used by Flow Session —
+   *    single insight + auto-advance. No retry (Flow is momentum-based). */
+  feedbackMode?: "full" | "flow";
+  /** Rep index + total (1-based) — used by FlowFeedbackPanel's kicker. */
+  flowRepIndex?: number;
+  flowTotalReps?: number;
+  /** Archetype display name — surfaced by FlowFeedbackPanel. */
+  flowArchetypeName?: string;
   onComplete?: (payload: {
     score: RepScore;
     recording: RecordingResult;
@@ -138,6 +150,10 @@ export function RepSurface({
   speakingThreshold,
   onRetry,
   onDiscard,
+  feedbackMode = "full",
+  flowRepIndex,
+  flowTotalReps,
+  flowArchetypeName,
   onComplete,
   onNext,
   nextLabel = "Next rep",
@@ -569,6 +585,22 @@ export function RepSurface({
 
   // ——— Feedback / done state ——————————————————————————
   if (phase.kind === "done") {
+    if (
+      feedbackMode === "flow" &&
+      onNext &&
+      flowRepIndex !== undefined &&
+      flowTotalReps !== undefined
+    ) {
+      return (
+        <FlowFeedbackPanel
+          score={phase.score}
+          repIndexOneBased={flowRepIndex}
+          totalReps={flowTotalReps}
+          archetypeName={flowArchetypeName ?? "Pressure"}
+          onAdvance={onNext}
+        />
+      );
+    }
     return (
       <div className="space-y-8">
         <FeedbackPanel
