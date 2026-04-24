@@ -406,6 +406,46 @@ export async function getWeeklyRepSummary(
 }
 
 /**
+ * Returns the weakest dimension (lowest average) from the user's most
+ * recent completed session — or null if they have no reps yet. Used
+ * to bias `planTodaysWorkout`'s rep-type selection so tomorrow's
+ * workout actually stresses yesterday's weak spot (Direction.md).
+ *
+ * Logic: pull the last N progressSnapshots rows, group by rep ID via
+ * the takenAt timestamp, then use snapshots from the most recent rep.
+ * If fewer than 3 dims were scored on that rep, fall back to the lowest
+ * across the last N snapshots overall (more robust to partial failures).
+ */
+export async function getLastSessionWeakestDimension(
+  userId: string,
+): Promise<SkillDimension | null> {
+  return safeDb(async () => {
+    // Grab the last 12 snapshots (2 reps' worth of 6-dim each) and pick
+    // the lowest score. Simpler than joining back to reps and handles
+    // the common case well.
+    const rows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        score: progressSnapshots.score,
+      })
+      .from(progressSnapshots)
+      .where(eq(progressSnapshots.userId, userId))
+      .orderBy(desc(progressSnapshots.takenAt))
+      .limit(12);
+    if (rows.length === 0) return null;
+    let worst: { dimension: SkillDimension; score: number } | null = null;
+    for (const r of rows) {
+      const dim = r.dimension as SkillDimension;
+      if (!ALL_DIMENSIONS.includes(dim)) continue;
+      if (!worst || r.score < worst.score) {
+        worst = { dimension: dim, score: r.score };
+      }
+    }
+    return worst?.dimension ?? null;
+  }, null);
+}
+
+/**
  * Per-dimension all-time max (personal bests). Used by the post-rep
  * toast to detect when a just-completed rep set a new PB. Returns an
  * object keyed by dimension name — dimensions with no history yet

@@ -492,13 +492,23 @@ export const GOAL_TO_REP_TYPES: Record<
  * improvement goals. Ensures variety (no two consecutive reps of the
  * same type). If the user has no goals set, picks randomly from all
  * nine types.
+ *
+ * `weakestDimensionBias` (optional) biases the pool toward rep types
+ * that train the user's weakest dimension from their most recent
+ * session — the Direction.md "Tomorrow's focus actually follows you
+ * into tomorrow's workout" promise.
  */
 export function pickRepTypes(opts: {
   goals?: readonly ImprovementGoalId[];
   count?: number;
+  /** When set, rep types whose primary OR secondary dimensions include
+   *  this dimension get a +2.0 weight boost. Typically sourced from the
+   *  user's weakest trending dimension. */
+  weakestDimensionBias?: import("@/types/domain").SkillDimension;
 }): RepTypeId[] {
   const count = opts.count ?? 4;
   const goals = opts.goals ?? [];
+  const bias = opts.weakestDimensionBias;
 
   // Build the weighted candidate pool
   const weighted = new Map<RepTypeId, number>();
@@ -514,6 +524,21 @@ export function pickRepTypes(opts: {
     }
   } else {
     for (const rt of REP_TYPES) weighted.set(rt.id, 1);
+  }
+
+  // Tomorrow's-focus bias: nudge weights toward rep types that train
+  // the user's weakest dimension. Primary match gets a bigger boost
+  // than secondary so the planner prefers drills where the weak dim
+  // is the main focus, not a side effect.
+  if (bias) {
+    for (const rt of REP_TYPES) {
+      const current = weighted.get(rt.id) ?? 0.25;
+      if (rt.primaryDimension === bias) {
+        weighted.set(rt.id, current + 2);
+      } else if (rt.secondaryDimensions.includes(bias)) {
+        weighted.set(rt.id, current + 1);
+      }
+    }
   }
 
   // Weighted random sampling without replacement (variety first).

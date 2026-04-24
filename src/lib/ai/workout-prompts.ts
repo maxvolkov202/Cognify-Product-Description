@@ -133,6 +133,10 @@ export function planTodaysWorkout(
     /** Disable the WS-3 pressure-rep placement. Primarily for tests and
      *  for the legacy shim that predates the pressure system. */
     disablePressureRep?: boolean;
+    /** Tomorrow's-focus bias: the user's weakest dimension from their
+     *  most recent session. Pushes rep-type selection toward drills
+     *  that train this dimension. See pickRepTypes. */
+    weakestDimensionBias?: SkillDimension;
   } = {},
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
@@ -151,7 +155,11 @@ export function planTodaysWorkout(
   // Explicit type annotation: TS would otherwise narrow this to
   // Exclude<RepTypeId, "handle_pressure">[] via the filter, which blocks
   // the top-up push below where fallback.id is RepTypeId.
-  const pickedTypeIds = pickRepTypes({ goals, count });
+  const pickedTypeIds = pickRepTypes({
+    goals,
+    count,
+    weakestDimensionBias: opts.weakestDimensionBias,
+  });
   const nonPressureTypeIds: RepTypeId[] = pickedTypeIds.filter(
     (id) => id !== "handle_pressure",
   );

@@ -3,6 +3,7 @@ import { planTodaysWorkout } from "@/lib/ai/workout-prompts";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
+  getLastSessionWeakestDimension,
   getStreakDays,
   getUserDimensionMaxes,
   getYesterdayDailyAverage,
@@ -17,17 +18,21 @@ export default async function WorkoutPage() {
   // Yesterday's avg composite feeds the end-of-workout "(+4 from yesterday)" delta.
   const user = await currentUser();
   const profile = user ? await getUserProfile(user.id) : null;
-  const [streakDays, yesterday, dimensionMaxes] = user
+  const [streakDays, yesterday, dimensionMaxes, weakestDim] = user
     ? await Promise.all([
         getStreakDays(user.id),
         getYesterdayDailyAverage(user.id),
         getUserDimensionMaxes(user.id),
+        getLastSessionWeakestDimension(user.id),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
 
   const plan = planTodaysWorkout({
     goals: profile?.improvementGoals ?? [],
     count: 4,
+    // Tomorrow's focus → actually follows into tomorrow's workout.
+    // Undefined is fine if the user has no reps yet.
+    ...(weakestDim ? { weakestDimensionBias: weakestDim } : {}),
   });
 
   return (
