@@ -76,6 +76,12 @@ export function BuildARepFlow({
   const [retryFocus, setRetryFocus] = useState<Callout | null>(null);
   const [repRetryNonce, setRepRetryNonce] = useState(0);
 
+  // Preview gate (Product Sweep #5) — after talking points are generated,
+  // show the user a preview phase with Regenerate/Edit/Start buttons
+  // before the mic surface appears. Prevents users from recording
+  // without reviewing the structure they're about to speak against.
+  const [repStarted, setRepStarted] = useState(false);
+
   const effectivePickerPrompt = customPromptMode
     ? customPrompt.trim()
     : selectedPromptIdx !== null
@@ -205,6 +211,7 @@ export function BuildARepFlow({
     setError(null);
     setRetryFocus(null);
     setRepRetryNonce(0);
+    setRepStarted(false);
   }
 
   function handleRepComplete({ score }: { score: RepScore }) {
@@ -348,8 +355,75 @@ export function BuildARepFlow({
         </div>
       )}
 
+      {/* ——— Preview phase (before rep starts) ————————————
+           Product Sweep #5: give the user a clear pre-rep review of the
+           generated structure with Regenerate / Edit / Start buttons
+           before the mic surface takes over. */}
+      {talkingPoints && activeSource && !repStarted && (
+        <div className="space-y-5">
+          <div className="surface-card overflow-hidden">
+            <div className="brand-gradient h-1" aria-hidden="true" />
+            <div className="p-6 md:p-7">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+                Your structure · preview
+              </p>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
+                Review before you speak.
+              </h2>
+              <p className="mt-2 text-sm text-ink-600">
+                Read through the structure below. Tweak any bullet that
+                doesn&rsquo;t match how you&rsquo;d actually say it, regenerate
+                if the whole shape is off, or hit Start when you&rsquo;re ready
+                to hold this in mind during your rep.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRepStarted(true)}
+                  className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-sm"
+                >
+                  <ArrowRight className="size-4" />
+                  Start rep
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRegenerate}
+                  disabled={regenerating}
+                  className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 disabled:opacity-50"
+                >
+                  <RefreshCw
+                    className={`size-3.5 ${regenerating ? "animate-spin" : ""}`}
+                  />
+                  {regenerating ? "Regenerating…" : "Regenerate"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNewScenario}
+                  className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-500 transition-colors hover:border-ink-300 hover:text-ink-900"
+                >
+                  <X className="size-3.5" />
+                  New scenario
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <TalkingPointsSidebar
+            talkingPoints={talkingPoints}
+            onEdit={setTalkingPoints}
+            onRegenerate={handleRegenerate}
+            regenerating={regenerating}
+            context={
+              activeSource.kind === "picker"
+                ? contextInput || undefined
+                : activeSource.payload.context || undefined
+            }
+          />
+        </div>
+      )}
+
       {/* ——— Rep + sidebar ————————————————————————— */}
-      {talkingPoints && activeSource && (
+      {talkingPoints && activeSource && repStarted && (
         <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
           <div>
             <RepSurface
