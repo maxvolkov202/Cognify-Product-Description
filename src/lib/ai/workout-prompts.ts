@@ -13,6 +13,7 @@ import { pickWorkoutPrompts } from "./prompts/workout";
 import { pickPressurePrompts } from "./prompts/pressure";
 import { getFrameworkPool } from "./frameworks-rep-variants";
 import {
+  getPressureArchetype,
   selectPressureArchetype,
   type PressureArchetype,
   type PressureArchetypeId,
@@ -78,12 +79,29 @@ export type FocusReason = {
 };
 
 /**
+ * The three session types a user can run (WS-6). See
+ * `docs/proposals/session-types.md`:
+ *
+ *   - `focus`   — all reps share one primary dimension (e.g. "Clarity Day")
+ *   - `combined` — existing default: goal-weighted mix across dimensions
+ *   - `flow`    — 5-rep pressure ramp through all archetypes, compressed feedback
+ */
+export type SessionType = "focus" | "combined" | "flow";
+
+/**
  * A full Daily Workout session — 4–5 rep slots and metadata.
  */
 export type WorkoutSessionPlan = {
   id: string;
   reps: WorkoutRepSlot[];
   estimatedDurationSec: number;
+  /** Which orchestrator built this plan. Drives UI routing (e.g. Flow
+   *  sessions use FlowFeedbackPanel instead of FeedbackPanel between
+   *  reps) and analytics splits. */
+  sessionType: SessionType;
+  /** Only populated for `sessionType: 'focus'`. The single dimension the
+   *  user picked to drill. */
+  focusDimension?: SkillDimension;
 };
 
 /**
@@ -189,13 +207,168 @@ export function planTodaysWorkout(
   );
 
   return {
-    id:
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `workout-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: generatePlanId(),
     reps,
     estimatedDurationSec,
+    sessionType: "combined",
   };
+}
+
+/**
+ * Focus Workout (WS-6): all reps share one primary dimension. The user
+ * picks the dimension on the Daily Workout home; this builds the plan.
+ *
+ * Selection priority: rep types with `primaryDimension === focusDimension`
+ * first, then those with it as a secondary, then any others (rare — only
+ * if neither tier has enough unique rep types). The pressure rep at
+ * position N-1 keeps the Build → Stress → Reinforce arc; its archetype
+ * is chosen to stress the focus dimension where possible.
+ */
+export function planFocusWorkout(
+  opts: {
+    focusDimension: SkillDimension;
+    count?: number;
+    goals?: readonly ImprovementGoalId[];
+    recentFrameworkNames?: readonly string[];
+    previousPressureArchetypeId?: PressureArchetypeId | null;
+  },
+): WorkoutSessionPlan {
+  const count = opts.count ?? 4;
+  const { focusDimension } = opts;
+  const includesPressureRep = count >= 4;
+  const pressureIndex = includesPressureRep ? count - 2 : -1;
+
+  // Tier 1: rep types whose PRIMARY is the focus dimension
+  // Tier 2: rep types with the focus dimension as a SECONDARY
+  // Tier 3: everything else (only if tiers 1+2 leave us short)
+  const primaryTypes = REP_TYPES.filter(
+    (rt) =>
+      rt.primaryDimension === focusDimension && rt.id !== "handle_pressure",
+  );
+  const secondaryTypes = REP_TYPES.filter(
+    (rt) =>
+      rt.secondaryDimensions.includes(focusDimension) &&
+      rt.primaryDimension !== focusDimension &&
+      rt.id !== "handle_pressure",
+  );
+  const otherTypes = REP_TYPES.filter(
+    (rt) =>
+      rt.primaryDimension !== focusDimension &&
+      !rt.secondaryDimensions.includes(focusDimension) &&
+      rt.id !== "handle_pressure",
+  );
+
+  const orderedCandidates: RepTypeId[] = [
+    ...primaryTypes.map((rt) => rt.id),
+    ...secondaryTypes.map((rt) => rt.id),
+    ...otherTypes.map((rt) => rt.id),
+  ];
+
+  // Need (count - 1) non-pressure slots when we include a pressure rep,
+  // or `count` otherwise. Walk the priority list, allowing repeats once
+  // we exhaust unique candidates (rare but possible for narrow dimensions).
+  const nonPressureNeeded = includesPressureRep ? count - 1 : count;
+  const nonPressureTypeIds: RepTypeId[] = [];
+  let cursor = 0;
+  while (nonPressureTypeIds.length < nonPressureNeeded) {
+    const pick = orderedCandidates[cursor % orderedCandidates.length];
+    if (!pick) break;
+    nonPressureTypeIds.push(pick);
+    cursor++;
+  }
+
+  const pressureArchetype = includesPressureRep
+    ? selectPressureArchetype({
+        previousArchetype: opts.previousPressureArchetypeId ?? null,
+      })
+    : null;
+
+  const usedThisSession = new Set<string>(opts.recentFrameworkNames ?? []);
+  const reps: WorkoutRepSlot[] = [];
+  let nonPressureCursor = 0;
+  for (let i = 0; i < count; i++) {
+    if (i === pressureIndex && pressureArchetype) {
+      reps.push(buildPressureRepSlot(pressureArchetype, usedThisSession));
+      continue;
+    }
+    const typeId =
+      nonPressureTypeIds[nonPressureCursor++] ?? REP_TYPES[0]!.id;
+    const repType = getRepType(typeId);
+    const framework = pickRotatingFramework(
+      typeId,
+      repType.framework,
+      usedThisSession,
+    );
+    usedThisSession.add(framework.name);
+    reps.push({
+      repType,
+      prompts: pickWorkoutPrompts(typeId, 5),
+      timeBudgetMs: repType.timeBudgetSec * 1000,
+      framework,
+    });
+  }
+
+  const estimatedDurationSec = reps.reduce(
+    (sum, r) => sum + Math.round(r.timeBudgetMs / 1000) + 20,
+    0,
+  );
+
+  return {
+    id: generatePlanId(),
+    reps,
+    estimatedDurationSec,
+    sessionType: "focus",
+    focusDimension,
+  };
+}
+
+/**
+ * Flow Session (WS-6): always 5 reps, every rep is a pressure rep with
+ * archetypes in a fixed intensity ramp. User experiences all five
+ * archetypes in one session. Compressed feedback between reps is
+ * rendered by FlowFeedbackPanel (the orchestrator doesn't care about
+ * feedback rendering — that's a UI concern routed by `sessionType: 'flow'`).
+ *
+ * The archetype order is deliberate — see
+ * `docs/proposals/session-types.md` §2 for the rationale.
+ */
+const FLOW_ARCHETYPE_ORDER: readonly PressureArchetypeId[] = [
+  "time_compression",
+  "audience_switch",
+  "pushback",
+  "clarifying_interrupt",
+  "stakes_raise",
+];
+
+export function planFlowSession(
+  opts: {
+    recentFrameworkNames?: readonly string[];
+  } = {},
+): WorkoutSessionPlan {
+  const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
+  const reps: WorkoutRepSlot[] = FLOW_ARCHETYPE_ORDER.map((archetypeId) => {
+    const archetype = getPressureArchetype(archetypeId);
+    return buildPressureRepSlot(archetype, usedFrameworks);
+  });
+
+  const estimatedDurationSec = reps.reduce(
+    // Flow reset between reps is shorter — 5s feedback instead of 20s
+    (sum, r) => sum + Math.round(r.timeBudgetMs / 1000) + 5,
+    0,
+  );
+
+  return {
+    id: generatePlanId(),
+    reps,
+    estimatedDurationSec,
+    sessionType: "flow",
+  };
+}
+
+function generatePlanId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `workout-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 /**
