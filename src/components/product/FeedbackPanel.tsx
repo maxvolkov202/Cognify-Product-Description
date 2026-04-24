@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
@@ -476,13 +477,13 @@ export function FeedbackPanel({
                 landed best. Pure human signal — the proof the algorithm
                 can&rsquo;t fake.
               </p>
-              <a
+              <Link
                 href="/validate/new"
                 className="brand-gradient mt-3 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:shadow-md"
               >
                 Set up blind ranking
                 <ArrowUpRight className="size-3.5" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
