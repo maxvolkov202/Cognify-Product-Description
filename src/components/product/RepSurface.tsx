@@ -26,6 +26,7 @@ import { saveRep, insertPendingRep, getRepResult } from "@/server/actions/reps";
 import { meetsSpeakingThreshold } from "@/lib/workout/pause";
 import { useRepStatus } from "@/hooks/useRepStatus";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils/cn";
 
 type SpeakingThreshold = {
   minWords?: number;
@@ -660,8 +661,20 @@ export function RepSurface({
     phase.kind === "saving" ||
     phase.kind === "processing-async";
 
+  // Mockup #3 two-column layout: used for Daily Workout idle/ready
+  // state so the framework-with-notes sits beside the gradient record
+  // card. Other modes (Build-a-Rep, /try) and other phases continue to
+  // render the classic single-column stack.
+  const twoColumnLayout =
+    mode === "daily_workout" && phase.kind === "idle" && repTypeFramework;
+
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div
+      className={cn(
+        "mx-auto flex flex-col gap-6",
+        twoColumnLayout ? "max-w-5xl" : "max-w-2xl",
+      )}
+    >
       {/* ——— Focus overlay (retry takes precedence over carryover) ——— */}
       {(retryFocus || carryoverFocus) && phase.kind === "idle" && (
         <FocusOverlay
@@ -670,10 +683,13 @@ export function RepSurface({
         />
       )}
 
-      {/* ——— Daily Workout framework strip (cheat sheet) ——————————— */}
+      {/* ——— Daily Workout framework strip (legacy cheat sheet) ———
+          Only shown in non-idle Daily Workout phases (error). The idle
+          state gets the fuller two-column layout below, which embeds
+          the same framework component on the left side. */}
       {mode === "daily_workout" &&
         repTypeFramework &&
-        (phase.kind === "idle" || phase.kind === "error") && (
+        phase.kind === "error" && (
           <RepFrameworkStrip framework={repTypeFramework} allowNotes />
         )}
 
@@ -739,19 +755,55 @@ export function RepSurface({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 p-10">
-        <RecordButton
-          maxDurationMs={maxDurationMs}
-          onComplete={handleRecordingComplete}
-          disabled={isWorking || !frameworkVisible}
-          {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
-        />
-        {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
-          <p className="text-xs text-ink-400">
-            Wait for the framework to appear before recording.
-          </p>
-        )}
-      </div>
+      {twoColumnLayout ? (
+        <div className="grid gap-5 md:grid-cols-[1fr_1fr] md:items-stretch">
+          <div className="md:min-h-full">
+            <RepFrameworkStrip framework={repTypeFramework!} allowNotes />
+          </div>
+          <div className="brand-gradient relative flex min-h-[360px] flex-col items-center justify-center gap-5 overflow-hidden rounded-2xl p-8 text-center text-white shadow-[var(--shadow-glow)]">
+            <div
+              className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10 blur-2xl"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute -bottom-16 -left-8 size-56 rounded-full bg-brand-magenta/30 blur-3xl"
+              aria-hidden="true"
+            />
+            <div className="relative">
+              <p className="text-2xl font-extrabold leading-tight tracking-tight md:text-3xl">
+                Speak clearly.
+                <br />
+                Speak confidently.
+              </p>
+            </div>
+            <div className="relative">
+              <RecordButton
+                maxDurationMs={maxDurationMs}
+                onComplete={handleRecordingComplete}
+                disabled={isWorking || !frameworkVisible}
+                {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
+              />
+            </div>
+            <p className="relative text-xs font-medium text-white/85">
+              3 second countdown then you are live
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 p-10">
+          <RecordButton
+            maxDurationMs={maxDurationMs}
+            onComplete={handleRecordingComplete}
+            disabled={isWorking || !frameworkVisible}
+            {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
+          />
+          {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
+            <p className="text-xs text-ink-400">
+              Wait for the framework to appear before recording.
+            </p>
+          )}
+        </div>
+      )}
 
       {isWorking && (
         <>
