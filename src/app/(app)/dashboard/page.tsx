@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { GradientButton } from "@/components/shared/GradientButton";
-import { ArrowRight, Brain, Flame, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Flame,
+  Sparkles,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Target,
+  Mic,
+} from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
@@ -10,10 +19,13 @@ import {
   getRepById,
 } from "@/lib/db/queries/progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
-import { CalendarStrip } from "@/components/product/CalendarStrip";
-import { ThisWeekCard } from "@/components/product/ThisWeekCard";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
+import { DashboardHero } from "@/components/product/DashboardHero";
+import { ActivityRibbon } from "@/components/product/ActivityRibbon";
+import { TrainingStackRow } from "@/components/product/TrainingStackRow";
 import { buildNarrativeInsights } from "@/lib/insights/narrative";
+import { SKILL_DIMENSIONS } from "@/types/domain";
+import type { SkillDimension } from "@/types/domain";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -27,7 +39,6 @@ export default async function DashboardPage() {
     getSkillTrends(userId, 14),
     user ? getUserProfile(user.id) : Promise.resolve(null),
   ]);
-  const streak = streakStatus.streakDays;
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -39,16 +50,42 @@ export default async function DashboardPage() {
   const baselineRep = profile?.baselineRepId
     ? await getRepById(profile.baselineRepId)
     : null;
+  const baselineComposite = baselineRep
+    ? Math.round(baselineRep.compositeScore)
+    : null;
 
   const insights = buildNarrativeInsights(trends, avgRecent);
 
-  // ——— Empty state: brand-new user, no reps yet (P3) ——————————
+  // ——— Today's focus dimension ————————————————————————
+  // Lowest-scoring dim from the most recent point per dimension; falls back
+  // to the first untrained dimension; falls back to "clarity".
+  const focus = pickFocusDim(trends);
+
+  // ——— This-week rep counts per mode ——————————————————
+  // We don't track mode per rep here; instead derive a single "reps this
+  // week" total from activity, then split heuristically across the three
+  // tiles. For now, surface the total on Daily Workout and show 0/0 on the
+  // other two — they'll get wired up when per-mode rep history lands.
+  const sevenDayActivity = activity.slice(-7);
+  const totalRepsThisWeek = sevenDayActivity.reduce(
+    (s, d) => s + d.count,
+    0,
+  );
+
+  // ——— Empty state: brand-new user, no reps yet ————————
   if (!hasAnyReps) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-16">
-        <div className="surface-card overflow-hidden">
-          <div className="brand-gradient h-1" aria-hidden="true" />
-          <div className="p-8 md:p-10">
+        <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/10 to-brand-magenta/10 p-8 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] md:p-10">
+          <div
+            className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-50 blur-3xl"
+            aria-hidden="true"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(176,114,255,0.3), transparent 70%)",
+            }}
+          />
+          <div className="relative">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
               Welcome, {firstName}
             </p>
@@ -88,157 +125,252 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-12 space-y-8">
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-10 md:py-12">
       <ResumeBanner />
-      {/* ——— Hero ——————————————————————————————————————— */}
-      <header>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-          Welcome back
-        </p>
-        <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-          Hey {firstName}. Time to train.
-        </h1>
-        {baselineRep && avgRecent !== null && (
-          <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-brand-purple/10 px-3 py-1 text-[11px] font-semibold text-brand-purple">
-            <Sparkles className="size-3" />
-            Baseline {Math.round(baselineRep.compositeScore)} · recent{" "}
-            {avgRecent}
-            {avgRecent > baselineRep.compositeScore
-              ? ` (+${Math.round(avgRecent - baselineRep.compositeScore)})`
-              : avgRecent < baselineRep.compositeScore
-                ? ` (${Math.round(avgRecent - baselineRep.compositeScore)})`
-                : ""}
-          </p>
-        )}
-      </header>
 
-      {/* ——— Calendar strip ——————————————————————————— */}
-      <CalendarStrip activity={activity} days={30} />
+      <DashboardHero
+        firstName={firstName}
+        streakDays={streakStatus.streakDays}
+        freezesAvailable={streakStatus.freezesAvailable}
+        activeToday={streakStatus.activeToday}
+        avgRecent={avgRecent}
+        baselineComposite={baselineComposite}
+        focusDim={focus.dim}
+        focusDimScore={focus.score}
+      />
 
-      {/* ——— Today's workout (with inline streak) —————— */}
-      <div className="surface-card overflow-hidden">
-        <div className="brand-gradient h-1" aria-hidden="true" />
-        <div className="grid gap-6 p-7 md:grid-cols-[1.4fr_auto] md:items-center">
-          <div>
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-              <Flame className="size-3.5 text-brand-purple" />
-              Today&rsquo;s Workout
-              <span
-                className={
-                  streak > 0
-                    ? "inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700"
-                    : "inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-bold text-ink-500"
-                }
-              >
-                {streak > 0 ? `Day ${streak} streak` : "Start your streak"}
-              </span>
-            </p>
-            <h2 className="mt-2 text-3xl font-extrabold text-ink-900">
-              4 reps · ~10 minutes
-            </h2>
-            <p className="mt-2 text-sm text-ink-600">
-              Four speaking reps across different skill drills. Instant feedback
-              after each — with a quote, a suggested rewrite, and one thing to
-              try on the next rep.
-            </p>
-          </div>
-          <div className="flex flex-col items-start gap-2 md:items-end">
-            <GradientButton href="/workout" size="lg">
-              Start workout <ArrowRight className="ml-1 size-4" />
-            </GradientButton>
-            {avgRecent !== null && (
-              <p className="text-xs text-ink-500">
-                Last {recent.length}-rep avg:{" "}
-                <span className="brand-gradient-text font-extrabold tabular-nums">
-                  {avgRecent}
-                </span>
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+      <ActivityRibbon activity={activity} days={30} />
 
-      {/* ——— Two mode cards —————————————————————————— */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <ModeCard
-          href="/workout"
-          icon={<Flame className="size-5 text-white" />}
-          title="Daily Workout"
-          body="Build the habit. 10 minutes, 4–5 reps, every day. Each rep now shows a framework cheat-sheet to speak against — hide it to practice blind."
-        />
-        <ModeCard
-          href="/build-a-rep"
-          icon={<Brain className="size-5 text-white" />}
-          title="Build a Rep"
-          body="Describe a real moment you're about to face. Pick a stakeholder, spell out the outcome, get a structure. Not a script — a scaffold."
-        />
-      </div>
+      <TrainingStackRow
+        modes={[
+          {
+            href: "/workout",
+            label: "Daily Workout",
+            tagline: "4–5 reps across mixed dimensions. The habit core.",
+            repsThisWeek: totalRepsThisWeek,
+            iconKey: "workout",
+          },
+          {
+            href: "/skill-lab",
+            label: "Brain Gym",
+            tagline: "Drill one skill, unlimited reps. No session cap.",
+            repsThisWeek: 0,
+            iconKey: "lab",
+          },
+          {
+            href: "/build-a-rep",
+            label: "Build a Rep",
+            tagline: "One rep around a real conversation you're prepping.",
+            repsThisWeek: 0,
+            iconKey: "build",
+          },
+        ]}
+      />
 
-      {/* ——— This week narrative —————————————————————— */}
-      {insights.length > 0 && <ThisWeekCard insights={insights} />}
+      {insights.length > 0 && <CoachMemo insights={insights} />}
 
-      {/* ——— Recent reps ——————————————————————————— */}
-      {hasAnyReps && (
-        <section className="surface-card p-6">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
-              Recent reps
-            </h2>
-            <Link
-              href="/progress"
-              className="text-xs font-semibold text-brand-purple hover:text-brand-magenta"
-            >
-              See all →
-            </Link>
-          </div>
-          <ul className="mt-3 divide-y divide-ink-100">
-            {recent.map((rep) => (
-              <li
-                key={rep.id}
-                className="flex items-center justify-between gap-4 py-3 text-sm"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-ink-800">
-                    {rep.promptText}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-ink-400">
-                    {new Date(rep.createdAt).toLocaleDateString()} ·{" "}
-                    {(rep.durationMs / 1000).toFixed(0)}s
-                  </p>
-                </div>
-                <span className="brand-gradient-text text-lg font-extrabold tabular-nums">
-                  {Math.round(rep.compositeScore)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {hasAnyReps && <LastSessions recent={recent} />}
     </div>
   );
 }
 
-function ModeCard({
-  href,
-  icon,
-  title,
-  body,
+// ——— Coach memo (server-rendered, dark gradient) ————————————
+
+function CoachMemo({
+  insights,
 }: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  body: string;
+  insights: ReturnType<typeof buildNarrativeInsights>;
 }) {
   return (
-    <Link
-      href={href as never}
-      className="surface-card group p-5 transition-shadow hover:shadow-[var(--shadow-glow)]"
-    >
-      <div className="brand-gradient grid size-10 place-items-center rounded-xl">
-        {icon}
+    <section className="relative overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900 p-6 text-white shadow-[0_24px_60px_-24px_rgba(20,20,40,0.5)] md:p-8">
+      <div
+        className="pointer-events-none absolute -left-16 -top-16 size-56 rounded-full blur-3xl"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(106,163,255,0.35), transparent 70%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-20 -right-12 size-56 rounded-full blur-3xl"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(231,124,240,0.3), transparent 70%)",
+        }}
+      />
+
+      <div className="relative">
+        <div className="flex items-center gap-2.5">
+          <div className="brand-gradient grid size-9 place-items-center rounded-xl">
+            <Sparkles className="size-4 text-white" strokeWidth={2.5} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-lavender">
+              Coach&rsquo;s memo
+            </p>
+            <p className="text-sm font-semibold text-white/80">
+              What moved this week
+            </p>
+          </div>
+        </div>
+
+        <ol className="mt-5 space-y-3">
+          {insights.map((insight, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <div className="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-[10px] font-bold tabular-nums text-white/80">
+                {i + 1}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-start gap-2">
+                  <InsightIcon kind={insight.kind} />
+                  <p className="text-[13px] leading-relaxed text-white/90 md:text-sm">
+                    {insight.text}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-5 flex justify-end">
+          <Link
+            href="/progress"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/90 backdrop-blur-sm transition hover:bg-white/15"
+          >
+            See full progress
+            <ArrowRight className="size-3" strokeWidth={2.5} />
+          </Link>
+        </div>
       </div>
-      <h3 className="mt-3 text-lg font-bold text-ink-900">{title}</h3>
-      <p className="mt-1 text-sm text-ink-500">{body}</p>
+    </section>
+  );
+}
+
+function InsightIcon({
+  kind,
+}: {
+  kind: "improvement" | "strength" | "steady" | "regression" | "opportunity";
+}) {
+  const cls = "mt-0.5 size-3.5 shrink-0";
+  switch (kind) {
+    case "improvement":
+      return <TrendingUp className={`${cls} text-emerald-400`} strokeWidth={2.5} />;
+    case "regression":
+      return <TrendingDown className={`${cls} text-rose-400`} strokeWidth={2.5} />;
+    case "strength":
+      return <Sparkles className={`${cls} text-amber-300`} strokeWidth={2.5} />;
+    case "steady":
+      return <Activity className={`${cls} text-brand-lavender`} strokeWidth={2.5} />;
+    case "opportunity":
+      return <Target className={`${cls} text-brand-magenta`} strokeWidth={2.5} />;
+  }
+}
+
+// ——— Last sessions (server-rendered, three cards) ——————————
+
+type RecentRep = Awaited<ReturnType<typeof getRecentReps>>[number];
+
+function LastSessions({ recent }: { recent: RecentRep[] }) {
+  // Show 3 most recent in card form; older live behind /progress.
+  const top = recent.slice(0, 3);
+  return (
+    <section>
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+          Last sessions
+        </h2>
+        <Link
+          href="/progress"
+          className="text-xs font-bold text-brand-purple hover:text-brand-magenta"
+        >
+          See all →
+        </Link>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {top.map((rep) => (
+          <SessionCard key={rep.id} rep={rep} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SessionCard({ rep }: { rep: RecentRep }) {
+  const composite = Math.round(rep.compositeScore);
+  // Pill bars proportional to composite — a tiny readout at the bottom of
+  // the card so each session feels alive.
+  const fillPct = Math.max(8, Math.min(100, composite));
+  const date = new Date(rep.createdAt).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+  const seconds = Math.round(rep.durationMs / 1000);
+  return (
+    <Link
+      href="/progress"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-white to-brand-lavender/5 p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-[0_12px_36px_-16px_rgba(176,114,255,0.45)]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-ink-800">
+            {rep.promptText}
+          </p>
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-ink-400">
+            {date} · {seconds}s
+          </p>
+        </div>
+        <div className="brand-gradient-text shrink-0 text-2xl font-extrabold tabular-nums leading-none">
+          {composite}
+        </div>
+      </div>
+
+      <div className="h-1.5 overflow-hidden rounded-full bg-ink-100">
+        <div
+          className="brand-gradient h-full rounded-full"
+          style={{ width: `${fillPct}%` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between text-[11px] font-bold">
+        <span className="inline-flex items-center gap-1 text-brand-purple opacity-0 transition-opacity group-hover:opacity-100">
+          <Mic className="size-3" strokeWidth={2.5} />
+          Run it back
+        </span>
+        <span className="text-ink-400">→ progress</span>
+      </div>
     </Link>
   );
 }
+
+// ——— Today's focus dimension picker ————————————————————
+
+function pickFocusDim(
+  trends: { dimension: SkillDimension; points: { score: number }[] }[],
+): { dim: SkillDimension | null; score: number | null } {
+  // Latest score per dimension
+  const latest = new Map<SkillDimension, number>();
+  for (const t of trends) {
+    if (t.points.length === 0) continue;
+    latest.set(t.dimension, t.points[t.points.length - 1]!.score);
+  }
+
+  // First untrained dim takes priority — gives the user a clear next step
+  for (const d of SKILL_DIMENSIONS) {
+    if (!latest.has(d)) return { dim: d, score: null };
+  }
+
+  // Otherwise lowest-scored dim
+  let weakest: SkillDimension | null = null;
+  let min = Infinity;
+  for (const [d, s] of latest) {
+    if (s < min) {
+      min = s;
+      weakest = d;
+    }
+  }
+  return weakest
+    ? { dim: weakest, score: Math.round(min) }
+    : { dim: null, score: null };
+}
+

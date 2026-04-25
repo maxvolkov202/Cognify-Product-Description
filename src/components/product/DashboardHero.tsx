@@ -1,0 +1,258 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "motion/react";
+import { ArrowRight, Flame, Sparkles, Mic, Zap } from "lucide-react";
+import { DIMENSION_LABELS } from "@/types/domain";
+import type { SkillDimension } from "@/types/domain";
+
+type Props = {
+  firstName: string;
+  streakDays: number;
+  freezesAvailable: number;
+  activeToday: boolean;
+  avgRecent: number | null;
+  baselineComposite: number | null;
+  focusDim: SkillDimension | null;
+  focusDimScore: number | null;
+};
+
+/**
+ * Dashboard hero card. Brand-gradient wash, animated mascot, three vital
+ * signs (streak / last 5 avg / today's focus), and the primary "Start
+ * workout" CTA. The live numbers come from server-fetched data — this
+ * component is the client island purely for the mascot pulse + hover.
+ */
+export function DashboardHero({
+  firstName,
+  streakDays,
+  freezesAvailable,
+  activeToday,
+  avgRecent,
+  baselineComposite,
+  focusDim,
+  focusDimScore,
+}: Props) {
+  const delta =
+    avgRecent !== null && baselineComposite !== null
+      ? Math.round(avgRecent - baselineComposite)
+      : null;
+  const deltaTone =
+    delta === null
+      ? null
+      : delta > 0
+        ? "up"
+        : delta < 0
+          ? "down"
+          : "flat";
+
+  return (
+    <section className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] md:p-8">
+      {/* Ambient brand halos */}
+      <div
+        className="pointer-events-none absolute -right-24 -top-32 size-80 rounded-full opacity-50 blur-3xl"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(176,114,255,0.3), transparent 70%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-32 -left-20 size-72 rounded-full opacity-40 blur-3xl"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(106,163,255,0.25), transparent 70%)",
+        }}
+      />
+
+      <div className="relative grid gap-6 md:grid-cols-[1.2fr_1.4fr] md:items-center">
+        {/* Left: greeting + mascot */}
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <motion.div
+                className="brand-gradient size-10 rounded-2xl"
+                animate={{ opacity: [0.85, 1, 0.85], scale: [1, 1.04, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <div
+                className="brand-gradient absolute inset-0 rounded-2xl opacity-40 blur-md"
+                aria-hidden="true"
+              />
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+              {greeting()} · Cognify
+            </p>
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+            Hey {firstName}.
+            <br />
+            <span className="brand-gradient-text">Time to train.</span>
+          </h1>
+          <p className="mt-3 text-sm text-ink-600 md:text-base">
+            {avgRecent !== null
+              ? "Your reps are warm. Keep the streak alive."
+              : "Pick up where you left off."}
+          </p>
+        </div>
+
+        {/* Right: vital signs */}
+        <div className="grid grid-cols-3 gap-2 md:gap-3">
+          <VitalSign
+            label="Streak"
+            href="/progress"
+            accent="amber"
+            valueNode={
+              <span className="flex items-baseline gap-1">
+                <span className="text-3xl font-extrabold tabular-nums text-ink-900 md:text-4xl">
+                  {streakDays}
+                </span>
+                <span className="text-xs font-semibold text-ink-500">d</span>
+              </span>
+            }
+            iconNode={
+              <Flame
+                className={
+                  streakDays > 0
+                    ? "size-4 text-amber-500"
+                    : "size-4 text-ink-400"
+                }
+                strokeWidth={2.5}
+              />
+            }
+            footnote={
+              streakDays === 0
+                ? "Start it today"
+                : freezesAvailable > 0
+                  ? `${freezesAvailable} freeze${freezesAvailable === 1 ? "" : "s"} banked`
+                  : activeToday
+                    ? "Trained today ✓"
+                    : "Train today to keep it"
+            }
+          />
+
+          <VitalSign
+            label="Last 5"
+            href="/progress"
+            accent="purple"
+            valueNode={
+              <span className="brand-gradient-text text-3xl font-extrabold tabular-nums md:text-4xl">
+                {avgRecent ?? "—"}
+              </span>
+            }
+            iconNode={<Sparkles className="size-4 text-brand-purple" strokeWidth={2.5} />}
+            footnote={
+              deltaTone === null
+                ? "No baseline yet"
+                : deltaTone === "up"
+                  ? `+${delta} vs baseline`
+                  : deltaTone === "down"
+                    ? `${delta} vs baseline`
+                    : "Even with baseline"
+            }
+            footnoteTone={
+              deltaTone === "up"
+                ? "good"
+                : deltaTone === "down"
+                  ? "bad"
+                  : "neutral"
+            }
+          />
+
+          <VitalSign
+            label="Today's focus"
+            href="/skill-lab"
+            accent="brand"
+            valueNode={
+              <span className="line-clamp-1 text-lg font-extrabold leading-tight text-ink-900 md:text-xl">
+                {focusDim ? DIMENSION_LABELS[focusDim] : "Pick one"}
+              </span>
+            }
+            iconNode={<Zap className="size-4 text-brand-magenta" strokeWidth={2.5} />}
+            footnote={
+              focusDim && focusDimScore !== null
+                ? `Currently ${focusDimScore} — train it`
+                : focusDim
+                  ? "Untrained — train it"
+                  : "Pick a skill to drill"
+            }
+          />
+        </div>
+      </div>
+
+      {/* Bottom: primary CTA + secondary link */}
+      <div className="relative mt-6 flex flex-wrap items-center gap-3 border-t border-ink-200/60 pt-5">
+        <Link
+          href="/workout"
+          className="brand-gradient inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(151,136,255,0.6)] transition-transform hover:scale-[1.02]"
+        >
+          <Mic className="size-4" strokeWidth={2.5} />
+          Start today&rsquo;s workout
+          <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+            4 reps · ~10 min
+          </span>
+        </Link>
+        <Link
+          href="/build-a-rep"
+          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-xs font-bold text-ink-700 transition hover:border-brand-purple/40 hover:bg-brand-lavender/5 hover:text-ink-900"
+        >
+          Build a single rep <ArrowRight className="size-3.5" strokeWidth={2.5} />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function VitalSign({
+  label,
+  valueNode,
+  iconNode,
+  footnote,
+  footnoteTone = "neutral",
+  href,
+  accent,
+}: {
+  label: string;
+  valueNode: React.ReactNode;
+  iconNode: React.ReactNode;
+  footnote: string;
+  footnoteTone?: "good" | "bad" | "neutral";
+  href: string;
+  accent: "amber" | "purple" | "brand";
+}) {
+  const accentBg =
+    accent === "amber"
+      ? "bg-amber-50/60 group-hover:bg-amber-50"
+      : accent === "purple"
+        ? "bg-brand-purple/5 group-hover:bg-brand-purple/10"
+        : "bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/10 group-hover:from-brand-blue/10 group-hover:to-brand-magenta/20";
+  const tone =
+    footnoteTone === "good"
+      ? "text-emerald-600"
+      : footnoteTone === "bad"
+        ? "text-rose-600"
+        : "text-ink-500";
+  return (
+    <Link
+      href={href as never}
+      className={`group flex flex-col gap-1.5 rounded-2xl border border-ink-200/80 p-3 transition hover:-translate-y-0.5 hover:border-ink-300 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.1)] md:p-4 ${accentBg}`}
+    >
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-500">
+        {iconNode}
+        {label}
+      </div>
+      <div className="flex-1">{valueNode}</div>
+      <p className={`text-[11px] font-medium ${tone}`}>{footnote}</p>
+    </Link>
+  );
+}
+
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 5) return "Late night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Late night";
+}

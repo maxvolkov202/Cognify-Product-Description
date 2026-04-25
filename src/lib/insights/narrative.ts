@@ -72,7 +72,7 @@ export function buildNarrativeInsights(
         kind: "opportunity",
         dimension: null,
         text: hasEverTrained
-          ? "No reps this week yet. A 10-minute workout puts you back on the board."
+          ? "No reps this week yet. A 5-minute workout puts you back on the board."
           : "Log your first rep to start seeing your weekly story here.",
       },
     ];
