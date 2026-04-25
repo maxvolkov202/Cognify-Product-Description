@@ -2,7 +2,6 @@ import Link from "next/link";
 import { GradientButton } from "@/components/shared/GradientButton";
 import {
   ArrowRight,
-  Flame,
   Sparkles,
   TrendingUp,
   TrendingDown,

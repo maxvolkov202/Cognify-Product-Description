@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   RefreshCw,
   ArrowRight,
-  PenLine,
   Sparkles,
   X,
   Compass,
@@ -120,16 +119,6 @@ export function BuildARepFlow({
     setCustomPromptMode(false);
     setCustomPrompt("");
     setSelectedPromptIdx(idx);
-  }
-
-  function handleOpenCustom() {
-    setCustomPromptMode(true);
-    setSelectedPromptIdx(null);
-  }
-
-  function handleCancelCustom() {
-    setCustomPromptMode(false);
-    setCustomPrompt("");
   }
 
   async function requestTalkingPoints(
