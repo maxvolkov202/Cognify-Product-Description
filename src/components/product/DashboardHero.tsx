@@ -82,7 +82,7 @@ export function DashboardHero({
               />
             </div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
-              {greeting()} · Cognify
+              Welcome back
             </p>
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
@@ -248,11 +248,3 @@ function VitalSign({
   );
 }
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 5) return "Late night";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Late night";
-}

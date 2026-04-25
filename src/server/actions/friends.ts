@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { and, eq, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { currentUser } from "@/lib/session/current-user";
 import { db } from "@/lib/db/client";
 import {
+  crewInvites,
   friendships,
   friendChallenges,
   reps,
@@ -13,6 +15,7 @@ import {
 import { safeDb } from "@/lib/db/safe";
 import { findUserByEmail } from "@/lib/db/queries/friends";
 import { emitActivityEvent } from "@/lib/db/queries/activity";
+import { sendCrewInviteEmail } from "@/lib/email/send";
 
 export type FriendsActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
@@ -25,17 +28,24 @@ export type FriendsActionResult<T = undefined> =
         | "request_exists"
         | "self_request"
         | "invalid_input"
-        | "db_unavailable";
+        | "db_unavailable"
+        | "invite_exists";
     };
 
+export type SendCrewRequestData =
+  | { kind: "friend_request_sent" }
+  | { kind: "invite_sent"; email: string; inviteUrl: string };
+
 /**
- * Send a friend request to the user identified by `email`. Idempotent:
- * if a request (either direction) already exists, returns `request_exists`
- * or `already_friends` rather than creating a duplicate.
+ * Send a crew request by email. If the email belongs to an existing
+ * Cognify user, creates a pending friendships row. If not, creates a
+ * pending crew_invites row, emails an invite link, and returns the
+ * shareable URL so the form can show "Send them this link" UX. The
+ * pending invite converts to a friendship the moment that email signs up.
  */
 export async function sendFriendRequestAction(
   email: string,
-): Promise<FriendsActionResult> {
+): Promise<FriendsActionResult<SendCrewRequestData>> {
   const me = await currentUser();
   if (!me) return { ok: false, error: "no_user" };
 
@@ -48,46 +58,90 @@ export async function sendFriendRequestAction(
   }
 
   const target = await findUserByEmail(normalized);
-  if (!target) return { ok: false, error: "not_found" };
 
-  const existing = await safeDb(
+  if (target) {
+    const existing = await safeDb(
+      async () =>
+        db.query.friendships.findFirst({
+          where: or(
+            and(
+              eq(friendships.requesterId, me.id),
+              eq(friendships.recipientId, target.id),
+            ),
+            and(
+              eq(friendships.requesterId, target.id),
+              eq(friendships.recipientId, me.id),
+            ),
+          ),
+        }),
+      null,
+    );
+
+    if (existing) {
+      if (existing.status === "accepted") {
+        return { ok: false, error: "already_friends" };
+      }
+      return { ok: false, error: "request_exists" };
+    }
+
+    const inserted = await safeDb(async () => {
+      await db.insert(friendships).values({
+        requesterId: me.id,
+        recipientId: target.id,
+        status: "pending",
+      });
+      return true;
+    }, false);
+
+    if (!inserted) return { ok: false, error: "db_unavailable" };
+
+    revalidatePath("/friends");
+    return { ok: true, data: { kind: "friend_request_sent" } };
+  }
+
+  const existingInvite = await safeDb(
     async () =>
-      db.query.friendships.findFirst({
-        where: or(
-          and(
-            eq(friendships.requesterId, me.id),
-            eq(friendships.recipientId, target.id),
-          ),
-          and(
-            eq(friendships.requesterId, target.id),
-            eq(friendships.recipientId, me.id),
-          ),
+      db.query.crewInvites.findFirst({
+        where: and(
+          eq(crewInvites.inviterId, me.id),
+          eq(crewInvites.email, normalized),
+          eq(crewInvites.status, "pending"),
         ),
       }),
     null,
   );
 
-  if (existing) {
-    if (existing.status === "accepted") {
-      return { ok: false, error: "already_friends" };
-    }
-    return { ok: false, error: "request_exists" };
+  const token = existingInvite?.token ?? randomUUID().replace(/-/g, "");
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://cognifygym.com";
+  const inviteUrl = `${baseUrl}/signin?invite=${token}`;
+
+  if (!existingInvite) {
+    const inserted = await safeDb(async () => {
+      await db.insert(crewInvites).values({
+        inviterId: me.id,
+        email: normalized,
+        token,
+        status: "pending",
+      });
+      return true;
+    }, false);
+    if (!inserted) return { ok: false, error: "db_unavailable" };
   }
 
-  const inserted = await safeDb(async () => {
-    await db.insert(friendships).values({
-      requesterId: me.id,
-      recipientId: target.id,
-      status: "pending",
-    });
-    return true;
-  }, false);
-
-  if (!inserted) return { ok: false, error: "db_unavailable" };
+  await sendCrewInviteEmail({
+    to: normalized,
+    inviterName: me.name,
+    inviteUrl,
+  });
 
   revalidatePath("/friends");
-  return { ok: true };
+  return {
+    ok: true,
+    data: { kind: "invite_sent", email: normalized, inviteUrl },
+  };
 }
+
 
 export async function acceptFriendRequestAction(
   friendshipId: string,

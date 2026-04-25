@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, Zap, Mic } from "lucide-react";
+import { ArrowRight, Beaker, Flame, Mic } from "lucide-react";
 
 type Mode = {
   href: "/workout" | "/skill-lab" | "/build-a-rep";
@@ -17,37 +17,83 @@ type Props = {
 };
 
 /**
- * Three-up training-mode card row. Each card mirrors the Skill Lab
- * Station visual language (rounded-3xl, soft branded gradient, hover
- * lift, brand glow on hover) so the dashboard reads as part of the
- * same product, not a separate page.
+ * Three-mode training row (V2 Updates dashboard redesign). Layout is
+ * 1.7fr / 1fr / 1fr — Daily Workout reads as the primary action through
+ * proportion alone. Daily Workout is full brand gradient with soft orbs
+ * and a white CTA. Skill Lab and Build a Rep are white with an outlined
+ * CTA so secondary actions stay obvious without being de-emphasized.
  */
 export function TrainingStackRow({ modes }: Props) {
   return (
-    <div className="grid gap-3 md:grid-cols-3">
-      {modes.map((mode, i) => (
-        <ModeStation key={mode.href} mode={mode} index={i} />
-      ))}
+    <div className="grid gap-3 md:grid-cols-[1.7fr_1fr_1fr]">
+      {modes.map((mode, i) => {
+        if (mode.iconKey === "workout") {
+          return <DailyWorkoutCard key={mode.href} mode={mode} index={i} />;
+        }
+        return <SecondaryCard key={mode.href} mode={mode} index={i} />;
+      })}
     </div>
   );
 }
 
-function ModeStation({ mode, index }: { mode: Mode; index: number }) {
-  const Icon =
-    mode.iconKey === "workout" ? Flame : mode.iconKey === "lab" ? Zap : Mic;
-  const accentTint =
-    mode.iconKey === "workout"
-      ? "from-amber-200/20 via-white to-brand-magenta/5"
-      : mode.iconKey === "lab"
-        ? "from-brand-blue/10 via-brand-lavender/5 to-brand-magenta/5"
-        : "from-brand-magenta/10 via-white to-brand-blue/5";
+function DailyWorkoutCard({ mode, index }: { mode: Mode; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.06 }}
+      whileHover={{ y: -3 }}
+    >
+      <Link
+        href={mode.href as never}
+        className="brand-gradient group relative block overflow-hidden rounded-3xl p-6 text-white transition-all hover:shadow-[0_24px_60px_-22px_rgba(176,114,255,0.7)]"
+      >
+        <div
+          className="pointer-events-none absolute -right-16 -top-12 size-48 rounded-full bg-white/15 blur-3xl"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-10 size-56 rounded-full bg-brand-magenta/30 blur-3xl"
+          aria-hidden="true"
+        />
+        <div className="relative">
+          <div className="flex items-center gap-2">
+            <span className="grid size-9 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm">
+              <Flame className="size-5 text-white" strokeWidth={2.5} />
+            </span>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/80">
+              Daily Workout
+            </p>
+          </div>
+          <h3 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.02em] md:text-4xl">
+            {mode.label}
+          </h3>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-white/85">
+            {mode.tagline}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-extrabold text-brand-purple shadow-lg transition group-hover:shadow-xl">
+              Start Workout
+              <ArrowRight className="size-4" strokeWidth={3} />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">
+              {mode.repsThisWeek === 0
+                ? "Run one today"
+                : `${mode.repsThisWeek} rep${mode.repsThisWeek === 1 ? "" : "s"} this week`}
+            </p>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
-  const nudge =
-    mode.repsThisWeek === 0
-      ? "Run one this week"
-      : mode.repsThisWeek === 1
-        ? "1 rep this week — keep going"
-        : `${mode.repsThisWeek} reps this week`;
+function SecondaryCard({ mode, index }: { mode: Mode; index: number }) {
+  const Icon = mode.iconKey === "lab" ? Beaker : Mic;
+  const accent =
+    mode.iconKey === "lab"
+      ? "from-brand-blue/10 via-white to-brand-lavender/5"
+      : "from-brand-magenta/10 via-white to-brand-blue/5";
 
   return (
     <motion.div
@@ -58,26 +104,24 @@ function ModeStation({ mode, index }: { mode: Mode; index: number }) {
     >
       <Link
         href={mode.href as never}
-        className={`group relative block overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br ${accentTint} p-5 transition-all hover:border-brand-purple/30 hover:shadow-[0_14px_40px_-16px_rgba(176,114,255,0.45)]`}
+        className={`group relative flex h-full flex-col rounded-3xl border border-ink-200 bg-gradient-to-br ${accent} p-5 transition-all hover:border-brand-purple/40 hover:shadow-[0_14px_40px_-16px_rgba(176,114,255,0.45)]`}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="brand-gradient grid size-10 place-items-center rounded-2xl shadow-[0_6px_18px_-6px_rgba(176,114,255,0.55)]">
-            <Icon className="size-5 text-white" strokeWidth={2.5} />
-          </div>
-          <div
-            className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-600"
-          >
-            {mode.repsThisWeek}
-            <span className="text-ink-400">/wk</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="grid size-9 place-items-center rounded-2xl bg-gradient-to-br from-brand-blue/15 to-brand-magenta/15">
+            <Icon
+              className="size-4.5 text-brand-purple"
+              strokeWidth={2.5}
+            />
+          </span>
         </div>
-        <h3 className="mt-4 text-lg font-extrabold tracking-tight text-ink-900">
+        <h3 className="mt-4 text-xl font-extrabold tracking-tight text-ink-900">
           {mode.label}
         </h3>
-        <p className="mt-1 text-xs leading-relaxed text-ink-600">{mode.tagline}</p>
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-[11px] font-semibold text-ink-500">{nudge}</p>
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-purple opacity-0 transition-opacity group-hover:opacity-100">
+        <p className="mt-1 text-xs leading-relaxed text-ink-600">
+          {mode.tagline}
+        </p>
+        <div className="mt-auto pt-5">
+          <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-purple/30 bg-white px-4 py-2.5 text-xs font-bold text-brand-purple transition-colors group-hover:border-brand-purple group-hover:bg-brand-purple/5">
             Open
             <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </span>

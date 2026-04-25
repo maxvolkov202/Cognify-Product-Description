@@ -30,11 +30,13 @@ export default async function SkillLabPage() {
   const scores = user ? await getCurrentSkillScores(user.id) : null;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-12">
-      <SkillLabClient
-        currentScores={scores ?? {}}
-        improvementGoals={profile?.improvementGoals ?? []}
-      />
+    <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30">
+      <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
+        <SkillLabClient
+          currentScores={scores ?? {}}
+          improvementGoals={profile?.improvementGoals ?? []}
+        />
+      </div>
     </div>
   );
 }

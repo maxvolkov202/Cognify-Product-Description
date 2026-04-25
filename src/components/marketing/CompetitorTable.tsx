@@ -38,8 +38,8 @@ export function CompetitorTable() {
         Everything today analyzes or simulates.{" "}
         <span className="brand-gradient-text">Nothing trains.</span>
       </h2>
-      <p className="mt-4 max-w-2xl text-lg text-ink-600">
-        Other tools are Grammarly for speech. Cognify is Duolingo for communication.
+      <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-600">
+        Grammarly fixes your writing after you write it. It does not teach you to write better. Every speech tool in this space works the same way. They analyze how you sounded after you spoke. Cognify is built differently. Duolingo does not grade your Spanish after a trip to Mexico. It builds the skill through daily practice so you are ready before you get there. That is what Cognify does for communication.
       </p>
 
       <div className="mt-10 overflow-x-auto rounded-2xl border border-ink-200">

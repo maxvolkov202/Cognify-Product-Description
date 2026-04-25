@@ -32,7 +32,12 @@ export function WorkoutCountdown({ from = 3, onComplete }: Props) {
       </p>
       <div
         key={typeof count === "number" ? count : "go"}
-        className="brand-gradient-text mt-4 text-[220px] font-extrabold leading-none tracking-[-0.06em] tabular-nums animate-in zoom-in-50 fade-in duration-500 md:text-[280px]"
+        className="brand-gradient-text mt-4 text-[180px] font-extrabold leading-none tracking-[-0.06em] tabular-nums animate-in zoom-in-50 fade-in duration-500 md:text-[220px]"
+        style={{
+          // Solid color fallback when background-clip:text fails (Safari iOS,
+          // some Android WebViews) so the digit is never invisible.
+          color: "var(--color-ink-900)",
+        }}
       >
         {count === "go" ? "Go" : count}
       </div>

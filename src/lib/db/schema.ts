@@ -335,6 +335,40 @@ export const friendships = cognifyV2Schema.table(
   ],
 );
 
+/**
+ * Pending crew invitations to people who are not yet Cognify users. Created
+ * when a user enters an email in /friends that doesn't resolve to an
+ * existing user. On signup, resolveSupabaseUser scans this table by
+ * lowercased email and converts each pending row into a friendships row
+ * (status='pending') with the new user as recipient.
+ *
+ * Status: pending → accepted (recipient signed up + friendship created) |
+ * cancelled (inviter cancelled before signup).
+ */
+export const crewInvites = cognifyV2Schema.table(
+  "crew_invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    inviterId: uuid("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    token: text("token").notNull().unique(),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    acceptedUserId: uuid("accepted_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [
+    index("crew_invites_email_idx").on(t.email),
+    index("crew_invites_inviter_idx").on(t.inviterId),
+  ],
+);
+
 export const friendChallenges = cognifyV2Schema.table(
   "friend_challenges",
   {

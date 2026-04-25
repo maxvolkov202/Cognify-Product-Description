@@ -1,7 +1,10 @@
 const skills = [
-  { name: "Clarity", score: 87 },
-  { name: "Structure", score: 92 },
-  { name: "Thinking Quality", score: 78 },
+  { name: "Structure", score: 84 },
+  { name: "Clarity", score: 78 },
+  { name: "Conciseness", score: 81 },
+  { name: "Thinking Quality", score: 72 },
+  { name: "Delivery", score: 68 },
+  { name: "Adaptability", score: 79 },
 ] as const;
 
 const weeklyStreak = [24, 7, 12] as const;
@@ -18,19 +21,18 @@ export function ProgressChartMock() {
             Build confidence through repetition.
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-600">
-            Communication improves through reps. As you train, clarity, structure, and
-            confidence compound naturally — and every improvement is measurable.
+            Communication improves through reps. As you train the six core communication skills across a range of exercises and scenarios under pressure, your skills compound naturally. Every improvement is measurable.
           </p>
         </div>
 
         <div className="surface-card p-8">
-          <div className="space-y-6">
+          <div className="space-y-5">
             {skills.map((skill) => (
               <div key={skill.name}>
                 <div className="flex items-baseline justify-between">
                   <span className="text-sm font-semibold text-ink-800">{skill.name}</span>
                   <span className="brand-gradient-text text-xl font-extrabold tabular-nums">
-                    {skill.score}%
+                    {skill.score}
                   </span>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink-100">

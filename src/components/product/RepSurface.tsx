@@ -623,8 +623,28 @@ export function RepSurface({
         />
       );
     }
+    const navButtons = (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {onNext && (
+          <GradientButton onClick={onNext} size="lg">
+            {nextLabel}
+          </GradientButton>
+        )}
+        <button
+          type="button"
+          onClick={handleRetry}
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+        >
+          <RotateCcw className="size-4" /> Run it again
+        </button>
+      </div>
+    );
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
+        {/* Owen's note: navigation belongs at the top so users can advance
+         *  the moment they've read enough, instead of scrolling. We keep
+         *  a copy at the bottom for users who scrolled to the end. */}
+        {navButtons}
         <FeedbackPanel
           score={phase.score}
           audioUrl={phase.recording.url}
@@ -637,20 +657,7 @@ export function RepSurface({
           calloutIds={phase.calloutIds}
           pressureContext={pressureContext ?? null}
         />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {onNext && (
-            <GradientButton onClick={onNext} size="lg">
-              {nextLabel}
-            </GradientButton>
-          )}
-          <button
-            type="button"
-            onClick={handleRetry}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
-          >
-            <RotateCcw className="size-4" /> Run it again
-          </button>
-        </div>
+        {navButtons}
       </div>
     );
   }

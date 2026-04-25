@@ -21,9 +21,7 @@ export function Hero() {
             into <span className="brand-gradient-text">clear speech.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-600">
-            Cognify is a communication training gym. Short, structured reps and instant
-            feedback build the ability to organize thoughts and explain ideas clearly
-            under pressure — for your team, and for you.
+            Cognify is a communication training gym. Short, structured reps and instant feedback build the ability to organize thoughts and explain ideas clearly under pressure, for your team and for you.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">

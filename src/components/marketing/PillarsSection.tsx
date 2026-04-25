@@ -11,7 +11,7 @@ export function PillarsSection() {
     <section className="brand-gradient-soft border-y border-ink-200/60">
       <div className="mx-auto w-full max-w-6xl px-6 py-20 text-center">
         <h2 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-          Built for practice, not performance.
+          Built to train the skill so you are ready for any moment.
         </h2>
         <div className="mx-auto mt-12 grid max-w-4xl gap-10 md:grid-cols-3">
           {pillars.map(({ icon: Icon, text }) => (

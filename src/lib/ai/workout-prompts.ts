@@ -381,6 +381,131 @@ export function planFlowSession(
   };
 }
 
+/**
+ * Skill Lab "Mixed" mode (team-spec restructure 2026-04-24): user picks a
+ * set of dimensions and assigns rep counts per dimension. We interleave
+ * to avoid back-to-back same-dim reps and pull rep types whose primary
+ * dimension matches each slot's target. No pressure rep injection — Mixed
+ * is dimension-volume work, not pressure.
+ */
+export function planMixedSession(opts: {
+  /** Ordered list of (dimension, reps) — dimensions appear in the order
+   *  the user selected them. */
+  skillReps: ReadonlyArray<{ dimension: SkillDimension; reps: number }>;
+  vertical?: VerticalId | null;
+  recentFrameworkNames?: readonly string[];
+}): WorkoutSessionPlan {
+  const slots: SkillDimension[] = [];
+  // Round-robin interleave so reps are spread, not clumped per dim.
+  const remaining = opts.skillReps
+    .filter((s) => s.reps > 0)
+    .map((s) => ({ dimension: s.dimension, remaining: s.reps }));
+  while (remaining.some((r) => r.remaining > 0)) {
+    for (const r of remaining) {
+      if (r.remaining > 0) {
+        slots.push(r.dimension);
+        r.remaining--;
+      }
+    }
+  }
+
+  const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
+  let lastRepTypeId: RepTypeId | null = null;
+  const reps: WorkoutRepSlot[] = slots.map((dim) => {
+    const repType = pickRepTypeForSkill(dim, lastRepTypeId);
+    lastRepTypeId = repType.id;
+    const framework = pickRotatingFramework(
+      repType.id,
+      repType.framework,
+      usedFrameworks,
+    );
+    usedFrameworks.add(framework.name);
+    return {
+      repType,
+      prompts: pickBlendedWorkoutPrompts(repType.id, opts.vertical ?? null, 5),
+      timeBudgetMs: repType.timeBudgetSec * 1000,
+      framework,
+    };
+  });
+
+  const estimatedDurationSec = reps.reduce(
+    (sum, r) => sum + Math.round(r.timeBudgetMs / 1000) + 20,
+    0,
+  );
+
+  return {
+    id: generatePlanId(),
+    reps,
+    estimatedDurationSec,
+    sessionType: "combined",
+  };
+}
+
+function pickRepTypeForSkill(
+  dim: SkillDimension,
+  lastRepTypeId: RepTypeId | null,
+): RepType {
+  const primary = REP_TYPES.filter(
+    (rt) =>
+      rt.primaryDimension === dim &&
+      rt.id !== "handle_pressure" &&
+      rt.id !== lastRepTypeId,
+  );
+  if (primary.length > 0) {
+    return primary[Math.floor(Math.random() * primary.length)]!;
+  }
+  const secondary = REP_TYPES.filter(
+    (rt) =>
+      rt.secondaryDimensions.includes(dim) &&
+      rt.id !== "handle_pressure" &&
+      rt.id !== lastRepTypeId,
+  );
+  if (secondary.length > 0) {
+    return secondary[Math.floor(Math.random() * secondary.length)]!;
+  }
+  return REP_TYPES.find((rt) => rt.id !== "handle_pressure") ?? REP_TYPES[0]!;
+}
+
+/**
+ * Skill Lab "Pressure Training" mode — a variable-length pressure session.
+ * Differs from `planFlowSession` (which is fixed at 5 reps in a specific
+ * archetype order). The user requests N reps; we cycle through archetypes
+ * starting from a random rotation so consecutive sessions don't replay the
+ * same intro archetype. count <= 5 walks the FLOW_ARCHETYPE_ORDER; count > 5
+ * loops with archetype variety.
+ */
+export function planPressureSession(opts: {
+  count: number;
+  recentFrameworkNames?: readonly string[];
+  previousPressureArchetypeId?: PressureArchetypeId | null;
+}): WorkoutSessionPlan {
+  const count = Math.max(1, opts.count);
+  const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
+  const order = [...FLOW_ARCHETYPE_ORDER];
+  const startIdx = opts.previousPressureArchetypeId
+    ? (order.findIndex((a) => a === opts.previousPressureArchetypeId) + 1) %
+      order.length
+    : Math.floor(Math.random() * order.length);
+
+  const reps: WorkoutRepSlot[] = Array.from({ length: count }, (_, i) => {
+    const archetypeId = order[(startIdx + i) % order.length]!;
+    const archetype = getPressureArchetype(archetypeId);
+    return buildPressureRepSlot(archetype, usedFrameworks);
+  });
+
+  const estimatedDurationSec = reps.reduce(
+    (sum, r) => sum + Math.round(r.timeBudgetMs / 1000) + 8,
+    0,
+  );
+
+  return {
+    id: generatePlanId(),
+    reps,
+    estimatedDurationSec,
+    sessionType: "flow",
+  };
+}
+
 function generatePlanId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()

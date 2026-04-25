@@ -12,7 +12,7 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 // until Phase 6 cleanup deletes it.
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/workout", label: "Workout" },
+  { href: "/workout", label: "Daily Workout" },
   { href: "/skill-lab", label: "Skill Lab" },
   { href: "/build-a-rep", label: "Build a Rep" },
   { href: "/progress", label: "Progress" },

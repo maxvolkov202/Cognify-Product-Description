@@ -10,7 +10,7 @@ const points = [
   {
     icon: LineChart,
     title: "Progress reporting",
-    body: "Exportable PDFs that hold up to CFO scrutiny — measurable brain productivity per seat.",
+    body: "Exportable PDFs that hold up to CFO scrutiny. Measurable brain productivity per seat.",
   },
   {
     icon: Building2,
@@ -35,13 +35,11 @@ export function EnterpriseCTA() {
               The system your communication training was missing.
             </h2>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-600">
-              Courses teach theory. Analysis tools polish delivery. Roleplay platforms
-              simulate one-off conversations. Cognify is the first system that actually
-              trains the underlying skill — and proves it with measurable progress.
+              Courses teach theory. Analysis tools polish delivery. Roleplay platforms simulate one-off conversations. Cognify is the first communication gym to train the underlying skills and muscles of strong communication and prove it with measurable progress. No one taught us how to communicate. We built the system that finally does.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <GradientButton href="/for-teams" size="lg">
-                Book a pilot
+                Bring Cognify to your organization
               </GradientButton>
               <GradientButton href="/how-it-works" variant="outline" size="lg">
                 See the methodology

@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { users } from "@/lib/db/schema";
+import { crewInvites, friendships, users } from "@/lib/db/schema";
 import { hasDatabase, safeDb } from "@/lib/db/safe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabase } from "@/lib/supabase/admin";
@@ -113,6 +113,7 @@ async function resolveSupabaseUser(authUser: {
           .returning({ id: users.id });
         store.delete(GUEST_COOKIE);
         if (promoted) {
+          if (email) await convertPendingCrewInvites(guestId, email);
           return {
             id: guestId,
             kind: "authenticated",
@@ -134,6 +135,7 @@ async function resolveSupabaseUser(authUser: {
           .update(users)
           .set({ authUserId: authUser.id, name: name ?? byEmail.name, image: image ?? byEmail.image })
           .where(eq(users.id, byEmail.id));
+        await convertPendingCrewInvites(byEmail.id, email);
         return {
           id: byEmail.id,
           kind: "authenticated",
@@ -157,6 +159,7 @@ async function resolveSupabaseUser(authUser: {
       })
       .returning();
     if (!created) return null;
+    if (email) await convertPendingCrewInvites(created.id, email);
     return {
       id: created.id,
       kind: "authenticated",
@@ -189,4 +192,57 @@ async function ensureGuestUser(guestId: string): Promise<void> {
 
 export function newGuestId(): string {
   return randomUUID();
+}
+
+/**
+ * Convert any pending crew_invites for `email` into pending friendships
+ * with `userId` as recipient. Called from resolveSupabaseUser after a
+ * fresh signup so the new user lands with their friend requests waiting.
+ * Inlined here (rather than living in server/actions/friends.ts) to avoid
+ * forcing this module to import a "use server"-tagged file.
+ */
+async function convertPendingCrewInvites(
+  userId: string,
+  email: string,
+): Promise<void> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return;
+  await safeDb(async () => {
+    const pending = await db.query.crewInvites.findMany({
+      where: and(
+        eq(crewInvites.email, normalized),
+        eq(crewInvites.status, "pending"),
+      ),
+    });
+    for (const invite of pending) {
+      const dupe = await db.query.friendships.findFirst({
+        where: or(
+          and(
+            eq(friendships.requesterId, invite.inviterId),
+            eq(friendships.recipientId, userId),
+          ),
+          and(
+            eq(friendships.requesterId, userId),
+            eq(friendships.recipientId, invite.inviterId),
+          ),
+        ),
+      });
+      if (!dupe) {
+        await db.insert(friendships).values({
+          requesterId: invite.inviterId,
+          recipientId: userId,
+          status: "pending",
+        });
+      }
+      await db
+        .update(crewInvites)
+        .set({
+          status: "accepted",
+          acceptedAt: new Date(),
+          acceptedUserId: userId,
+        })
+        .where(eq(crewInvites.id, invite.id));
+    }
+    return null;
+  }, null);
 }

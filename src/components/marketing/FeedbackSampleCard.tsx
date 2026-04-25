@@ -1,87 +1,68 @@
-import { Check, Clock, Target } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { Sparkles } from "lucide-react";
 
-const callouts = [
-  {
-    icon: Check,
-    tone: "success" as const,
-    title: "Strong opening",
-    body: "You clearly stated your main point in the first 10 seconds.",
-  },
-  {
-    icon: Clock,
-    tone: "warn" as const,
-    title: "Watch your pacing",
-    body: "Try slowing down in the middle section to emphasize key points.",
-  },
-  {
-    icon: Target,
-    tone: "brand" as const,
-    title: "Clear structure",
-    body: "Your answer followed a logical flow from problem to solution.",
-  },
+const skills = [
+  { name: "Structure", score: 84, group: "content" as const },
+  { name: "Clarity", score: 78, group: "content" as const },
+  { name: "Conciseness", score: 81, group: "content" as const },
+  { name: "Thinking Quality", score: 72, group: "delivery" as const },
+  { name: "Delivery", score: 68, group: "delivery" as const },
+  { name: "Adaptability", score: 79, group: "delivery" as const },
 ] as const;
-
-const toneStyles = {
-  success: {
-    card: "bg-success/5 border-success/25",
-    icon: "bg-success text-white",
-  },
-  warn: {
-    card: "bg-brand-purple/5 border-brand-purple/25",
-    icon: "bg-brand-purple text-white",
-  },
-  brand: {
-    card: "bg-brand-blue/5 border-brand-blue/25",
-    icon: "bg-brand-blue text-white",
-  },
-} as const;
 
 export function FeedbackSampleCard() {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-20">
       <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16 md:items-center">
-        <div>
-          <a
-            href="/how-it-works"
-            className="text-sm font-semibold text-brand-purple underline-offset-4 hover:underline"
-          >
-            See a sample feedback screen →
-          </a>
-
-          <div className="mt-4 space-y-3">
-            {callouts.map((callout) => {
-              const tone = toneStyles[callout.tone];
-              const Icon = callout.icon;
-              return (
-                <div
-                  key={callout.title}
-                  className={cn(
-                    "flex items-start gap-3 rounded-xl border px-4 py-3.5",
-                    tone.card,
-                  )}
-                >
+        <div className="surface-card p-6 md:p-7">
+          <div className="flex items-baseline justify-between">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+              Rep feedback
+            </p>
+            <p className="brand-gradient-text text-3xl font-extrabold tabular-nums tracking-tight">
+              77
+            </p>
+          </div>
+          <div className="mt-5 grid gap-2.5">
+            {skills.map((s) => (
+              <div key={s.name} className="flex items-center gap-3">
+                <span
+                  className={
+                    s.group === "content"
+                      ? "inline-flex size-1.5 shrink-0 rounded-full bg-brand-blue"
+                      : "inline-flex size-1.5 shrink-0 rounded-full bg-brand-magenta"
+                  }
+                  aria-hidden="true"
+                />
+                <span className="w-32 text-xs font-semibold text-ink-700">
+                  {s.name}
+                </span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
                   <div
-                    className={cn(
-                      "grid size-7 shrink-0 place-items-center rounded-full",
-                      tone.icon,
-                    )}
-                  >
-                    <Icon className="size-3.5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-ink-900">{callout.title}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-ink-600">
-                      {callout.body}
-                    </p>
-                  </div>
+                    className="brand-gradient h-full rounded-full"
+                    style={{ width: `${s.score}%` }}
+                    role="progressbar"
+                    aria-label={`${s.name} score`}
+                    aria-valuenow={s.score}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
                 </div>
-              );
-            })}
-            <div className="flex items-center justify-between rounded-xl border border-ink-200 bg-white px-4 py-3 text-xs text-ink-500">
-              <span>Filler words: 3 instances of &ldquo;um&rdquo; or &ldquo;like&rdquo;</span>
-              <span className="tabular-nums">Duration: 1:24 / 1:30</span>
+                <span className="w-8 text-right text-xs font-bold tabular-nums text-ink-700">
+                  {s.score}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 rounded-xl border-l-2 border-brand-purple/40 bg-brand-purple/5 p-4">
+            <div className="flex items-center gap-1.5 text-brand-purple">
+              <Sparkles className="size-3.5" strokeWidth={2.5} />
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                One thing to improve next rep
+              </span>
             </div>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-700">
+              Lead with the result. Open with the headline number, context second, so the audience locks onto the takeaway in the first beat.
+            </p>
           </div>
         </div>
 
@@ -90,9 +71,10 @@ export function FeedbackSampleCard() {
             Get feedback that improves the next rep.
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-600">
-            Feedback is focused and actionable. You see what landed, what didn&rsquo;t,
-            and exactly what to adjust on the next rep. No grades, no scripts — just
-            clear signals that help you improve through practice.
+            Feedback is focused and actionable. You see what landed, what did not, and exactly what to adjust on the next rep. No scripts, just clear frameworks that guide your thinking and clear signals that help you improve through practice.
+          </p>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-500">
+            After every rep you see exactly how you performed across the six core communication skills. One focused improvement for the next rep. No noise, just progress.
           </p>
         </div>
       </div>

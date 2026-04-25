@@ -121,6 +121,73 @@ export async function getRepById(repId: string): Promise<RecentRep | null> {
   }, null);
 }
 
+export type RepWithDetails = RecentRep & {
+  userId: string;
+  dimensionScores: { dimension: SkillDimension; score: number }[];
+  callouts: {
+    dimension: string;
+    tone: string;
+    title: string;
+    body: string;
+    quote: string | null;
+    suggestedRewrite: string | null;
+  }[];
+  transcript: string | null;
+};
+
+export async function getRepWithDetails(
+  repId: string,
+): Promise<RepWithDetails | null> {
+  return safeDb(async () => {
+    const row = await db.query.reps.findFirst({
+      where: eq(reps.id, repId),
+      with: {
+        dimensionScores: true,
+        callouts: true,
+      },
+    });
+    if (!row) return null;
+    const transcript =
+      row.transcript &&
+      typeof row.transcript === "object" &&
+      "text" in row.transcript
+        ? (row.transcript as { text?: string }).text ?? null
+        : null;
+    return {
+      id: row.id,
+      userId: row.userId,
+      promptText: row.promptText,
+      compositeScore: row.compositeScore ?? 0,
+      createdAt: row.createdAt,
+      durationMs: row.durationMs,
+      topic: row.topic,
+      dimensionScores: row.dimensionScores
+        .filter((d) => isCanonicalDim(d.dimension))
+        .map((d) => ({ dimension: d.dimension as SkillDimension, score: d.score })),
+      callouts: row.callouts.map((c) => ({
+        dimension: c.dimension,
+        tone: c.tone,
+        title: c.title,
+        body: c.body,
+        quote: c.quote,
+        suggestedRewrite: c.suggestedRewrite,
+      })),
+      transcript,
+    };
+  }, null);
+}
+
+function isCanonicalDim(d: string): boolean {
+  return [
+    "clarity",
+    "structure",
+    "conciseness",
+    "thinking_quality",
+    "delivery",
+    "adaptability",
+  ].includes(d);
+}
+
 export async function getRecentReps(
   userId: string,
   limit = 10,

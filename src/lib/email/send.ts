@@ -67,6 +67,66 @@ export async function sendSupportRequest(
   }
 }
 
+export type CrewInviteEmail = {
+  to: string;
+  inviterName: string | null;
+  inviteUrl: string;
+};
+
+export async function sendCrewInviteEmail(opts: CrewInviteEmail): Promise<void> {
+  if (!resend) {
+    console.log(
+      "[email] RESEND_API_KEY not set, skipping crew invite to",
+      opts.to,
+    );
+    return;
+  }
+  const inviter = opts.inviterName?.split(" ")[0] ?? "A friend";
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: opts.to,
+      subject: `${inviter} invited you to their Cognify gym crew`,
+      html: buildCrewInviteHtml(inviter, opts.inviteUrl),
+    });
+  } catch (err) {
+    console.error("[email] failed to send crew invite:", err);
+  }
+}
+
+function buildCrewInviteHtml(inviter: string, inviteUrl: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f8f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e5f0;">
+    <div style="background:linear-gradient(135deg,#9788ff,#d946ef);padding:28px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+        ${escapeHtml(inviter)} wants you in their Cognify crew
+      </h1>
+    </div>
+    <div style="padding:28px;">
+      <p style="margin:0 0 16px;color:#1a1625;font-size:15px;line-height:1.6;">
+        Cognify is the gym for communication. Short daily reps, AI feedback, six core skills measured every time.
+      </p>
+      <p style="margin:0 0 24px;color:#4a4458;font-size:14px;line-height:1.7;">
+        Join the crew and you can both track progress, push each other on streaks, and run head to head challenges.
+      </p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${inviteUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
+          Accept invite and start training
+        </a>
+      </div>
+      <p style="margin:24px 0 0;color:#9893a8;font-size:12px;text-align:center;">
+        If the button does not work, paste this link into your browser:<br>
+        <span style="color:#6b6480;word-break:break-all;">${escapeHtml(inviteUrl)}</span>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+}
+
 function buildSupportHtml(req: SupportRequest): string {
   const safeMessage = escapeHtml(req.message).replace(/\n/g, "<br>");
   return `

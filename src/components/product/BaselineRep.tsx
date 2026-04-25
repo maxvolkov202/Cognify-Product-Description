@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { RepSurface } from "./RepSurface";
 import { markBaselineRepAction } from "@/server/actions/baseline";
-import type { RepScore } from "@/types/domain";
+import {
+  DIMENSION_LABELS,
+  SKILL_DIMENSION_GROUPS,
+  type RepScore,
+  type SkillDimension,
+} from "@/types/domain";
 
 const BASELINE_PROMPT =
-  "Tell us about yourself in 60 seconds — who you are, what you do, and one thing you want to get better at saying.";
+  "I am a hiring manager for your next role. In 60 seconds, tell me why I should hire you.";
 
 type Phase =
   | { kind: "intro" }
@@ -125,26 +130,93 @@ export function BaselineRep() {
   }
 
   // phase === "done"
+  // Show all six dimension scores + the lead callout so the user can
+  // review before the tutorial. Previous flow disposed of the feedback
+  // panel too quickly to read.
+  const dims: SkillDimension[] = [
+    ...SKILL_DIMENSION_GROUPS.content,
+    ...SKILL_DIMENSION_GROUPS.delivery,
+  ];
+  const leadCallout =
+    phase.score.callouts.find(
+      (c) => c.tone === "warn" || c.tone === "critical",
+    ) ?? phase.score.callouts[0] ?? null;
   return (
     <div className="surface-card overflow-hidden">
       <div className="brand-gradient h-1" aria-hidden="true" />
-      <div className="p-8 text-center">
-        <Sparkles
-          className="mx-auto size-8 text-brand-purple"
-          aria-hidden="true"
-        />
-        <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
-          Here&rsquo;s where you&rsquo;re starting.
-        </h2>
-        <p className="mt-2 text-sm text-ink-600">
-          Your baseline composite score — the number to beat.
-        </p>
-        <p className="brand-gradient-text mt-6 text-7xl font-extrabold tabular-nums">
-          {phase.score.composite}
-        </p>
-        <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-          Baseline composite
-        </p>
+      <div className="p-8">
+        <div className="text-center">
+          <Sparkles
+            className="mx-auto size-8 text-brand-purple"
+            aria-hidden="true"
+          />
+          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
+            Here&rsquo;s where you&rsquo;re starting.
+          </h2>
+          <p className="mt-2 text-sm text-ink-600">
+            Your baseline composite. The number every future rep gets measured against.
+          </p>
+          <p className="brand-gradient-text mt-6 text-7xl font-extrabold tabular-nums">
+            {Math.round(phase.score.composite)}
+          </p>
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+            Baseline composite
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-2.5">
+          {dims.map((dim) => {
+            const entry = phase.score.dimensions.find(
+              (d) => d.dimension === dim,
+            );
+            const score = entry ? Math.round(entry.score) : null;
+            const isContent = (
+              SKILL_DIMENSION_GROUPS.content as readonly SkillDimension[]
+            ).includes(dim);
+            return (
+              <div key={dim} className="flex items-center gap-3">
+                <span
+                  className={
+                    isContent
+                      ? "size-1.5 shrink-0 rounded-full bg-brand-blue"
+                      : "size-1.5 shrink-0 rounded-full bg-brand-magenta"
+                  }
+                  aria-hidden="true"
+                />
+                <span className="w-32 text-sm font-semibold text-ink-700">
+                  {DIMENSION_LABELS[dim]}
+                </span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
+                  <div
+                    className="brand-gradient h-full rounded-full"
+                    style={{ width: `${score ?? 0}%` }}
+                  />
+                </div>
+                <span className="w-8 text-right text-sm font-bold tabular-nums text-ink-700">
+                  {score ?? "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {leadCallout && (
+          <div className="mt-6 rounded-xl border-l-2 border-brand-purple/40 bg-brand-purple/5 p-4">
+            <div className="flex items-center gap-1.5 text-brand-purple">
+              <Sparkles className="size-3.5" strokeWidth={2.5} />
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                What to focus on first
+              </span>
+            </div>
+            <p className="mt-1.5 text-sm font-semibold text-ink-900">
+              {leadCallout.title}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-600">
+              {leadCallout.body}
+            </p>
+          </div>
+        )}
+
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"

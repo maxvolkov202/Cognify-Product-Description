@@ -1,25 +1,20 @@
-import { Briefcase, MessageSquare, Presentation, Sparkles } from "lucide-react";
+import { Beaker, Briefcase, Flame } from "lucide-react";
 
-const useCases = [
+const modes = [
   {
-    icon: MessageSquare,
-    title: "Interview Prep",
-    body: "Practice answering tough questions with structure and clarity.",
+    icon: Flame,
+    title: "Daily Workout",
+    body: "The core habit. Four to five short reps every day targeting the six core communication skills. Fast, structured and frictionless. This is where the foundation gets built.",
   },
   {
-    icon: Presentation,
-    title: "Pitch Training",
-    body: "Explain ideas clearly in sixty to ninety seconds.",
+    icon: Beaker,
+    title: "Skill Lab",
+    body: "Targeted practice. Choose a specific skill you want to sharpen and drill it with focused exercises until it clicks.",
   },
   {
     icon: Briefcase,
-    title: "Meeting Presence",
-    body: "Think clearly and speak with confidence in high-stakes conversations.",
-  },
-  {
-    icon: Sparkles,
-    title: "Feedback Delivery",
-    body: "Deliver clear, constructive feedback without rambling or hesitation.",
+    title: "Scenario Training",
+    body: "Applied practice. Take what you have built and apply it to the exact real world situations you face. Vertically specific structure and feedback for your industry and role.",
   },
 ] as const;
 
@@ -29,17 +24,15 @@ export function ModesSection() {
       <div className="grid gap-12 md:grid-cols-[1fr_1.1fr] md:gap-16">
         <div>
           <h2 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-            Practice real conversations, not theory.
+            Three modes. One system. Built to make you a better communicator.
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-600">
-            Cognify trains the moments that actually define careers. You practice
-            explaining ideas without preparation, under time pressure, and in realistic
-            scenarios. Each rep builds clarity through repetition, not memorization.
+            Cognify trains communication the way a gym trains fitness. Every day you build the foundation, sharpen what needs work, and apply it to the real situations you actually face.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {useCases.map(({ icon: Icon, title, body }) => (
+        <div className="grid gap-4">
+          {modes.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
               className="surface-card p-6 transition-shadow hover:shadow-[var(--shadow-glow)]"

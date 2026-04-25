@@ -20,10 +20,14 @@ import {
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
-import { ActivityRibbon } from "@/components/product/ActivityRibbon";
+import { WeekCalendar } from "@/components/product/WeekCalendar";
 import { TrainingStackRow } from "@/components/product/TrainingStackRow";
 import { buildNarrativeInsights } from "@/lib/insights/narrative";
-import { SKILL_DIMENSIONS } from "@/types/domain";
+import {
+  DIMENSION_LABELS,
+  SKILL_DIMENSIONS,
+  SKILL_DIMENSION_GROUPS,
+} from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
 
 export default async function DashboardPage() {
@@ -92,9 +96,7 @@ export default async function DashboardPage() {
               You haven&rsquo;t trained yet.
             </h1>
             <p className="mt-3 text-base text-ink-600 md:text-lg">
-              Your first rep becomes your baseline — the number every future
-              rep gets measured against. 10 minutes, four reps, instant
-              feedback. That&rsquo;s the workout.
+              Your first rep becomes your baseline. Every future rep gets measured against it. Five minutes, four reps, instant feedback. That&rsquo;s the workout.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <GradientButton href="/workout" size="lg">
@@ -138,38 +140,133 @@ export default async function DashboardPage() {
         focusDimScore={focus.score}
       />
 
-      <ActivityRibbon activity={activity} days={30} />
+      <WeekCalendar activity={sevenDayActivity} />
 
       <TrainingStackRow
         modes={[
           {
             href: "/workout",
-            label: "Daily Workout",
-            tagline: "4–5 reps across mixed dimensions. The habit core.",
+            label: "Time to train",
+            tagline:
+              "Four speaking reps across different skill drills. Instant feedback after each one. One improvement to focus on every rep.",
             repsThisWeek: totalRepsThisWeek,
             iconKey: "workout",
           },
           {
             href: "/skill-lab",
-            label: "Brain Gym",
-            tagline: "Drill one skill, unlimited reps. No session cap.",
+            label: "Skill Lab",
+            tagline:
+              "Pick one of the six core skills and drill it with focused exercises until it clicks.",
             repsThisWeek: 0,
             iconKey: "lab",
           },
           {
             href: "/build-a-rep",
             label: "Build a Rep",
-            tagline: "One rep around a real conversation you're prepping.",
+            tagline:
+              "Describe a real moment you need to prepare for. Get a structure for your thinking and run the rep.",
             repsThisWeek: 0,
             iconKey: "build",
           },
         ]}
       />
 
+      <SkillProgressBlock
+        trends={trends}
+        streakDays={streakStatus.streakDays}
+        repsToday={streakStatus.activeToday ? sevenDayActivity[6]?.count ?? 0 : 0}
+        totalSessions={recent.length}
+      />
+
       {insights.length > 0 && <CoachMemo insights={insights} />}
 
       {hasAnyReps && <LastSessions recent={recent} />}
     </div>
+  );
+}
+
+function SkillProgressBlock({
+  trends,
+  streakDays,
+  repsToday,
+  totalSessions,
+}: {
+  trends: { dimension: SkillDimension; points: { score: number }[] }[];
+  streakDays: number;
+  repsToday: number;
+  totalSessions: number;
+}) {
+  const allDims: SkillDimension[] = [
+    ...SKILL_DIMENSION_GROUPS.content,
+    ...SKILL_DIMENSION_GROUPS.delivery,
+  ];
+  const latest = new Map<SkillDimension, number>();
+  for (const t of trends) {
+    if (t.points.length > 0) {
+      latest.set(t.dimension, t.points[t.points.length - 1]!.score);
+    }
+  }
+  const stats = [
+    { label: "Day streak", value: streakDays },
+    { label: "Reps today", value: repsToday },
+    { label: "Total sessions", value: totalSessions },
+  ];
+  return (
+    <section className="rounded-3xl border border-ink-200 bg-white p-6 md:p-7">
+      <div className="mb-5 flex items-baseline justify-between gap-3">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+          Six core skills
+        </p>
+        <p className="text-[11px] font-medium text-ink-400">
+          What every Cognify rep is scored on.
+        </p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {allDims.map((dim) => {
+          const score = latest.get(dim) ?? null;
+          const isContent = (
+            SKILL_DIMENSION_GROUPS.content as readonly SkillDimension[]
+          ).includes(dim);
+          return (
+            <div key={dim}>
+              <div className="flex items-baseline justify-between">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-800">
+                  <span
+                    className={
+                      isContent
+                        ? "size-1.5 rounded-full bg-brand-blue"
+                        : "size-1.5 rounded-full bg-brand-magenta"
+                    }
+                  />
+                  {DIMENSION_LABELS[dim]}
+                </span>
+                <span className="brand-gradient-text text-lg font-extrabold tabular-nums">
+                  {score ?? "—"}
+                </span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
+                <div
+                  className="brand-gradient h-full rounded-full transition-[width]"
+                  style={{ width: `${score ?? 0}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-7 grid grid-cols-3 gap-4 border-t border-ink-200 pt-5 text-center">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div className="brand-gradient-text text-3xl font-extrabold tabular-nums">
+              {s.value}
+            </div>
+            <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-ink-400">
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -307,7 +404,7 @@ function SessionCard({ rep }: { rep: RecentRep }) {
   const seconds = Math.round(rep.durationMs / 1000);
   return (
     <Link
-      href="/progress"
+      href={`/progress/rep/${rep.id}` as never}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-white to-brand-lavender/5 p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-[0_12px_36px_-16px_rgba(176,114,255,0.45)]"
     >
       <div className="flex items-start justify-between gap-3">
