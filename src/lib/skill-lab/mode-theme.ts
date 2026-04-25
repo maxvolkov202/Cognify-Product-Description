@@ -83,29 +83,31 @@ export const MODE_THEMES: Record<ModeId, ModeTheme> = {
     pickerHeadline: "Train under heat.",
     pickerSubhead:
       "Each rep loads a different stress mechanic — pushback, compression, audience switch. You cycle the catalog.",
-    accentColor: "#f59e0b", // amber-500
+    accentColor: "#e77cf0", // brand-magenta
     ambient:
-      "radial-gradient(70% 80% at 90% 0%, rgba(244,158,11,0.28), transparent 60%), radial-gradient(60% 70% at 10% 30%, rgba(231,124,240,0.20), transparent 60%)",
-    lobbyGlow: "from-amber-100 via-white to-brand-magenta/5",
-    pickerBg: "bg-gradient-to-b from-amber-50/60 to-transparent",
-    heroBg: "bg-gradient-to-r from-amber-100 via-amber-50 to-brand-magenta/10",
-    chipBorder: "border-amber-300/60",
-    chipBg: "bg-amber-100/70",
-    chipText: "text-amber-700",
+      "radial-gradient(70% 80% at 90% 0%, rgba(231,124,240,0.28), transparent 60%), radial-gradient(60% 70% at 10% 30%, rgba(176,114,255,0.22), transparent 60%)",
+    lobbyGlow: "from-brand-magenta/15 via-white to-brand-purple/5",
+    pickerBg: "bg-gradient-to-b from-brand-magenta/8 to-transparent",
+    heroBg:
+      "bg-gradient-to-r from-brand-magenta/15 via-brand-purple/10 to-brand-lavender/10",
+    chipBorder: "border-brand-magenta/30",
+    chipBg: "bg-brand-magenta/10",
+    chipText: "text-brand-magenta",
   },
 };
 
 /**
  * Per-dimension accent color for Focus mode in-session theming. Pulled in
  * one place so the timer ring, dim badge, and live score header all match.
+ * All values are within the Cognify brand palette — no off-brand hues.
  */
 export const DIMENSION_ACCENTS: Record<SkillDimension, string> = {
   clarity: "#6aa3ff", // brand-blue
   structure: "#b39bff", // brand-lavender
   conciseness: "#e77cf0", // brand-magenta
   thinking_quality: "#b072ff", // brand-purple
-  delivery: "#06b6d4", // cyan-500
-  adaptability: "#f59e0b", // amber-500
+  delivery: "#b39bff", // brand-lavender (was cyan)
+  adaptability: "#e77cf0", // brand-magenta (was amber)
 };
 
 export function focusAccentForDimension(dim: SkillDimension): string {

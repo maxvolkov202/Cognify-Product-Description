@@ -984,10 +984,10 @@ const PRESSURE_ARCHETYPE_PREVIEW: Array<{ name: string; tagline: string }> = [
 
 function PressureLobbyHero() {
   return (
-    <div className="mb-7 overflow-hidden rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-50 via-white to-brand-magenta/5 p-6 md:p-7">
+    <div className="mb-7 overflow-hidden rounded-3xl border border-brand-magenta/30 bg-gradient-to-br from-brand-magenta/10 via-white to-brand-purple/5 p-6 md:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-100/70 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-amber-700">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-brand-magenta/30 bg-brand-magenta/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-magenta">
             <Flame className="size-3" strokeWidth={3} />
             Pressure mode
           </p>
@@ -1005,10 +1005,10 @@ function PressureLobbyHero() {
         {PRESSURE_ARCHETYPE_PREVIEW.map((a) => (
           <li
             key={a.name}
-            className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink-700 backdrop-blur"
+            className="inline-flex items-center gap-1.5 rounded-full border border-brand-magenta/25 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink-700 backdrop-blur"
             title={a.tagline}
           >
-            <span className="size-1.5 rounded-full bg-amber-500" />
+            <span className="size-1.5 rounded-full bg-brand-magenta" />
             {a.name}
           </li>
         ))}
