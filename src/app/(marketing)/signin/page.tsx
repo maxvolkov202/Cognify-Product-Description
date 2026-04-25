@@ -71,7 +71,7 @@ function SignInInner() {
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "signup" && password !== passwordConfirm) {
-      setFormError("Passwords don't match — double-check and try again.");
+      setFormError("Passwords don't match. Double-check and try again.");
       return;
     }
     setSubmitting("email");

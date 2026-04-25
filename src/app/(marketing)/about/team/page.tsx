@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 export const metadata: Metadata = {
   title: "Team & advisors · Cognify",
   description:
-    "Cognify is shaped by advisors with long careers in AI, communication science, and enterprise learning — Hupe, Nahamoo, Ellen, Jeffrey, and David.",
+    "Cognify is shaped by advisors with long careers in AI, communication science, and enterprise learning: Hupe, Nahamoo, Ellen, Jeffrey, and David.",
 };
 
 type Advisor = {
@@ -26,7 +26,7 @@ const ADVISORS: readonly Advisor[] = [
     name: "Mr. Hupe",
     oneLine: "Performance-under-pressure advisor · Subject.AI pilot channel",
     bio:
-      "Hupe pushed us on the hardest principle in communication training: what you practice calm, you lose under pressure. He pointed to Tim Tebow — impeccable technique in practice, reverts to old mechanics in live play — as the pattern Cognify had to design against. Every Daily Workout includes a required pressure rep because of that conversation. Hupe also brings the Subject.AI pilot opportunity (California + Saudi Arabia) for our first international expansion.",
+      "Hupe pushed us on the hardest principle in communication training: what you practice calm, you lose under pressure. He pointed to Tim Tebow (impeccable technique in practice, reverts to old mechanics in live play) as the pattern Cognify had to design against. Every Daily Workout includes a required pressure rep because of that conversation. Hupe also brings the Subject.AI pilot opportunity (California + Saudi Arabia) for our first international expansion.",
     principle: "Pressure builds habit",
     initials: "H",
   },
@@ -34,7 +34,7 @@ const ADVISORS: readonly Advisor[] = [
     name: "Mr. Nahamoo",
     oneLine: "Measurability advisor · ex-IBM Research speech + recall-speed",
     bio:
-      "Nahamoo insisted that training without measurement is theater. The daily score, weekly trend, and monthly report card exist because of his push — users have to feel the improvement, not just believe in it. His background in speech science shapes how we think about recall speed as a trainable dimension, not a personality trait.",
+      "Nahamoo insisted that training without measurement is theater. The daily score, weekly trend, and monthly report card exist because of his push. Users have to feel the improvement, not just believe in it. His background in speech science shapes how we think about recall speed as a trainable dimension, not a personality trait.",
     principle: "Measure the gain",
     initials: "N",
   },
@@ -50,7 +50,7 @@ const ADVISORS: readonly Advisor[] = [
     name: "Jeffrey",
     oneLine: "IP advisor · NESSIS · patent attorney introduction",
     bio:
-      "Jeffrey connects Cognify to the patent counsel drafting our provisional filing around the Boxology — the algorithmic process flow that makes Cognify a training system rather than an analysis tool. He keeps the IP strategy grounded: file, defend, license.",
+      "Jeffrey connects Cognify to the patent counsel drafting our provisional filing around the Boxology, the algorithmic process flow that makes Cognify a training system rather than an analysis tool. He keeps the IP strategy grounded: file, defend, license.",
     principle: "Protect the IP",
     initials: "J",
   },
@@ -58,7 +58,7 @@ const ADVISORS: readonly Advisor[] = [
     name: "David",
     oneLine: "Validation advisor · ex-IBM, creator of Watson",
     bio:
-      "David seeded the external-validation flagship: a user runs 5 reps on a topic over a week; blind listeners rank them without seeing scores. The aggregated ranking becomes proof of improvement that no algorithm can fake. That loop is now the 5-Session Improvement Curve — a pitch artifact for enterprise and a credibility anchor for consumer.",
+      "David seeded the external-validation flagship: a user runs 5 reps on a topic over a week; blind listeners rank them without seeing scores. The aggregated ranking becomes proof of improvement that no algorithm can fake. That loop is now the 5-Session Improvement Curve, a pitch artifact for enterprise and a credibility anchor for consumer.",
     principle: "Validate with humans",
     initials: "D",
   },
@@ -83,9 +83,7 @@ export default function TeamPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-600">
             Cognify isn&rsquo;t an opinion about communication. It&rsquo;s the
-            translation of five advisors&rsquo; direct input into product —
-            performance under pressure, measurable improvement, advanced
-            reasoning, IP protection, and human validation.
+            translation of five advisors&rsquo; direct input into product: performance under pressure, measurable improvement, advanced reasoning, IP protection, and human validation.
           </p>
         </div>
       </section>
@@ -131,9 +129,7 @@ export default function TeamPage() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-600">
             Max Volkov (engineering), Hunter Begehr (strategy), Owen Sargeant
             (product research), and Bob Sides (founding CTO, v1) are the core
-            team shipping Cognify. We work in the open with our advisors —
-            every quarter&rsquo;s direction traces back to a conversation on
-            this page.
+            team shipping Cognify. We work in the open with our advisors. Every quarter&rsquo;s direction traces back to a conversation on this page.
           </p>
           <div className="mt-5">
             <Link

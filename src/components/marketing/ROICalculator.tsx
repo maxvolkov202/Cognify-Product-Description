@@ -64,8 +64,7 @@ export function ROICalculator() {
               What does unclear communication actually cost you?
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-ink-600 md:text-base">
-              Tune the inputs. Numbers update live. The model is spelled
-              out — if your assumptions are different, plug them in.
+              Tune the inputs. Numbers update live. The model is spelled out. If your assumptions are different, plug them in.
             </p>
 
             <div className="mt-8 space-y-5">
@@ -153,16 +152,13 @@ export function ROICalculator() {
                 <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
                   Recovery rate (30%) is the midpoint we see in pilot teams
                   running 4+ daily reps/week for 8+ weeks. Your team&rsquo;s
-                  number will vary with baseline and training cadence —
-                  the number we stand behind is the trend line, not the
-                  specific dollar.
+                  number will vary with baseline and training cadence. The number we stand behind is the trend line, not the specific dollar.
                 </p>
               </div>
             </div>
             <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
               Seat price: $180/seat/year for the standard annual plan.
-              Enterprise rates are usage-tiered — ask for a quote at
-              &gt;250 seats.
+              Enterprise rates are usage-tiered. Ask for a quote at &gt;250 seats.
             </p>
           </div>
         </div>

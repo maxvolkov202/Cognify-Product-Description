@@ -16,7 +16,7 @@ const caseStudies = [
   {
     audience: "Corporate Health & Performance",
     title: "Communication that compounds.",
-    body: "Per-seat licensing. Admin dashboards. Calibration sessions. Quantified brain productivity per employee — the kind of measurable benefit that earns its place next to wellness, not buried in training compliance.",
+    body: "Per-seat licensing. Admin dashboards. Calibration sessions. Quantified brain productivity per employee. The kind of measurable benefit that earns its place next to wellness, not buried in training compliance.",
   },
   {
     audience: "Sales teams",

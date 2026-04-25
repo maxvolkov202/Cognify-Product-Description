@@ -44,8 +44,7 @@ export default function AboutPage() {
                 lacked intelligence.
               </p>
               <p>
-                But because when pressure hit — interviews, sales calls, presentations —
-                their structure dissolved.
+                But because when pressure hit (interviews, sales calls, presentations) their structure dissolved.
               </p>
               <p>They knew what they wanted to say. They just couldn&rsquo;t deliver it clearly.</p>
               <p>

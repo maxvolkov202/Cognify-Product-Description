@@ -39,11 +39,14 @@ export const VERTICALS: readonly Vertical[] = [
     label: "Sales",
     description: "B2B sales, cold calls, demos, discovery",
     stakeholders: [
+      "Economic buyer",
+      "Champion / end user",
       "VP of Sales",
       "CFO",
       "Director of Revenue",
       "Procurement lead",
-      "Champion / end user",
+      "Sales manager",
+      "Solutions engineer",
       "Skeptical prospect",
     ],
   },
@@ -65,12 +68,15 @@ export const VERTICALS: readonly Vertical[] = [
     label: "Finance",
     description: "Reporting, investment, metrics",
     stakeholders: [
+      "Investment committee",
+      "MD / partner",
+      "VP / director",
+      "Client / LP",
       "CFO",
       "Board member",
-      "External auditor",
       "Portfolio manager",
       "Equity analyst",
-      "Investment committee",
+      "External auditor",
     ],
   },
   {
@@ -128,7 +134,7 @@ export const VERTICALS: readonly Vertical[] = [
   {
     id: "other",
     label: "Other",
-    description: "Something else — general prompts",
+    description: "Something else, general prompts",
     stakeholders: [
       "Colleague",
       "Manager",

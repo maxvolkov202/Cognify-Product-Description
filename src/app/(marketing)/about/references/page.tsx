@@ -29,7 +29,7 @@ const PILLARS: Pillar[] = [
     id: "frameworks",
     title: "Foundational Frameworks",
     blurb:
-      "The canonical thinking frameworks Cognify teaches — each in the public domain as an intellectual concept, even where the books introducing them are copyrighted.",
+      "The canonical thinking frameworks Cognify teaches. Each is in the public domain as an intellectual concept, even where the books introducing them are copyrighted.",
     staples: [
       {
         name: "Barbara Minto",
@@ -41,7 +41,7 @@ const PILLARS: Pillar[] = [
         name: "Michael Nygard",
         work: "Documenting Architecture Decisions",
         year: "2011",
-        note: "ADRs — the 4-node decision framework used in engineering orgs worldwide.",
+        note: "ADRs are the 4-node decision framework used in engineering orgs worldwide.",
       },
       {
         name: "Toastmasters International",
@@ -61,7 +61,7 @@ const PILLARS: Pillar[] = [
       },
       {
         name: "US Military Communication Doctrine",
-        note: "BLUF — Bottom Line Up Front, adapted from mid-20th century intelligence briefing standards.",
+        note: "BLUF is Bottom Line Up Front, adapted from mid-20th century intelligence briefing standards.",
       },
       {
         name: "Elias St. Elmo Lewis",
@@ -76,7 +76,7 @@ const PILLARS: Pillar[] = [
     id: "sales",
     title: "Sales & Cold Calling",
     blurb:
-      "Cold calling and B2B sales conversations — the domain that stresses clarity, pacing, and confidence under maximum social friction.",
+      "Cold calling and B2B sales conversations. The domain that stresses clarity, pacing, and confidence under maximum social friction.",
     staples: [
       {
         name: "Chris Voss",
@@ -103,7 +103,7 @@ const PILLARS: Pillar[] = [
     practitioners: [
       {
         name: "Connor Murray & Eric Finch",
-        work: "Higher Levels — Cold Call Mastery",
+        work: "Higher Levels: Cold Call Mastery",
         year: "2025",
         note: "Connor: Enterprise AE at Datadog, ex-Oracle #1 SDR. The modern tech-sales gold standard.",
       },
@@ -135,7 +135,7 @@ const PILLARS: Pillar[] = [
     id: "exec",
     title: "Executive Briefings & Presentations",
     blurb:
-      "Communicating with C-suite leaders, board members, and senior stakeholders under time pressure — every word competing for attention.",
+      "Communicating with C-suite leaders, board members, and senior stakeholders under time pressure. Every word competing for attention.",
     staples: [
       {
         name: "Barbara Minto",
@@ -152,7 +152,7 @@ const PILLARS: Pillar[] = [
         name: "Nancy Duarte",
         work: "Resonate, Slide:ology, Illuminate",
         year: "2008–2016",
-        note: "Duarte Inc. — presentation design for Apple, Google, Cisco, TED.",
+        note: "Duarte Inc. presentation design for Apple, Google, Cisco, TED.",
       },
       {
         name: "Chris Anderson",
@@ -175,7 +175,7 @@ const PILLARS: Pillar[] = [
     practitioners: [
       {
         name: "Chris Orlob",
-        work: "pclub.io — C-suite selling curriculum",
+        work: "pclub.io C-suite selling curriculum",
         year: "2025–2026",
       },
     ],
@@ -184,7 +184,7 @@ const PILLARS: Pillar[] = [
     id: "feedback",
     title: "Tough Feedback & Performance Conversations",
     blurb:
-      "Giving corrective feedback that actually lands without triggering defensiveness — the hardest routine communication most professionals do.",
+      "Giving corrective feedback that actually lands without triggering defensiveness. The hardest routine communication most professionals do.",
     staples: [
       {
         name: "Kim Scott",
@@ -207,7 +207,7 @@ const PILLARS: Pillar[] = [
         name: "Marshall Goldsmith",
         work: "What Got You Here Won't Get You There",
         year: "2007",
-        note: "Feedforward — the future-focused alternative to traditional feedback.",
+        note: "Feedforward, the future-focused alternative to traditional feedback.",
       },
       {
         name: "Center for Creative Leadership",
@@ -221,7 +221,7 @@ const PILLARS: Pillar[] = [
     id: "interviews",
     title: "Behavioral Interviews",
     blurb:
-      "'Tell me about a time when…' — the dominant hiring format in 2025–2026 and the cleanest stress test of live structured thinking.",
+      "'Tell me about a time when…' is the dominant hiring format in 2025 to 2026 and the cleanest stress test of live structured thinking.",
     staples: [
       {
         name: "Amazon Leadership Principles",
@@ -237,7 +237,7 @@ const PILLARS: Pillar[] = [
       },
       {
         name: "Structured Behavioral Interviewing Research",
-        work: "Industrial/organizational psychology — Janz (1982), McDaniel et al. (1994)",
+        work: "Industrial/organizational psychology, Janz (1982), McDaniel et al. (1994)",
       },
     ],
     practitioners: [],
@@ -246,7 +246,7 @@ const PILLARS: Pillar[] = [
     id: "storytelling",
     title: "Storytelling & Public Speaking",
     blurb:
-      "Making an idea memorable through narrative rather than recitation — the mechanics behind every great keynote and pitch.",
+      "Making an idea memorable through narrative rather than recitation. The mechanics behind every great keynote and pitch.",
     staples: [
       {
         name: "Chris Anderson",
@@ -292,7 +292,7 @@ const PILLARS: Pillar[] = [
     id: "impromptu",
     title: "Impromptu Speaking & Thinking on Your Feet",
     blurb:
-      "Speaking when you didn't know you'd be speaking — the purest test of structured thinking under pressure, and the foundation of Cognify's Daily Workout.",
+      "Speaking when you didn't know you'd be speaking. The purest test of structured thinking under pressure, and the foundation of Cognify's Daily Workout.",
     staples: [
       {
         name: "Matt Abrahams",
@@ -327,7 +327,7 @@ const PILLARS: Pillar[] = [
     id: "negotiation",
     title: "Negotiation & Persuasion",
     blurb:
-      "Agreement-making under contested positions — the domain where every word carries tactical weight and listening is the primary skill.",
+      "Agreement-making under contested positions. The domain where every word carries tactical weight and listening is the primary skill.",
     staples: [
       {
         name: "Chris Voss",
@@ -466,7 +466,7 @@ export default function ReferencesPage() {
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-600">
           Cognify&apos;s training methodology is grounded in decades of research and
           the current generation of practitioners teaching communication at the
-          highest level. We treat sourcing as load-bearing — every framework,
+          highest level. We treat sourcing as load-bearing. Every framework,
           every skill dimension, every domain in our knowledge base cites the
           authors and practitioners behind it.
         </p>
@@ -537,7 +537,7 @@ export default function ReferencesPage() {
           Every rep you run in Cognify is scored against this body of
           knowledge. Every callout cites its source. Every framework is traced
           to the author who introduced it. This is why we can show
-          measurable improvement — the rubric is explainable all the way down.
+          measurable improvement. The rubric is explainable all the way down.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <GradientButton href="/how-it-works" size="lg">

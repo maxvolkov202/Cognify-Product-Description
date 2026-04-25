@@ -819,8 +819,10 @@ export function RepSurface({
             {phase.kind === "transcribing" && "Transcribing your rep…"}
             {phase.kind === "scoring" && "Scoring based on proprietary rubric…"}
             {phase.kind === "saving" && "Saving your progress…"}
-            {phase.kind === "processing-async" && "Scoring in the background — realtime updates incoming…"}
+            {phase.kind === "processing-async" &&
+              "Scoring in the background. Realtime updates incoming…"}
           </div>
+          <LoadingEvidence />
           {(phase.kind === "scoring" ||
             phase.kind === "saving" ||
             phase.kind === "processing-async") && <FeedbackSkeleton />}
@@ -853,6 +855,58 @@ export function RepSurface({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Loading-screen evidence card. Owen's note: pure spinners feel dead; while
+ * we wait on the model, surface a research-backed insight that primes the
+ * user to think about communication. Cycles every ~4s so a slow scoring
+ * pass still feels alive without becoming distracting.
+ */
+const EVIDENCE_TIPS = [
+  {
+    title: "Working memory is finite.",
+    body: "Most people can hold ~4 chunks at once. Strong communicators chunk before they speak.",
+  },
+  {
+    title: "The first 10 seconds set the frame.",
+    body: "Audiences calibrate everything that follows to your opening beat.",
+  },
+  {
+    title: "Conciseness is courage.",
+    body: "Short sentences signal confidence. Long sentences signal uncertainty.",
+  },
+  {
+    title: "Pauses are punctuation.",
+    body: "A purposeful one-second pause raises perceived authority more than any word choice.",
+  },
+  {
+    title: "Adaptability beats rehearsal.",
+    body: "The win is calibrating to the room you actually got, not the room you prepared for.",
+  },
+] as const;
+
+function LoadingEvidence() {
+  const [idx, setIdx] = useState(() =>
+    Math.floor(Math.random() * EVIDENCE_TIPS.length),
+  );
+  useEffect(() => {
+    const t = setInterval(
+      () => setIdx((i) => (i + 1) % EVIDENCE_TIPS.length),
+      4000,
+    );
+    return () => clearInterval(t);
+  }, []);
+  const tip = EVIDENCE_TIPS[idx]!;
+  return (
+    <div className="rounded-2xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+        While we score
+      </p>
+      <p className="mt-1.5 text-sm font-semibold text-ink-900">{tip.title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-ink-600">{tip.body}</p>
     </div>
   );
 }

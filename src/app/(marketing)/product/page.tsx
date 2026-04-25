@@ -4,7 +4,7 @@ import { GradientButton } from "@/components/shared/GradientButton";
 export const metadata: Metadata = {
   title: "Product",
   description:
-    "Two modes, one core practice loop. Daily Workout and Build a Rep. Not scripts — dynamic structures you speak against.",
+    "Two modes, one core practice loop. Daily Workout and Build a Rep. Not scripts. Dynamic structures you speak against.",
 };
 
 const modes = [
@@ -12,7 +12,7 @@ const modes = [
     n: "Mode 01",
     name: "Daily Workout",
     tagline: "Build the habit. Ten minutes, four reps, every day.",
-    body: "A pre-built sequence of four to five speaking drills targeting different skills. General prompts — no setup required. Pick one of five prompts per rep, speak for 30–60 seconds, get feedback, retry or move on. The gym loop that compounds across days.",
+    body: "A pre-built sequence of four to five speaking drills targeting different skills. General prompts, no setup required. Pick one of five prompts per rep, speak for 30 to 60 seconds, get feedback, retry or move on. The gym loop that compounds across days.",
     trains: ["Clarity", "Structure", "Thinking Quality", "Delivery"],
   },
   {
@@ -122,7 +122,7 @@ export default function ProductPage() {
           <p className="mt-4 text-lg leading-relaxed text-ink-600">
             Each workout pulls 4–5 rep types from the pool, weighted by what
             you said you want to improve during onboarding. Every rep shows
-            you five prompts to pick from — or refresh for five more.
+            you five prompts to pick from, or refresh for five more.
           </p>
         </div>
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -189,8 +189,7 @@ export default function ProductPage() {
           </h2>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-600">
             When you describe a real situation in Build a Rep, Cognify
-            generates a thinking structure tailored to your scenario — a short
-            scaffold of sections and bullets you hold in mind while you speak.
+            generates a thinking structure tailored to your scenario, a short scaffold of sections and bullets you hold in mind while you speak.
             Not a conversation to memorize. A shape for your own thinking.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">

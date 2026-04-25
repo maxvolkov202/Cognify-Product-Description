@@ -276,9 +276,14 @@ export function RecordButton({
       )}
 
       {phase === "idle" && (
-        <p className="text-center text-sm text-ink-500">
-          Tap the mic to start. You&rsquo;ll get a 3-second countdown, then you&rsquo;re live.
-        </p>
+        <div className="text-center">
+          <p className="text-sm text-ink-500">
+            Tap the mic to start. You&rsquo;ll get a 3-second countdown, then you&rsquo;re live.
+          </p>
+          <p className="mt-1.5 text-[11px] font-medium text-ink-400">
+            Stand if you can. Use your hands. Treat this rep like the real moment.
+          </p>
+        </div>
       )}
 
       {/* Pre-record: the big mic button kicks off the flow. Hidden

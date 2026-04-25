@@ -84,10 +84,10 @@ export const REP_TYPES: readonly RepType[] = [
     purpose:
       "Explain a complex concept simply, as if to someone who's never heard it",
     behavior:
-      "You have 45 seconds to make a complex idea land for a beginner",
+      "You have 30 seconds to make a complex idea land for a beginner",
     primaryDimension: "clarity",
     secondaryDimensions: ["structure", "conciseness"],
-    timeBudgetSec: 45,
+    timeBudgetSec: 30,
     instruction: "Explain simply",
     framework: {
       name: "Feynman",
@@ -128,10 +128,10 @@ export const REP_TYPES: readonly RepType[] = [
     purpose:
       "Organize ideas into a clean opening, three supporting points, and a close",
     behavior:
-      "You have 60 seconds to build an argument with visible scaffolding",
+      "You have 45 seconds to build an argument with visible scaffolding",
     primaryDimension: "structure",
     secondaryDimensions: ["clarity", "conciseness"],
-    timeBudgetSec: 60,
+    timeBudgetSec: 45,
     instruction: "Main point → three supporting → close",
     framework: {
       name: "Main + 3 + Close",
@@ -258,10 +258,10 @@ export const REP_TYPES: readonly RepType[] = [
     tagline: "Teach Back",
     purpose: "Explain how to do something, step by step, as if teaching",
     behavior:
-      "You have 45 seconds to walk someone through doing something",
+      "You have 35 seconds to walk someone through doing something",
     primaryDimension: "clarity",
     secondaryDimensions: ["structure", "delivery"],
-    timeBudgetSec: 45,
+    timeBudgetSec: 35,
     instruction: "Teach it step by step",
     framework: {
       name: "Teach-Back",
@@ -301,10 +301,10 @@ export const REP_TYPES: readonly RepType[] = [
     tagline: "Elevator Pitch",
     purpose: "Convince someone to take a specific action",
     behavior:
-      "You have 45 seconds to make a case that actually moves someone",
+      "You have 40 seconds to make a case that actually moves someone",
     primaryDimension: "adaptability",
     secondaryDimensions: ["structure", "conciseness"],
-    timeBudgetSec: 45,
+    timeBudgetSec: 40,
     instruction: "Convince them",
     framework: {
       name: "Problem-Impact-Solution",
@@ -343,12 +343,12 @@ export const REP_TYPES: readonly RepType[] = [
     displayTitle: "Same idea, two audiences",
     tagline: "Reframing",
     purpose:
-      "Explain the same idea twice — once for each of two different audiences",
+      "Explain the same idea twice. Once for each of two different audiences",
     behavior:
-      "You have 60 seconds. Start with audience A. Then switch to audience B",
+      "You have 45 seconds. Start with audience A. Then switch to audience B",
     primaryDimension: "adaptability",
     secondaryDimensions: ["clarity", "conciseness"],
-    timeBudgetSec: 60,
+    timeBudgetSec: 45,
     instruction: "Two audiences, one rep",
     framework: {
       name: "Audience A → Audience B",
@@ -389,10 +389,10 @@ export const REP_TYPES: readonly RepType[] = [
     purpose:
       "Control rhythm. Slow down. Use deliberate pauses for emphasis",
     behavior:
-      "You have 60 seconds. Prove you can hold attention through tempo",
+      "You have 45 seconds. Prove you can hold attention through tempo",
     primaryDimension: "delivery",
     secondaryDimensions: ["thinking_quality", "adaptability"],
-    timeBudgetSec: 60,
+    timeBudgetSec: 45,
     instruction: "Pause for emphasis. Control the rhythm",
     framework: {
       name: "Pause + Pace",

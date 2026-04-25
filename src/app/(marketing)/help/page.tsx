@@ -22,12 +22,12 @@ const SECTIONS: Array<{
     id: "getting-started",
     heading: "Getting started",
     blurb:
-      "The fastest way to see what Cognify is for: run one rep. 10-second setup, under a minute start to finish.",
+      "The fastest way to see what Cognify is for: run one rep. Ten-second setup, under a minute start to finish.",
     faqs: [
       {
         question: "What's the fastest way to try it?",
         answer:
-          "Create an account, then run a Daily Workout. It's 4 reps in about 10 minutes. You'll get live feedback on every rep across six dimensions with transcript-anchored callouts. If you want to taste it first, click 'Try a rep' on the landing page — 20 seconds, no signup.",
+          "Create an account, then run a Daily Workout. It's 4 reps in about 5 minutes. You'll get live feedback on every rep across six dimensions with transcript-anchored callouts. If you want to taste it first, click 'Try a rep' on the landing page. Twenty seconds, no signup.",
       },
       {
         question: "Do I need a special setup or mic?",
@@ -37,7 +37,7 @@ const SECTIONS: Array<{
       {
         question: "How long does onboarding take?",
         answer:
-          "Three questions — what you do, who you talk to, what you want to get better at. Under a minute. The answers feed how Cognify picks your reps.",
+          "Three questions: what you do, who you talk to, what you want to get better at. Under a minute. The answers feed how Cognify picks your reps.",
       },
     ],
   },
@@ -45,7 +45,7 @@ const SECTIONS: Array<{
     id: "scoring",
     heading: "Scoring & feedback",
     blurb:
-      "Every rep is scored on six research-backed dimensions — three for what you say (clarity, structure, relevance) and three for how you say it (confidence, pacing, tone).",
+      "Every rep is scored on six research-backed dimensions: three for what you say (clarity, structure, conciseness) and three for how you say it (thinking quality, delivery, adaptability).",
     faqs: [
       {
         question: "Why am I seeing these six dimensions and not others?",
@@ -55,7 +55,7 @@ const SECTIONS: Array<{
       {
         question: "How does the \"each rep builds off the last\" work?",
         answer:
-          "After every rep, Cognify detects your weakest dimension. The next rep in your session biases toward a rep type that specifically trains that weakness — and the prompt-select screen tells you why.",
+          "After every rep, Cognify detects your weakest dimension. The next rep in your session biases toward a rep type that specifically trains that weakness, and the prompt-select screen tells you why.",
       },
       {
         question: "Can I see exactly what you're flagging?",
@@ -63,7 +63,7 @@ const SECTIONS: Array<{
           "Yes. Every callout includes a direct quote from your transcript with a timestamp, a suggested better phrasing, and a \"Why this matters\" link to the research behind the dimension.",
       },
       {
-        question: "Can scores move — is there real improvement to track?",
+        question: "Can scores move? Is there real improvement to track?",
         answer:
           "Yes. Your progress page shows per-dimension trend lines over 7/30/90 days. The calendar strip on the dashboard shows every day you trained and your composite score for that day. Monthly reports stitch it together.",
       },
@@ -78,12 +78,12 @@ const SECTIONS: Array<{
       {
         question: "Is this free?",
         answer:
-          "Yes — during the beta. Individual plans and team pilots will be announced before anything changes. Nothing hidden behind paywalls in the meantime.",
+          "Yes, during the beta. Individual plans and team pilots will be announced before anything changes. Nothing hidden behind paywalls in the meantime.",
       },
       {
         question: "Do you offer team / enterprise plans?",
         answer:
-          "Team pilots are available by request. Use the contact form below and pick \"Other\" — someone will reach out to scope a pilot.",
+          "Team pilots are available by request. Use the contact form below and pick \"Other\". Someone will reach out to scope a pilot.",
       },
     ],
   },
@@ -119,8 +119,7 @@ export default function HelpPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-base text-ink-600 md:text-lg">
           Most things you&rsquo;ll want are below. If the answer isn&rsquo;t
-          here, use the form — we read every message and typically reply the
-          same day.
+          here, use the form. We read every message and typically reply the same day.
         </p>
         <nav
           aria-label="Jump to section"
@@ -175,7 +174,7 @@ export default function HelpPage() {
           </h2>
           <p className="mt-2 text-sm text-ink-600 md:text-base">
             Direct line to the Cognify team. Bug reports, feature ideas,
-            pilot inquiries — all land in the same inbox.
+            pilot inquiries. All land in the same inbox.
           </p>
           <div className="mt-6">
             <SupportForm />

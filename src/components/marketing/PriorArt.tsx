@@ -28,35 +28,35 @@ const TOOLS: Tool[] = [
     lane: "Live meeting coach (real-time overlay)",
     similarity: "Transcript-based feedback on meetings.",
     difference:
-      "Improves the meeting you're currently in. Cognify trains the skill before the meeting — so the overlay isn't needed.",
+      "Improves the meeting you're currently in. Cognify trains the skill before the meeting so the overlay isn't needed.",
   },
   {
     name: "Yoodli",
     lane: "Meeting recorder + analyzer",
     similarity: "Filler-word detection, pacing signals.",
     difference:
-      "Analyzes what already happened. Cognify runs short daily reps with pressure and a feedback loop — a training environment, not a review tool.",
+      "Analyzes what already happened. Cognify runs short daily reps with pressure and a feedback loop. A training environment, not a review tool.",
   },
   {
     name: "Orai",
     lane: "Public-speaking drill app",
     similarity: "Timed speaking drills with voice-based feedback.",
     difference:
-      "Built for public speaking (stage). Cognify is built for everyday communication — stakeholder pushback, under-pressure structure, adaptation mid-conversation.",
+      "Built for public speaking (stage). Cognify is built for everyday communication: stakeholder pushback, under-pressure structure, adaptation mid-conversation.",
   },
   {
     name: "Speeko",
     lane: "Speech-pattern analyzer",
     similarity: "AI-scored delivery signals (pace, tone).",
     difference:
-      "One rep at a time. Cognify compounds — tomorrow's rep targets yesterday's weakest dimension, and the improvement curve is the product.",
+      "One rep at a time. Cognify compounds. Tomorrow's rep targets yesterday's weakest dimension, and the improvement curve is the product.",
   },
   {
     name: "Toastmasters",
     lane: "Peer-led speaking group",
     similarity: "Structured practice environment with feedback.",
     difference:
-      "Weekly, in-person, group-scheduled. Cognify is 10 minutes, solo, scored against six dimensions tied to research — and it's portable.",
+      "Weekly, in-person, group-scheduled. Cognify is 5 minutes, solo, scored against six dimensions tied to research, and it is portable.",
   },
 ];
 
@@ -72,10 +72,7 @@ export function PriorArt() {
           <span className="brand-gradient-text">different.</span>
         </h2>
         <p className="mt-4 text-base leading-relaxed text-ink-600 md:text-lg">
-          There are good tools in this space. We built Cognify because none
-          of them were training environments — they were real-time coaches
-          (live overlay), recorders (post-meeting review), or drill apps
-          (one rep at a time). Here&rsquo;s the honest lane for each.
+          There are good tools in this space. We built Cognify because none of them were training environments. They were real-time coaches (live overlay), recorders (post-meeting review), or drill apps (one rep at a time). Here&rsquo;s the honest lane for each.
         </p>
       </div>
 
@@ -115,8 +112,7 @@ export function PriorArt() {
       <p className="mt-5 max-w-3xl text-xs leading-relaxed text-ink-500">
         The test we use internally: if a tool&rsquo;s happy path is{" "}
         <em>&ldquo;the meeting already happened&rdquo;</em> or{" "}
-        <em>&ldquo;the meeting is happening now&rdquo;</em>, it&rsquo;s an
-        analyzer or a coach — not a training environment. Cognify&rsquo;s
+        <em>&ldquo;the meeting is happening now&rdquo;</em>, it&rsquo;s an analyzer or a coach, not a training environment. Cognify&rsquo;s
         happy path is <em>&ldquo;do a rep when nothing else is happening&rdquo;</em>.
         That changes what the product has to be.
       </p>

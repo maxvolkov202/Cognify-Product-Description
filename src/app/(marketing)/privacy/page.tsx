@@ -17,8 +17,7 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p className="mt-3 text-sm text-ink-500">
-        Last updated: April 2026. This is a plain-language summary — the full
-        legal policy is available on request.
+        Last updated: April 2026. This is a plain-language summary. The full legal policy is available on request.
       </p>
 
       <section className="mt-10 space-y-8 text-ink-700">
@@ -61,7 +60,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               We don&apos;t share your individual scores or transcripts with
-              anyone — not even team admins, unless you explicitly share them.
+              anyone, not even team admins, unless you explicitly share them.
             </li>
           </ul>
         </div>
@@ -72,8 +71,7 @@ export default function PrivacyPage() {
           </h2>
           <p className="mt-2 leading-relaxed">
             We use a small number of third-party services to run Cognify:
-            Supabase (database, auth, file storage), Anthropic (Claude — scoring
-            and feedback), Deepgram (speech-to-text), Vercel (hosting), Resend
+            Supabase (database, auth, file storage), Anthropic (Claude, for scoring and feedback), Deepgram (speech-to-text), Vercel (hosting), Resend
             (email). Each of these has its own privacy policy and processes only
             the data required to perform its job. We don&apos;t share more than
             we need to.

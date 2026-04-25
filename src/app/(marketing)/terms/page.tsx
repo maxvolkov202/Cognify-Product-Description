@@ -50,8 +50,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-ink-900">What you can do</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
             <li>
-              Use Cognify for personal communication training — practice,
-              review your reps, track progress.
+              Use Cognify for personal communication training: practice, review your reps, track progress.
             </li>
             <li>
               Share your scores or individual reps with whoever you want. That
@@ -102,8 +101,7 @@ export default function TermsPage() {
             We&apos;ll keep your data secure, keep the service running as best
             we can, and give you reasonable notice of material changes. If we
             ever shut down, we&apos;ll give you 30 days to export your data
-            first. Service is provided &quot;as is&quot; — we don&apos;t
-            guarantee scoring accuracy for any specific use case.
+            first. Service is provided &quot;as is&quot;. We don&apos;t guarantee scoring accuracy for any specific use case.
           </p>
         </div>
 
@@ -118,7 +116,7 @@ export default function TermsPage() {
             >
               /pricing
             </Link>
-            . Cancel anytime; refunds are handled case-by-case — email support.
+            . Cancel anytime; refunds are handled case-by-case. Email support.
           </p>
         </div>
 

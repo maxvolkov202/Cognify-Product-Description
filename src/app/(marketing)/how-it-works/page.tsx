@@ -50,7 +50,7 @@ const dimensions = [
   {
     group: "Content",
     name: "Structure",
-    def: "Visible scaffolding — opening, flow, close.",
+    def: "Visible scaffolding: opening, flow, close.",
     low: "Topic jumping, missing transitions, weak openings.",
   },
   {
@@ -94,8 +94,7 @@ export default function HowItWorksPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-ink-600">
             Cognify isn&rsquo;t a course, a workshop, or a list of tips. It&rsquo;s a
-            training environment — a six-stage closed loop that builds communication
-            skill the same way a gym builds strength.
+            training environment, a six-stage closed loop that builds communication skill the same way a gym builds strength.
           </p>
         </div>
       </section>
@@ -176,11 +175,11 @@ export default function HowItWorksPage() {
               />
               <GlossaryItem
                 term="Rep type"
-                def="The kind of speaking drill — Simplify, Structure, Think Fast, Be Concise, Reinforce, Persuade, Adapt, Deliver, Handle Pressure. Nine in total. Each targets a specific skill."
+                def="The kind of speaking drill: Simplify, Structure, Think Fast, Be Concise, Reinforce, Persuade, Adapt, Deliver, Handle Pressure. Nine in total. Each targets a specific skill."
               />
               <GlossaryItem
                 term="Daily Workout"
-                def="A 10-minute session of 4–5 reps, with rep types picked based on your goals and your recent weakest skill."
+                def="A 5-minute session of 4 to 5 reps, with rep types picked based on your goals and your recent weakest skill."
               />
               <GlossaryItem
                 term="Build a Rep"
@@ -188,7 +187,7 @@ export default function HowItWorksPage() {
               />
               <GlossaryItem
                 term="Callout"
-                def={'A specific feedback note on a rep — e.g. “At 0:18 you named the stakes in 4 words.” Each callout is tagged to a dimension and a timestamp in your transcript.'}
+                def={'A specific feedback note on a rep, e.g. “At 0:18 you named the stakes in 4 words.” Each callout is tagged to a dimension and a timestamp in your transcript.'}
               />
               <GlossaryItem
                 term="Composite score"
@@ -196,7 +195,7 @@ export default function HowItWorksPage() {
               />
               <GlossaryItem
                 term="Structural adherence"
-                def="A scenario-only score — how closely your rep followed the framework Cognify generated for the conversation. Distinct from the six core dimensions."
+                def="A scenario-only score for how closely your rep followed the framework Cognify generated for the conversation. Distinct from the six core dimensions."
               />
               <GlossaryItem
                 term="Baseline rep"
