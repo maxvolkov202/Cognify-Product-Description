@@ -21,6 +21,7 @@ export type UserProfile = {
   tutorialSeenAt: Date | null;
   isOperator: boolean;
   baselineRepId: string | null;
+  createdAt: Date | null;
 };
 
 export async function getUserProfile(
@@ -44,6 +45,7 @@ export async function getUserProfile(
       tutorialSeenAt: row.tutorialSeenAt ?? null,
       isOperator: row.isOperator ?? false,
       baselineRepId: row.baselineRepId ?? null,
+      createdAt: row.createdAt ?? null,
     };
   }, null);
 }

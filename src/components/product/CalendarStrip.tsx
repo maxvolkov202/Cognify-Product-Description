@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Flame, X } from "lucide-react";
 import type { DayActivity } from "@/lib/db/queries/progress";
 import { cn } from "@/lib/utils/cn";
+import { FullHistoryTrigger } from "./FullHistoryTrigger";
 
 type Props = {
   activity: DayActivity[];
@@ -45,12 +46,7 @@ export function CalendarStrip({ activity, days = 30 }: Props) {
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
           Last {days} days
         </p>
-        <Link
-          href="/progress"
-          className="text-[11px] font-semibold text-brand-purple hover:underline"
-        >
-          Full history →
-        </Link>
+        <FullHistoryTrigger variant="compact" />
       </div>
 
       <div className="overflow-x-auto px-5 py-5">

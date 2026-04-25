@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail, Bell, Sparkles } from "lucide-react";
+import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail, Bell, Sparkles, RotateCcw } from "lucide-react";
 import {
   VERTICALS,
   personasForVertical,
@@ -12,17 +12,14 @@ import {
   type PersonaId,
   type ImprovementGoalId,
 } from "@/lib/onboarding/constants";
-import {
-  setVerticalAction,
-  setPersonasAction,
-  setImprovementGoalsAction,
-} from "@/server/actions/onboarding";
+import { setUserPreferencesAction } from "@/server/actions/onboarding";
 import {
   sendPasswordResetEmail,
   exportUserData,
   deleteAccount,
   changeEmail,
 } from "@/server/actions/account";
+import { useSettingsDirty } from "@/components/product/SettingsDirtyContext";
 
 type Props = {
   initialVertical: VerticalId | null;
@@ -32,7 +29,7 @@ type Props = {
   userKind: "authenticated" | "guest";
 };
 
-type SavedSection = "vertical" | "personas" | "goals" | null;
+type SavedSection = "all" | null;
 
 export function SettingsClient({
   initialVertical,
@@ -48,10 +45,35 @@ export function SettingsClient({
   const [goals, setGoals] = useState<Set<ImprovementGoalId>>(
     new Set(initialGoals),
   );
+  const [persistedVertical, setPersistedVertical] = useState<VerticalId | null>(
+    initialVertical,
+  );
+  const [persistedPersonas, setPersistedPersonas] = useState<PersonaId[]>([
+    ...initialPersonas,
+  ]);
+  const [persistedGoals, setPersistedGoals] = useState<ImprovementGoalId[]>([
+    ...initialGoals,
+  ]);
   const [savedSection, setSavedSection] = useState<SavedSection>(null);
   const [isPending, startTransition] = useTransition();
   const [retuning, setRetuning] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const prevVerticalRef = useRef<VerticalId | null>(initialVertical);
+  const dirtyCtx = useSettingsDirty();
+
+  const isDirty = useMemo(() => {
+    if (vertical !== persistedVertical) return true;
+    if (!setsEqual(personas, new Set(persistedPersonas))) return true;
+    if (!setsEqual(goals, new Set(persistedGoals))) return true;
+    return false;
+  }, [
+    vertical,
+    persistedVertical,
+    personas,
+    persistedPersonas,
+    goals,
+    persistedGoals,
+  ]);
 
   // When vertical changes, prune persona selections that aren't offered by the
   // new vertical and flash a "retuning" affordance so the swap reads as
@@ -95,27 +117,67 @@ export function SettingsClient({
   const contextualGoals = goalsForVertical(vertical);
   const verticalLabel = vertical ? getVertical(vertical).label : null;
 
-  function saveVertical() {
-    if (!vertical) return;
+  /** Atomic save — pushes the current draft to the server and updates the
+   *  "persisted" snapshot on success. Returns boolean so the leave-prompt
+   *  modal can know whether to proceed with navigation. */
+  async function saveAll(): Promise<boolean> {
+    setSaveError(null);
+    if (goals.size === 0) {
+      setSaveError("Pick at least one goal before saving.");
+      return false;
+    }
+    const res = await setUserPreferencesAction({
+      vertical: vertical ?? null,
+      personas: Array.from(personas),
+      goals: Array.from(goals),
+    });
+    if (!res.ok) {
+      setSaveError(
+        res.error === "need_at_least_one"
+          ? "Pick at least one goal."
+          : res.error === "no_user"
+            ? "You're signed out. Refresh and try again."
+            : "Save failed. Try again.",
+      );
+      return false;
+    }
+    setPersistedVertical(vertical);
+    setPersistedPersonas(Array.from(personas));
+    setPersistedGoals(Array.from(goals));
+    flashSaved("all");
+    return true;
+  }
+
+  function discardChanges() {
+    setVertical(persistedVertical);
+    setPersonas(new Set(persistedPersonas));
+    setGoals(new Set(persistedGoals));
+    setSaveError(null);
+  }
+
+  function handleSaveClick() {
     startTransition(async () => {
-      await setVerticalAction(vertical);
-      flashSaved("vertical");
+      await saveAll();
     });
   }
 
-  function savePersonas() {
-    startTransition(async () => {
-      await setPersonasAction(Array.from(personas));
-      flashSaved("personas");
-    });
-  }
+  // Wire the dirty state + save/discard handlers into the global context
+  // so the leave-prompt modal can resolve navigation cleanly.
+  useEffect(() => {
+    dirtyCtx?.setDirty(isDirty);
+  }, [dirtyCtx, isDirty]);
 
-  function saveGoals() {
-    startTransition(async () => {
-      await setImprovementGoalsAction(Array.from(goals));
-      flashSaved("goals");
-    });
-  }
+  useEffect(() => {
+    if (!dirtyCtx) return;
+    dirtyCtx.setSaveHandler(saveAll);
+    dirtyCtx.setDiscardHandler(discardChanges);
+    return () => {
+      dirtyCtx.setSaveHandler(null);
+      dirtyCtx.setDiscardHandler(null);
+      dirtyCtx.setDirty(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirtyCtx, vertical, personas, goals, persistedVertical, persistedPersonas, persistedGoals]);
 
   return (
     <div className="mt-10 space-y-8">
@@ -135,7 +197,6 @@ export function SettingsClient({
                 tone across the entire product.
               </p>
             </div>
-            <SaveIndicator show={savedSection === "vertical"} />
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {VERTICALS.map((v) => {
@@ -192,19 +253,6 @@ export function SettingsClient({
               );
             })}
           </div>
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={saveVertical}
-              disabled={
-                !vertical || isPending || vertical === initialVertical
-              }
-              className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Save className="size-3.5" />
-              Save vertical
-            </button>
-          </div>
         </div>
       </section>
 
@@ -238,7 +286,6 @@ export function SettingsClient({
                   </motion.div>
                 )}
               </AnimatePresence>
-              <SaveIndicator show={savedSection === "personas"} />
             </div>
           </div>
           <motion.div
@@ -306,17 +353,6 @@ export function SettingsClient({
               })}
             </AnimatePresence>
           </motion.div>
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={savePersonas}
-              disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Save className="size-3.5" />
-              Save personas
-            </button>
-          </div>
         </div>
       </section>
 
@@ -333,7 +369,6 @@ export function SettingsClient({
                 Drives which rep types get prioritized in your workouts.
               </p>
             </div>
-            <SaveIndicator show={savedSection === "goals"} />
           </div>
           <motion.div
             layout
@@ -404,25 +439,84 @@ export function SettingsClient({
               );
             })}
           </motion.div>
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={saveGoals}
-              disabled={isPending || goals.size === 0}
-              className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Save className="size-3.5" />
-              Save goals
-            </button>
-          </div>
         </div>
       </section>
 
       {/* ——— Notifications ——————————————————————— */}
       <NotificationsSection />
 
+      {/* ——— Sticky save bar ——————————————————————— */}
+      <AnimatePresence>
+        {(isDirty || savedSection === "all") && (
+          <motion.div
+            key="save-bar"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-3xl flex-col gap-2 rounded-2xl border border-brand-purple/30 bg-white p-3 shadow-[0_18px_60px_-20px_rgba(176,114,255,0.55)] md:bottom-6 md:flex-row md:items-center md:justify-between md:p-4"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`grid size-7 place-items-center rounded-full ${
+                  savedSection === "all"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "brand-gradient text-white"
+                }`}
+              >
+                {savedSection === "all" ? (
+                  <Check className="size-3.5" strokeWidth={3} />
+                ) : (
+                  <Save className="size-3.5" strokeWidth={2.5} />
+                )}
+              </span>
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-500">
+                  {savedSection === "all" ? "Saved" : "Unsaved changes"}
+                </p>
+                <p className="text-sm font-semibold text-ink-800">
+                  {savedSection === "all"
+                    ? "Your preferences are up to date."
+                    : "Save before leaving the page."}
+                </p>
+                {saveError && (
+                  <p className="mt-0.5 text-[11px] font-semibold text-rose-600">
+                    {saveError}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={discardChanges}
+                disabled={isPending || !isDirty}
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <RotateCcw className="size-3" strokeWidth={2.5} />
+                Discard
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveClick}
+                disabled={isPending || !isDirty}
+                className="brand-gradient inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Save className="size-3.5" strokeWidth={2.5} />
+                Save preferences
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+}
+
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+  if (a.size !== b.size) return false;
+  for (const v of a) if (!b.has(v)) return false;
+  return true;
 }
 
 function NotificationsSection() {
@@ -760,12 +854,3 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
   );
 }
 
-function SaveIndicator({ show }: { show: boolean }) {
-  if (!show) return null;
-  return (
-    <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-semibold text-green-700">
-      <Check className="size-3" strokeWidth={3} />
-      Saved
-    </div>
-  );
-}

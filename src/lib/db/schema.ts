@@ -86,6 +86,16 @@ export const pressureArchetypeEnum = cognifyV2Schema.enum(
   ],
 );
 
+// Bug-report triage status. open → in_progress → fixed/wontfix/duplicate.
+// Operators (users.is_operator) own status transitions.
+export const bugStatusEnum = cognifyV2Schema.enum("bug_status", [
+  "open",
+  "in_progress",
+  "fixed",
+  "wontfix",
+  "duplicate",
+]);
+
 export const users = cognifyV2Schema.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   // Links our user row to Supabase's auth.users.id. Nullable because guests
@@ -522,6 +532,36 @@ export const personalBests = cognifyV2Schema.table(
   },
   (t) => [
     index("personal_bests_user_dim_idx").on(t.userId, t.dimension),
+  ],
+);
+
+// User-submitted bug reports. Operators (users.is_operator) triage via
+// /admin/bugs. Image URLs are Supabase Storage paths (bug-screenshots
+// bucket); resolved to signed URLs on read.
+export const bugReports = cognifyV2Schema.table(
+  "bug_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    description: text("description").notNull(),
+    imagePaths: jsonb("image_paths").$type<string[]>().notNull().default([]),
+    userAgent: text("user_agent"),
+    route: text("route"),
+    status: bugStatusEnum("status").notNull().default("open"),
+    resolutionNote: text("resolution_note"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedBy: uuid("resolved_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("bug_reports_status_created_idx").on(t.status, t.createdAt),
+    index("bug_reports_user_idx").on(t.userId),
   ],
 );
 

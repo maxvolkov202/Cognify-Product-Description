@@ -71,6 +71,52 @@ export async function setImprovementGoalsAction(
   return { ok: true };
 }
 
+/**
+ * Atomic "save preferences" wrapper — wraps the three individual setters in
+ * a single Promise.all so the Settings page can have one Save button. If
+ * any individual write fails we surface the first error; partial success
+ * is acceptable (writes are independent rows).
+ */
+export async function setUserPreferencesAction(input: {
+  vertical: string | null;
+  personas: string[];
+  goals: string[];
+}): Promise<ActionResult> {
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+
+  // Validate goals up-front (must have ≥1).
+  const validGoals: ImprovementGoalId[] = [];
+  for (const id of input.goals) {
+    if (isImprovementGoalId(id)) validGoals.push(id);
+  }
+  if (validGoals.length === 0) {
+    return { ok: false, error: "need_at_least_one" };
+  }
+
+  const validPersonas: PersonaId[] = [];
+  for (const id of input.personas) {
+    if (isPersonaId(id)) validPersonas.push(id);
+  }
+
+  if (input.vertical !== null && !isVerticalId(input.vertical)) {
+    return { ok: false, error: "invalid_input" };
+  }
+
+  const writes: Promise<boolean>[] = [
+    setUserPersonas(user.id, validPersonas),
+    setUserImprovementGoals(user.id, validGoals),
+  ];
+  if (input.vertical) {
+    writes.unshift(setUserVertical(user.id, input.vertical));
+  }
+  const results = await Promise.all(writes);
+  if (results.some((ok) => !ok)) {
+    return { ok: false, error: "db_error" };
+  }
+  return { ok: true };
+}
+
 export async function completeOnboardingAction(): Promise<ActionResult> {
   const user = await currentUser();
   if (!user) return { ok: false, error: "no_user" };

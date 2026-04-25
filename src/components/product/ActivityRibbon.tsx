@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { ArrowRight, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { FullHistoryTrigger } from "./FullHistoryTrigger";
 
 type DayActivity = {
   date: string; // YYYY-MM-DD
@@ -65,13 +66,7 @@ export function ActivityRibbon({ activity, days = 30 }: Props) {
               : "Hover any day for detail"}
           </p>
         </div>
-        <Link
-          href="/progress"
-          className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-purple hover:text-brand-magenta"
-        >
-          Full history
-          <ArrowRight className="size-3" strokeWidth={2.5} />
-        </Link>
+        <FullHistoryTrigger variant="ribbon" />
       </div>
 
       <div className="flex h-20 items-end gap-[3px]">

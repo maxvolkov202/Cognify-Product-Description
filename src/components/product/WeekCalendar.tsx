@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
+import { FullHistoryTrigger } from "./FullHistoryTrigger";
 
 type DayActivity = {
   date: string; // YYYY-MM-DD
@@ -40,12 +41,7 @@ export function WeekCalendar({ activity }: Props) {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
           This week
         </p>
-        <Link
-          href="/progress"
-          className="text-[11px] font-bold text-brand-purple hover:text-brand-magenta"
-        >
-          Full history →
-        </Link>
+        <FullHistoryTrigger variant="calendar" />
       </div>
       <div className="grid grid-cols-7 gap-2">
         {cells.map((d, i) => {

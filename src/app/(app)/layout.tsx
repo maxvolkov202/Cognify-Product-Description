@@ -3,6 +3,9 @@ import { AppNav } from "@/components/shared/AppNav";
 import { InstallPrompt } from "@/components/product/InstallPrompt";
 import { SixSkillsBar } from "@/components/product/SixSkillsBar";
 import { SkillsFocusProvider } from "@/components/product/SkillsFocusContext";
+import { ReportBugButton } from "@/components/product/ReportBugButton";
+import { SettingsDirtyProvider } from "@/components/product/SettingsDirtyContext";
+import { LeavePromptModal } from "@/components/product/LeavePromptModal";
 import { currentUser } from "@/lib/session/current-user";
 import { isUserOnboarded, getUserProfile } from "@/lib/db/queries/user";
 import { getCurrentSkillScores } from "@/lib/db/queries/progress";
@@ -50,12 +53,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <SkillsFocusProvider>
-      <div className="flex min-h-screen flex-col bg-ink-50/60">
-        <AppNav navItems={navItems} sessionUser={sessionUser} />
-        <main className="flex-1 pb-20">{children}</main>
-        <SixSkillsBar scores={skillScores ?? {}} />
-        <InstallPrompt />
-      </div>
+      <SettingsDirtyProvider>
+        <div className="flex min-h-screen flex-col bg-ink-50/60">
+          <AppNav navItems={navItems} sessionUser={sessionUser} />
+          <main className="flex-1 pb-20">{children}</main>
+          <SixSkillsBar scores={skillScores ?? {}} />
+          <InstallPrompt />
+          <ReportBugButton />
+          <LeavePromptModal />
+        </div>
+      </SettingsDirtyProvider>
     </SkillsFocusProvider>
   );
 }

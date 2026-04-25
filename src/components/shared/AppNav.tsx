@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
 import { LoginDialog } from "./LoginDialog";
+import { GuardedLink } from "./GuardedLink";
 
 type NavItem = { href: string; label: string };
 
@@ -31,17 +31,20 @@ export function AppNav({ navItems, sessionUser }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <Logo href="/dashboard" />
-          <nav aria-label="App" className="hidden items-center gap-6 md:flex">
+          <nav
+            aria-label="App"
+            className="hidden items-center gap-x-5 gap-y-1 md:flex"
+          >
             {navItems.map((item) => (
-              <Link
+              <GuardedLink
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-ink-600 transition-colors hover:text-ink-900"
+                className="whitespace-nowrap text-[13px] font-semibold text-ink-600 transition-colors hover:text-ink-900"
               >
                 {item.label}
-              </Link>
+              </GuardedLink>
             ))}
           </nav>
         </div>
@@ -85,13 +88,13 @@ export function AppNav({ navItems, sessionUser }: Props) {
           <ul className="mx-auto flex w-full max-w-6xl flex-col px-6 py-3">
             {navItems.map((item) => (
               <li key={item.href}>
-                <Link
+                <GuardedLink
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50"
                 >
                   {item.label}
-                </Link>
+                </GuardedLink>
               </li>
             ))}
           </ul>

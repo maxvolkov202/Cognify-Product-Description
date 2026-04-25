@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Mic, Trophy, Users } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Mic,
+  PlayCircle,
+  Trophy,
+  Users,
+} from "lucide-react";
+import { getOgImageUrl, faviconForUrl } from "@/lib/library/og-image";
+import { LibraryTypographicHero } from "@/components/product/LibraryTypographicHero";
 
 export const metadata: Metadata = {
   title: "Library · Cognify",
@@ -174,7 +184,47 @@ const KIND_LABEL: Record<Item["kind"], string> = {
   guide: "Guide",
 };
 
-export default function LibraryPage() {
+/** Extract a video thumbnail from a YouTube or TED url, or null when the
+ *  source isn't a known video host (so we render the no-thumbnail card). */
+function thumbnailFor(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // youtube.com/watch?v=...
+    if (u.hostname.includes("youtube.com") && u.searchParams.has("v")) {
+      const id = u.searchParams.get("v");
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    // youtu.be/<id>
+    if (u.hostname === "youtu.be") {
+      const id = u.pathname.slice(1);
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    // youtube.com/embed/<id>
+    if (u.hostname.includes("youtube.com") && u.pathname.startsWith("/embed/")) {
+      const id = u.pathname.replace("/embed/", "");
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+export default async function LibraryPage() {
+  // Resolve all OG images in parallel for cards that aren't already a known
+  // video thumbnail. The fetch results are cached at the data layer so this
+  // is fast on subsequent renders.
+  const allItems = SECTIONS.flatMap((s) =>
+    s.items.map((it) => ({ url: it.url, sectionId: s.id })),
+  );
+  const ogResults = await Promise.all(
+    allItems.map(async (it) => {
+      if (thumbnailFor(it.url)) return [it.url, null] as const;
+      return [it.url, await getOgImageUrl(it.url)] as const;
+    }),
+  );
+  const ogMap = new Map<string, string | null>(ogResults);
+
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
       <header className="mb-10">
@@ -207,36 +257,84 @@ export default function LibraryPage() {
                   </div>
                 </div>
               </div>
-              <ul className="grid gap-3 md:grid-cols-2">
-                {section.items.map((item) => (
-                  <li key={item.url}>
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex h-full flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/40 hover:shadow-[0_14px_36px_-18px_rgba(176,114,255,0.45)]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-600">
-                          {KIND_LABEL[item.kind]}
-                        </span>
-                        <ArrowUpRight
-                          className="size-4 text-ink-400 transition-colors group-hover:text-brand-purple"
-                          strokeWidth={2.5}
-                        />
-                      </div>
-                      <p className="text-sm font-bold tracking-tight text-ink-900">
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] font-semibold text-ink-500">
-                        {item.source}
-                      </p>
-                      <p className="text-[12px] leading-relaxed text-ink-600">
-                        {item.why}
-                      </p>
-                    </a>
-                  </li>
-                ))}
+              <ul className="grid gap-4 md:grid-cols-2">
+                {section.items.map((item) => {
+                  const thumb = thumbnailFor(item.url);
+                  const ogImage = !thumb ? ogMap.get(item.url) ?? null : null;
+                  const heroImage = thumb ?? ogImage;
+                  const isVideo = !!thumb;
+                  return (
+                    <li key={item.url}>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition-all hover:-translate-y-0.5 hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-18px_rgba(176,114,255,0.45)]"
+                      >
+                        {heroImage ? (
+                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-ink-900">
+                            <Image
+                              src={heroImage}
+                              alt=""
+                              fill
+                              sizes="(min-width: 768px) 50vw, 100vw"
+                              unoptimized
+                              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                            />
+                            <div
+                              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-900/70 via-transparent to-transparent"
+                              aria-hidden="true"
+                            />
+                            {isVideo && (
+                              <div className="pointer-events-none absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                <PlayCircle
+                                  className="size-14 text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
+                                  strokeWidth={1.5}
+                                />
+                              </div>
+                            )}
+                            <div className="absolute left-3 top-3 flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
+                                {KIND_LABEL[item.kind]}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <LibraryTypographicHero
+                              title={item.title}
+                              source={item.source}
+                              faviconUrl={faviconForUrl(item.url)}
+                              sectionId={section.id}
+                            />
+                            <div className="absolute left-3 top-3">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-700 backdrop-blur">
+                                {KIND_LABEL[item.kind]}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex flex-1 flex-col gap-1.5 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm font-bold tracking-tight text-ink-900">
+                              {item.title}
+                            </p>
+                            <ArrowUpRight
+                              className="size-4 shrink-0 text-ink-400 transition-colors group-hover:text-brand-purple"
+                              strokeWidth={2.5}
+                            />
+                          </div>
+                          <p className="text-[11px] font-semibold text-ink-500">
+                            {item.source}
+                          </p>
+                          <p className="text-[12px] leading-relaxed text-ink-600">
+                            {item.why}
+                          </p>
+                        </div>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           );

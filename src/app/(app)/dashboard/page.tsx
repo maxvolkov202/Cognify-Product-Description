@@ -20,6 +20,7 @@ import {
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
+import { DayDotsPreview } from "@/components/product/DayDotsPreview";
 import { WeekCalendar } from "@/components/product/WeekCalendar";
 import { TrainingStackRow } from "@/components/product/TrainingStackRow";
 import { LibraryCallout } from "@/components/product/LibraryCallout";
@@ -94,14 +95,15 @@ export default async function DashboardPage() {
               Welcome, {firstName}
             </p>
             <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
-              You haven&rsquo;t trained yet.
+              Day 1 of becoming someone who never loses the room.
             </h1>
             <p className="mt-3 text-base text-ink-600 md:text-lg">
-              Your first rep becomes your baseline. Every future rep gets measured against it. Five minutes, four reps, instant feedback. That&rsquo;s the workout.
+              Five minutes. Four reps. Instant feedback. Your first rep becomes the baseline every future rep gets measured against.
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <DayDotsPreview className="mt-7" />
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <GradientButton href="/workout" size="lg">
-                Start your first workout <ArrowRight className="ml-1 size-4" />
+                Start your first rep <ArrowRight className="ml-1 size-4" />
               </GradientButton>
               <Link
                 href="/tutorial"
