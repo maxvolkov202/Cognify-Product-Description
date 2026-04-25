@@ -5,21 +5,13 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { RepSurface } from "./RepSurface";
 import { markBaselineRepAction } from "@/server/actions/baseline";
-import {
-  DIMENSION_LABELS,
-  SKILL_DIMENSION_GROUPS,
-  type RepScore,
-  type SkillDimension,
-} from "@/types/domain";
 
 const BASELINE_PROMPT =
   "I am a hiring manager for your next role. In 60 seconds, tell me why I should hire you.";
 
 type Phase =
   | { kind: "intro" }
-  | { kind: "recording" }
-  | { kind: "saving-baseline" }
-  | { kind: "done"; score: RepScore };
+  | { kind: "recording" };
 
 export function BaselineRep() {
   const [phase, setPhase] = useState<Phase>({ kind: "intro" });
@@ -95,146 +87,47 @@ export function BaselineRep() {
     );
   }
 
-  if (phase.kind === "recording" || phase.kind === "saving-baseline") {
-    return (
-      <>
-        <RepSurface
-          prompt={BASELINE_PROMPT}
-          mode="scenario_training"
-          topic="Baseline"
-          maxDurationMs={60_000}
-          onComplete={({ score, repId }) => {
-            setPhase({ kind: "saving-baseline" });
-            setError(null);
-            startTransition(async () => {
-              const result = await markBaselineRepAction(repId);
-              if (!result.ok) {
-                setError(
-                  "Couldn't save your baseline. You can continue to the tutorial — the rep is still yours.",
-                );
-              }
-              setPhase({ kind: "done", score });
-            });
-          }}
-        />
-        {phase.kind === "saving-baseline" && (
-          <p className="mt-3 text-center text-sm text-ink-500">
-            Locking in your baseline…
-          </p>
-        )}
-        {error && (
-          <p className="mt-3 text-center text-sm text-danger">{error}</p>
-        )}
-      </>
-    );
-  }
-
-  // phase === "done"
-  // Show all six dimension scores + the lead callout so the user can
-  // review before the tutorial. Previous flow disposed of the feedback
-  // panel too quickly to read.
-  const dims: SkillDimension[] = [
-    ...SKILL_DIMENSION_GROUPS.content,
-    ...SKILL_DIMENSION_GROUPS.delivery,
-  ];
-  const leadCallout =
-    phase.score.callouts.find(
-      (c) => c.tone === "warn" || c.tone === "critical",
-    ) ?? phase.score.callouts[0] ?? null;
+  // Recording → feedback. We let RepSurface render its full feedback panel
+  // (audio playback, callouts, transcript) and stay there until the user
+  // chooses Continue. Previous design swapped to a custom "done" screen ~2s
+  // after scoring landed, which tore the feedback panel out from under the
+  // user mid-read (Aidan's note).
   return (
-    <div className="surface-card overflow-hidden">
-      <div className="brand-gradient h-1" aria-hidden="true" />
-      <div className="p-8">
-        <div className="text-center">
-          <Sparkles
-            className="mx-auto size-8 text-brand-purple"
-            aria-hidden="true"
-          />
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
-            Here&rsquo;s where you&rsquo;re starting.
-          </h2>
-          <p className="mt-2 text-sm text-ink-600">
-            Your baseline composite. The number every future rep gets measured against.
-          </p>
-          <p className="brand-gradient-text mt-6 text-7xl font-extrabold tabular-nums">
-            {Math.round(phase.score.composite)}
-          </p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-            Baseline composite
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-2.5">
-          {dims.map((dim) => {
-            const entry = phase.score.dimensions.find(
-              (d) => d.dimension === dim,
-            );
-            const score = entry ? Math.round(entry.score) : null;
-            const isContent = (
-              SKILL_DIMENSION_GROUPS.content as readonly SkillDimension[]
-            ).includes(dim);
-            return (
-              <div key={dim} className="flex items-center gap-3">
-                <span
-                  className={
-                    isContent
-                      ? "size-1.5 shrink-0 rounded-full bg-brand-blue"
-                      : "size-1.5 shrink-0 rounded-full bg-brand-magenta"
-                  }
-                  aria-hidden="true"
-                />
-                <span className="w-32 text-sm font-semibold text-ink-700">
-                  {DIMENSION_LABELS[dim]}
-                </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
-                  <div
-                    className="brand-gradient h-full rounded-full"
-                    style={{ width: `${score ?? 0}%` }}
-                  />
-                </div>
-                <span className="w-8 text-right text-sm font-bold tabular-nums text-ink-700">
-                  {score ?? "—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {leadCallout && (
-          <div className="mt-6 rounded-xl border-l-2 border-brand-purple/40 bg-brand-purple/5 p-4">
-            <div className="flex items-center gap-1.5 text-brand-purple">
-              <Sparkles className="size-3.5" strokeWidth={2.5} />
-              <span className="text-[11px] font-bold uppercase tracking-wider">
-                What to focus on first
-              </span>
-            </div>
-            <p className="mt-1.5 text-sm font-semibold text-ink-900">
-              {leadCallout.title}
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-ink-600">
-              {leadCallout.body}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={() => router.push("/tutorial")}
-            className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-sm"
-          >
-            Continue to tutorial
-            <ArrowRight className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="text-sm font-semibold text-ink-500 hover:text-ink-900"
-          >
-            Skip tutorial, go to dashboard
-          </button>
-        </div>
+    <>
+      <RepSurface
+        prompt={BASELINE_PROMPT}
+        mode="scenario_training"
+        topic="Baseline"
+        maxDurationMs={60_000}
+        onComplete={({ score: _score, repId }) => {
+          // Save the baseline silently. The user keeps reading their feedback
+          // and chooses when to continue — no screen swap required.
+          void _score;
+          setError(null);
+          startTransition(async () => {
+            const result = await markBaselineRepAction(repId);
+            if (!result.ok) {
+              setError(
+                "Couldn't save your baseline. The rep is still yours, you can continue to the tutorial.",
+              );
+            }
+          });
+        }}
+        onNext={() => router.push("/tutorial")}
+        nextLabel="Continue to tutorial"
+      />
+      <div className="mt-4 flex justify-center">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard")}
+          className="text-sm font-semibold text-ink-500 hover:text-ink-900"
+        >
+          Skip tutorial, go to dashboard
+        </button>
       </div>
-    </div>
+      {error && (
+        <p className="mt-3 text-center text-sm text-danger">{error}</p>
+      )}
+    </>
   );
 }

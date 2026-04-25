@@ -30,25 +30,18 @@ export const metadata: Metadata = {
     "corporate health",
   ],
   openGraph: {
-    title: "Cognify — The Duolingo for communication",
+    // Image is auto-generated at /opengraph-image (src/app/opengraph-image.tsx)
+    // as a 1200x630 PNG so Slack, Twitter, and LinkedIn render the card.
+    title: "Cognify, the Duolingo for communication",
     description:
       "Short, structured reps. Instant feedback. Measurable growth. Train clear thinking into clear speech.",
     siteName: "Cognify",
     type: "website",
-    images: [
-      {
-        url: "/logo/wordmark.svg",
-        width: 1200,
-        height: 630,
-        alt: "Cognify — the Duolingo for communication",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Cognify",
     description: "The Duolingo for communication.",
-    images: ["/logo/wordmark.svg"],
   },
   icons: {
     icon: [{ url: "/logo/mark.svg", type: "image/svg+xml" }],

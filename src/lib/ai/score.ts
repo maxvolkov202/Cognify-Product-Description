@@ -7,7 +7,7 @@ import {
   composite,
 } from "@/lib/scoring/rubric";
 import type { RepScore, SkillDimension } from "@/types/domain";
-import { loadSkills, loadPatterns, renderBlocks } from "./knowledge";
+import { loadSkill, renderBlocks } from "./knowledge";
 import { extractSignals } from "@/lib/scoring/signals";
 import {
   scorePacing,
@@ -77,88 +77,97 @@ function renderTimedTranscript(
   transcript: string,
   words?: { word: string; startMs: number; endMs: number }[],
 ): string {
-  // The full transcript is the canonical source of truth — always return
-  // it in full. If word timings are present, append a compact timestamp
-  // index so Claude can reference specific moments in callouts, but we
-  // never truncate the transcript to whatever words we happen to have.
+  // Full transcript is canonical. The compact timestamp index lets Claude
+  // anchor callout ranges without bloating the prompt. Every ~5s is plenty
+  // for callout granularity; tighter intervals burned tokens without
+  // measurably improving anchoring quality.
   if (!words || words.length === 0) return transcript;
   const markers: string[] = [];
   let lastMark = -1;
   for (const w of words) {
     const sec = Math.floor(w.startMs / 1000);
-    if (sec !== lastMark && sec % 2 === 0) {
+    if (sec !== lastMark && sec % 5 === 0) {
       const stamp = `[${Math.floor(sec / 60)}:${(sec % 60).toString().padStart(2, "0")}]`;
       markers.push(`${stamp} "${w.word}"`);
       lastMark = sec;
     }
   }
   if (markers.length === 0) return transcript;
-  return `${transcript}\n\nTIMESTAMP INDEX (every ~2s, from word-level timings — use for callout ranges):\n${markers.join("\n")}`;
+  return `${transcript}\n\nTIMESTAMP INDEX (every ~5s):\n${markers.join("\n")}`;
 }
 
-const systemPrompt = `You are the scoring model for Cognify, a communication training platform. Score the user's rep across six dimensions on a 0-100 scale, with transparent signals for each score.
+// System prompt is intentionally tight. Latency dominates UX here, so the
+// rubric and dimension definitions live in a single cached block (knowledge)
+// rather than being repeated inline. Output is bounded JSON with strict
+// rules; verbose framing slowed things down without measurably improving
+// quality in our internal calibration runs.
+const systemPrompt = `You are the scoring model for Cognify, a communication training gym. Score a rep across six dimensions on 0-100.
 
-The six dimensions are grouped into two buckets:
-  CONTENT  : clarity, structure, conciseness           (what they said)
-  DELIVERY : thinking_quality, delivery, adaptability  (how they said it)
+Dimensions, in order:
+  CONTENT  : clarity, structure, conciseness
+  DELIVERY : thinking_quality, delivery, adaptability
 
-Be rigorous. Scores above 90 are reserved for genuinely excellent reps. Scores below 40 indicate serious issues. Off-topic or junk reps (not addressing the prompt, testing the mic, stream-of-consciousness rambling) must be scored honestly across all six dimensions — low content dimensions AND low delivery dimensions, because such reps fail in both directions. Do not anchor toward any default range — score authentically based on the rubric.
+Be rigorous. 90+ is reserved for genuinely excellent reps. <40 means serious issues. Off-topic or junk reps (mic test, rambling, not answering the prompt) must score low on BOTH content and delivery dimensions; do not anchor to a default range.
 
-Return ONLY valid JSON matching this exact schema, no prose:
+Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity" | "structure" | "relevance" | "confidence" | "pacing" | "tone", "score": 0-100, "signals": ["..."] }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"adaptability", "score": 0-100, "signals": ["..."] }
   ],
-  "structuralAdherence": 0-100 (only if frameworkNodes provided),
+  "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "callouts": [
-    {
-      "dimension": "...",
-      "tone": "positive" | "neutral" | "warn" | "critical",
-      "title": "short label",
-      "body": "why this moment mattered",
-      "quote": "verbatim phrase the user actually said (copy letters exactly)" | null,
-      "suggestedRewrite": "a complete speakable rephrasing in the user's voice" | null,
-      "transcriptStart": ms,
-      "transcriptEnd": ms
-    }
+    { "dimension": "...", "tone": "positive"|"neutral"|"warn"|"critical", "title": "short label", "body": "why it mattered", "quote": "verbatim phrase from transcript"|null, "suggestedRewrite": "speakable rephrasing"|null, "transcriptStart": ms, "transcriptEnd": ms }
   ]
 }
 
-The "dimensions" array must contain exactly one entry per dimension in this order: clarity, structure, conciseness, thinking_quality, delivery, adaptability.
-
-CALLOUT RULES (strict — responses violating these will be rejected):
-  - Return EXACTLY 3 callouts: one "positive" + two "warn"/"critical".
-  - The two improvement callouts MUST target the TWO lowest-scoring dimensions (one each, not both the same).
-  - Every callout MUST include a \`quote\` — a verbatim phrase copied exactly from the transcript (same letters, same order; do not paraphrase).
-  - Every "warn"/"critical" callout MUST include a \`suggestedRewrite\` — a concrete, speakable rephrasing of the quote in the user's voice (same length or shorter; something they could actually say next time).
-  - For "positive" callouts, set \`suggestedRewrite\` to null.
-  - Do not invent content. If you cannot find a real quote to anchor a callout, skip that callout.
-  - Every callout's \`dimension\` MUST be one of the six rubric dimensions (or "structural_adherence" when the rep has a framework). Never omit.
+CALLOUT RULES (responses violating these are rejected):
+  - Exactly 3 callouts: 1 positive + 2 warn/critical. The two improvements target the TWO lowest-scoring dimensions (one each).
+  - Every callout includes a \`quote\` copied verbatim from the transcript.
+  - Warn/critical callouts include a \`suggestedRewrite\`: concrete, speakable, same length or shorter, in the user's voice. Positive callouts set suggestedRewrite=null.
+  - dimension must be one of the six rubric dimensions (or "structural_adherence" when scoring against a framework).
 
 COPY RULES:
-  - "title": ≤80 chars, a short label of what specifically happened (e.g., "Rushed the setup", "Landed the ask").
-  - "body":  ≤300 chars, 1-2 tight sentences on why this moment matters — NOT the fix itself (the fix lives in suggestedRewrite).
-  - Keep tone coaching, not clinical. Specific, not generic.
+  - title ≤80 chars: a label of what happened, not advice. Example: "Rushed the setup", "Landed the ask".
+  - body ≤300 chars: 1-2 tight sentences on why the moment matters. The fix belongs in suggestedRewrite, not body.
 
-BANNED (responses will be rejected if these appear anywhere in any callout title or body):
-  - "good job", "great job", "nice work", "nice job", "well done", "way to go"
-  - "you did well", "you're doing great", "keep it up", "you got this"
-  - Generic positive filler. EVERY positive callout must point at a specific moment in the transcript.
-  - Filler adverbs: "really", "very", "quite" — drop them.
-  - Hype verbs that oversell: "crushed" (only if literal), "absolutely", "completely nailed".`;
+BANNED in title or body: "good job", "great job", "nice work", "nice job", "well done", "way to go", "keep it up", "you got this", "you're doing great", "you did well". Drop filler adverbs (really, very, quite). Avoid hype verbs (crushed, absolutely, completely nailed). Every positive callout points at a specific transcript moment.`;
+
+/**
+ * Compact rubric block — definitions + signals for the four LLM-scored
+ * dimensions only (delivery + thinking_quality are deterministic, no
+ * need to spend tokens describing them to the model). Capped to keep
+ * the system prompt under ~3KB after caching.
+ */
+const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "adaptability",
+];
 
 function renderRubric(): string {
-  return ALL_DIMENSIONS.map((d) => {
+  return LLM_SCORED_DIMENSIONS.map((d) => {
     const r = DIMENSION_RUBRIC[d];
     return `## ${d}
 ${r.definition}
-Low-score signals:
-${r.lowScoreSignals.map((s) => `- ${s}`).join("\n")}
-High-score signals:
-${r.highScoreSignals.map((s) => `- ${s}`).join("\n")}`;
+Low: ${r.lowScoreSignals.slice(0, 3).join("; ")}
+High: ${r.highScoreSignals.slice(0, 3).join("; ")}`;
   }).join("\n\n");
 }
+
+// Cached at module scope so we don't re-render on every request.
+const COMPACT_RUBRIC = renderRubric();
+
+/** Knowledge for ONLY the LLM-scored skills. delivery + thinking_quality
+ *  are deterministic so we don't ship their knowledge to the model. */
+function loadLlmScoredSkillKnowledge(): string {
+  const blocks = LLM_SCORED_DIMENSIONS.map((d) => loadSkill(d)).filter(
+    (b): b is NonNullable<typeof b> => b !== null,
+  );
+  return renderBlocks(blocks);
+}
+const COMPACT_KNOWLEDGE = loadLlmScoredSkillKnowledge();
 
 /**
  * Banned phrases that disqualify a callout from the user-visible feed.
@@ -239,38 +248,42 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   const hasWordTimestamps = input.words && input.words.length > 0;
 
   const userPrompt = [
-    `PROMPT THE USER WAS ASKED TO ADDRESS:\n${input.promptText}`,
-    `\nREP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
+    `PROMPT: ${input.promptText}`,
+    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
     input.frameworkNodes
-      ? `\nFRAMEWORK THE USER SHOULD HOLD (score structural adherence against these nodes in order):\n${input.frameworkNodes
-          .map((n, i) => `${i + 1}. ${n.label} — ${n.description}`)
+      ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
+          .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
     hasWordTimestamps
-      ? `\nTRANSCRIPT (inline [m:ss] markers indicate real timestamps — use these for callout ranges):\n${timedTranscript}`
-      : `\nTRANSCRIPT:\n${timedTranscript}`,
-    `\nRUBRIC:\n${renderRubric()}`,
+      ? `TRANSCRIPT (inline [m:ss] markers are real timestamps; use them for callout ranges):\n${timedTranscript}`
+      : `TRANSCRIPT:\n${timedTranscript}`,
   ]
     .filter(Boolean)
-    .join("\n");
-
-  const knowledgeBlocks = [...loadSkills(), ...loadPatterns()];
-  const knowledgeText = renderBlocks(knowledgeBlocks);
+    .join("\n\n");
 
   const response = await anthropic.messages.create({
     model: MODELS.scoring,
-    max_tokens: 2048,
+    // Bounded output: 6 dimension scores + ~3 callouts. 1024 is the 95th
+    // percentile observed across recent reps; 1200 leaves headroom without
+    // letting the model ramble.
+    max_tokens: 1200,
     system: [
       {
         type: "text",
         text: systemPrompt,
         cache_control: { type: "ephemeral" },
       },
-      ...(knowledgeText
+      {
+        type: "text" as const,
+        text: `RUBRIC (only the four LLM-scored dimensions; delivery and thinking_quality are scored separately):\n\n${COMPACT_RUBRIC}`,
+        cache_control: { type: "ephemeral" as const },
+      },
+      ...(COMPACT_KNOWLEDGE
         ? [
             {
               type: "text" as const,
-              text: `SCORING KNOWLEDGE BASE — use these expert-sourced skill notes to ground your scoring. Each block is the pedagogical definition of one dimension grouped into Content (clarity, structure, conciseness) and Delivery (thinking_quality, delivery, adaptability) with multi-source signals and scoring boundaries:\n\n${knowledgeText}`,
+              text: `SCORING KNOWLEDGE (clarity, structure, conciseness, adaptability):\n\n${COMPACT_KNOWLEDGE}`,
               cache_control: { type: "ephemeral" as const },
             },
           ]
@@ -280,9 +293,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
             {
               type: "text" as const,
               text: input.userCalibration,
-              // NOT cache-controlled — this is user-specific and changes
-              // as the user rates more reps. Caching would leak calibration
-              // across users.
+              // NOT cache-controlled — user-specific.
             },
           ]
         : []),
