@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   RefreshCw,
   ArrowRight,
@@ -12,6 +13,7 @@ import {
   ChevronUp,
   Target,
   Flame,
+  Mic,
 } from "lucide-react";
 import { pickVerticalPrompts } from "@/lib/ai/prompts/verticals";
 import { RepSurface } from "./RepSurface";
@@ -261,28 +263,42 @@ export function BuildARepFlow({
 
   // ——— Render ——————————————————————————————————————————
 
+  const sessionPhase: "setup" | "rep" | "review" = !talkingPoints
+    ? "setup"
+    : !repStarted
+      ? "setup"
+      : retryFocus
+        ? "review"
+        : "rep";
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      {/* ——— Session progress bar ————————————————————— */}
+      <SessionProgress phase={sessionPhase} />
+
       {/* ——— Header ————————————————————————————— */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-          Build a Rep · {verticalLabel}
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+          <Mic className="size-3" strokeWidth={2.5} />
+          Training session · {verticalLabel}
         </p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-          {talkingPoints
-            ? "Hold the structure. Perform the rep."
-            : "What do you need to handle?"}
+          {sessionPhase === "review"
+            ? "Nice rep. Here's what moved."
+            : talkingPoints
+              ? "Hold the structure. Perform the rep."
+              : "What are we working on today?"}
         </h1>
         {!talkingPoints && (
           <p className="mt-3 text-base leading-relaxed text-ink-600">
-            Pick a scenario, write your own, or answer a short survey for full
-            customization. We&rsquo;ll generate a thinking structure you can
-            speak against. Not a script — a scaffold.
+            Tell us the scenario — pick one of the prompts below or describe
+            your own. We&rsquo;ll build a thinking scaffold you can speak
+            against. Not a script — a structure to hold.
           </p>
         )}
       </div>
 
-      {/* ——— Intake block (always present; collapses to summary) ——— */}
+      {/* ——— Intake block ——————————————————————————— */}
       {intakeCollapsed && activeSource && talkingPoints ? (
         <ScenarioSummaryBar
           summaryText={summaryText}
@@ -292,75 +308,76 @@ export function BuildARepFlow({
         />
       ) : (
         <div className="space-y-4">
-          {/* ——— Intake mode switcher ——————————————— */}
-          {!talkingPoints && (
-            <div className="flex gap-2">
-              <IntakeModeChip
-                active={intakeMode === "picker"}
-                onClick={() => setIntakeMode("picker")}
-              >
-                Quick picker
-              </IntakeModeChip>
-              <IntakeModeChip
-                active={intakeMode === "custom"}
-                onClick={() => setIntakeMode("custom")}
-              >
-                Custom rep (survey)
-              </IntakeModeChip>
-            </div>
-          )}
-
-          {/* ——— Picker mode ——————————————————————— */}
-          {intakeMode === "picker" && (
-            <PickerIntake
-              vertical={vertical}
+          {/* Default: launchpad. Survey hides behind "Advanced setup". */}
+          {!talkingPoints && intakeMode === "picker" && (
+            <LaunchpadIntake
+              verticalLabel={verticalLabel}
               prompts={prompts}
-              selectedPromptIdx={selectedPromptIdx}
-              customPromptMode={customPromptMode}
               customPrompt={customPrompt}
-              contextInput={contextInput}
               onRefresh={handleRefresh}
-              onSelectPrompt={handleSelectPrompt}
-              onOpenCustom={handleOpenCustom}
-              onCancelCustom={handleCancelCustom}
-              onCustomPromptChange={setCustomPrompt}
-              onContextChange={setContextInput}
-              onSwitchToCustomBuilder={() => setIntakeMode("custom")}
+              onPickStarter={(idx) => {
+                handleSelectPrompt(idx);
+                setCustomPrompt("");
+              }}
+              onCustomPromptChange={(s) => {
+                setCustomPrompt(s);
+                if (s.length > 0) {
+                  setCustomPromptMode(true);
+                  setSelectedPromptIdx(null);
+                } else {
+                  setCustomPromptMode(false);
+                }
+              }}
+              selectedStarter={
+                customPromptMode ? null : selectedPromptIdx
+              }
               canGenerate={canGeneratePicker}
               generating={generating}
               onGenerate={handleGenerateFromPicker}
+              onAdvanced={() => setIntakeMode("custom")}
             />
           )}
 
-          {/* ——— Custom (survey) mode —————————————— */}
-          {intakeMode === "custom" && (
-            <CustomScenarioBuilder
-              vertical={vertical}
-              initialStakeholder={
-                activeSource?.kind === "custom"
-                  ? activeSource.payload.stakeholder
-                  : undefined
-              }
-              onCancel={() => setIntakeMode("picker")}
-              onSubmit={handleGenerateFromCustom}
-            />
+          {!talkingPoints && intakeMode === "custom" && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setIntakeMode("picker")}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900"
+              >
+                ← Back to launchpad
+              </button>
+              <CustomScenarioBuilder
+                vertical={vertical}
+                initialStakeholder={
+                  activeSource?.kind === "custom"
+                    ? activeSource.payload.stakeholder
+                    : undefined
+                }
+                onCancel={() => setIntakeMode("picker")}
+                onSubmit={handleGenerateFromCustom}
+              />
+            </div>
           )}
 
           {generating && (
-            <div className="surface-card flex items-center gap-3 p-4">
-              <div className="brand-gradient grid size-8 place-items-center rounded-lg">
-                <Sparkles
-                  className="size-4 animate-pulse text-white"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-ink-900">
-                  Building your structure…
-                </p>
-                <p className="text-xs text-ink-500">
-                  Composing a tailored scaffold for your scenario. Usually 1–2 seconds.
-                </p>
+            <div className="relative overflow-hidden rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/5 p-4">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="brand-gradient grid size-9 place-items-center rounded-xl"
+                >
+                  <Sparkles className="size-4 text-white" aria-hidden="true" />
+                </motion.div>
+                <div>
+                  <p className="text-sm font-bold text-ink-900">
+                    Coach is prepping your structure…
+                  </p>
+                  <p className="text-xs text-ink-500">
+                    Building a scaffold tailored to your scenario.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -373,26 +390,47 @@ export function BuildARepFlow({
         </div>
       )}
 
-      {/* ——— Preview phase (before rep starts) ————————————
-           Product Sweep #5: give the user a clear pre-rep review of the
-           generated structure with Regenerate / Edit / Start buttons
-           before the mic surface takes over. */}
+      {/* ——— Preview phase (before rep starts) ———————————— */}
       {talkingPoints && activeSource && !repStarted && (
         <div className="space-y-5">
-          <div className="surface-card overflow-hidden">
-            <div className="brand-gradient h-1" aria-hidden="true" />
-            <div className="p-6 md:p-7">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-                Your structure · preview
-              </p>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
-                Review before you speak.
+          <div className="relative overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900 p-6 text-white shadow-[0_24px_60px_-24px_rgba(20,20,40,0.5)] md:p-8">
+            {/* Ambient brand halo in corners */}
+            <div
+              className="pointer-events-none absolute -left-20 -top-20 size-64 rounded-full blur-3xl"
+              aria-hidden="true"
+              style={{ background: "radial-gradient(circle, rgba(106,163,255,0.35), transparent 70%)" }}
+            />
+            <div
+              className="pointer-events-none absolute -bottom-24 -right-16 size-64 rounded-full blur-3xl"
+              aria-hidden="true"
+              style={{ background: "radial-gradient(circle, rgba(231,124,240,0.3), transparent 70%)" }}
+            />
+
+            <div className="relative">
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <motion.div
+                    className="brand-gradient size-8 rounded-xl"
+                    animate={{ opacity: [0.75, 1, 0.75] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div className="brand-gradient absolute inset-0 rounded-xl opacity-40 blur-md" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
+                    Coach&rsquo;s prep
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-lavender">
+                    Session ready
+                  </p>
+                </div>
+              </div>
+              <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+                Here&rsquo;s your setup.
               </h2>
-              <p className="mt-2 text-sm text-ink-600">
-                Read through the structure below. Tweak any bullet that
-                doesn&rsquo;t match how you&rsquo;d actually say it, regenerate
-                if the whole shape is off, or hit Start when you&rsquo;re ready
-                to hold this in mind during your rep.
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/70">
+                A scaffold — not a script. Tweak any line, regenerate the shape,
+                or dial up pressure. Hit start when you&rsquo;re ready to speak.
               </p>
               <PressurePicker
                 selectedId={pressureArchetypeId}
@@ -403,10 +441,10 @@ export function BuildARepFlow({
                 <button
                   type="button"
                   onClick={() => setRepStarted(true)}
-                  className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-sm"
+                  className="brand-gradient inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_30px_-8px_rgba(151,136,255,0.6)] transition-transform hover:scale-[1.02]"
                 >
-                  <ArrowRight className="size-4" />
-                  {pressureArchetype ? "Start pressure rep" : "Start rep"}
+                  <Mic className="size-4" strokeWidth={2.5} />
+                  Start your rep
                 </button>
                 <button
                   type="button"
@@ -551,190 +589,216 @@ function ScenarioSummaryBar({
   );
 }
 
-function IntakeModeChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        active
-          ? "brand-gradient rounded-full px-4 py-1.5 text-xs font-bold text-white"
-          : "rounded-full border border-ink-200 bg-white px-4 py-1.5 text-xs font-semibold text-ink-700 hover:border-ink-300"
-      }
-    >
-      {children}
-    </button>
-  );
-}
-
-// ——— Picker intake (extracted for clarity) ————————————————
-function PickerIntake({
-  vertical: _vertical /* eslint-disable-line @typescript-eslint/no-unused-vars */,
+// ——— Launchpad intake ————————————————————————————————
+// One conversational input + a row of starter sessions. The full custom
+// builder lives behind "Advanced setup". Goal: zero or one keystroke
+// before a session can start. Removes the "fill out a survey" feel.
+function LaunchpadIntake({
+  verticalLabel,
   prompts,
-  selectedPromptIdx,
-  customPromptMode,
   customPrompt,
-  contextInput,
+  selectedStarter,
   onRefresh,
-  onSelectPrompt,
-  onOpenCustom,
-  onCancelCustom,
+  onPickStarter,
   onCustomPromptChange,
-  onContextChange,
-  onSwitchToCustomBuilder,
   canGenerate,
   generating,
   onGenerate,
+  onAdvanced,
 }: {
-  vertical: VerticalId;
+  verticalLabel: string;
   prompts: string[];
-  selectedPromptIdx: number | null;
-  customPromptMode: boolean;
   customPrompt: string;
-  contextInput: string;
+  selectedStarter: number | null;
   onRefresh: () => void;
-  onSelectPrompt: (idx: number) => void;
-  onOpenCustom: () => void;
-  onCancelCustom: () => void;
+  onPickStarter: (idx: number) => void;
   onCustomPromptChange: (s: string) => void;
-  onContextChange: (s: string) => void;
-  onSwitchToCustomBuilder: () => void;
   canGenerate: boolean;
   generating: boolean;
   onGenerate: () => void;
+  onAdvanced: () => void;
 }) {
+  // Rotate the placeholder through real-feel scenarios so the input never
+  // sits empty. Uses the vertical's prompts when nothing is typed yet.
+  const placeholderIdx = useRotatingIndex(prompts.length, 2400);
+  const placeholder =
+    prompts[placeholderIdx] ??
+    "What are you about to handle? Type or pick a starter below.";
+
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && canGenerate && !generating) {
+      e.preventDefault();
+      onGenerate();
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Coach launchpad card */}
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_12px_40px_-20px_rgba(176,114,255,0.35)] md:p-8">
+        <div
+          className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-50 blur-3xl"
+          aria-hidden="true"
+          style={{ background: "radial-gradient(circle, rgba(176,114,255,0.25), transparent 70%)" }}
+        />
+        <div className="relative">
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <motion.div
+                className="brand-gradient size-9 rounded-2xl"
+                animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.04, 1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <div className="brand-gradient absolute inset-0 rounded-2xl opacity-40 blur-md" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+                Coach · {verticalLabel}
+              </p>
+              <p className="text-sm font-semibold text-ink-700">
+                What are we working on today?
+              </p>
+            </div>
+          </div>
+
+          {/* The single input — Enter to launch */}
+          <div className="mt-5">
+            <div
+              className={`group flex items-center gap-2 rounded-2xl border bg-white px-4 py-3 transition ${
+                customPrompt
+                  ? "border-brand-purple/40 shadow-[0_8px_24px_-12px_rgba(176,114,255,0.4)]"
+                  : "border-ink-200 hover:border-ink-300"
+              }`}
+            >
+              <Compass className="size-4 shrink-0 text-ink-400" strokeWidth={2.5} />
+              <input
+                type="text"
+                value={customPrompt}
+                onChange={(e) => onCustomPromptChange(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder={placeholder}
+                className="flex-1 bg-transparent text-[15px] font-medium text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                aria-label="Describe your scenario"
+              />
+              <motion.button
+                type="button"
+                onClick={onGenerate}
+                disabled={!canGenerate || generating}
+                whileTap={{ scale: 0.95 }}
+                className="brand-gradient grid size-8 shrink-0 place-items-center rounded-xl text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Start session"
+              >
+                <ArrowRight className="size-4" strokeWidth={2.5} />
+              </motion.button>
+            </div>
+            <p className="mt-2 px-1 text-[11px] text-ink-500">
+              Type one line — &ldquo;defending Q3 roadmap to a skeptical CFO&rdquo; — and hit enter.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Starter sessions — one tap to pick a pre-baked scenario */}
       <div>
-        <div className="flex items-baseline justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-            Scenarios for your vertical
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500">
+            Or pick a starter session
           </p>
           <button
             type="button"
             onClick={onRefresh}
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-semibold text-ink-500 hover:text-ink-900"
           >
             <RefreshCw className="size-3" />
-            Refresh
+            Shuffle
           </button>
         </div>
-
-        <div className="mt-3 space-y-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           {prompts.map((prompt, i) => {
-            const active = selectedPromptIdx === i && !customPromptMode;
+            const active = selectedStarter === i;
             return (
-              <button
+              <motion.button
                 key={`${i}-${prompt.slice(0, 20)}`}
                 type="button"
-                onClick={() => onSelectPrompt(i)}
+                onClick={() => onPickStarter(i)}
                 aria-pressed={active}
-                className={`w-full text-left rounded-xl border p-4 transition ${
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className={`group flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors ${
                   active
-                    ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10"
-                    : "border-ink-200 bg-white hover:border-ink-300"
+                    ? "brand-gradient border-transparent text-white shadow-[0_10px_30px_-10px_rgba(176,114,255,0.5)]"
+                    : "border-ink-200 bg-white hover:border-brand-purple/40 hover:bg-brand-lavender/5"
                 }`}
               >
-                <p className="text-sm text-ink-800 md:text-base">{prompt}</p>
-              </button>
+                <div
+                  className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-xl transition ${
+                    active
+                      ? "bg-white/25"
+                      : "bg-gradient-to-br from-brand-blue/10 to-brand-magenta/10 group-hover:from-brand-blue/20 group-hover:to-brand-magenta/20"
+                  }`}
+                >
+                  <Mic
+                    className={`size-3.5 ${active ? "text-white" : "text-brand-purple"}`}
+                    strokeWidth={2.5}
+                  />
+                </div>
+                <p
+                  className={`text-[14px] leading-snug ${
+                    active ? "font-semibold text-white" : "text-ink-800"
+                  }`}
+                >
+                  {prompt}
+                </p>
+              </motion.button>
             );
           })}
         </div>
-      </div>
 
-      {/* Write your own + escape hatch to custom builder */}
-      <div className="space-y-2">
-        {!customPromptMode ? (
-          <button
-            type="button"
-            onClick={onOpenCustom}
-            className="w-full rounded-xl border border-dashed border-ink-300 bg-ink-50/50 p-4 text-left transition hover:border-ink-400 hover:bg-white"
+        {selectedStarter !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 flex justify-center"
           >
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
-              <PenLine className="size-3" /> Write your own
-            </div>
-            <p className="mt-1 text-sm text-ink-500">
-              Describe a specific situation you need to handle
-            </p>
-          </button>
-        ) : (
-          <div className="rounded-xl border border-ink-900 bg-white p-4 ring-2 ring-ink-900/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
-                <PenLine className="size-3" /> Your own scenario
-              </div>
-              <button
-                type="button"
-                onClick={onCancelCustom}
-                className="text-ink-400 hover:text-ink-600"
-                aria-label="Cancel custom prompt"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <textarea
-              value={customPrompt}
-              onChange={(e) => onCustomPromptChange(e.target.value)}
-              placeholder="E.g., I'm about to explain our new pricing to a skeptical VP of Operations."
-              className="mt-3 w-full resize-none rounded-lg border border-ink-200 bg-white p-3 text-sm text-ink-800 focus:border-ink-400 focus:outline-none focus:ring-1 focus:ring-ink-900/10"
-              rows={3}
-              autoFocus
-            />
-          </div>
+            <button
+              type="button"
+              onClick={onGenerate}
+              disabled={!canGenerate || generating}
+              className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-[0_10px_30px_-8px_rgba(151,136,255,0.5)] transition-transform hover:scale-[1.02] disabled:opacity-40"
+            >
+              <Mic className="size-4" strokeWidth={2.5} />
+              Start this session
+            </button>
+          </motion.div>
         )}
-
-        {/* Escape hatch — the "Not seeing what you're looking for?" button */}
-        <button
-          type="button"
-          onClick={onSwitchToCustomBuilder}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-brand-purple/5 px-4 py-3 text-sm font-semibold text-brand-purple hover:bg-brand-purple/10"
-        >
-          <Compass className="size-4" strokeWidth={2.5} />
-          Not seeing what you&rsquo;re looking for? Build a fully custom rep →
-        </button>
       </div>
 
-      {/* Context */}
-      <div>
-        <label className="block">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
-            Context (optional)
-          </p>
-          <p className="mt-0.5 text-xs text-ink-500">
-            Key points you want to hit, who you&rsquo;re speaking to, what you
-            want to land. The more specific, the better the structure.
-          </p>
-          <textarea
-            value={contextInput}
-            onChange={(e) => onContextChange(e.target.value)}
-            placeholder="E.g., Audience: skeptical CFO. Key points: ROI in 4 months, kills two legacy tools, no migration risk. Avoid: jargon."
-            className="mt-3 w-full resize-none rounded-xl border border-ink-200 bg-white p-3 text-sm text-ink-800 focus:border-ink-400 focus:outline-none focus:ring-1 focus:ring-ink-900/10"
-            rows={3}
-          />
-        </label>
-      </div>
-
-      <div className="flex items-center justify-center">
+      <div className="flex justify-center">
         <button
           type="button"
-          onClick={onGenerate}
-          disabled={!canGenerate || generating}
-          className="brand-gradient inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={onAdvanced}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-500 hover:text-ink-900"
         >
-          {generating ? "Building…" : "Build my structure"}{" "}
-          <ArrowRight className="size-4" />
+          <Compass className="size-3" strokeWidth={2.5} />
+          Advanced setup &mdash; full survey, stakeholder, constraints
+          <ArrowRight className="size-3" />
         </button>
       </div>
     </div>
   );
+}
+
+// Rotates an integer index in [0, length) on a given interval. Used to
+// cycle the launchpad placeholder through real scenarios.
+function useRotatingIndex(length: number, intervalMs: number): number {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (length <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % length), intervalMs);
+    return () => clearInterval(t);
+  }, [length, intervalMs]);
+  return idx;
 }
 
 // ——— Pressure picker (Phase 5) ——————————————————————————
@@ -744,6 +808,9 @@ function PickerIntake({
 // rep is then scored with that archetype's weight profile (server-side
 // in /api/score). "None" is the default; picking an archetype shows a
 // one-line tagline so the user knows what to expect.
+// Difficulty dial — replaces the old chip row. Reads as an intensity ramp
+// from Warmup to Gauntlet with a color gradient. "None" sits to the left as
+// the default; picking any level reveals the archetype's tagline.
 function PressurePicker({
   selectedId,
   onChange,
@@ -752,64 +819,164 @@ function PressurePicker({
   onChange: (id: PressureArchetypeId | null) => void;
 }) {
   const archetypes = Object.values(PRESSURE_ARCHETYPES);
+  // Ordered list: None + each archetype as a rung on the ramp.
+  const rungs: Array<{
+    id: PressureArchetypeId | null;
+    label: string;
+    dotClass: string;
+  }> = [
+    { id: null, label: "Warmup", dotClass: "bg-ink-300" },
+    { id: archetypes[0]?.id ?? null, label: "Real", dotClass: "bg-amber-300" },
+    { id: archetypes[1]?.id ?? null, label: "Heat", dotClass: "bg-amber-500" },
+    { id: archetypes[2]?.id ?? null, label: "Pressure", dotClass: "bg-orange-500" },
+    { id: archetypes[3]?.id ?? null, label: "Gauntlet", dotClass: "bg-rose-600" },
+  ];
+  // Extra archetypes beyond 4 collapse into the last rung label if needed.
+  const extras = archetypes.slice(4);
+
+  const activeIdx = rungs.findIndex((r) => r.id === selectedId);
+  const activeRung = activeIdx >= 0 ? rungs[activeIdx] : rungs[0];
+
   return (
-    <div className="mt-6 rounded-xl border border-ink-200 bg-ink-50/60 p-4">
-      <div className="flex items-center gap-2">
-        <Flame className="size-4 text-amber-600" strokeWidth={2.5} />
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-700">
-          Add pressure (optional)
+    <div className="mt-6 rounded-xl border border-ink-200 bg-gradient-to-br from-amber-50/40 to-rose-50/30 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Flame className="size-4 text-amber-600" strokeWidth={2.5} />
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-700">
+            Difficulty
+          </p>
+        </div>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-600">
+          {activeRung?.label ?? "Warmup"}
         </p>
       </div>
-      <p className="mt-1 text-xs text-ink-500">
-        Crank the difficulty. Picks a stress mechanism — the scoring
-        weights shift to reward how well you held up under it.
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <PressureChip
-          active={selectedId === null}
-          onClick={() => onChange(null)}
-          label="None"
-        />
-        {archetypes.map((a) => (
-          <PressureChip
-            key={a.id}
-            active={selectedId === a.id}
-            onClick={() => onChange(a.id)}
-            label={a.name}
-          />
-        ))}
+
+      <div className="mt-3 grid grid-cols-5 gap-1.5">
+        {rungs.map((rung, i) => {
+          const active = rung.id === selectedId;
+          const passed = activeIdx > i;
+          return (
+            <motion.button
+              key={rung.label}
+              type="button"
+              onClick={() => onChange(rung.id)}
+              aria-pressed={active}
+              whileTap={{ scale: 0.96 }}
+              className={`group relative flex flex-col items-center gap-1.5 rounded-lg border px-2 py-2 transition ${
+                active
+                  ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10"
+                  : passed
+                    ? "border-ink-200 bg-white"
+                    : "border-ink-200 bg-white/70 hover:border-ink-300 hover:bg-white"
+              }`}
+            >
+              <span
+                className={`size-2 rounded-full ${rung.dotClass} ${
+                  active ? "ring-2 ring-offset-1 ring-ink-900/20" : ""
+                }`}
+              />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-700">
+                {rung.label}
+              </span>
+            </motion.button>
+          );
+        })}
       </div>
-      {selectedId && (
-        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-          {getPressureArchetype(selectedId).tagline}
-        </p>
+      {extras.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {extras.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => onChange(a.id)}
+              aria-pressed={selectedId === a.id}
+              className={
+                selectedId === a.id
+                  ? "rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-bold text-white"
+                  : "rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-ink-600 hover:border-ink-300"
+              }
+            >
+              {a.name}
+            </button>
+          ))}
+        </div>
       )}
+
+      <AnimatePresence mode="wait">
+        {selectedId && (
+          <motion.p
+            key={selectedId}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900"
+          >
+            {getPressureArchetype(selectedId).tagline}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function PressureChip({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
+// ——— Session progress bar ————————————————————————————————
+// Three-segment bar across the top of the flow. The active segment pulses
+// subtly; passed segments fill solid. Replaces any "step 1 of 3" counter
+// with a continuous sense of forward motion.
+function SessionProgress({ phase }: { phase: "setup" | "rep" | "review" }) {
+  const order: Array<"setup" | "rep" | "review"> = ["setup", "rep", "review"];
+  const labels: Record<"setup" | "rep" | "review", string> = {
+    setup: "Setup",
+    rep: "Rep",
+    review: "Review",
+  };
+  const activeIdx = order.indexOf(phase);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={
-        active
-          ? "rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm"
-          : "rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 hover:border-ink-300"
-      }
-    >
-      {label}
-    </button>
+    <div className="flex items-center gap-3">
+      {order.map((key, i) => {
+        const passed = i < activeIdx;
+        const active = i === activeIdx;
+        return (
+          <div key={key} className="flex flex-1 items-center gap-2">
+            <span
+              className={`text-[10px] font-bold uppercase tracking-[0.14em] ${
+                active
+                  ? "text-ink-900"
+                  : passed
+                    ? "text-brand-purple"
+                    : "text-ink-400"
+              }`}
+            >
+              {labels[key]}
+            </span>
+            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-ink-100">
+              <motion.div
+                initial={false}
+                animate={{
+                  width: passed ? "100%" : active ? "60%" : "0%",
+                }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className={`h-full rounded-full ${
+                  passed || active ? "brand-gradient" : "bg-ink-200"
+                }`}
+              />
+              {active && (
+                <motion.div
+                  className="absolute inset-y-0 left-0 h-full w-8 rounded-full bg-white/40"
+                  animate={{ x: ["-8px", "100%"] }}
+                  transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

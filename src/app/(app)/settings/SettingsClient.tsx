@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail, Bell } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Check, Save, KeyRound, Download, Trash2, AlertTriangle, Mail, Bell, Sparkles } from "lucide-react";
 import {
   VERTICALS,
-  PERSONAS,
-  IMPROVEMENT_GOALS,
+  personasForVertical,
+  goalsForVertical,
+  getVertical,
   type VerticalId,
   type PersonaId,
   type ImprovementGoalId,
@@ -48,6 +50,29 @@ export function SettingsClient({
   );
   const [savedSection, setSavedSection] = useState<SavedSection>(null);
   const [isPending, startTransition] = useTransition();
+  const [retuning, setRetuning] = useState(false);
+  const prevVerticalRef = useRef<VerticalId | null>(initialVertical);
+
+  // When vertical changes, prune persona selections that aren't offered by the
+  // new vertical and flash a "retuning" affordance so the swap reads as
+  // intentional rather than glitchy.
+  useEffect(() => {
+    if (prevVerticalRef.current === vertical) return;
+    prevVerticalRef.current = vertical;
+    const allowed = new Set(personasForVertical(vertical).map((p) => p.id));
+    setPersonas((prev) => {
+      const next = new Set<PersonaId>();
+      prev.forEach((id) => {
+        if (allowed.has(id)) next.add(id);
+      });
+      return next.size === prev.size && [...prev].every((id) => next.has(id))
+        ? prev
+        : next;
+    });
+    setRetuning(true);
+    const t = setTimeout(() => setRetuning(false), 1400);
+    return () => clearTimeout(t);
+  }, [vertical]);
 
   function toggleInSet<T>(
     setter: React.Dispatch<React.SetStateAction<Set<T>>>,
@@ -65,6 +90,10 @@ export function SettingsClient({
     setSavedSection(section);
     setTimeout(() => setSavedSection(null), 2200);
   }
+
+  const contextualPersonas = personasForVertical(vertical);
+  const contextualGoals = goalsForVertical(vertical);
+  const verticalLabel = vertical ? getVertical(vertical).label : null;
 
   function saveVertical() {
     if (!vertical) return;
@@ -108,28 +137,58 @@ export function SettingsClient({
             </div>
             <SaveIndicator show={savedSection === "vertical"} />
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {VERTICALS.map((v) => {
               const active = vertical === v.id;
               return (
-                <button
+                <motion.button
                   key={v.id}
                   type="button"
                   onClick={() => setVertical(v.id)}
                   aria-pressed={active}
-                  className={`text-left rounded-xl border p-3 transition ${
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.2 }}
+                  className={`group relative flex min-w-[160px] flex-1 items-start gap-2.5 overflow-hidden rounded-2xl border px-3.5 py-2.5 text-left transition-colors sm:flex-none sm:max-w-[280px] ${
                     active
-                      ? "border-ink-900 bg-white ring-2 ring-ink-900/10"
+                      ? "brand-gradient border-transparent text-white shadow-sm"
                       : "border-ink-200 bg-white hover:border-ink-300"
                   }`}
                 >
-                  <div className="text-sm font-bold text-ink-900">
-                    {v.label}
+                  <div
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
+                      active
+                        ? "bg-white/25"
+                        : "border border-ink-200 bg-white group-hover:border-ink-400"
+                    }`}
+                  >
+                    {active && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -90 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                      >
+                        <Check className="size-3 text-white" strokeWidth={3} />
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="mt-0.5 text-[11px] text-ink-500">
-                    {v.description}
+                  <div className="min-w-0">
+                    <div
+                      className={`text-sm font-bold leading-tight ${
+                        active ? "text-white" : "text-ink-900"
+                      }`}
+                    >
+                      {v.label}
+                    </div>
+                    <div
+                      className={`mt-0.5 text-[11px] leading-snug ${
+                        active ? "text-white/80" : "text-ink-500"
+                      }`}
+                    >
+                      {v.description}
+                    </div>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -154,51 +213,99 @@ export function SettingsClient({
         <div className="brand-gradient h-1" aria-hidden="true" />
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-bold text-ink-900">
                 Who you talk to
               </h2>
               <p className="mt-1 text-xs text-ink-500">
-                Your typical audience. Tunes AI tone and the scoring
-                register. Optional.
+                Your typical audience. Tunes AI tone and the scoring register.
+                Adapts to your vertical.
               </p>
             </div>
-            <SaveIndicator show={savedSection === "personas"} />
+            <div className="flex shrink-0 items-center gap-2">
+              <AnimatePresence>
+                {retuning && (
+                  <motion.div
+                    key="retune"
+                    initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -2 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1.5 rounded-full bg-ink-900 px-2.5 py-1 text-[10px] font-semibold text-white"
+                  >
+                    <Sparkles className="size-3 animate-pulse" strokeWidth={2.5} />
+                    Retuning your trainer…
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <SaveIndicator show={savedSection === "personas"} />
+            </div>
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            {PERSONAS.map((p) => {
-              const active = personas.has(p.id);
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => toggleInSet(setPersonas, p.id)}
-                  aria-pressed={active}
-                  className={`relative text-left rounded-xl border p-3 pr-10 transition ${
-                    active
-                      ? "border-ink-900 bg-white ring-2 ring-ink-900/10"
-                      : "border-ink-200 bg-white hover:border-ink-300"
-                  }`}
-                >
-                  {active && (
-                    <div className="brand-gradient absolute right-2 top-2 grid size-4 place-items-center rounded-full">
-                      <Check
-                        className="size-2.5 text-white"
-                        strokeWidth={3}
-                        aria-hidden="true"
-                      />
+          <motion.div
+            layout
+            transition={{ layout: { duration: 0.28, ease: [0.2, 0.8, 0.2, 1] } }}
+            className="mt-5 flex flex-wrap gap-2"
+          >
+            <AnimatePresence mode="popLayout" initial={false}>
+              {contextualPersonas.map((p) => {
+                const active = personas.has(p.id);
+                return (
+                  <motion.button
+                    key={p.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9, y: 4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: -4 }}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+                    type="button"
+                    onClick={() => toggleInSet(setPersonas, p.id)}
+                    aria-pressed={active}
+                    className={`group relative flex min-w-[160px] flex-1 items-start gap-2.5 overflow-hidden rounded-2xl border px-3.5 py-2.5 text-left transition-colors sm:flex-none sm:max-w-[280px] ${
+                      active
+                        ? "brand-gradient border-transparent text-white shadow-sm"
+                        : "border-ink-200 bg-white hover:border-ink-300"
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
+                        active
+                          ? "bg-white/25"
+                          : "border border-ink-200 bg-white group-hover:border-ink-400"
+                      }`}
+                    >
+                      {active && (
+                        <motion.div
+                          initial={{ scale: 0, rotate: -90 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                        >
+                          <Check className="size-3 text-white" strokeWidth={3} />
+                        </motion.div>
+                      )}
                     </div>
-                  )}
-                  <div className="text-sm font-bold text-ink-900">
-                    {p.label}
-                  </div>
-                  <div className="mt-0.5 text-[11px] text-ink-500">
-                    {p.description}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    <div className="min-w-0">
+                      <div
+                        className={`text-sm font-bold leading-tight ${
+                          active ? "text-white" : "text-ink-900"
+                        }`}
+                      >
+                        {p.label}
+                      </div>
+                      <div
+                        className={`mt-0.5 text-[11px] leading-snug ${
+                          active ? "text-white/80" : "text-ink-500"
+                        }`}
+                      >
+                        {p.description}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
           <div className="mt-5">
             <button
               type="button"
@@ -228,40 +335,75 @@ export function SettingsClient({
             </div>
             <SaveIndicator show={savedSection === "goals"} />
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            {IMPROVEMENT_GOALS.map((g) => {
+          <motion.div
+            layout
+            transition={{ layout: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] } }}
+            className="mt-5 flex flex-wrap gap-2"
+          >
+            {contextualGoals.map(({ goal: g, featured }) => {
               const active = goals.has(g.id);
               return (
-                <button
+                <motion.button
                   key={g.id}
+                  layout
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
                   type="button"
                   onClick={() => toggleInSet(setGoals, g.id)}
                   aria-pressed={active}
-                  className={`relative text-left rounded-xl border p-3 pr-10 transition ${
+                  className={`group relative flex min-w-[180px] flex-1 items-start gap-2.5 overflow-hidden rounded-2xl border px-3.5 py-2.5 text-left transition-colors sm:flex-none sm:max-w-[300px] ${
                     active
-                      ? "border-ink-900 bg-white ring-2 ring-ink-900/10"
-                      : "border-ink-200 bg-white hover:border-ink-300"
+                      ? "brand-gradient border-transparent text-white shadow-sm"
+                      : featured
+                        ? "border-brand-purple/40 bg-gradient-to-br from-brand-blue/5 to-brand-magenta/5 hover:border-brand-purple/60"
+                        : "border-ink-200 bg-white hover:border-ink-300"
                   }`}
                 >
-                  {active && (
-                    <div className="brand-gradient absolute right-2 top-2 grid size-4 place-items-center rounded-full">
-                      <Check
-                        className="size-2.5 text-white"
-                        strokeWidth={3}
-                        aria-hidden="true"
-                      />
+                  <div
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
+                      active
+                        ? "bg-white/25"
+                        : "border border-ink-200 bg-white group-hover:border-ink-400"
+                    }`}
+                  >
+                    {active && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -90 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                      >
+                        <Check className="size-3 text-white" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <div
+                        className={`text-sm font-bold leading-tight ${
+                          active ? "text-white" : "text-ink-900"
+                        }`}
+                      >
+                        {g.label}
+                      </div>
+                      {featured && verticalLabel && !active && (
+                        <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-purple">
+                          ★
+                        </span>
+                      )}
                     </div>
-                  )}
-                  <div className="text-sm font-bold text-ink-900">
-                    {g.label}
+                    <div
+                      className={`mt-0.5 text-[11px] leading-snug ${
+                        active ? "text-white/80" : "text-ink-500"
+                      }`}
+                    >
+                      {g.description}
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-ink-500">
-                    {g.description}
-                  </div>
-                </button>
+                </motion.button>
               );
             })}
-          </div>
+          </motion.div>
           <div className="mt-5">
             <button
               type="button"

@@ -4,9 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { motion } from "motion/react";
 import {
-  IMPROVEMENT_GOALS,
+  goalsForVertical,
+  getVertical,
+  isVerticalId,
   type ImprovementGoalId,
+  type VerticalId,
 } from "@/lib/onboarding/constants";
 import {
   setImprovementGoalsAction,
@@ -24,11 +28,19 @@ export default function OnboardingGoalsPage() {
     "improvementGoals",
     string[] | undefined
   >("improvementGoals", []);
+  const [draftVertical] = useOnboardingDraft<"vertical", string | undefined>(
+    "vertical",
+    undefined,
+  );
+  const vertical: VerticalId | null =
+    draftVertical && isVerticalId(draftVertical) ? draftVertical : null;
   const selected = new Set<ImprovementGoalId>(
     (selectedArr ?? []) as ImprovementGoalId[],
   );
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const contextualGoals = goalsForVertical(vertical);
+  const verticalLabel = vertical ? getVertical(vertical).label : null;
 
   function toggle(id: ImprovementGoalId) {
     const next = new Set(selected);
@@ -85,36 +97,75 @@ export default function OnboardingGoalsPage() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-2">
-        {IMPROVEMENT_GOALS.map((g) => {
+      <motion.div
+        layout
+        transition={{ layout: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] } }}
+        className="mt-10 flex flex-wrap gap-2.5"
+      >
+        {contextualGoals.map(({ goal: g, featured }) => {
           const active = selected.has(g.id);
           return (
-            <button
+            <motion.button
               key={g.id}
+              layout
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
               type="button"
               onClick={() => toggle(g.id)}
               aria-pressed={active}
-              className={`relative text-left rounded-2xl border p-4 pr-12 transition ${
+              className={`group relative flex min-w-[200px] flex-1 items-start gap-3 overflow-hidden rounded-2xl border p-4 text-left transition-colors sm:flex-none sm:max-w-[320px] ${
                 active
-                  ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10"
-                  : "border-ink-200 bg-white hover:border-ink-300"
+                  ? "brand-gradient border-transparent text-white shadow-[0_8px_24px_-10px_rgba(151,136,255,0.55)]"
+                  : featured
+                    ? "border-brand-purple/40 bg-gradient-to-br from-brand-blue/5 to-brand-magenta/5 hover:border-brand-purple/60"
+                    : "border-ink-200 bg-white hover:border-ink-300"
               }`}
             >
-              {active && (
-                <div className="brand-gradient absolute right-3 top-3 grid size-5 place-items-center rounded-full">
-                  <Check
-                    className="size-3 text-white"
-                    strokeWidth={3}
-                    aria-hidden="true"
-                  />
+              <div
+                className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
+                  active
+                    ? "bg-white/25"
+                    : "border border-ink-200 bg-white group-hover:border-ink-400"
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                  >
+                    <Check className="size-3 text-white" strokeWidth={3} />
+                  </motion.div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`text-base font-bold leading-tight ${
+                      active ? "text-white" : "text-ink-900"
+                    }`}
+                  >
+                    {g.label}
+                  </div>
+                  {featured && verticalLabel && !active && (
+                    <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-purple">
+                      ★ Common
+                    </span>
+                  )}
                 </div>
-              )}
-              <div className="text-base font-bold text-ink-900">{g.label}</div>
-              <div className="mt-1 text-xs text-ink-500">{g.description}</div>
-            </button>
+                <div
+                  className={`mt-0.5 text-xs leading-snug ${
+                    active ? "text-white/80" : "text-ink-500"
+                  }`}
+                >
+                  {g.description}
+                </div>
+              </div>
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
 
       {error && (
         <p className="mt-6 text-center text-sm text-red-600">{error}</p>

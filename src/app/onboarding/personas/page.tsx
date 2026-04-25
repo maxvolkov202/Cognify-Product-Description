@@ -4,7 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
-import { PERSONAS, type PersonaId } from "@/lib/onboarding/constants";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  personasForVertical,
+  getVertical,
+  isVerticalId,
+  type PersonaId,
+  type VerticalId,
+} from "@/lib/onboarding/constants";
 import { setPersonasAction } from "@/server/actions/onboarding";
 import { OnboardingProgress } from "@/components/product/OnboardingProgress";
 import { useOnboardingDraft } from "@/lib/onboarding/use-draft";
@@ -15,6 +22,14 @@ export default function OnboardingPersonasPage() {
     "personas",
     string[] | undefined
   >("personas", []);
+  const [draftVertical] = useOnboardingDraft<"vertical", string | undefined>(
+    "vertical",
+    undefined,
+  );
+  const vertical: VerticalId | null =
+    draftVertical && isVerticalId(draftVertical) ? draftVertical : null;
+  const contextualPersonas = personasForVertical(vertical);
+  const verticalLabel = vertical ? getVertical(vertical).label : null;
   const selected = new Set<PersonaId>((selectedArr ?? []) as PersonaId[]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -64,41 +79,77 @@ export default function OnboardingPersonasPage() {
           Who do you talk to?
         </h1>
         <p className="mt-3 text-base text-ink-600">
-          Pick everyone you regularly communicate with. This tunes the stakeholders
-          that appear in your Build-a-Rep scenarios. Optional — you can skip.
+          {verticalLabel
+            ? `The people you handle most in ${verticalLabel}. Pick anyone that fits — we'll tune your reps around them.`
+            : "Pick everyone you regularly communicate with. Tunes the stakeholders in your Build-a-Rep scenarios."}
         </p>
       </div>
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-2">
-        {PERSONAS.map((p) => {
-          const active = selected.has(p.id);
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => toggle(p.id)}
-              aria-pressed={active}
-              className={`relative text-left rounded-2xl border p-4 pr-12 transition ${
-                active
-                  ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10"
-                  : "border-ink-200 bg-white hover:border-ink-300"
-              }`}
-            >
-              {active && (
-                <div className="brand-gradient absolute right-3 top-3 grid size-5 place-items-center rounded-full">
-                  <Check
-                    className="size-3 text-white"
-                    strokeWidth={3}
-                    aria-hidden="true"
-                  />
+      <motion.div
+        layout
+        transition={{ layout: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] } }}
+        className="mt-10 flex flex-wrap gap-2.5"
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
+          {contextualPersonas.map((p) => {
+            const active = selected.has(p.id);
+            return (
+              <motion.button
+                key={p.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9, y: 6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: -6 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+                type="button"
+                onClick={() => toggle(p.id)}
+                aria-pressed={active}
+                className={`group relative flex min-w-[180px] flex-1 items-start gap-3 overflow-hidden rounded-2xl border p-4 text-left transition-colors sm:flex-none sm:max-w-[300px] ${
+                  active
+                    ? "brand-gradient border-transparent text-white shadow-[0_8px_24px_-10px_rgba(151,136,255,0.55)]"
+                    : "border-ink-200 bg-white hover:border-ink-300"
+                }`}
+              >
+                <div
+                  className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
+                    active
+                      ? "bg-white/25"
+                      : "border border-ink-200 bg-white group-hover:border-ink-400"
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                    >
+                      <Check className="size-3 text-white" strokeWidth={3} />
+                    </motion.div>
+                  )}
                 </div>
-              )}
-              <div className="text-base font-bold text-ink-900">{p.label}</div>
-              <div className="mt-1 text-xs text-ink-500">{p.description}</div>
-            </button>
-          );
-        })}
-      </div>
+                <div className="min-w-0">
+                  <div
+                    className={`text-base font-bold leading-tight ${
+                      active ? "text-white" : "text-ink-900"
+                    }`}
+                  >
+                    {p.label}
+                  </div>
+                  <div
+                    className={`mt-0.5 text-xs leading-snug ${
+                      active ? "text-white/80" : "text-ink-500"
+                    }`}
+                  >
+                    {p.description}
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
 
       {error && (
         <p className="mt-6 text-center text-sm text-red-600">{error}</p>
