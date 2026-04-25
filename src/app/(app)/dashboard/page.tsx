@@ -22,6 +22,7 @@ import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
 import { WeekCalendar } from "@/components/product/WeekCalendar";
 import { TrainingStackRow } from "@/components/product/TrainingStackRow";
+import { LibraryCallout } from "@/components/product/LibraryCallout";
 import { buildNarrativeInsights } from "@/lib/insights/narrative";
 import {
   DIMENSION_LABELS,
@@ -170,6 +171,8 @@ export default async function DashboardPage() {
           },
         ]}
       />
+
+      <LibraryCallout />
 
       <SkillProgressBlock
         trends={trends}

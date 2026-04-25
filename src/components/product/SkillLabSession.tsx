@@ -7,6 +7,7 @@ import { RepSurface } from "./RepSurface";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutCountdown } from "./WorkoutCountdown";
 import { SkillsFocusScope } from "./SkillsFocusContext";
+import { ModeBadge, ModeSeam } from "./ModeBadge";
 import { bumpCompletedRepCount } from "./InstallPrompt";
 import type { RepScore, SkillDimension } from "@/types/domain";
 import { DIMENSION_LABELS, SKILL_DIMENSION_GROUPS } from "@/types/domain";
@@ -110,7 +111,11 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
   if (phase === "countdown") {
     return (
       <SessionShell label={label} onExit={onExit}>
-        <WorkoutCountdown from={3} onComplete={handleCountdownComplete} />
+        <WorkoutCountdown
+          from={3}
+          mode="skill_lab"
+          onComplete={handleCountdownComplete}
+        />
       </SessionShell>
     );
   }
@@ -217,18 +222,19 @@ function SessionShell({
 }) {
   return (
     <div className="relative">
-      <div className="mb-5 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={onExit}
-          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900"
-        >
-          <ArrowLeft className="size-3" strokeWidth={2.5} />
-          Exit lab
-        </button>
-        <p className="rounded-full border border-ink-200 bg-white px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-ink-700">
-          {label}
-        </p>
+      <div className="mb-5">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onExit}
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900"
+          >
+            <ArrowLeft className="size-3" strokeWidth={2.5} />
+            Exit lab
+          </button>
+          <ModeBadge mode="skill_lab" label={label} />
+        </div>
+        <ModeSeam mode="skill_lab" />
       </div>
       {children}
     </div>

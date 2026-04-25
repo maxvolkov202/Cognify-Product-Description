@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ModeBadge, ModeHalo, type ModeKind } from "./ModeBadge";
 
 type Props = {
   from?: number;
   onComplete: () => void;
+  /** Mode-specific accent + badge. Each product gets a distinct halo
+   *  (warm amber for Daily Workout, cool blue for Skill Lab, magenta
+   *  for Build a Rep) so the warmup screen reads as the right product
+   *  before the rep even starts. Brand-gradient text on the digit keeps
+   *  the family identity intact across all modes. */
+  mode?: ModeKind;
 };
 
-export function WorkoutCountdown({ from = 3, onComplete }: Props) {
+export function WorkoutCountdown({
+  from = 3,
+  onComplete,
+  mode = "daily_workout",
+}: Props) {
   const [count, setCount] = useState<number | "go">(from);
 
   useEffect(() => {
@@ -26,8 +37,10 @@ export function WorkoutCountdown({ from = 3, onComplete }: Props) {
   }, [count, onComplete]);
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+    <div className="relative mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center">
+      <ModeHalo mode={mode} />
+      <ModeBadge mode={mode} />
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
         Get ready
       </p>
       <div

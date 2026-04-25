@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Pause, RotateCcw } from "lucide-react";
 import { RepSurface } from "./RepSurface";
+import { ModeBadge, ModeSeam } from "./ModeBadge";
 import { WorkoutCountdown } from "./WorkoutCountdown";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
@@ -396,30 +397,36 @@ export function WorkoutSession({
       secondary={currentRep.repType.secondaryDimensions}
     />
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-          Rep {currentIndex + 1} of {plan.reps.length} ·{" "}
-          {currentRep.pressureArchetype
-            ? `Pressure · ${currentRep.pressureArchetype.name}`
-            : currentRep.repType.name}
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex gap-1.5" aria-label="Session progress">
-            {plan.reps.map((_, i) => (
-              <div
-                key={i}
-                className={
-                  i < currentIndex
-                    ? "brand-gradient h-1.5 w-8 rounded-full"
-                    : i === currentIndex
-                      ? "h-1.5 w-8 rounded-full bg-ink-400"
-                      : "h-1.5 w-8 rounded-full bg-ink-200"
-                }
-              />
-            ))}
+      <div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ModeBadge mode="daily_workout" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+              Rep {currentIndex + 1} of {plan.reps.length} ·{" "}
+              {currentRep.pressureArchetype
+                ? `Pressure · ${currentRep.pressureArchetype.name}`
+                : currentRep.repType.name}
+            </span>
           </div>
-          <PauseWorkoutButton compact />
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1.5" aria-label="Session progress">
+              {plan.reps.map((_, i) => (
+                <div
+                  key={i}
+                  className={
+                    i < currentIndex
+                      ? "brand-gradient h-1.5 w-8 rounded-full"
+                      : i === currentIndex
+                        ? "h-1.5 w-8 rounded-full bg-ink-400"
+                        : "h-1.5 w-8 rounded-full bg-ink-200"
+                  }
+                />
+              ))}
+            </div>
+            <PauseWorkoutButton compact />
+          </div>
         </div>
+        <ModeSeam mode="daily_workout" />
       </div>
 
       <RepSurface

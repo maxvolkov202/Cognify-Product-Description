@@ -18,6 +18,7 @@ import { pickVerticalPrompts } from "@/lib/ai/prompts/verticals";
 import { RepSurface } from "./RepSurface";
 import { TalkingPointsSidebar } from "./TalkingPointsSidebar";
 import { PressureRepIndicator } from "./PressureRepIndicator";
+import { ModeBadge, ModeSeam } from "./ModeBadge";
 import {
   CustomScenarioBuilder,
   type CustomScenarioPayload,
@@ -476,6 +477,15 @@ export function BuildARepFlow({
       {talkingPoints && activeSource && repStarted && (
         <div className="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
           <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <ModeBadge mode="build_a_rep" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+                  Real-moment rep
+                </span>
+              </div>
+              <ModeSeam mode="build_a_rep" />
+            </div>
             {pressureArchetype && (
               <PressureRepIndicator archetype={pressureArchetype} />
             )}
