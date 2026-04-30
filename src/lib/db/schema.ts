@@ -258,6 +258,45 @@ export const reps = cognifyV2Schema.table(
 );
 
 /**
+ * Aggregate prompt engagement signals — drives the prompt-evolution loop.
+ *
+ * Schema is intentionally per-prompt (no user dimension): the analysis
+ * question is "is this PROMPT engaging?", not "what prompts has this
+ * USER engaged with" (that's userPromptHistory's job). Keeps row count
+ * bounded to bank size (~1300 today, growing slowly).
+ *
+ * Increment semantics:
+ *   shown_count           — bumped when a prompt appears in a rendered slate
+ *   picked_count          — bumped when a user starts a rep on this prompt
+ *   refreshed_past_count  — bumped when this prompt was shown then
+ *                           replaced by a Refresh click
+ *
+ * Pick rate = picked / shown. Refresh rate = refreshed_past / shown.
+ * Combine for prompt-quality scoring; a high refresh rate is a stronger
+ * negative signal than a low pick rate alone (one user can drive low
+ * picks; refresh-past requires active rejection).
+ */
+export const promptEngagement = cognifyV2Schema.table(
+  "prompt_engagement",
+  {
+    promptId: text("prompt_id").primaryKey(),
+    shownCount: integer("shown_count").notNull().default(0),
+    pickedCount: integer("picked_count").notNull().default(0),
+    refreshedPastCount: integer("refreshed_past_count").notNull().default(0),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastEventAt: timestamp("last_event_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("prompt_engagement_picked_idx").on(t.pickedCount, t.shownCount),
+    index("prompt_engagement_refresh_idx").on(t.refreshedPastCount),
+  ],
+);
+
+/**
  * Per-user prompt history. Powers the "don't show me the same prompt
  * twice" filter in the picker. Recorded when a user starts a rep
  * (selected the prompt), not merely when the slate is rendered, so

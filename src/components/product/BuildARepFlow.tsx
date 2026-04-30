@@ -99,6 +99,21 @@ export function BuildARepFlow({
       .catch(() => {});
   }, []);
 
+  // Telemetry: fire 'shown' when the slate first renders + on every
+  // refresh. See WorkoutPromptSelect for the same pattern.
+  const lastShownIdsRef = useRef<string>("");
+  useEffect(() => {
+    if (promptIds.length === 0) return;
+    const key = promptIds.join("|");
+    if (lastShownIdsRef.current === key) return;
+    lastShownIdsRef.current = key;
+    void fetch("/api/prompt-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "shown", promptIds }),
+    }).catch(() => {});
+  }, [promptIds]);
+
   // Generation + rep state
   const [activeSource, setActiveSource] = useState<ScenarioSource | null>(null);
   const [talkingPoints, setTalkingPoints] = useState<TalkingPoints | null>(null);
@@ -141,6 +156,17 @@ export function BuildARepFlow({
     const refreshed = pickVerticalPromptObjects(vertical, 5, {
       excludeIds: seenPromptIds,
     });
+    // Telemetry: refreshed_past on the prompts we're dropping.
+    if (promptIds.length > 0) {
+      void fetch("/api/prompt-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: "refreshed_past",
+          promptIds,
+        }),
+      }).catch(() => {});
+    }
     setPrompts(refreshed.map((p) => p.text));
     setPromptIds(refreshed.map((p) => p.id));
     setSelectedPromptIdx(null);

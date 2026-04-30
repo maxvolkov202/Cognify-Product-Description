@@ -2,6 +2,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { userPromptHistory } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { recordPromptPicked } from "./prompt-engagement";
 
 /**
  * Per-user prompt history query helpers. The picker uses these to filter
@@ -78,4 +79,8 @@ export async function recordPromptSeen(
         },
       });
   }, undefined);
+  // Aggregate engagement signal — feeds the prompt-evolution loop.
+  // Decoupled from the per-user upsert above so a failure in one path
+  // doesn't take down the other (both run inside their own safeDb).
+  await recordPromptPicked(promptId);
 }

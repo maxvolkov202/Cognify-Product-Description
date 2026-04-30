@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RefreshCw, ArrowRight, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
 import {
@@ -93,6 +93,23 @@ export function WorkoutPromptSelect({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
 
+  // Telemetry: fire 'shown' when a slate first renders, and on every
+  // refresh. Idempotent enough — duplicate sends don't corrupt aggregate
+  // state (each slate render is a real shown event from the user's POV).
+  // Failure is non-fatal; the aggregate just misses one signal.
+  const lastShownIdsRef = useRef<string>("");
+  useEffect(() => {
+    if (promptIds.length === 0) return;
+    const key = promptIds.join("|");
+    if (lastShownIdsRef.current === key) return;
+    lastShownIdsRef.current = key;
+    void fetch("/api/prompt-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "shown", promptIds }),
+    }).catch(() => {});
+  }, [promptIds]);
+
   // Session-identity phase chip — shown above the rep title so the user
   // remembers the session's shape every rep. For Combined sessions with
   // the Build→Stress→Reinforce arc:
@@ -134,6 +151,19 @@ export function WorkoutPromptSelect({
     const refreshed = pressureArchetype
       ? refreshPressurePromptObjects(pressureArchetype.id, opts)
       : refreshRepPromptObjects(repType.id, opts);
+    // Telemetry: the just-shown ids that the user is dropping count as
+    // refreshed_past — strong negative engagement signal vs. low pick
+    // rate alone. Fire BEFORE swapping state so we catch them.
+    if (promptIds.length > 0) {
+      void fetch("/api/prompt-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: "refreshed_past",
+          promptIds,
+        }),
+      }).catch(() => {});
+    }
     setPrompts(refreshed.prompts);
     setPromptIds(refreshed.promptIds);
     setSelectedIdx(null);
