@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Share2 } from "lucide-react";
 import { motion } from "motion/react";
 import type { Callout, RepScore, SkillDimension } from "@/types/domain";
@@ -13,7 +13,10 @@ import { ScoreHero } from "./ScoreHero";
 import { OutcomeCard } from "./OutcomeCard";
 import { NextRepFocusCard } from "./NextRepFocusCard";
 import { RepAudioScrubber } from "./RepAudioScrubber";
+import { ExemplarModal } from "./ExemplarModal";
 import type { DimensionGridHandle } from "./DimensionGrid";
+import { pickExemplar } from "@/lib/ai/exemplars";
+import { isPressureArchetypeId } from "@/lib/ai/pressure-archetypes";
 
 export type PreviousRepSummary = {
   composite: number;
@@ -98,6 +101,28 @@ export function FeedbackPanel({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DimensionGridHandle>(null);
+  const [exemplarOpen, setExemplarOpen] = useState(false);
+
+  // Compute the matching exemplar once per render. Picks by primary
+  // focus dimension first, falling back to the first nextRepFocus item's
+  // dimension when primaryFocusDimension isn't set. Archetype-specific
+  // variants win when this is a pressure rep.
+  const exemplar = useMemo(() => {
+    const primaryDim =
+      score.primaryFocusDimension ??
+      score.nextRepFocus?.[0]?.dimension ??
+      null;
+    if (!primaryDim || primaryDim === "structural_adherence") return null;
+    const rawArchetype = modeSignals?.pressureArchetypeId;
+    const archetypeId =
+      rawArchetype && isPressureArchetypeId(rawArchetype)
+        ? rawArchetype
+        : null;
+    return pickExemplar({
+      dimension: primaryDim,
+      archetypeId,
+    });
+  }, [score.primaryFocusDimension, score.nextRepFocus, modeSignals]);
 
   const formattedDuration = useMemo(() => {
     const total = Math.floor(durationMs / 1000);
@@ -298,8 +323,16 @@ export function FeedbackPanel({
             fallbackBullets={
               usePhase2NextRep ? undefined : nextRepFocusFallback
             }
+            onSeeExample={
+              exemplar ? () => setExemplarOpen(true) : undefined
+            }
           />
         </Section>
+        <ExemplarModal
+          open={exemplarOpen}
+          exemplar={exemplar}
+          onClose={() => setExemplarOpen(false)}
+        />
 
         {audioUrl && (
           <Section delay={6}>
