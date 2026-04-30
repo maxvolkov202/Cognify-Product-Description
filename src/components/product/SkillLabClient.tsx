@@ -226,7 +226,7 @@ function LabShell({
           </button>
         )}
       </div>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={phase.kind}
           initial={{ opacity: 0, y: 8 }}
@@ -277,13 +277,33 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+          Skill Lab
+        </p>
+        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl">
           Choose how you want to train.
         </h1>
-        <p className="mt-3 max-w-2xl text-lg text-ink-500">
-          The lab is yours. Daily Workout picks for you. In here you set the
+        <p className="mt-2 max-w-2xl text-sm text-ink-500 md:text-base">
+          The lab is yours. Daily Workout picks for you — in here you set the
           intent, pick the skill, and decide how many reps you want to put in.
         </p>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-purple/10 px-3 py-1.5 text-[12px] font-bold text-brand-purple ring-1 ring-brand-purple/20">
+            3 modes
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+            <Crosshair className="size-3.5" strokeWidth={2.5} />
+            Any skill
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+            <Layers className="size-3.5" strokeWidth={2.5} />
+            Any rep count
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+            <Flame className="size-3.5" strokeWidth={2.5} />
+            No session cap
+          </span>
+        </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         {STYLES.map((s, i) => {
@@ -292,7 +312,7 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
             <motion.button
               key={s.id}
               type="button"
-              initial={{ opacity: 0, y: 10 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: i * 0.06 }}
               whileHover={{ y: -3 }}

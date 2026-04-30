@@ -35,7 +35,7 @@ export function CircleTimer({
     <div
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center rounded-2xl border border-ink-200 bg-white p-3",
-        size === "md" ? "min-w-[108px]" : "min-w-[84px]",
+        size === "md" ? "min-w-[124px]" : "min-w-[96px]",
       )}
       aria-label={`${seconds} seconds ${label}`}
     >
@@ -102,6 +102,6 @@ export function CircleTimer({
 }
 
 const SIZES = {
-  md: { svgSize: 84, center: 42, radius: 36, stroke: 4 },
-  sm: { svgSize: 64, center: 32, radius: 27, stroke: 3 },
+  md: { svgSize: 100, center: 50, radius: 42, stroke: 4 },
+  sm: { svgSize: 78, center: 39, radius: 33, stroke: 3 },
 } as const;

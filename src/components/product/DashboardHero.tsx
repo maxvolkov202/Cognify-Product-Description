@@ -1,10 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowRight, Flame, Sparkles, Mic, Zap } from "lucide-react";
 import { DIMENSION_LABELS } from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
+
+function timeOfDayGreeting(date = new Date()): string {
+  const h = date.getHours();
+  if (h < 5) return "Late night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Nightly Cognify";
+}
 
 type Props = {
   firstName: string;
@@ -33,6 +43,14 @@ export function DashboardHero({
   focusDim,
   focusDimScore,
 }: Props) {
+  // Compute greeting on the client after mount to avoid SSR/CSR mismatch
+  // when the server's TZ != the user's. Server renders the neutral
+  // "Welcome back" eyebrow, client upgrades it to time-of-day.
+  const [greeting, setGreeting] = useState<string>("Welcome back");
+  useEffect(() => {
+    setGreeting(timeOfDayGreeting());
+  }, []);
+
   const delta =
     avgRecent !== null && baselineComposite !== null
       ? Math.round(avgRecent - baselineComposite)
@@ -69,20 +87,20 @@ export function DashboardHero({
       <div className="relative grid gap-6 md:grid-cols-[1.2fr_1.4fr] md:items-center">
         {/* Left: greeting + mascot */}
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="relative">
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
               <motion.div
-                className="brand-gradient size-10 rounded-2xl"
+                className="brand-gradient size-9 rounded-2xl"
                 animate={{ opacity: [0.85, 1, 0.85], scale: [1, 1.04, 1] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               />
               <div
-                className="brand-gradient absolute inset-0 rounded-2xl opacity-40 blur-md"
+                className="brand-gradient pointer-events-none absolute inset-0 rounded-2xl opacity-30 blur-[6px]"
                 aria-hidden="true"
               />
             </div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
-              Welcome back
+              {greeting}
             </p>
           </div>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">

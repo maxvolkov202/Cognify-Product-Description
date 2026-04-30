@@ -16,9 +16,15 @@ import type { PreviousRepSummary } from "./FeedbackPanel";
 
 type Phase = "countdown" | "prompt-select" | "rep" | "done";
 
+type Style = "focus" | "mixed" | "pressure";
+
 type Props = {
   plan: WorkoutSessionPlan;
   label: string;
+  /** Which Skill Lab mode the user picked. Drives the in-session
+   *  atmosphere (background wash, accent color, session chip) so a
+   *  Pressure rep doesn't look like a Focus rep. */
+  style?: Style;
   onExit: () => void;
 };
 
@@ -28,7 +34,7 @@ type Props = {
  * flow. Exit routes back to the lab lobby (provided by parent), not to
  * /dashboard, so the user stays in the lab between sets.
  */
-export function SkillLabSession({ plan, label, onExit }: Props) {
+export function SkillLabSession({ plan, label, style = "focus", onExit }: Props) {
   const [phase, setPhase] = useState<Phase>("countdown");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
@@ -110,7 +116,7 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
 
   if (phase === "countdown") {
     return (
-      <SessionShell label={label} onExit={onExit}>
+      <SessionShell label={label} style={style} onExit={onExit}>
         <WorkoutCountdown
           from={3}
           mode="skill_lab"
@@ -128,7 +134,7 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
             scores.reduce((s, x) => s + x.composite, 0) / scores.length,
           );
     return (
-      <SessionShell label={label} onExit={onExit}>
+      <SessionShell label={label} style={style} onExit={onExit}>
         <DoneCard
           label={label}
           totalReps={scores.length}
@@ -145,8 +151,13 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
 
   if (phase === "prompt-select") {
     return (
-      <SessionShell label={label} onExit={onExit}>
-        <SessionProgress index={currentIndex} total={plan.reps.length} />
+      <SessionShell label={label} style={style} onExit={onExit}>
+        <SessionProgress
+          index={currentIndex}
+          total={plan.reps.length}
+          style={style}
+          plan={plan}
+        />
         <WorkoutPromptSelect
           key={currentIndex}
           repType={currentRep.repType}
@@ -167,12 +178,17 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
   if (!activePrompt) return null;
 
   return (
-    <SessionShell label={label} onExit={onExit}>
+    <SessionShell label={label} style={style} onExit={onExit}>
       <SkillsFocusScope
         primary={currentRep.repType.primaryDimension}
         secondary={currentRep.repType.secondaryDimensions}
       />
-      <SessionProgress index={currentIndex} total={plan.reps.length} />
+      <SessionProgress
+        index={currentIndex}
+        total={plan.reps.length}
+        style={style}
+        plan={plan}
+      />
       <RepSurface
         key={currentIndex}
         prompt={activePrompt}
@@ -213,15 +229,31 @@ export function SkillLabSession({ plan, label, onExit }: Props) {
 
 function SessionShell({
   label,
+  style,
   onExit,
   children,
 }: {
   label: string;
+  style: Style;
   onExit: () => void;
   children: React.ReactNode;
 }) {
+  // Per-style ambient wash. The brand-gradient mark on every interior
+  // surface stays dominant — these are atmospherics that the user feels
+  // in their peripheral vision but doesn't read as "different brand".
+  const ambient =
+    style === "pressure"
+      ? "radial-gradient(70% 80% at 90% 0%, rgba(244,158,11,0.18), transparent 60%), radial-gradient(60% 70% at 10% 30%, rgba(231,124,240,0.18), transparent 60%)"
+      : style === "mixed"
+        ? "radial-gradient(60% 70% at 15% 0%, rgba(106,163,255,0.18), transparent 60%), radial-gradient(60% 70% at 90% 30%, rgba(231,124,240,0.18), transparent 60%)"
+        : "radial-gradient(60% 80% at 30% 0%, rgba(106,163,255,0.22), transparent 60%), radial-gradient(60% 80% at 90% 30%, rgba(176,114,255,0.16), transparent 60%)";
   return (
     <div className="relative">
+      <div
+        className="pointer-events-none absolute inset-x-0 -top-12 -z-10 mx-auto h-72 max-w-5xl rounded-[2rem] opacity-90"
+        style={{ background: ambient }}
+        aria-hidden="true"
+      />
       <div className="mb-5">
         <div className="flex items-center justify-between">
           <button
@@ -241,12 +273,65 @@ function SessionShell({
   );
 }
 
-function SessionProgress({ index, total }: { index: number; total: number }) {
+function SessionProgress({
+  index,
+  total,
+  style,
+  plan,
+}: {
+  index: number;
+  total: number;
+  style: Style;
+  plan: WorkoutSessionPlan;
+}) {
+  const slot = plan.reps[index];
+  const styleChip =
+    style === "pressure"
+      ? {
+          label: slot?.pressureArchetype
+            ? `Pressure · ${slot.pressureArchetype.name}`
+            : "Pressure",
+          tone: "amber" as const,
+        }
+      : style === "mixed"
+        ? {
+            label: `Mixed · ${
+              slot ? DIMENSION_LABELS[slot.repType.primaryDimension] : ""
+            }`.trim(),
+            tone: "blue" as const,
+          }
+        : {
+            label: plan.focusDimension
+              ? `Focus · ${DIMENSION_LABELS[plan.focusDimension]}`
+              : "Focus",
+            tone: "purple" as const,
+          };
+  const chipClass =
+    styleChip.tone === "amber"
+      ? "border-amber-300/60 bg-amber-50 text-amber-700"
+      : styleChip.tone === "blue"
+        ? "border-brand-blue/30 bg-brand-blue/5 text-brand-blue"
+        : "border-brand-purple/30 bg-brand-lavender/10 text-brand-purple";
+  const dotClass =
+    styleChip.tone === "amber"
+      ? "bg-amber-500"
+      : styleChip.tone === "blue"
+        ? "bg-brand-blue"
+        : "bg-brand-purple";
+
   return (
-    <div className="mb-5 flex items-center justify-between">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-        Rep {index + 1} of {total}
-      </p>
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] ${chipClass}`}
+        >
+          <span className={`size-1.5 rounded-full ${dotClass}`} />
+          {styleChip.label}
+        </span>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+          Rep {index + 1} of {total}
+        </p>
+      </div>
       <div className="flex gap-1">
         {Array.from({ length: total }).map((_, i) => (
           <div

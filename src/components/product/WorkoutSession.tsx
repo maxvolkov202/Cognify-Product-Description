@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Pause, RotateCcw } from "lucide-react";
+import { Pause } from "lucide-react";
 import { RepSurface } from "./RepSurface";
 import { ModeBadge, ModeSeam } from "./ModeBadge";
 import { WorkoutCountdown } from "./WorkoutCountdown";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
 import { WorkoutEnd } from "./WorkoutEnd";
+import { WorkoutIntro } from "./WorkoutIntro";
 import { PersonalBestToast } from "./PersonalBestToast";
 import { bumpCompletedRepCount } from "./InstallPrompt";
 import { SkillsFocusScope } from "./SkillsFocusContext";
@@ -35,7 +36,7 @@ type Props = {
   vertical?: VerticalId | null;
 };
 
-type Phase = "resume-prompt" | "countdown" | "prompt-select" | "rep" | "done";
+type Phase = "intro" | "countdown" | "prompt-select" | "rep" | "done";
 
 /**
  * Daily Workout orchestrator.
@@ -76,10 +77,11 @@ export function WorkoutSession({
     { dimension: SkillDimension; score: number }[]
   >([]);
 
-  // Daily Workout = zero friction. The server-rendered plan drives
-  // everything; we go straight to countdown unless there's a paused
-  // session to resume. No client-side session-type override.
-  const [phase, setPhase] = useState<Phase>("countdown");
+  // Daily Workout = zero friction, but we still show a quick landing
+  // page before countdown so the user knows the session shape (rep
+  // count, est. duration, lineup) and can resume a paused session
+  // inline if one exists.
+  const [phase, setPhase] = useState<Phase>("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPrompts, setSelectedPrompts] = useState<string[]>([]);
   const [scores, setScores] = useState<RepScore[]>([]);
@@ -92,18 +94,18 @@ export function WorkoutSession({
   );
   // Force-remount RepSurface on retry via a bumping key
   const [repRetryNonce, setRepRetryNonce] = useState(0);
-  const [, setCanResume] = useState(false);
+  const [canResume, setCanResume] = useState(false);
   const checkedResumeRef = useRef(false);
 
-  // On mount, check for resumable pause state. If found, intercept the
-  // straight-to-countdown default and route through the resume prompt.
+  // On mount, detect resumable pause state. We surface it as an inline
+  // banner on the landing page (not a separate full-screen prompt) so
+  // the user always sees today's workout overview first.
   useEffect(() => {
     if (checkedResumeRef.current) return;
     checkedResumeRef.current = true;
     const saved = loadPauseState();
     if (saved && saved.plan && Array.isArray(saved.plan.reps)) {
       setCanResume(true);
-      setPhase("resume-prompt");
     }
   }, []);
 
@@ -323,12 +325,15 @@ export function WorkoutSession({
 
   const toast = <PersonalBestToast dimensions={personalBests} />;
 
-  if (phase === "resume-prompt") {
+  if (phase === "intro") {
     return (
       <>
-        <ResumePrompt
-          onStartFresh={handleStart}
+        <WorkoutIntro
+          plan={plan}
+          streakDays={streakDays ?? null}
+          canResume={canResume}
           onResume={handleResume}
+          onStart={handleStart}
         />
         {toast}
       </>
@@ -479,54 +484,6 @@ export function WorkoutSession({
     </div>
     {toast}
     </>
-  );
-}
-
-/**
- * Lean resume confirm. Only shown when localStorage has a paused session;
- * on a fresh /workout visit we go straight to countdown so there is zero
- * setup friction (per team-spec Daily Workout direction).
- */
-function ResumePrompt({
-  onResume,
-  onStartFresh,
-}: {
-  onResume: () => void;
-  onStartFresh: () => void;
-}) {
-  return (
-    <div className="mx-auto w-full max-w-xl">
-      <div className="rounded-3xl border border-ink-200 bg-white p-6 text-center md:p-8">
-        <div className="brand-gradient mx-auto grid size-12 place-items-center rounded-2xl">
-          <RotateCcw className="size-5 text-white" strokeWidth={2.5} />
-        </div>
-        <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
-          You paused earlier
-        </p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-[-0.02em] text-ink-900">
-          Pick up where you left off?
-        </h1>
-        <p className="mt-2 text-sm text-ink-500">
-          Your completed reps are saved. Resume mid session, or start a fresh workout.
-        </p>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={onResume}
-            className="brand-gradient inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-sm"
-          >
-            Resume workout
-          </button>
-          <button
-            type="button"
-            onClick={onStartFresh}
-            className="inline-flex items-center justify-center rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 hover:border-ink-300"
-          >
-            Start fresh
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

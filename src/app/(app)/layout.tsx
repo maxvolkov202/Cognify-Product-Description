@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // unavailable, isUserOnboarded returns true so onboarding becomes optional
   // and the gym still works in degraded mode (no personalization, but usable).
   const user = await currentUser();
-  if (user) {
+  if (user && process.env.NODE_ENV === "production") {
     const onboarded = await isUserOnboarded(user.id);
     if (!onboarded) {
       redirect("/onboarding/vertical");
