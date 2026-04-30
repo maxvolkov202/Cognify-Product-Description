@@ -97,6 +97,28 @@ export function WorkoutSession({
   const [repRetryNonce, setRepRetryNonce] = useState(0);
   const [canResume, setCanResume] = useState(false);
   const checkedResumeRef = useRef(false);
+  // Cross-session prompt history. Fetched once on mount; mutated locally
+  // when the user picks a prompt so refresh + planNextRep within this
+  // session also exclude the just-picked id. Empty for guests / no-DB.
+  const [seenPromptIds, setSeenPromptIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const seenIdsLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (seenIdsLoadedRef.current) return;
+    seenIdsLoadedRef.current = true;
+    fetch("/api/prompt-history", { method: "GET" })
+      .then((r) => (r.ok ? r.json() : { ids: [] }))
+      .then((json: { ids?: string[] }) => {
+        if (Array.isArray(json.ids)) setSeenPromptIds(new Set(json.ids));
+      })
+      .catch(() => {
+        // Network failure on the history fetch is non-fatal — picker
+        // just falls back to "no exclusions" which is the legacy
+        // behavior. No user-visible degradation.
+      });
+  }, []);
 
   // On mount, detect resumable pause state. We surface it as an inline
   // banner on the landing page (not a separate full-screen prompt) so
@@ -193,13 +215,29 @@ export function WorkoutSession({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, currentIndex]);
 
-  const handlePromptSelected = (prompt: string) => {
+  const handlePromptSelected = (prompt: string, promptId?: string) => {
     setSelectedPrompts((prev) => {
       const next = [...prev];
       next[currentIndex] = prompt;
       return next;
     });
     setRetryFocus(null);
+    if (promptId) {
+      // Optimistic local update so in-session refresh + planNextRep
+      // exclude the just-picked id immediately. Server write is
+      // fire-and-forget; failure is non-fatal (stays in local state).
+      setSeenPromptIds((prev) => {
+        if (prev.has(promptId)) return prev;
+        const next = new Set(prev);
+        next.add(promptId);
+        return next;
+      });
+      void fetch("/api/prompt-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promptId }),
+      }).catch(() => {});
+    }
     setPhase("rep");
   };
 
@@ -341,6 +379,7 @@ export function WorkoutSession({
             : {}),
         },
         usedRepTypeIds: nextUsedTypes,
+        excludePromptIds: seenPromptIds,
       });
       setPlan(adjusted);
     }
@@ -410,6 +449,8 @@ export function WorkoutSession({
             key={currentIndex}
             repType={currentRep.repType}
             initialPrompts={currentRep.prompts}
+            initialPromptIds={currentRep.promptIds}
+            excludePromptIds={seenPromptIds}
             repIndex={currentIndex}
             totalReps={plan.reps.length}
             focus={currentRep.focus}
