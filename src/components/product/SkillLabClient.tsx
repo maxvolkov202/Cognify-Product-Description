@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -72,6 +72,25 @@ type Phase =
 export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) {
   const [phase, setPhase] = useState<Phase>({ kind: "lobby" });
 
+  // Cross-session prompt history. Fetched on mount; passed to each
+  // planner call so the initial slate excludes already-seen prompts.
+  // Empty for guests / no-DB; failure to fetch is non-fatal (planner
+  // falls back to no exclusions = legacy behavior).
+  const [seenPromptIds, setSeenPromptIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const seenIdsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (seenIdsLoadedRef.current) return;
+    seenIdsLoadedRef.current = true;
+    fetch("/api/prompt-history", { method: "GET" })
+      .then((r) => (r.ok ? r.json() : { ids: [] }))
+      .then((json: { ids?: string[] }) => {
+        if (Array.isArray(json.ids)) setSeenPromptIds(new Set(json.ids));
+      })
+      .catch(() => {});
+  }, []);
+
   // ——— Session start ————————————————————————————————————————
 
   function startFocus(dim: SkillDimension, reps: RepCountChoice) {
@@ -80,6 +99,7 @@ export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) 
       focusDimension: dim,
       count,
       goals: improvementGoals,
+      excludePromptIds: seenPromptIds,
     });
     setPhase({
       kind: "session",
@@ -90,7 +110,10 @@ export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) 
   }
 
   function startMixed(skillReps: { dimension: SkillDimension; reps: number }[]) {
-    const plan = planMixedSession({ skillReps });
+    const plan = planMixedSession({
+      skillReps,
+      excludePromptIds: seenPromptIds,
+    });
     setPhase({
       kind: "session",
       style: "mixed",
@@ -101,7 +124,10 @@ export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) 
 
   function startPressure(reps: RepCountChoice) {
     const count = reps === 999 ? 5 : reps;
-    const plan = planPressureSession({ count });
+    const plan = planPressureSession({
+      count,
+      excludePromptIds: seenPromptIds,
+    });
     setPhase({
       kind: "session",
       style: "pressure",
