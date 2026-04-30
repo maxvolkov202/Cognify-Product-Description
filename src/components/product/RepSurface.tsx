@@ -15,6 +15,7 @@ import type {
   Callout,
   SkillDimension,
 } from "@/types/domain";
+import type { ScoreRepModeContext } from "@/lib/ai/score";
 import { RecordButton } from "./RecordButton";
 import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
 import { FlowFeedbackPanel } from "./FlowFeedbackPanel";
@@ -91,6 +92,24 @@ type Props = {
     archetypeName: string;
     archetypeTagline: string;
   } | null;
+  /** 1-based rep index in the session, surfaced by FeedbackPanel's
+   *  RepProgressStrip. Optional — when omitted, the strip is hidden. */
+  feedbackRepIndex?: number;
+  feedbackTotalReps?: number;
+  /** Pre-formatted, uppercase mode label for the strip. */
+  feedbackModeLabel?: string;
+  /** Carry-over context from the previous rep — surfaces "Last rep focus:
+   *  {dim} — keep building on it" above the score hero. */
+  feedbackLastRepFocus?: { dimension: SkillDimension } | null;
+  /** Wires the "Save and exit" link in RepProgressStrip. WorkoutSession
+   *  saves pause state and routes to dashboard; SkillLabSession just
+   *  routes back to the lobby. */
+  onFeedbackSaveExit?: () => void;
+  /** Phase 2: per-mode/per-session signals plumbed into /api/score so the
+   *  AI can write mode-aware feedback (focus pivot, pressure framing,
+   *  carry-over from previous headline). Omitting falls back to Phase 1
+   *  mode-blind scoring. */
+  scoreModeContext?: ScoreRepModeContext;
   onComplete?: (payload: {
     score: RepScore;
     recording: RecordingResult;
@@ -172,6 +191,12 @@ export function RepSurface({
   flowArchetypeName,
   pressureArchetypeId,
   pressureContext,
+  feedbackRepIndex,
+  feedbackTotalReps,
+  feedbackModeLabel,
+  feedbackLastRepFocus,
+  onFeedbackSaveExit,
+  scoreModeContext,
   onMidRepPause,
   onComplete,
   onNext,
@@ -420,6 +445,7 @@ export function RepSurface({
           ...(pressureArchetypeId
             ? { pressureArchetypeId }
             : {}),
+          ...(scoreModeContext ? { modeContext: scoreModeContext } : {}),
         }),
       });
       clearTimeout(timeoutId);
@@ -656,6 +682,27 @@ export function RepSurface({
           repId={phase.repId}
           calloutIds={phase.calloutIds}
           pressureContext={pressureContext ?? null}
+          repIndex={feedbackRepIndex}
+          totalReps={feedbackTotalReps}
+          modeLabel={feedbackModeLabel}
+          lastRepFocus={feedbackLastRepFocus ?? null}
+          onSaveExit={onFeedbackSaveExit}
+          modeSignals={
+            scoreModeContext
+              ? {
+                  sessionType: scoreModeContext.sessionType,
+                  ...(scoreModeContext.focusDimension
+                    ? { focusDimension: scoreModeContext.focusDimension }
+                    : {}),
+                  ...(scoreModeContext.pressureArchetypeId
+                    ? {
+                        pressureArchetypeId:
+                          scoreModeContext.pressureArchetypeId,
+                      }
+                    : {}),
+                }
+              : undefined
+          }
         />
         {navButtons}
       </div>

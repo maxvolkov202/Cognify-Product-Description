@@ -1,4 +1,9 @@
-import type { Framework, SkillDimension } from "@/types/domain";
+import type {
+  Framework,
+  RepFocusContext,
+  SkillDimension,
+} from "@/types/domain";
+import { DIMENSION_LABELS } from "@/types/domain";
 import type { ImprovementGoalId, VerticalId } from "@/lib/onboarding/constants";
 import { findFrameworkById } from "./frameworks-library";
 import {
@@ -56,10 +61,15 @@ export type WorkoutRepSlot = {
    *  occurrence of a rep type in a session; rotates to alternates from
    *  `frameworks-rep-variants.ts` on repeat. */
   framework: RepTypeFramework;
-  /** Populated by planNextRep when the slot was adjusted to target a
-   *  weakness from the previous rep. Surfaced to the user as "Focusing on X"
-   *  on the prompt-select screen. Null/absent when no adjustment happened. */
-  focusReason?: FocusReason | null;
+  /** Why this rep has the focus it has. Populated at plan time
+   *  (session_intent on rep 0, plus every rep in focus/flow modes) and
+   *  updated by planNextRep (carryover when previous rep scored low,
+   *  pressure_residue when previous rep was a pressure rep). Null when
+   *  the rep has no specific focus signal — common for combined-mode
+   *  reps that didn't trigger a carryover. Surfaced by the UI as a
+   *  "Focusing on…" hint on the prompt-select screen and as the
+   *  LastRepFocusBanner above the next rep's feedback. */
+  focus: RepFocusContext | null;
   /** Set when the slot is a pressure rep — drives UI differentiation
    *  (PressureRepIndicator), prompt bank (from pressure.ts instead of
    *  workout.ts), time budget delta, and scoring weight profile. Every
@@ -67,16 +77,89 @@ export type WorkoutRepSlot = {
   pressureArchetype?: PressureArchetype;
 };
 
-/** A human-readable explanation of why the next rep was adjusted, plus the
- *  raw data the UI can render however it likes. */
-export type FocusReason = {
+// ——— Focus-context builders ——————————————————————————————
+// Lead each helper with the user-facing bannerText so the UI doesn't have
+// to compose strings. Voice mirrors the legacy buildFocusSummary copy: blunt,
+// declarative, no praise filler.
+
+function focusForFocusMode(focusDimension: SkillDimension): RepFocusContext {
+  return {
+    source: "session_intent",
+    dimension: focusDimension,
+    bannerText: `Focus: ${DIMENSION_LABELS[focusDimension]}.`,
+  };
+}
+
+function focusForCombinedRep0(
+  weakestBias: SkillDimension | undefined,
+): RepFocusContext {
+  // Combined sessions don't pin a single dimension — the bias (if any)
+  // tells us which dim got prioritized in rep selection. Default to
+  // "clarity" so the type stays satisfied; the bannerText is what users
+  // actually read.
+  const dim = weakestBias ?? "clarity";
+  return {
+    source: "session_intent",
+    dimension: dim,
+    bannerText: weakestBias
+      ? `Today: balanced workout, weighted toward ${DIMENSION_LABELS[dim].toLowerCase()}.`
+      : "Today: balanced workout.",
+  };
+}
+
+function focusForMixedRep0(firstSlotDim: SkillDimension): RepFocusContext {
+  return {
+    source: "session_intent",
+    dimension: firstSlotDim,
+    bannerText: `Today: mixed set — opening on ${DIMENSION_LABELS[firstSlotDim].toLowerCase()}.`,
+  };
+}
+
+function focusForPressureRep(
+  archetype: PressureArchetype,
+): RepFocusContext {
+  // The pressure rep itself: lean into the archetype, not a single
+  // dimension. We pick the archetype's top stressed dim for the
+  // dimension field but the bannerText centers the mechanism.
+  const dim = archetype.stressedDimensions[0] ?? "adaptability";
+  return {
+    source: "session_intent",
+    dimension: dim,
+    bannerText: `Pressure: ${archetype.tagline.toLowerCase()}`,
+  };
+}
+
+function focusForCarryover(opts: {
   dimension: SkillDimension;
   previousScore: number;
-  previousRepTypeName: string;
-  /** "Last rep scored 52 on structure — this one stresses structure." */
-  summary: string;
-  wasTypeSwapped: boolean;
-};
+  nextRepTypeName: string;
+  wasSwapped: boolean;
+  previousHeadline?: string;
+}): RepFocusContext {
+  const rounded = Math.round(opts.previousScore);
+  const bannerText = opts.wasSwapped
+    ? `Last rep scored ${rounded} on ${DIMENSION_LABELS[opts.dimension].toLowerCase()}. This rep (${opts.nextRepTypeName}) stresses ${DIMENSION_LABELS[opts.dimension].toLowerCase()} directly.`
+    : `Last rep scored ${rounded} on ${DIMENSION_LABELS[opts.dimension].toLowerCase()}. Staying on ${opts.nextRepTypeName} — same dimension, fresh prompts.`;
+  return {
+    source: "carryover",
+    dimension: opts.dimension,
+    bannerText,
+    ...(opts.previousHeadline ? { previousHeadline: opts.previousHeadline } : {}),
+  };
+}
+
+function focusForPressureResidue(opts: {
+  dimension: SkillDimension;
+  archetypeName: string;
+  previousHeadline?: string;
+}): RepFocusContext {
+  return {
+    source: "pressure_residue",
+    dimension: opts.dimension,
+    bannerText: `${opts.archetypeName} exposed your ${DIMENSION_LABELS[opts.dimension].toLowerCase()} — keep building it back.`,
+    ...(opts.previousHeadline ? { previousHeadline: opts.previousHeadline } : {}),
+  };
+}
 
 /**
  * The three session types a user can run (WS-6). See
@@ -210,6 +293,10 @@ export function planTodaysWorkout(
       prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
+      // Combined sessions only pin focus on rep 0; later reps get
+      // populated by planNextRep when carryover or pressure_residue
+      // triggers.
+      focus: i === 0 ? focusForCombinedRep0(opts.weakestDimensionBias) : null,
     });
   }
 
@@ -321,6 +408,8 @@ export function planFocusWorkout(
       prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
+      // Focus mode: every non-pressure rep is pinned to focusDimension.
+      focus: focusForFocusMode(focusDimension),
     });
   }
 
@@ -411,7 +500,7 @@ export function planMixedSession(opts: {
 
   const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
   let lastRepTypeId: RepTypeId | null = null;
-  const reps: WorkoutRepSlot[] = slots.map((dim) => {
+  const reps: WorkoutRepSlot[] = slots.map((dim, i) => {
     const repType = pickRepTypeForSkill(dim, lastRepTypeId);
     lastRepTypeId = repType.id;
     const framework = pickRotatingFramework(
@@ -425,6 +514,7 @@ export function planMixedSession(opts: {
       prompts: pickBlendedWorkoutPrompts(repType.id, opts.vertical ?? null, 5),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
+      focus: i === 0 ? focusForMixedRep0(dim) : null,
     };
   });
 
@@ -538,6 +628,7 @@ function buildPressureRepSlot(
     prompts: pickPressurePrompts(archetype.id, 5),
     timeBudgetMs: timeBudgetSec * 1000,
     framework,
+    focus: focusForPressureRep(archetype),
     pressureArchetype: archetype,
   };
 }
@@ -608,6 +699,15 @@ export type PreviousRepContext = {
   repTypeId: RepTypeId;
   repTypeName: string;
   dimensions: readonly PreviousRepDimScore[];
+  /** Set when the previous rep was a pressure rep — drives the
+   *  pressure_residue carry-over: the rep AFTER a pressure rep gets the
+   *  archetype's worst-scoring stressed dim as its focus, regardless of
+   *  whether other dims dipped below the carryover threshold. */
+  pressureArchetype?: PressureArchetype | null;
+  /** Verbatim previous-rep headline (Phase 2 RepScore.headline). Plumbed
+   *  through to `RepFocusContext.previousHeadline` so the next rep's
+   *  AI scoring call can write continuation copy. */
+  headline?: string;
 };
 
 /**
@@ -641,6 +741,42 @@ export function planNextRep(opts: {
   const nextSlot = plan.reps[nextIndex];
   if (!nextSlot) return plan;
 
+  // ——— Pressure-residue path —————————————————————————————
+  // If the previous rep was a pressure rep, the next rep carries forward
+  // the archetype's worst-scoring stressed dimension as its focus,
+  // regardless of whether the carryover-threshold weakness rule fires.
+  // Pressure reps are designed to expose specific dims; we lean into that
+  // signal even when the user technically scored above 70 on it.
+  if (previousRep.pressureArchetype) {
+    const stressedDims = previousRep.pressureArchetype.stressedDimensions;
+    const stressedScores = stressedDims
+      .map((dim) => {
+        const found = previousRep.dimensions.find((d) => d.dimension === dim);
+        return found ? { dimension: dim, score: found.score } : null;
+      })
+      .filter((x): x is { dimension: SkillDimension; score: number } => x !== null)
+      .sort((a, b) => a.score - b.score);
+    const worstStressed = stressedScores[0] ?? null;
+    if (worstStressed) {
+      const updatedSlot: WorkoutRepSlot = {
+        ...nextSlot,
+        focus: focusForPressureResidue({
+          dimension: worstStressed.dimension,
+          archetypeName: previousRep.pressureArchetype.name,
+          previousHeadline: previousRep.headline,
+        }),
+      };
+      const newReps = plan.reps.slice();
+      newReps[nextIndex] = updatedSlot;
+      return { ...plan, reps: newReps };
+    }
+  }
+
+  // ——— Carryover path ————————————————————————————————————
+  // Existing weakness-driven slot adjustment. Returns the plan unchanged
+  // when the previous rep had no real weakness — the next slot keeps
+  // whatever focus it had at plan time (null for combined-mode mid reps,
+  // session_intent for focus/flow modes).
   const weakest = findWeakestDimension(previousRep.dimensions);
   if (!weakest || weakest.score >= WEAKNESS_ADJUST_THRESHOLD) {
     return plan;
@@ -692,26 +828,18 @@ export function planNextRep(opts: {
     previousFramework,
   );
 
-  const summary = buildFocusSummary({
-    weakDimension: weakest.dimension,
-    previousScore: weakest.score,
-    previousRepTypeName: previousRep.repTypeName,
-    nextRepTypeName: chosenType.name,
-    wasSwapped,
-  });
-
   const updatedSlot: WorkoutRepSlot = {
     repType: chosenType,
     prompts: nextPrompts,
     timeBudgetMs: chosenType.timeBudgetSec * 1000,
     framework: chosenFramework,
-    focusReason: {
+    focus: focusForCarryover({
       dimension: weakest.dimension,
       previousScore: weakest.score,
-      previousRepTypeName: previousRep.repTypeName,
-      summary,
-      wasTypeSwapped: wasSwapped,
-    },
+      nextRepTypeName: chosenType.name,
+      wasSwapped,
+      previousHeadline: previousRep.headline,
+    }),
   };
 
   const newReps = plan.reps.slice();
@@ -730,20 +858,6 @@ function findWeakestDimension(
   return worst;
 }
 
-function buildFocusSummary(opts: {
-  weakDimension: SkillDimension;
-  previousScore: number;
-  previousRepTypeName: string;
-  nextRepTypeName: string;
-  wasSwapped: boolean;
-}): string {
-  const { weakDimension, previousScore, nextRepTypeName, wasSwapped } = opts;
-  const roundedScore = Math.round(previousScore);
-  if (wasSwapped) {
-    return `Last rep scored ${roundedScore} on ${weakDimension}. This rep (${nextRepTypeName}) stresses ${weakDimension} directly.`;
-  }
-  return `Last rep scored ${roundedScore} on ${weakDimension}. Staying on ${nextRepTypeName} — same dimension, fresh prompts.`;
-}
 
 // ——— LEGACY SHIM ——————————————————————————————————————————
 // Existing callers (WorkoutSession.tsx, /workout/page.tsx) still use the

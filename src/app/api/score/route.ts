@@ -38,6 +38,38 @@ const wordSchema = z.object({
   endMs: z.number(),
 });
 
+const dimensionEnum = z.enum([
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "adaptability",
+]);
+
+const pressureArchetypeIdEnum = z.enum([
+  "pushback",
+  "time_compression",
+  "audience_switch",
+  "clarifying_interrupt",
+  "stakes_raise",
+]);
+
+const modeContextSchema = z.object({
+  sessionType: z.enum(["focus", "combined", "flow"]),
+  focusDimension: dimensionEnum.optional(),
+  pressureArchetypeId: pressureArchetypeIdEnum.optional(),
+  previousRepFocus: z
+    .object({
+      dimension: dimensionEnum,
+      headline: z.string().min(1).max(200),
+      score: z.number().min(0).max(100),
+    })
+    .optional(),
+  repIndex: z.number().int().min(0),
+  totalReps: z.number().int().min(1),
+});
+
 const bodySchema = z.object({
   transcript: z.string().min(1).max(10000),
   promptText: z.string().min(1).max(500),
@@ -57,15 +89,9 @@ const bodySchema = z.object({
    *  id so the server can apply that archetype's scoring weight profile.
    *  Unknown / missing values → no weight override (falls back to
    *  framework weights or rubric defaults). */
-  pressureArchetypeId: z
-    .enum([
-      "pushback",
-      "time_compression",
-      "audience_switch",
-      "clarifying_interrupt",
-      "stakes_raise",
-    ])
-    .optional(),
+  pressureArchetypeId: pressureArchetypeIdEnum.optional(),
+  /** Phase 2: per-mode signals so the AI can write mode-aware feedback. */
+  modeContext: modeContextSchema.optional(),
 });
 
 type ScoreBody = z.infer<typeof bodySchema>;
@@ -150,12 +176,18 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
   for (const d of dimensions) dimensionMap[d.dimension] = d.score;
   const compositeScore = composite(dimensionMap);
 
+  // Server-side log keeps the full error for debugging; user-visible
+  // callout is consumer-neutral — never reference billing/credits/tokens
+  // in copy that ships to end users.
+  console.error("[score] mock fallback triggered:", errorMsg);
   const callouts: Callout[] = [
     {
       dimension: "clarity",
       tone: "neutral",
-      title: "Running in mock scoring mode",
-      body: `Anthropic API call failed: ${errorMsg.slice(0, 160)}${errorMsg.length > 160 ? "…" : ""}. ${hasWords ? "Pacing and confidence are still real (deterministic). " : ""}Add credits at console.anthropic.com/settings/billing or set a different ANTHROPIC_API_KEY to get real semantic scoring + actionable callouts.`,
+      title: "Scoring is taking a moment",
+      body: hasWords
+        ? "Your delivery and thinking quality are scored from real signals. Detailed per-moment feedback will catch up shortly — try another rep in a moment."
+        : "We couldn't reach the scoring service. Your rep is recorded — try another rep in a moment.",
       quote: null,
       suggestedRewrite: null,
       transcriptStart: 0,
@@ -210,7 +242,23 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
     callouts,
     modelVersion: "mock-fallback-v1",
     rubricVersion: RUBRIC_VERSION,
+    headline: mockFallbackHeadline(compositeScore),
+    // Phase 2 fields are absent in mock mode — the FeedbackPanel falls
+    // back to Phase 1 client-side derivation from callouts. Empty arrays
+    // are intentional: don't manufacture bullets we can't ground.
+    didWell: [],
+    didntLand: [],
+    nextRepFocus: [],
+    primaryFocusDimension: "clarity" as const,
   };
+}
+
+function mockFallbackHeadline(composite: number): string {
+  if (composite < 50) return "That rep didn't land — see the breakdown below.";
+  if (composite < 75)
+    return "Solid bones. The breakdown below names what to tighten.";
+  if (composite < 90) return "Strong rep. Sharpen one moment and this is a 90.";
+  return "Nothing to fix here. Stretch yourself with a harder prompt.";
 }
 
 export async function POST(req: Request) {
@@ -278,6 +326,7 @@ export async function POST(req: Request) {
       ...body,
       userCalibration: calibrationBlock,
       ...(mergedWeights ? { weights: mergedWeights } : {}),
+      ...(body.modeContext ? { modeContext: body.modeContext } : {}),
     });
     return NextResponse.json(result);
   } catch (error) {

@@ -102,6 +102,8 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
       topWeakness,
       transcript,
       promptText: activePrompt ?? "",
+      ...(score.headline ? { headline: score.headline } : {}),
+      pressureArchetypeId: currentRep?.pressureArchetype?.id ?? null,
     });
   }
 
@@ -164,7 +166,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
           initialPrompts={currentRep.prompts}
           repIndex={currentIndex}
           totalReps={plan.reps.length}
-          focusReason={currentRep.focusReason ?? null}
+          focus={currentRep.focus}
           pressureArchetype={currentRep.pressureArchetype ?? null}
           timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
           sessionType={plan.sessionType}
@@ -215,6 +217,56 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
               }
             : null
         }
+        feedbackRepIndex={currentIndex + 1}
+        feedbackTotalReps={plan.reps.length}
+        feedbackModeLabel={
+          currentRep.pressureArchetype
+            ? currentRep.pressureArchetype.tagline.toUpperCase()
+            : style === "focus" && plan.focusDimension
+              ? `${DIMENSION_LABELS[plan.focusDimension].toUpperCase()} FOCUS`
+              : "MIXED"
+        }
+        feedbackLastRepFocus={
+          previousRepSummary && previousRepSummary.dimensions.length > 0
+            ? {
+                dimension:
+                  [...previousRepSummary.dimensions].sort(
+                    (a, b) => a.score - b.score,
+                  )[0]?.dimension ?? "clarity",
+              }
+            : null
+        }
+        onFeedbackSaveExit={onExit}
+        scoreModeContext={(() => {
+          const weakest =
+            previousRepSummary && previousRepSummary.dimensions.length > 0
+              ? [...previousRepSummary.dimensions].sort(
+                  (a, b) => a.score - b.score,
+                )[0]
+              : null;
+          const previousRepFocus =
+            previousRepSummary &&
+            previousRepSummary.headline &&
+            weakest
+              ? {
+                  dimension: weakest.dimension,
+                  headline: previousRepSummary.headline,
+                  score: weakest.score,
+                }
+              : null;
+          return {
+            sessionType: plan.sessionType,
+            ...(plan.focusDimension
+              ? { focusDimension: plan.focusDimension }
+              : {}),
+            ...(currentRep.pressureArchetype
+              ? { pressureArchetypeId: currentRep.pressureArchetype.id }
+              : {}),
+            ...(previousRepFocus ? { previousRepFocus } : {}),
+            repIndex: currentIndex,
+            totalReps: plan.reps.length,
+          };
+        })()}
         onComplete={handleRepComplete}
         onNext={handleNext}
         nextLabel={

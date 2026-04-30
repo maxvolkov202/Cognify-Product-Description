@@ -4,13 +4,16 @@ import { useState } from "react";
 import { RefreshCw, ArrowRight, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
 import { refreshRepPrompts } from "@/lib/ai/workout-prompts";
-import type { FocusReason } from "@/lib/ai/workout-prompts";
 import type { PressureArchetype } from "@/lib/ai/pressure-archetypes";
 import { pickPressurePrompts } from "@/lib/ai/prompts/pressure";
 import { PressureRepIndicator } from "./PressureRepIndicator";
 import { CircleTimer } from "./CircleTimer";
 import { ProgressDots } from "./ProgressDots";
-import { DIMENSION_LABELS, type SkillDimension } from "@/types/domain";
+import {
+  DIMENSION_LABELS,
+  type RepFocusContext,
+  type SkillDimension,
+} from "@/types/domain";
 import type { SessionType } from "@/lib/ai/workout-prompts";
 
 type Props = {
@@ -18,7 +21,12 @@ type Props = {
   initialPrompts: string[];
   repIndex: number;
   totalReps: number;
-  focusReason?: FocusReason | null;
+  /** Why this rep has the focus it has — replaces the legacy
+   *  focusReason field. Surfaces as an inline banner above the prompt
+   *  list when source is carryover or pressure_residue. session_intent
+   *  is suppressed here (the LastRepFocusBanner above the post-rep score
+   *  surface is the canonical place for that). */
+  focus?: RepFocusContext | null;
   /** When set, this rep is a pressure rep. The prompt-select header
    *  shifts to name the archetype, PressureRepIndicator surfaces above
    *  the prompt list, and Refresh pulls from the archetype's prompt
@@ -58,7 +66,7 @@ export function WorkoutPromptSelect({
   initialPrompts,
   repIndex,
   totalReps,
-  focusReason,
+  focus,
   pressureArchetype,
   timeBudgetSec,
   sessionType,
@@ -171,7 +179,7 @@ export function WorkoutPromptSelect({
         </div>
       ) : null}
 
-      {focusReason ? (
+      {focus && focus.source !== "session_intent" ? (
         <div
           className="mb-4 flex items-start gap-2 rounded-xl border border-brand-purple/30 bg-brand-purple/5 px-3 py-2.5"
           role="status"
@@ -180,9 +188,11 @@ export function WorkoutPromptSelect({
           <Target className="mt-0.5 size-3.5 shrink-0 text-brand-purple" />
           <div className="text-[11px] leading-snug text-ink-700">
             <span className="font-semibold text-brand-purple">
-              Focusing on {focusReason.dimension}.
+              {focus.source === "pressure_residue"
+                ? "Pressure rollover."
+                : `Focusing on ${DIMENSION_LABELS[focus.dimension].toLowerCase()}.`}
             </span>{" "}
-            {focusReason.summary}
+            {focus.bannerText}
           </div>
         </div>
       ) : null}

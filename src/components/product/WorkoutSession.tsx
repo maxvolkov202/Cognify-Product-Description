@@ -12,6 +12,7 @@ import { PersonalBestToast } from "./PersonalBestToast";
 import { bumpCompletedRepCount } from "./InstallPrompt";
 import { SkillsFocusScope } from "./SkillsFocusContext";
 import type { RepScore, Callout, SkillDimension } from "@/types/domain";
+import { DIMENSION_LABELS } from "@/types/domain";
 import type { PreviousRepSummary } from "./FeedbackPanel";
 import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
 import { planNextRep } from "@/lib/ai/workout-prompts";
@@ -268,6 +269,8 @@ export function WorkoutSession({
       topWeakness,
       transcript,
       promptText: activePrompt ?? "",
+      ...(score.headline ? { headline: score.headline } : {}),
+      pressureArchetypeId: currentRep?.pressureArchetype?.id ?? null,
     });
   };
 
@@ -277,6 +280,29 @@ export function WorkoutSession({
     // the remounted RepSurface via the retryFocus prop.
     setScores((prev) => prev.slice(0, -1));
     setRepRetryNonce((n) => n + 1);
+  };
+
+  // Save & exit during feedback. Mirrors the just-finished-this-rep path:
+  // append the score (already done by handleRepCompleteWithContext), point
+  // resume to the next rep, persist pause state directly, then route. We
+  // can't rely on the phase=prompt-select effect to save because we navigate
+  // away before it runs.
+  const handleFeedbackSaveExit = () => {
+    const nextIdx = currentIndex + 1;
+    if (nextIdx >= plan.reps.length) {
+      // Last rep — nothing to resume into. Wipe pause state and route.
+      clearPauseState();
+    } else {
+      savePauseState({
+        plan,
+        currentRepIndex: nextIdx,
+        scores,
+        selectedPrompts,
+      });
+    }
+    if (typeof window !== "undefined") {
+      window.location.href = "/dashboard";
+    }
   };
 
   const handleNext = () => {
@@ -293,7 +319,9 @@ export function WorkoutSession({
     setCompletedRepTypeIds(nextUsedTypes);
 
     // Build the previous-rep context from the most recent score and adjust
-    // the next slot to target the weakest dimension.
+    // the next slot to target the weakest dimension. Pass through pressure
+    // archetype + headline so planNextRep can apply pressure_residue and
+    // forward the verbatim previous-rep verdict to the next score call.
     const justCompletedScore = scores[scores.length - 1];
     if (justCompletedScore && currentRep) {
       const adjusted = planNextRep({
@@ -306,6 +334,10 @@ export function WorkoutSession({
             dimension: d.dimension,
             score: d.score,
           })),
+          pressureArchetype: currentRep.pressureArchetype ?? null,
+          ...(justCompletedScore.headline
+            ? { headline: justCompletedScore.headline }
+            : {}),
         },
         usedRepTypeIds: nextUsedTypes,
       });
@@ -379,7 +411,7 @@ export function WorkoutSession({
             initialPrompts={currentRep.prompts}
             repIndex={currentIndex}
             totalReps={plan.reps.length}
-            focusReason={currentRep.focusReason ?? null}
+            focus={currentRep.focus}
             pressureArchetype={currentRep.pressureArchetype ?? null}
             timeBudgetSec={Math.round(currentRep.timeBudgetMs / 1000)}
             sessionType={plan.sessionType}
@@ -394,6 +426,55 @@ export function WorkoutSession({
 
   // phase === "rep"
   if (!activePrompt) return null;
+
+  // ——— Derived inputs for the redesigned FeedbackPanel ——————————
+  // modeLabel: pressure → archetype tagline; focus → "{DIM} FOCUS"; mixed → "MIXED".
+  const feedbackModeLabel = currentRep.pressureArchetype
+    ? currentRep.pressureArchetype.tagline.toUpperCase()
+    : plan.sessionType === "focus" && plan.focusDimension
+      ? `${DIMENSION_LABELS[plan.focusDimension].toUpperCase()} FOCUS`
+      : "MIXED";
+  // lastRepFocus: lowest-scoring rankable dim from the previous rep, when
+  // this isn't a retry (retryFocus suppresses the carry-over banner).
+  const lastRepFocusDim =
+    previousRepSummary && !retryFocus && previousRepSummary.dimensions.length > 0
+      ? [...previousRepSummary.dimensions].sort((a, b) => a.score - b.score)[0]
+          ?.dimension ?? null
+      : null;
+
+  // Phase 2: build modeContext for the scoring call. Suppressed during
+  // retry so the AI doesn't anchor on the previous attempt's verdict —
+  // retries should re-evaluate fresh.
+  const previousRepFocusForScoring =
+    !retryFocus &&
+    previousRepSummary &&
+    previousRepSummary.headline &&
+    previousRepSummary.dimensions.length > 0
+      ? (() => {
+          const weakest = [...previousRepSummary.dimensions].sort(
+            (a, b) => a.score - b.score,
+          )[0];
+          return weakest
+            ? {
+                dimension: weakest.dimension,
+                headline: previousRepSummary.headline!,
+                score: weakest.score,
+              }
+            : null;
+        })()
+      : null;
+  const scoreModeContext = {
+    sessionType: plan.sessionType,
+    ...(plan.focusDimension ? { focusDimension: plan.focusDimension } : {}),
+    ...(currentRep.pressureArchetype
+      ? { pressureArchetypeId: currentRep.pressureArchetype.id }
+      : {}),
+    ...(previousRepFocusForScoring
+      ? { previousRepFocus: previousRepFocusForScoring }
+      : {}),
+    repIndex: currentIndex,
+    totalReps: plan.reps.length,
+  } as const;
 
   return (
     <>
@@ -464,6 +545,14 @@ export function WorkoutSession({
               }
             : null
         }
+        feedbackRepIndex={currentIndex + 1}
+        feedbackTotalReps={plan.reps.length}
+        feedbackModeLabel={feedbackModeLabel}
+        feedbackLastRepFocus={
+          lastRepFocusDim ? { dimension: lastRepFocusDim } : null
+        }
+        onFeedbackSaveExit={handleFeedbackSaveExit}
+        scoreModeContext={scoreModeContext}
         onMidRepPause={() => {
           // Pause tile — cancel this rep cleanly and route to dashboard.
           // The workout's between-rep pause state (already saved to
