@@ -62,6 +62,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
 
   // Pressure plans (sessionType='flow') auto-pick the first prompt so the
   // user goes straight into the rep — pressure is about reaction speed.
+  // Goes through handlePromptSelected so the history POST fires.
   useEffect(() => {
     if (
       phase === "prompt-select" &&
@@ -70,14 +71,8 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
       !selectedPrompts[currentIndex]
     ) {
       const auto = currentRep.prompts[0];
-      if (auto) {
-        setSelectedPrompts((prev) => {
-          const next = [...prev];
-          next[currentIndex] = auto;
-          return next;
-        });
-        setPhase("rep");
-      }
+      const autoId = currentRep.promptIds[0];
+      if (auto) handlePromptSelected(auto, autoId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, currentIndex]);
