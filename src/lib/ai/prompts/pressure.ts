@@ -335,20 +335,25 @@ function pickStratifiedBySetting(
   return picked;
 }
 
+/** O(1) id → prompt lookup, built once at module load. */
+const PRESSURE_PROMPT_INDEX: ReadonlyMap<string, PressurePrompt> = (() => {
+  const map = new Map<string, PressurePrompt>();
+  for (const bank of Object.values(PRESSURE_PROMPTS)) {
+    for (const p of bank) map.set(p.id, p);
+  }
+  return map;
+})();
+
 /** Look up a single pressure prompt object by id. */
 export function getPressurePromptById(id: string): PressurePrompt | undefined {
-  for (const bank of Object.values(PRESSURE_PROMPTS)) {
-    const found = bank.find((p) => p.id === id);
-    if (found) return found;
-  }
-  return undefined;
+  return PRESSURE_PROMPT_INDEX.get(id);
 }
 
 /** Setting of a pressure prompt id, for picker stratification. */
 export function getPressurePromptSetting(
   id: string,
 ): PressureSetting | undefined {
-  return getPressurePromptById(id)?.setting;
+  return PRESSURE_PROMPT_INDEX.get(id)?.setting;
 }
 
 /**
@@ -367,18 +372,26 @@ export function pickPressurePrompt(
 }
 
 /**
- * Pick N distinct prompts from an archetype's bank — used by the prompt
- * picker UI to show a small selection for the user to choose from.
- *
- * Stratified across `setting` so a single slate always shows variety
- * across work / public / personal when the bank has multiple settings.
+ * Pick N prompt objects from an archetype's bank, stratified across
+ * `setting` so a single slate always shows variety across work / public /
+ * personal when the bank has multiple settings. Object form preserves
+ * stable ids for the per-user history filter.
  */
+export function pickPressurePromptObjects(
+  archetypeId: PressureArchetypeId,
+  count: number,
+  opts: { rand?: () => number } = {},
+): PressurePrompt[] {
+  const { rand = Math.random } = opts;
+  const bank = PRESSURE_PROMPTS[archetypeId];
+  return pickStratifiedBySetting(bank, count, rand);
+}
+
+/** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickPressurePrompts(
   archetypeId: PressureArchetypeId,
   count: number,
   opts: { rand?: () => number } = {},
 ): string[] {
-  const { rand = Math.random } = opts;
-  const bank = PRESSURE_PROMPTS[archetypeId];
-  return pickStratifiedBySetting(bank, count, rand).map((p) => p.text);
+  return pickPressurePromptObjects(archetypeId, count, opts).map((p) => p.text);
 }

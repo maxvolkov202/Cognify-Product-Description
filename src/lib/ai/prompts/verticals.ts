@@ -155,24 +155,50 @@ export const VERTICAL_PROMPTS: Record<VerticalId, readonly VerticalPrompt[]> = {
   ],
 };
 
+/** O(1) id → prompt lookup, built once at module load. */
+const VERTICAL_PROMPT_INDEX: ReadonlyMap<string, VerticalPrompt> = (() => {
+  const map = new Map<string, VerticalPrompt>();
+  for (const bank of Object.values(VERTICAL_PROMPTS)) {
+    for (const p of bank) map.set(p.id, p);
+  }
+  return map;
+})();
+
 /** Look up a single vertical prompt object by id. */
 export function getVerticalPromptById(id: string): VerticalPrompt | undefined {
-  for (const bank of Object.values(VERTICAL_PROMPTS)) {
-    const found = bank.find((p) => p.id === id);
-    if (found) return found;
-  }
-  return undefined;
+  return VERTICAL_PROMPT_INDEX.get(id);
 }
 
-/** Pick N random prompts from a vertical's bank. */
+/**
+ * Pick N prompt objects from a vertical's bank. Vertical banks are
+ * single-vertical by definition, so there's no theme stratification —
+ * the whole bank is the user's vertical. Stakeholder-based stratification
+ * activates once expansion-pass prompts populate the optional
+ * `stakeholder` field.
+ */
+export function pickVerticalPromptObjects(
+  vertical: VerticalId,
+  count: number = 5,
+  opts: { rand?: () => number } = {},
+): VerticalPrompt[] {
+  const bank = VERTICAL_PROMPTS[vertical];
+  if (!bank || bank.length === 0) return [];
+  const rand = opts.rand ?? Math.random;
+  const shuffled = [...bank];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+  }
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
+/** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickVerticalPrompts(
   vertical: VerticalId,
   count: number = 5,
+  opts: { rand?: () => number } = {},
 ): string[] {
-  const bank = VERTICAL_PROMPTS[vertical];
-  if (!bank || bank.length === 0) return [];
-  const shuffled = [...bank].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(count, shuffled.length)).map((p) => p.text);
+  return pickVerticalPromptObjects(vertical, count, opts).map((p) => p.text);
 }
 
 /** Total number of prompts available in a vertical's bank. */

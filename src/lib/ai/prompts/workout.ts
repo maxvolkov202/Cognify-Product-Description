@@ -180,56 +180,51 @@ export const WORKOUT_PROMPTS: Record<RepTypeId, readonly WorkoutPrompt[]> = {
   ],
 };
 
+function fisherYates<T>(arr: readonly T[], rand: () => number): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
+}
+
 /**
- * Stratified sampling helper. Splits the bank by theme, takes a roughly
- * even share from each present theme, then fills the remainder from the
- * unused pool. Guarantees ≥1 prompt per theme present in the bank when
- * `count >= number of distinct themes`.
+ * Stratified sampling. Round-robins across present themes (work / life /
+ * abstract) before doubling up, so a slate covers every present theme
+ * when `count >= present-theme count`. Theme visit order is shuffled per
+ * call so consecutive refreshes vary the blend, not just permute it.
  *
  * Why this matters: a flat shuffle on a work-heavy bank surfaces work
  * prompts disproportionately; users perceive the bank as "all corporate"
  * even when the bank is large. Stratification eliminates that.
- *
- * `rand` injected for deterministic testing.
  */
-function pickStratifiedByTheme<T extends { theme: WorkoutTheme }>(
-  bank: readonly T[],
+function pickStratifiedByTheme(
+  bank: readonly WorkoutPrompt[],
   count: number,
   rand: () => number = Math.random,
-): T[] {
+): WorkoutPrompt[] {
   if (bank.length === 0 || count <= 0) return [];
 
-  const buckets: Record<WorkoutTheme, T[]> = {
+  const buckets: Record<WorkoutTheme, WorkoutPrompt[]> = {
     work: [],
     life: [],
     abstract: [],
   };
   for (const p of bank) buckets[p.theme].push(p);
 
-  // Shuffle each bucket so we don't repeatedly surface the same prompts.
-  const shuffle = (arr: T[]): T[] => {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [a[i], a[j]] = [a[j]!, a[i]!];
-    }
-    return a;
-  };
-  const ordered: Record<WorkoutTheme, T[]> = {
-    work: shuffle(buckets.work),
-    life: shuffle(buckets.life),
-    abstract: shuffle(buckets.abstract),
+  const ordered: Record<WorkoutTheme, WorkoutPrompt[]> = {
+    work: fisherYates(buckets.work, rand),
+    life: fisherYates(buckets.life, rand),
+    abstract: fisherYates(buckets.abstract, rand),
   };
 
-  // Round-robin across present themes (themes with non-empty buckets) so
-  // we hit every theme at least once before doubling up. Theme cycling
-  // order is shuffled per call so refresh genuinely varies the blend.
-  const presentThemes = (Object.keys(ordered) as WorkoutTheme[]).filter(
-    (t) => ordered[t].length > 0,
-  );
-  const themeOrder = shuffle(presentThemes as unknown as T[]) as unknown as WorkoutTheme[];
+  const presentThemes: WorkoutTheme[] = (
+    Object.keys(ordered) as WorkoutTheme[]
+  ).filter((t) => ordered[t].length > 0);
+  const themeOrder = fisherYates(presentThemes, rand);
 
-  const picked: T[] = [];
+  const picked: WorkoutPrompt[] = [];
   while (picked.length < count) {
     let advanced = false;
     for (const theme of themeOrder) {
@@ -245,38 +240,55 @@ function pickStratifiedByTheme<T extends { theme: WorkoutTheme }>(
   return picked;
 }
 
-/** Look up a single workout prompt object by id. Returns undefined when
- *  the id is unknown — caller decides how to handle (typically: skip). */
-export function getWorkoutPromptById(id: string): WorkoutPrompt | undefined {
+/**
+ * O(1) id → prompt lookup, built once at module load. The expansion-pass
+ * banks (1500+ prompts) make per-call linear scans untenable for the
+ * history filter, which calls getById per candidate during filtering.
+ */
+const WORKOUT_PROMPT_INDEX: ReadonlyMap<string, WorkoutPrompt> = (() => {
+  const map = new Map<string, WorkoutPrompt>();
   for (const bank of Object.values(WORKOUT_PROMPTS)) {
-    const found = bank.find((p) => p.id === id);
-    if (found) return found;
+    for (const p of bank) map.set(p.id, p);
   }
-  return undefined;
+  return map;
+})();
+
+/** Look up a single workout prompt object by id. */
+export function getWorkoutPromptById(id: string): WorkoutPrompt | undefined {
+  return WORKOUT_PROMPT_INDEX.get(id);
 }
 
 /** Theme of a given workout prompt id, for telemetry / picker rebalancing. */
 export function getWorkoutPromptTheme(id: string): WorkoutTheme | undefined {
-  return getWorkoutPromptById(id)?.theme;
+  return WORKOUT_PROMPT_INDEX.get(id)?.theme;
 }
 
 /**
- * Pick N prompts from a rep type's bank using stratified theme sampling.
+ * Pick N prompt objects from a rep type's bank using stratified theme
+ * sampling. The object form preserves stable ids so the per-user history
+ * filter can record what was shown without round-tripping through text.
  *
- * The picker round-robins across present themes (work / life / abstract)
- * before doubling up, so a 5-prompt slate always shows variety when the
- * bank has multiple themes. Refresh shuffles theme order so two refreshes
- * feel meaningfully different, not just permuted.
- *
- * Returns prompt text strings to preserve the existing call-site contract.
+ * Round-robins across present themes (work / life / abstract) before
+ * doubling up, so a 5-prompt slate always shows variety when the bank
+ * has multiple themes. Theme visit order shuffles per call.
  */
+export function pickWorkoutPromptObjects(
+  repType: RepTypeId,
+  count: number = 5,
+  opts: { rand?: () => number } = {},
+): WorkoutPrompt[] {
+  const bank = WORKOUT_PROMPTS[repType];
+  if (!bank || bank.length === 0) return [];
+  return pickStratifiedByTheme(bank, count, opts.rand);
+}
+
+/** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickWorkoutPrompts(
   repType: RepTypeId,
   count: number = 5,
+  opts: { rand?: () => number } = {},
 ): string[] {
-  const bank = WORKOUT_PROMPTS[repType];
-  if (!bank || bank.length === 0) return [];
-  return pickStratifiedByTheme(bank, count).map((p) => p.text);
+  return pickWorkoutPromptObjects(repType, count, opts).map((p) => p.text);
 }
 
 /** Total number of prompts available in a rep type's bank. */
@@ -313,8 +325,10 @@ export function pickBlendedWorkoutPrompts(
   );
   const verticalPicks = pickVerticalPrompts(vertical, verticalShare);
 
-  // De-dup + shuffle the blend so the vertical prompts don't always
-  // cluster at the top.
+  // De-dup by text — banks across rep types and verticals carry distinct
+  // ids, so id-based dedup wouldn't catch the case that actually fires
+  // here: an authoring overlap where two banks happen to ship the same
+  // sentence. Text dedup is the right key for cross-bank blending.
   const seen = new Set<string>();
   const blend: string[] = [];
   for (const p of [...verticalPicks, ...repTypePicks]) {
