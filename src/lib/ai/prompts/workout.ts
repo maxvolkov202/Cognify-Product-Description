@@ -1,10 +1,6 @@
 import type { RepTypeId } from "@/lib/ai/rep-types";
 import type { VerticalId } from "@/lib/onboarding/constants";
-import {
-  pickVerticalPrompts,
-  pickVerticalPromptObjects,
-  verticalBankSize,
-} from "./verticals";
+import { pickVerticalPromptObjects, verticalBankSize } from "./verticals";
 import type { VerticalPrompt, WorkoutPrompt, WorkoutTheme } from "./types";
 
 /**
@@ -897,7 +893,6 @@ export function pickBlendedWorkoutPromptObjects(
   count: number = 5,
   opts: { excludeIds?: ReadonlySet<string> } = {},
 ): Array<WorkoutPrompt | VerticalPrompt> {
-  const repTypeBank = WORKOUT_PROMPTS[repType] ?? [];
   if (!vertical) {
     return pickWorkoutPromptObjects(repType, count, {
       ...(opts.excludeIds ? { excludeIds: opts.excludeIds } : {}),

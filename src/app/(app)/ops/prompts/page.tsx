@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, AlertCircle, TrendingUp, Repeat } from "lucide-react";
+import { ArrowLeft, AlertCircle, TrendingUp } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
