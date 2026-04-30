@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { RefreshCw, ArrowRight, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
-import { refreshRepPrompts } from "@/lib/ai/workout-prompts";
+import {
+  refreshRepPromptObjects,
+  refreshPressurePromptObjects,
+} from "@/lib/ai/workout-prompts";
 import type { PressureArchetype } from "@/lib/ai/pressure-archetypes";
-import { pickPressurePrompts } from "@/lib/ai/prompts/pressure";
 import { PressureRepIndicator } from "./PressureRepIndicator";
 import { CircleTimer } from "./CircleTimer";
 import { ProgressDots } from "./ProgressDots";
@@ -19,6 +21,14 @@ import type { SessionType } from "@/lib/ai/workout-prompts";
 type Props = {
   repType: RepType;
   initialPrompts: string[];
+  /** Stable prompt ids parallel to `initialPrompts` (lockstep). When the
+   *  user picks index i, the parent gets initialPromptIds[i] so it can
+   *  fire /api/prompt-history. Optional for legacy callers; modern
+   *  callers always provide them. */
+  initialPromptIds?: string[];
+  /** Already-seen prompt ids — passed to refresh so the user keeps
+   *  seeing fresh prompts even within a single session of refreshes. */
+  excludePromptIds?: ReadonlySet<string>;
   repIndex: number;
   totalReps: number;
   /** Why this rep has the focus it has — replaces the legacy
@@ -42,7 +52,10 @@ type Props = {
   sessionType?: SessionType;
   /** For Focus sessions, the dimension being drilled. */
   focusDimension?: SkillDimension | null;
-  onSelect: (prompt: string) => void;
+  /** Receives the chosen prompt text. When ids are present in props, the
+   *  parent reads them via the second arg (a stable id from the bank).
+   *  Legacy callers can ignore the id; it's provided when known. */
+  onSelect: (prompt: string, promptId?: string) => void;
 };
 
 /**
@@ -64,6 +77,8 @@ type Props = {
 export function WorkoutPromptSelect({
   repType,
   initialPrompts,
+  initialPromptIds,
+  excludePromptIds,
   repIndex,
   totalReps,
   focus,
@@ -74,6 +89,7 @@ export function WorkoutPromptSelect({
   onSelect,
 }: Props) {
   const [prompts, setPrompts] = useState(initialPrompts);
+  const [promptIds, setPromptIds] = useState<string[]>(initialPromptIds ?? []);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
 
@@ -114,10 +130,12 @@ export function WorkoutPromptSelect({
     : repType.behavior;
 
   function handleRefresh() {
-    const newPrompts = pressureArchetype
-      ? pickPressurePrompts(pressureArchetype.id, 5)
-      : refreshRepPrompts(repType.id);
-    setPrompts(newPrompts);
+    const opts = excludePromptIds ? { excludeIds: excludePromptIds } : {};
+    const refreshed = pressureArchetype
+      ? refreshPressurePromptObjects(pressureArchetype.id, opts)
+      : refreshRepPromptObjects(repType.id, opts);
+    setPrompts(refreshed.prompts);
+    setPromptIds(refreshed.promptIds);
     setSelectedIdx(null);
     setRefreshCount((c) => c + 1);
   }
@@ -126,7 +144,8 @@ export function WorkoutPromptSelect({
     if (selectedIdx === null) return;
     const chosen = prompts[selectedIdx];
     if (!chosen) return;
-    onSelect(chosen);
+    const id = promptIds[selectedIdx];
+    onSelect(chosen, id);
   }
 
   return (
