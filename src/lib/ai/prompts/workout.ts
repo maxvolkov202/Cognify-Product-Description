@@ -271,22 +271,47 @@ export function getWorkoutPromptTheme(id: string): WorkoutTheme | undefined {
  * Round-robins across present themes (work / life / abstract) before
  * doubling up, so a 5-prompt slate always shows variety when the bank
  * has multiple themes. Theme visit order shuffles per call.
+ *
+ * `excludeIds` filters the candidate pool. Falls back to the seen pool
+ * only when filtering empties the bank, so a power user past saturation
+ * still sees prompts — just ones they've seen before.
  */
 export function pickWorkoutPromptObjects(
   repType: RepTypeId,
   count: number = 5,
-  opts: { rand?: () => number } = {},
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
 ): WorkoutPrompt[] {
   const bank = WORKOUT_PROMPTS[repType];
   if (!bank || bank.length === 0) return [];
-  return pickStratifiedByTheme(bank, count, opts.rand);
+
+  const exclude = opts.excludeIds;
+  if (!exclude || exclude.size === 0) {
+    return pickStratifiedByTheme(bank, count, opts.rand);
+  }
+
+  const unseen = bank.filter((p) => !exclude.has(p.id));
+  // Saturation fallback: when every prompt has been seen, pick from the
+  // full bank rather than returning nothing — the user sees a familiar
+  // prompt instead of an empty slate.
+  const pool = unseen.length > 0 ? unseen : bank;
+  const picks = pickStratifiedByTheme(pool, count, opts.rand);
+
+  // Top up from the seen pool when the unseen pool was non-empty but
+  // smaller than `count`. Maintains slate size at the cost of mixing in
+  // a familiar prompt — better than serving fewer than 5.
+  if (picks.length < count && pool === unseen && unseen.length < bank.length) {
+    const seen = bank.filter((p) => exclude.has(p.id));
+    const extras = pickStratifiedByTheme(seen, count - picks.length, opts.rand);
+    return [...picks, ...extras];
+  }
+  return picks;
 }
 
 /** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickWorkoutPrompts(
   repType: RepTypeId,
   count: number = 5,
-  opts: { rand?: () => number } = {},
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
 ): string[] {
   return pickWorkoutPromptObjects(repType, count, opts).map((p) => p.text);
 }

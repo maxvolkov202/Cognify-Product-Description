@@ -169,21 +169,11 @@ export function getVerticalPromptById(id: string): VerticalPrompt | undefined {
   return VERTICAL_PROMPT_INDEX.get(id);
 }
 
-/**
- * Pick N prompt objects from a vertical's bank. Vertical banks are
- * single-vertical by definition, so there's no theme stratification —
- * the whole bank is the user's vertical. Stakeholder-based stratification
- * activates once expansion-pass prompts populate the optional
- * `stakeholder` field.
- */
-export function pickVerticalPromptObjects(
-  vertical: VerticalId,
-  count: number = 5,
-  opts: { rand?: () => number } = {},
+function shuffleAndTake(
+  bank: readonly VerticalPrompt[],
+  count: number,
+  rand: () => number,
 ): VerticalPrompt[] {
-  const bank = VERTICAL_PROMPTS[vertical];
-  if (!bank || bank.length === 0) return [];
-  const rand = opts.rand ?? Math.random;
   const shuffled = [...bank];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -192,11 +182,47 @@ export function pickVerticalPromptObjects(
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
+/**
+ * Pick N prompt objects from a vertical's bank. Vertical banks are
+ * single-vertical by definition, so there's no theme stratification —
+ * the whole bank is the user's vertical. Stakeholder-based stratification
+ * activates once expansion-pass prompts populate the optional
+ * `stakeholder` field.
+ *
+ * `excludeIds` filters out prompts the user has already seen across
+ * sessions. Falls back to the seen pool when filtering empties the bank.
+ */
+export function pickVerticalPromptObjects(
+  vertical: VerticalId,
+  count: number = 5,
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
+): VerticalPrompt[] {
+  const bank = VERTICAL_PROMPTS[vertical];
+  if (!bank || bank.length === 0) return [];
+  const rand = opts.rand ?? Math.random;
+  const exclude = opts.excludeIds;
+
+  if (!exclude || exclude.size === 0) {
+    return shuffleAndTake(bank, count, rand);
+  }
+
+  const unseen = bank.filter((p) => !exclude.has(p.id));
+  const pool = unseen.length > 0 ? unseen : bank;
+  const picks = shuffleAndTake(pool, count, rand);
+
+  if (picks.length < count && pool === unseen && unseen.length < bank.length) {
+    const seen = bank.filter((p) => exclude.has(p.id));
+    const extras = shuffleAndTake(seen, count - picks.length, rand);
+    return [...picks, ...extras];
+  }
+  return picks;
+}
+
 /** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickVerticalPrompts(
   vertical: VerticalId,
   count: number = 5,
-  opts: { rand?: () => number } = {},
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
 ): string[] {
   return pickVerticalPromptObjects(vertical, count, opts).map((p) => p.text);
 }

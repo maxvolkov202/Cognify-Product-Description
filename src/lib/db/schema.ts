@@ -257,6 +257,33 @@ export const reps = cognifyV2Schema.table(
   ],
 );
 
+/**
+ * Per-user prompt history. Powers the "don't show me the same prompt
+ * twice" filter in the picker. Recorded when a user starts a rep
+ * (selected the prompt), not merely when the slate is rendered, so
+ * refresh-without-pick doesn't burn the bank.
+ */
+export const userPromptHistory = cognifyV2Schema.table(
+  "user_prompt_history",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    promptId: text("prompt_id").notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    seenCount: integer("seen_count").notNull().default(1),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.promptId] }),
+    index("user_prompt_history_user_idx").on(t.userId),
+  ],
+);
+
 export const dimensionScores = cognifyV2Schema.table(
   "dimension_scores",
   {

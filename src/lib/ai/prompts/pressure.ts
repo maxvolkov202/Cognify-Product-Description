@@ -376,22 +376,39 @@ export function pickPressurePrompt(
  * `setting` so a single slate always shows variety across work / public /
  * personal when the bank has multiple settings. Object form preserves
  * stable ids for the per-user history filter.
+ *
+ * `excludeIds` filters out prompts the user has already seen across
+ * sessions. Falls back to the seen pool when filtering empties the bank.
  */
 export function pickPressurePromptObjects(
   archetypeId: PressureArchetypeId,
   count: number,
-  opts: { rand?: () => number } = {},
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
 ): PressurePrompt[] {
-  const { rand = Math.random } = opts;
+  const { rand = Math.random, excludeIds } = opts;
   const bank = PRESSURE_PROMPTS[archetypeId];
-  return pickStratifiedBySetting(bank, count, rand);
+
+  if (!excludeIds || excludeIds.size === 0) {
+    return pickStratifiedBySetting(bank, count, rand);
+  }
+
+  const unseen = bank.filter((p) => !excludeIds.has(p.id));
+  const pool = unseen.length > 0 ? unseen : bank;
+  const picks = pickStratifiedBySetting(pool, count, rand);
+
+  if (picks.length < count && pool === unseen && unseen.length < bank.length) {
+    const seen = bank.filter((p) => excludeIds.has(p.id));
+    const extras = pickStratifiedBySetting(seen, count - picks.length, rand);
+    return [...picks, ...extras];
+  }
+  return picks;
 }
 
 /** Text-returning picker — thin wrapper for callers that don't need ids. */
 export function pickPressurePrompts(
   archetypeId: PressureArchetypeId,
   count: number,
-  opts: { rand?: () => number } = {},
+  opts: { rand?: () => number; excludeIds?: ReadonlySet<string> } = {},
 ): string[] {
   return pickPressurePromptObjects(archetypeId, count, opts).map((p) => p.text);
 }
