@@ -1,7 +1,11 @@
 import type { RepTypeId } from "@/lib/ai/rep-types";
 import type { VerticalId } from "@/lib/onboarding/constants";
-import { pickVerticalPrompts, verticalBankSize } from "./verticals";
-import type { WorkoutPrompt, WorkoutTheme } from "./types";
+import {
+  pickVerticalPrompts,
+  pickVerticalPromptObjects,
+  verticalBankSize,
+} from "./verticals";
+import type { VerticalPrompt, WorkoutPrompt, WorkoutTheme } from "./types";
 
 /**
  * Daily Workout prompt bank.
@@ -334,33 +338,66 @@ export function pickBlendedWorkoutPrompts(
   repType: RepTypeId,
   vertical: VerticalId | undefined | null,
   count: number = 5,
+  opts: { excludeIds?: ReadonlySet<string> } = {},
 ): string[] {
+  return pickBlendedWorkoutPromptObjects(repType, vertical, count, opts).map(
+    (p) => p.text,
+  );
+}
+
+/**
+ * Object-form blended picker — same shape as pickBlendedWorkoutPrompts
+ * but returns the typed prompt objects so callers can record stable ids
+ * via /api/prompt-history. Each result is either a WorkoutPrompt or a
+ * VerticalPrompt; both share `id` and `text` fields.
+ */
+export function pickBlendedWorkoutPromptObjects(
+  repType: RepTypeId,
+  vertical: VerticalId | undefined | null,
+  count: number = 5,
+  opts: { excludeIds?: ReadonlySet<string> } = {},
+): Array<WorkoutPrompt | VerticalPrompt> {
   const repTypeBank = WORKOUT_PROMPTS[repType] ?? [];
-  if (!vertical) return pickWorkoutPrompts(repType, count);
+  if (!vertical) {
+    return pickWorkoutPromptObjects(repType, count, {
+      ...(opts.excludeIds ? { excludeIds: opts.excludeIds } : {}),
+    });
+  }
 
   if (verticalBankSize(vertical) === 0) {
-    return pickWorkoutPrompts(repType, count);
+    return pickWorkoutPromptObjects(repType, count, {
+      ...(opts.excludeIds ? { excludeIds: opts.excludeIds } : {}),
+    });
   }
 
   const verticalShare = Math.max(1, Math.round(count * 0.4));
   const repTypeShare = Math.max(1, count - verticalShare);
 
-  const repTypePicks = pickStratifiedByTheme(repTypeBank, repTypeShare).map(
-    (p) => p.text,
+  const repTypePicks = pickWorkoutPromptObjects(repType, repTypeShare, {
+    ...(opts.excludeIds ? { excludeIds: opts.excludeIds } : {}),
+  });
+  const verticalPicks = pickVerticalPromptObjects(
+    vertical,
+    verticalShare,
+    opts.excludeIds ? { excludeIds: opts.excludeIds } : {},
   );
-  const verticalPicks = pickVerticalPrompts(vertical, verticalShare);
 
   // De-dup by text — banks across rep types and verticals carry distinct
   // ids, so id-based dedup wouldn't catch the case that actually fires
   // here: an authoring overlap where two banks happen to ship the same
   // sentence. Text dedup is the right key for cross-bank blending.
   const seen = new Set<string>();
-  const blend: string[] = [];
+  const blend: Array<WorkoutPrompt | VerticalPrompt> = [];
   for (const p of [...verticalPicks, ...repTypePicks]) {
-    if (!seen.has(p)) {
-      seen.add(p);
+    if (!seen.has(p.text)) {
+      seen.add(p.text);
       blend.push(p);
     }
   }
-  return blend.sort(() => Math.random() - 0.5).slice(0, count);
+  // Final shuffle so vertical picks don't always cluster at the top.
+  for (let i = blend.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [blend[i], blend[j]] = [blend[j]!, blend[i]!];
+  }
+  return blend.slice(0, count);
 }

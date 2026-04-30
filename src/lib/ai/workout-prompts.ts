@@ -14,8 +14,12 @@ import {
   type RepTypeFramework,
   type RepTypeId,
 } from "./rep-types";
-import { pickWorkoutPrompts, pickBlendedWorkoutPrompts } from "./prompts/workout";
-import { pickPressurePrompts } from "./prompts/pressure";
+import {
+  pickWorkoutPrompts,
+  pickWorkoutPromptObjects,
+  pickBlendedWorkoutPromptObjects,
+} from "./prompts/workout";
+import { pickPressurePromptObjects } from "./prompts/pressure";
 import { getFrameworkPool } from "./frameworks-rep-variants";
 import {
   getPressureArchetype,
@@ -56,6 +60,11 @@ import {
 export type WorkoutRepSlot = {
   repType: RepType;
   prompts: string[];
+  /** Stable prompt ids parallel to `prompts` (lockstep — `promptIds[i]`
+   *  identifies `prompts[i]`). Populated by planner at slot-build time;
+   *  used by the UI to record picks via /api/prompt-history so the
+   *  exclusion set excludes them on next session. */
+  promptIds: string[];
   timeBudgetMs: number;
   /** The speech-structure scaffold for this rep. Primary for the first
    *  occurrence of a rep type in a session; rotates to alternates from
@@ -225,10 +234,17 @@ export function planTodaysWorkout(
      *  users see prompts that echo their actual audience. No-op when
      *  undefined — falls back to pure rep-type prompts. */
     vertical?: VerticalId | null;
+    /** Prompt ids the user has already seen across past sessions.
+     *  Filters the picker's candidate pool so daily users keep seeing
+     *  fresh prompts. No-op when undefined or empty (e.g. guests, or
+     *  users with no history yet). Saturation fallback in the picker
+     *  serves seen prompts when all unseen prompts are exhausted. */
+    excludePromptIds?: ReadonlySet<string>;
   } = {},
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
   const goals = opts.goals ?? [];
+  const excludePromptIds = opts.excludePromptIds;
 
   // Pressure rep placement: always at position N-1 when count >= 4. That
   // gives us at least one "build" rep at position 0 and exactly one
@@ -276,7 +292,9 @@ export function planTodaysWorkout(
   let nonPressureCursor = 0;
   for (let i = 0; i < count; i++) {
     if (i === pressureIndex && pressureArchetype) {
-      reps.push(buildPressureRepSlot(pressureArchetype, usedThisSession));
+      reps.push(
+        buildPressureRepSlot(pressureArchetype, usedThisSession, excludePromptIds),
+      );
       continue;
     }
     const typeId =
@@ -288,9 +306,16 @@ export function planTodaysWorkout(
       usedThisSession,
     );
     usedThisSession.add(framework.name);
+    const blended = pickBlendedWorkoutPromptObjects(
+      typeId,
+      opts.vertical ?? null,
+      5,
+      excludePromptIds ? { excludeIds: excludePromptIds } : {},
+    );
     reps.push({
       repType,
-      prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
+      prompts: blended.map((p) => p.text),
+      promptIds: blended.map((p) => p.id),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
       // Combined sessions only pin focus on rep 0; later reps get
@@ -334,10 +359,13 @@ export function planFocusWorkout(
     /** User's vertical — blends ~40% vertical-flavored prompts into the
      *  Focus pool. Identical semantics to planTodaysWorkout's `vertical`. */
     vertical?: VerticalId | null;
+    /** See planTodaysWorkout.excludePromptIds. */
+    excludePromptIds?: ReadonlySet<string>;
   },
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
   const { focusDimension } = opts;
+  const excludePromptIds = opts.excludePromptIds;
   const includesPressureRep = count >= 4;
   const pressureIndex = includesPressureRep ? count - 2 : -1;
 
@@ -391,7 +419,9 @@ export function planFocusWorkout(
   let nonPressureCursor = 0;
   for (let i = 0; i < count; i++) {
     if (i === pressureIndex && pressureArchetype) {
-      reps.push(buildPressureRepSlot(pressureArchetype, usedThisSession));
+      reps.push(
+        buildPressureRepSlot(pressureArchetype, usedThisSession, excludePromptIds),
+      );
       continue;
     }
     const typeId =
@@ -403,9 +433,16 @@ export function planFocusWorkout(
       usedThisSession,
     );
     usedThisSession.add(framework.name);
+    const blended = pickBlendedWorkoutPromptObjects(
+      typeId,
+      opts.vertical ?? null,
+      5,
+      excludePromptIds ? { excludeIds: excludePromptIds } : {},
+    );
     reps.push({
       repType,
-      prompts: pickBlendedWorkoutPrompts(typeId, opts.vertical ?? null, 5),
+      prompts: blended.map((p) => p.text),
+      promptIds: blended.map((p) => p.id),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
       // Focus mode: every non-pressure rep is pinned to focusDimension.
@@ -448,12 +485,13 @@ const FLOW_ARCHETYPE_ORDER: readonly PressureArchetypeId[] = [
 export function planFlowSession(
   opts: {
     recentFrameworkNames?: readonly string[];
+    excludePromptIds?: ReadonlySet<string>;
   } = {},
 ): WorkoutSessionPlan {
   const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
   const reps: WorkoutRepSlot[] = FLOW_ARCHETYPE_ORDER.map((archetypeId) => {
     const archetype = getPressureArchetype(archetypeId);
-    return buildPressureRepSlot(archetype, usedFrameworks);
+    return buildPressureRepSlot(archetype, usedFrameworks, opts.excludePromptIds);
   });
 
   const estimatedDurationSec = reps.reduce(
@@ -483,6 +521,7 @@ export function planMixedSession(opts: {
   skillReps: ReadonlyArray<{ dimension: SkillDimension; reps: number }>;
   vertical?: VerticalId | null;
   recentFrameworkNames?: readonly string[];
+  excludePromptIds?: ReadonlySet<string>;
 }): WorkoutSessionPlan {
   const slots: SkillDimension[] = [];
   // Round-robin interleave so reps are spread, not clumped per dim.
@@ -509,9 +548,16 @@ export function planMixedSession(opts: {
       usedFrameworks,
     );
     usedFrameworks.add(framework.name);
+    const blended = pickBlendedWorkoutPromptObjects(
+      repType.id,
+      opts.vertical ?? null,
+      5,
+      opts.excludePromptIds ? { excludeIds: opts.excludePromptIds } : {},
+    );
     return {
       repType,
-      prompts: pickBlendedWorkoutPrompts(repType.id, opts.vertical ?? null, 5),
+      prompts: blended.map((p) => p.text),
+      promptIds: blended.map((p) => p.id),
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
       focus: i === 0 ? focusForMixedRep0(dim) : null,
@@ -568,6 +614,7 @@ export function planPressureSession(opts: {
   count: number;
   recentFrameworkNames?: readonly string[];
   previousPressureArchetypeId?: PressureArchetypeId | null;
+  excludePromptIds?: ReadonlySet<string>;
 }): WorkoutSessionPlan {
   const count = Math.max(1, opts.count);
   const usedFrameworks = new Set<string>(opts.recentFrameworkNames ?? []);
@@ -580,7 +627,7 @@ export function planPressureSession(opts: {
   const reps: WorkoutRepSlot[] = Array.from({ length: count }, (_, i) => {
     const archetypeId = order[(startIdx + i) % order.length]!;
     const archetype = getPressureArchetype(archetypeId);
-    return buildPressureRepSlot(archetype, usedFrameworks);
+    return buildPressureRepSlot(archetype, usedFrameworks, opts.excludePromptIds);
   });
 
   const estimatedDurationSec = reps.reduce(
@@ -611,6 +658,7 @@ function generatePlanId(): string {
 function buildPressureRepSlot(
   archetype: PressureArchetype,
   usedFrameworks: Set<string>,
+  excludePromptIds?: ReadonlySet<string>,
 ): WorkoutRepSlot {
   const repType = getRepType("handle_pressure");
   const timeBudgetSec = Math.max(
@@ -623,9 +671,15 @@ function buildPressureRepSlot(
     usedFrameworks,
   );
   usedFrameworks.add(framework.name);
+  const picked = pickPressurePromptObjects(
+    archetype.id,
+    5,
+    excludePromptIds ? { excludeIds: excludePromptIds } : {},
+  );
   return {
     repType,
-    prompts: pickPressurePrompts(archetype.id, 5),
+    prompts: picked.map((p) => p.text),
+    promptIds: picked.map((p) => p.id),
     timeBudgetMs: timeBudgetSec * 1000,
     framework,
     focus: focusForPressureRep(archetype),
@@ -637,9 +691,39 @@ function buildPressureRepSlot(
  * Refresh the 5 prompts for a single rep slot. Used by the Refresh
  * button on the prompt-selection screen — pulls a fresh shuffle from
  * the same rep type's bank.
+ *
+ * @deprecated Use refreshRepPromptObjects when the caller can plumb ids
+ * through (the UI uses ids to record picks via /api/prompt-history).
  */
-export function refreshRepPrompts(repTypeId: RepTypeId): string[] {
-  return pickWorkoutPrompts(repTypeId, 5);
+export function refreshRepPrompts(
+  repTypeId: RepTypeId,
+  opts: { excludeIds?: ReadonlySet<string> } = {},
+): string[] {
+  return pickWorkoutPrompts(repTypeId, 5, opts);
+}
+
+/** Object-form refresh — returns prompts + parallel ids in lockstep. */
+export function refreshRepPromptObjects(
+  repTypeId: RepTypeId,
+  opts: { excludeIds?: ReadonlySet<string> } = {},
+): { prompts: string[]; promptIds: string[] } {
+  const picked = pickWorkoutPromptObjects(repTypeId, 5, opts);
+  return {
+    prompts: picked.map((p) => p.text),
+    promptIds: picked.map((p) => p.id),
+  };
+}
+
+/** Object-form pressure refresh — same shape as refreshRepPromptObjects. */
+export function refreshPressurePromptObjects(
+  archetypeId: PressureArchetypeId,
+  opts: { excludeIds?: ReadonlySet<string> } = {},
+): { prompts: string[]; promptIds: string[] } {
+  const picked = pickPressurePromptObjects(archetypeId, 5, opts);
+  return {
+    prompts: picked.map((p) => p.text),
+    promptIds: picked.map((p) => p.id),
+  };
 }
 
 /**
@@ -736,8 +820,11 @@ export function planNextRep(opts: {
   /** Rep type ids the user has already completed this session; the
    *  function won't swap to one of these so the workout stays varied. */
   usedRepTypeIds: readonly RepTypeId[];
+  /** See planTodaysWorkout.excludePromptIds. Applied when re-drawing
+   *  prompts for the swapped slot. */
+  excludePromptIds?: ReadonlySet<string>;
 }): WorkoutSessionPlan {
-  const { plan, nextIndex, previousRep, usedRepTypeIds } = opts;
+  const { plan, nextIndex, previousRep, usedRepTypeIds, excludePromptIds } = opts;
   const nextSlot = plan.reps[nextIndex];
   if (!nextSlot) return plan;
 
@@ -814,7 +901,11 @@ export function planNextRep(opts: {
   }
 
   const chosenType = getRepType(chosenTypeId);
-  const nextPrompts = pickWorkoutPrompts(chosenTypeId, 5);
+  const nextPicks = pickWorkoutPromptObjects(
+    chosenTypeId,
+    5,
+    excludePromptIds ? { excludeIds: excludePromptIds } : {},
+  );
   // Rotate framework too. We don't have access to the full session's
   // framework history here without threading it through — the caller
   // (WorkoutSession) can replace this with a history-aware pick if needed.
@@ -830,7 +921,8 @@ export function planNextRep(opts: {
 
   const updatedSlot: WorkoutRepSlot = {
     repType: chosenType,
-    prompts: nextPrompts,
+    prompts: nextPicks.map((p) => p.text),
+    promptIds: nextPicks.map((p) => p.id),
     timeBudgetMs: chosenType.timeBudgetSec * 1000,
     framework: chosenFramework,
     focus: focusForCarryover({
