@@ -60,6 +60,15 @@ export default async function OpsPage() {
         </span>
       </div>
 
+      <div className="mt-6 flex flex-wrap gap-2">
+        <a
+          href="/ops/prompts"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
+        >
+          Prompt engagement →
+        </a>
+      </div>
+
       <section className="mt-10">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
           Signups
