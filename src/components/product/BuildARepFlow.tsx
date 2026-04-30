@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   RefreshCw,
@@ -14,7 +14,7 @@ import {
   Flame,
   Mic,
 } from "lucide-react";
-import { pickVerticalPrompts } from "@/lib/ai/prompts/verticals";
+import { pickVerticalPromptObjects } from "@/lib/ai/prompts/verticals";
 import { RepSurface } from "./RepSurface";
 import { TalkingPointsSidebar } from "./TalkingPointsSidebar";
 import { PressureRepIndicator } from "./PressureRepIndicator";
@@ -36,6 +36,11 @@ type Props = {
   vertical: VerticalId;
   verticalLabel: string;
   initialPrompts: string[];
+  /** Stable prompt ids parallel to initialPrompts (lockstep). When the
+   *  user picks a curated prompt, the parent records the id via
+   *  /api/prompt-history. Custom prompts (the "write your own" path)
+   *  have no id and are never recorded. */
+  initialPromptIds?: string[];
   personas: readonly PersonaId[];
 };
 
@@ -63,15 +68,36 @@ export function BuildARepFlow({
   vertical,
   verticalLabel,
   initialPrompts,
+  initialPromptIds,
   personas,
 }: Props) {
   // Intake state
   const [intakeMode, setIntakeMode] = useState<IntakeMode>("picker");
   const [prompts, setPrompts] = useState<string[]>(initialPrompts);
+  const [promptIds, setPromptIds] = useState<string[]>(initialPromptIds ?? []);
   const [selectedPromptIdx, setSelectedPromptIdx] = useState<number | null>(null);
   const [customPromptMode, setCustomPromptMode] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
   const [contextInput, setContextInput] = useState("");
+
+  // Cross-session prompt history. Fetched on mount; picker refresh
+  // excludes seen ids. Recording happens at rep-start (talking-points
+  // generation) since that's when the user is genuinely committing —
+  // mere prompt selection without "Continue" should not burn the bank.
+  const [seenPromptIds, setSeenPromptIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
+  const seenIdsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (seenIdsLoadedRef.current) return;
+    seenIdsLoadedRef.current = true;
+    fetch("/api/prompt-history", { method: "GET" })
+      .then((r) => (r.ok ? r.json() : { ids: [] }))
+      .then((json: { ids?: string[] }) => {
+        if (Array.isArray(json.ids)) setSeenPromptIds(new Set(json.ids));
+      })
+      .catch(() => {});
+  }, []);
 
   // Generation + rep state
   const [activeSource, setActiveSource] = useState<ScenarioSource | null>(null);
@@ -112,8 +138,34 @@ export function BuildARepFlow({
   // ——— Handlers ——————————————————————————————————————
 
   function handleRefresh() {
-    setPrompts(pickVerticalPrompts(vertical, 5));
+    const refreshed = pickVerticalPromptObjects(vertical, 5, {
+      excludeIds: seenPromptIds,
+    });
+    setPrompts(refreshed.map((p) => p.text));
+    setPromptIds(refreshed.map((p) => p.id));
     setSelectedPromptIdx(null);
+  }
+
+  /**
+   * Record the just-picked prompt's id with the prompt-history service
+   * + locally so subsequent refresh excludes it. Fire-and-forget; failure
+   * is non-fatal. Called at rep-start (after talking-points generation
+   * succeeds), not at selection time.
+   */
+  function recordCuratedPick(idx: number) {
+    const id = promptIds[idx];
+    if (!id) return; // Custom prompt or missing id — nothing to record.
+    setSeenPromptIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    void fetch("/api/prompt-history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ promptId: id }),
+    }).catch(() => {});
   }
 
   function handleSelectPrompt(idx: number) {
@@ -148,6 +200,12 @@ export function BuildARepFlow({
     if (result) {
       setTalkingPoints(result);
       setIntakeCollapsed(true);
+      // Record the curated pick now — talking points generated, the
+      // user is committed. Custom prompts (selectedPromptIdx === null)
+      // get nothing to record, which is correct.
+      if (selectedPromptIdx !== null && !customPromptMode) {
+        recordCuratedPick(selectedPromptIdx);
+      }
     } else {
       setError(
         "Couldn't build the structure — try again, or check that the API key is set.",

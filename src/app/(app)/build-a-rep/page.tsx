@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { BuildARepFlow } from "@/components/product/BuildARepFlow";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
-import { pickVerticalPrompts } from "@/lib/ai/prompts/verticals";
+import { pickVerticalPromptObjects } from "@/lib/ai/prompts/verticals";
+import { getSeenPromptIds } from "@/lib/db/queries/prompt-history";
 import { VERTICALS, type VerticalId } from "@/lib/onboarding/constants";
 
 export const metadata: Metadata = {
@@ -21,7 +22,11 @@ export default async function BuildARepPage() {
   const vertical: VerticalId = profile?.vertical ?? "other";
   const verticalLabel =
     VERTICALS.find((v) => v.id === vertical)?.label ?? "General";
-  const initialPrompts = pickVerticalPrompts(vertical, 5);
+  const seenIds = user ? await getSeenPromptIds(user.id) : [];
+  const excludeSet = new Set(seenIds);
+  const initialPicked = pickVerticalPromptObjects(vertical, 5, {
+    excludeIds: excludeSet,
+  });
   const personas = profile?.personas ?? [];
 
   return (
@@ -29,7 +34,8 @@ export default async function BuildARepPage() {
       <BuildARepFlow
         vertical={vertical}
         verticalLabel={verticalLabel}
-        initialPrompts={initialPrompts}
+        initialPrompts={initialPicked.map((p) => p.text)}
+        initialPromptIds={initialPicked.map((p) => p.id)}
         personas={personas}
       />
     </div>
