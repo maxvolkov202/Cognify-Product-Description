@@ -250,7 +250,19 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
     didntLand: [],
     nextRepFocus: [],
     primaryFocusDimension: "clarity" as const,
+    // Phase 3 calibration scaffold: pick the band that matches mock
+    // composite. nextRepHint omitted — UI falls back to static copy.ts.
+    headlineTone: mockFallbackTone(compositeScore),
   };
+}
+
+function mockFallbackTone(
+  composite: number,
+): "blunt" | "directive" | "praise" | "celebratory" {
+  if (composite < 50) return "blunt";
+  if (composite < 75) return "directive";
+  if (composite < 90) return "praise";
+  return "celebratory";
 }
 
 function mockFallbackHeadline(composite: number): string {

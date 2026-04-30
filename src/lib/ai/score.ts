@@ -99,6 +99,11 @@ const scoringResponseSchema = z.object({
     "delivery",
     "adaptability",
   ]),
+  /** Phase 3 calibration scaffold — tone band the AI thinks it wrote in. */
+  headlineTone: z.enum(["blunt", "directive", "praise", "celebratory"]),
+  /** Phase 3 scaffold — short tail phrase for the NEXT rep's
+   *  LastRepFocusBanner. 3-8 words, no period. */
+  nextRepHint: z.string().min(2).max(60),
 });
 
 /** Phase 2: per-mode signals plumbed into the scoring prompt so the AI can
@@ -199,7 +204,9 @@ Return ONLY a JSON object (no prose, no markdown fences):
   "didWell": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
   "didntLand": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
   "nextRepFocus": [{ "text": "...", "dimension": "...", "quote": "..."|null, "transcriptStart": ms|null, "transcriptEnd": ms|null, "exampleLine": "..."|null }, ...],
-  "primaryFocusDimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"adaptability"
+  "primaryFocusDimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"adaptability",
+  "headlineTone": "blunt"|"directive"|"praise"|"celebratory",
+  "nextRepHint": "3-8 word continuation tail for the next rep's banner"
 }
 
 HEADLINE RULES (the single most important sentence the user reads):
@@ -255,7 +262,22 @@ BANNED in title, body, or any bullet text: "good job", "great job", "nice work",
 ANTI-HALLUCINATION RULES:
   - Never write "you said X" / "when you mentioned X" / "the part where you X" without populating the quote field with the verbatim phrase.
   - If you're tempted to reference a transcript moment but can't find the exact phrase, drop the reference entirely. Generic advice is honest; fabricated specifics break trust.
-  - Bullets that reference transcript moments without verbatim quotes are rejected by the post-validator.`;
+  - Bullets that reference transcript moments without verbatim quotes are rejected by the post-validator.
+
+HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headline in):
+  - "blunt"       — composite < 50, headline names what failed.
+  - "directive"   — 50-74, headline names the one fix.
+  - "praise"      — 75-89, specific praise + sharpening edge.
+  - "celebratory" — ≥ 90, raise-the-bar framing.
+  Pick the band that actually matches the headline you wrote, not the score range — they should align, but if you wrote softer copy than the band suggests, report what you wrote.
+
+NEXT REP HINT:
+  - 3-8 words, present-tense, second-person, no period.
+  - Becomes the tail of the next rep's "Last rep focus: <dim> — <hint>" banner.
+  - Tied to primaryFocusDimension. Specific over generic when possible:
+      generic   : "keep building on it"
+      specific  : "land the open before the ask"
+  - No filler verbs ("focus on", "work on") — give an action.`;
 
 /**
  * Compact rubric block — definitions + signals for the four LLM-scored
@@ -672,6 +694,8 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     didntLand: sanitizedDidntLand,
     nextRepFocus: sanitizedNextRepFocus,
     primaryFocusDimension: validated.primaryFocusDimension,
+    headlineTone: validated.headlineTone,
+    nextRepHint: validated.nextRepHint,
     feedbackVersion: FEEDBACK_VERSION,
   };
 }

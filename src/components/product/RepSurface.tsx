@@ -99,8 +99,13 @@ type Props = {
   /** Pre-formatted, uppercase mode label for the strip. */
   feedbackModeLabel?: string;
   /** Carry-over context from the previous rep — surfaces "Last rep focus:
-   *  {dim} — keep building on it" above the score hero. */
-  feedbackLastRepFocus?: { dimension: SkillDimension } | null;
+   *  {dim} — keep building on it" above the score hero. `customHint` is
+   *  the AI-authored tail (Phase 3 nextRepHint) that overrides the static
+   *  copy.ts fallback when present. */
+  feedbackLastRepFocus?: {
+    dimension: SkillDimension;
+    customHint?: string;
+  } | null;
   /** Wires the "Save and exit" link in RepProgressStrip. WorkoutSession
    *  saves pause state and routes to dashboard; SkillLabSession just
    *  routes back to the lobby. */

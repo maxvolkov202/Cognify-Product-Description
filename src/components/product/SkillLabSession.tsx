@@ -103,6 +103,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
       transcript,
       promptText: activePrompt ?? "",
       ...(score.headline ? { headline: score.headline } : {}),
+      ...(score.nextRepHint ? { nextRepHint: score.nextRepHint } : {}),
       pressureArchetypeId: currentRep?.pressureArchetype?.id ?? null,
     });
   }
@@ -233,6 +234,9 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
                   [...previousRepSummary.dimensions].sort(
                     (a, b) => a.score - b.score,
                   )[0]?.dimension ?? "clarity",
+                ...(previousRepSummary.nextRepHint
+                  ? { customHint: previousRepSummary.nextRepHint }
+                  : {}),
               }
             : null
         }

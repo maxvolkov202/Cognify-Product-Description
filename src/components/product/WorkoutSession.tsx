@@ -270,6 +270,7 @@ export function WorkoutSession({
       transcript,
       promptText: activePrompt ?? "",
       ...(score.headline ? { headline: score.headline } : {}),
+      ...(score.nextRepHint ? { nextRepHint: score.nextRepHint } : {}),
       pressureArchetypeId: currentRep?.pressureArchetype?.id ?? null,
     });
   };
@@ -549,7 +550,14 @@ export function WorkoutSession({
         feedbackTotalReps={plan.reps.length}
         feedbackModeLabel={feedbackModeLabel}
         feedbackLastRepFocus={
-          lastRepFocusDim ? { dimension: lastRepFocusDim } : null
+          lastRepFocusDim
+            ? {
+                dimension: lastRepFocusDim,
+                ...(previousRepSummary?.nextRepHint
+                  ? { customHint: previousRepSummary.nextRepHint }
+                  : {}),
+              }
+            : null
         }
         onFeedbackSaveExit={handleFeedbackSaveExit}
         scoreModeContext={scoreModeContext}

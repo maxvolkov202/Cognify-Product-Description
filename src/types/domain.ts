@@ -149,6 +149,19 @@ export type RepScore = {
    *  for this rep. Drives DimensionGrid emphasis when not overridden by
    *  mode (focus mode pins to focusDimension, pressure to stressed dims). */
   primaryFocusDimension?: SkillDimension;
+  /** Phase 3 calibration scaffold: the AI's self-classification of which
+   *  tone band it landed in. Lets us measure tone-vs-score alignment in
+   *  the existing `userCalibration` block — if 60% of "blunt" headlines
+   *  are landing on composites between 60-75 (where they should be
+   *  "directive"), the threshold needs tuning. Not user-visible. */
+  headlineTone?: "blunt" | "directive" | "praise" | "celebratory";
+  /** Phase 3 scaffold: short continuation phrase (3-8 words, e.g.
+   *  "tighten the runway again", "stay sharp under pushback") the next
+   *  rep's LastRepFocusBanner uses as its tail. AI-generated for
+   *  specificity; UI falls back to the static copy.ts lookup when
+   *  absent. Distinct from `headline` — this is the next-rep guidance,
+   *  not the current-rep verdict. */
+  nextRepHint?: string;
   /** Bumped when the user-facing feedback contract changes (new fields,
    *  new copy rules) independently of the scoring rubric. */
   feedbackVersion?: string;
@@ -159,8 +172,10 @@ export type RepScore = {
  *  scoring math.
  *  - v1.0.0 introduced `headline`.
  *  - v2.0.0 adds `didWell` / `didntLand` / `nextRepFocus` /
- *    `primaryFocusDimension`, replaces `focusReason` with `RepFocusContext`. */
-export const FEEDBACK_VERSION = "v2.0.0";
+ *    `primaryFocusDimension`, replaces `focusReason` with `RepFocusContext`.
+ *  - v2.1.0 adds `headlineTone` calibration scaffold and `nextRepHint`
+ *    AI-generated banner tail. */
+export const FEEDBACK_VERSION = "v2.1.0";
 
 export type FrameworkNode = {
   id: string;

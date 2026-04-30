@@ -31,6 +31,10 @@ export type PreviousRepSummary = {
    *  planNextRep — the next rep gets the worst-scoring stressed dim as
    *  its focus regardless of the carryover threshold. */
   pressureArchetypeId?: string | null;
+  /** Phase 3: AI-authored 3-8 word continuation tail. Becomes the tail of
+   *  the NEXT rep's LastRepFocusBanner ("Last rep focus: structure — {tail}").
+   *  Falls back to static copy.ts lookup when absent. */
+  nextRepHint?: string;
 };
 
 type Props = {
@@ -58,8 +62,10 @@ type Props = {
   /** Pre-formatted, uppercase. Empty string omits the separator chip. */
   modeLabel?: string;
   /** Pulled from the rep before this one. Renders the LastRepFocusBanner
-   *  when present. Source: WorkoutSession derives from previousRepSummary. */
-  lastRepFocus?: { dimension: SkillDimension } | null;
+   *  when present. Source: WorkoutSession derives from previousRepSummary.
+   *  `customHint` overrides the static copy.ts tail when the previous rep's
+   *  AI scoring emitted a `nextRepHint`. */
+  lastRepFocus?: { dimension: SkillDimension; customHint?: string } | null;
   /** When provided, RepProgressStrip shows "Save and exit". */
   onSaveExit?: () => void;
   /** Phase 2: per-rep mode signals so the dimension grid can apply
@@ -232,7 +238,10 @@ export function FeedbackPanel({
 
         {lastRepFocus && (
           <Section delay={1}>
-            <LastRepFocusBanner dimension={lastRepFocus.dimension} />
+            <LastRepFocusBanner
+              dimension={lastRepFocus.dimension}
+              customHeadline={lastRepFocus.customHint}
+            />
           </Section>
         )}
 
