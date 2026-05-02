@@ -22,6 +22,11 @@ export type UserProfile = {
   isOperator: boolean;
   baselineRepId: string | null;
   createdAt: Date | null;
+  /** DNA Ch.7 progression. Defaults to level 1, xp 0, lifetimeReps 0
+   *  for new users. */
+  level: number;
+  xp: number;
+  lifetimeReps: number;
 };
 
 export async function getUserProfile(
@@ -46,6 +51,9 @@ export async function getUserProfile(
       isOperator: row.isOperator ?? false,
       baselineRepId: row.baselineRepId ?? null,
       createdAt: row.createdAt ?? null,
+      level: row.level ?? 1,
+      xp: row.xp ?? 0,
+      lifetimeReps: row.lifetimeReps ?? 0,
     };
   }, null);
 }

@@ -56,6 +56,62 @@ export async function getSkillTrends(
   }, ALL_DIMENSIONS.map((d) => ({ dimension: d, points: [] })));
 }
 
+/**
+ * DNA Ch.8 — derive the user's weakest dimension over their last 30 reps.
+ * Returns null when sample size is too small (<10 reps) so the dashboard
+ * can render a "training in progress" empty state instead of a noisy
+ * weakest-link CTA.
+ */
+export type WeakestDimensionResult = {
+  dimension: SkillDimension;
+  averageScore: number;
+  sampleSize: number;
+} | null;
+
+const WEAKEST_LINK_MIN_SAMPLES = 10;
+const WEAKEST_LINK_LOOKBACK = 30;
+
+export async function getWeakestDimension(
+  userId: string,
+): Promise<WeakestDimensionResult> {
+  return safeDb<WeakestDimensionResult>(async () => {
+    const rows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        score: progressSnapshots.score,
+      })
+      .from(progressSnapshots)
+      .where(eq(progressSnapshots.userId, userId))
+      .orderBy(desc(progressSnapshots.takenAt))
+      .limit(WEAKEST_LINK_LOOKBACK * ALL_DIMENSIONS.length);
+
+    // Group by dimension; take only the most recent
+    // WEAKEST_LINK_LOOKBACK reps per dimension.
+    const buckets = new Map<SkillDimension, number[]>();
+    for (const row of rows) {
+      const dim = row.dimension as SkillDimension;
+      if (!isCanonicalDim(dim)) continue;
+      const arr = buckets.get(dim) ?? [];
+      if (arr.length < WEAKEST_LINK_LOOKBACK) arr.push(row.score);
+      buckets.set(dim, arr);
+    }
+
+    let weakest: WeakestDimensionResult = null;
+    for (const [dim, scores] of buckets) {
+      if (scores.length < WEAKEST_LINK_MIN_SAMPLES) continue;
+      const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
+      if (!weakest || avg < weakest.averageScore) {
+        weakest = {
+          dimension: dim,
+          averageScore: avg,
+          sampleSize: scores.length,
+        };
+      }
+    }
+    return weakest;
+  }, null);
+}
+
 export async function getCurrentSkillScores(
   userId: string,
 ): Promise<Record<SkillDimension, number | null>> {

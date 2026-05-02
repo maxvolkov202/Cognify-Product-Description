@@ -16,7 +16,10 @@ import {
   getActivityHeatmap,
   getSkillTrends,
   getRepById,
+  getWeakestDimension,
 } from "@/lib/db/queries/progress";
+import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
+import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
@@ -37,13 +40,15 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "anonymous";
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-  const [streakStatus, recent, activity, trends, profile] = await Promise.all([
-    getStreakStatus(userId),
-    getRecentReps(userId, 5),
-    getActivityHeatmap(userId, 30),
-    getSkillTrends(userId, 14),
-    user ? getUserProfile(user.id) : Promise.resolve(null),
-  ]);
+  const [streakStatus, recent, activity, trends, profile, weakest] =
+    await Promise.all([
+      getStreakStatus(userId),
+      getRecentReps(userId, 5),
+      getActivityHeatmap(userId, 30),
+      getSkillTrends(userId, 14),
+      user ? getUserProfile(user.id) : Promise.resolve(null),
+      user ? getWeakestDimension(user.id) : Promise.resolve(null),
+    ]);
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -131,6 +136,22 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-10 md:py-12">
       <ResumeBanner />
+
+      {profile && (
+        <LevelStreakCard
+          level={profile.level}
+          xp={profile.xp}
+          currentStreakDays={streakStatus.streakDays}
+          longestStreakDays={streakStatus.streakDays}
+        />
+      )}
+
+      {profile && (
+        <WeakestLinkCard
+          weakest={weakest}
+          totalReps={profile.lifetimeReps}
+        />
+      )}
 
       <DashboardHero
         firstName={firstName}
