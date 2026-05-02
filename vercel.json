@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/weekly-narrative",
       "schedule": "0 18 * * 0"
+    },
+    {
+      "path": "/api/cron/calibration-drift",
+      "schedule": "0 3 * * *"
     }
   ]
 }
