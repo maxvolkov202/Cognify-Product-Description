@@ -21,7 +21,17 @@ export const metadata: Metadata = {
     "Hear what each score band sounds like — model lines per dimension authored against the rubric.",
 };
 
-export const dynamic = "force-dynamic";
+/**
+ * Pre-generate the 6 valid dim paths at build time. Anything else
+ * triggers Next's static-not-found path and returns a real 404 status.
+ * The page reads only from in-source exemplars catalog data, so static
+ * generation is correct here — no DB / runtime deps to gate on.
+ */
+export function generateStaticParams() {
+  return SKILL_DIMENSIONS.map((dimension) => ({ dimension }));
+}
+
+export const dynamicParams = false;
 
 /**
  * Ch.16c — Per-band exemplars page.
