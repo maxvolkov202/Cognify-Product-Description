@@ -28,6 +28,7 @@ import { meetsSpeakingThreshold } from "@/lib/workout/pause";
 import { useRepStatus } from "@/hooks/useRepStatus";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
+import { RepHintsBar } from "./RepHintsBar";
 
 type SpeakingThreshold = {
   minWords?: number;
@@ -739,6 +740,16 @@ export function RepSurface({
         <FocusOverlay
           callout={(retryFocus ?? carryoverFocus) as Callout}
           label={retryFocus ? "Focus for this retry" : "From your last rep"}
+        />
+      )}
+
+      {/* ——— Ch.6a delivery hints — only when focus mode supplies a
+          dimension. Mixed/pressure modes hide the strip; they get richer
+          framing via the rep type framework already. ——— */}
+      {phase.kind === "idle" && scoreModeContext?.focusDimension && (
+        <RepHintsBar
+          dimension={scoreModeContext.focusDimension}
+          seed={sessionId ?? prompt}
         />
       )}
 
