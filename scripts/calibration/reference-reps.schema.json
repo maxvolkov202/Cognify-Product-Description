@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cognify reference reps",
+  "type": "object",
+  "required": ["rubricVersion", "reps"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "rubricVersion": { "type": "string", "pattern": "^v[0-9]+\\." },
+    "notes": { "type": "string" },
+    "reps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "promptText", "transcript", "durationMs"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "kind": { "enum": ["band", "independence"] },
+          "promptText": { "type": "string", "minLength": 1 },
+          "transcript": { "type": "string", "minLength": 1 },
+          "durationMs": { "type": "integer", "minimum": 1000 },
+          "audioUrl": { "type": "string", "format": "uri" },
+          "expected": {
+            "type": "object",
+            "description": "Required when kind=band; ignored otherwise.",
+            "required": ["composite", "band", "dimensions"],
+            "properties": {
+              "composite": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "band": {
+                "enum": [
+                  "poor",
+                  "below_standard",
+                  "competent",
+                  "strong",
+                  "excellent",
+                  "exceptional"
+                ]
+              },
+              "dimensions": {
+                "type": "object",
+                "required": [
+                  "clarity",
+                  "structure",
+                  "conciseness",
+                  "thinking_quality",
+                  "delivery",
+                  "tone"
+                ],
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
+          },
+          "assertions": {
+            "type": "array",
+            "description": "Required when kind=independence; ignored otherwise.",
+            "items": {
+              "type": "object",
+              "required": ["kind", "dimension"],
+              "oneOf": [
+                {
+                  "required": ["min"],
+                  "properties": {
+                    "kind": { "const": "minScore" },
+                    "min": { "type": "integer", "minimum": 0, "maximum": 100 }
+                  }
+                },
+                {
+                  "required": ["max"],
+                  "properties": {
+                    "kind": { "const": "maxScore" },
+                    "max": { "type": "integer", "minimum": 0, "maximum": 100 }
+                  }
+                }
+              ],
+              "properties": {
+                "dimension": {
+                  "enum": [
+                    "clarity",
+                    "structure",
+                    "conciseness",
+                    "thinking_quality",
+                    "delivery",
+                    "tone"
+                  ]
+                },
+                "rationale": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
