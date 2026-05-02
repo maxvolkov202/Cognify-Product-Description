@@ -216,6 +216,12 @@ export type RepScore = {
    *  low-confidence in that state so users implicitly trust prosody-grounded
    *  Tone scores more. */
   prosodyAvailable?: boolean;
+  /** Ch.5: composite ≥ 95 sets this flag. Surfaces in /ops as a review
+   *  queue. The user-facing flow does NOT block on review — they see the
+   *  score immediately. Operators retroactively confirm or correct so we
+   *  catch model over-confidence early. Always undefined on RubricVersion
+   *  before v3.0.1 (Ch.5 introduced the flag). */
+  requiresHumanReview?: boolean;
 };
 
 /** Bumped when the shape of user-facing feedback changes (new RepScore

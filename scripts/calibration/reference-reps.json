@@ -158,6 +158,99 @@
           "rationale": "Jargon-stacked for the stated audience (non-engineer) — Clarity must drop, even though Conciseness is high."
         }
       ]
+    },
+    {
+      "id": "edge-brevity-cost-meaning",
+      "kind": "independence",
+      "promptText": "Explain why we should switch our payment processor.",
+      "transcript": "Better. Switch.",
+      "durationMs": 3000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "clarity",
+          "max": 35,
+          "rationale": "DNA edge-case rule 1: brevity-at-cost-of-meaning takes the hit on Clarity (idea didn't land), not as a Conciseness reward."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 25,
+          "rationale": "Two-word answer dodges the prompt entirely — Thinking must score floor."
+        }
+      ]
+    },
+    {
+      "id": "edge-shallow-but-organized",
+      "kind": "independence",
+      "promptText": "Argue for adopting a four-day work week.",
+      "transcript": "First, four-day work weeks are good. Because productivity. Second, they help retention. Because retention. Third, they signal modernity. Because modernity. Therefore, four-day work weeks make sense. Because sense.",
+      "durationMs": 18000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "structure",
+          "min": 65,
+          "rationale": "DNA edge-case rule 2: numbered scaffold + connectives are visible — Structure scores in the competent band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 35,
+          "rationale": "Reasoning is circular and evidence-free — Thinking must drop. Organization does not compensate for shallow ideas."
+        }
+      ]
+    },
+    {
+      "id": "edge-fast-no-fillers",
+      "kind": "independence",
+      "promptText": "Brief your CFO on Q3 sales results in 30 seconds.",
+      "transcript": "Q3 came in at twelve point four million which is up eighteen percent year over year and that beats forecast by six points the upside came from enterprise expansion deals which closed at higher ACV the bottom line is we are tracking ahead of plan and the forecast for Q4 is fourteen million which would be a record quarter in the history of the company since founding.",
+      "durationMs": 18000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "delivery",
+          "max": 50,
+          "rationale": "DNA edge-case rule 3: ~210 wpm is well above the 150-160 optimal band. Speed alone (even without fillers) is a Delivery failure — listener can't keep up."
+        }
+      ]
+    },
+    {
+      "id": "edge-variety-with-upspeak",
+      "kind": "independence",
+      "promptText": "State your conviction on the candidate.",
+      "transcript": "I think she's the right hire? Her track record is strong? She's led teams of fifty plus? And she's already done the job we're hiring for, just at smaller scale? So I'd say we move forward?",
+      "durationMs": 14000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 50,
+          "rationale": "DNA edge-case rule 4: every statement ends with rising inflection. Strong vocal variety does NOT cancel an upspeak pattern — Tone takes the hit. Note: this assertion will only fully fire once Ch.3b prosody worker is wired (current LLM-only Tone scoring may grade this generously without prosody data)."
+        }
+      ]
+    },
+    {
+      "id": "edge-short-but-deep",
+      "kind": "independence",
+      "promptText": "Should we ship the feature this week or wait?",
+      "transcript": "Ship it. The risk of waiting is bigger than the risk of shipping with the known issue — the known issue affects three percent of users; waiting blocks revenue from the other ninety-seven and lets the competitor catch up. Patch on Friday.",
+      "durationMs": 14000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "DNA edge-case rule 5: brief BUT engages the prompt with quantified reasoning and a clear decision. Length alone does not penalize — Thinking must score high."
+        },
+        {
+          "kind": "minScore",
+          "dimension": "conciseness",
+          "min": 75,
+          "rationale": "Tight, no filler, every word advances the argument."
+        }
+      ]
     }
   ]
 }

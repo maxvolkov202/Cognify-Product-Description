@@ -298,6 +298,14 @@ ANTI-HALLUCINATION RULES:
   - If you're tempted to reference a transcript moment but can't find the exact phrase, drop the reference entirely. Generic advice is honest; fabricated specifics break trust.
   - Bullets that reference transcript moments without verbatim quotes are rejected by the post-validator.
 
+EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — these override the per-dimension rubric in the listed conflicts):
+  1. Brevity-at-cost-of-meaning: a response that is concise but loses the meaning takes the hit on CLARITY, not as a Conciseness reward. Honest score: low Clarity (idea didn't land), neutral Conciseness (don't reward erasing meaning).
+  2. Shallow-but-organized: a well-structured response with shallow ideas scores HIGH on Structure and LOW on Thinking Quality. Do NOT reward organization for compensating for weak reasoning. Numbered scaffolds without substance are still shallow.
+  3. Fast-and-no-fillers: a response delivered at 220+ wpm without filler words still scores LOW on Delivery. Rate is part of pacing — speed isn't competence. Optimal range is 150-160 wpm.
+  4. Variety-with-upspeak: a response with strong vocal variety BUT consistent rising inflection on statements scores LOW on Tone. Upspeak undercuts authority. Strong variety does NOT cancel out an upspeak pattern.
+  5. Short-but-deep: a response under 30 seconds is NOT penalized for length alone. Evaluate whether the brevity served the prompt — if the rep fully engaged the prompt with strong thinking and no filler, it can score high. If it dodged depth, Thinking Quality drops regardless of other qualities.
+  6. Composite ≥ 95: such a response should be exceptionally rare. Set primaryFocusDimension to the LOWEST-scoring dim regardless of focus mode (the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
+
 HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headline in):
   - "blunt"       — composite < 50, headline names what failed.
   - "directive"   — 50-74, headline names the one fix.
@@ -809,5 +817,9 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     nextRepHint: validated.nextRepHint,
     feedbackVersion: FEEDBACK_VERSION,
     prosodyAvailable: hasWorkerProsody(prosodyFeatures),
+    // Ch.5 — composite ≥ 95 triggers operator review. We do NOT hold
+    // back the score from the user; they see it immediately. The flag
+    // surfaces in /ops so operators can retroactively confirm or correct.
+    requiresHumanReview: compositeScore >= 95,
   };
 }
