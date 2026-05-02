@@ -35,3 +35,27 @@ export type VerticalPrompt = {
    *  this when present so the same stakeholder doesn't fill a slate. */
   readonly stakeholder?: string;
 };
+
+/**
+ * Cognify DNA Ch.6b — focus-drill prompts for Thinking Quality / Delivery /
+ * Tone. These are NOT topic prompts (those live in workout-prompts) — they
+ * pair a topic with a SPECIFIC mechanic constraint that forces the
+ * dimension's training intent.
+ *
+ *   topic            : the rep's subject ("argue both sides of remote work")
+ *   drillInstruction : the mechanic constraint surfaced before the rep
+ *                      ("speak this for 60 seconds without using 'um' or 'like'")
+ *   targetSubSkill   : which sub-skill the AI should weight most heavily
+ *                      when scoring; also drives RepHintsBar's hint pool
+ *
+ * Stratified at picker time across `targetSubSkill` so a slate of 5 hits
+ * a balanced spread of sub-skills within the dimension.
+ */
+import type { SubSkillId } from "@/types/sub-skills";
+
+export type DrillPrompt = {
+  readonly id: string;
+  readonly topic: string;
+  readonly drillInstruction: string;
+  readonly targetSubSkill: SubSkillId;
+};
