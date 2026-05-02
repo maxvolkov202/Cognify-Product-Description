@@ -6,6 +6,7 @@ import {
   RUBRIC_VERSION,
   composite,
 } from "@/lib/scoring/rubric";
+import { renderAnchorsForDimension } from "@/lib/scoring/rubric-anchors";
 import type {
   FeedbackBullet,
   NextRepFocusItem,
@@ -234,6 +235,27 @@ function isDeterministicSignalsOn(userId: string | undefined): boolean {
   return hash.readUInt32BE(0) % 100 < percent;
 }
 
+/** Ch.13 — Band-anchors gate. Same two-knob shape as
+ *  isDeterministicSignalsOn so a single user's bucket assignment is
+ *  consistent across both rollouts (different env hashes; correlation
+ *  is fine). When on, the score prompt's RUBRIC block carries the 30
+ *  per-dim band anchors; off path renders the legacy rubric. The
+ *  switch is pure path — no scoring math change, but the prompt size
+ *  grows, so cache_control buys us back the latency cost on
+ *  subsequent calls. */
+function isBandAnchorsOn(userId: string | undefined): boolean {
+  if (process.env.FF_BAND_ANCHORS !== "true") return false;
+  const percent = parseInt(
+    process.env.FF_BAND_ANCHORS_PERCENT ?? "0",
+    10,
+  );
+  if (Number.isNaN(percent) || percent <= 0) return false;
+  if (percent >= 100) return true;
+  if (!userId) return false;
+  const hash = createHash("sha256").update(`band-anchors::${userId}`).digest();
+  return hash.readUInt32BE(0) % 100 < percent;
+}
+
 function renderTimedTranscript(
   transcript: string,
   words?: { word: string; startMs: number; endMs: number }[],
@@ -373,6 +395,11 @@ NEXT REP HINT:
  * dimensions only (delivery + thinking_quality are deterministic, no
  * need to spend tokens describing them to the model). Capped to keep
  * the system prompt under ~3KB after caching.
+ *
+ * Ch.13 — when `withAnchors=true`, interleaves the per-dim band anchors
+ * from `rubric-anchors.ts`. The anchored variant is cached separately
+ * and rendered into the score prompt only when FF_BAND_ANCHORS is on,
+ * so the legacy prompt + cache key stays untouched on the off path.
  */
 const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "clarity",
@@ -381,18 +408,25 @@ const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "tone",
 ];
 
-function renderRubric(): string {
+function renderRubric(withAnchors = false): string {
   return LLM_SCORED_DIMENSIONS.map((d) => {
     const r = DIMENSION_RUBRIC[d];
+    const anchorBlock = withAnchors
+      ? `\n\nBands (pick the band first, then place the score within its range):\n${renderAnchorsForDimension(d)}`
+      : "";
     return `## ${d}
 ${r.definition}
 Low: ${r.lowScoreSignals.slice(0, 3).join("; ")}
-High: ${r.highScoreSignals.slice(0, 3).join("; ")}`;
+High: ${r.highScoreSignals.slice(0, 3).join("; ")}${anchorBlock}`;
   }).join("\n\n");
 }
 
-// Cached at module scope so we don't re-render on every request.
-const COMPACT_RUBRIC = renderRubric();
+// Cached at module scope so we don't re-render on every request. Two
+// variants: the legacy (no band anchors) and the Ch.13 anchored
+// version. Both are kept warm so the FF flip is a pure path switch
+// with no first-request render cost.
+const COMPACT_RUBRIC = renderRubric(false);
+const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
 const SUB_SKILL_REFERENCE = renderSubSkillReference();
 
 /** Knowledge for ONLY the LLM-scored skills. delivery + thinking_quality
@@ -672,6 +706,16 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     signalsBlock = renderTextSignalsBlock(textSignals);
   }
 
+  // Ch.13 — Band-anchors gate. When on, the cached rubric block in the
+  // system prompt carries the 30 per-dim band anchors. Off path keeps
+  // the legacy compact rubric — and an unchanged cache_control key for
+  // the system prompt block — so untouched users see no latency
+  // regression while the anchors ramp.
+  const bandAnchorsOn = isBandAnchorsOn(input.userId);
+  const rubricBlock = bandAnchorsOn
+    ? COMPACT_RUBRIC_WITH_ANCHORS
+    : COMPACT_RUBRIC;
+
   // Ch.3a: derive inline prosody features from word timings when caller
   // didn't supply pre-computed features. Ch.3b: concurrently call the
   // external prosody worker (when configured) and merge its pitch/RMS
@@ -734,7 +778,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
       },
       {
         type: "text" as const,
-        text: `RUBRIC (only the four LLM-scored dimensions; delivery and thinking_quality are scored separately):\n\n${COMPACT_RUBRIC}`,
+        text: `RUBRIC (only the four LLM-scored dimensions; delivery and thinking_quality are scored separately):\n\n${rubricBlock}`,
         cache_control: { type: "ephemeral" as const },
       },
       ...(COMPACT_KNOWLEDGE

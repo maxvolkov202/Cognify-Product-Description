@@ -54,15 +54,62 @@ export const DIMENSION_WEIGHTS: Record<SkillDimension, number> = {
 /**
  * Score band definitions per DNA spec. The starting band for new users is
  * Competent (60-75); 95+ should be exceptional and trigger human review.
- * UI labels read from `label`, threshold checks from `min`/`max`.
+ * UI labels read from `label`, threshold checks from `min`/`max`. The
+ * `description` field (Ch.13) is the user-visible band copy rendered
+ * under the composite in ScoreHero — it answers "what does this score
+ * actually mean about my rep?". Distinct from the per-dimension rubric
+ * anchors in `src/lib/scoring/rubric-anchors.ts`, which guide the LLM
+ * scoring path and live behind FF_BAND_ANCHORS.
  */
 export const BAND_DEFINITIONS = [
-  { id: "poor", label: "Poor", min: 0, max: 40 },
-  { id: "below_standard", label: "Below Standard", min: 40, max: 60 },
-  { id: "competent", label: "Competent", min: 60, max: 75 },
-  { id: "strong", label: "Strong", min: 75, max: 85 },
-  { id: "excellent", label: "Excellent", min: 85, max: 95 },
-  { id: "exceptional", label: "Exceptional", min: 95, max: 100 },
+  {
+    id: "poor",
+    label: "Poor",
+    min: 0,
+    max: 40,
+    description:
+      "The response missed the prompt or fundamental skills broke down. The listener was lost — clarity, structure, or thinking didn't land. This isn't where you stay; this is where the next rep starts.",
+  },
+  {
+    id: "below_standard",
+    label: "Below Standard",
+    min: 40,
+    max: 60,
+    description:
+      "Ideas were there but they didn't fully land. One or two skills carried the rep; one or two more dragged it down. The fix is usually structural — name the point, then build it.",
+  },
+  {
+    id: "competent",
+    label: "Competent",
+    min: 60,
+    max: 75,
+    description:
+      "A working response. The listener got the point. Polish on one specific skill — usually pacing, hedge density, or a missing close — would lift this into Strong territory.",
+  },
+  {
+    id: "strong",
+    label: "Strong",
+    min: 75,
+    max: 85,
+    description:
+      "Doing most things right. The idea is clear, reasonably well structured, and delivered with intentionality. One or two sub-skills still leak — the next rep narrows in on which.",
+  },
+  {
+    id: "excellent",
+    label: "Excellent",
+    min: 85,
+    max: 95,
+    description:
+      "Calibrated, confident, and tight. Every dimension is firing. The headroom left is at the polish layer — a sharper close, a more specific quote, tone that holds across the whole arc.",
+  },
+  {
+    id: "exceptional",
+    label: "Exceptional",
+    min: 95,
+    max: 100,
+    description:
+      "Reference-grade. The response would land in any room. Score this rare — replay the rep to extract what made it work, then push for a harder prompt to keep stretching.",
+  },
 ] as const;
 
 export type BandId = (typeof BAND_DEFINITIONS)[number]["id"];
