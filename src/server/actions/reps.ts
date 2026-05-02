@@ -8,6 +8,7 @@ import {
   callouts as calloutsTable,
   progressSnapshots,
   practiceSessions,
+  users,
 } from "@/lib/db/schema";
 import { count, eq, asc } from "drizzle-orm";
 import { safeDb } from "@/lib/db/safe";
@@ -17,12 +18,31 @@ import { getStreakDays } from "@/lib/db/queries/progress";
 import { recordPersonalBests } from "@/lib/db/queries/personal-bests";
 import { awardStreakFreeze } from "@/lib/db/queries/streak-freeze";
 import { awardXp, type AwardXpResult } from "@/lib/progression/xp";
+import {
+  evaluateAchievements,
+  getDimensionsEverScored,
+  type AchievementId,
+} from "@/lib/engagement/achievement-rules";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
  *  back with `gate: "signup_required"` — the UI shows the score, then
  *  replaces the "Next rep" CTA with a signup paywall. */
 const GUEST_REP_LIMIT = 3;
+
+/** Read users.lifetime_reps post-awardXp. Awarded inside awardXp; we
+ *  need the post-increment value for achievement evaluation. Wrapped in
+ *  safeDb so DB hiccups return null and achievements gracefully skip. */
+async function readLifetimeReps(userId: string): Promise<number | null> {
+  return safeDb<number | null>(async () => {
+    const [row] = await db
+      .select({ lifetimeReps: users.lifetimeReps })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return row?.lifetimeReps ?? null;
+  }, null);
+}
 
 export type SaveRepInput = {
   mode: ModeId;
@@ -55,6 +75,9 @@ export type SaveRepResult = {
    *  guests (no progression) and when DB is unavailable. UI fires the
    *  level-up celebration when `xp.leveledUp === true`. */
   xp?: AwardXpResult;
+  /** DNA Ch.9c — achievements newly unlocked by this rep. Empty when none.
+   *  Client iterates and fires earn-time toasts. */
+  unlockedAchievements?: AchievementId[];
 };
 
 export type InsertPendingRepInput = {
@@ -302,12 +325,34 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     // a progression slot. Streak already computed above; reuse to keep
     // this single round-trip.
     let xp: AwardXpResult | undefined;
+    let unlockedAchievements: AchievementId[] | undefined;
     if (userId !== "anonymous" && !isGuest) {
       const streak = await getStreakDays(userId);
       xp = await awardXp({
         userId,
         composite: input.score.composite,
         streakDays: streak,
+      });
+
+      // DNA Ch.9c — evaluate achievements after XP grant so the
+      // users.lifetime_reps column reflects this rep. getDimensions-
+      // EverScored picks up the just-inserted dimensionScores rows.
+      const lifetimeReps = (await readLifetimeReps(userId)) ?? 0;
+      const dimsEverScored = await getDimensionsEverScored(userId);
+      unlockedAchievements = await evaluateAchievements({
+        userId,
+        score: input.score,
+        mode: input.mode,
+        isFocusDrill: input.mode === "skill_lab",
+        // Pressure detection requires the archetype id which doesn't
+        // currently flow into SaveRepInput. Defer to a follow-up that
+        // plumbs pressureArchetypeId; for now explore_pressure achievement
+        // unlocks via the Skill Lab pressure-mode entry point only.
+        isPressureRep: false,
+        isBuildARep: input.mode === "scenario_training",
+        lifetimeReps,
+        streakDays: streak,
+        dimensionsEverScored: dimsEverScored,
       });
     }
 
@@ -319,6 +364,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       gate,
       guestRepCount,
       xp,
+      unlockedAchievements,
     };
   }, fallback);
 }

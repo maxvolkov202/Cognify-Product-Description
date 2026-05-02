@@ -306,6 +306,29 @@ export const promptEngagement = cognifyV2Schema.table(
 );
 
 /**
+ * DNA Ch.9c — earnable achievements ("badges"). Definitions live in code
+ * (src/lib/engagement/achievements.ts); this table only records per-user
+ * unlocks. One row per (user, achievement) — uniqueness enforced.
+ */
+export const userAchievements = cognifyV2Schema.table(
+  "user_achievements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    earnedAt: timestamp("earned_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("user_achievements_user_id_idx").on(t.userId),
+    index("user_achievements_earned_at_idx").on(t.earnedAt),
+  ],
+);
+
+/**
  * Per-user prompt history. Powers the "don't show me the same prompt
  * twice" filter in the picker. Recorded when a user starts a rep
  * (selected the prompt), not merely when the slate is rendered, so
