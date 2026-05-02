@@ -7,6 +7,7 @@ import {
   jsonb,
   boolean,
   uuid,
+  date,
   index,
   primaryKey,
 } from "drizzle-orm/pg-core";
@@ -302,6 +303,31 @@ export const promptEngagement = cognifyV2Schema.table(
   (t) => [
     index("prompt_engagement_picked_idx").on(t.pickedCount, t.shownCount),
     index("prompt_engagement_refresh_idx").on(t.refreshedPastCount),
+  ],
+);
+
+/**
+ * DNA Ch.9d — daily quests. Three quests per user per UTC day, JSONB
+ * payload so quest design can iterate without schema churn. Definitions
+ * live in code (src/lib/engagement/quests.ts).
+ */
+export const dailyQuests = cognifyV2Schema.table(
+  "daily_quests",
+  {
+    userId: uuid("user_id").notNull(),
+    questDate: date("quest_date").notNull(),
+    quests: jsonb("quests").notNull(),
+    completion: jsonb("completion").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.questDate] }),
+    index("daily_quests_user_date_idx").on(t.userId, t.questDate),
   ],
 );
 

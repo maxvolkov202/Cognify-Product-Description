@@ -10,7 +10,7 @@ import {
   practiceSessions,
   users,
 } from "@/lib/db/schema";
-import { count, eq, asc } from "drizzle-orm";
+import { count, eq, asc, sql } from "drizzle-orm";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
@@ -23,6 +23,14 @@ import {
   getDimensionsEverScored,
   type AchievementId,
 } from "@/lib/engagement/achievement-rules";
+import {
+  evaluateQuestProgress,
+} from "@/lib/engagement/quests";
+import {
+  getOrCreateTodayQuests,
+  markQuestsCompleted,
+  ymdUtc,
+} from "@/lib/db/queries/daily-quests";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
@@ -78,6 +86,9 @@ export type SaveRepResult = {
   /** DNA Ch.9c — achievements newly unlocked by this rep. Empty when none.
    *  Client iterates and fires earn-time toasts. */
   unlockedAchievements?: AchievementId[];
+  /** DNA Ch.9d — daily quest ids completed by this rep + bonus XP. UI
+   *  surfaces as a small "+X XP — quest complete" toast. */
+  completedQuests?: { ids: string[]; bonusXp: number };
 };
 
 export type InsertPendingRepInput = {
@@ -367,6 +378,58 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       });
     }
 
+    // DNA Ch.9d — daily quest progress. Auth users only. The quest
+    // selection is stable per (user, day); evaluation flips any quests
+    // satisfied by THIS rep + grants their bonus XP. The bonus is added
+    // directly to users.xp rather than going through awardXp's curve so
+    // quest XP is additive (band/streak multipliers don't apply to it).
+    let completedQuests: { ids: string[]; bonusXp: number } | undefined;
+    if (userId !== "anonymous" && !isGuest) {
+      const today = ymdUtc();
+      const todays = await getOrCreateTodayQuests(userId, new Date());
+      const repsToday = (
+        await db
+          .select({ c: count() })
+          .from(reps)
+          .where(eq(reps.userId, userId))
+      )[0]?.c ?? 0;
+      const evalResult = evaluateQuestProgress({
+        todaysQuests: todays.quests,
+        alreadyCompletedIds: todays.completedIds,
+        rep: {
+          composite: input.score.composite,
+          dimensions: input.score.dimensions.map((d) => ({
+            dimension: d.dimension as SkillDimension,
+            score: d.score,
+          })),
+          isFocusDrill: input.mode === "skill_lab",
+          isPressureRep: false,
+          repsToday: Number(repsToday),
+        },
+      });
+      if (evalResult.newlyCompletedIds.length > 0) {
+        await markQuestsCompleted(
+          userId,
+          today,
+          evalResult.newlyCompletedIds,
+          evalResult.bonusXp,
+        );
+        // Tack the bonus XP onto the user record directly (no level-up
+        // re-eval — bonus is small and capped per day at ~100 XP across
+        // 3 quests, well under a single level threshold).
+        await safeDb<void>(async () => {
+          await db
+            .update(users)
+            .set({ xp: sql`${users.xp} + ${evalResult.bonusXp}` })
+            .where(eq(users.id, userId));
+        }, undefined);
+        completedQuests = {
+          ids: evalResult.newlyCompletedIds,
+          bonusXp: evalResult.bonusXp,
+        };
+      }
+    }
+
     return {
       repId,
       sessionId,
@@ -376,6 +439,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       guestRepCount,
       xp,
       unlockedAchievements,
+      completedQuests,
     };
   }, fallback);
 }

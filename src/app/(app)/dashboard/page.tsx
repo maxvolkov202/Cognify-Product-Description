@@ -21,6 +21,8 @@ import {
 import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
 import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
 import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
+import { DailyQuestsStrip } from "@/components/product/dashboard/DailyQuestsStrip";
+import { getOrCreateTodayQuests } from "@/lib/db/queries/daily-quests";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
@@ -41,7 +43,7 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "anonymous";
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-  const [streakStatus, recent, activity, trends, profile, weakest] =
+  const [streakStatus, recent, activity, trends, profile, weakest, todaysQuests] =
     await Promise.all([
       getStreakStatus(userId),
       getRecentReps(userId, 5),
@@ -49,6 +51,7 @@ export default async function DashboardPage() {
       getSkillTrends(userId, 14),
       user ? getUserProfile(user.id) : Promise.resolve(null),
       user ? getWeakestDimension(user.id) : Promise.resolve(null),
+      user ? getOrCreateTodayQuests(user.id) : Promise.resolve(null),
     ]);
 
   const hasAnyReps = recent.length > 0;
@@ -158,6 +161,13 @@ export default async function DashboardPage() {
         <StreakCalendar
           activity={activity.slice(-30)}
           currentStreakDays={streakStatus.streakDays}
+        />
+      )}
+
+      {todaysQuests && (
+        <DailyQuestsStrip
+          quests={todaysQuests.quests}
+          completedIds={todaysQuests.completedIds}
         />
       )}
 
