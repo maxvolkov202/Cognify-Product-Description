@@ -41,6 +41,7 @@ import {
 } from "@/lib/db/queries/sub-skills";
 import type { SubSkillId } from "@/types/sub-skills";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
+import { DnaStatsStrip } from "@/components/product/DnaStatsStrip";
 import { DashboardHero } from "@/components/product/DashboardHero";
 import { DayDotsPreview } from "@/components/product/DayDotsPreview";
 import { WeekCalendar } from "@/components/product/WeekCalendar";
@@ -199,6 +200,15 @@ export default async function DashboardPage() {
               </Link>
             </p>
           </div>
+        </div>
+        {/* Ch.17 — DNA stats motivator strip on the empty state. Only
+         *  surfaces for users with 0 reps so it doesn't crowd the
+         *  established-user dashboard. Seed by date so the rotation is
+         *  stable through SSR + hydration. */}
+        <div className="mt-10">
+          <DnaStatsStrip
+            seed={`dashboard-empty::${new Date().toISOString().slice(0, 10)}`}
+          />
         </div>
       </div>
     );
