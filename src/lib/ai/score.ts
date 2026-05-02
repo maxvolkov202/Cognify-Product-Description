@@ -30,6 +30,11 @@ import {
   renderSubSkillReference,
   type SubSkillId,
 } from "@/types/sub-skills";
+import { extractInlineProsody } from "@/lib/audio/prosody-inline";
+import {
+  renderProsodyBlock,
+  type ProsodyFeatures,
+} from "@/lib/audio/prosody";
 
 const dimensionScoreSchema = z.object({
   dimension: z.enum([
@@ -147,6 +152,11 @@ export type ScoreRepInput = {
   transcript: string;
   promptText: string;
   durationMs: number;
+  /** Ch.3a — prosody features for grounding Tone + Delivery scores.
+   *  Inline path (rate / fillers / pauses) auto-derived from word timings
+   *  when omitted; pass an explicit object to inject worker-extracted
+   *  pitch/RMS metrics from Ch.3b. */
+  prosodyFeatures?: ProsodyFeatures;
   /**
    * Expected rep time budget (ms). Used by the deterministic pacing
    * scorer to compute timeBudgetRatio. Defaults to durationMs if not
@@ -558,6 +568,19 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const modeBlock = renderModeBlock(input.modeContext);
 
+  // Ch.3a: derive inline prosody features from word timings when caller
+  // didn't supply pre-computed features. Worker-derived fields stay null
+  // until Ch.3b lands the external pipeline.
+  const prosodyFeatures =
+    input.prosodyFeatures ??
+    (hasWordTimestamps
+      ? extractInlineProsody({
+          words: input.words!,
+          durationMs: input.durationMs,
+        })
+      : null);
+  const prosodyBlock = renderProsodyBlock(prosodyFeatures);
+
   const userPrompt = [
     modeBlock,
     `PROMPT: ${input.promptText}`,
@@ -567,6 +590,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
+    prosodyBlock,
     hasWordTimestamps
       ? `TRANSCRIPT (inline [m:ss] markers are real timestamps; use them for callout ranges):\n${timedTranscript}`
       : `TRANSCRIPT:\n${timedTranscript}`,
