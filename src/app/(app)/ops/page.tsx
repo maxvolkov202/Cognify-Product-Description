@@ -67,6 +67,12 @@ export default async function OpsPage() {
         >
           Prompt engagement →
         </a>
+        <a
+          href="/ops/calibration"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
+        >
+          Calibration drift →
+        </a>
       </div>
 
       <section className="mt-10">
