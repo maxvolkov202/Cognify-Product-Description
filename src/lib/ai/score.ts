@@ -18,7 +18,14 @@ import {
   type PressureArchetypeId,
 } from "./pressure-archetypes";
 import { loadSkill, renderBlocks } from "./knowledge";
-import { extractSignals } from "@/lib/scoring/signals";
+import {
+  extractSignals,
+  extractAllTextSignals,
+  mapSignalsToSubSkillScores,
+  renderTextSignalsBlock,
+  toScoresOnly,
+  type TextSignals,
+} from "@/lib/scoring/signals";
 import {
   scorePacing,
   scoreThinkingQualityDeterministic,
@@ -27,9 +34,11 @@ import {
 import {
   ALL_SUB_SKILLS,
   SUB_SKILL_TO_DIMENSION,
+  SUB_SKILLS,
   renderSubSkillReference,
   type SubSkillId,
 } from "@/types/sub-skills";
+import { createHash } from "node:crypto";
 import {
   extractInlineProsody,
   mergeProsody,
@@ -185,7 +194,45 @@ export type ScoreRepInput = {
   /** Phase 2: mode/session/carry-over context. Optional — when absent,
    *  the scoring prompt runs in mode-blind mode (Phase 1 behavior). */
   modeContext?: ScoreRepModeContext;
+  /** Ch.11c: optional userId for the FF_DETERMINISTIC_SIGNALS percentile
+   *  rollout. When omitted (anonymous reps, internal scripts), the gate
+   *  evaluates to false so the new SIGNALS-block path is never enabled
+   *  — keeps trial / unauthenticated flows on the legacy path while we
+   *  ramp. */
+  userId?: string;
 };
+
+/** Ch.11c — Two-knob feature flag. `FF_DETERMINISTIC_SIGNALS=true` is
+ *  the kill switch; `FF_DETERMINISTIC_SIGNALS_PERCENT` (0-100) is the
+ *  rollout percentile.
+ *
+ *  Behavior by percent:
+ *   - percent <= 0 (or unset / unparseable): always off.
+ *   - percent >= 100: always on, regardless of userId — this lets the
+ *     calibration harness (which POSTs unauthenticated) exercise the
+ *     full signals path against a staging deployment configured at
+ *     percent=100. Production ramp stops at percent=25/50 etc. before
+ *     hitting 100, so the "anonymous always on at 100" carve-out is
+ *     reachable only after the rollout has been fully validated.
+ *   - 0 < percent < 100: requires userId. A stable SHA-256 hash buckets
+ *     each user; ramping percent only ever ADDS users to the in-bucket
+ *     so a user's path stays consistent across reps within a single
+ *     setting (no flapping between legacy and new path). Anonymous
+ *     reps fall through to legacy path during partial rollouts.
+ *
+ *  Master flag must be "true" for any of the above to evaluate to on. */
+function isDeterministicSignalsOn(userId: string | undefined): boolean {
+  if (process.env.FF_DETERMINISTIC_SIGNALS !== "true") return false;
+  const percent = parseInt(
+    process.env.FF_DETERMINISTIC_SIGNALS_PERCENT ?? "0",
+    10,
+  );
+  if (Number.isNaN(percent) || percent <= 0) return false;
+  if (percent >= 100) return true;
+  if (!userId) return false;
+  const hash = createHash("sha256").update(userId).digest();
+  return hash.readUInt32BE(0) % 100 < percent;
+}
 
 function renderTimedTranscript(
   transcript: string,
@@ -581,11 +628,49 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
   return lines.join("\n");
 }
 
+/** Ch.11c — Extract the per-dimension subset of `subSkillScores` for a
+ *  single dimension. Returns undefined when no sub-skills are populated
+ *  for that dim (so the field stays `undefined` on the DimensionScore,
+ *  matching its optional shape — a `{}` would be persisted as an
+ *  empty object and clutter the jsonb). */
+function pickSubSkillsForDim(
+  scores: Partial<Record<SubSkillId, number>>,
+  dimension: SkillDimension,
+): Partial<Record<SubSkillId, number>> | undefined {
+  const out: Partial<Record<SubSkillId, number>> = {};
+  let any = false;
+  for (const subSkill of SUB_SKILLS[dimension]) {
+    const score = scores[subSkill];
+    if (score != null) {
+      out[subSkill] = score;
+      any = true;
+    }
+  }
+  return any ? out : undefined;
+}
+
 export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   const timedTranscript = renderTimedTranscript(input.transcript, input.words);
   const hasWordTimestamps = input.words && input.words.length > 0;
 
   const modeBlock = renderModeBlock(input.modeContext);
+
+  // Ch.11c — Text-derived deterministic signals. Gate is per-user via
+  // SHA-256 percentile bucket so we can ramp 25→100 via env var without
+  // code changes. When the flag is off OR the userId is absent, the
+  // SIGNALS block isn't rendered and subSkillScores aren't computed —
+  // the response shape is byte-identical to the pre-Ch.11 path.
+  const signalsFlagOn = isDeterministicSignalsOn(input.userId);
+  let textSignals: TextSignals | null = null;
+  let signalsBlock: string | null = null;
+  if (signalsFlagOn) {
+    textSignals = extractAllTextSignals({
+      transcript: input.transcript,
+      durationMs: input.durationMs,
+      words: input.words,
+    });
+    signalsBlock = renderTextSignalsBlock(textSignals);
+  }
 
   // Ch.3a: derive inline prosody features from word timings when caller
   // didn't supply pre-computed features. Ch.3b: concurrently call the
@@ -622,6 +707,11 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
+    // Ch.11c — text-derived signals (FF-gated). Placed BEFORE prosody +
+    // transcript so Claude sees the objective measurements first and
+    // can score the four LLM-scored content dimensions AGAINST the
+    // numbers rather than re-deriving them from the transcript.
+    signalsBlock,
     prosodyBlock,
     hasWordTimestamps
       ? `TRANSCRIPT (inline [m:ss] markers are real timestamps; use them for callout ranges):\n${timedTranscript}`
@@ -795,6 +885,22 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           }
         : d,
     );
+  }
+
+  // Ch.11c — attach per-sub-skill scores from the text-signal mapper.
+  // Runs ONLY when the FF gated SIGNALS block was rendered above
+  // (textSignals != null). Uses the post-deterministic dimensionMap so
+  // the dimension_fallback path inherits the FINAL dim score (Delivery
+  // override + Thinking blend already applied) rather than the raw LLM
+  // dim score. Audio-driven sub-skills (Delivery + Tone) all flow
+  // through dimension_fallback and inherit their dim's holistic score.
+  if (signalsFlagOn && textSignals) {
+    const subSkillMap = mapSignalsToSubSkillScores(textSignals, dimensionMap);
+    const allScores = toScoresOnly(subSkillMap);
+    finalDimensions = finalDimensions.map((d) => {
+      const subScores = pickSubSkillsForDim(allScores, d.dimension);
+      return subScores ? { ...d, subSkillScores: subScores } : d;
+    });
   }
 
   const compositeScore = composite(dimensionMap, input.weights);

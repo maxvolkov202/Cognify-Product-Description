@@ -27,7 +27,19 @@ import {
  * scored under, so trend lines remain honest across rubric evolutions.
  */
 
-export const RUBRIC_VERSION = "v3.0.0";
+/**
+ * v3.1.0 (Ch.11 — DNA Gap Closure 2026-05-02): adds the deterministic
+ * SIGNALS block to the score prompt for the four LLM-scored content
+ * dimensions (clarity, structure, conciseness, thinking_quality), and
+ * persists per-sub-skill scores from the text-signal mapper. Composite
+ * math, weights, and band definitions are unchanged from v3.0.0; the
+ * version bump tracks that scoring INPUT to the LLM has changed
+ * (signals + score-against instruction) even though the output schema
+ * is back-compatible. Reps with FF_DETERMINISTIC_SIGNALS off score on
+ * the v3.0.0 path and are tagged with this version anyway — the version
+ * is the rubric the rep was eligible for, not the path it took.
+ */
+export const RUBRIC_VERSION = "v3.1.0";
 
 export type DimensionGroup = "content" | "delivery";
 

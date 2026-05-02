@@ -33,6 +33,10 @@ import {
 } from "@/lib/db/queries/daily-quests";
 import { tickWeeklyXp } from "@/lib/db/queries/leagues";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
+import {
+  encodeDimensionSignals,
+  decodeDimensionSignals,
+} from "@/lib/scoring/signals";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
  *  back with `gate: "signup_required"` — the UI shows the score, then
@@ -236,7 +240,14 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           repId,
           dimension: d.dimension,
           score: d.score,
-          signals: d.signals as unknown as object,
+          // Ch.11c — encode narratives + optional subSkillScores into a
+          // single jsonb. Falls back to the legacy string[] shape when
+          // subSkillScores is absent (FF-off path) so back-compat is
+          // preserved on disk.
+          signals: encodeDimensionSignals(
+            d.signals,
+            d.subSkillScores,
+          ) as unknown as object,
         })),
       );
       await db.insert(progressSnapshots).values(
@@ -495,11 +506,17 @@ export async function getRepResult(
 
     const score: RepScore = {
       composite: rep.compositeScore ?? 0,
-      dimensions: dims.map((d) => ({
-        dimension: d.dimension as SkillDimension,
-        score: d.score,
-        signals: (d.signals as string[]) ?? [],
-      })),
+      dimensions: dims.map((d) => {
+        const decoded = decodeDimensionSignals(d.signals);
+        return {
+          dimension: d.dimension as SkillDimension,
+          score: d.score,
+          signals: decoded.narratives,
+          ...(decoded.subSkillScores
+            ? { subSkillScores: decoded.subSkillScores }
+            : {}),
+        };
+      }),
       callouts: cos.map((c) => ({
         dimension: c.dimension as SkillDimension,
         tone: c.tone as "positive" | "neutral" | "warn" | "critical",

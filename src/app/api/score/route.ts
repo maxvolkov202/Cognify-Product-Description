@@ -18,15 +18,23 @@ import {
 } from "@/lib/db/queries/calibration";
 
 /**
- * Pull the user's calibration context from past ratings + corrections and
- * render it as a short system-prompt block. Safe to call for unauthenticated
- * users — returns null when there's no calibration signal yet.
+ * Pull the current user's id + calibration block in a single shot.
+ * Returns { userId: null, calibrationBlock: null } for unauthenticated
+ * requests (anonymous trial reps still flow through the legacy scoring
+ * path; the Ch.11c FF gate uses userId to bucket users into the
+ * deterministic-signals rollout, so anonymous reps are always off).
  */
-async function loadCalibrationForCurrentUser(): Promise<string | null> {
+async function loadUserContext(): Promise<{
+  userId: string | null;
+  calibrationBlock: string | null;
+}> {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) return { userId: null, calibrationBlock: null };
   const profile = await getUserCalibrationProfile(user.id);
-  return renderCalibrationForPrompt(profile);
+  return {
+    userId: user.id,
+    calibrationBlock: renderCalibrationForPrompt(profile),
+  };
 }
 
 export const runtime = "nodejs";
@@ -322,7 +330,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const calibrationBlock = await loadCalibrationForCurrentUser();
+    const { userId, calibrationBlock } = await loadUserContext();
     // Apply per-framework dimension weight adjustments so sales frameworks
     // emphasize relevance, interview frameworks emphasize structure+pacing,
     // etc. No-op when no frameworkId or no matching profile.
@@ -342,6 +350,7 @@ export async function POST(req: Request) {
     const result = await scoreRep({
       ...body,
       userCalibration: calibrationBlock,
+      ...(userId ? { userId } : {}),
       ...(mergedWeights ? { weights: mergedWeights } : {}),
       ...(body.modeContext ? { modeContext: body.modeContext } : {}),
     });

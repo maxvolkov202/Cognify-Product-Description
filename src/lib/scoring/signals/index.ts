@@ -13,6 +13,7 @@
  */
 
 import type { TextSignals } from "./types";
+import type { SubSkillId } from "@/types/sub-skills";
 import { extractClaritySignals } from "./clarity";
 import { extractStructureSignals } from "./structure";
 import { extractConcisenessSignals } from "./conciseness";
@@ -110,12 +111,82 @@ export function renderTextSignalsBlock(signals: TextSignals | null): string | nu
   const arc = s.arcCompletion;
 
   return [
-    "SIGNALS (objective text-derived measurements — score AGAINST these, do not re-derive from the transcript):",
+    "SIGNALS (objective text-derived measurements — score the four LLM-scored content dimensions PRIMARILY against these numbers; the transcript is for verification + bullet grounding only):",
     `  Clarity: jargon ${c.jargonRatePerMinute}/min (target <1) | assumed-context ${c.assumedContextMarkers} | sentence complexity ${c.sentenceComplexityIndex} clauses/sentence (target <2.0) | abstraction-without-example ${c.abstractionMarkerCount}`,
     `  Structure: transitions ${s.transitionMarkerCount} (rate ${s.transitionMarkerRate}/min, target ≥3 per minute) | opening-position ${s.openingPositionScore}/100 | hierarchy markers ${s.pointHierarchyMarkers} | arc opening=${arc.clearOpening ? "Y" : "N"} middle=${arc.developedMiddle ? "Y" : "N"} close=${arc.definitiveClose ? "Y" : "N"}`,
-    `  Conciseness: hedge ${cn.hedgeRatePerMinute}/min (target <1) | n-gram repetition ${cn.repetitionScore} (target <0.20) | words-per-distinct-idea ${cn.wordsPerDistinctIdea} (target <25)`,
+    `  Conciseness: hedge ${cn.hedgeRatePerMinute}/min (target <1) | n-gram repetition ${cn.repetitionScore} (target <0.20) | words-per-distinct-idea ${cn.wordsPerDistinctIdea}`,
     `  Thinking Quality: claim-support ${(t.claimSupportRate * 100).toFixed(0)}% (target >70%) | counterargument ${t.counterargumentMarkers} | depth markers ${t.depthOfAnalysisMarkers} | honesty markers ${t.intellectualHonestyMarkers}`,
     "",
-    "If your dimension score disagrees with the signal-implied score by more than 10 points, justify the disagreement in the dimension's `signals` array.",
+    "Use the signals as your PRIMARY scoring input for clarity, structure, conciseness, and thinking_quality. Read the transcript to verify, to ground bullet quotes, and to catch context the regex extractors miss (e.g. circular reasoning that contains the word \"because\" but provides no real support). If your dimension score disagrees with the signal-implied score by more than 10 points, name the specific override reason in the dimension's `signals` array (e.g. \"signpost rate 0/min looks low, but the speaker uses implicit narrative structure end-to-end\").",
   ].join("\n");
+}
+
+// ——— Storage encode / decode ————————————————————————————————
+
+/**
+ * Persisted shape for the `dimension_scores.signals` jsonb column.
+ *
+ * Two on-disk shapes coexist:
+ *
+ *  - **Legacy** (pre-Ch.11): the LLM's narrative signals only, stored
+ *    as a plain `string[]`. Reps written before this chapter — and
+ *    reps written by FF-off code paths — use this shape.
+ *  - **v3.1 (Ch.11c)**: an object carrying both narratives AND the per-
+ *    sub-skill scores from `mapSignalsToSubSkillScores`. Used whenever
+ *    a `DimensionScore` carries a `subSkillScores` field.
+ *
+ * Readers must accept both shapes — see `decodeDimensionSignals`.
+ */
+export type DimensionSignalsBlob =
+  | string[]
+  | {
+      narratives: string[];
+      subSkillScores: Partial<Record<SubSkillId, number>>;
+    };
+
+/** Encode a `DimensionScore`'s `signals` + optional `subSkillScores` for
+ *  persistence in the `dimension_scores.signals` jsonb column. Falls
+ *  back to the legacy `string[]` shape when no sub-skill scores are
+ *  present, so legacy code paths keep producing the legacy on-disk
+ *  shape and back-compat is preserved. */
+export function encodeDimensionSignals(
+  narratives: readonly string[],
+  subSkillScores?: Partial<Record<SubSkillId, number>>,
+): DimensionSignalsBlob {
+  if (
+    subSkillScores &&
+    Object.keys(subSkillScores).length > 0
+  ) {
+    return {
+      narratives: [...narratives],
+      subSkillScores: { ...subSkillScores },
+    };
+  }
+  return [...narratives];
+}
+
+/** Decode the `dimension_scores.signals` jsonb back into narratives +
+ *  optional sub-skill scores. Robust to legacy `string[]` rows. */
+export function decodeDimensionSignals(value: unknown): {
+  narratives: string[];
+  subSkillScores?: Partial<Record<SubSkillId, number>>;
+} {
+  if (Array.isArray(value)) {
+    return { narratives: value.filter((v): v is string => typeof v === "string") };
+  }
+  if (value && typeof value === "object" && "narratives" in value) {
+    const obj = value as {
+      narratives?: unknown;
+      subSkillScores?: unknown;
+    };
+    const narratives = Array.isArray(obj.narratives)
+      ? obj.narratives.filter((v): v is string => typeof v === "string")
+      : [];
+    const sub =
+      obj.subSkillScores && typeof obj.subSkillScores === "object"
+        ? (obj.subSkillScores as Partial<Record<SubSkillId, number>>)
+        : undefined;
+    return sub ? { narratives, subSkillScores: sub } : { narratives };
+  }
+  return { narratives: [] };
 }

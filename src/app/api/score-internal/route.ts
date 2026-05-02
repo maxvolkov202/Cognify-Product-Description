@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { scoreRep } from "@/lib/ai/score";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
+import { encodeDimensionSignals } from "@/lib/scoring/signals";
 import type { SkillDimension } from "@/types/domain";
 
 export const runtime = "nodejs";
@@ -62,6 +63,18 @@ export async function POST(req: Request) {
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
+
+    // Look up the rep up-front so we can pass userId into scoreRep — the
+    // Ch.11c FF gate buckets users by stable hash to ramp the
+    // deterministic-signals path. Without a userId, the gate evaluates
+    // to false and the legacy path runs (correct for any anonymous rep
+    // that somehow reaches this endpoint, but production reps always
+    // have a userId on the row).
+    const rep = await db.query.reps.findFirst({ where: eq(reps.id, body.repId) });
+    if (!rep) {
+      return NextResponse.json({ error: "rep_not_found" }, { status: 404 });
+    }
+
     const score = await scoreRep({
       transcript: body.transcript,
       promptText: body.promptText,
@@ -70,15 +83,9 @@ export async function POST(req: Request) {
       frameworkNodes: body.frameworkNodes,
       words: body.words,
       userCalibration: body.userCalibration ?? null,
+      ...(rep.userId ? { userId: rep.userId } : {}),
       ...(frameworkWeights ? { weights: frameworkWeights } : {}),
     });
-
-    // Persist dimension_scores + callouts + progress_snapshots. We fetch
-    // userId from the rep row since the Edge Function isn't sending it.
-    const rep = await db.query.reps.findFirst({ where: eq(reps.id, body.repId) });
-    if (!rep) {
-      return NextResponse.json({ error: "rep_not_found" }, { status: 404 });
-    }
 
     if (score.dimensions.length > 0) {
       await db.insert(dimensionScores).values(
@@ -86,7 +93,13 @@ export async function POST(req: Request) {
           repId: body.repId,
           dimension: d.dimension,
           score: d.score,
-          signals: d.signals as unknown as object,
+          // Ch.11c — encode narratives + optional subSkillScores into a
+          // single jsonb. Legacy string[] shape preserved when no
+          // sub-skill data is present.
+          signals: encodeDimensionSignals(
+            d.signals,
+            d.subSkillScores,
+          ) as unknown as object,
         })),
       );
       await db.insert(progressSnapshots).values(
