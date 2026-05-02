@@ -24,6 +24,12 @@ import {
   scoreThinkingQualityDeterministic,
   blendScores,
 } from "@/lib/scoring/deterministic";
+import {
+  ALL_SUB_SKILLS,
+  SUB_SKILL_TO_DIMENSION,
+  renderSubSkillReference,
+  type SubSkillId,
+} from "@/types/sub-skills";
 
 const dimensionScoreSchema = z.object({
   dimension: z.enum([
@@ -67,9 +73,15 @@ const dimensionEnumSchema = z.enum([
   "structural_adherence",
 ]);
 
+const subSkillEnumSchema = z.enum(
+  ALL_SUB_SKILLS as unknown as [SubSkillId, ...SubSkillId[]],
+);
+
 const feedbackBulletSchema = z.object({
   text: z.string().min(1).max(180),
   dimension: dimensionEnumSchema,
+  /** Ch.2 sub-skill grading. Optional in input; sanitizer fills/strips. */
+  subSkill: subSkillEnumSchema.nullable().optional(),
   quote: z.string().max(320).nullable(),
   transcriptStart: z.number().min(0).nullable(),
   transcriptEnd: z.number().min(0).nullable(),
@@ -242,6 +254,7 @@ BULLET RULES (didWell / didntLand / nextRepFocus — these are the user-facing s
   - didWell:        exactly 2 bullets in the normal case. ALLOWED 0 only when composite < 25 (junk reps must not manufacture praise).
   - didntLand:      exactly 2 bullets, paired with the 2 nextRepFocus items (each gap gets a paired fix in the same array index).
   - nextRepFocus:   exactly 2 bullets, prescriptive ("Open with a direction-setting sentence so the listener knows where you're going.").
+  - SUB-SKILL ATTRIBUTION (Ch.2 sub-skill grading): every bullet MUST set \`subSkill\` to the specific lever within the named dimension. The sub-skill must belong to the bullet's \`dimension\` (Word Choice belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message to choose. Bullets with mismatched sub-skill / dimension are sanitized to subSkill=null.
   - text ≤140 chars, second-person ("you …"), action-oriented, no hedging.
   - Voice differs from callouts: callouts label what happened ("Rushed the setup"); bullets give actionable context ("You started talking without telling me where you were going.").
   - GROUNDING — non-negotiable for didWell + didntLand:
@@ -304,6 +317,7 @@ High: ${r.highScoreSignals.slice(0, 3).join("; ")}`;
 
 // Cached at module scope so we don't re-render on every request.
 const COMPACT_RUBRIC = renderRubric();
+const SUB_SKILL_REFERENCE = renderSubSkillReference();
 
 /** Knowledge for ONLY the LLM-scored skills. delivery + thinking_quality
  *  are deterministic so we don't ship their knowledge to the model. */
@@ -444,6 +458,41 @@ function sanitizeBullets<T extends FeedbackBullet>(opts: {
   });
 }
 
+/** Ch.2 sub-skill validator. For each bullet:
+ *    - If subSkill is provided, verify it belongs to the bullet's dimension
+ *      via SUB_SKILL_TO_DIMENSION. Mismatch → null out the subSkill (leave
+ *      the bullet otherwise intact; UI gracefully renders no chip).
+ *    - structural_adherence dimension never carries a sub-skill (it's a
+ *      separate framework-scoring dim). Strip if set.
+ *    - Missing subSkill is allowed (legacy, edge-case bullets) — handled
+ *      by Zod's `.optional()`. */
+function sanitizeSubSkills<T extends FeedbackBullet>(opts: {
+  bullets: T[];
+  label: string;
+}): T[] {
+  const { bullets, label } = opts;
+  return bullets.map((b) => {
+    const sub = b.subSkill;
+    if (sub == null || sub === undefined) return b;
+    if (b.dimension === "structural_adherence") {
+      console.warn(
+        `[score] ${label} bullet on structural_adherence had subSkill; stripping:`,
+        { subSkill: sub },
+      );
+      return { ...b, subSkill: null };
+    }
+    const expectedDim = SUB_SKILL_TO_DIMENSION[sub as SubSkillId];
+    if (expectedDim !== b.dimension) {
+      console.warn(
+        `[score] ${label} bullet sub-skill / dimension mismatch; stripping subSkill:`,
+        { subSkill: sub, dimension: b.dimension, expectedDim },
+      );
+      return { ...b, subSkill: null };
+    }
+    return b;
+  });
+}
+
 function sanitizeCallouts(callouts: RawCallout[]): RawCallout[] {
   return callouts.map((c) => {
     if (!calloutContainsBanned(c)) return c;
@@ -551,6 +600,11 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
             },
           ]
         : []),
+      {
+        type: "text" as const,
+        text: `SUB-SKILL REFERENCE (for bullet \`subSkill\` field — must match the bullet's \`dimension\`):\n\n${SUB_SKILL_REFERENCE}`,
+        cache_control: { type: "ephemeral" as const },
+      },
       ...(input.userCalibration
         ? [
             {
@@ -602,22 +656,31 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   // Phase 2: anti-hallucination grounding. Strip quote/timestamp anchors
   // when the AI claims a transcript moment we can't verify. Bullets
   // remain in the response — only the false specificity is removed.
-  const sanitizedDidWell = sanitizeBullets({
-    bullets: validated.didWell as FeedbackBullet[],
-    transcript: input.transcript,
-    durationMs: input.durationMs,
+  const sanitizedDidWell = sanitizeSubSkills({
+    bullets: sanitizeBullets({
+      bullets: validated.didWell as FeedbackBullet[],
+      transcript: input.transcript,
+      durationMs: input.durationMs,
+      label: "didWell",
+    }),
     label: "didWell",
   });
-  const sanitizedDidntLand = sanitizeBullets({
-    bullets: validated.didntLand as FeedbackBullet[],
-    transcript: input.transcript,
-    durationMs: input.durationMs,
+  const sanitizedDidntLand = sanitizeSubSkills({
+    bullets: sanitizeBullets({
+      bullets: validated.didntLand as FeedbackBullet[],
+      transcript: input.transcript,
+      durationMs: input.durationMs,
+      label: "didntLand",
+    }),
     label: "didntLand",
   });
-  const sanitizedNextRepFocus = sanitizeBullets({
-    bullets: validated.nextRepFocus as NextRepFocusItem[],
-    transcript: input.transcript,
-    durationMs: input.durationMs,
+  const sanitizedNextRepFocus = sanitizeSubSkills({
+    bullets: sanitizeBullets({
+      bullets: validated.nextRepFocus as NextRepFocusItem[],
+      transcript: input.transcript,
+      durationMs: input.durationMs,
+      label: "nextRepFocus",
+    }),
     label: "nextRepFocus",
   });
 

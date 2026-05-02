@@ -3,6 +3,7 @@
 import { Check, X } from "lucide-react";
 import { motion } from "motion/react";
 import type { FeedbackBullet } from "@/types/domain";
+import { SUB_SKILL_LABELS, type SubSkillId } from "@/types/sub-skills";
 import { cn } from "@/lib/utils/cn";
 import { useAudioControl } from "./AudioControlContext";
 
@@ -11,10 +12,14 @@ type Variant = "positive" | "negative";
 /** Phase 2 rich bullet shape — grounded bullets carry quote + timestamp.
  *  When `quote` is null, the bullet renders without quote-mark styling
  *  and without the timestamp affordance, so users implicitly trust
- *  grounded ones more (anti-hallucination contract). */
+ *  grounded ones more (anti-hallucination contract).
+ *
+ *  Ch.2 sub-skill grading: subSkill is rendered as a small chip beside
+ *  the bullet text when present. Sanitizer drops mismatched sub-skills
+ *  to null so a chip only appears when grounding is verified. */
 type RichBullet = Pick<
   FeedbackBullet,
-  "text" | "quote" | "transcriptStart" | "transcriptEnd"
+  "text" | "quote" | "transcriptStart" | "transcriptEnd" | "subSkill"
 >;
 
 type Props = {
@@ -103,6 +108,14 @@ export function OutcomeCard({
                   <p className="text-[13px] leading-relaxed text-ink-700">
                     {b.text}
                   </p>
+                  {b.subSkill && (
+                    <span
+                      className="mt-1 inline-block rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-600"
+                      title={`Sub-skill: ${SUB_SKILL_LABELS[b.subSkill as SubSkillId]}`}
+                    >
+                      {SUB_SKILL_LABELS[b.subSkill as SubSkillId]}
+                    </span>
+                  )}
                   {b.quote && (
                     <blockquote
                       className="mt-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-[12px] italic leading-relaxed text-ink-600"

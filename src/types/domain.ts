@@ -118,6 +118,11 @@ export type FeedbackBullet = {
   text: string;
   /** The rubric dimension this bullet ties to. Drives icon + accent. */
   dimension: SkillDimension | "structural_adherence";
+  /** Phase 2 (Ch.2 sub-skill grading): which specific sub-skill within
+   *  the dimension broke down (or shone). Drives the chip rendered next
+   *  to the bullet. Nullable so legacy reps and structural_adherence
+   *  bullets remain valid; sanitizer drops mismatched sub-skills to null. */
+  subSkill?: import("./sub-skills").SubSkillId | null;
   /** Verbatim transcript phrase the bullet is grounded in. Required when
    *  transcriptStart != null. Anti-hallucination anchor. */
   quote: string | null;
