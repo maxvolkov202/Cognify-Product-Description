@@ -41,6 +41,14 @@ export { extractStructureSignals } from "./structure";
 export { extractConcisenessSignals } from "./conciseness";
 export { extractThinkingQualitySignals } from "./thinking-quality";
 
+// Sub-skill mapper (Ch.11b).
+export {
+  mapSignalsToSubSkillScores,
+  toScoresOnly,
+  type SubSkillScoreEntry,
+  type SubSkillScoreMap,
+} from "./sub-skill-mapper";
+
 // ——— Composer ————————————————————————————————————————————
 
 /**

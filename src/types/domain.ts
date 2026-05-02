@@ -102,6 +102,15 @@ export type DimensionScore = {
   dimension: SkillDimension;
   score: number;
   signals: string[];
+  /** Ch.11b: per-sub-skill scores derived from text-signal extractors
+   *  (15 sub-skills covered) + dimension_fallback for the remaining 21.
+   *  Optional for legacy-rep compat — reps scored before Ch.11 / with
+   *  FF_DETERMINISTIC_SIGNALS off omit this field entirely. The UI
+   *  surfaces a sub-skill breakdown card (Ch.12) when present and
+   *  falls back to dimension-only display when absent. */
+  subSkillScores?: Partial<
+    Record<import("./sub-skills").SubSkillId, number>
+  >;
 };
 
 /**
