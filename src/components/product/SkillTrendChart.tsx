@@ -7,7 +7,7 @@ const LABELS: Record<SkillDimension, string> = {
   conciseness: "Conciseness",
   thinking_quality: "Thinking Quality",
   delivery: "Delivery",
-  adaptability: "Adaptability",
+  tone: "Tone",
 };
 
 type Props = {

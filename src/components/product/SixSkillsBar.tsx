@@ -82,7 +82,7 @@ const DIM_COLOR: Record<SkillDimension, { bg: string; text: string; dot: string 
     text: "text-rose-900",
     dot: "bg-rose-500",
   },
-  adaptability: {
+  tone: {
     bg: "bg-orange-100",
     text: "text-orange-900",
     dot: "bg-orange-500",

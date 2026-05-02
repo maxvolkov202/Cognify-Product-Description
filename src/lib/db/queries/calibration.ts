@@ -136,7 +136,7 @@ function emptyDimensionTrust(): Record<SkillDimension, number> {
     conciseness: 1,
     thinking_quality: 1,
     delivery: 1,
-    adaptability: 1,
+    tone: 1,
   };
 }
 

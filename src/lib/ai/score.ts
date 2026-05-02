@@ -32,7 +32,7 @@ const dimensionScoreSchema = z.object({
     "conciseness",
     "thinking_quality",
     "delivery",
-    "adaptability",
+    "tone",
   ]),
   score: z.number().min(0).max(100),
   signals: z.array(z.string()),
@@ -45,7 +45,7 @@ const calloutSchema = z.object({
     "conciseness",
     "thinking_quality",
     "delivery",
-    "adaptability",
+    "tone",
     "structural_adherence",
   ]),
   tone: z.enum(["positive", "neutral", "warn", "critical"]),
@@ -63,7 +63,7 @@ const dimensionEnumSchema = z.enum([
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
   "structural_adherence",
 ]);
 
@@ -97,7 +97,7 @@ const scoringResponseSchema = z.object({
     "conciseness",
     "thinking_quality",
     "delivery",
-    "adaptability",
+    "tone",
   ]),
   /** Phase 3 calibration scaffold — tone band the AI thinks it wrote in. */
   headlineTone: z.enum(["blunt", "directive", "praise", "celebratory"]),
@@ -185,8 +185,8 @@ function renderTimedTranscript(
 const systemPrompt = `You are the scoring model for Cognify, a communication training gym. Score a rep across six dimensions on 0-100 and write the post-rep feedback the user reads.
 
 Dimensions, in order:
-  CONTENT  : clarity, structure, conciseness
-  DELIVERY : thinking_quality, delivery, adaptability
+  CONTENT  : clarity, structure, conciseness, thinking_quality
+  DELIVERY : delivery, tone
 
 Be rigorous. 90+ is reserved for genuinely excellent reps. <40 means serious issues. Off-topic or junk reps (mic test, rambling, not answering the prompt) must score low on BOTH content and delivery dimensions; do not anchor to a default range.
 
@@ -194,7 +194,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"adaptability", "score": 0-100, "signals": ["..."] }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."] }
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "callouts": [
@@ -204,7 +204,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
   "didWell": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
   "didntLand": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
   "nextRepFocus": [{ "text": "...", "dimension": "...", "quote": "..."|null, "transcriptStart": ms|null, "transcriptEnd": ms|null, "exampleLine": "..."|null }, ...],
-  "primaryFocusDimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"adaptability",
+  "primaryFocusDimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone",
   "headlineTone": "blunt"|"directive"|"praise"|"celebratory",
   "nextRepHint": "3-8 word continuation tail for the next rep's banner"
 }
@@ -289,7 +289,7 @@ const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "clarity",
   "structure",
   "conciseness",
-  "adaptability",
+  "tone",
 ];
 
 function renderRubric(): string {
@@ -343,7 +343,7 @@ type RawCallout = {
     | "conciseness"
     | "thinking_quality"
     | "delivery"
-    | "adaptability"
+    | "tone"
     | "structural_adherence";
   tone: "positive" | "neutral" | "warn" | "critical";
   title: string;
@@ -546,7 +546,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
         ? [
             {
               type: "text" as const,
-              text: `SCORING KNOWLEDGE (clarity, structure, conciseness, adaptability):\n\n${COMPACT_KNOWLEDGE}`,
+              text: `SCORING KNOWLEDGE (clarity, structure, conciseness, tone):\n\n${COMPACT_KNOWLEDGE}`,
               cache_control: { type: "ephemeral" as const },
             },
           ]
@@ -636,7 +636,7 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   // semantic "did they sound sharp" layer genuinely adds signal
   // on top of the measurable hedge/restart/pause baseline.
   //
-  // Clarity, structure, conciseness, and adaptability stay LLM-scored as-is.
+  // Clarity, structure, conciseness, and tone stay LLM-scored as-is.
   let finalDimensions = validated.dimensions.map((d) => ({ ...d }));
   if (input.words && input.words.length > 0) {
     const signalBundle = extractSignals({

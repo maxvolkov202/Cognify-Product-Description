@@ -184,7 +184,7 @@ function isCanonicalDim(d: string): boolean {
     "conciseness",
     "thinking_quality",
     "delivery",
-    "adaptability",
+    "tone",
   ].includes(d);
 }
 

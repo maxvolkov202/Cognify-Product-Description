@@ -149,7 +149,7 @@ const SECTIONS: Section[] = [
       {
         title: "How to find your own voice",
         source: "Mel Robbins",
-        why: "Confidence and adaptability when the room shifts.",
+        why: "Vocal presence and tone when the room shifts.",
         url: "https://www.youtube.com/watch?v=iJq-thyDF9Q",
         kind: "talk",
       },

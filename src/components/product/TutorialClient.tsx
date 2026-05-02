@@ -48,7 +48,7 @@ const SCREENS: Screen[] = [
     eyebrow: "02 · How scoring works",
     title: "Six dimensions. Real research behind every score.",
     body: [
-      "Scores measure what you say (clarity, structure, and conciseness) as well as how you say it (thinking quality, delivery, and adaptability).",
+      "Scores measure what you say (clarity, structure, conciseness, and thinking quality) as well as how you say it (delivery and tone).",
       "Callouts quote you directly and suggest better phrasing you can use next rep.",
       "Click \"Why this matters\" on any callout to see the research behind the dimension. No black box scoring.",
     ],
@@ -237,9 +237,9 @@ function ScoringVisual() {
     { label: "Clarity", group: "Content", pct: 88 },
     { label: "Structure", group: "Content", pct: 82 },
     { label: "Conciseness", group: "Content", pct: 74 },
-    { label: "Thinking", group: "Delivery", pct: 80 },
+    { label: "Thinking", group: "Content", pct: 80 },
     { label: "Delivery", group: "Delivery", pct: 71 },
-    { label: "Adaptability", group: "Delivery", pct: 85 },
+    { label: "Tone", group: "Delivery", pct: 85 },
   ];
   return (
     <div className="surface-card overflow-hidden">

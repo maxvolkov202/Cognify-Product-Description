@@ -17,7 +17,7 @@ const TEAM_RADAR = {
   conciseness: 69,
   thinking_on_the_spot: 65,
   handling_pressure: 71,
-  adaptability: 73,
+  tone: 73,
 };
 
 export default async function TeamDetailPage({

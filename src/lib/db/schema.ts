@@ -23,27 +23,28 @@ export const modeEnum = cognifyV2Schema.enum("mode", [
   "baseline",
 ]);
 
-// v2.0.0 rubric (WS-1 apply 2026-04-24). The enum carries BOTH the
-// current dimension names AND the legacy names (relevance/confidence/
-// pacing/tone) so historical reps with those dimensions remain valid
-// reads. New writes only use the v2.0.0 names. See
-// docs/proposals/rubric-v2.0.0.md and src/lib/scoring/dimension-aliases.ts.
-// Postgres enum values cannot be removed with existing rows referencing
-// them — this append-only strategy keeps rep history intact.
+// v3.0.0 rubric (DNA reconciliation 2026-05-01). The enum is append-only
+// because Postgres cannot remove an enum value with existing rows
+// referencing it. Current canonical names: clarity, structure, conciseness,
+// thinking_quality, delivery, tone. Adaptability + relevance + confidence +
+// pacing remain in the enum for historical reads only — they get aliased
+// to current names by src/lib/scoring/dimension-aliases.ts.
+// New writes ONLY use the current v3 names.
 export const dimensionEnum = cognifyV2Schema.enum("dimension", [
-  // Current (v2.0.0) dimensions
+  // Current (v3.0.0) dimensions
   "clarity",
   "structure",
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
   "structural_adherence",
+  // Legacy (v2.0.0) dimension — retained for historical reads only
+  "adaptability",
   // Legacy (v2-beta.*) dimensions — retained for historical reads only
   "relevance",
   "confidence",
   "pacing",
-  "tone",
 ]);
 
 export const calloutToneEnum = cognifyV2Schema.enum("callout_tone", [

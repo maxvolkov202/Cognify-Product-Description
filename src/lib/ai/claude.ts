@@ -13,7 +13,7 @@ export const anthropic = new Anthropic({
 // Latency tuning (2026-04-24): scoring is on the critical path of every
 // rep, so we default to Haiku 4.5 for speed. The deterministic scorer
 // already owns delivery + thinking_quality; the LLM only needs to score
-// clarity, structure, conciseness, adaptability + author 3 callouts —
+// clarity, structure, conciseness, tone + author 3 callouts —
 // well within Haiku's accuracy band. Override via ANTHROPIC_SCORING_MODEL
 // for A/B tests against Sonnet.
 export const MODELS = {

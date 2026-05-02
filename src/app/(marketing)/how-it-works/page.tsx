@@ -60,22 +60,22 @@ const dimensions = [
     low: "Filler, hedge-stacks, preambles, going over time budget.",
   },
   {
-    group: "Delivery",
+    group: "Content",
     name: "Thinking Quality",
-    def: "Coherent generation under real-time conditions. Sharp recall.",
-    low: "Hedging, restarts, long pauses, logical chain breaks.",
+    def: "Depth and rigor of the thought behind the words. Claims supported, complexity engaged.",
+    low: "Unsupported claims, surface-level reasoning, no engagement with counterarguments.",
   },
   {
     group: "Delivery",
     name: "Delivery",
-    def: "How it sounds. Pacing, purposeful pauses, vocal variation.",
-    low: "Rushing the close, over time, voice tightening, monotone.",
+    def: "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions.",
+    low: "Rushing the close, high filler rate, going over time, no purposeful pausing.",
   },
   {
     group: "Delivery",
-    name: "Adaptability",
-    def: "Calibration to audience + adjustment under pushback or audience switch.",
-    low: "Same register for any audience, defensive posture when challenged.",
+    name: "Tone",
+    def: "Vocal expressiveness — pitch variation, volume control, downward inflection, presence.",
+    low: "Monotone, upspeak, locked volume, low vocal energy, mumbled articulation.",
   },
 ] as const;
 

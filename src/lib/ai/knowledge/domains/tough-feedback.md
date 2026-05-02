@@ -4,7 +4,7 @@ Giving corrective or critical feedback to a peer, report, or manager in a way th
 
 ## Why this matters for Cognify
 
-Feedback conversations stress **clarity**, **structure**, **adaptability**, and **handling pressure** simultaneously. They demand specificity under emotional weight — the speaker has to be concrete enough to be actionable while warm enough to preserve the relationship. Cognify's Scenario Training mode treats feedback delivery as a first-tier domain because it is the rep most professionals avoid practicing and most need to get right.
+Feedback conversations stress **clarity**, **structure**, **tone**, and **handling pressure** simultaneously. They demand specificity under emotional weight — the speaker has to be concrete enough to be actionable while warm enough to preserve the relationship. Cognify's Scenario Training mode treats feedback delivery as a first-tier domain because it is the rep most professionals avoid practicing and most need to get right.
 
 ## Staple sources
 

@@ -4,7 +4,7 @@ const skills = [
   { name: "Conciseness", score: 81 },
   { name: "Thinking Quality", score: 72 },
   { name: "Delivery", score: 68 },
-  { name: "Adaptability", score: 79 },
+  { name: "Tone", score: 79 },
 ] as const;
 
 const weeklyStreak = [24, 7, 12] as const;

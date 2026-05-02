@@ -1,9 +1,9 @@
-// ——— Scoring dimensions (v2.0.0 rubric — WS-1 2026-04-24) ———————————
-// Grouped into Content (what you said) and Delivery (how you said it).
-// Dimension names aligned with strategy team + V2 mockups. Historical
-// reps retain their original `rubric_version` tag; use the
-// `src/lib/scoring/dimension-aliases.ts` helper to read them.
-// See docs/SCORING_METHODOLOGY.md and src/lib/scoring/rubric.ts.
+// ——— Scoring dimensions (v3.0.0 rubric — DNA reconciliation 2026-05-01) ——
+// Aligned with Cognify DNA spec (May 2026). Grouped into Content (what you
+// said) and Delivery (how you said it). Tone replaces Adaptability per DNA;
+// Delivery is now Pacing-flavored (rate, pauses, fillers). Historical reps
+// with the legacy `adaptability` dimension are surfaced through
+// `src/lib/scoring/dimension-aliases.ts` and rubricVersion < v3.
 
 export const SKILL_DIMENSIONS = [
   "clarity",
@@ -11,14 +11,14 @@ export const SKILL_DIMENSIONS = [
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ] as const;
 
 export type SkillDimension = (typeof SKILL_DIMENSIONS)[number];
 
 export const SKILL_DIMENSION_GROUPS = {
-  content: ["clarity", "structure", "conciseness"],
-  delivery: ["thinking_quality", "delivery", "adaptability"],
+  content: ["clarity", "structure", "conciseness", "thinking_quality"],
+  delivery: ["delivery", "tone"],
 } as const satisfies Record<string, readonly SkillDimension[]>;
 
 export type SkillDimensionGroup = keyof typeof SKILL_DIMENSION_GROUPS;
@@ -29,13 +29,53 @@ export const DIMENSION_LABELS: Record<SkillDimension, string> = {
   conciseness: "Conciseness",
   thinking_quality: "Thinking Quality",
   delivery: "Delivery",
-  adaptability: "Adaptability",
+  tone: "Tone",
 };
 
 export const DIMENSION_GROUP_LABELS: Record<SkillDimensionGroup, string> = {
   content: "Content",
   delivery: "Delivery",
 };
+
+/**
+ * Per-dimension composite weights — Cognify DNA spec.
+ * Single source of truth: composite math (score.ts), UI bars, calibration
+ * harness all read from here. Sums to 1.00.
+ */
+export const DIMENSION_WEIGHTS: Record<SkillDimension, number> = {
+  clarity: 0.25,
+  structure: 0.2,
+  thinking_quality: 0.2,
+  conciseness: 0.15,
+  delivery: 0.1,
+  tone: 0.1,
+};
+
+/**
+ * Score band definitions per DNA spec. The starting band for new users is
+ * Competent (60-75); 95+ should be exceptional and trigger human review.
+ * UI labels read from `label`, threshold checks from `min`/`max`.
+ */
+export const BAND_DEFINITIONS = [
+  { id: "poor", label: "Poor", min: 0, max: 40 },
+  { id: "below_standard", label: "Below Standard", min: 40, max: 60 },
+  { id: "competent", label: "Competent", min: 60, max: 75 },
+  { id: "strong", label: "Strong", min: 75, max: 85 },
+  { id: "excellent", label: "Excellent", min: 85, max: 95 },
+  { id: "exceptional", label: "Exceptional", min: 95, max: 100 },
+] as const;
+
+export type BandId = (typeof BAND_DEFINITIONS)[number]["id"];
+
+export function bandFor(score: number): (typeof BAND_DEFINITIONS)[number] {
+  // Tail fallback is the "exceptional" band so any out-of-range score
+  // (or a score == 100) lands meaningfully instead of returning undefined.
+  const exceptional = BAND_DEFINITIONS[BAND_DEFINITIONS.length - 1]!;
+  return (
+    BAND_DEFINITIONS.find((b) => score >= b.min && score < b.max) ??
+    exceptional
+  );
+}
 
 export function getDimensionGroup(dim: SkillDimension): SkillDimensionGroup {
   if ((SKILL_DIMENSION_GROUPS.content as readonly string[]).includes(dim)) {
@@ -174,8 +214,10 @@ export type RepScore = {
  *  - v2.0.0 adds `didWell` / `didntLand` / `nextRepFocus` /
  *    `primaryFocusDimension`, replaces `focusReason` with `RepFocusContext`.
  *  - v2.1.0 adds `headlineTone` calibration scaffold and `nextRepHint`
- *    AI-generated banner tail. */
-export const FEEDBACK_VERSION = "v2.1.0";
+ *    AI-generated banner tail.
+ *  - v3.0.0 swaps Adaptability → Tone, locks DIMENSION_WEIGHTS and
+ *    BAND_DEFINITIONS to DNA spec. */
+export const FEEDBACK_VERSION = "v3.0.0";
 
 export type FrameworkNode = {
   id: string;

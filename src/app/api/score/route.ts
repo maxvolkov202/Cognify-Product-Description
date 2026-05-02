@@ -44,7 +44,7 @@ const dimensionEnum = z.enum([
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ]);
 
 const pressureArchetypeIdEnum = z.enum([
@@ -164,10 +164,10 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
       ],
     },
     {
-      dimension: "adaptability",
+      dimension: "tone",
       score: 72,
       signals: [
-        "[mock mode] Claude scoring unavailable — adaptability judgment skipped",
+        "[mock mode] Claude scoring unavailable — tone judgment skipped",
       ],
     },
   ];

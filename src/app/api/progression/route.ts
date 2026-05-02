@@ -17,7 +17,7 @@ const dimensionEnum = z.enum([
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ]);
 
 const repSummarySchema = z.object({
@@ -38,7 +38,7 @@ const repSummarySchema = z.object({
         "conciseness",
         "thinking_quality",
         "delivery",
-        "adaptability",
+        "tone",
         "structural_adherence",
       ]),
       title: z.string().max(200),

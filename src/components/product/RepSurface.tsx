@@ -935,8 +935,8 @@ const EVIDENCE_TIPS = [
     body: "A purposeful one-second pause raises perceived authority more than any word choice.",
   },
   {
-    title: "Adaptability beats rehearsal.",
-    body: "The win is calibrating to the room you actually got, not the room you prepared for.",
+    title: "Land the close with conviction.",
+    body: "Statements ending with downward pitch read as authoritative; rising pitch reads as a question — even when you meant a fact.",
   },
 ] as const;
 

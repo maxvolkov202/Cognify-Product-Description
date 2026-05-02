@@ -4,7 +4,7 @@ Getting to an agreement when the other party starts from a different position �
 
 ## Why this matters for Cognify
 
-Negotiation stresses **adaptability**, **handling pressure**, and **thinking on the spot** more than any other domain. It is the purest test of listening-under-fire — the speaker has to hear what the other person is *actually* saying (not what they expected to hear), adjust mid-sentence, and deliver a response that moves the conversation without escalating it. Cognify trains negotiation scenarios because they reveal in 60 seconds what most people struggle with for an entire career.
+Negotiation stresses **tone**, **handling pressure**, and **thinking on the spot** more than any other domain. It is the purest test of listening-under-fire — the speaker has to hear what the other person is *actually* saying (not what they expected to hear), adjust mid-sentence, and deliver a response that moves the conversation without escalating it. Cognify trains negotiation scenarios because they reveal in 60 seconds what most people struggle with for an entire career.
 
 ## Staple sources
 

@@ -8,7 +8,7 @@ const VALID_DIMENSIONS: readonly SkillDimension[] = [
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ];
 
 function isValidDimension(s: string): s is SkillDimension {

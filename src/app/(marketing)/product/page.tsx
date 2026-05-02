@@ -20,7 +20,7 @@ const modes = [
     name: "Build a Rep",
     tagline: "Practice for a specific real moment, before it happens.",
     body: "Type a scenario you're about to face. Add context. Cognify generates a thinking structure tailored to your vertical and the specific moment. You speak to the structure, get feedback, edit it, run it again. Not a script. Not a memorized answer. A scaffold you hold in your mind while you speak.",
-    trains: ["Adaptability", "Conciseness", "Structure", "Real-world calibration"],
+    trains: ["Tone", "Conciseness", "Structure", "Real-world calibration"],
   },
 ] as const;
 
@@ -39,12 +39,12 @@ const repTypes = [
 const dimensionGroups = [
   {
     name: "Content",
-    dims: ["Clarity", "Structure", "Conciseness"],
+    dims: ["Clarity", "Structure", "Conciseness", "Thinking Quality"],
     blurb: "What you said",
   },
   {
     name: "Delivery",
-    dims: ["Thinking Quality", "Delivery", "Adaptability"],
+    dims: ["Delivery", "Tone"],
     blurb: "How you said it",
   },
 ] as const;

@@ -1,26 +1,33 @@
-import type { SkillDimension } from "@/types/domain";
+import {
+  DIMENSION_WEIGHTS,
+  SKILL_DIMENSION_GROUPS,
+  type SkillDimension,
+} from "@/types/domain";
 
 /**
- * Cognify scoring rubric — v2.0.0 (WS-1 apply 2026-04-24)
+ * Cognify scoring rubric — v3.0.0 (DNA reconciliation 2026-05-01)
  *
- * Six dimensions aligned with strategy team + V2 mockups. Renamed from
- * v2-beta.2:
- *   - relevance   → (absorbed into an internal off-topic gate; see
- *                    src/lib/scoring/dimension-aliases.ts)
- *   - confidence  → thinking_quality (generation coherence, not vocal composure)
- *   - pacing      → delivery (absorbs pacing + vocal side of old tone)
- *   - tone        → adaptability (audience calibration + mid-rep adjustment)
- *   - NEW: conciseness (tight word economy; previously rolled into pacing)
+ * Six dimensions aligned with the Cognify DNA spec. Renamed from v2.0.0:
+ *   - adaptability → tone (DNA defines Tone via pitch / volume / inflection
+ *                          / vocal presence / warmth / articulation)
+ *   - delivery is now Pacing-equivalent (rate, pauses, fillers, rhythm)
+ *   - thinking_quality moved into the Content group (it's about what you
+ *     said, not how)
  *
- * Groupings: Content = {clarity, structure, conciseness},
- *            Delivery = {thinking_quality, delivery, adaptability}.
+ * Groupings:
+ *   Content  = {clarity, structure, conciseness, thinking_quality}
+ *   Delivery = {delivery, tone}
+ *
+ * Composite weights now read from `DIMENSION_WEIGHTS` (single source of
+ * truth in src/types/domain.ts) — clarity 25, structure 20, thinking 20,
+ * conciseness 15, delivery 10, tone 10.
  *
  * When this rubric changes in a way that shifts scoring outputs, bump
  * RUBRIC_VERSION. Past rep scores stay tagged with the version they were
  * scored under, so trend lines remain honest across rubric evolutions.
  */
 
-export const RUBRIC_VERSION = "v2.0.0";
+export const RUBRIC_VERSION = "v3.0.0";
 
 export type DimensionGroup = "content" | "delivery";
 
@@ -53,7 +60,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
       "Unambiguous pronoun resolution",
       "Main point stated in the first 10 seconds",
     ],
-    defaultWeight: 1.0,
+    defaultWeight: DIMENSION_WEIGHTS.clarity,
     scoringStrategy: "hybrid",
   },
   structure: {
@@ -73,7 +80,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
       "Consistent ordering (chronological, causal, or importance)",
       "Closing that lands the main point",
     ],
-    defaultWeight: 1.0,
+    defaultWeight: DIMENSION_WEIGHTS.structure,
     scoringStrategy: "hybrid",
   },
   conciseness: {
@@ -95,74 +102,74 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
       "No repetition of ideas",
       "Tight word economy (words-per-point < 25)",
     ],
-    defaultWeight: 1.0,
+    defaultWeight: DIMENSION_WEIGHTS.conciseness,
+    scoringStrategy: "hybrid",
+  },
+  thinking_quality: {
+    dimension: "thinking_quality",
+    group: "content",
+    definition:
+      "Depth and rigor of the thought behind the words. Claims are supported, reasoning goes beyond the surface, the speaker engages complexity rather than avoiding it. The substance of what is said, not the polish of how.",
+    lowScoreSignals: [
+      "Unsupported claims — assertions without reason or evidence",
+      "Surface-level reasoning that restates the prompt without developing it",
+      "No engagement with counterarguments or alternative views",
+      "Logical chain breaks (conclusion doesn't follow premise)",
+      "Hedges that signal weak conviction: 'I think', 'maybe', 'kind of'",
+    ],
+    highScoreSignals: [
+      "Every claim followed by reason, example, or evidence",
+      "Reasoning addresses why and so what — not just what",
+      "Acknowledges complexity and engages opposing views",
+      "Logical connectors used correctly (because, therefore, so)",
+      "Goes beyond the predictable first-instinct answer",
+    ],
+    defaultWeight: DIMENSION_WEIGHTS.thinking_quality,
     scoringStrategy: "hybrid",
   },
   // ——— Delivery ——————————————————————————————————————
-  thinking_quality: {
-    dimension: "thinking_quality",
-    group: "delivery",
-    definition:
-      "Coherent generation under real-time conditions. Low backtrack rate, low restart rate, logical chain holds, recall feels sharp. Measures the content of thinking, not vocal composure.",
-    lowScoreSignals: [
-      "Hedges: 'I think', 'maybe', 'kind of', 'sort of'",
-      "Verbal backtracking: 'wait, let me start over'",
-      "Long pauses (>2 seconds) outside natural breaks",
-      "Mid-sentence restarts",
-      "Logical chain breaks (conclusion doesn't follow premise)",
-    ],
-    highScoreSignals: [
-      "Direct assertions without hedging",
-      "Quick clean recovery from stumbles",
-      "Logical connectors used correctly (because, therefore, so)",
-      "Low restart count (< 1 per 30s)",
-      "Purposeful pauses, not panicked ones",
-    ],
-    defaultWeight: 1.0,
-    scoringStrategy: "hybrid",
-  },
   delivery: {
     dimension: "delivery",
     group: "delivery",
     definition:
-      "How it sounds. Pacing (stable WPM, purposeful pauses), rhythm, vocal energy, finishing cleanly within time. The craft of speech distinct from the content.",
+      "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions. Stable WPM in the 150-160 range, intentional pauses for cognitive bookmarking, low filler frequency, finishes cleanly within time.",
     lowScoreSignals: [
+      "Speech rate well outside 130-170 wpm range",
+      "High filler rate (> 5 per minute) — um, uh, like, you know",
+      "Pauses absent or random instead of after key points",
       "Rushing in the final quartile",
       "Going significantly over or under time budget",
-      "Voice tightening, pitch rising",
-      "Rambling run-on sentences",
-      "Monotone delivery across an emotional moment",
     ],
     highScoreSignals: [
-      "Consistent WPM across rep quartiles",
-      "Purposeful pauses for emphasis",
-      "Finishes within time budget",
+      "Consistent WPM across rep quartiles, ~150-160 average",
+      "Purposeful 1-3 second pauses after key points",
+      "Filler rate < 2 per minute",
+      "Finishes within 10% of time budget",
       "Final sentence lands cleanly",
-      "Vocal variation matches the content stakes",
     ],
-    defaultWeight: 1.0,
+    defaultWeight: DIMENSION_WEIGHTS.delivery,
     scoringStrategy: "deterministic",
   },
-  adaptability: {
-    dimension: "adaptability",
+  tone: {
+    dimension: "tone",
     group: "delivery",
     definition:
-      "Calibration to audience, constraints, and mid-rep cues. Register shifts for different listeners, adjusts when pushback or audience switch happens, stays responsive when the conversation deviates from the planned path.",
+      "Vocal expressiveness — pitch variation, volume control, downward inflection on statements, vocal presence, warmth, and articulation. The first signal a listener processes before a single word is understood. Carries credibility, authority, and trust.",
     lowScoreSignals: [
-      "Same register regardless of audience",
-      "Technical jargon to non-technical audience",
-      "Ignoring stated tone or time constraints",
-      "No visible adjustment after pushback or audience switch",
-      "Defensive posture when challenged",
+      "Monotone — sustained flat pitch (low semitone variance)",
+      "Upspeak — rising inflection at the end of statements",
+      "Volume locked at one level, no emphasis variation",
+      "Voice sounds tight, breathy, or low-energy",
+      "Mumbling or unclear consonant articulation",
     ],
     highScoreSignals: [
-      "Audience-appropriate vocabulary",
-      "Visible register shift between two audiences",
-      "Respects stated constraints (time, tone, format)",
-      "Acknowledge-redirect-land pattern under pushback",
-      "Emotionally attuned to the moment",
+      "Intentional pitch variation across the response (≥3 semitones range)",
+      "Statements close with downward pitch — signals conviction",
+      "Volume rises and falls to mark important words",
+      "Crisp consonant articulation throughout",
+      "Vocal energy holds from first sentence to last",
     ],
-    defaultWeight: 0.9,
+    defaultWeight: DIMENSION_WEIGHTS.tone,
     scoringStrategy: "hybrid",
   },
 };
@@ -173,20 +180,14 @@ export const ALL_DIMENSIONS: readonly SkillDimension[] = [
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ];
 
-export const CONTENT_DIMENSIONS: readonly SkillDimension[] = [
-  "clarity",
-  "structure",
-  "conciseness",
-];
+export const CONTENT_DIMENSIONS: readonly SkillDimension[] =
+  SKILL_DIMENSION_GROUPS.content;
 
-export const DELIVERY_DIMENSIONS: readonly SkillDimension[] = [
-  "thinking_quality",
-  "delivery",
-  "adaptability",
-];
+export const DELIVERY_DIMENSIONS: readonly SkillDimension[] =
+  SKILL_DIMENSION_GROUPS.delivery;
 
 /**
  * Weighted composite score across dimensions. User-configurable weights

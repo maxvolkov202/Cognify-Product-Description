@@ -302,7 +302,7 @@ export const REP_TYPES: readonly RepType[] = [
     purpose: "Convince someone to take a specific action",
     behavior:
       "You have 40 seconds to make a case that actually moves someone",
-    primaryDimension: "adaptability",
+    primaryDimension: "tone",
     secondaryDimensions: ["structure", "conciseness"],
     timeBudgetSec: 40,
     instruction: "Convince them",
@@ -346,7 +346,7 @@ export const REP_TYPES: readonly RepType[] = [
       "Explain the same idea twice. Once for each of two different audiences",
     behavior:
       "You have 45 seconds. Start with audience A. Then switch to audience B",
-    primaryDimension: "adaptability",
+    primaryDimension: "tone",
     secondaryDimensions: ["clarity", "conciseness"],
     timeBudgetSec: 45,
     instruction: "Two audiences, one rep",
@@ -391,7 +391,7 @@ export const REP_TYPES: readonly RepType[] = [
     behavior:
       "You have 45 seconds. Prove you can hold attention through tempo",
     primaryDimension: "delivery",
-    secondaryDimensions: ["thinking_quality", "adaptability"],
+    secondaryDimensions: ["thinking_quality", "tone"],
     timeBudgetSec: 45,
     instruction: "Pause for emphasis. Control the rhythm",
     framework: {
@@ -434,7 +434,7 @@ export const REP_TYPES: readonly RepType[] = [
       "Perform under a real stressor — pushback, time compression, audience switch, interruption, or raised stakes",
     behavior:
       "One of five pressure archetypes is selected per session. The prompt itself encodes the mechanism — read carefully before you start",
-    primaryDimension: "adaptability",
+    primaryDimension: "tone",
     secondaryDimensions: ["thinking_quality", "delivery"],
     timeBudgetSec: 30,
     instruction: "Hold composure under the mechanism",

@@ -4,7 +4,7 @@ Communicating with senior leaders — C-suite, VPs, board members — under time
 
 ## Why this matters for Cognify
 
-Exec briefings stress **structure**, **clarity**, and **adaptability** above all. The listener won't follow a long build-up, won't tolerate hedging, and expects the speaker to have already done the discovery work. Cognify's Daily Workout and Scenario Training prompt banks use exec-briefing contexts heavily because they force the speaker to *lead with the answer* rather than *explain to it*.
+Exec briefings stress **structure**, **clarity**, and **tone** above all. The listener won't follow a long build-up, won't tolerate hedging, and expects the speaker to have already done the discovery work. Cognify's Daily Workout and Scenario Training prompt banks use exec-briefing contexts heavily because they force the speaker to *lead with the answer* rather than *explain to it*.
 
 ## Staple sources
 

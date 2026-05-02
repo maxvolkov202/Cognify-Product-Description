@@ -130,7 +130,7 @@ function focusForPressureRep(
   // The pressure rep itself: lean into the archetype, not a single
   // dimension. We pick the archetype's top stressed dim for the
   // dimension field but the bannerText centers the mechanism.
-  const dim = archetype.stressedDimensions[0] ?? "adaptability";
+  const dim = archetype.stressedDimensions[0] ?? "tone";
   return {
     source: "session_intent",
     dimension: dim,
@@ -766,7 +766,7 @@ const DIMENSION_TO_REP_TYPES: Record<SkillDimension, readonly RepTypeId[]> = {
   conciseness: ["be_concise", "simplify", "structure", "persuade", "adapt"],
   thinking_quality: ["think_fast", "handle_pressure", "deliver"],
   delivery: ["deliver", "be_concise", "think_fast", "reinforce", "handle_pressure"],
-  adaptability: ["adapt", "persuade", "handle_pressure", "deliver"],
+  tone: ["deliver", "persuade", "handle_pressure", "adapt"],
 };
 
 /** Minimum score above which we DON'T bother adjusting — the user is
@@ -991,10 +991,10 @@ const LEGACY_DEFAULT_FOCUS: Record<RepTypeId, SkillDimension[]> = {
   think_fast: ["thinking_quality", "clarity", "delivery"],
   be_concise: ["conciseness", "clarity", "delivery"],
   reinforce: ["clarity", "structure", "delivery"],
-  persuade: ["adaptability", "structure", "conciseness"],
-  adapt: ["adaptability", "clarity", "conciseness"],
-  deliver: ["delivery", "thinking_quality", "adaptability"],
-  handle_pressure: ["adaptability", "thinking_quality", "delivery"],
+  persuade: ["tone", "structure", "conciseness"],
+  adapt: ["tone", "clarity", "conciseness"],
+  deliver: ["delivery", "thinking_quality", "tone"],
+  handle_pressure: ["tone", "thinking_quality", "delivery"],
 };
 
 /**

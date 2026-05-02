@@ -4,9 +4,9 @@ const skills = [
   { name: "Structure", score: 84, group: "content" as const },
   { name: "Clarity", score: 78, group: "content" as const },
   { name: "Conciseness", score: 81, group: "content" as const },
-  { name: "Thinking Quality", score: 72, group: "delivery" as const },
+  { name: "Thinking Quality", score: 72, group: "content" as const },
   { name: "Delivery", score: 68, group: "delivery" as const },
-  { name: "Adaptability", score: 79, group: "delivery" as const },
+  { name: "Tone", score: 79, group: "delivery" as const },
 ] as const;
 
 export function FeedbackSampleCard() {

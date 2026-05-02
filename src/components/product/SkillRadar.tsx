@@ -9,7 +9,7 @@ const LABELS: Record<SkillDimension, string> = {
   conciseness: "Conciseness",
   thinking_quality: "Thinking",
   delivery: "Delivery",
-  adaptability: "Adaptability",
+  tone: "Tone",
 };
 
 // Order is Content (top three) then Delivery (bottom three) — visually
@@ -21,7 +21,7 @@ const ORDER: SkillDimension[] = [
   "conciseness",
   "thinking_quality",
   "delivery",
-  "adaptability",
+  "tone",
 ];
 
 type Props = {

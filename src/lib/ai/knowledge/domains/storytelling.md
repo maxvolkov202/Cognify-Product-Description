@@ -4,7 +4,7 @@ Communicating an idea to an audience through narrative rather than recitation. E
 
 ## Why this matters for Cognify
 
-Storytelling stresses **structure**, **adaptability**, and **handling pressure** under the specific constraint that the speaker has to hold the listener's attention without interrupting to check if it's working. Cognify uses storytelling scenarios to train the hardest form of structure — one where the framework is invisible to the audience but load-bearing for the speaker.
+Storytelling stresses **structure**, **tone**, and **handling pressure** under the specific constraint that the speaker has to hold the listener's attention without interrupting to check if it's working. Cognify uses storytelling scenarios to train the hardest form of structure — one where the framework is invisible to the audience but load-bearing for the speaker.
 
 ## Staple sources
 

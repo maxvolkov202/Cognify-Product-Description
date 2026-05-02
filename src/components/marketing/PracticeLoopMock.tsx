@@ -44,7 +44,7 @@ const DIMENSIONS = [
   { name: "Conciseness", value: 81 },
   { name: "Thinking", value: 72 },
   { name: "Delivery", value: 68 },
-  { name: "Adaptability", value: 79 },
+  { name: "Tone", value: 79 },
 ] as const;
 
 export function PracticeLoopMock() {

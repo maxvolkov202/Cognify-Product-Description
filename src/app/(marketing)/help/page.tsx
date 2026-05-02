@@ -45,7 +45,7 @@ const SECTIONS: Array<{
     id: "scoring",
     heading: "Scoring & feedback",
     blurb:
-      "Every rep is scored on six research-backed dimensions: three for what you say (clarity, structure, conciseness) and three for how you say it (thinking quality, delivery, adaptability).",
+      "Every rep is scored on six research-backed dimensions: four for what you say (clarity, structure, conciseness, thinking quality) and two for how you say it (delivery, tone).",
     faqs: [
       {
         question: "Why am I seeing these six dimensions and not others?",

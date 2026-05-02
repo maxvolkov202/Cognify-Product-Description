@@ -164,9 +164,9 @@ export const EXEMPLARS: readonly Exemplar[] = [
     tip: "Watch the cadence — open slow, accelerate through the case, slow again at the close. Every pause earns the listener's full attention for what comes next.",
   },
 
-  // ——— Adaptability ————————————————————————————————————————————
+  // ——— Tone ————————————————————————————————————————————
   {
-    dimension: "adaptability",
+    dimension: "tone",
     archetypeId: "audience_switch",
     topic: "Explain AI to a designer, then to a researcher",
     lines: [
@@ -177,7 +177,7 @@ export const EXEMPLARS: readonly Exemplar[] = [
     tip: "Same idea, two registers. Designer gets the metaphor; researcher gets the open question. Notice the explicit \"pivot\" line — it signals the switch out loud.",
   },
   {
-    dimension: "adaptability",
+    dimension: "tone",
     archetypeId: "pushback",
     topic: "Make the case for code reviews. Pushback: \"They just slow us down\"",
     lines: [
@@ -188,7 +188,7 @@ export const EXEMPLARS: readonly Exemplar[] = [
     tip: "Every move named: acknowledge → redirect → land. The user can hear the move BEING made, not described.",
   },
   {
-    dimension: "adaptability",
+    dimension: "tone",
     topic: "Convince someone to start exercising regularly",
     lines: [
       "Look — I'm not going to sell you on the idea of exercise. You already know it's good.",

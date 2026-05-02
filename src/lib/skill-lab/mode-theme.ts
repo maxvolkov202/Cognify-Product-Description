@@ -107,7 +107,7 @@ export const DIMENSION_ACCENTS: Record<SkillDimension, string> = {
   conciseness: "#e77cf0", // brand-magenta
   thinking_quality: "#b072ff", // brand-purple
   delivery: "#b39bff", // brand-lavender (was cyan)
-  adaptability: "#e77cf0", // brand-magenta (was amber)
+  tone: "#e77cf0", // brand-magenta (was amber, replaced adaptability in v3)
 };
 
 export function focusAccentForDimension(dim: SkillDimension): string {

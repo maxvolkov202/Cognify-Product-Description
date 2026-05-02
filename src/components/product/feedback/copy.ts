@@ -9,5 +9,5 @@ export const LAST_REP_FOCUS_COPY: Record<SkillDimension, string> = {
   conciseness: "trim the runway",
   thinking_quality: "stay sharp under questions",
   delivery: "hold the pacing",
-  adaptability: "stay loose under shifts",
+  tone: "land statements with conviction",
 };
