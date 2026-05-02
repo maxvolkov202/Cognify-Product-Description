@@ -328,16 +328,27 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     let unlockedAchievements: AchievementId[] | undefined;
     if (userId !== "anonymous" && !isGuest) {
       const streak = await getStreakDays(userId);
+      // DNA Ch.9a comeback bonus — fires once when a user returns after a
+      // missed-day-streak break. Heuristic: streak just reset to 1 AND
+      // lifetime_reps already > 0 (i.e. they've had a streak before).
+      // Trades off some false-positives (a brand-new user's first 2nd-day
+      // rep also matches if their counts shift weirdly) for a simple
+      // signal that fires reliably for actual comebacks.
+      const priorLifetime = (await readLifetimeReps(userId)) ?? 0;
+      const comebackBonus = streak === 1 && priorLifetime > 0;
       xp = await awardXp({
         userId,
         composite: input.score.composite,
         streakDays: streak,
+        comebackBonus,
       });
 
       // DNA Ch.9c — evaluate achievements after XP grant so the
       // users.lifetime_reps column reflects this rep. getDimensions-
       // EverScored picks up the just-inserted dimensionScores rows.
-      const lifetimeReps = (await readLifetimeReps(userId)) ?? 0;
+      // Re-read lifetime_reps post-awardXp for the lifetimeReps tier
+      // achievements (priorLifetime is pre-grant).
+      const lifetimeReps = (await readLifetimeReps(userId)) ?? priorLifetime + 1;
       const dimsEverScored = await getDimensionsEverScored(userId);
       unlockedAchievements = await evaluateAchievements({
         userId,

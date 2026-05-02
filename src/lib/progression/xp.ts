@@ -95,7 +95,9 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
   } = input;
 
   const grant = Math.round(
-    BASE_XP * bandMultiplier(composite) * streakMultiplier(streakDays) *
+    BASE_XP *
+      bandMultiplier(composite) *
+      streakMultiplier(streakDays) *
       (comebackBonus ? 2 : 1),
   );
 

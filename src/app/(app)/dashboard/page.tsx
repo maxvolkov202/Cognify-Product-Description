@@ -20,6 +20,7 @@ import {
 } from "@/lib/db/queries/progress";
 import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
 import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
+import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
@@ -150,6 +151,13 @@ export default async function DashboardPage() {
         <WeakestLinkCard
           weakest={weakest}
           totalReps={profile.lifetimeReps}
+        />
+      )}
+
+      {profile && profile.lifetimeReps > 0 && (
+        <StreakCalendar
+          activity={activity.slice(-30)}
+          currentStreakDays={streakStatus.streakDays}
         />
       )}
 
