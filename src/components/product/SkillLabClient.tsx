@@ -26,6 +26,7 @@ import {
 } from "@/lib/ai/workout-prompts";
 import type { ImprovementGoalId } from "@/lib/onboarding/constants";
 import { SUB_SKILL_LABELS, type SubSkillId } from "@/types/sub-skills";
+import { primaryExerciseFor } from "@/lib/ai/exercises";
 import { SkillLabSession } from "./SkillLabSession";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -189,26 +190,36 @@ export function SkillLabClient({
           onPick={(dim) => setPhase({ kind: "focus-reps", dim })}
         />
       )}
-      {phase.kind === "focus-reps" && (
-        <RepCountStep
-          title={`Drill ${DIMENSION_LABELS[phase.dim]}`}
-          subtitle={
-            initialSubSkill && initialFocus === phase.dim
-              ? `Focusing on ${SUB_SKILL_LABELS[initialSubSkill]}. How many reps today?`
-              : "How many reps today?"
-          }
-          onBack={
-            // When the user landed via a query-param deep-link
-            // (initialFocus set + matches current phase), Back returns
-            // to the lobby instead of the skill picker — the picker is
-            // confusing if the user didn't start there.
-            initialFocus === phase.dim
-              ? backToLobby
-              : () => setPhase({ kind: "focus-skill" })
-          }
-          onPick={(reps) => startFocus(phase.dim, reps)}
-        />
-      )}
+      {phase.kind === "focus-reps" && (() => {
+        // Ch.16 — surface today's named exercise above the rep-count
+        // step. Bias toward the exercise that targets the deep-linked
+        // sub-skill when present; otherwise pick the dim's primary
+        // exercise. Pure surface — exerciseId isn't yet plumbed
+        // through to the prompt picker (per-prompt tagging is the
+        // Ch.16 follow-up that wires this data into selection).
+        const exercise = primaryExerciseFor(
+          phase.dim,
+          initialFocus === phase.dim ? initialSubSkill : undefined,
+        );
+        return (
+          <RepCountStep
+            title={`Drill ${DIMENSION_LABELS[phase.dim]}`}
+            subtitle={
+              initialSubSkill && initialFocus === phase.dim
+                ? `Focusing on ${SUB_SKILL_LABELS[initialSubSkill]}. How many reps today?`
+                : "How many reps today?"
+            }
+            exerciseLabel={`Today's exercise: ${exercise.name}`}
+            exerciseTagline={exercise.tagline}
+            onBack={
+              initialFocus === phase.dim
+                ? backToLobby
+                : () => setPhase({ kind: "focus-skill" })
+            }
+            onPick={(reps) => startFocus(phase.dim, reps)}
+          />
+        );
+      })()}
       {phase.kind === "mixed-skills" && (
         <MixedSkillStep
           currentScores={currentScores}
@@ -649,12 +660,19 @@ function FocusSkillStep({
 function RepCountStep({
   title,
   subtitle,
+  exerciseLabel,
+  exerciseTagline,
   onBack,
   onPick,
   unlimitedLabel = "Unlimited",
 }: {
   title: string;
   subtitle: string;
+  /** Ch.16 — when set, renders a "Today's exercise: X" pill above the
+   *  rep-count buttons. Lets the user see which named curriculum
+   *  exercise they're about to train, vs an anonymous prompt id. */
+  exerciseLabel?: string;
+  exerciseTagline?: string;
   onBack: () => void;
   onPick: (reps: RepCountChoice) => void;
   unlimitedLabel?: string;
@@ -673,6 +691,18 @@ function RepCountStep({
         subtitle={subtitle}
         onBack={onBack}
       />
+      {exerciseLabel && (
+        <div className="mb-5 flex flex-wrap items-baseline gap-2 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 px-4 py-3">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-purple">
+            {exerciseLabel}
+          </span>
+          {exerciseTagline && (
+            <span className="text-[12px] text-ink-600">
+              {exerciseTagline}
+            </span>
+          )}
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {choices.map((c, i) => (
           <motion.button
