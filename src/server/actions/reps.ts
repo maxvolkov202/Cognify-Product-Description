@@ -31,6 +31,7 @@ import {
   markQuestsCompleted,
   ymdUtc,
 } from "@/lib/db/queries/daily-quests";
+import { tickWeeklyXp } from "@/lib/db/queries/leagues";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
@@ -353,6 +354,12 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         streakDays: streak,
         comebackBonus,
       });
+      // DNA Ch.9b — leagues weekly_xp accrual. Behind FF_LEAGUES so the
+      // shadow-mode rollout per the master plan can run cohort math
+      // before any UI surface goes live.
+      if (process.env.FF_LEAGUES === "true" && xp.xpDelta > 0) {
+        await tickWeeklyXp(userId, xp.xpDelta);
+      }
 
       // DNA Ch.9c — evaluate achievements after XP grant so the
       // users.lifetime_reps column reflects this rep. getDimensions-

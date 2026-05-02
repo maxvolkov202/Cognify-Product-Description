@@ -307,6 +307,35 @@ export const promptEngagement = cognifyV2Schema.table(
 );
 
 /**
+ * DNA Ch.9b — league membership. One row per (user, week). Weekly_xp
+ * accumulates as the user earns XP that week; tier + league_id determine
+ * the cohort they compete with. Promotion/relegation logic lives in
+ * src/lib/engagement/leagues.ts; cron settles the week and assigns the
+ * next one.
+ */
+export const leagueMembership = cognifyV2Schema.table(
+  "league_membership",
+  {
+    userId: uuid("user_id").notNull(),
+    weekStart: date("week_start").notNull(),
+    tier: text("tier").notNull(),
+    leagueId: uuid("league_id").notNull(),
+    weeklyXp: integer("weekly_xp").notNull().default(0),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    promotedTo: text("promoted_to"),
+    relegatedTo: text("relegated_to"),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.weekStart] }),
+    index("league_membership_league_idx").on(t.leagueId, t.weeklyXp),
+    index("league_membership_week_tier_idx").on(t.weekStart, t.tier),
+  ],
+);
+
+/**
  * DNA Ch.9d — daily quests. Three quests per user per UTC day, JSONB
  * payload so quest design can iterate without schema churn. Definitions
  * live in code (src/lib/engagement/quests.ts).

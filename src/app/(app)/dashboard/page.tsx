@@ -23,6 +23,12 @@ import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard"
 import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
 import { DailyQuestsStrip } from "@/components/product/dashboard/DailyQuestsStrip";
 import { getOrCreateTodayQuests } from "@/lib/db/queries/daily-quests";
+import { LeagueBoard } from "@/components/product/dashboard/LeagueBoard";
+import {
+  getOrCreateThisWeekMembership,
+  getCohortLeaderboard,
+} from "@/lib/db/queries/leagues";
+import { anonymousHandle } from "@/lib/engagement/leagues";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
@@ -43,7 +49,9 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "anonymous";
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-  const [streakStatus, recent, activity, trends, profile, weakest, todaysQuests] =
+  const leaguesEnabled = process.env.FF_LEAGUES === "true";
+
+  const [streakStatus, recent, activity, trends, profile, weakest, todaysQuests, leagueMember] =
     await Promise.all([
       getStreakStatus(userId),
       getRecentReps(userId, 5),
@@ -52,7 +60,15 @@ export default async function DashboardPage() {
       user ? getUserProfile(user.id) : Promise.resolve(null),
       user ? getWeakestDimension(user.id) : Promise.resolve(null),
       user ? getOrCreateTodayQuests(user.id) : Promise.resolve(null),
+      user && leaguesEnabled
+        ? getOrCreateThisWeekMembership(user.id)
+        : Promise.resolve(null),
     ]);
+
+  // Fetch cohort separately since it depends on the membership.
+  const cohort = leagueMember
+    ? await getCohortLeaderboard(leagueMember.leagueId)
+    : [];
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -168,6 +184,18 @@ export default async function DashboardPage() {
         <DailyQuestsStrip
           quests={todaysQuests.quests}
           completedIds={todaysQuests.completedIds}
+        />
+      )}
+
+      {leagueMember && cohort.length > 0 && user && (
+        <LeagueBoard
+          tier={leagueMember.tier}
+          selfUserId={user.id}
+          cohort={cohort.map((m) => ({
+            userId: m.userId,
+            weeklyXp: m.weeklyXp,
+            handle: anonymousHandle(m.userId, m.weekStart),
+          }))}
         />
       )}
 
