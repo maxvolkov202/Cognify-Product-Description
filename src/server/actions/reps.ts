@@ -16,6 +16,7 @@ import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
 import { getStreakDays } from "@/lib/db/queries/progress";
 import { recordPersonalBests } from "@/lib/db/queries/personal-bests";
 import { awardStreakFreeze } from "@/lib/db/queries/streak-freeze";
+import { awardXp, type AwardXpResult } from "@/lib/progression/xp";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 
 /** Guest users get 3 free reps to taste-before-signup. The 3rd save comes
@@ -50,6 +51,10 @@ export type SaveRepResult = {
   /** Number of reps this (guest) user has saved including this one.
    *  Undefined for authenticated users. */
   guestRepCount?: number;
+  /** DNA Ch.7 — XP grant from this rep + level transition. Undefined for
+   *  guests (no progression) and when DB is unavailable. UI fires the
+   *  level-up celebration when `xp.leveledUp === true`. */
+  xp?: AwardXpResult;
 };
 
 export type InsertPendingRepInput = {
@@ -293,6 +298,19 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       if (total >= GUEST_REP_LIMIT) gate = "signup_required";
     }
 
+    // DNA Ch.7 — XP grant. Authenticated users only; guests don't have
+    // a progression slot. Streak already computed above; reuse to keep
+    // this single round-trip.
+    let xp: AwardXpResult | undefined;
+    if (userId !== "anonymous" && !isGuest) {
+      const streak = await getStreakDays(userId);
+      xp = await awardXp({
+        userId,
+        composite: input.score.composite,
+        streakDays: streak,
+      });
+    }
+
     return {
       repId,
       sessionId,
@@ -300,6 +318,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       calloutIds,
       gate,
       guestRepCount,
+      xp,
     };
   }, fallback);
 }

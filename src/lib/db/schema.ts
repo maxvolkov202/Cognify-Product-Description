@@ -127,6 +127,14 @@ export const users = cognifyV2Schema.table("users", {
   // every completed 7-day streak; consumed when a day is missed. Cap at
   // 3 freezes stored.
   streakFreezes: integer("streak_freezes").notNull().default(0),
+  // DNA Ch.7 — Levels 1-100 + XP. Backfilled on deploy via
+  // scripts/backfill-progression.mjs.
+  level: integer("level").notNull().default(1),
+  xp: integer("xp").notNull().default(0),
+  lifetimeReps: integer("lifetime_reps").notNull().default(0),
+  /** Anti-grinding: at most one level-up per UTC day. XP still accrues
+   *  for tomorrow when capped. */
+  lastLevelUpAt: timestamp("last_level_up_at", { withTimezone: true }),
   // WS-3 cross-session archetype rotation: excludes the previous
   // session's archetype from the next session's selection so users
   // don't see the same archetype back-to-back.
