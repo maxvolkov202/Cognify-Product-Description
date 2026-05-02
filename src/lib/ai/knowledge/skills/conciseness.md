@@ -8,6 +8,10 @@ Conciseness is the discipline of saying the most with the fewest words that will
 
 Signal-per-word density, plus time-budget discipline. A concise speaker cuts filler, avoids repetition, skips preambles, and knows when to stop. Conciseness shows up in two places: the word level (no throat-clearing, no hedges) and the structural level (one main point, not three; one supporting example, not five).
 
+## Why we chose this
+
+Conciseness is where credibility either holds or leaks. We chose it because filler density and hedge rate are the two highest-signal failure modes a listener registers — and they're directly measurable from a transcript with no model needed. Trainable because the rep itself is the training: 60 seconds of no-um, no-hedge speaking is a cognitive exercise that rewires the reflex. The fundamental reason: every word that doesn't move the argument actively undoes the argument.
+
 ## Experts and sources
 
 - **Strunk & White**, *The Elements of Style* — "Omit needless words" is the textbook conciseness rule; conciseness is arguably the most durable thing the book teaches.

@@ -8,6 +8,10 @@ Tone is the v3.0.0 dimension that captures *how the voice carries the meaning*. 
 
 Pitch varies intentionally across the response — not random, not flat. Statements close with downward inflection, signaling conviction. Volume rises and falls to mark important words. Vocal energy holds from first sentence to last. Articulation is crisp; consonants are formed cleanly. The listener's takeaway: *this person sounds like they mean what they're saying — and I want to keep listening*.
 
+## Why we chose this
+
+Tone is the first signal a listener processes — before a single word is parsed. We chose it because monotone, upspeak, and locked-volume patterns are the most-cited reasons listeners disengage from otherwise-strong content. Measurable through pitch variation, downward inflection, and vocal-presence signals from prosody analysis. Trainable through Conviction Close and Pitch Ladder drills. Fundamental because the tone you start with sets how the listener interprets everything that follows.
+
 ## Experts and sources
 
 - **Roger Love**, *Set Your Voice Free* — vocal coach to actors and CEOs; foundational on pitch range and breath support for spoken performance.

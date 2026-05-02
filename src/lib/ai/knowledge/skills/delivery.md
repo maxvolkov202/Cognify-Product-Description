@@ -8,6 +8,10 @@ Delivery (renamed from "Pacing" in the v2.0.0 rubric and expanded to absorb the 
 
 WPM is stable across the rep. Purposeful pauses for emphasis. Vocal variation matches content stakes. The rep finishes within the time budget without rushing the closer or leaving the ending half-baked. Pauses are intentional (breath, emphasis) rather than panicked (working memory overflow — that's a Thinking Quality tell, not a Delivery one).
 
+## Why we chose this
+
+Delivery is the deterministic layer of the rubric — same audio, same score, every time. We chose it because pacing, pause placement, and filler rate are all measurable from word timings without an LLM in the loop, which means trend lines are real (not model drift). Trainable through targeted drills like Metronome Rep and Pause Punctuation. Fundamental because rate alone outside the 150-160 wpm band makes everything else harder to follow — a brilliant idea at 220 wpm reaches the listener as a blur.
+
 ## Experts and sources
 
 - **Elizabeth Shriberg** (SRI / Microsoft Research) — foundational work on speech disfluencies and filler-word taxonomy. Her 1994 Switchboard corpus analysis is still the reference for baseline disfluency rates in L1 English speech.

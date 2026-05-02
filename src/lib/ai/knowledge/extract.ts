@@ -10,6 +10,11 @@ export type SkillExcerpt = {
   dimension: SkillDimension;
   title: string;
   definition: string;
+  /** Ch.18 — the "## Why we chose this" paragraph from the skill MD.
+   *  Optional because legacy / unrenamed dims may not have it
+   *  authored yet. The popover renders this at the top when present
+   *  so users see the rubric philosophy before the high/low signals. */
+  chosenBecause?: string;
   highSignal: string[];
   lowSignal: string[];
   sources: string[];
@@ -29,6 +34,7 @@ export function getSkillExcerpt(dimension: SkillDimension): SkillExcerpt | null 
   const md = block.content;
 
   const definition = extractSection(md, "Definition") ?? extractSummary(md);
+  const chosenBecause = extractSection(md, "Why we chose this");
   const highSignal = extractBullets(md, `What great ${dimension} sounds like`);
   const lowSignal = extractBullets(md, `What low ${dimension} sounds like`);
   const sources = extractBullets(md, "Experts and sources");
@@ -37,6 +43,9 @@ export function getSkillExcerpt(dimension: SkillDimension): SkillExcerpt | null 
     dimension,
     title: titleCase(dimension),
     definition: trimWords(definition, 80),
+    ...(chosenBecause
+      ? { chosenBecause: trimWords(chosenBecause, 110) }
+      : {}),
     highSignal: highSignal.slice(0, 4).map((s) => trimWords(s, 30)),
     lowSignal: lowSignal.slice(0, 4).map((s) => trimWords(s, 30)),
     sources: sources.slice(0, 5).map(stripMarkdown).map((s) => trimWords(s, 30)),

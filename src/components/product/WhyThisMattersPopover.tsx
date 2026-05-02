@@ -9,6 +9,10 @@ type Excerpt = {
   dimension: SkillDimension;
   title: string;
   definition: string;
+  /** Ch.18 — chosen-because paragraph from the skill MD's "Why we chose
+   *  this" section. When present, rendered at the top of the popover
+   *  before the definition so users see the rubric philosophy first. */
+  chosenBecause?: string;
   highSignal: string[];
   lowSignal: string[];
   sources: string[];
@@ -145,6 +149,16 @@ export function WhyThisMattersPopover({
 
           {excerpt && (
             <div className="mt-3 space-y-3 text-sm">
+              {excerpt.chosenBecause && (
+                <div className="rounded-xl border border-brand-purple/20 bg-brand-purple/5 p-3">
+                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-purple">
+                    Why we chose this
+                  </p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-ink-700">
+                    {excerpt.chosenBecause}
+                  </p>
+                </div>
+              )}
               <p className="text-ink-700">{excerpt.definition}</p>
 
               {excerpt.highSignal.length > 0 && (

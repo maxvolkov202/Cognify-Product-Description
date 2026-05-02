@@ -8,6 +8,10 @@ Clarity is the dimension where the listener doesn't have to re-interpret. They d
 
 Ideas transmitted without friction. A clear speaker is understood the first time by an audience-appropriate listener. This is not about speaking slowly or using small words — it's about every sentence being *resolvable* the moment it's heard.
 
+## Why we chose this
+
+Clarity is foundational because every other dimension depends on it — a brilliant argument lost on the listener doesn't move anyone. We picked it because the failure mode is concrete and trainable: jargon density, abstract-noun ratio, and pronoun resolution all surface as measurable signals in any 60-second response. Daily reps build the pattern of stating the main point first and grounding abstract claims with concrete examples — the single most asked-for skill in our internal coaching feedback.
+
 ## Experts and sources
 
 - **Steven Pinker**, *The Sense of Style* (2014) — "classic style" prose, concrete over abstract, the curse of knowledge

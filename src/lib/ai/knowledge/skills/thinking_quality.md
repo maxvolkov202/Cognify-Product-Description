@@ -10,6 +10,10 @@ Coherent generation under real-time conditions. Low backtrack rate, low mid-sent
 
 Important: Thinking Quality measures the *content* of thinking — NOT the vocal composure (which is Delivery). A speaker can have solid Delivery (steady pace, purposeful pauses) while their Thinking Quality collapses (they hedge, restart, and abandon points). The signals separate cleanly.
 
+## Why we chose this
+
+Thinking Quality is the dimension that separates "sounds good" from "is good." We chose it because the rest of the rubric measures HOW you said it — TQ measures WHAT you said. Trainable through forced-support drills (every claim ships with a number or example) and depth drills (second-order why). Measurable through claim-support rate and depth-of-analysis markers. Fundamental because polishing delivery on shallow content is a well-documented anti-pattern — TQ keeps the substance honest.
+
 ## Experts and sources
 
 - **Matt Abrahams** (Stanford GSB), *Think Faster, Talk Smarter* (2023) — the modern definitive work. Six-step methodology for managing speaking anxiety, with explicit focus on the *perception* of confidence vs the internal experience.

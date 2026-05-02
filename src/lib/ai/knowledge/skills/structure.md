@@ -8,6 +8,10 @@ Structure is the skill of making your argument *findable*. A well-structured rep
 
 The listener can reconstruct the argument without effort. Structure is present when there's a clear opening that establishes direction, logical connectors between points, and a close that lands the main point. It is absent when the speaker jumps between topics without visible scaffolding.
 
+## Why we chose this
+
+Structure makes ideas portable — the listener can repeat your point to someone else. We chose it because it's the single biggest predictor of whether a meeting recap or a pitch will land twice. The signals are observable: transition-marker rate, opening-position score, and arc-completion. Trainable through repeated drills like BLUF and Three-Act Close, where the constraint forces the structural muscle that holistic feedback can't develop fast enough. Fundamental because organization is the difference between content that travels and content that evaporates.
+
 ## Experts and sources
 
 - **Barbara Minto**, *The Pyramid Principle* (1987) — the definitive work on structured business communication; MECE, pyramid principle, SCQA
