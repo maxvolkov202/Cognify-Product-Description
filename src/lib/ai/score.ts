@@ -35,6 +35,7 @@ import {
 import {
   ALL_SUB_SKILLS,
   SUB_SKILL_TO_DIMENSION,
+  SUB_SKILL_LABELS,
   SUB_SKILLS,
   renderSubSkillReference,
   type SubSkillId,
@@ -662,6 +663,60 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
   return lines.join("\n");
 }
 
+/** Provider-quirk normalizer. Runs before Zod validation. Today's
+ *  quirks:
+ *    - sub-skill labels vs ids: some models return "Word Choice"
+ *      instead of "word_choice". Map labels → ids using the
+ *      SUB_SKILL_LABELS table.
+ *    - "structural_adherence" sub-skill: schema doesn't accept it; null
+ *      it out so the bullet still validates and the sanitizer picks up.
+ *  Pass-through for shapes we don't recognize. */
+const SUB_SKILL_LABEL_TO_ID: Record<string, SubSkillId> = (() => {
+  const out: Record<string, SubSkillId> = {};
+  for (const [id, label] of Object.entries(SUB_SKILL_LABELS) as [
+    SubSkillId,
+    string,
+  ][]) {
+    out[label] = id;
+    out[label.toLowerCase()] = id;
+  }
+  return out;
+})();
+
+function normalizeSubSkillField(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  // Already an id — pass through.
+  if ((ALL_SUB_SKILLS as readonly string[]).includes(value)) return value;
+  // Try human-label match (case-insensitive).
+  const mapped = SUB_SKILL_LABEL_TO_ID[value] ?? SUB_SKILL_LABEL_TO_ID[value.toLowerCase()];
+  if (mapped) return mapped;
+  // Try snake_case'd label ("Word Choice" → "word_choice").
+  const snake = value.toLowerCase().replace(/\s+/g, "_");
+  if ((ALL_SUB_SKILLS as readonly string[]).includes(snake)) return snake;
+  // Unknown string — null it out so the optional schema field accepts.
+  return null;
+}
+
+function normalizeBulletArray(arr: unknown): unknown {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((b) => {
+    if (b && typeof b === "object" && "subSkill" in b) {
+      return { ...b, subSkill: normalizeSubSkillField((b as { subSkill: unknown }).subSkill) };
+    }
+    return b;
+  });
+}
+
+function normalizeProviderQuirks(parsed: unknown): unknown {
+  if (!parsed || typeof parsed !== "object") return parsed;
+  const obj = { ...(parsed as Record<string, unknown>) };
+  if ("didWell" in obj) obj.didWell = normalizeBulletArray(obj.didWell);
+  if ("didntLand" in obj) obj.didntLand = normalizeBulletArray(obj.didntLand);
+  if ("nextRepFocus" in obj)
+    obj.nextRepFocus = normalizeBulletArray(obj.nextRepFocus);
+  return obj;
+}
+
 /** Ch.11c — Extract the per-dimension subset of `subSkillScores` for a
  *  single dimension. Returns undefined when no sub-skills are populated
  *  for that dim (so the field stays `undefined` on the DimensionScore,
@@ -831,6 +886,14 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
       `Scoring response was not valid JSON. Got: ${textBlock.text.slice(0, 500)}`,
     );
   }
+
+  // Normalize provider quirks before validation. Anthropic + OpenAI
+  // agree on the JSON shape but disagree on enum casing — when the
+  // prompt instructs "use the snake_case sub-skill id" some models
+  // return the human label ("Word Choice") instead. Map labels back
+  // to ids so the schema parses cleanly. Idempotent: ids pass
+  // through untouched.
+  parsed = normalizeProviderQuirks(parsed);
 
   const validated = scoringResponseSchema.parse(parsed);
 
