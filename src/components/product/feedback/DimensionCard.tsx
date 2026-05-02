@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils/cn";
 import { Disclosure } from "./Disclosure";
 import { useAudioControl } from "./AudioControlContext";
 import { CalloutCorrectionRow } from "../CalloutCorrectionRow";
+import { WhyThisMattersPopover } from "../WhyThisMattersPopover";
 
 type Props = {
   dimension: SkillDimension;
@@ -101,6 +102,13 @@ export function DimensionCard({
       <div id={`dim-panel-${dimension}`}>
         <Disclosure open={expanded}>
           <div className="border-t border-ink-100 px-4 py-4 space-y-4">
+            {/* Ch.18 — "Why this matters" popover trigger. Sits at the
+             *  top of the expanded panel so users have a one-click path
+             *  to the dim's chosen-because rationale + research sources
+             *  while looking at their actual score on it. */}
+            <div className="flex justify-end">
+              <WhyThisMattersPopover dimension={dimension} />
+            </div>
             {callouts.length === 0 && (
               <p className="text-xs leading-relaxed text-ink-500">
                 No specific moment to flag — score reflects overall consistency
