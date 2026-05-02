@@ -189,15 +189,20 @@ export function WhyThisMattersPopover({
                 </div>
               )}
 
-              <p className="pt-1 text-[10px] text-ink-400">
-                Full research and citations:{" "}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <a
+                  href={`/skill-lab/${dimension}/exemplars`}
+                  className="inline-flex items-center gap-1 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-2.5 py-1 text-[11px] font-bold text-brand-purple hover:bg-brand-purple/15"
+                >
+                  Hear what each band sounds like →
+                </a>
                 <a
                   href="/about/references"
-                  className="underline hover:text-ink-700"
+                  className="text-[10px] text-ink-400 underline hover:text-ink-700"
                 >
-                  /about/references
+                  Full research
                 </a>
-              </p>
+              </div>
             </div>
           )}
         </div>
