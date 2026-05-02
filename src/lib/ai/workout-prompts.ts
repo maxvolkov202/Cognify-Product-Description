@@ -27,6 +27,12 @@ import {
   type PressureArchetype,
   type PressureArchetypeId,
 } from "./pressure-archetypes";
+import {
+  pickDrillPrompts,
+  DRILLABLE_DIMENSIONS,
+} from "./prompts/drills";
+import type { SubSkillId } from "@/types/sub-skills";
+import { SUB_SKILL_TO_DIMENSION } from "@/types/sub-skills";
 
 /**
  * ============================================================
@@ -361,6 +367,16 @@ export function planFocusWorkout(
     vertical?: VerticalId | null;
     /** See planTodaysWorkout.excludePromptIds. */
     excludePromptIds?: ReadonlySet<string>;
+    /** Ch.16 follow-up — when set AND the dim is drillable
+     *  (thinking_quality / delivery / tone), each non-pressure rep slot
+     *  is filled from the drill bank with prompts biased toward this
+     *  sub-skill via `pickDrillPrompts({preferSubSkills})`. The slate
+     *  order, framework, and pressure-rep behavior all stay identical
+     *  to the rep-type path — the only thing that changes is which
+     *  prompts populate the slate. When the dim isn't drillable or the
+     *  sub-skill doesn't belong to the dim, the param is ignored and
+     *  the legacy rep-type path runs. */
+    preferSubSkill?: SubSkillId;
   },
 ): WorkoutSessionPlan {
   const count = opts.count ?? 4;
@@ -414,6 +430,17 @@ export function planFocusWorkout(
       })
     : null;
 
+  // Ch.16b — drill-bank routing kicks in when (1) a sub-skill bias is
+  // requested via opts.preferSubSkill, (2) the focus dim is drillable
+  // (i.e. has a DRILL_BANK), and (3) the bias sub-skill belongs to the
+  // focus dim (defensive — mismatched routing would confuse the picker).
+  const drillBankRouting =
+    opts.preferSubSkill != null &&
+    (DRILLABLE_DIMENSIONS as readonly SkillDimension[]).includes(
+      focusDimension,
+    ) &&
+    SUB_SKILL_TO_DIMENSION[opts.preferSubSkill] === focusDimension;
+
   const usedThisSession = new Set<string>(opts.recentFrameworkNames ?? []);
   const reps: WorkoutRepSlot[] = [];
   let nonPressureCursor = 0;
@@ -433,16 +460,40 @@ export function planFocusWorkout(
       usedThisSession,
     );
     usedThisSession.add(framework.name);
-    const blended = pickBlendedWorkoutPromptObjects(
-      typeId,
-      opts.vertical ?? null,
-      5,
-      excludePromptIds ? { excludeIds: excludePromptIds } : {},
-    );
+
+    let promptTexts: string[];
+    let promptIds: string[];
+    if (drillBankRouting) {
+      // Drill-bank route — picks 5 sub-skill-biased drills from the
+      // dim's bank. Each drill carries (topic, drillInstruction); the
+      // user-visible prompt combines both so the mechanic constraint
+      // is read alongside the topic. Seed by slot index so successive
+      // slots get distinct drills.
+      const drills = pickDrillPrompts({
+        dimension: focusDimension,
+        seed: `focus-${i}`,
+        preferSubSkills: [opts.preferSubSkill!],
+        count: 5,
+      });
+      promptTexts = drills.map(
+        (d) => `${d.topic}\n\nDrill: ${d.drillInstruction}`,
+      );
+      promptIds = drills.map((d) => d.id);
+    } else {
+      const blended = pickBlendedWorkoutPromptObjects(
+        typeId,
+        opts.vertical ?? null,
+        5,
+        excludePromptIds ? { excludeIds: excludePromptIds } : {},
+      );
+      promptTexts = blended.map((p) => p.text);
+      promptIds = blended.map((p) => p.id);
+    }
+
     reps.push({
       repType,
-      prompts: blended.map((p) => p.text),
-      promptIds: blended.map((p) => p.id),
+      prompts: promptTexts,
+      promptIds: promptIds,
       timeBudgetMs: repType.timeBudgetSec * 1000,
       framework,
       // Focus mode: every non-pressure rep is pinned to focusDimension.

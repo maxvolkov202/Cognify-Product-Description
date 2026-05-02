@@ -302,3 +302,38 @@ export function primaryExerciseFor(
 export function getExerciseById(id: string): Exercise | undefined {
   return EXERCISES[id as ExerciseId];
 }
+
+/**
+ * Reverse lookup — sub-skill → primary exercise that targets it.
+ *
+ * Built from EXERCISES_BY_DIMENSION at module load: walks each
+ * exercise's targetSubSkills and assigns ownership to the FIRST
+ * exercise that lists each sub-skill. This makes the catalog the
+ * single source of truth — when an exercise's targetSubSkills change,
+ * the lookup updates with no separate hand-curated table to drift.
+ *
+ * Some sub-skills are listed by multiple exercises (e.g.
+ * filler_word_control is in `pressure_close`; `filler_diet` already
+ * owns its dim's filler-related sub-skill). The `find()` call returns
+ * the first exercise in dim order — deterministic and stable.
+ */
+const SUB_SKILL_PRIMARY_EXERCISE: Partial<Record<SubSkillId, Exercise>> =
+  (() => {
+    const out: Partial<Record<SubSkillId, Exercise>> = {};
+    for (const exercise of ALL_EXERCISES) {
+      for (const subSkill of exercise.targetSubSkills) {
+        if (out[subSkill] == null) out[subSkill] = exercise;
+      }
+    }
+    return out;
+  })();
+
+/** Return the primary exercise for a given sub-skill, or undefined when
+ *  the sub-skill isn't covered by any exercise's targetSubSkills (e.g.
+ *  some sub-skills like `coherence` are intentionally not exercise-
+ *  targeted in v1 — they ride the dim's holistic training). */
+export function getPrimaryExerciseForSubSkill(
+  subSkill: SubSkillId,
+): Exercise | undefined {
+  return SUB_SKILL_PRIMARY_EXERCISE[subSkill];
+}

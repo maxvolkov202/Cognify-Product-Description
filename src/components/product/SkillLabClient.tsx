@@ -120,11 +120,19 @@ export function SkillLabClient({
 
   function startFocus(dim: SkillDimension, reps: RepCountChoice) {
     const count = reps === 999 ? 6 : reps;
+    // Ch.16b — when the user reached this step via a deep-link with a
+    // sub-skill query param (initialSubSkill), forward that bias to
+    // planFocusWorkout. The planner routes through the drill bank for
+    // drillable dims so the slate is biased toward prompts targeting
+    // that specific sub-skill. Non-drillable dims ignore the bias.
+    const planSubSkill =
+      initialFocus === dim && initialSubSkill ? initialSubSkill : undefined;
     const plan = planFocusWorkout({
       focusDimension: dim,
       count,
       goals: improvementGoals,
       excludePromptIds: seenPromptIds,
+      ...(planSubSkill ? { preferSubSkill: planSubSkill } : {}),
     });
     setPhase({
       kind: "session",
