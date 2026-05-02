@@ -112,6 +112,118 @@ export async function getWeakestDimension(
   }, null);
 }
 
+/**
+ * Ch.14 — running-average per dimension across the user's last
+ * RUNNING_AVG_LOOKBACK reps. Returns ALL 6 dimensions (unlike
+ * `getWeakestDimension` which returns only the lowest), with each
+ * carrying its weighted-recent average + 14-day delta + sample size.
+ *
+ * Powers the SkillAveragesGrid on the dashboard. New users with no
+ * reps yet get all-null entries so the grid can render empty-state
+ * tiles without needing a separate flow.
+ */
+export type RunningAverage = {
+  dimension: SkillDimension;
+  avg: number | null;
+  sampleSize: number;
+  /** Newer-window mean − older-window mean across the 14-day series.
+   *  Null when sample is too thin to compare. */
+  delta14d: number | null;
+};
+
+const RUNNING_AVG_LOOKBACK = 30;
+const RUNNING_AVG_DECAY = 0.08;
+
+export async function getRunningAverages(
+  userId: string,
+): Promise<RunningAverage[]> {
+  return safeDb<RunningAverage[]>(async () => {
+    // Pull the most recent ~6 dims × 30 reps worth of snapshots in one
+    // shot, ranked by takenAt desc. Group by dim, exponentially-weight
+    // by ordinal recency (matches the sub-skill query's decay so the
+    // two surfaces tell a coherent recency story).
+    const since14d = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        dimension: progressSnapshots.dimension,
+        score: progressSnapshots.score,
+        takenAt: progressSnapshots.takenAt,
+      })
+      .from(progressSnapshots)
+      .where(eq(progressSnapshots.userId, userId))
+      .orderBy(desc(progressSnapshots.takenAt))
+      .limit(RUNNING_AVG_LOOKBACK * ALL_DIMENSIONS.length);
+
+    type Obs = { rank: number; score: number; takenAt: Date };
+    const byDim = new Map<SkillDimension, Obs[]>();
+    const dimRanks = new Map<SkillDimension, number>();
+    for (const dim of ALL_DIMENSIONS) {
+      byDim.set(dim, []);
+      dimRanks.set(dim, 0);
+    }
+    for (const row of rows) {
+      const dim = row.dimension as SkillDimension;
+      const arr = byDim.get(dim);
+      if (!arr) continue;
+      const rank = dimRanks.get(dim) ?? 0;
+      if (rank >= RUNNING_AVG_LOOKBACK) continue;
+      arr.push({ rank, score: row.score, takenAt: row.takenAt });
+      dimRanks.set(dim, rank + 1);
+    }
+
+    return ALL_DIMENSIONS.map((dim) => {
+      const obs = byDim.get(dim) ?? [];
+      if (obs.length === 0) {
+        return {
+          dimension: dim,
+          avg: null,
+          sampleSize: 0,
+          delta14d: null,
+        };
+      }
+      // Weighted average across the lookback window.
+      let weightedSum = 0;
+      let totalWeight = 0;
+      for (const { rank, score } of obs) {
+        const w = Math.exp(-RUNNING_AVG_DECAY * rank);
+        weightedSum += score * w;
+        totalWeight += w;
+      }
+      const avg = totalWeight > 0 ? weightedSum / totalWeight : 0;
+
+      // 14-day delta: mean inside the 14d window minus mean outside it.
+      // Skips when either bucket has <3 observations to avoid noisy
+      // tiny-sample arrows.
+      const inside = obs
+        .filter((o) => o.takenAt >= since14d)
+        .map((o) => o.score);
+      const outside = obs
+        .filter((o) => o.takenAt < since14d)
+        .map((o) => o.score);
+      const delta14d =
+        inside.length >= 3 && outside.length >= 3
+          ? Math.round(
+              ((inside.reduce((s, v) => s + v, 0) / inside.length) -
+                (outside.reduce((s, v) => s + v, 0) / outside.length)) *
+                10,
+            ) / 10
+          : null;
+
+      return {
+        dimension: dim,
+        avg: Math.round(avg * 10) / 10,
+        sampleSize: obs.length,
+        delta14d,
+      };
+    });
+  }, ALL_DIMENSIONS.map<RunningAverage>((d) => ({
+    dimension: d,
+    avg: null,
+    sampleSize: 0,
+    delta14d: null,
+  })));
+}
+
 export async function getCurrentSkillScores(
   userId: string,
 ): Promise<Record<SkillDimension, number | null>> {

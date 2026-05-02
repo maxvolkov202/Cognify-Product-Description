@@ -17,10 +17,12 @@ import {
   getSkillTrends,
   getRepById,
   getWeakestDimension,
+  getRunningAverages,
 } from "@/lib/db/queries/progress";
 import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
 import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
 import { SubSkillBreakdownCard } from "@/components/product/dashboard/SubSkillBreakdownCard";
+import { SkillAveragesGrid } from "@/components/product/dashboard/SkillAveragesGrid";
 import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
 import { DailyQuestsStrip } from "@/components/product/dashboard/DailyQuestsStrip";
 import { getOrCreateTodayQuests } from "@/lib/db/queries/daily-quests";
@@ -75,6 +77,7 @@ export default async function DashboardPage() {
     todaysQuests,
     leagueMember,
     subSkillStats,
+    runningAverages,
   ] = await Promise.all([
     getStreakStatus(userId),
     getRecentReps(userId, 5),
@@ -89,6 +92,7 @@ export default async function DashboardPage() {
     user && subSkillUiEnabled
       ? getSubSkillRunningAverages(user.id)
       : Promise.resolve({} as Partial<Record<SubSkillId, SubSkillStat>>),
+    user ? getRunningAverages(user.id) : Promise.resolve([]),
   ]);
 
   const subSkillBreakdown = bucketByDimension(subSkillStats);
@@ -297,6 +301,14 @@ export default async function DashboardPage() {
       />
 
       <LibraryCallout />
+
+      {/* Ch.14 — DNA Gap 7. Six-dim running-average grid: weighted
+       *  recent average + 14-day delta arrow per dim. Sits above the
+       *  legacy SkillProgressBlock (latest-score bars) so users see
+       *  smoothed-vs-latest at a glance. Always mounted (renders
+       *  empty-state tiles for new users) so the six trained dims are
+       *  visible from rep #0. */}
+      {profile && <SkillAveragesGrid averages={runningAverages} />}
 
       <SkillProgressBlock
         trends={trends}
