@@ -45,25 +45,19 @@ const realOpenAI: OpenAI | null = openaiKey
   ? new OpenAI({ apiKey: openaiKey })
   : null;
 
-/** Errors we should fall back ON. Credit-balance + auth + 4xx/5xx
- *  errors all qualify; ZodError-style validation errors don't (those
- *  are bugs in our request, not provider failures). */
+/** Errors we should fall back ON. Default: any Anthropic SDK error
+ *  triggers fallback when OPENAI_API_KEY is set — the alternative
+ *  (silently breaking the user's rep) is strictly worse than retrying
+ *  on a different provider. ZodError-style validation errors thrown
+ *  later in the pipeline aren't caught here (they happen post-create),
+ *  so this stays focused on provider failures. */
 function shouldFallback(err: unknown): boolean {
   if (!realOpenAI) return false;
+  // Any error from the Anthropic SDK is a fallback candidate. The
+  // SDK's APIError type carries a `status`; network errors carry a
+  // `code` (ECONNREFUSED etc). Either way: try OpenAI before giving up.
   if (err instanceof Error) {
-    const msg = err.message ?? "";
-    if (msg.includes("credit balance")) return true;
-    if (msg.includes("credit_balance_too_low")) return true;
-    if (msg.includes("Your credit balance is too low")) return true;
-    if (msg.includes("organization_not_found")) return true;
-    if (msg.includes("authentication_error")) return true;
-    // Most Anthropic SDK errors carry a `status` property when they
-    // came from the wire. 4xx + 5xx → fallback. Network errors → also
-    // fallback (retry on a different provider beats hard-failing).
-    const status = (err as { status?: number }).status;
-    if (typeof status === "number" && status >= 400) return true;
-    if (msg.includes("ECONNREFUSED") || msg.includes("ETIMEDOUT")) return true;
-    if (msg.includes("fetch failed")) return true;
+    return true;
   }
   return false;
 }
