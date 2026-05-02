@@ -25,6 +25,7 @@ import {
   type WorkoutSessionPlan,
 } from "@/lib/ai/workout-prompts";
 import type { ImprovementGoalId } from "@/lib/onboarding/constants";
+import { SUB_SKILL_LABELS, type SubSkillId } from "@/types/sub-skills";
 import { SkillLabSession } from "./SkillLabSession";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -40,6 +41,17 @@ type RepCountChoice = 1 | 3 | 5 | 999; // 999 = unlimited / full sequence
 type Props = {
   currentScores: Partial<Record<SkillDimension, number | null>>;
   improvementGoals?: readonly ImprovementGoalId[];
+  /** Ch.12 — when set, opens directly into focus-reps for this dim
+   *  (skipping the lobby + skill picker). Drives the "drill this
+   *  sub-skill" routing from the dashboard's WeakestLinkCard /
+   *  SubSkillBreakdownCard. */
+  initialFocus?: SkillDimension;
+  /** Ch.12 — accompanying sub-skill id from the routing query param.
+   *  Currently surface-only: rendered as a "Focusing on {label}" pill
+   *  in the rep-count step. Slate-bias is a follow-up — requires
+   *  adding `preferSubSkills` plumbing through `planFocusWorkout`,
+   *  which today selects rep types by primary dimension only. */
+  initialSubSkill?: SubSkillId;
 };
 
 type Phase =
@@ -69,8 +81,20 @@ type Phase =
  * deliberately distinct: ink-heavy "training facility" palette with
  * brand glow accents, vs. Daily Workout's bright gradient hero.
  */
-export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) {
-  const [phase, setPhase] = useState<Phase>({ kind: "lobby" });
+export function SkillLabClient({
+  currentScores,
+  improvementGoals = [],
+  initialFocus,
+  initialSubSkill,
+}: Props) {
+  // Ch.12 routing — when ?focus=<dim> is in the URL, jump straight to
+  // the focus-reps step for that dim. Lobby is skipped entirely so the
+  // "drill this sub-skill" CTA is one click away from a recording rep.
+  const [phase, setPhase] = useState<Phase>(() =>
+    initialFocus
+      ? { kind: "focus-reps", dim: initialFocus }
+      : { kind: "lobby" },
+  );
 
   // Cross-session prompt history. Fetched on mount; passed to each
   // planner call so the initial slate excludes already-seen prompts.
@@ -168,8 +192,20 @@ export function SkillLabClient({ currentScores, improvementGoals = [] }: Props) 
       {phase.kind === "focus-reps" && (
         <RepCountStep
           title={`Drill ${DIMENSION_LABELS[phase.dim]}`}
-          subtitle="How many reps today?"
-          onBack={() => setPhase({ kind: "focus-skill" })}
+          subtitle={
+            initialSubSkill && initialFocus === phase.dim
+              ? `Focusing on ${SUB_SKILL_LABELS[initialSubSkill]}. How many reps today?`
+              : "How many reps today?"
+          }
+          onBack={
+            // When the user landed via a query-param deep-link
+            // (initialFocus set + matches current phase), Back returns
+            // to the lobby instead of the skill picker — the picker is
+            // confusing if the user didn't start there.
+            initialFocus === phase.dim
+              ? backToLobby
+              : () => setPhase({ kind: "focus-skill" })
+          }
           onPick={(reps) => startFocus(phase.dim, reps)}
         />
       )}

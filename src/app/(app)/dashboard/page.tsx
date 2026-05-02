@@ -20,6 +20,7 @@ import {
 } from "@/lib/db/queries/progress";
 import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
 import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
+import { SubSkillBreakdownCard } from "@/components/product/dashboard/SubSkillBreakdownCard";
 import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
 import { DailyQuestsStrip } from "@/components/product/dashboard/DailyQuestsStrip";
 import { getOrCreateTodayQuests } from "@/lib/db/queries/daily-quests";
@@ -30,6 +31,13 @@ import {
 } from "@/lib/db/queries/leagues";
 import { anonymousHandle } from "@/lib/engagement/leagues";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
+import {
+  bucketByDimension,
+  getSubSkillRunningAverages,
+  hasMeaningfulSubSkillData,
+  type SubSkillStat,
+} from "@/lib/db/queries/sub-skills";
+import type { SubSkillId } from "@/types/sub-skills";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
 import { DashboardHero } from "@/components/product/DashboardHero";
 import { DayDotsPreview } from "@/components/product/DayDotsPreview";
@@ -50,20 +58,59 @@ export default async function DashboardPage() {
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
   const leaguesEnabled = process.env.FF_LEAGUES === "true";
+  // Ch.12 — sub-skill UI gate. When off, dashboard renders identically
+  // to pre-Ch.12. When on, the SubSkillBreakdownCard mounts and the
+  // WeakestLinkCard upgrades to "weakest sub-skill within the weakest
+  // dim" copy where data exists. Off path skips the query entirely so
+  // we don't pay the read cost for users who can't see the surface.
+  const subSkillUiEnabled = process.env.FF_SUBSKILL_UI === "true";
 
-  const [streakStatus, recent, activity, trends, profile, weakest, todaysQuests, leagueMember] =
-    await Promise.all([
-      getStreakStatus(userId),
-      getRecentReps(userId, 5),
-      getActivityHeatmap(userId, 30),
-      getSkillTrends(userId, 14),
-      user ? getUserProfile(user.id) : Promise.resolve(null),
-      user ? getWeakestDimension(user.id) : Promise.resolve(null),
-      user ? getOrCreateTodayQuests(user.id) : Promise.resolve(null),
-      user && leaguesEnabled
-        ? getOrCreateThisWeekMembership(user.id)
-        : Promise.resolve(null),
-    ]);
+  const [
+    streakStatus,
+    recent,
+    activity,
+    trends,
+    profile,
+    weakest,
+    todaysQuests,
+    leagueMember,
+    subSkillStats,
+  ] = await Promise.all([
+    getStreakStatus(userId),
+    getRecentReps(userId, 5),
+    getActivityHeatmap(userId, 30),
+    getSkillTrends(userId, 14),
+    user ? getUserProfile(user.id) : Promise.resolve(null),
+    user ? getWeakestDimension(user.id) : Promise.resolve(null),
+    user ? getOrCreateTodayQuests(user.id) : Promise.resolve(null),
+    user && leaguesEnabled
+      ? getOrCreateThisWeekMembership(user.id)
+      : Promise.resolve(null),
+    user && subSkillUiEnabled
+      ? getSubSkillRunningAverages(user.id)
+      : Promise.resolve({} as Partial<Record<SubSkillId, SubSkillStat>>),
+  ]);
+
+  const subSkillBreakdown = bucketByDimension(subSkillStats);
+  const hasSubSkillData =
+    subSkillUiEnabled && hasMeaningfulSubSkillData(subSkillStats);
+  // The WeakestLinkCard upgrade only fires when (a) sub-skill UI is on,
+  // (b) we have a weakest dim, AND (c) that dim has at least one
+  // sub-skill with enough samples. Otherwise the card stays in its
+  // dimension-only legacy mode.
+  const weakestSubSkillForLink =
+    hasSubSkillData && weakest
+      ? subSkillBreakdown[weakest.dimension]?.weakest
+        ? {
+            id: subSkillBreakdown[weakest.dimension]!.weakest!.id,
+            avg: subSkillBreakdown[weakest.dimension]!.weakest!.stat.avg,
+          }
+        : null
+      : null;
+  const totalSubSkillObservations = Object.values(subSkillStats).reduce(
+    (sum, s) => sum + (s?.sampleSize ?? 0),
+    0,
+  );
 
   // Fetch cohort separately since it depends on the membership.
   const cohort = leagueMember
@@ -170,6 +217,14 @@ export default async function DashboardPage() {
         <WeakestLinkCard
           weakest={weakest}
           totalReps={profile.lifetimeReps}
+          weakestSubSkill={weakestSubSkillForLink}
+        />
+      )}
+
+      {subSkillUiEnabled && profile && profile.lifetimeReps > 0 && (
+        <SubSkillBreakdownCard
+          breakdown={subSkillBreakdown}
+          totalSampleSize={totalSubSkillObservations}
         />
       )}
 
