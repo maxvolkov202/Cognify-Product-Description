@@ -30,11 +30,16 @@ import {
   renderSubSkillReference,
   type SubSkillId,
 } from "@/types/sub-skills";
-import { extractInlineProsody } from "@/lib/audio/prosody-inline";
 import {
+  extractInlineProsody,
+  mergeProsody,
+} from "@/lib/audio/prosody-inline";
+import {
+  hasWorkerProsody,
   renderProsodyBlock,
   type ProsodyFeatures,
 } from "@/lib/audio/prosody";
+import { extractWorkerProsody } from "@/lib/audio/prosody-worker";
 
 const dimensionScoreSchema = z.object({
   dimension: z.enum([
@@ -157,6 +162,12 @@ export type ScoreRepInput = {
    *  when omitted; pass an explicit object to inject worker-extracted
    *  pitch/RMS metrics from Ch.3b. */
   prosodyFeatures?: ProsodyFeatures;
+  /** Ch.3b — signed audio URL. When supplied AND FF_PROSODY_WORKER=true,
+   *  scoreRep calls the prosody worker concurrently with the LLM
+   *  scoring pass, then merges worker pitch/RMS results in. Skipped
+   *  when omitted or when the worker is offline (graceful fallback to
+   *  inline-only). */
+  audioUrl?: string;
   /**
    * Expected rep time budget (ms). Used by the deterministic pacing
    * scorer to compute timeBudgetRatio. Defaults to durationMs if not
@@ -569,16 +580,29 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   const modeBlock = renderModeBlock(input.modeContext);
 
   // Ch.3a: derive inline prosody features from word timings when caller
-  // didn't supply pre-computed features. Worker-derived fields stay null
-  // until Ch.3b lands the external pipeline.
-  const prosodyFeatures =
-    input.prosodyFeatures ??
-    (hasWordTimestamps
+  // didn't supply pre-computed features. Ch.3b: concurrently call the
+  // external prosody worker (when configured) and merge its pitch/RMS
+  // results into the inline features. Worker call is fire-and-await with
+  // a 5s timeout; failure returns null and we proceed with inline-only.
+  const inlineProsody = input.prosodyFeatures
+    ? null
+    : hasWordTimestamps
       ? extractInlineProsody({
           words: input.words!,
           durationMs: input.durationMs,
         })
-      : null);
+      : null;
+  const workerPromise =
+    input.audioUrl != null
+      ? extractWorkerProsody({
+          audioUrl: input.audioUrl,
+          durationMs: input.durationMs,
+        })
+      : Promise.resolve(null);
+  const workerProsody = await workerPromise;
+  const prosodyFeatures =
+    input.prosodyFeatures ??
+    (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
   const userPrompt = [
@@ -784,5 +808,6 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     headlineTone: validated.headlineTone,
     nextRepHint: validated.nextRepHint,
     feedbackVersion: FEEDBACK_VERSION,
+    prosodyAvailable: hasWorkerProsody(prosodyFeatures),
   };
 }

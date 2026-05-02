@@ -92,6 +92,11 @@ const bodySchema = z.object({
   pressureArchetypeId: pressureArchetypeIdEnum.optional(),
   /** Phase 2: per-mode signals so the AI can write mode-aware feedback. */
   modeContext: modeContextSchema.optional(),
+  /** Ch.3b: signed audio URL for the prosody worker. When supplied AND
+   *  FF_PROSODY_WORKER=true, the score path calls the worker concurrently
+   *  with the LLM call. Optional — score still works without it (Tone
+   *  falls back to LLM-only with prosodyAvailable=false). */
+  audioUrl: z.string().url().optional(),
 });
 
 type ScoreBody = z.infer<typeof bodySchema>;

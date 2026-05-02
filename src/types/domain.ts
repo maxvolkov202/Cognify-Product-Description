@@ -210,6 +210,12 @@ export type RepScore = {
   /** Bumped when the user-facing feedback contract changes (new fields,
    *  new copy rules) independently of the scoring rubric. */
   feedbackVersion?: string;
+  /** Ch.3b: true when the prosody worker returned populated pitch/RMS
+   *  fields. False (or undefined for legacy reps) means Tone scoring fell
+   *  back to text + inline-metric heuristics — UI badges Tone scores as
+   *  low-confidence in that state so users implicitly trust prosody-grounded
+   *  Tone scores more. */
+  prosodyAvailable?: boolean;
 };
 
 /** Bumped when the shape of user-facing feedback changes (new RepScore
