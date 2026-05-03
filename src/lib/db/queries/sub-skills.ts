@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { reps, dimensionScores } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
@@ -50,37 +50,38 @@ export async function getSubSkillRunningAverages(
   userId: string,
 ): Promise<Partial<Record<SubSkillId, SubSkillStat>>> {
   return safeDb<Partial<Record<SubSkillId, SubSkillStat>>>(async () => {
-    // Pull the user's last 30 reps' worth of dimension_scores rows.
-    // Each rep contributes ≤6 dimension rows (one per dim); each row
-    // can carry up to ~6 sub-skill scores in its jsonb. We pull
-    // 30 * 6 = 180 dimension rows max.
-    //
-    // Joined query: dimension_scores filtered by user via reps table,
-    // ordered by rep createdAt desc so we can rank-weight the recency.
+    // CTO-scan H1 — two-step query so we don't truncate a partial rep's
+    // dim_scores. Step 1: get the user's 30 most-recent rep IDs (one
+    // row per rep, deterministic by createdAt). Step 2: fetch ALL
+    // dim_scores rows for those rep IDs. Eliminates the bug where the
+    // earlier "limit 180 dim rows then dedup by repId" approach would
+    // stop mid-rep on users with legacy enum dim entries (>6 dims/rep).
+    const recentReps = await db
+      .select({ id: reps.id, createdAt: reps.createdAt })
+      .from(reps)
+      .where(eq(reps.userId, userId))
+      .orderBy(desc(reps.createdAt))
+      .limit(SUB_SKILL_LOOKBACK);
+
+    if (recentReps.length === 0) return {};
+
+    const repIds = recentReps.map((r) => r.id);
+    // Map repId → ordinal rank (most-recent = 0) for the EWA weighting.
+    const repOrder = new Map<string, number>();
+    for (let i = 0; i < recentReps.length; i++) {
+      repOrder.set(recentReps[i]!.id, i);
+    }
+
     const rows = await db
       .select({
-        repId: reps.id,
-        createdAt: reps.createdAt,
+        repId: dimensionScores.repId,
         dimension: dimensionScores.dimension,
         signals: dimensionScores.signals,
       })
       .from(dimensionScores)
-      .innerJoin(reps, eq(dimensionScores.repId, reps.id))
-      .where(eq(reps.userId, userId))
-      .orderBy(desc(reps.createdAt))
-      .limit(SUB_SKILL_LOOKBACK * 6);
+      .where(inArray(dimensionScores.repId, repIds));
 
     if (rows.length === 0) return {};
-
-    // Group rows by repId so we know each rep's ordinal position
-    // (most-recent = rank 0).
-    const repOrder = new Map<string, number>();
-    for (const row of rows) {
-      if (!repOrder.has(row.repId)) {
-        repOrder.set(row.repId, repOrder.size);
-        if (repOrder.size >= SUB_SKILL_LOOKBACK) break;
-      }
-    }
 
     // Per-sub-skill collection — paired (rank, score) so we can compute
     // both the weighted average AND the recent/older split for trend.
@@ -88,7 +89,7 @@ export async function getSubSkillRunningAverages(
 
     for (const row of rows) {
       const rank = repOrder.get(row.repId);
-      if (rank == null || rank >= SUB_SKILL_LOOKBACK) continue;
+      if (rank == null) continue;
       const decoded = decodeDimensionSignals(row.signals);
       const sub = decoded.subSkillScores;
       if (!sub) continue;

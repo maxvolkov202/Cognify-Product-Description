@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
@@ -31,8 +32,18 @@ export const maxDuration = 60;
  *      writes compositeScore + modelVersion + rubricVersion.
  */
 export async function POST(req: Request) {
+  // CTO scan C2 — timing-safe secret comparison. Plain `===` leaks
+  // byte-by-byte info via response time on careful probes; node:crypto's
+  // timingSafeEqual returns in constant time relative to input length.
+  // Length mismatch shortcircuits before the constant-time compare so
+  // we don't compare different-length buffers (which throws).
   const secret = req.headers.get("x-internal-secret");
-  if (!secret || secret !== process.env.INTERNAL_SCORING_SECRET) {
+  const expected = process.env.INTERNAL_SCORING_SECRET;
+  if (!secret || !expected || secret.length !== expected.length) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  const ok = timingSafeEqual(Buffer.from(secret), Buffer.from(expected));
+  if (!ok) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
@@ -87,50 +98,69 @@ export async function POST(req: Request) {
       ...(frameworkWeights ? { weights: frameworkWeights } : {}),
     });
 
-    if (score.dimensions.length > 0) {
-      await db.insert(dimensionScores).values(
-        score.dimensions.map((d) => ({
-          repId: body.repId,
-          dimension: d.dimension,
-          score: d.score,
-          // Ch.11c — encode narratives + optional subSkillScores into a
-          // single jsonb. Legacy string[] shape preserved when no
-          // sub-skill data is present.
-          signals: encodeDimensionSignals(
-            d.signals,
-            d.subSkillScores,
-          ) as unknown as object,
-        })),
-      );
-      await db.insert(progressSnapshots).values(
-        score.dimensions.map((d) => ({
-          userId: rep.userId,
-          dimension: d.dimension,
-          score: d.score,
-          takenAt: new Date(),
-        })),
-      );
-    }
-
+    // CTO-scan H6 — wrap dim_scores + progress_snapshots + callouts
+    // inserts in a single transaction. Without this, a failure between
+    // inserts would leave the rep in an inconsistent state (scores
+    // recorded, no progress snapshot, no callouts) with no rollback.
+    // CTO-scan H8 — and skip the progressSnapshots write entirely when
+    // we hit the mock-fallback path; mock scores polluting the user's
+    // running averages defeats the calibration drift surface that's
+    // supposed to catch this exact problem.
+    const isMockFallback = score.modelVersion === "mock-fallback-v1";
     let calloutIds: string[] = [];
-    if (score.callouts.length > 0) {
-      const inserted = await db
-        .insert(calloutsTable)
-        .values(
-          score.callouts.map((c) => ({
+    await db.transaction(async (tx) => {
+      if (score.dimensions.length > 0) {
+        await tx.insert(dimensionScores).values(
+          score.dimensions.map((d) => ({
             repId: body.repId,
-            dimension: c.dimension as SkillDimension,
-            tone: c.tone,
-            title: c.title,
-            body: c.body,
-            quote: c.quote ?? null,
-            suggestedRewrite: c.suggestedRewrite ?? null,
-            transcriptStartMs: c.transcriptStart,
-            transcriptEndMs: c.transcriptEnd,
+            dimension: d.dimension,
+            score: d.score,
+            // Ch.11c — encode narratives + optional subSkillScores into a
+            // single jsonb. Legacy string[] shape preserved when no
+            // sub-skill data is present.
+            signals: encodeDimensionSignals(
+              d.signals,
+              d.subSkillScores,
+            ) as unknown as object,
           })),
-        )
-        .returning({ id: calloutsTable.id });
-      calloutIds = inserted.map((r) => r.id);
+        );
+        if (!isMockFallback) {
+          await tx.insert(progressSnapshots).values(
+            score.dimensions.map((d) => ({
+              userId: rep.userId,
+              dimension: d.dimension,
+              score: d.score,
+              takenAt: new Date(),
+            })),
+          );
+        }
+      }
+
+      if (score.callouts.length > 0) {
+        const inserted = await tx
+          .insert(calloutsTable)
+          .values(
+            score.callouts.map((c) => ({
+              repId: body.repId,
+              dimension: c.dimension as SkillDimension,
+              tone: c.tone,
+              title: c.title,
+              body: c.body,
+              quote: c.quote ?? null,
+              suggestedRewrite: c.suggestedRewrite ?? null,
+              transcriptStartMs: c.transcriptStart,
+              transcriptEndMs: c.transcriptEnd,
+            })),
+          )
+          .returning({ id: calloutsTable.id });
+        calloutIds = inserted.map((r) => r.id);
+      }
+    });
+
+    if (isMockFallback) {
+      console.warn(
+        `[api/score-internal] rep ${body.repId} scored via mock-fallback path; progressSnapshots write SKIPPED to keep running averages clean (CTO-scan H8).`,
+      );
     }
 
     return NextResponse.json({

@@ -873,10 +873,31 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     throw new Error("Claude returned no text content");
   }
 
-  const cleaned = textBlock.text
+  // CTO-scan C4 — defensive JSON parse:
+  //   1. Size cap (64KB) before parse so a misbehaving model can't
+  //      DOS the parser via deeply-nested arrays.
+  //   2. Strip code fences, then extract the FIRST top-level {...}
+  //      so a model that emits "Here's the JSON: {...}" parses cleanly
+  //      instead of throwing.
+  const MAX_JSON_BYTES = 64 * 1024;
+  if (textBlock.text.length > MAX_JSON_BYTES) {
+    throw new Error(
+      `Scoring response exceeded ${MAX_JSON_BYTES}B size cap (${textBlock.text.length}B). First 500 chars: ${textBlock.text.slice(0, 500)}`,
+    );
+  }
+  const stripped = textBlock.text
     .trim()
     .replace(/^```json\s*/i, "")
-    .replace(/```\s*$/, "");
+    .replace(/```\s*$/, "")
+    .trim();
+  // Greedy match for the outermost JSON object — handles "preamble {..} postamble"
+  // shapes some non-Anthropic providers emit.
+  const firstBrace = stripped.indexOf("{");
+  const lastBrace = stripped.lastIndexOf("}");
+  const cleaned =
+    firstBrace !== -1 && lastBrace > firstBrace
+      ? stripped.slice(firstBrace, lastBrace + 1)
+      : stripped;
 
   let parsed: unknown;
   try {

@@ -37,28 +37,71 @@ if (!openaiKey && process.env.NODE_ENV !== "test") {
   );
 }
 
+// CTO-scan C3 — maxRetries: 0 on BOTH SDKs so a single user request
+// never compounds into N upstream calls. The wrapper's own fallback
+// path is the only retry layer; SDK-internal retries would multiply
+// against it.
 const realAnthropic = new Anthropic({
   apiKey: apiKey ?? "missing",
+  maxRetries: 0,
 });
 
 const realOpenAI: OpenAI | null = openaiKey
-  ? new OpenAI({ apiKey: openaiKey })
+  ? new OpenAI({ apiKey: openaiKey, maxRetries: 0 })
   : null;
 
-/** Errors we should fall back ON. Default: any Anthropic SDK error
- *  triggers fallback when OPENAI_API_KEY is set — the alternative
- *  (silently breaking the user's rep) is strictly worse than retrying
- *  on a different provider. ZodError-style validation errors thrown
- *  later in the pipeline aren't caught here (they happen post-create),
- *  so this stays focused on provider failures. */
+/** Errors we should fall back ON.
+ *
+ *  CTO-scan C3: the previous "any Error" predicate was too wide — it
+ *  meant a transient network blip would silently spend an OpenAI call
+ *  per attempt with no per-IP rate cap. Tightened to a small allowlist
+ *  of error shapes that are TRULY provider-side failures and where
+ *  fallback is meaningfully better than failing:
+ *
+ *    - Anthropic SDK APIError with status >= 500 (server-side errors,
+ *      genuinely transient — fallback is the right move)
+ *    - status === 429 (rate-limited; OpenAI has separate quota)
+ *    - status === 401/403 + credit/auth message (the original credit
+ *      lapse case the fallback was built for)
+ *    - Network errors (ECONNREFUSED / ETIMEDOUT / fetch failed) —
+ *      same connectivity layer is unlikely to fix on retry, but
+ *      OpenAI is on different infra so worth one attempt
+ *
+ *  NOT fallback-eligible:
+ *    - 400 invalid_request (our request is malformed; OpenAI will
+ *      error the same way)
+ *    - 422 (Anthropic-specific validation)
+ *    - any non-Error throw (programmer bug, not a provider failure)
+ *
+ *  Combined with `maxRetries: 0` on both SDKs (set at construction
+ *  time), this prevents the compounding storm CTO scan flagged. */
 function shouldFallback(err: unknown): boolean {
   if (!realOpenAI) return false;
-  // Any error from the Anthropic SDK is a fallback candidate. The
-  // SDK's APIError type carries a `status`; network errors carry a
-  // `code` (ECONNREFUSED etc). Either way: try OpenAI before giving up.
-  if (err instanceof Error) {
-    return true;
+  if (!(err instanceof Error)) return false;
+  const msg = err.message ?? "";
+  const status = (err as { status?: number }).status;
+
+  // Credit/billing/auth — the original case.
+  if (msg.includes("credit balance")) return true;
+  if (msg.includes("credit_balance_too_low")) return true;
+  if (msg.includes("organization_not_found")) return true;
+  if (msg.includes("authentication_error")) return true;
+
+  // 5xx + rate-limited only — server-side errors where another
+  // provider is meaningfully different.
+  if (typeof status === "number") {
+    if (status >= 500) return true;
+    if (status === 429) return true;
+    // 4xx other than 429: our request is the problem; OpenAI will
+    // also reject. Don't waste the call.
+    return false;
   }
+
+  // Network errors — different infra is worth one attempt.
+  if (msg.includes("ECONNREFUSED") || msg.includes("ETIMEDOUT")) return true;
+  if (msg.includes("fetch failed")) return true;
+  if (msg.includes("EAI_AGAIN")) return true;
+
   return false;
 }
 

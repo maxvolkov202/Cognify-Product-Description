@@ -10,6 +10,8 @@
     "start": "next start -p 3333",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts",
+    "test:dna": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
@@ -58,6 +60,7 @@
     "prettier-plugin-tailwindcss": "^0.6.9",
     "supabase": "^2.91.2",
     "tailwindcss": "^4.0.0-beta.8",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.2"
   },
   "engines": {

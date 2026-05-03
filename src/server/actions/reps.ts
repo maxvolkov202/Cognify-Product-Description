@@ -250,27 +250,42 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           ) as unknown as object,
         })),
       );
-      await db.insert(progressSnapshots).values(
-        input.score.dimensions.map((d) => ({
-          userId,
-          dimension: d.dimension,
-          score: d.score,
-          takenAt: new Date(),
-        })),
-      );
-      // Record any per-dimension personal bests this rep set. Durable
-      // across sessions; in-session UI keeps using WorkoutSession's
-      // local detection for instant-feedback toast, but the DB row is
-      // the source of truth for /progress and /report.
-      if (userId !== "anonymous") {
-        await recordPersonalBests({
-          userId,
-          repId,
-          dimensionScores: input.score.dimensions.map((d) => ({
+      // CTO-scan H8 — when scoring fell into the mock-fallback path
+      // (api/score returned modelVersion="mock-fallback-v1" because
+      // both Anthropic AND OpenAI failed), do NOT pollute the user's
+      // running averages or personal-bests with the mock 70-across-the-
+      // board scores. The dim_scores rows still get written for
+      // historical-record completeness (they carry the mock-fallback
+      // tag in the rep's modelVersion) but progress + PB skips so the
+      // calibration drift surface stays clean.
+      const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
+      if (!isMockFallback) {
+        await db.insert(progressSnapshots).values(
+          input.score.dimensions.map((d) => ({
+            userId,
             dimension: d.dimension,
             score: d.score,
+            takenAt: new Date(),
           })),
-        });
+        );
+        // Record any per-dimension personal bests this rep set. Durable
+        // across sessions; in-session UI keeps using WorkoutSession's
+        // local detection for instant-feedback toast, but the DB row is
+        // the source of truth for /progress and /report.
+        if (userId !== "anonymous") {
+          await recordPersonalBests({
+            userId,
+            repId,
+            dimensionScores: input.score.dimensions.map((d) => ({
+              dimension: d.dimension,
+              score: d.score,
+            })),
+          });
+        }
+      } else {
+        console.warn(
+          `[saveRep] rep ${repId} scored via mock-fallback path; progressSnapshots + personalBests SKIPPED (CTO-scan H8).`,
+        );
       }
     }
 
