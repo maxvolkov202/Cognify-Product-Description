@@ -336,6 +336,39 @@ export const leagueMembership = cognifyV2Schema.table(
 );
 
 /**
+ * DNA Ch.15b — calibration drift history. One row per (cron_run, ref_rep)
+ * — see drizzle/migrations/0012_calibration_runs.sql for the rationale.
+ * The nightly drift cron writes here; /ops/calibration reads recent rows
+ * to surface drift trends + a "last run hit fallback path" warning when
+ * Anthropic credits lapse.
+ */
+export const calibrationRuns = cognifyV2Schema.table(
+  "calibration_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ranAt: timestamp("ran_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    runId: uuid("run_id").notNull(),
+    refRepId: text("ref_rep_id").notNull(),
+    expectedComposite: integer("expected_composite"),
+    actualComposite: integer("actual_composite"),
+    deltaComposite: integer("delta_composite"),
+    expectedPerDim: jsonb("expected_per_dim"),
+    actualPerDim: jsonb("actual_per_dim"),
+    deltaPerDim: jsonb("delta_per_dim"),
+    rubricVersion: text("rubric_version"),
+    modelVersion: text("model_version"),
+    status: text("status"),
+  },
+  (t) => [
+    index("calibration_runs_ran_at_idx").on(t.ranAt),
+    index("calibration_runs_run_id_idx").on(t.runId),
+    index("calibration_runs_ref_rep_idx").on(t.refRepId, t.ranAt),
+  ],
+);
+
+/**
  * DNA Ch.9d — daily quests. Three quests per user per UTC day, JSONB
  * payload so quest design can iterate without schema churn. Definitions
  * live in code (src/lib/engagement/quests.ts).

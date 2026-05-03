@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
-import { CheckCircle2, AlertTriangle, BarChart3 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
   getFirstRepDistribution,
   getCompositeDistributionByCohort,
   getInterDimensionCorrelation,
+  getRecentDriftRuns,
+  type DriftRunSummary,
 } from "@/lib/db/queries/calibration-metrics";
 import {
   BAND_DEFINITIONS,
@@ -53,13 +55,14 @@ export default async function CalibrationOpsPage() {
   const profile = await getUserProfile(me.id);
   if (!profile?.isOperator) notFound();
 
-  const [firstRep, distNew, distEstablished, distAll, correlation] =
+  const [firstRep, distNew, distEstablished, distAll, correlation, driftRuns] =
     await Promise.all([
       getFirstRepDistribution(),
       getCompositeDistributionByCohort("new"),
       getCompositeDistributionByCohort("established"),
       getCompositeDistributionByCohort("all"),
       getInterDimensionCorrelation(),
+      getRecentDriftRuns(7),
     ]);
 
   return (
@@ -161,26 +164,119 @@ export default async function CalibrationOpsPage() {
         )}
       </section>
 
-      {/* Cron-deferred note */}
-      <section className="surface-card flex items-start gap-3 p-5 text-sm">
-        <BarChart3
-          className="size-5 shrink-0 text-ink-400"
-          strokeWidth={2.5}
-          aria-hidden="true"
-        />
-        <div>
-          <p className="text-[13px] font-bold text-ink-800">
-            Drift history (deferred)
-          </p>
-          <p className="mt-1 text-[12px] leading-relaxed text-ink-500">
-            The nightly drift-vs-reference-rep cron + the calibration_runs
-            history table from the source plan are deferred until Anthropic
-            credits are restored — they need live harness runs to populate.
-            The three views above run against existing rep + dimension_scores
-            data and don&apos;t depend on the harness.
-          </p>
+      {/* Drift history (Ch.15b) */}
+      <section className="surface-card p-6 md:p-8">
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+              Drift history · last {driftRuns.length || 7} nightly runs
+            </p>
+            <h2 className="mt-1 text-xl font-extrabold text-ink-900">
+              How calibration is moving over time
+            </h2>
+            <p className="mt-2 max-w-2xl text-[12px] text-ink-500">
+              The nightly cron (03:00 UTC) scores every reference rep through
+              /api/score and persists the per-rep delta. Each row below is one
+              run; the avg-|Δ| column is the mean absolute composite drift
+              across the run&rsquo;s ref reps. Worst-Δ flags the largest single
+              drift in the run.
+            </p>
+          </div>
+          <Clock
+            className="size-5 shrink-0 text-ink-400"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          />
         </div>
+        {driftRuns.length === 0 ? (
+          <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-ink-50/40 p-5 text-[12px] text-ink-500">
+            <p className="font-semibold text-ink-700">
+              No nightly drift runs recorded yet.
+            </p>
+            <p className="mt-1 leading-relaxed">
+              Either the calibration_runs migration hasn&rsquo;t been applied
+              to this database (run{" "}
+              <code className="rounded bg-ink-100 px-1 py-0.5 text-[11px]">
+                node scripts/apply-migration.mjs
+                drizzle/migrations/0012_calibration_runs.sql
+              </code>
+              ) or the cron hasn&rsquo;t fired since the table was created.
+              The cron schedule lives in <code>vercel.json</code>; it can be
+              triggered manually via{" "}
+              <code className="rounded bg-ink-100 px-1 py-0.5 text-[11px]">
+                curl -H &quot;authorization: Bearer $CRON_SECRET&quot;
+                https://cognify-v2-neon.vercel.app/api/cron/calibration-drift
+              </code>
+              .
+            </p>
+          </div>
+        ) : (
+          <DriftRunsTable runs={driftRuns} />
+        )}
       </section>
+    </div>
+  );
+}
+
+function DriftRunsTable({ runs }: { runs: DriftRunSummary[] }) {
+  return (
+    <div className="mt-5 overflow-x-auto">
+      <table className="w-full min-w-[700px] text-left text-[12px]">
+        <thead className="text-[10px] font-bold uppercase tracking-wide text-ink-500">
+          <tr>
+            <th className="pb-2 pr-3">Run</th>
+            <th className="pb-2 pr-3">Reps</th>
+            <th className="pb-2 pr-3">OK</th>
+            <th className="pb-2 pr-3">Drift</th>
+            <th className="pb-2 pr-3">Fallback</th>
+            <th className="pb-2 pr-3">Errors</th>
+            <th className="pb-2 pr-3">Avg |Δ|</th>
+            <th className="pb-2 pr-3">Worst Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {runs.map((run) => (
+            <tr key={run.runId} className="border-t border-ink-100">
+              <td className="py-2 pr-3 font-medium text-ink-700">
+                {run.ranAt.toISOString().slice(0, 16).replace("T", " ")} UTC
+              </td>
+              <td className="py-2 pr-3 tabular-nums">{run.totalReps}</td>
+              <td className="py-2 pr-3 tabular-nums text-emerald-600">
+                {run.okCount}
+              </td>
+              <td className="py-2 pr-3 tabular-nums text-amber-600">
+                {run.driftCount}
+              </td>
+              <td className="py-2 pr-3 tabular-nums text-ink-500">
+                {run.fallbackCount > 0 ? (
+                  <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+                    {run.fallbackCount}
+                  </span>
+                ) : (
+                  <span>0</span>
+                )}
+              </td>
+              <td className="py-2 pr-3 tabular-nums text-ink-500">
+                {run.errorCount > 0 ? (
+                  <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
+                    {run.errorCount}
+                  </span>
+                ) : (
+                  <span>0</span>
+                )}
+              </td>
+              <td className="py-2 pr-3 tabular-nums">
+                {run.avgAbsDelta != null ? run.avgAbsDelta : "—"}
+              </td>
+              <td className="py-2 pr-3 tabular-nums">
+                {run.worstDelta != null
+                  ? (run.worstDelta > 0 ? "+" : "") + run.worstDelta
+                  : "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

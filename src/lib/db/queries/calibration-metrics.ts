@@ -1,6 +1,11 @@
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { reps, dimensionScores, users as usersTable } from "@/lib/db/schema";
+import {
+  reps,
+  dimensionScores,
+  users as usersTable,
+  calibrationRuns,
+} from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import {
   BAND_DEFINITIONS,
@@ -271,6 +276,114 @@ export async function getInterDimensionCorrelation(): Promise<InterDimensionCorr
     matrix: ALL_DIMENSIONS.map(() => ALL_DIMENSIONS.map(() => null)),
     sampleSize: 0,
   });
+}
+
+// ——— Drift-cron history ————————————————————————————————
+
+export type DriftRunRow = {
+  ranAt: Date;
+  runId: string;
+  refRepId: string;
+  expectedComposite: number | null;
+  actualComposite: number | null;
+  deltaComposite: number | null;
+  status: string | null;
+  modelVersion: string | null;
+};
+
+export type DriftRunSummary = {
+  runId: string;
+  ranAt: Date;
+  totalReps: number;
+  okCount: number;
+  driftCount: number;
+  fallbackCount: number;
+  errorCount: number;
+  /** Average absolute composite delta across the run's ref reps. Null
+   *  when no ref rep produced a real composite. */
+  avgAbsDelta: number | null;
+  /** Worst composite drift (largest |delta|) in the run. */
+  worstDelta: number | null;
+};
+
+/** Last `limit` calibration runs grouped + summarized. Drives the
+ *  /ops/calibration drift-history section. Returns most-recent first. */
+export async function getRecentDriftRuns(
+  limit = 7,
+): Promise<DriftRunSummary[]> {
+  return safeDb<DriftRunSummary[]>(async () => {
+    const rows = await db
+      .select({
+        ranAt: calibrationRuns.ranAt,
+        runId: calibrationRuns.runId,
+        refRepId: calibrationRuns.refRepId,
+        expectedComposite: calibrationRuns.expectedComposite,
+        actualComposite: calibrationRuns.actualComposite,
+        deltaComposite: calibrationRuns.deltaComposite,
+        status: calibrationRuns.status,
+        modelVersion: calibrationRuns.modelVersion,
+      })
+      .from(calibrationRuns)
+      .orderBy(desc(calibrationRuns.ranAt))
+      .limit(limit * 30);
+
+    // Group by runId; preserve most-recent-first run order.
+    const byRun = new Map<string, DriftRunRow[]>();
+    const runOrder: string[] = [];
+    for (const r of rows) {
+      if (!byRun.has(r.runId)) {
+        runOrder.push(r.runId);
+        if (runOrder.length > limit) {
+          // Already past the requested run cap — drop the rest.
+          break;
+        }
+      }
+      const arr = byRun.get(r.runId) ?? [];
+      arr.push(r as DriftRunRow);
+      byRun.set(r.runId, arr);
+    }
+
+    const summaries: DriftRunSummary[] = [];
+    for (const runId of runOrder.slice(0, limit)) {
+      const runRows = byRun.get(runId) ?? [];
+      if (runRows.length === 0) continue;
+      const ranAt = runRows.reduce<Date>(
+        (latest, r) => (r.ranAt > latest ? r.ranAt : latest),
+        runRows[0]!.ranAt,
+      );
+      const realDeltas = runRows
+        .map((r) => r.deltaComposite)
+        .filter((d): d is number => typeof d === "number");
+      const avgAbsDelta =
+        realDeltas.length > 0
+          ? Math.round(
+              (realDeltas.reduce((s, v) => s + Math.abs(v), 0) /
+                realDeltas.length) *
+                10,
+            ) / 10
+          : null;
+      const worstDelta =
+        realDeltas.length > 0
+          ? realDeltas.reduce<number>(
+              (worst, d) => (Math.abs(d) > Math.abs(worst) ? d : worst),
+              realDeltas[0]!,
+            )
+          : null;
+      summaries.push({
+        runId,
+        ranAt,
+        totalReps: runRows.length,
+        okCount: runRows.filter((r) => r.status === "ok").length,
+        driftCount: runRows.filter((r) => r.status === "drift").length,
+        fallbackCount: runRows.filter((r) => r.status === "fallback").length,
+        errorCount: runRows.filter((r) => r.status === "error").length,
+        avgAbsDelta,
+        worstDelta,
+      });
+    }
+
+    return summaries;
+  }, []);
 }
 
 function pearson(xs: number[], ys: number[]): number | null {
