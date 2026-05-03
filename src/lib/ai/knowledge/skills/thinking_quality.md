@@ -26,7 +26,7 @@ Thinking Quality is the dimension that separates "sounds good" from "is good." W
 - **Elizabeth Shriberg** (SRI / Microsoft Research) — disfluency research showing restart and backtrack rates increase sharply under cognitive load. Confidence is partially an inverse function of backtrack rate.
 - **Alan Baddeley** — working memory model. Understanding why impromptu is cognitively expensive helps explain why confidence is the hardest delivery dimension to train.
 
-## What great confidence sounds like
+## What great thinking_quality sounds like
 
 - Direct assertions without hedging ("the migration will slip two weeks" — not "I think maybe it might slip")
 - Steady generation without stalling
@@ -36,7 +36,7 @@ Thinking Quality is the dimension that separates "sounds good" from "is good." W
 - Stable tone across the rep — voice doesn't tighten, pitch doesn't rise near time-out
 - Closing that reinforces the main point rather than scrambling to finish
 
-## What low confidence sounds like
+## What low thinking_quality sounds like
 
 - Hedges: "I think", "maybe", "kind of", "sort of", "I guess"
 - Verbal backtracking: "wait, let me start over", "actually, scratch that"

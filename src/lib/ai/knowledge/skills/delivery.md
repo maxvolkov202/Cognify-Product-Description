@@ -22,7 +22,7 @@ Delivery is the deterministic layer of the rubric — same audio, same score, ev
 - **Matt Abrahams** (Stanford GSB), *Think Faster, Talk Smarter* (2023) — tempo management under impromptu pressure; breath work as a pacing tool.
 - **Carmine Gallo**, *Talk Like TED* (2014) — the 18-minute cognitive limit and tempo analysis of 500+ TED talks.
 
-## What great pacing sounds like
+## What great delivery sounds like
 
 - Filler rate under 2 per minute
 - Consistent WPM across the rep — final quartile within ±10% of opening quartile
@@ -32,7 +32,7 @@ Delivery is the deterministic layer of the rubric — same audio, same score, ev
 - Breaks are purposeful — breath, emphasis, giving the listener a beat
 - The last sentence lands cleanly — doesn't trail off, doesn't get cut off by time
 
-## What low pacing sounds like
+## What low delivery sounds like
 
 - Filler words: "um", "uh", "like", "you know", "basically", "actually", "literally"
 - Hedges: "kind of", "sort of", "I think", "maybe", "I guess", "just"
