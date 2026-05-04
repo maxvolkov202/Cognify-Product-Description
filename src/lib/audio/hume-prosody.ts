@@ -115,9 +115,15 @@ const humePredictionSchema = z.object({
   emotions: z.array(humeEmotionSchema),
 });
 
-const humePredictionsResponseSchema = z.array(
-  z.object({
-    results: z.object({
+/** Hume returns one of two shapes per entry:
+ *   - SUCCESS: { source, results: { predictions: [...] } }
+ *   - ERROR:   { source, error: "<message>" }
+ *  We accept both — the adapter logs the error path then returns null. */
+const humeResultEntrySchema = z.object({
+  source: z.unknown().optional(),
+  error: z.string().optional(),
+  results: z
+    .object({
       predictions: z.array(
         z.object({
           models: z.object({
@@ -134,9 +140,10 @@ const humePredictionsResponseSchema = z.array(
           }),
         }),
       ),
-    }),
-  }),
-);
+    })
+    .optional(),
+});
+const humePredictionsResponseSchema = z.array(humeResultEntrySchema);
 
 const jobStatusSchema = z.object({
   state: z.object({
@@ -257,8 +264,15 @@ export async function extractHumeProsody(args: {
       );
       return null;
     }
+    // Surface error entries explicitly — Hume rejects URLs with messages
+    // like "Provided URL ... is invalid" when audio fetch / decode fails.
+    for (const entry of parsed.data) {
+      if (entry.error) {
+        console.warn(`[hume-prosody] Hume rejected source: ${entry.error}`);
+      }
+    }
     predictions = parsed.data
-      .flatMap((d) => d.results.predictions)
+      .flatMap((d) => (d.results ? d.results.predictions : []))
       .flatMap((p) => p.models.prosody?.grouped_predictions ?? [])
       .flatMap((g) => g.predictions);
   } catch (err) {
