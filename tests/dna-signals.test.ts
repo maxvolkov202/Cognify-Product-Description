@@ -1220,6 +1220,200 @@ section("Ch.S3 — stoppingPointAccuracy");
 }
 
 // ————————————————————————————————————————————————————————————————
+// Ch.S4 — originalityIndex + logicalConsistencyMarkers
+// ————————————————————————————————————————————————————————————————
+section("Ch.S4 — originalityIndex + logicalConsistencyMarkers");
+
+{
+  // Determinism + bounds.
+  const det = extractThinkingQualitySignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  const det2 = extractThinkingQualitySignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    det.originalityIndex === det2.originalityIndex,
+    `S4 originalityIndex deterministic (${det.originalityIndex})`,
+  );
+  assert(
+    det.logicalConsistencyMarkers === det2.logicalConsistencyMarkers,
+    `S4 logicalConsistencyMarkers deterministic (${det.logicalConsistencyMarkers})`,
+  );
+  assert(
+    det.originalityIndex >= 0 && det.originalityIndex <= 100,
+    `S4 originalityIndex in [0,100] (${det.originalityIndex})`,
+  );
+  assert(
+    det.logicalConsistencyMarkers >= 0,
+    `S4 logicalConsistencyMarkers ≥ 0 (${det.logicalConsistencyMarkers})`,
+  );
+
+  // Pure boilerplate transcript scores LOW originality.
+  const boilerplate = extractThinkingQualitySignals({
+    transcript:
+      "We are building the platform of the future. Our innovative team leverages cutting-edge technology to drive transformative customer outcomes at scale across the entire ecosystem.",
+    durationMs: 14000,
+  });
+  assert(
+    boilerplate.originalityIndex <= 50,
+    `S4 boilerplate originalityIndex=${boilerplate.originalityIndex} ≤ 50`,
+  );
+
+  // Domain-specific vivid vocabulary scores HIGH originality.
+  const vivid = extractThinkingQualitySignals({
+    transcript:
+      "The pediatrician escalated the diagnosis after the avalanche-shaped curve in the underwriting pipeline; we triaged subprime exposures and benchmarked the trebuchet of legacy refactor against forklift-driven warehouse manifests.",
+    durationMs: 14000,
+  });
+  assert(
+    vivid.originalityIndex >= 55,
+    `S4 vivid-domain originalityIndex=${vivid.originalityIndex} ≥ 55`,
+  );
+
+  // Differentiation: vivid > boilerplate.
+  assert(
+    vivid.originalityIndex > boilerplate.originalityIndex,
+    `S4 originalityIndex differentiates vivid (${vivid.originalityIndex}) > boilerplate (${boilerplate.originalityIndex})`,
+  );
+
+  // logicalConsistencyMarkers — explicit corrections counted.
+  const correctingRep = extractThinkingQualitySignals({
+    transcript:
+      "We grew thirty percent this quarter. Wait actually, scratch that, let me revise — it was twenty-five percent. But actually, the number was thirty when you include onboarding revenue.",
+    durationMs: 14000,
+  });
+  assert(
+    correctingRep.logicalConsistencyMarkers >= 2,
+    `S4 self-correcting rep logicalConsistencyMarkers=${correctingRep.logicalConsistencyMarkers} ≥ 2`,
+  );
+
+  // Clean rep (no corrections) → 0 markers.
+  const cleanRep = extractThinkingQualitySignals({
+    transcript:
+      "We grew thirty percent this quarter. The growth came from enterprise expansion. Our forecast for next quarter is twenty percent.",
+    durationMs: 12000,
+  });
+  assert(
+    cleanRep.logicalConsistencyMarkers === 0,
+    `S4 clean rep logicalConsistencyMarkers=0 (got ${cleanRep.logicalConsistencyMarkers})`,
+  );
+
+  // Sub-skill rewiring: first_principles_reasoning is now text-driven.
+  const vividAll = extractAllTextSignals({
+    transcript:
+      "The pediatrician escalated the diagnosis after the avalanche-shaped curve in the underwriting pipeline; we triaged subprime exposures and benchmarked the trebuchet of legacy refactor against forklift-driven warehouse manifests.",
+    durationMs: 14000,
+  });
+  const boilerAll = extractAllTextSignals({
+    transcript:
+      "We are building the platform of the future. Our innovative team leverages cutting-edge technology to drive transformative customer outcomes at scale across the entire ecosystem.",
+    durationMs: 14000,
+  });
+  const dimsS4: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  };
+  const vividMap = mapSignalsToSubSkillScores(vividAll, dimsS4);
+  const boilerMap = mapSignalsToSubSkillScores(boilerAll, dimsS4);
+  assert(
+    vividMap.first_principles_reasoning != null,
+    `S4 first_principles_reasoning sub-skill is text-driven`,
+  );
+  assert(
+    (vividMap.first_principles_reasoning?.score ?? 0) >
+      (boilerMap.first_principles_reasoning?.score ?? 0),
+    `S4 first_principles_reasoning differentiates vivid (${vividMap.first_principles_reasoning?.score}) > boilerplate (${boilerMap.first_principles_reasoning?.score})`,
+  );
+  assert(
+    vividMap.first_principles_reasoning?.signalSource?.startsWith(
+      "originalityIndex",
+    ),
+    `S4 first_principles_reasoning signalSource is originalityIndex`,
+  );
+
+  // intellectual_honesty: self-correction count drags it DOWN even
+  // when calibrated-certainty markers are present.
+  const correctedAll = extractAllTextSignals({
+    transcript:
+      "I think we grew thirty percent. Wait actually, scratch that, let me revise — I'm not sure, my best guess is twenty-five. But actually, I take that back, I don't know.",
+    durationMs: 14000,
+  });
+  const cleanHonestAll = extractAllTextSignals({
+    transcript:
+      "I think we grew thirty percent. My best guess for next quarter is twenty percent. I'm not certain on the exact number.",
+    durationMs: 12000,
+  });
+  const correctedMap = mapSignalsToSubSkillScores(correctedAll, dimsS4);
+  const cleanHonestMap = mapSignalsToSubSkillScores(cleanHonestAll, dimsS4);
+  assert(
+    (correctedMap.intellectual_honesty?.score ?? 100) <
+      (cleanHonestMap.intellectual_honesty?.score ?? 0),
+    `S4 self-correction drags intellectual_honesty: corrected (${correctedMap.intellectual_honesty?.score}) < clean (${cleanHonestMap.intellectual_honesty?.score})`,
+  );
+  assert(
+    correctedMap.intellectual_honesty?.signalSource?.includes("corrections"),
+    `S4 intellectual_honesty signalSource now includes corrections`,
+  );
+
+  // SIGNALS-block field exposure.
+  const all = extractAllTextSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    typeof all.thinking_quality.originalityIndex === "number",
+    `S4 TextSignals.thinking_quality.originalityIndex is a number`,
+  );
+  assert(
+    typeof all.thinking_quality.logicalConsistencyMarkers === "number",
+    `S4 TextSignals.thinking_quality.logicalConsistencyMarkers is a number`,
+  );
+
+  // Empty transcript guard: returns neutral 50, not NaN.
+  const empty4 = extractThinkingQualitySignals({
+    transcript: "",
+    durationMs: 5000,
+  });
+  assert(
+    empty4.originalityIndex === 50,
+    `S4 empty originalityIndex=50 (got ${empty4.originalityIndex})`,
+  );
+  assert(
+    empty4.logicalConsistencyMarkers === 0,
+    `S4 empty logicalConsistencyMarkers=0 (got ${empty4.logicalConsistencyMarkers})`,
+  );
+
+  // Pluralization-aware DF lookup: "platforms" → "platform" (DF 0.85).
+  const pluralBoiler = extractThinkingQualitySignals({
+    transcript:
+      "We are building platforms for enterprises. Our customers leverage solutions to drive outcomes.",
+    durationMs: 8000,
+  });
+  assert(
+    pluralBoiler.originalityIndex <= 55,
+    `S4 plural-boilerplate ('platforms', 'enterprises', 'customers') originalityIndex=${pluralBoiler.originalityIndex} ≤ 55`,
+  );
+
+  // Mid-rep restart marker variant: "or rather", "i should say".
+  const mildRestart = extractThinkingQualitySignals({
+    transcript:
+      "The team is growing. Or rather, the team has been growing. I should say, the team has been growing for two quarters.",
+    durationMs: 10000,
+  });
+  assert(
+    mildRestart.logicalConsistencyMarkers >= 2,
+    `S4 mild restart markers caught: ${mildRestart.logicalConsistencyMarkers} ≥ 2`,
+  );
+}
+
+// ————————————————————————————————————————————————————————————————
 // Summary
 // ————————————————————————————————————————————————————————————————
 console.log(`\n${pass} passed, ${fail} failed`);

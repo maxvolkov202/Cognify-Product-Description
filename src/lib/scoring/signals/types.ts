@@ -118,6 +118,18 @@ export type ThinkingQualityTextSignals = {
    *  phrases ("I'm confident", "I think", "I'd guess", "I don't know",
    *  "uncertain about"). */
   intellectualHonestyMarkers: number;
+  /** Ch.S4 — Originality index 0-100. TF-IDF-style rarity of content
+   *  tokens against a hand-built typical-rep corpus baseline (~500
+   *  entries in `typical-corpus.ts`). High = rep uses unusual /
+   *  domain-specific / vivid vocabulary; low = rep leans on pitch
+   *  boilerplate ("platform", "synergy", "transformative"). */
+  originalityIndex: number;
+  /** Ch.S4 — Mid-rep self-correction count. Phrases like "but actually",
+   *  "wait, no", "scratch that", "let me revise", "I take that back",
+   *  "actually that's wrong". High count = the speaker is contradicting
+   *  themselves mid-rep, which the DNA spec maps to LOW intellectual
+   *  honesty (confused thinking, not appropriate uncertainty). */
+  logicalConsistencyMarkers: number;
 };
 
 /**

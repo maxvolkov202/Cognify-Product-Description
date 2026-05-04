@@ -258,6 +258,27 @@ const HONESTY_TO_HONESTY: readonly Anchor[] = [
   [8, 55],
 ];
 
+/** Ch.S4 — originalityIndex (0-100) → first_principles_reasoning. */
+const ORIGINALITY_TO_FIRST_PRINCIPLES: readonly Anchor[] = [
+  [0, 25],
+  [25, 45],
+  [50, 65],
+  [70, 80],
+  [90, 90],
+];
+
+/** Ch.S4 — self-correction count → intellectual_honesty PENALTY.
+ *  Inverse: 0 corrections = no penalty (return high), 1+ corrections
+ *  drag honesty down. Caller blends this with HONESTY_TO_HONESTY via
+ *  min(). */
+const SELF_CORRECTION_TO_HONESTY: readonly Anchor[] = [
+  [0, 88],
+  [1, 70],
+  [2, 55],
+  [3, 40],
+  [5, 25],
+];
+
 // ——— Mapper ——————————————————————————————————————————————
 
 export type SubSkillScoreEntry = {
@@ -296,6 +317,7 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
   "counterargument_awareness",
   "depth_of_analysis",
   "intellectual_honesty",
+  "first_principles_reasoning", // Ch.S4
 ]);
 
 /**
@@ -416,9 +438,27 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(t.depthOfAnalysisMarkers, DEPTH_TO_DEPTH),
     signalSource: `depthOfAnalysisMarkers=${t.depthOfAnalysisMarkers}`,
   };
+  // Ch.S4 — intellectual_honesty blends calibrated-certainty markers
+  // (positive) with self-correction markers (negative). Self-correction
+  // pulls down hard: a rep with 3+ corrections takes max 40 honesty
+  // even if it has plenty of calibrated-certainty hedges. Implementation:
+  // take the MIN of the two anchor curves (the worst-of-two semantics).
+  const honestyFromMarkers = interpolate(
+    t.intellectualHonestyMarkers,
+    HONESTY_TO_HONESTY,
+  );
+  const honestyFromCorrections = interpolate(
+    t.logicalConsistencyMarkers,
+    SELF_CORRECTION_TO_HONESTY,
+  );
   map.intellectual_honesty = {
-    score: interpolate(t.intellectualHonestyMarkers, HONESTY_TO_HONESTY),
-    signalSource: `intellectualHonestyMarkers=${t.intellectualHonestyMarkers}`,
+    score: Math.min(honestyFromMarkers, honestyFromCorrections),
+    signalSource: `honesty=${t.intellectualHonestyMarkers}-corrections=${t.logicalConsistencyMarkers}`,
+  };
+  // Ch.S4 — first_principles_reasoning driven by originalityIndex.
+  map.first_principles_reasoning = {
+    score: interpolate(t.originalityIndex, ORIGINALITY_TO_FIRST_PRINCIPLES),
+    signalSource: `originalityIndex=${t.originalityIndex}`,
   };
 
   // Dimension-fallback for every sub-skill not covered above.
