@@ -51,6 +51,30 @@
                   "minimum": 0,
                   "maximum": 100
                 }
+              },
+              "subSkills": {
+                "type": "object",
+                "description": "Optional per-sub-skill expected scores. Sub-skill IDs are snake_case strings (e.g. word_choice, opening_hook). Used by scripts/calibrate-with-signals.mjs to assert per-sub-skill drift in addition to per-dim drift. Sub-skills not listed here are not asserted on.",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "untestableDimensions": {
+                "type": "array",
+                "description": "Dimensions whose expected score is a soft target only — typically Tone or Delivery on text-only reps where audio-grounded signals are required for accurate scoring. The harness still compares but treats drift on listed dims as a warning rather than a failure once D3 audio-bank lands. Use sparingly.",
+                "items": {
+                  "enum": [
+                    "clarity",
+                    "structure",
+                    "conciseness",
+                    "thinking_quality",
+                    "delivery",
+                    "tone"
+                  ]
+                },
+                "uniqueItems": true
               }
             }
           },
