@@ -158,6 +158,25 @@ const ARC_TO_NARRATIVE: readonly Anchor[] = [
   [1, 88],
 ];
 
+/** Ch.S2 — logical flow score (0-100) → coherence sub-skill. Combined
+ *  with coherenceIndex via average in the mapper. */
+const FLOW_TO_COHERENCE: readonly Anchor[] = [
+  [0, 25],
+  [25, 45],
+  [50, 65],
+  [70, 80],
+  [90, 90],
+];
+
+/** Ch.S2 — coherence index (0-100) → coherence sub-skill. */
+const COHERENCE_INDEX_TO_COHERENCE: readonly Anchor[] = [
+  [0, 25],
+  [30, 45],
+  [60, 65],
+  [80, 80],
+  [95, 90],
+];
+
 /** Hedge rate per minute → hedging_awareness. Saturates above 6/min. */
 const HEDGE_TO_HEDGING_AWARENESS: readonly Anchor[] = [
   [0, 90],
@@ -256,6 +275,7 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
   "opening_hook",
   "argument_hierarchy",
   "narrative_arc",
+  "coherence", // Ch.S2
   // Conciseness
   "hedging_awareness",
   "repetition_control",
@@ -322,9 +342,19 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(s.openingPositionScore, OPENING_TO_OPENING_HOOK),
     signalSource: `openingPositionScore=${s.openingPositionScore}`,
   };
+  // Ch.S2 — argument_hierarchy gets a logicalFlowScore boost. Visible
+  // hierarchy markers + visible flow both contribute; we average them
+  // (50/50) so a rep with explicit "first/second/third" but jumpy flow
+  // doesn't max out, and a rep with no markers but tight flow still
+  // earns credit.
+  const argHierarchyFromMarkers = interpolate(
+    s.pointHierarchyMarkers,
+    HIERARCHY_TO_ARG_HIERARCHY,
+  );
+  const argHierarchyFromFlow = interpolate(s.logicalFlowScore, FLOW_TO_COHERENCE);
   map.argument_hierarchy = {
-    score: interpolate(s.pointHierarchyMarkers, HIERARCHY_TO_ARG_HIERARCHY),
-    signalSource: `pointHierarchyMarkers=${s.pointHierarchyMarkers}`,
+    score: Math.round((argHierarchyFromMarkers + argHierarchyFromFlow) / 2),
+    signalSource: `hierarchy=${s.pointHierarchyMarkers}+flow=${s.logicalFlowScore}`,
   };
   const arc = s.arcCompletion;
   const arcFraction =
@@ -335,6 +365,13 @@ export function mapSignalsToSubSkillScores(
   map.narrative_arc = {
     score: interpolate(arcFraction, ARC_TO_NARRATIVE),
     signalSource: `arcCompletion=${arc.clearOpening ? "Y" : "N"}/${arc.developedMiddle ? "Y" : "N"}/${arc.definitiveClose ? "Y" : "N"}`,
+  };
+  // Ch.S2 — coherence sub-skill: avg of logicalFlowScore + coherenceIndex.
+  const flowScore = interpolate(s.logicalFlowScore, FLOW_TO_COHERENCE);
+  const cohScore = interpolate(s.coherenceIndex, COHERENCE_INDEX_TO_COHERENCE);
+  map.coherence = {
+    score: Math.round((flowScore + cohScore) / 2),
+    signalSource: `logicalFlow=${s.logicalFlowScore}+coherenceIndex=${s.coherenceIndex}`,
   };
 
   // Conciseness

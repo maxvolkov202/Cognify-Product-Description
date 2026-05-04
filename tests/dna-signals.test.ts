@@ -810,6 +810,204 @@ section("Ch.S1 — ideaDensity + wordPrecisionScore");
 }
 
 // ————————————————————————————————————————————————————————————————
+// Ch.S2 — logicalFlowScore + coherenceIndex Structure signals
+// ————————————————————————————————————————————————————————————————
+section("Ch.S2 — logicalFlowScore + coherenceIndex");
+
+{
+  // Determinism.
+  const det1 = extractStructureSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  const det2 = extractStructureSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    det1.logicalFlowScore === det2.logicalFlowScore,
+    `S2 logicalFlowScore deterministic (${det1.logicalFlowScore})`,
+  );
+  assert(
+    det1.coherenceIndex === det2.coherenceIndex,
+    `S2 coherenceIndex deterministic (${det1.coherenceIndex})`,
+  );
+
+  // Bounds: both signals in [0,100].
+  assert(
+    det1.logicalFlowScore >= 0 && det1.logicalFlowScore <= 100,
+    `S2 logicalFlowScore in [0,100] (${det1.logicalFlowScore})`,
+  );
+  assert(
+    det1.coherenceIndex >= 0 && det1.coherenceIndex <= 100,
+    `S2 coherenceIndex in [0,100] (${det1.coherenceIndex})`,
+  );
+
+  // Connector-led flow: rep that explicitly chains "because/therefore"
+  // scores HIGHER on logicalFlowScore than rep that jumps topics.
+  const connected = extractStructureSignals({
+    transcript:
+      "We need to raise prices. Because our costs went up. Therefore margins are squeezed. As a result, profitability fell. So we have no choice. This means we act now.",
+    durationMs: 14000,
+  });
+  const jumpy = extractStructureSignals({
+    transcript:
+      "Pricing is on the agenda. The new office is great. I love coffee. The team's morale is high. Customers want refunds. Mountains are tall.",
+    durationMs: 14000,
+  });
+  assert(
+    connected.logicalFlowScore > jumpy.logicalFlowScore,
+    `S2 connected (${connected.logicalFlowScore}) > jumpy (${jumpy.logicalFlowScore}) on flow`,
+  );
+
+  // Coherence: rep that introduces a topic and stays on it scores
+  // HIGHER on coherenceIndex than a rep that drifts.
+  const onTopic = extractStructureSignals({
+    transcript:
+      "The pricing decision is hard. Pricing depends on costs. Pricing also depends on competitor moves. Our pricing is currently too low. Pricing is the lever.",
+    durationMs: 12000,
+  });
+  const drift = extractStructureSignals({
+    transcript:
+      "The pricing decision is hard. We had a great offsite. The mountain biking trail was new. Coffee in the kitchen tasted weird. The dog needs a walk.",
+    durationMs: 12000,
+  });
+  assert(
+    onTopic.coherenceIndex > drift.coherenceIndex,
+    `S2 on-topic coherenceIndex=${onTopic.coherenceIndex} > drift=${drift.coherenceIndex}`,
+  );
+
+  // Single-sentence transcript: returns neutral 50 on flow + coherence
+  // (no adjacent pairs to compare).
+  const single = extractStructureSignals({
+    transcript: "Just one sentence here.",
+    durationMs: 4000,
+  });
+  assert(
+    single.logicalFlowScore === 50,
+    `S2 single-sentence logicalFlowScore=50 (got ${single.logicalFlowScore})`,
+  );
+  assert(
+    single.coherenceIndex === 50,
+    `S2 single-sentence coherenceIndex=50 (got ${single.coherenceIndex})`,
+  );
+
+  // Sub-skill rewiring: coherence sub-skill is now text-driven.
+  const connectedAll = extractAllTextSignals({
+    transcript:
+      "We need to raise prices. Because our costs went up. Therefore margins are squeezed. As a result, profitability fell. So we have no choice. This means we act now.",
+    durationMs: 14000,
+  });
+  const drifted = extractAllTextSignals({
+    transcript:
+      "The pricing decision is hard. We had a great offsite. The mountain biking trail was new. Coffee in the kitchen tasted weird. The dog needs a walk.",
+    durationMs: 12000,
+  });
+  const dims: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  };
+  const connectedMap = mapSignalsToSubSkillScores(connectedAll, dims);
+  const driftedMap = mapSignalsToSubSkillScores(drifted, dims);
+  assert(
+    connectedMap.coherence != null,
+    `S2 coherence sub-skill is text-driven (was dimension_fallback)`,
+  );
+  assert(
+    (connectedMap.coherence?.score ?? 0) > (driftedMap.coherence?.score ?? 0),
+    `S2 coherence sub-skill differentiates connected (${connectedMap.coherence?.score}) > drifted (${driftedMap.coherence?.score})`,
+  );
+  assert(
+    connectedMap.coherence?.signalSource?.includes("logicalFlow") ?? false,
+    `S2 coherence signalSource includes logicalFlow + coherenceIndex`,
+  );
+
+  // argument_hierarchy now blends hierarchy markers + flow.
+  assert(
+    connectedMap.argument_hierarchy?.signalSource?.includes("flow") ?? false,
+    `S2 argument_hierarchy signalSource now includes flow score`,
+  );
+
+  // SIGNALS-block renderer surfaces the new fields.
+  const allSig = extractAllTextSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    typeof allSig.structure.logicalFlowScore === "number",
+    `S2 TextSignals.structure.logicalFlowScore is a number`,
+  );
+  assert(
+    typeof allSig.structure.coherenceIndex === "number",
+    `S2 TextSignals.structure.coherenceIndex is a number`,
+  );
+
+  // Empty transcript guard: returns 50 (single-sentence path), not NaN.
+  const empty2 = extractStructureSignals({
+    transcript: "",
+    durationMs: 5000,
+  });
+  assert(
+    empty2.logicalFlowScore === 50 && Number.isFinite(empty2.logicalFlowScore),
+    `S2 empty-transcript logicalFlowScore=50 (not NaN)`,
+  );
+  assert(
+    empty2.coherenceIndex === 50 && Number.isFinite(empty2.coherenceIndex),
+    `S2 empty-transcript coherenceIndex=50 (not NaN)`,
+  );
+
+  // Two-sentence rep: minimum input for non-degenerate flow score.
+  const twoSent = extractStructureSignals({
+    transcript: "The product is launching. We are excited.",
+    durationMs: 5000,
+  });
+  assert(
+    Number.isFinite(twoSent.logicalFlowScore) &&
+      twoSent.logicalFlowScore >= 0 &&
+      twoSent.logicalFlowScore <= 100,
+    `S2 two-sentence logicalFlowScore is finite in [0,100] (${twoSent.logicalFlowScore})`,
+  );
+
+  // Repeated-noun overlap drives high topic continuity.
+  const repeatedNoun = extractStructureSignals({
+    transcript:
+      "Pricing is the issue. Pricing affects everything. Pricing is on the agenda. Pricing decisions matter.",
+    durationMs: 8000,
+  });
+  assert(
+    repeatedNoun.logicalFlowScore >= 50,
+    `S2 repeated-noun rep logicalFlowScore=${repeatedNoun.logicalFlowScore} ≥ 50 (overlap drives flow)`,
+  );
+
+  // Off-topic drift sentences pull coherence down even when individual
+  // sentences are well-formed.
+  const halfDrift = extractStructureSignals({
+    transcript:
+      "The pricing strategy needs revision. Costs are rising. Margins are tight. The dog needs a bath. The car broke down. The kitchen is messy.",
+    durationMs: 14000,
+  });
+  assert(
+    halfDrift.coherenceIndex < 80,
+    `S2 half-drift rep coherenceIndex=${halfDrift.coherenceIndex} < 80 (drift detected)`,
+  );
+
+  // Stop-words alone do NOT count as content overlap.
+  const stopwordChain = extractStructureSignals({
+    transcript:
+      "It is so. The is the. And the and. The is. The and the.",
+    durationMs: 8000,
+  });
+  assert(
+    stopwordChain.logicalFlowScore <= 50,
+    `S2 stopword-only chain logicalFlowScore=${stopwordChain.logicalFlowScore} ≤ 50 (stopwords aren't content)`,
+  );
+}
+
+// ————————————————————————————————————————————————————————————————
 // Summary
 // ————————————————————————————————————————————————————————————————
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -69,6 +69,19 @@ export type StructureTextSignals = {
      *  conviction-tone ending sentence. */
     definitiveClose: boolean;
   };
+  /** Ch.S2 — Logical flow score 0-100. Combines two evidence streams:
+   *  (a) cross-sentence connector density — sentences whose first ~5
+   *  tokens contain a flow connector ("because", "therefore", "this
+   *  means", "building on that", "since", "as a result", "so").
+   *  (b) topic continuity — fraction of adjacent-sentence pairs sharing
+   *  ≥1 content noun (3-gram lite, lemmatized via S1's stemmer).
+   *  High = each sentence flows from the previous; low = topic jumps. */
+  logicalFlowScore: number;
+  /** Ch.S2 — Coherence index 0-100. Of all sentences after the first
+   *  30% of the response, what fraction reference at least one content
+   *  noun introduced in the first 30%? High = response stays on the
+   *  topic it announces; low = response drifts into unrelated material. */
+  coherenceIndex: number;
 };
 
 export type ConcisenessTextSignals = {
