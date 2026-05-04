@@ -253,6 +253,258 @@
       ]
     },
     {
+      "id": "indep-ambiguous-pronouns",
+      "kind": "independence",
+      "promptText": "Did the launch hit the targets we set?",
+      "transcript": "Mostly. The big number landed, the smaller ones missed. We fixed what we could on day one. Calling it a win.",
+      "durationMs": 9000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "conciseness",
+          "min": 75,
+          "rationale": "Pair: clarity vs conciseness, direction concise-but-unclear. ~22 words, no filler, every word does work — Conciseness must score in the strong band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "clarity",
+          "max": 50,
+          "rationale": "Pair: clarity vs conciseness. 'Mostly', 'big number', 'smaller ones', 'what we could' are all referent-less for an audience that doesn't already know the targets — listener leaves not knowing WHICH targets were hit. Clarity must drop even though Conciseness is high."
+        }
+      ]
+    },
+    {
+      "id": "indep-clear-but-padded",
+      "kind": "independence",
+      "promptText": "Walk me through how you'd onboard a new direct report in their first week.",
+      "transcript": "So in their first week, what I would do — and I think this is really important to do thoughtfully and not rush — is I would spend the first day, basically the entirety of the first day, walking them through the team, the org chart, who reports to whom, how the team is structured. That's day one. Then on day two, what I would do is, I would walk them through their actual job, the responsibilities they own, the projects they're going to inherit, and the people they'll be working with most closely on those projects. So that's day two: their work and their collaborators. Day three through five, I would pair them with someone on the team, basically a buddy who they can ask questions of without feeling like they're bothering me directly, because in my experience that buddy relationship is what makes the first week actually stick.",
+      "durationMs": 60000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "clarity",
+          "min": 75,
+          "rationale": "Pair: clarity vs conciseness, direction clear-but-verbose. Day-by-day sequencing is plain, no jargon, every claim grounds out — Clarity must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "conciseness",
+          "max": 50,
+          "rationale": "Pair: clarity vs conciseness. 'What I would do is, I would', 'basically', 'I think this is really important', 'in my experience' — every section is padded ~2x what plain phrasing would need. Conciseness must drop even though Clarity is high. Aspirational assertion: text-only LLM clusters at ~75 here; assertion fires once Ch.S3 stoppingPointAccuracy + word-redundancy signals land."
+        }
+      ]
+    },
+    {
+      "id": "indep-okrs-empty-scaffold",
+      "kind": "independence",
+      "promptText": "Make the case for adopting OKRs across the company.",
+      "transcript": "There are three reasons we should adopt OKRs. First, alignment. OKRs help with alignment because alignment matters when you have many teams. Second, focus. OKRs focus people on the right things, and focus is important to outcomes. Third, measurability. With OKRs, things are more measurable, which is good because measurable is better than not measurable. So in summary, the three reasons are alignment, focus, and measurability — and that's why we should adopt OKRs.",
+      "durationMs": 30000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "structure",
+          "min": 70,
+          "rationale": "Pair: structure vs thinking, direction organized-but-shallow. Three explicit numbered reasons + summary — Structure must score in the competent/strong band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 45,
+          "rationale": "Pair: structure vs thinking. Every reason is tautological ('alignment matters', 'measurable is better than not measurable'); zero evidence, no business specificity. Thinking must score below standard despite the visible scaffolding. Aspirational assertion: text-only LLM clusters ~55 on this pattern; tightens post-S4 logicalConsistencyMarkers + originalityIndex signals."
+        }
+      ]
+    },
+    {
+      "id": "indep-quitting-engineer-meander",
+      "kind": "independence",
+      "promptText": "A senior engineer is threatening to quit because they say management ignores their feedback. How do you handle the conversation?",
+      "transcript": "OK so. The first thing — actually, before that — the thing I'd want to know going in is whether this is the third time they've raised the feedback or the first time. Because if it's the first time, that's a totally different conversation than if it's the third. The pattern matters more than the content. If it's the first time, my read is they're not actually ready to quit yet — they're testing whether you'll engage. The threat is the message. If it's the third, then the leverage has shifted. They've already decided. So — and this is the part I keep coming back to — the conversation isn't about the feedback. It's about whether they trust the system. Trying to debate the merits of whatever they raised would miss the actual ask.",
+      "durationMs": 60000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "structure",
+          "max": 55,
+          "rationale": "Pair: structure vs thinking, direction disorganized-but-deep. 'OK so. The first thing — actually, before that —' false start; no enumerated scaffolding; thoughts loop back ('and this is the part I keep coming back to'). Structure must drop. Aspirational assertion: post-S2 logicalFlowScore signal pins this below 55."
+        },
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: structure vs thinking. Real insight: distinguishes first-time vs third-time as the load-bearing variable, reframes 'feedback' to 'trust in the system', identifies the threat as a signal not a literal claim. Thinking must score strong even though structure is poor."
+        }
+      ]
+    },
+    {
+      "id": "indep-rushed-bank-pitch",
+      "kind": "independence",
+      "promptText": "Pitch your fintech startup to a busy investor in 30 seconds.",
+      "transcript": "We help small banks compete with megabanks by giving them a deposit-pricing engine that updates rates daily. Currently, they update quarterly. That gap costs them about three percent of new deposits per year. We close it. Our customers — twelve community banks so far — saw deposit growth jump fourteen percent in the first quarter we deployed. We charge a fixed monthly fee, no percentage, which means the math works for any bank size.",
+      "durationMs": 18000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "delivery",
+          "max": 50,
+          "rationale": "Pair: delivery vs tone, direction variety-with-bad-rate. ~88 words in 18 seconds = ~290 wpm, far above the DNA optimal 140-170 band. Delivery must score below standard for pace alone. Note: text-only LLM may underweight pace until prosody worker (Ch.S5) is wired — this rep stress-tests the delivery-from-density signal."
+        },
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 60,
+          "rationale": "Pair: delivery vs tone. Sentence types vary (declarative, qualifier-clause, dash-set-aside, conditional), no upspeak markers, conviction-forward language. Tone should land in or near competent band even though Delivery suffers."
+        }
+      ]
+    },
+    {
+      "id": "indep-monotone-review-process",
+      "kind": "independence",
+      "promptText": "Convince the team to adopt a new code review process.",
+      "transcript": "We need a new code review process. The current process takes too long. Reviewers wait too many days. Authors lose context. Bugs slip through. A new process would shorten the cycle. Reviewers would respond within a day. Authors would maintain context. Bugs would surface earlier. The new process has three rules. Rules are simple to follow. Rules keep us aligned. We should adopt the new process. The process is ready to roll out. The team should agree by Friday.",
+      "durationMs": 34000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "delivery",
+          "min": 65,
+          "rationale": "Pair: delivery vs tone, direction monotone-with-good-rate. ~85 words in 34 seconds = 150 wpm, dead in the DNA optimal band. Delivery scores in competent band on pace."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "Pair: delivery vs tone. Every sentence is the same length and structure (subject-verb-object, 5-9 words), no rhetorical variety, no emphasis markers — text-detectable monotony. Tone must drop below competent even though pacing is good. Aspirational assertion: post-S5 prosody worker (pitch variance) is the load-bearing signal."
+        }
+      ]
+    },
+    {
+      "id": "indep-velocity-jargon-revelation",
+      "kind": "independence",
+      "promptText": "Tell me about a time you changed your mind about something important.",
+      "transcript": "There's this — I'd been operating under the assumption that velocity was the proxy variable for team health, and the way that read into my decisioning was that I was, in effect, optimizing the wrong gradient. The realization came in slow, through what I'd call inverse correlation: the highest-velocity quarters were also the highest-attrition quarters, and once that fact entered the loss function, I had to fundamentally reframe what I was reading off velocity numbers. The proxy was inverted to the thing I cared about, which is to say, sustainable output. So the assumption flipped.",
+      "durationMs": 38000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: clarity vs thinking, direction deep-but-unclear. Real insight: velocity inversely correlates with team health via attrition; the metric was a misleading proxy. Thinking must score strong. Aspirational assertion: text-only LLM under-grades thinking when language is jargon-tangled; post-S1 wordPrecisionScore + post-S4 originalityIndex signals separate insight from clarity surface."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "clarity",
+          "max": 55,
+          "rationale": "Pair: clarity vs thinking. 'Decisioning', 'proxy variable', 'optimizing the wrong gradient', 'loss function' stack ML jargon for a behavioral interview audience. Same idea in plain language would be twice as clear. Clarity must drop below competent even though Thinking is strong."
+        }
+      ]
+    },
+    {
+      "id": "indep-earnings-explainer-empty",
+      "kind": "independence",
+      "promptText": "How would you explain quarterly earnings to a new analyst who has never seen them?",
+      "transcript": "Quarterly earnings are how a company shows how it did over three months. There are four quarters in a year. Companies report numbers like revenue, which is how much money came in, and profit, which is what's left after costs. Investors look at those numbers to decide if the company is doing well or not. That's the basic idea.",
+      "durationMs": 26000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "clarity",
+          "min": 75,
+          "rationale": "Pair: clarity vs thinking, direction simple-but-shallow. Plain English, no jargon, definitions track linearly — Clarity must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 50,
+          "rationale": "Pair: clarity vs thinking. Explanation is dictionary-true but contains zero analytical content: no GAAP vs non-GAAP, no guidance vs actuals, no segment reporting, no YoY-vs-QoQ framing. An analyst leaves no smarter than a textbook. Thinking must drop below competent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic explanations below 55."
+        }
+      ]
+    },
+    {
+      "id": "indep-q4-risks-no-frame",
+      "kind": "independence",
+      "promptText": "What's our biggest risk going into Q4?",
+      "transcript": "The Asia partner deal. If it slips past November we miss the December quota. Also — well, related to that — the FX exposure isn't hedged past Q3. And the new sales hire ramped slow. Those are the things.",
+      "durationMs": 15000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "conciseness",
+          "min": 75,
+          "rationale": "Pair: conciseness vs structure, direction concise-but-unstructured. ~38 words, dense, no filler. Conciseness must score strong. Aspirational assertion: post-S3 stoppingPointAccuracy + filler-density signals lift this reliably above 75."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "structure",
+          "max": 50,
+          "rationale": "Pair: conciseness vs structure. Three risks but no ranking (which is BIGGEST?), no taxonomy (commercial / operational / financial), throwaway closer 'those are the things'. Structure must drop below competent even though Conciseness is high."
+        }
+      ]
+    },
+    {
+      "id": "indep-pricing-three-part-padded",
+      "kind": "independence",
+      "promptText": "Your platform is too expensive — your competitor charges 40% less. Why should we still choose you?",
+      "transcript": "Let me break this down into three parts so we can work through it together. First, the acknowledgment: yes, our pricing is meaningfully higher than the competitor you're referring to. I want to be upfront about that and not dance around the price difference, because pretending it isn't there would erode trust before we even start. Second, the reframe — and this is where I want to spend the most time, because I think this is the part that often gets missed when teams are evaluating us against the competitor: the unit of comparison matters. The competitor charges per seat, with overage fees that kick in at thirty percent of typical usage and again at sixty percent. We charge a flat platform fee, no per-seat, no overage. Third, the evidence: in the seven enterprise migrations we ran in the last year, the average annualized total cost — including overage at the competitor's pricing — came in twenty-two percent below their headline number, and eighteen percent below ours.",
+      "durationMs": 70000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "structure",
+          "min": 80,
+          "rationale": "Pair: conciseness vs structure, direction structured-but-verbose. Explicit 'First / Second / Third' with named buckets (acknowledgment / reframe / evidence). Structure must score strong-to-excellent."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "conciseness",
+          "max": 55,
+          "rationale": "Pair: conciseness vs structure. 'Let me break this down into three parts so we can work through it together', 'I want to be upfront and not dance around', 'this is the part that often gets missed when teams are evaluating us' — every section is padded with audience-management filler. Conciseness must drop below competent even though Structure is excellent. Aspirational assertion: LLM is biased upward on Conciseness (+8.7 in baseline doc); post-S3 stoppingPointAccuracy + word-density signals tighten this below 60."
+        }
+      ]
+    },
+    {
+      "id": "indep-launch-miss-breathless",
+      "kind": "independence",
+      "promptText": "Walk the board through why your last product launch missed forecast by 30 percent.",
+      "transcript": "OK so the miss is real, the miss has three components, the first is forecast methodology, we built the forecast off the public beta conversion rate which was running at twelve percent, but the public beta cohort self-selected — they were the most product-ready segment — and the GA cohort converted at four percent, which is closer to the segment-blended industry baseline, so we should have used that, the second component is GTM timing, we shipped the launch into a quiet announcement window thinking that would maximize attention, but the dominant headlines that week were three competitor moves we hadn't priced in, and the third is positioning, we led with the integration story when our actual differentiation was the latency win, the integration story is what marketing tested, the latency win is what closed deals in beta, we should have flipped them.",
+      "durationMs": 22000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "delivery",
+          "max": 45,
+          "rationale": "Pair: thinking vs delivery. ~145 words in 22 seconds = 395 wpm, breathless. Comma-spliced run-on (one sentence covers all three components), no breath markers — text-detectable rapid pacing. Delivery must drop into below-standard band even though Thinking is strong."
+        }
+      ]
+    },
+    {
+      "id": "indep-future-of-work-pitch",
+      "kind": "independence",
+      "promptText": "Pitch your AI productivity tool in 30 seconds.",
+      "transcript": "We're building the future of work. Our AI-native platform uses cutting-edge machine learning to make teams more productive, more aligned, and more efficient. We integrate with all the tools you already use — Slack, email, calendar, the whole stack. Early customers are seeing transformational results. We're at the beginning of a paradigm shift in how knowledge work gets done, and we'd love for you to be part of it.",
+      "durationMs": 28000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "delivery",
+          "min": 65,
+          "rationale": "Pair: thinking vs delivery, direction fluent-but-shallow. ~70 words in 28 seconds = 150 wpm, optimal pace. Sentence types vary (declarative, list, dash-set-aside, conditional close). Delivery must score in competent-or-better band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 45,
+          "rationale": "Pair: thinking vs delivery. Pure boilerplate: 'future of work', 'AI-native', 'cutting-edge machine learning', 'transformational results', 'paradigm shift' — zero specificity on customer, metric, differentiation, or pricing. Thinking must drop into below-standard band even though Delivery is fluent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic startup phrasing below 45."
+        }
+      ]
+    },
+    {
       "id": "qa-poor-frontend-status",
       "kind": "band",
       "promptText": "What's the status of the checkout migration this sprint?",
