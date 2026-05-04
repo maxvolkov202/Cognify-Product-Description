@@ -99,7 +99,7 @@ const subSkillEnumSchema = z.enum(
 );
 
 const feedbackBulletSchema = z.object({
-  text: z.string().min(1).max(180),
+  text: z.string().min(1).max(280),
   dimension: dimensionEnumSchema,
   /** Ch.2 sub-skill grading. Optional in input; sanitizer fills/strips. */
   subSkill: subSkillEnumSchema.nullable().optional(),
