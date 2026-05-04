@@ -24,6 +24,11 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import type { TextSignals } from "./types";
+import type { ProsodyFeatures } from "@/lib/audio/prosody";
+import {
+  HUME_EMOTION_NAMES,
+  type HumeEmotionName,
+} from "@/lib/audio/hume-prosody";
 
 /** Anchor: (signalValue, score). Linear interpolation between adjacent
  *  anchors; values outside the range clamp to the nearest endpoint. */
@@ -279,6 +284,66 @@ const SELF_CORRECTION_TO_HONESTY: readonly Anchor[] = [
   [5, 25],
 ];
 
+// ——— Ch.S5 — Tone sub-skill curves (Hume emotion-derived) ————————
+
+/** Variance of Excitement+Determination+Joy across windows → pitch_variation.
+ *  Higher variance = vocal variety. Hume emotion scores are 0-1 so
+ *  variance ranges roughly 0-0.04 in practice; we scale up for the curve. */
+const HUME_VARIANCE_TO_PITCH_VARIATION: readonly Anchor[] = [
+  [0, 30],
+  [0.005, 50],
+  [0.01, 65],
+  [0.02, 80],
+  [0.04, 90],
+];
+
+/** 1 - (Anxiety_mean + Distress_mean) → volume_control. Low anxiety
+ *  reads as controlled vocal energy. */
+const HUME_CONTROL_TO_VOLUME_CONTROL: readonly Anchor[] = [
+  [0, 30],
+  [0.4, 50],
+  [0.7, 70],
+  [0.85, 82],
+  [0.95, 88],
+];
+
+/** 1 - (Doubt_mean + Confusion_mean) → downward_inflection. Confident,
+ *  declarative statements close downward; doubt/confusion close upward. */
+const HUME_CONFIDENCE_TO_DOWNWARD: readonly Anchor[] = [
+  [0, 25],
+  [0.4, 50],
+  [0.7, 70],
+  [0.9, 85],
+];
+
+/** Calmness + Contentment + Joy minus Awkwardness/Embarrassment →
+ *  emotional_authenticity. Genuine warmth absent self-consciousness. */
+const HUME_AUTH_TO_AUTHENTICITY: readonly Anchor[] = [
+  [-0.2, 30],
+  [0.1, 50],
+  [0.3, 70],
+  [0.5, 82],
+  [0.7, 88],
+];
+
+/** Determination + Pride + Triumph → vocal_presence. */
+const HUME_PRESENCE_TO_PRESENCE: readonly Anchor[] = [
+  [0, 30],
+  [0.2, 55],
+  [0.4, 72],
+  [0.6, 82],
+  [0.8, 88],
+];
+
+/** Calmness + Contentment + Sympathy + Love → warmth. */
+const HUME_WARMTH_TO_WARMTH: readonly Anchor[] = [
+  [0, 30],
+  [0.2, 50],
+  [0.4, 68],
+  [0.6, 80],
+  [0.8, 88],
+];
+
 // ——— Mapper ——————————————————————————————————————————————
 
 export type SubSkillScoreEntry = {
@@ -328,9 +393,24 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
  *
  * Pure: same (signals, dimensionScores) → same map.
  */
+/** Look up an emotion's mean / variance from a ProsodyFeatures object's
+ *  Hume-emotion arrays. Returns 0 when prosody is null or emotion is
+ *  absent. */
+function humeMean(p: ProsodyFeatures | null | undefined, name: HumeEmotionName): number {
+  if (!p?.humeEmotionMeans) return 0;
+  const idx = HUME_EMOTION_NAMES.indexOf(name);
+  return idx >= 0 ? (p.humeEmotionMeans[idx] ?? 0) : 0;
+}
+function humeVariance(p: ProsodyFeatures | null | undefined, name: HumeEmotionName): number {
+  if (!p?.humeEmotionVariances) return 0;
+  const idx = HUME_EMOTION_NAMES.indexOf(name);
+  return idx >= 0 ? (p.humeEmotionVariances[idx] ?? 0) : 0;
+}
+
 export function mapSignalsToSubSkillScores(
   signals: TextSignals,
   dimensionScores: Partial<Record<SkillDimension, number>>,
+  prosody?: ProsodyFeatures | null,
 ): SubSkillScoreMap {
   const map: SubSkillScoreMap = {};
   const c = signals.clarity;
@@ -461,8 +541,82 @@ export function mapSignalsToSubSkillScores(
     signalSource: `originalityIndex=${t.originalityIndex}`,
   };
 
-  // Dimension-fallback for every sub-skill not covered above.
+  // Ch.S5 — Tone sub-skills driven by Hume emotion vector when present.
+  // When prosody is null OR Hume fields are absent, the existing
+  // dimension_fallback path below populates these from the LLM's
+  // holistic Tone score (Tone is text-LLM-only without audio).
+  if (prosody?.humeEmotionMeans && prosody.humeEmotionMeans.length > 0) {
+    // pitch_variation: variance of Excitement + Determination + Joy.
+    const pitchVarSig =
+      humeVariance(prosody, "Excitement") +
+      humeVariance(prosody, "Determination") +
+      humeVariance(prosody, "Joy");
+    map.pitch_variation = {
+      score: interpolate(pitchVarSig, HUME_VARIANCE_TO_PITCH_VARIATION),
+      signalSource: `humeVariance(Excitement+Determination+Joy)=${pitchVarSig.toFixed(4)}`,
+    };
+
+    // volume_control: 1 - (Anxiety + Distress) means.
+    const ctrlSig = Math.max(
+      0,
+      1 - humeMean(prosody, "Anxiety") - humeMean(prosody, "Distress"),
+    );
+    map.volume_control = {
+      score: interpolate(ctrlSig, HUME_CONTROL_TO_VOLUME_CONTROL),
+      signalSource: `humeControl(1-Anxiety-Distress)=${ctrlSig.toFixed(3)}`,
+    };
+
+    // downward_inflection: 1 - (Doubt + Confusion) means.
+    const downSig = Math.max(
+      0,
+      1 - humeMean(prosody, "Doubt") - humeMean(prosody, "Confusion"),
+    );
+    map.downward_inflection = {
+      score: interpolate(downSig, HUME_CONFIDENCE_TO_DOWNWARD),
+      signalSource: `humeConfident(1-Doubt-Confusion)=${downSig.toFixed(3)}`,
+    };
+
+    // emotional_authenticity: Calmness + Contentment + Joy minus
+    // Awkwardness + Embarrassment.
+    const authSig =
+      humeMean(prosody, "Calmness") +
+      humeMean(prosody, "Contentment") +
+      humeMean(prosody, "Joy") -
+      humeMean(prosody, "Awkwardness") -
+      humeMean(prosody, "Embarrassment");
+    map.emotional_authenticity = {
+      score: interpolate(authSig, HUME_AUTH_TO_AUTHENTICITY),
+      signalSource: `humeAuth(Calm+Content+Joy-Awk-Emb)=${authSig.toFixed(3)}`,
+    };
+
+    // vocal_presence: Determination + Pride + Triumph.
+    const presSig =
+      humeMean(prosody, "Determination") +
+      humeMean(prosody, "Pride") +
+      humeMean(prosody, "Triumph");
+    map.vocal_presence = {
+      score: interpolate(presSig, HUME_PRESENCE_TO_PRESENCE),
+      signalSource: `humePresence(Determ+Pride+Triumph)=${presSig.toFixed(3)}`,
+    };
+
+    // warmth: Calmness + Contentment + Sympathy + Love.
+    const warmthSig =
+      humeMean(prosody, "Calmness") +
+      humeMean(prosody, "Contentment") +
+      humeMean(prosody, "Sympathy") +
+      humeMean(prosody, "Love");
+    map.warmth = {
+      score: interpolate(warmthSig, HUME_WARMTH_TO_WARMTH),
+      signalSource: `humeWarmth(Calm+Content+Symp+Love)=${warmthSig.toFixed(3)}`,
+    };
+  }
+
+  // Dimension-fallback for every sub-skill not covered above. Skip
+  // entries already populated (Ch.S5: when Hume prosody is present,
+  // Tone sub-skills are populated above and must NOT be overwritten by
+  // dimension_fallback).
   for (const subSkill of ALL_SUB_SKILLS) {
+    if (map[subSkill] != null) continue;
     if (TEXT_DRIVEN_SUB_SKILLS.has(subSkill)) continue;
     const dim = SUB_SKILL_TO_DIMENSION[subSkill];
     const dimScore = dimensionScores[dim];

@@ -35,6 +35,13 @@ import {
   getPrimaryExerciseForSubSkill,
 } from "@/lib/ai/exercises";
 import { planFocusWorkout } from "@/lib/ai/workout-prompts";
+import {
+  aggregateHumePredictions,
+  HUME_EMOTION_NAMES,
+  getHumeEmotionMean,
+  getHumeEmotionVariance,
+} from "@/lib/audio/hume-prosody";
+import { hasWorkerProsody } from "@/lib/audio/prosody";
 
 let pass = 0;
 let fail = 0;
@@ -1410,6 +1417,244 @@ section("Ch.S4 — originalityIndex + logicalConsistencyMarkers");
   assert(
     mildRestart.logicalConsistencyMarkers >= 2,
     `S4 mild restart markers caught: ${mildRestart.logicalConsistencyMarkers} ≥ 2`,
+  );
+}
+
+// ————————————————————————————————————————————————————————————————
+// Ch.S5 — Hume.ai prosody adapter + Tone sub-skill rewiring
+// ————————————————————————————————————————————————————————————————
+section("Ch.S5 — Hume prosody adapter + Tone sub-skill rewiring");
+
+{
+  // Helper: build a synthetic Hume window with specified emotion scores.
+  function makeWindow(
+    emotionMap: Record<string, number>,
+    begin = 0,
+    end = 4,
+  ) {
+    return {
+      time: { begin, end },
+      emotions: HUME_EMOTION_NAMES.map((name) => ({
+        name,
+        score: emotionMap[name] ?? 0,
+      })),
+    };
+  }
+
+  // Aggregation: single-window means equal the input scores.
+  const single = aggregateHumePredictions([
+    makeWindow({ Excitement: 0.7, Determination: 0.6 }),
+  ]);
+  assert(
+    Math.abs(getHumeEmotionMean(single, "Excitement") - 0.7) < 0.001,
+    `S5 single-window Excitement mean preserved (${getHumeEmotionMean(single, "Excitement")})`,
+  );
+  assert(
+    single.humeWindowCount === 1,
+    `S5 humeWindowCount tracks aggregated window count`,
+  );
+  assert(
+    single.prosodyProvider === "hume.ai",
+    `S5 prosodyProvider tag is hume.ai`,
+  );
+  assert(
+    single.pitchMeanHz === null && single.rmsMean === null,
+    `S5 raw DSP fields stay null (Hume doesn't populate them)`,
+  );
+
+  // Aggregation: multi-window means computed correctly.
+  const multi = aggregateHumePredictions([
+    makeWindow({ Excitement: 0.6 }),
+    makeWindow({ Excitement: 0.4 }),
+  ]);
+  assert(
+    Math.abs(getHumeEmotionMean(multi, "Excitement") - 0.5) < 0.001,
+    `S5 multi-window Excitement mean=0.5 (got ${getHumeEmotionMean(multi, "Excitement")})`,
+  );
+
+  // Variance computed correctly: mean=0.5, scores 0.6 and 0.4, var=0.01
+  assert(
+    Math.abs(getHumeEmotionVariance(multi, "Excitement") - 0.01) < 0.001,
+    `S5 multi-window Excitement variance=0.01 (got ${getHumeEmotionVariance(multi, "Excitement")})`,
+  );
+
+  // Variance is non-negative.
+  for (const name of HUME_EMOTION_NAMES) {
+    assert(
+      getHumeEmotionVariance(multi, name) >= 0,
+      `S5 emotion variance ≥ 0 for ${name}`,
+    );
+  }
+
+  // Identical-window sequences have ~0 variance.
+  const identical = aggregateHumePredictions([
+    makeWindow({ Excitement: 0.5, Joy: 0.3 }),
+    makeWindow({ Excitement: 0.5, Joy: 0.3 }),
+    makeWindow({ Excitement: 0.5, Joy: 0.3 }),
+  ]);
+  assert(
+    getHumeEmotionVariance(identical, "Excitement") < 0.001,
+    `S5 identical-window Excitement variance ≈ 0 (got ${getHumeEmotionVariance(identical, "Excitement")})`,
+  );
+
+  // Tone sub-skill rewiring: with HUME prosody present, Tone sub-skills
+  // are populated from emotion vector (NOT dimension_fallback).
+  const allSig = extractAllTextSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  const dimsS5: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  };
+
+  // Variety/expressive prosody: high Excitement/Determination/Joy
+  // variance + Confidence (Determination/Pride) means.
+  const expressiveProsody = {
+    wordsPerMinute: 150,
+    fillerCount: 0,
+    fillerRatePerMinute: 0,
+    pauseCount: 4,
+    longPauseCount: 1,
+    pauseTotalMs: 1000,
+    meanPauseMs: 250,
+    pitchMeanHz: null,
+    pitchStdSemitones: null,
+    pitchRangeSemitones: null,
+    monotoneRatio: null,
+    upspeakRatio: null,
+    rmsMean: null,
+    rmsStd: null,
+    articulationScore: null,
+    humeEmotionMeans: HUME_EMOTION_NAMES.map((name) => {
+      if (name === "Determination" || name === "Pride" || name === "Triumph") return 0.5;
+      if (name === "Calmness" || name === "Contentment") return 0.4;
+      if (name === "Joy" || name === "Excitement") return 0.5;
+      return 0.05;
+    }),
+    humeEmotionVariances: HUME_EMOTION_NAMES.map((name) => {
+      if (name === "Excitement" || name === "Determination" || name === "Joy") return 0.03;
+      return 0.001;
+    }),
+    humeWindowCount: 8,
+    prosodyProvider: "hume.ai" as const,
+  };
+  const monotoneProsody = {
+    wordsPerMinute: 150,
+    fillerCount: 0,
+    fillerRatePerMinute: 0,
+    pauseCount: 4,
+    longPauseCount: 1,
+    pauseTotalMs: 1000,
+    meanPauseMs: 250,
+    pitchMeanHz: null,
+    pitchStdSemitones: null,
+    pitchRangeSemitones: null,
+    monotoneRatio: null,
+    upspeakRatio: null,
+    rmsMean: null,
+    rmsStd: null,
+    articulationScore: null,
+    humeEmotionMeans: HUME_EMOTION_NAMES.map((name) => {
+      if (name === "Boredom" || name === "Tiredness") return 0.5;
+      return 0.05;
+    }),
+    humeEmotionVariances: HUME_EMOTION_NAMES.map(() => 0.0005),
+    humeWindowCount: 8,
+    prosodyProvider: "hume.ai" as const,
+  };
+
+  const expressiveMap = mapSignalsToSubSkillScores(
+    allSig,
+    dimsS5,
+    expressiveProsody,
+  );
+  const monotoneMap = mapSignalsToSubSkillScores(
+    allSig,
+    dimsS5,
+    monotoneProsody,
+  );
+  const noProsodyMap = mapSignalsToSubSkillScores(allSig, dimsS5, null);
+
+  // pitch_variation differentiates expressive vs monotone.
+  assert(
+    (expressiveMap.pitch_variation?.score ?? 0) >
+      (monotoneMap.pitch_variation?.score ?? 0),
+    `S5 pitch_variation: expressive (${expressiveMap.pitch_variation?.score}) > monotone (${monotoneMap.pitch_variation?.score})`,
+  );
+
+  // vocal_presence differentiates Determination/Pride vs absence.
+  assert(
+    (expressiveMap.vocal_presence?.score ?? 0) >
+      (monotoneMap.vocal_presence?.score ?? 0),
+    `S5 vocal_presence: expressive (${expressiveMap.vocal_presence?.score}) > monotone (${monotoneMap.vocal_presence?.score})`,
+  );
+
+  // warmth differentiates Calmness/Contentment vs absence.
+  assert(
+    (expressiveMap.warmth?.score ?? 0) > (monotoneMap.warmth?.score ?? 0),
+    `S5 warmth: expressive (${expressiveMap.warmth?.score}) > monotone (${monotoneMap.warmth?.score})`,
+  );
+
+  // No-prosody fallback: Tone sub-skills equal the dimension Tone score
+  // (70) via dimension_fallback (signalSource will be that string).
+  assert(
+    noProsodyMap.pitch_variation?.signalSource === "dimension_fallback",
+    `S5 no-prosody falls back to dimension_fallback for Tone (got ${noProsodyMap.pitch_variation?.signalSource})`,
+  );
+
+  // With prosody, signalSource starts with "hume" (not dimension_fallback).
+  assert(
+    expressiveMap.pitch_variation?.signalSource?.startsWith("hume") ?? false,
+    `S5 with prosody, pitch_variation signalSource starts with 'hume' (got ${expressiveMap.pitch_variation?.signalSource})`,
+  );
+
+  // Other (non-Tone) sub-skills are unaffected by prosody presence.
+  assert(
+    expressiveMap.word_choice?.score === noProsodyMap.word_choice?.score,
+    `S5 prosody does NOT affect non-Tone sub-skills (word_choice equal)`,
+  );
+
+  // All 6 Tone sub-skills are populated when Hume prosody present.
+  const toneIds = ["pitch_variation", "volume_control", "downward_inflection", "emotional_authenticity", "vocal_presence", "warmth"];
+  for (const id of toneIds) {
+    assert(
+      expressiveMap[id as keyof typeof expressiveMap] != null,
+      `S5 Tone sub-skill ${id} populated when Hume prosody present`,
+    );
+  }
+
+  // hasWorkerProsody recognizes Hume-only prosody as worker-available.
+  assert(
+    hasWorkerProsody(expressiveProsody) === true,
+    `S5 hasWorkerProsody returns true on Hume-only prosody (no raw DSP fields)`,
+  );
+
+  // hasWorkerProsody false on inline-only prosody (no worker fields).
+  const inlineOnly = {
+    wordsPerMinute: 150,
+    fillerCount: 0,
+    fillerRatePerMinute: 0,
+    pauseCount: 0,
+    longPauseCount: 0,
+    pauseTotalMs: 0,
+    meanPauseMs: 0,
+    pitchMeanHz: null,
+    pitchStdSemitones: null,
+    pitchRangeSemitones: null,
+    monotoneRatio: null,
+    upspeakRatio: null,
+    rmsMean: null,
+    rmsStd: null,
+    articulationScore: null,
+  };
+  assert(
+    hasWorkerProsody(inlineOnly) === false,
+    `S5 hasWorkerProsody returns false on inline-only prosody`,
   );
 }
 

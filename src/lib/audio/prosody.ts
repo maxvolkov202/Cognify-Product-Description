@@ -40,16 +40,30 @@ export type ProsodyFeatures = {
   rmsStd: number | null;
   /** Heuristic 0-1; higher = clearer consonant articulation. */
   articulationScore: number | null;
+  // ——— Ch.S5 Hume.ai emotion-vector path (parallel to raw DSP fields) ———
+  /** Mean per-emotion score across all windows. Length-48 array; order
+   *  matches HUME_EMOTION_NAMES. Null when Hume not active. */
+  humeEmotionMeans?: number[] | null;
+  /** Per-emotion variance across windows. */
+  humeEmotionVariances?: number[] | null;
+  /** Number of prosody windows analyzed. */
+  humeWindowCount?: number | null;
+  /** Which provider populated the worker fields. "hume.ai" or
+   *  "praat-worker" (the original PROSODY_WORKER_URL path). */
+  prosodyProvider?: "hume.ai" | "praat-worker" | null;
 };
 
 /** Whether worker-extracted fields populated. UI uses this to badge
- *  Tone scores as low-confidence when prosody pipeline was offline. */
+ *  Tone scores as low-confidence when prosody pipeline was offline.
+ *  Either a raw-DSP path (pitch/RMS) or a Hume emotion-vector path
+ *  counts as "worker prosody available." */
 export function hasWorkerProsody(features: ProsodyFeatures | null): boolean {
   if (!features) return false;
   return (
     features.pitchMeanHz != null ||
     features.pitchStdSemitones != null ||
-    features.rmsMean != null
+    features.rmsMean != null ||
+    (features.humeEmotionMeans != null && features.humeEmotionMeans.length > 0)
   );
 }
 
@@ -99,6 +113,29 @@ export function renderProsodyBlock(
   if (features.articulationScore != null) {
     lines.push(
       `  articulation: ${(features.articulationScore * 100).toFixed(0)}/100`,
+    );
+  }
+  // Ch.S5 — Hume emotion summary (top-3 means).
+  if (
+    features.humeEmotionMeans != null &&
+    features.humeEmotionMeans.length > 0 &&
+    features.humeWindowCount != null
+  ) {
+    // Lazy import to avoid circular type dependency at runtime.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { HUME_EMOTION_NAMES } = require("./hume-prosody") as {
+      HUME_EMOTION_NAMES: readonly string[];
+    };
+    const indexed = features.humeEmotionMeans.map((v, i) => ({
+      name: HUME_EMOTION_NAMES[i] ?? `emo${i}`,
+      score: v,
+    }));
+    indexed.sort((a, b) => b.score - a.score);
+    const top3 = indexed.slice(0, 3);
+    lines.push(
+      `  hume prosody (${features.humeWindowCount} windows): top-3 emotions ${top3
+        .map((e) => `${e.name}=${e.score.toFixed(2)}`)
+        .join(", ")}`,
     );
   }
   if (!hasWorkerProsody(features)) {
