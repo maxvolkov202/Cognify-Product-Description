@@ -8,6 +8,7 @@ import {
   getRecentSignups,
   getTopVerticals,
 } from "@/lib/db/queries/ops";
+import { getReviewQueueCount } from "@/lib/db/queries/review-queue";
 import {
   Users,
   Flame,
@@ -30,13 +31,15 @@ export default async function OpsPage() {
   const profile = await getUserProfile(me.id);
   if (!profile?.isOperator) notFound();
 
-  const [signups, activity, funnel, recent, verticals] = await Promise.all([
-    getSignupMetrics(),
-    getActivityMetrics(),
-    getFunnelMetrics(),
-    getRecentSignups(25),
-    getTopVerticals(),
-  ]);
+  const [signups, activity, funnel, recent, verticals, reviewCount] =
+    await Promise.all([
+      getSignupMetrics(),
+      getActivityMetrics(),
+      getFunnelMetrics(),
+      getRecentSignups(25),
+      getTopVerticals(),
+      getReviewQueueCount(),
+    ]);
 
   const maxDaily = Math.max(1, ...signups.daily.map((d) => d.count));
 
@@ -78,6 +81,18 @@ export default async function OpsPage() {
           className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
         >
           Reference bank →
+        </a>
+        <a
+          href="/ops/review-queue"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
+        >
+          Review queue
+          {reviewCount > 0 && (
+            <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">
+              {reviewCount}
+            </span>
+          )}
+          {" "}→
         </a>
       </div>
 

@@ -781,3 +781,37 @@ export const repsRelations = relations(reps, ({ many, one }) => ({
   dimensionScores: many(dimensionScores),
   callouts: many(callouts),
 }));
+
+/**
+ * DNA Ch.C2 — operator review verdicts on flagged reps.
+ *
+ * One row per operator review of a rep that flagged for human review
+ * (today: composite >= 95). The /ops/review-queue page filters reps
+ * by composite score and EXCLUDES rows that already exist here, so
+ * submitting a verdict removes the rep from the queue. Operator
+ * corrections feed Ch.C3's reference-bank promotion script.
+ */
+export const scoreCorrections = cognifyV2Schema.table(
+  "score_corrections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    repId: uuid("rep_id")
+      .notNull()
+      .references(() => reps.id, { onDelete: "cascade" }),
+    reviewerUserId: uuid("reviewer_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** confirmed_accurate | should_be_lower | should_be_higher | skipped */
+    verdict: text("verdict").notNull(),
+    correctedComposite: integer("corrected_composite"),
+    correctedPerDim: jsonb("corrected_per_dim"),
+    notes: text("notes"),
+  },
+  (t) => [
+    index("score_corrections_rep_idx").on(t.repId),
+    index("score_corrections_reviewed_at_idx").on(t.reviewedAt),
+  ],
+);
