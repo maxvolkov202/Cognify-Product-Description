@@ -103,6 +103,112 @@ function wordsPerDistinctIdea(transcript: string): number {
   return tokens.length / Math.max(1, distinctContent.size);
 }
 
+/** Ch.S3 — trail-off tail words. If the final sentence ends in any of
+ *  these, the speaker effectively trailed off — which is the negative
+ *  case for stoppingPointAccuracy. */
+const TRAIL_OFF_TAILS: ReadonlySet<string> = new Set([
+  "yeah",
+  "so",
+  "right",
+  "you",
+  "know",
+  "like",
+  "i",
+  "guess",
+  "think",
+  "maybe",
+  "kind",
+  "sort",
+  "really",
+  "just",
+  "um",
+  "uh",
+  "er",
+  "okay",
+  "alright",
+]);
+
+/** Ch.S3 — Stopping-point accuracy 0-100. Layered heuristic over the
+ *  final sentence:
+ *    base = 50
+ *    +30 if final sentence ends with a period (definitive close marker)
+ *    -20 if final sentence ends with "?" or "!" (interrogative or
+ *        exclamatory close still counts as intentional but is less
+ *        canonical for a "clean stop")
+ *    +20 if final sentence is ≥4 words (avoid penalizing one-word
+ *        affirmations like "Yes." which DO end cleanly)
+ *    -30 if final-sentence tail (last 1-3 words) ends in a trail-off
+ *        word (yeah, so, right, you know, kind of, just, um)
+ *    -10 if final sentence contains a hedge ("kind of", "i think",
+ *        "i guess") within the LAST 5 tokens — late-hedging dilutes
+ *        the close even if not literally a trail-off word
+ *    +10 if final sentence has a closing-tone marker ("the bottom line",
+ *        "in summary", "the answer is", "that's why")
+ *  Floor 0, ceil 100. */
+function computeStoppingPointAccuracy(transcript: string): number {
+  const trimmed = transcript.trim();
+  if (trimmed.length === 0) return 50;
+  const sentences = splitSentences(trimmed);
+  if (sentences.length === 0) return 50;
+  const last = sentences[sentences.length - 1] ?? "";
+  const lastWords = last
+    .toLowerCase()
+    .replace(/[^a-z0-9'\s]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (lastWords.length === 0) return 50;
+
+  let score = 50;
+  // Punctuation
+  if (/\.\s*$/.test(last)) score += 30;
+  if (/[?!]\s*$/.test(last)) score -= 20;
+  // Length
+  if (lastWords.length >= 4) score += 20;
+  // Trail-off tail check (last 3 words)
+  const tail = lastWords.slice(-3);
+  for (const w of tail) {
+    if (TRAIL_OFF_TAILS.has(w)) {
+      score -= 30;
+      break;
+    }
+  }
+  // Late-hedge penalty
+  const lastFive = lastWords.slice(-5).join(" ");
+  if (
+    countLexicon(lastFive, [
+      "kind of",
+      "sort of",
+      "i think",
+      "i guess",
+      "you know",
+      "or something",
+      "or whatever",
+    ]) > 0
+  ) {
+    score -= 10;
+  }
+  // Closing-tone marker bonus
+  const lastTen = lastWords.slice(-10).join(" ");
+  if (
+    countLexicon(lastTen, [
+      "the bottom line",
+      "in summary",
+      "to summarize",
+      "the answer is",
+      "the takeaway",
+      "to close",
+      "the headline is",
+      "what this means",
+      "that's why",
+      "in conclusion",
+    ]) > 0
+  ) {
+    score += 10;
+  }
+
+  return Math.max(0, Math.min(100, score));
+}
+
 export function extractConcisenessSignals(input: {
   transcript: string;
   durationMs: number;
@@ -113,10 +219,12 @@ export function extractConcisenessSignals(input: {
   const hedgeCount = countLexicon(transcript, HEDGE_LEXICON);
   const repetition = repetitionScore(transcript);
   const wpdi = wordsPerDistinctIdea(transcript);
+  const stopping = computeStoppingPointAccuracy(transcript);
 
   return {
     hedgeRatePerMinute: round(hedgeCount / minutes, 2),
     repetitionScore: round(repetition, 3),
     wordsPerDistinctIdea: round(wpdi, 2),
+    stoppingPointAccuracy: stopping,
   };
 }

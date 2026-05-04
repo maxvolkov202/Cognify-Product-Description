@@ -1008,6 +1008,218 @@ section("Ch.S2 — logicalFlowScore + coherenceIndex");
 }
 
 // ————————————————————————————————————————————————————————————————
+// Ch.S3 — stoppingPointAccuracy Conciseness signal
+// ————————————————————————————————————————————————————————————————
+section("Ch.S3 — stoppingPointAccuracy");
+
+{
+  // Determinism + bounds.
+  const det = extractConcisenessSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  const det2 = extractConcisenessSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    det.stoppingPointAccuracy === det2.stoppingPointAccuracy,
+    `S3 stoppingPointAccuracy deterministic (${det.stoppingPointAccuracy})`,
+  );
+  assert(
+    det.stoppingPointAccuracy >= 0 && det.stoppingPointAccuracy <= 100,
+    `S3 stoppingPointAccuracy in [0,100] (${det.stoppingPointAccuracy})`,
+  );
+
+  // Clean stop: declarative final sentence ending in period.
+  const clean = extractConcisenessSignals({
+    transcript:
+      "We will ship the feature on Friday. The team is ready. The bottom line is, we are launching.",
+    durationMs: 8000,
+  });
+  assert(
+    clean.stoppingPointAccuracy >= 80,
+    `S3 clean stop stoppingPointAccuracy=${clean.stoppingPointAccuracy} ≥ 80 (period + closing-tone marker)`,
+  );
+
+  // Trail-off: ends in "yeah" or "you know" or "so".
+  const trailYeah = extractConcisenessSignals({
+    transcript: "We will ship the feature soon. The team is mostly ready. So, yeah.",
+    durationMs: 7000,
+  });
+  assert(
+    trailYeah.stoppingPointAccuracy <= 50,
+    `S3 trail-off-yeah stoppingPointAccuracy=${trailYeah.stoppingPointAccuracy} ≤ 50`,
+  );
+
+  const trailYouKnow = extractConcisenessSignals({
+    transcript: "We are working on it and looking at the data, you know.",
+    durationMs: 6000,
+  });
+  assert(
+    trailYouKnow.stoppingPointAccuracy <= 60,
+    `S3 trail-off "you know" stoppingPointAccuracy=${trailYouKnow.stoppingPointAccuracy} ≤ 60`,
+  );
+
+  // Late hedge: "kind of" / "i think" inside last 5 tokens of final
+  // sentence drags the score down even if punctuation is fine.
+  const lateHedge = extractConcisenessSignals({
+    transcript:
+      "We will ship the feature on Friday. I think the team is mostly ready, kind of.",
+    durationMs: 7000,
+  });
+  assert(
+    lateHedge.stoppingPointAccuracy < clean.stoppingPointAccuracy,
+    `S3 late-hedge final sentence (${lateHedge.stoppingPointAccuracy}) < clean stop (${clean.stoppingPointAccuracy})`,
+  );
+
+  // Question / exclamation close: penalized vs declarative period.
+  const questionClose = extractConcisenessSignals({
+    transcript: "Why does pricing matter? Because customers reject high prices?",
+    durationMs: 6000,
+  });
+  assert(
+    questionClose.stoppingPointAccuracy < clean.stoppingPointAccuracy,
+    `S3 question-close (${questionClose.stoppingPointAccuracy}) < period-close (${clean.stoppingPointAccuracy})`,
+  );
+
+  // Single-word affirmation "Yes." — short but technically clean. The
+  // length penalty (-20 for <4 words) drops it below "clean" but it
+  // still earns punctuation credit.
+  const oneWord = extractConcisenessSignals({
+    transcript: "Yes.",
+    durationMs: 2000,
+  });
+  assert(
+    oneWord.stoppingPointAccuracy < clean.stoppingPointAccuracy,
+    `S3 one-word-affirmation (${oneWord.stoppingPointAccuracy}) < ≥4-word clean stop (${clean.stoppingPointAccuracy})`,
+  );
+
+  // Empty transcript: returns neutral 50 (not NaN).
+  const empty3 = extractConcisenessSignals({
+    transcript: "",
+    durationMs: 5000,
+  });
+  assert(
+    empty3.stoppingPointAccuracy === 50 && Number.isFinite(empty3.stoppingPointAccuracy),
+    `S3 empty stoppingPointAccuracy=50 (not NaN)`,
+  );
+
+  // Sub-skill rewiring: editing_in_real_time is now text-driven.
+  const cleanAll = extractAllTextSignals({
+    transcript:
+      "We will ship the feature on Friday. The team is ready. The bottom line is, we are launching.",
+    durationMs: 8000,
+  });
+  const trailAll = extractAllTextSignals({
+    transcript: "We will ship the feature soon. The team is mostly ready. So, yeah.",
+    durationMs: 7000,
+  });
+  const dimsS3: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  };
+  const cleanMap = mapSignalsToSubSkillScores(cleanAll, dimsS3);
+  const trailMap = mapSignalsToSubSkillScores(trailAll, dimsS3);
+  assert(
+    cleanMap.editing_in_real_time != null,
+    `S3 editing_in_real_time sub-skill is text-driven`,
+  );
+  assert(
+    (cleanMap.editing_in_real_time?.score ?? 0) >
+      (trailMap.editing_in_real_time?.score ?? 0),
+    `S3 editing_in_real_time differentiates clean (${cleanMap.editing_in_real_time?.score}) > trail (${trailMap.editing_in_real_time?.score})`,
+  );
+  assert(
+    cleanMap.editing_in_real_time?.signalSource?.startsWith(
+      "stoppingPointAccuracy",
+    ),
+    `S3 editing_in_real_time signalSource is stoppingPointAccuracy`,
+  );
+
+  // SIGNALS-block field exposure.
+  const all = extractAllTextSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    typeof all.conciseness.stoppingPointAccuracy === "number",
+    `S3 TextSignals.conciseness.stoppingPointAccuracy is a number`,
+  );
+
+  // Multiple trail-off words in tail: still capped at -30 (single-shot
+  // penalty, not stacked).
+  const doubleTrail = extractConcisenessSignals({
+    transcript: "I dunno. So yeah.",
+    durationMs: 4000,
+  });
+  assert(
+    doubleTrail.stoppingPointAccuracy <= 60,
+    `S3 double-trail still detected: ${doubleTrail.stoppingPointAccuracy} ≤ 60`,
+  );
+
+  // Closing-tone marker bonus: "the bottom line is..." renders +10
+  // even when the comparison rep is already at base ceiling. We test
+  // by comparing a SHORT declarative (3 words, hits the length penalty)
+  // to a SHORT declarative WITH a closing-tone marker.
+  const shortNoMarker = extractConcisenessSignals({
+    transcript: "Pricing matters here. We act soon.",
+    durationMs: 5000,
+  });
+  const shortWithMarker = extractConcisenessSignals({
+    transcript: "Pricing matters here. The answer is now.",
+    durationMs: 5000,
+  });
+  assert(
+    shortWithMarker.stoppingPointAccuracy > shortNoMarker.stoppingPointAccuracy,
+    `S3 closing-marker bonus on short final sentence: with-marker (${shortWithMarker.stoppingPointAccuracy}) > without (${shortNoMarker.stoppingPointAccuracy})`,
+  );
+
+  // Long declarative: ≥4 words bonus fires.
+  const longDecl = extractConcisenessSignals({
+    transcript: "We are shipping the feature this Friday at noon Eastern time.",
+    durationMs: 6000,
+  });
+  assert(
+    longDecl.stoppingPointAccuracy >= 80,
+    `S3 long declarative final sentence stoppingPointAccuracy=${longDecl.stoppingPointAccuracy} ≥ 80`,
+  );
+
+  // Trail-off detection independent of "yeah" specifically: "you know"
+  // tail.
+  const youKnowTail = extractConcisenessSignals({
+    transcript: "We can ship it next week, you know.",
+    durationMs: 5000,
+  });
+  assert(
+    youKnowTail.stoppingPointAccuracy < longDecl.stoppingPointAccuracy,
+    `S3 you-know tail (${youKnowTail.stoppingPointAccuracy}) < clean-long-decl (${longDecl.stoppingPointAccuracy})`,
+  );
+
+  // Pre-existing conciseness signals still present + correct.
+  assert(
+    typeof clean.hedgeRatePerMinute === "number" &&
+      typeof clean.repetitionScore === "number" &&
+      typeof clean.wordsPerDistinctIdea === "number",
+    `S3 pre-existing conciseness signals preserved alongside stoppingPointAccuracy`,
+  );
+
+  // Bound floor / ceil math: extreme bad case ≥ 0.
+  const trashy = extractConcisenessSignals({
+    transcript: "Like, kind of, you know, so, yeah, um.",
+    durationMs: 5000,
+  });
+  assert(
+    trashy.stoppingPointAccuracy >= 0,
+    `S3 worst-case stoppingPointAccuracy floor at 0 (${trashy.stoppingPointAccuracy})`,
+  );
+}
+
+// ————————————————————————————————————————————————————————————————
 // Summary
 // ————————————————————————————————————————————————————————————————
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -96,6 +96,11 @@ export type ConcisenessTextSignals = {
   /** totalWords / distinctContentNouns — proxy for words-per-idea. Higher
    *  = more padding. Target <25. */
   wordsPerDistinctIdea: number;
+  /** Ch.S3 — Stopping-point accuracy 0-100. Heuristic: does the response
+   *  END on a declarative sentence (period + ≥4 words + last word not in
+   *  the trail-off set {hedge, "yeah", "so", "right", "you know"})? Or
+   *  does it trail off into filler? High = clean stop; low = trail-off. */
+  stoppingPointAccuracy: number;
 };
 
 export type ThinkingQualityTextSignals = {

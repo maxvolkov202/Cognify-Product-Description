@@ -210,6 +210,16 @@ const WPDI_TO_SCOPING: readonly Anchor[] = [
   [6.0, 32],
 ];
 
+/** Ch.S3 — stoppingPointAccuracy (0-100) → editing_in_real_time. */
+const STOPPING_TO_EDITING: readonly Anchor[] = [
+  [0, 25],
+  [25, 40],
+  [50, 55],
+  [70, 75],
+  [85, 85],
+  [100, 92],
+];
+
 /** Claim support rate (0-1) → claim_support. */
 const CLAIM_SUPPORT_TO_SUPPORT: readonly Anchor[] = [
   [0, 30],
@@ -280,6 +290,7 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
   "hedging_awareness",
   "repetition_control",
   "response_scoping",
+  "editing_in_real_time", // Ch.S3
   // Thinking Quality
   "claim_support",
   "counterargument_awareness",
@@ -386,6 +397,10 @@ export function mapSignalsToSubSkillScores(
   map.response_scoping = {
     score: interpolate(cn.wordsPerDistinctIdea, WPDI_TO_SCOPING),
     signalSource: `wordsPerDistinctIdea=${cn.wordsPerDistinctIdea}`,
+  };
+  map.editing_in_real_time = {
+    score: interpolate(cn.stoppingPointAccuracy, STOPPING_TO_EDITING),
+    signalSource: `stoppingPointAccuracy=${cn.stoppingPointAccuracy}`,
   };
 
   // Thinking Quality
