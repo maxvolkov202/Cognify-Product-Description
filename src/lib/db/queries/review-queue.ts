@@ -155,3 +155,96 @@ export async function submitReview(args: SubmitReviewArgs): Promise<string | nul
     return row?.id ?? null;
   }, null);
 }
+
+/** Ch.C3 — corrections eligible for reference-bank promotion.
+ *  Filters: verdict ∈ {should_be_lower, should_be_higher}, non-null
+ *  corrected_composite, reviewed_at older than 7 days (cool-off
+ *  window so a second-opinion reviewer can flag a bad correction
+ *  before it propagates). */
+export type PromotableCorrection = {
+  correctionId: string;
+  repId: string;
+  verdict: string;
+  reviewedAt: Date;
+  correctedComposite: number;
+  correctedPerDim: Record<string, number> | null;
+  notes: string | null;
+  rep: {
+    promptText: string;
+    transcript: unknown;
+    durationMs: number;
+    audioUrl: string | null;
+    composite: number;
+    perDimActual: Record<string, number>;
+  };
+};
+
+export async function getPromotableCorrections(args?: {
+  cooloffDays?: number;
+}): Promise<PromotableCorrection[]> {
+  const cooloffDays = args?.cooloffDays ?? 7;
+  const cutoff = new Date(Date.now() - cooloffDays * 24 * 3600 * 1000);
+  return safeDb<PromotableCorrection[]>(async () => {
+    const rows = await db
+      .select({
+        correctionId: scoreCorrections.id,
+        repId: scoreCorrections.repId,
+        verdict: scoreCorrections.verdict,
+        reviewedAt: scoreCorrections.reviewedAt,
+        correctedComposite: scoreCorrections.correctedComposite,
+        correctedPerDim: scoreCorrections.correctedPerDim,
+        notes: scoreCorrections.notes,
+        promptText: reps.promptText,
+        transcript: reps.transcript,
+        durationMs: reps.durationMs,
+        audioUrl: reps.audioUrl,
+        composite: reps.compositeScore,
+      })
+      .from(scoreCorrections)
+      .innerJoin(reps, eq(reps.id, scoreCorrections.repId))
+      .where(
+        and(
+          sql`${scoreCorrections.verdict} IN ('should_be_lower', 'should_be_higher')`,
+          sql`${scoreCorrections.correctedComposite} IS NOT NULL`,
+          sql`${scoreCorrections.reviewedAt} < ${cutoff}`,
+        ),
+      )
+      .orderBy(desc(scoreCorrections.reviewedAt));
+
+    if (rows.length === 0) return [];
+
+    const repIds = rows.map((r) => r.repId);
+    const dimRows = await db
+      .select({
+        repId: dimensionScores.repId,
+        dimension: dimensionScores.dimension,
+        score: dimensionScores.score,
+      })
+      .from(dimensionScores)
+      .where(sql`${dimensionScores.repId} = ANY(${repIds})`);
+    const dimsByRep = new Map<string, Record<string, number>>();
+    for (const dr of dimRows) {
+      const cur = dimsByRep.get(dr.repId) ?? {};
+      cur[dr.dimension] = dr.score;
+      dimsByRep.set(dr.repId, cur);
+    }
+
+    return rows.map((r) => ({
+      correctionId: r.correctionId,
+      repId: r.repId,
+      verdict: r.verdict,
+      reviewedAt: r.reviewedAt,
+      correctedComposite: r.correctedComposite!,
+      correctedPerDim: (r.correctedPerDim as Record<string, number> | null) ?? null,
+      notes: r.notes,
+      rep: {
+        promptText: r.promptText,
+        transcript: r.transcript,
+        durationMs: r.durationMs,
+        audioUrl: r.audioUrl,
+        composite: r.composite ?? 0,
+        perDimActual: dimsByRep.get(r.repId) ?? {},
+      },
+    }));
+  }, []);
+}
