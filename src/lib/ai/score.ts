@@ -1030,7 +1030,15 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
   // dim score. Audio-driven sub-skills (Delivery + Tone) all flow
   // through dimension_fallback and inherit their dim's holistic score.
   if (signalsFlagOn && textSignals) {
-    const subSkillMap = mapSignalsToSubSkillScores(textSignals, dimensionMap);
+    // Ch.S5: pass prosody features so the mapper can populate Tone
+    // sub-skills from Hume emotion vectors (or Praat raw DSP) when
+    // available; falls through to dimension_fallback when prosody is
+    // absent (text-only reps).
+    const subSkillMap = mapSignalsToSubSkillScores(
+      textSignals,
+      dimensionMap,
+      prosodyFeatures,
+    );
     const allScores = toScoresOnly(subSkillMap);
     finalDimensions = finalDimensions.map((d) => {
       const subScores = pickSubSkillsForDim(allScores, d.dimension);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns } from "@/lib/db/schema";
 
@@ -160,7 +161,7 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({
+  const summary = {
     runId,
     totalReps: results.length,
     okCount: results.filter((r) => r.status === "ok").length,
@@ -168,6 +169,97 @@ export async function GET(req: Request) {
     fallbackCount: results.filter((r) => r.status === "fallback").length,
     errorCount: results.filter((r) => r.status === "error").length,
     results,
+  };
+
+  // Ch.C1 — Alert on drift / fallback. Fire webhook when:
+  //   - avg-|delta| > 5 (broad scoring drift), OR
+  //   - any single rep's |delta| > 15 (a specific rep blew up), OR
+  //   - fallbackCount > 2 (real prod scoring is failing on multiple reps)
+  const realDeltas = results
+    .map((r) => r.deltaComposite)
+    .filter((d): d is number => typeof d === "number");
+  const avgAbsDelta =
+    realDeltas.length > 0
+      ? realDeltas.reduce((s, v) => s + Math.abs(v), 0) / realDeltas.length
+      : 0;
+  const worstAbsDelta =
+    realDeltas.length > 0
+      ? Math.max(...realDeltas.map((d) => Math.abs(d)))
+      : 0;
+  const shouldAlert =
+    avgAbsDelta > 5 || worstAbsDelta > 15 || summary.fallbackCount > 2;
+  let alertSentAt: Date | null = null;
+  let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" = "skipped";
+
+  if (shouldAlert) {
+    const webhookUrl = process.env.CALIBRATION_ALERT_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.warn(
+        `[cron/calibration-drift] DRIFT ALERT (no webhook configured): runId=${runId} avg=${avgAbsDelta.toFixed(1)} worst=${worstAbsDelta} fallbacks=${summary.fallbackCount}`,
+      );
+      alertOutcome = "no-webhook";
+    } else {
+      const top3 = [...results]
+        .filter((r) => typeof r.deltaComposite === "number")
+        .sort(
+          (a, b) =>
+            Math.abs((b.deltaComposite ?? 0)) -
+            Math.abs((a.deltaComposite ?? 0)),
+        )
+        .slice(0, 3);
+      const driftLines = top3.map(
+        (r) => `• ${r.refRepId}: ${r.deltaComposite! > 0 ? "+" : ""}${r.deltaComposite}`,
+      );
+      const opsUrl = baseUrl + "/ops/calibration";
+      const payload = {
+        text: [
+          `*Cognify calibration drift alert* (run ${runId})`,
+          `Avg |Δcomposite|: ${avgAbsDelta.toFixed(1)} (gate >5)`,
+          `Worst |Δcomposite|: ${worstAbsDelta} (gate >15)`,
+          `Fallbacks: ${summary.fallbackCount} of ${summary.totalReps} (gate >2)`,
+          ``,
+          `*Top-3 worst drift reps:*`,
+          ...driftLines,
+          ``,
+          `Follow up at <${opsUrl}|/ops/calibration>`,
+        ].join("\n"),
+      };
+      try {
+        const alertRes = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (alertRes.ok) {
+          alertSentAt = new Date();
+          alertOutcome = "sent";
+          // Backfill alert_sent_at across all rows in this run.
+          await db
+            .update(calibrationRuns)
+            .set({ alertSentAt })
+            .where(eq(calibrationRuns.runId, runId));
+        } else {
+          console.error(
+            `[cron/calibration-drift] alert webhook returned ${alertRes.status}`,
+          );
+          alertOutcome = "failed";
+        }
+      } catch (err) {
+        console.error(
+          `[cron/calibration-drift] alert webhook error:`,
+          err,
+        );
+        alertOutcome = "failed";
+      }
+    }
+  }
+
+  return NextResponse.json({
+    ...summary,
+    avgAbsDelta: Math.round(avgAbsDelta * 10) / 10,
+    worstAbsDelta,
+    alertSentAt: alertSentAt?.toISOString() ?? null,
+    alertOutcome,
   });
 }
 

@@ -232,6 +232,7 @@ function DriftRunsTable({ runs }: { runs: DriftRunSummary[] }) {
             <th className="pb-2 pr-3">Errors</th>
             <th className="pb-2 pr-3">Avg |Δ|</th>
             <th className="pb-2 pr-3">Worst Δ</th>
+            <th className="pb-2 pr-3">Alert</th>
           </tr>
         </thead>
         <tbody>
@@ -272,6 +273,21 @@ function DriftRunsTable({ runs }: { runs: DriftRunSummary[] }) {
                 {run.worstDelta != null
                   ? (run.worstDelta > 0 ? "+" : "") + run.worstDelta
                   : "—"}
+              </td>
+              <td className="py-2 pr-3 text-[10px] tabular-nums">
+                {run.alertSentAt ? (
+                  <span
+                    className="rounded-full bg-rose-50 px-1.5 py-0.5 font-bold text-rose-700"
+                    title={`Alert webhook fired at ${run.alertSentAt.toISOString()}`}
+                  >
+                    {run.alertSentAt
+                      .toISOString()
+                      .slice(11, 16)}{" "}
+                    UTC
+                  </span>
+                ) : (
+                  <span className="text-ink-400">—</span>
+                )}
               </td>
             </tr>
           ))}

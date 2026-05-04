@@ -30,6 +30,16 @@ export type ClarityTextSignals = {
    *  WITHOUT a concrete example within ±1 sentence. Higher = abstract
    *  language without grounding. */
   abstractionMarkerCount: number;
+  /** Ch.S1 — Distinct content nouns per sentence. Lemmatized count of
+   *  ≥2-char non-stopword tokens divided by sentence count. High =
+   *  many ideas crammed per sentence (low idea isolation); low = ideas
+   *  isolated cleanly. DNA target: <2.5. */
+  ideaDensity: number;
+  /** Ch.S1 — Word precision score 0-100 derived from average lexical
+   *  concreteness against `concreteness-words.ts` (Brysbaert subset).
+   *  Higher = concrete vocabulary; lower = abstract vocabulary.
+   *  DNA target: ≥3.5 on the underlying 1-5 scale (≥62 here). */
+  wordPrecisionScore: number;
 };
 
 export type StructureTextSignals = {
@@ -59,6 +69,19 @@ export type StructureTextSignals = {
      *  conviction-tone ending sentence. */
     definitiveClose: boolean;
   };
+  /** Ch.S2 — Logical flow score 0-100. Combines two evidence streams:
+   *  (a) cross-sentence connector density — sentences whose first ~5
+   *  tokens contain a flow connector ("because", "therefore", "this
+   *  means", "building on that", "since", "as a result", "so").
+   *  (b) topic continuity — fraction of adjacent-sentence pairs sharing
+   *  ≥1 content noun (3-gram lite, lemmatized via S1's stemmer).
+   *  High = each sentence flows from the previous; low = topic jumps. */
+  logicalFlowScore: number;
+  /** Ch.S2 — Coherence index 0-100. Of all sentences after the first
+   *  30% of the response, what fraction reference at least one content
+   *  noun introduced in the first 30%? High = response stays on the
+   *  topic it announces; low = response drifts into unrelated material. */
+  coherenceIndex: number;
 };
 
 export type ConcisenessTextSignals = {
@@ -73,6 +96,11 @@ export type ConcisenessTextSignals = {
   /** totalWords / distinctContentNouns — proxy for words-per-idea. Higher
    *  = more padding. Target <25. */
   wordsPerDistinctIdea: number;
+  /** Ch.S3 — Stopping-point accuracy 0-100. Heuristic: does the response
+   *  END on a declarative sentence (period + ≥4 words + last word not in
+   *  the trail-off set {hedge, "yeah", "so", "right", "you know"})? Or
+   *  does it trail off into filler? High = clean stop; low = trail-off. */
+  stoppingPointAccuracy: number;
 };
 
 export type ThinkingQualityTextSignals = {
@@ -90,6 +118,18 @@ export type ThinkingQualityTextSignals = {
    *  phrases ("I'm confident", "I think", "I'd guess", "I don't know",
    *  "uncertain about"). */
   intellectualHonestyMarkers: number;
+  /** Ch.S4 — Originality index 0-100. TF-IDF-style rarity of content
+   *  tokens against a hand-built typical-rep corpus baseline (~500
+   *  entries in `typical-corpus.ts`). High = rep uses unusual /
+   *  domain-specific / vivid vocabulary; low = rep leans on pitch
+   *  boilerplate ("platform", "synergy", "transformative"). */
+  originalityIndex: number;
+  /** Ch.S4 — Mid-rep self-correction count. Phrases like "but actually",
+   *  "wait, no", "scratch that", "let me revise", "I take that back",
+   *  "actually that's wrong". High count = the speaker is contradicting
+   *  themselves mid-rep, which the DNA spec maps to LOW intellectual
+   *  honesty (confused thinking, not appropriate uncertainty). */
+  logicalConsistencyMarkers: number;
 };
 
 /**

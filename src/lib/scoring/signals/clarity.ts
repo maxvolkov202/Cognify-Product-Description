@@ -29,6 +29,200 @@ import {
   tokenizeCased,
 } from "./_helpers";
 import { isCommonWord } from "./common-words";
+import { lookupConcreteness } from "./concreteness-words";
+
+/** English stopwords — the closed-class function words that don't carry
+ *  content. Used by `countDistinctContentNouns` for the Ch.S1 idea
+ *  density signal. Compact list: only the most frequent ~100. */
+const STOPWORDS: ReadonlySet<string> = new Set([
+  "a",
+  "an",
+  "and",
+  "or",
+  "but",
+  "the",
+  "of",
+  "in",
+  "on",
+  "at",
+  "to",
+  "from",
+  "for",
+  "by",
+  "with",
+  "without",
+  "about",
+  "as",
+  "into",
+  "over",
+  "under",
+  "this",
+  "that",
+  "these",
+  "those",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "am",
+  "do",
+  "does",
+  "did",
+  "have",
+  "has",
+  "had",
+  "will",
+  "would",
+  "should",
+  "could",
+  "can",
+  "may",
+  "might",
+  "must",
+  "shall",
+  "i",
+  "me",
+  "my",
+  "mine",
+  "we",
+  "us",
+  "our",
+  "ours",
+  "you",
+  "your",
+  "yours",
+  "he",
+  "him",
+  "his",
+  "she",
+  "her",
+  "hers",
+  "it",
+  "its",
+  "they",
+  "them",
+  "their",
+  "theirs",
+  "what",
+  "which",
+  "who",
+  "whom",
+  "whose",
+  "where",
+  "when",
+  "why",
+  "how",
+  "if",
+  "then",
+  "than",
+  "so",
+  "very",
+  "just",
+  "only",
+  "also",
+  "yes",
+  "no",
+  "not",
+  "n't",
+  "yeah",
+  "ok",
+  "okay",
+  "um",
+  "uh",
+  "like",
+  "really",
+  "kind",
+  "sort",
+  "much",
+  "many",
+  "more",
+  "most",
+  "some",
+  "any",
+  "all",
+  "each",
+  "every",
+  "few",
+  "such",
+  "own",
+  "same",
+  "other",
+  "another",
+  "here",
+  "there",
+  "now",
+  "thing",
+  "things",
+  "stuff",
+  "way",
+  "ways",
+]);
+
+/** Crude pluralization-tolerant stem: lowercases, strips trailing
+ *  -s/-es/-ing/-ed when the resulting stem is ≥3 chars. Used for
+ *  distinct-content-noun counting in `countDistinctContentNouns`. */
+function stemContentToken(token: string): string {
+  const t = token.toLowerCase();
+  if (t.length <= 3) return t;
+  if (t.endsWith("ies") && t.length > 4) return t.slice(0, -3) + "y";
+  if (t.endsWith("es") && t.length > 4) return t.slice(0, -2);
+  if (t.endsWith("s")) return t.slice(0, -1);
+  if (t.endsWith("ing") && t.length > 5) {
+    const stem = t.slice(0, -3);
+    if (
+      stem.length > 1 &&
+      stem[stem.length - 1] === stem[stem.length - 2]
+    ) {
+      return stem.slice(0, -1);
+    }
+    return stem;
+  }
+  if (t.endsWith("ed") && t.length > 4) return t.slice(0, -2);
+  return t;
+}
+
+/** Ch.S1 — Idea density: distinct stemmed content tokens per sentence.
+ *  Content tokens = ≥2 chars, not in STOPWORDS, not pure digits. */
+function computeIdeaDensity(transcript: string): number {
+  const sentences = splitSentences(transcript);
+  if (sentences.length === 0) return 0;
+  const seen = new Set<string>();
+  for (const tok of tokenize(transcript)) {
+    if (tok.length < 2) continue;
+    if (STOPWORDS.has(tok)) continue;
+    if (/^\d+$/.test(tok)) continue;
+    seen.add(stemContentToken(tok));
+  }
+  return seen.size / sentences.length;
+}
+
+/** Ch.S1 — Word precision: average concreteness rating of in-lexicon
+ *  content tokens, rescaled from 1-5 to 0-100. Tokens not in the
+ *  lexicon are SKIPPED (not penalized) so out-of-vocabulary words
+ *  don't drag the score in either direction.
+ *
+ *  Returns 50 (neutral midpoint) when no lookups succeed, so the
+ *  signal degrades gracefully on transcripts dominated by names,
+ *  numbers, or specialized vocabulary. */
+function computeWordPrecisionScore(transcript: string): number {
+  const tokens = tokenize(transcript);
+  let total = 0;
+  let count = 0;
+  for (const tok of tokens) {
+    if (STOPWORDS.has(tok)) continue;
+    const rating = lookupConcreteness(tok);
+    if (rating == null) continue;
+    total += rating;
+    count++;
+  }
+  if (count === 0) return 50;
+  // Rescale 1.0..5.0 → 0..100. (rating - 1) / 4 * 100.
+  const mean = total / count;
+  return Math.round(((mean - 1) / 4) * 100);
+}
 
 /** Phrases that assume the listener already shares context. Conservative
  *  list — does not include "the X" un-anchored references because that
@@ -197,5 +391,7 @@ export function extractClaritySignals(input: {
     assumedContextMarkers: assumedContextCount,
     sentenceComplexityIndex: round(complexity, 2),
     abstractionMarkerCount: abstraction,
+    ideaDensity: round(computeIdeaDensity(transcript), 2),
+    wordPrecisionScore: computeWordPrecisionScore(transcript),
   };
 }

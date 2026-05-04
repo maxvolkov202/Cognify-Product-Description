@@ -289,6 +289,7 @@ export type DriftRunRow = {
   deltaComposite: number | null;
   status: string | null;
   modelVersion: string | null;
+  alertSentAt: Date | null;
 };
 
 export type DriftRunSummary = {
@@ -304,6 +305,10 @@ export type DriftRunSummary = {
   avgAbsDelta: number | null;
   /** Worst composite drift (largest |delta|) in the run. */
   worstDelta: number | null;
+  /** Ch.C1 — when an alert webhook fired for this run, or null if no
+   *  alert was sent (either because thresholds weren't met or because
+   *  CALIBRATION_ALERT_WEBHOOK_URL was unconfigured). */
+  alertSentAt: Date | null;
 };
 
 /** Last `limit` calibration runs grouped + summarized. Drives the
@@ -322,6 +327,7 @@ export async function getRecentDriftRuns(
         deltaComposite: calibrationRuns.deltaComposite,
         status: calibrationRuns.status,
         modelVersion: calibrationRuns.modelVersion,
+        alertSentAt: calibrationRuns.alertSentAt,
       })
       .from(calibrationRuns)
       .orderBy(desc(calibrationRuns.ranAt))
@@ -369,6 +375,8 @@ export async function getRecentDriftRuns(
               realDeltas[0]!,
             )
           : null;
+      const alertSentAt =
+        runRows.find((r) => r.alertSentAt != null)?.alertSentAt ?? null;
       summaries.push({
         runId,
         ranAt,
@@ -379,6 +387,7 @@ export async function getRecentDriftRuns(
         errorCount: runRows.filter((r) => r.status === "error").length,
         avgAbsDelta,
         worstDelta,
+        alertSentAt,
       });
     }
 

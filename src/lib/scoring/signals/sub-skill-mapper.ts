@@ -24,6 +24,11 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import type { TextSignals } from "./types";
+import type { ProsodyFeatures } from "@/lib/audio/prosody";
+import {
+  HUME_EMOTION_NAMES,
+  type HumeEmotionName,
+} from "@/lib/audio/hume-prosody";
 
 /** Anchor: (signalValue, score). Linear interpolation between adjacent
  *  anchors; values outside the range clamp to the nearest endpoint. */
@@ -71,9 +76,12 @@ const ASSUMED_CONTEXT_TO_AUDIENCE: readonly Anchor[] = [
   [5, 30],
 ];
 
-/** Higher sentence complexity → lower precision (long winding clauses
- *  reduce precision per sentence). */
-const COMPLEXITY_TO_PRECISION: readonly Anchor[] = [
+/** Ch.S1 — sentence complexity now drives logical_sequencing (not
+ *  precision). Long winding clauses degrade the listener's ability to
+ *  follow the SEQUENCE of ideas, which is what logical_sequencing
+ *  measures. Curve unchanged from the prior precision mapping — just
+ *  the destination sub-skill changes. */
+const COMPLEXITY_TO_LOGICAL_SEQ: readonly Anchor[] = [
   [0, 75],
   [1, 80],
   [1.5, 78],
@@ -81,6 +89,32 @@ const COMPLEXITY_TO_PRECISION: readonly Anchor[] = [
   [3, 55],
   [5, 35],
   [8, 25],
+];
+
+/** Ch.S1 — Word precision (0-100, derived from concreteness lexicon)
+ *  drives the precision sub-skill. Higher precision score = more
+ *  concrete vocabulary = higher precision sub-skill. */
+const WORD_PRECISION_TO_PRECISION: readonly Anchor[] = [
+  [0, 25],
+  [25, 40],
+  [40, 55],
+  [55, 70],
+  [62, 75],
+  [75, 85],
+  [88, 92],
+];
+
+/** Ch.S1 — Idea density (ideas/sentence) → idea_isolation. Cleaner
+ *  isolation (lower density) scores higher; ideas crammed together
+ *  score lower. DNA target: density <2.5. */
+const IDEA_DENSITY_TO_ISOLATION: readonly Anchor[] = [
+  [0.5, 60],
+  [1.0, 80],
+  [1.5, 85],
+  [2.0, 78],
+  [2.5, 65],
+  [3.5, 50],
+  [5.0, 35],
 ];
 
 /** More abstraction markers without examples → lower concreteness. */
@@ -129,6 +163,25 @@ const ARC_TO_NARRATIVE: readonly Anchor[] = [
   [1, 88],
 ];
 
+/** Ch.S2 — logical flow score (0-100) → coherence sub-skill. Combined
+ *  with coherenceIndex via average in the mapper. */
+const FLOW_TO_COHERENCE: readonly Anchor[] = [
+  [0, 25],
+  [25, 45],
+  [50, 65],
+  [70, 80],
+  [90, 90],
+];
+
+/** Ch.S2 — coherence index (0-100) → coherence sub-skill. */
+const COHERENCE_INDEX_TO_COHERENCE: readonly Anchor[] = [
+  [0, 25],
+  [30, 45],
+  [60, 65],
+  [80, 80],
+  [95, 90],
+];
+
 /** Hedge rate per minute → hedging_awareness. Saturates above 6/min. */
 const HEDGE_TO_HEDGING_AWARENESS: readonly Anchor[] = [
   [0, 90],
@@ -160,6 +213,16 @@ const WPDI_TO_SCOPING: readonly Anchor[] = [
   [3.0, 60],
   [4.0, 48],
   [6.0, 32],
+];
+
+/** Ch.S3 — stoppingPointAccuracy (0-100) → editing_in_real_time. */
+const STOPPING_TO_EDITING: readonly Anchor[] = [
+  [0, 25],
+  [25, 40],
+  [50, 55],
+  [70, 75],
+  [85, 85],
+  [100, 92],
 ];
 
 /** Claim support rate (0-1) → claim_support. */
@@ -200,6 +263,87 @@ const HONESTY_TO_HONESTY: readonly Anchor[] = [
   [8, 55],
 ];
 
+/** Ch.S4 — originalityIndex (0-100) → first_principles_reasoning. */
+const ORIGINALITY_TO_FIRST_PRINCIPLES: readonly Anchor[] = [
+  [0, 25],
+  [25, 45],
+  [50, 65],
+  [70, 80],
+  [90, 90],
+];
+
+/** Ch.S4 — self-correction count → intellectual_honesty PENALTY.
+ *  Inverse: 0 corrections = no penalty (return high), 1+ corrections
+ *  drag honesty down. Caller blends this with HONESTY_TO_HONESTY via
+ *  min(). */
+const SELF_CORRECTION_TO_HONESTY: readonly Anchor[] = [
+  [0, 88],
+  [1, 70],
+  [2, 55],
+  [3, 40],
+  [5, 25],
+];
+
+// ——— Ch.S5 — Tone sub-skill curves (Hume emotion-derived) ————————
+
+/** Variance of Excitement+Determination+Joy across windows → pitch_variation.
+ *  Higher variance = vocal variety. Hume emotion scores are 0-1 so
+ *  variance ranges roughly 0-0.04 in practice; we scale up for the curve. */
+const HUME_VARIANCE_TO_PITCH_VARIATION: readonly Anchor[] = [
+  [0, 30],
+  [0.005, 50],
+  [0.01, 65],
+  [0.02, 80],
+  [0.04, 90],
+];
+
+/** 1 - (Anxiety_mean + Distress_mean) → volume_control. Low anxiety
+ *  reads as controlled vocal energy. */
+const HUME_CONTROL_TO_VOLUME_CONTROL: readonly Anchor[] = [
+  [0, 30],
+  [0.4, 50],
+  [0.7, 70],
+  [0.85, 82],
+  [0.95, 88],
+];
+
+/** 1 - (Doubt_mean + Confusion_mean) → downward_inflection. Confident,
+ *  declarative statements close downward; doubt/confusion close upward. */
+const HUME_CONFIDENCE_TO_DOWNWARD: readonly Anchor[] = [
+  [0, 25],
+  [0.4, 50],
+  [0.7, 70],
+  [0.9, 85],
+];
+
+/** Calmness + Contentment + Joy minus Awkwardness/Embarrassment →
+ *  emotional_authenticity. Genuine warmth absent self-consciousness. */
+const HUME_AUTH_TO_AUTHENTICITY: readonly Anchor[] = [
+  [-0.2, 30],
+  [0.1, 50],
+  [0.3, 70],
+  [0.5, 82],
+  [0.7, 88],
+];
+
+/** Determination + Pride + Triumph → vocal_presence. */
+const HUME_PRESENCE_TO_PRESENCE: readonly Anchor[] = [
+  [0, 30],
+  [0.2, 55],
+  [0.4, 72],
+  [0.6, 82],
+  [0.8, 88],
+];
+
+/** Calmness + Contentment + Sympathy + Love → warmth. */
+const HUME_WARMTH_TO_WARMTH: readonly Anchor[] = [
+  [0, 30],
+  [0.2, 50],
+  [0.4, 68],
+  [0.6, 80],
+  [0.8, 88],
+];
+
 // ——— Mapper ——————————————————————————————————————————————
 
 export type SubSkillScoreEntry = {
@@ -220,20 +364,25 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
   "audience_awareness",
   "precision",
   "concreteness",
+  "idea_isolation", // Ch.S1
+  "logical_sequencing", // Ch.S1 (was dimension_fallback pre-S1)
   // Structure
   "signposting",
   "opening_hook",
   "argument_hierarchy",
   "narrative_arc",
+  "coherence", // Ch.S2
   // Conciseness
   "hedging_awareness",
   "repetition_control",
   "response_scoping",
+  "editing_in_real_time", // Ch.S3
   // Thinking Quality
   "claim_support",
   "counterargument_awareness",
   "depth_of_analysis",
   "intellectual_honesty",
+  "first_principles_reasoning", // Ch.S4
 ]);
 
 /**
@@ -244,9 +393,24 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
  *
  * Pure: same (signals, dimensionScores) → same map.
  */
+/** Look up an emotion's mean / variance from a ProsodyFeatures object's
+ *  Hume-emotion arrays. Returns 0 when prosody is null or emotion is
+ *  absent. */
+function humeMean(p: ProsodyFeatures | null | undefined, name: HumeEmotionName): number {
+  if (!p?.humeEmotionMeans) return 0;
+  const idx = HUME_EMOTION_NAMES.indexOf(name);
+  return idx >= 0 ? (p.humeEmotionMeans[idx] ?? 0) : 0;
+}
+function humeVariance(p: ProsodyFeatures | null | undefined, name: HumeEmotionName): number {
+  if (!p?.humeEmotionVariances) return 0;
+  const idx = HUME_EMOTION_NAMES.indexOf(name);
+  return idx >= 0 ? (p.humeEmotionVariances[idx] ?? 0) : 0;
+}
+
 export function mapSignalsToSubSkillScores(
   signals: TextSignals,
   dimensionScores: Partial<Record<SkillDimension, number>>,
+  prosody?: ProsodyFeatures | null,
 ): SubSkillScoreMap {
   const map: SubSkillScoreMap = {};
   const c = signals.clarity;
@@ -263,13 +427,23 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(c.assumedContextMarkers, ASSUMED_CONTEXT_TO_AUDIENCE),
     signalSource: `assumedContextMarkers=${c.assumedContextMarkers}`,
   };
+  // Ch.S1: precision is now driven by wordPrecisionScore (concreteness
+  // lexicon); sentence complexity moves to logical_sequencing.
   map.precision = {
-    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_PRECISION),
-    signalSource: `sentenceComplexityIndex=${c.sentenceComplexityIndex}`,
+    score: interpolate(c.wordPrecisionScore, WORD_PRECISION_TO_PRECISION),
+    signalSource: `wordPrecisionScore=${c.wordPrecisionScore}`,
   };
   map.concreteness = {
     score: interpolate(c.abstractionMarkerCount, ABSTRACTION_TO_CONCRETENESS),
     signalSource: `abstractionMarkerCount=${c.abstractionMarkerCount}`,
+  };
+  map.logical_sequencing = {
+    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_LOGICAL_SEQ),
+    signalSource: `sentenceComplexityIndex=${c.sentenceComplexityIndex}`,
+  };
+  map.idea_isolation = {
+    score: interpolate(c.ideaDensity, IDEA_DENSITY_TO_ISOLATION),
+    signalSource: `ideaDensity=${c.ideaDensity}`,
   };
 
   // Structure
@@ -281,9 +455,19 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(s.openingPositionScore, OPENING_TO_OPENING_HOOK),
     signalSource: `openingPositionScore=${s.openingPositionScore}`,
   };
+  // Ch.S2 — argument_hierarchy gets a logicalFlowScore boost. Visible
+  // hierarchy markers + visible flow both contribute; we average them
+  // (50/50) so a rep with explicit "first/second/third" but jumpy flow
+  // doesn't max out, and a rep with no markers but tight flow still
+  // earns credit.
+  const argHierarchyFromMarkers = interpolate(
+    s.pointHierarchyMarkers,
+    HIERARCHY_TO_ARG_HIERARCHY,
+  );
+  const argHierarchyFromFlow = interpolate(s.logicalFlowScore, FLOW_TO_COHERENCE);
   map.argument_hierarchy = {
-    score: interpolate(s.pointHierarchyMarkers, HIERARCHY_TO_ARG_HIERARCHY),
-    signalSource: `pointHierarchyMarkers=${s.pointHierarchyMarkers}`,
+    score: Math.round((argHierarchyFromMarkers + argHierarchyFromFlow) / 2),
+    signalSource: `hierarchy=${s.pointHierarchyMarkers}+flow=${s.logicalFlowScore}`,
   };
   const arc = s.arcCompletion;
   const arcFraction =
@@ -294,6 +478,13 @@ export function mapSignalsToSubSkillScores(
   map.narrative_arc = {
     score: interpolate(arcFraction, ARC_TO_NARRATIVE),
     signalSource: `arcCompletion=${arc.clearOpening ? "Y" : "N"}/${arc.developedMiddle ? "Y" : "N"}/${arc.definitiveClose ? "Y" : "N"}`,
+  };
+  // Ch.S2 — coherence sub-skill: avg of logicalFlowScore + coherenceIndex.
+  const flowScore = interpolate(s.logicalFlowScore, FLOW_TO_COHERENCE);
+  const cohScore = interpolate(s.coherenceIndex, COHERENCE_INDEX_TO_COHERENCE);
+  map.coherence = {
+    score: Math.round((flowScore + cohScore) / 2),
+    signalSource: `logicalFlow=${s.logicalFlowScore}+coherenceIndex=${s.coherenceIndex}`,
   };
 
   // Conciseness
@@ -309,6 +500,10 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(cn.wordsPerDistinctIdea, WPDI_TO_SCOPING),
     signalSource: `wordsPerDistinctIdea=${cn.wordsPerDistinctIdea}`,
   };
+  map.editing_in_real_time = {
+    score: interpolate(cn.stoppingPointAccuracy, STOPPING_TO_EDITING),
+    signalSource: `stoppingPointAccuracy=${cn.stoppingPointAccuracy}`,
+  };
 
   // Thinking Quality
   map.claim_support = {
@@ -323,13 +518,105 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(t.depthOfAnalysisMarkers, DEPTH_TO_DEPTH),
     signalSource: `depthOfAnalysisMarkers=${t.depthOfAnalysisMarkers}`,
   };
+  // Ch.S4 — intellectual_honesty blends calibrated-certainty markers
+  // (positive) with self-correction markers (negative). Self-correction
+  // pulls down hard: a rep with 3+ corrections takes max 40 honesty
+  // even if it has plenty of calibrated-certainty hedges. Implementation:
+  // take the MIN of the two anchor curves (the worst-of-two semantics).
+  const honestyFromMarkers = interpolate(
+    t.intellectualHonestyMarkers,
+    HONESTY_TO_HONESTY,
+  );
+  const honestyFromCorrections = interpolate(
+    t.logicalConsistencyMarkers,
+    SELF_CORRECTION_TO_HONESTY,
+  );
   map.intellectual_honesty = {
-    score: interpolate(t.intellectualHonestyMarkers, HONESTY_TO_HONESTY),
-    signalSource: `intellectualHonestyMarkers=${t.intellectualHonestyMarkers}`,
+    score: Math.min(honestyFromMarkers, honestyFromCorrections),
+    signalSource: `honesty=${t.intellectualHonestyMarkers}-corrections=${t.logicalConsistencyMarkers}`,
+  };
+  // Ch.S4 — first_principles_reasoning driven by originalityIndex.
+  map.first_principles_reasoning = {
+    score: interpolate(t.originalityIndex, ORIGINALITY_TO_FIRST_PRINCIPLES),
+    signalSource: `originalityIndex=${t.originalityIndex}`,
   };
 
-  // Dimension-fallback for every sub-skill not covered above.
+  // Ch.S5 — Tone sub-skills driven by Hume emotion vector when present.
+  // When prosody is null OR Hume fields are absent, the existing
+  // dimension_fallback path below populates these from the LLM's
+  // holistic Tone score (Tone is text-LLM-only without audio).
+  if (prosody?.humeEmotionMeans && prosody.humeEmotionMeans.length > 0) {
+    // pitch_variation: variance of Excitement + Determination + Joy.
+    const pitchVarSig =
+      humeVariance(prosody, "Excitement") +
+      humeVariance(prosody, "Determination") +
+      humeVariance(prosody, "Joy");
+    map.pitch_variation = {
+      score: interpolate(pitchVarSig, HUME_VARIANCE_TO_PITCH_VARIATION),
+      signalSource: `humeVariance(Excitement+Determination+Joy)=${pitchVarSig.toFixed(4)}`,
+    };
+
+    // volume_control: 1 - (Anxiety + Distress) means.
+    const ctrlSig = Math.max(
+      0,
+      1 - humeMean(prosody, "Anxiety") - humeMean(prosody, "Distress"),
+    );
+    map.volume_control = {
+      score: interpolate(ctrlSig, HUME_CONTROL_TO_VOLUME_CONTROL),
+      signalSource: `humeControl(1-Anxiety-Distress)=${ctrlSig.toFixed(3)}`,
+    };
+
+    // downward_inflection: 1 - (Doubt + Confusion) means.
+    const downSig = Math.max(
+      0,
+      1 - humeMean(prosody, "Doubt") - humeMean(prosody, "Confusion"),
+    );
+    map.downward_inflection = {
+      score: interpolate(downSig, HUME_CONFIDENCE_TO_DOWNWARD),
+      signalSource: `humeConfident(1-Doubt-Confusion)=${downSig.toFixed(3)}`,
+    };
+
+    // emotional_authenticity: Calmness + Contentment + Joy minus
+    // Awkwardness + Embarrassment.
+    const authSig =
+      humeMean(prosody, "Calmness") +
+      humeMean(prosody, "Contentment") +
+      humeMean(prosody, "Joy") -
+      humeMean(prosody, "Awkwardness") -
+      humeMean(prosody, "Embarrassment");
+    map.emotional_authenticity = {
+      score: interpolate(authSig, HUME_AUTH_TO_AUTHENTICITY),
+      signalSource: `humeAuth(Calm+Content+Joy-Awk-Emb)=${authSig.toFixed(3)}`,
+    };
+
+    // vocal_presence: Determination + Pride + Triumph.
+    const presSig =
+      humeMean(prosody, "Determination") +
+      humeMean(prosody, "Pride") +
+      humeMean(prosody, "Triumph");
+    map.vocal_presence = {
+      score: interpolate(presSig, HUME_PRESENCE_TO_PRESENCE),
+      signalSource: `humePresence(Determ+Pride+Triumph)=${presSig.toFixed(3)}`,
+    };
+
+    // warmth: Calmness + Contentment + Sympathy + Love.
+    const warmthSig =
+      humeMean(prosody, "Calmness") +
+      humeMean(prosody, "Contentment") +
+      humeMean(prosody, "Sympathy") +
+      humeMean(prosody, "Love");
+    map.warmth = {
+      score: interpolate(warmthSig, HUME_WARMTH_TO_WARMTH),
+      signalSource: `humeWarmth(Calm+Content+Symp+Love)=${warmthSig.toFixed(3)}`,
+    };
+  }
+
+  // Dimension-fallback for every sub-skill not covered above. Skip
+  // entries already populated (Ch.S5: when Hume prosody is present,
+  // Tone sub-skills are populated above and must NOT be overwritten by
+  // dimension_fallback).
   for (const subSkill of ALL_SUB_SKILLS) {
+    if (map[subSkill] != null) continue;
     if (TEXT_DRIVEN_SUB_SKILLS.has(subSkill)) continue;
     const dim = SUB_SKILL_TO_DIMENSION[subSkill];
     const dimScore = dimensionScores[dim];

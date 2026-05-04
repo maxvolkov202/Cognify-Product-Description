@@ -229,6 +229,139 @@ function detectDefinitiveClose(transcript: string): boolean {
   return wc >= 4 && /\.\s*$/.test(last);
 }
 
+/** Ch.S2 — Cross-sentence flow connectors. Phrases that, when they
+ *  appear at sentence start, signal that the sentence builds on the
+ *  prior one. Conservative list — broader transition markers go in
+ *  TRANSITION_MARKERS (those count regardless of position). */
+const FLOW_CONNECTOR_PROMPTS = [
+  "because",
+  "therefore",
+  "this means",
+  "this shows",
+  "this implies",
+  "building on that",
+  "since",
+  "as a result",
+  "consequently",
+  "so the",
+  "which means",
+  "what this means",
+  "given that",
+  "for that reason",
+];
+
+/** Stopwords for content-noun extraction in topic-continuity checking.
+ *  Same shape as S1's STOPWORDS but inlined here to keep structure.ts
+ *  free of cross-extractor coupling. */
+const STRUCTURE_STOPWORDS: ReadonlySet<string> = new Set([
+  "a","an","the","of","in","on","at","to","from","for","by","with","without",
+  "about","as","into","over","under","this","that","these","those",
+  "is","are","was","were","be","been","being","am","do","does","did",
+  "have","has","had","will","would","should","could","can","may","might",
+  "must","i","me","my","mine","we","us","our","ours","you","your","yours",
+  "he","him","his","she","her","hers","it","its","they","them","their",
+  "what","which","who","whom","whose","where","when","why","how",
+  "if","then","than","so","very","just","only","also","yes","no","not",
+  "yeah","ok","okay","um","uh","like","really","kind","sort","much",
+  "many","more","most","some","any","all","each","every","few","such",
+  "own","same","other","another","here","there","now","because","but",
+  "and","or","therefore","however","since","while","whereas","although",
+]);
+
+/** Conservative content-noun stem: lowercase, strip trailing -s/-es/-ing.
+ *  Used to compare across-sentence content overlap. */
+function stemForFlow(token: string): string {
+  const t = token.toLowerCase();
+  if (t.length <= 3) return t;
+  if (t.endsWith("ies") && t.length > 4) return t.slice(0, -3) + "y";
+  if (t.endsWith("es") && t.length > 4) return t.slice(0, -2);
+  if (t.endsWith("s")) return t.slice(0, -1);
+  if (t.endsWith("ing") && t.length > 5) return t.slice(0, -3);
+  return t;
+}
+
+function contentNounsOf(sentence: string): Set<string> {
+  const out = new Set<string>();
+  for (const tok of tokenize(sentence)) {
+    if (tok.length < 3) continue;
+    if (/^\d+$/.test(tok)) continue;
+    if (STRUCTURE_STOPWORDS.has(tok)) continue;
+    out.add(stemForFlow(tok));
+  }
+  return out;
+}
+
+/** Ch.S2 — logicalFlowScore 0-100. Two equally-weighted halves:
+ *  (a) connector-start ratio: of all sentences after the first, what
+ *  fraction begin with a FLOW_CONNECTOR phrase in their first ~5 tokens?
+ *  (b) topic-continuity ratio: of adjacent-sentence pairs, what fraction
+ *  share ≥1 content noun (stemmed)?
+ *  High = sentences flow from each other; low = topic jumps. */
+function computeLogicalFlowScore(transcript: string): number {
+  const sentences = splitSentences(transcript);
+  if (sentences.length < 2) return 50;
+
+  // (a) Connector-at-start ratio.
+  let connectorStarts = 0;
+  for (let i = 1; i < sentences.length; i++) {
+    const sent = sentences[i] ?? "";
+    const head = sent.toLowerCase().split(/\s+/).slice(0, 5).join(" ");
+    if (countLexicon(head, FLOW_CONNECTOR_PROMPTS) > 0) connectorStarts++;
+  }
+  const connectorRatio = connectorStarts / (sentences.length - 1);
+
+  // (b) Adjacent-sentence content overlap ratio.
+  let overlapping = 0;
+  let prevContent = contentNounsOf(sentences[0] ?? "");
+  for (let i = 1; i < sentences.length; i++) {
+    const cur = contentNounsOf(sentences[i] ?? "");
+    let hit = false;
+    for (const t of cur) {
+      if (prevContent.has(t)) {
+        hit = true;
+        break;
+      }
+    }
+    if (hit) overlapping++;
+    prevContent = cur;
+  }
+  const overlapRatio = overlapping / (sentences.length - 1);
+
+  // Composite: weight overlap slightly more (it's the structural
+  // backbone; connectors are the surface signal).
+  const composite = 0.4 * connectorRatio + 0.6 * overlapRatio;
+  return Math.round(composite * 100);
+}
+
+/** Ch.S2 — coherenceIndex 0-100. Builds a "topic vocabulary" from
+ *  content nouns in the first 30% of the response, then checks what
+ *  fraction of post-30% sentences reference ≥1 of those nouns. High =
+ *  response stays on its announced topic; low = drift / fragmentation. */
+function computeCoherenceIndex(transcript: string): number {
+  const sentences = splitSentences(transcript);
+  if (sentences.length < 2) return 50;
+  const headCount = Math.max(1, Math.floor(sentences.length * 0.3));
+  const topicVocab = new Set<string>();
+  for (let i = 0; i < headCount; i++) {
+    for (const t of contentNounsOf(sentences[i] ?? "")) {
+      topicVocab.add(t);
+    }
+  }
+  if (topicVocab.size === 0) return 50;
+  const tail = sentences.slice(headCount);
+  if (tail.length === 0) return 100;
+  let onTopic = 0;
+  for (const sent of tail) {
+    for (const t of contentNounsOf(sent)) {
+      if (topicVocab.has(t)) {
+        onTopic++;
+        break;
+      }
+    }
+  }
+  return Math.round((onTopic / tail.length) * 100);
+}
+
 export function extractStructureSignals(input: {
   transcript: string;
   durationMs: number;
@@ -250,5 +383,7 @@ export function extractStructureSignals(input: {
       developedMiddle: detectDevelopedMiddle(transcript),
       definitiveClose: detectDefinitiveClose(transcript),
     },
+    logicalFlowScore: computeLogicalFlowScore(transcript),
+    coherenceIndex: computeCoherenceIndex(transcript),
   };
 }

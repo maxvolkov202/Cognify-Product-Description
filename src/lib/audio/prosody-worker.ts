@@ -29,6 +29,7 @@
 
 import { z } from "zod";
 import type { ProsodyFeatures } from "./prosody";
+import { extractHumeProsody } from "./hume-prosody";
 
 const workerResponseSchema = z.object({
   pitchMeanHz: z.number().nullable(),
@@ -59,15 +60,33 @@ const DEFAULT_TIMEOUT_MS = 5000;
 
 /** Returns the worker-derived subset of ProsodyFeatures, or null on any
  *  failure. Caller merges into inline-derived features via
- *  `mergeProsody()` from prosody-inline.ts. */
+ *  `mergeProsody()` from prosody-inline.ts.
+ *
+ *  Provider selection (in order):
+ *   1. HUME_API_KEY set → call Hume.ai's prosody model (Ch.S5)
+ *   2. PROSODY_WORKER_URL set → call self-hosted Praat worker (Ch.3b)
+ *   3. Neither set → return null (degrades to inline-only Tone signals)
+ *
+ *  Both providers populate the same `ProsodyFeatures` shape so the
+ *  downstream score path is provider-agnostic. */
 export async function extractWorkerProsody(
   input: ExtractWorkerProsodyInput,
 ): Promise<Partial<ProsodyFeatures> | null> {
   if (process.env.FF_PROSODY_WORKER !== "true") return null;
+
+  // Ch.S5 — Hume.ai path (preferred when key is set).
+  if (process.env.HUME_API_KEY) {
+    return extractHumeProsody({
+      audioUrl: input.audioUrl,
+      durationMs: input.durationMs,
+      timeoutMs: input.timeoutMs,
+    });
+  }
+
   const url = process.env.PROSODY_WORKER_URL;
   if (!url) {
     console.warn(
-      "[prosody-worker] FF_PROSODY_WORKER=true but PROSODY_WORKER_URL is unset; skipping",
+      "[prosody-worker] FF_PROSODY_WORKER=true but neither HUME_API_KEY nor PROSODY_WORKER_URL is set; skipping",
     );
     return null;
   }
@@ -108,7 +127,7 @@ export async function extractWorkerProsody(
       );
       return null;
     }
-    return parsed.data;
+    return { ...parsed.data, prosodyProvider: "praat-worker" };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
       console.warn(

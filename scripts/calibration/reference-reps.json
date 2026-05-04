@@ -1,7 +1,7 @@
 {
   "$schema": "./reference-reps.schema.json",
-  "rubricVersion": "v3.0.0",
-  "notes": "Hand-authored reference reps spanning DNA score bands. Expected scores are the human (us) judgment that the AI must match within ±5 per dimension. Replace `audioUrl` placeholders with real Supabase signed URLs once recorded; `transcript` and `words` are the canonical inputs the scoring path receives. Each `kind` tag drives the assertion strategy: 'band' rep asserts composite + per-dim; 'independence' rep asserts the named dimension delta only.",
+  "rubricVersion": "v3.2.0",
+  "notes": "Hand-authored reference reps spanning DNA score bands. Expected scores are the human (us) judgment that the AI must match within ±5 per dimension. Replace `audioUrl` placeholders with real Supabase signed URLs once recorded; `transcript` and `words` are the canonical inputs the scoring path receives. Each `kind` tag drives the assertion strategy: 'band' rep asserts composite + per-dim; 'independence' rep asserts the named dimension delta only. Ch.D1 (May 2026) tripled the bank from 13 to 36 reps with prompt-type diversity (Q&A, objection, interview, scenario, persuasive, pitch) and band coverage (≥3 reps per band, ≥5 per type). `untestableDimensions` marks dims whose accurate scoring requires audio (Ch.D3); the harness still asserts but the operator should not gate merges on those failures until the audio bank lands.",
   "reps": [
     {
       "id": "band-poor-mic-test",
@@ -251,6 +251,708 @@
           "rationale": "Tight, no filler, every word advances the argument."
         }
       ]
+    },
+    {
+      "id": "indep-ambiguous-pronouns",
+      "kind": "independence",
+      "promptText": "Did the launch hit the targets we set?",
+      "transcript": "Mostly. The big number landed, the smaller ones missed. We fixed what we could on day one. Calling it a win.",
+      "durationMs": 9000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "conciseness",
+          "min": 75,
+          "rationale": "Pair: clarity vs conciseness, direction concise-but-unclear. ~22 words, no filler, every word does work — Conciseness must score in the strong band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "clarity",
+          "max": 50,
+          "rationale": "Pair: clarity vs conciseness. 'Mostly', 'big number', 'smaller ones', 'what we could' are all referent-less for an audience that doesn't already know the targets — listener leaves not knowing WHICH targets were hit. Clarity must drop even though Conciseness is high."
+        }
+      ]
+    },
+    {
+      "id": "indep-clear-but-padded",
+      "kind": "independence",
+      "promptText": "Walk me through how you'd onboard a new direct report in their first week.",
+      "transcript": "So in their first week, what I would do — and I think this is really important to do thoughtfully and not rush — is I would spend the first day, basically the entirety of the first day, walking them through the team, the org chart, who reports to whom, how the team is structured. That's day one. Then on day two, what I would do is, I would walk them through their actual job, the responsibilities they own, the projects they're going to inherit, and the people they'll be working with most closely on those projects. So that's day two: their work and their collaborators. Day three through five, I would pair them with someone on the team, basically a buddy who they can ask questions of without feeling like they're bothering me directly, because in my experience that buddy relationship is what makes the first week actually stick.",
+      "durationMs": 60000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "clarity",
+          "min": 75,
+          "rationale": "Pair: clarity vs conciseness, direction clear-but-verbose. Day-by-day sequencing is plain, no jargon, every claim grounds out — Clarity must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "conciseness",
+          "max": 50,
+          "rationale": "Pair: clarity vs conciseness. 'What I would do is, I would', 'basically', 'I think this is really important', 'in my experience' — every section is padded ~2x what plain phrasing would need. Conciseness must drop even though Clarity is high. Aspirational assertion: text-only LLM clusters at ~75 here; assertion fires once Ch.S3 stoppingPointAccuracy + word-redundancy signals land."
+        }
+      ]
+    },
+    {
+      "id": "indep-okrs-empty-scaffold",
+      "kind": "independence",
+      "promptText": "Make the case for adopting OKRs across the company.",
+      "transcript": "There are three reasons we should adopt OKRs. First, alignment. OKRs help with alignment because alignment matters when you have many teams. Second, focus. OKRs focus people on the right things, and focus is important to outcomes. Third, measurability. With OKRs, things are more measurable, which is good because measurable is better than not measurable. So in summary, the three reasons are alignment, focus, and measurability — and that's why we should adopt OKRs.",
+      "durationMs": 30000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "structure",
+          "min": 70,
+          "rationale": "Pair: structure vs thinking, direction organized-but-shallow. Three explicit numbered reasons + summary — Structure must score in the competent/strong band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 45,
+          "rationale": "Pair: structure vs thinking. Every reason is tautological ('alignment matters', 'measurable is better than not measurable'); zero evidence, no business specificity. Thinking must score below standard despite the visible scaffolding. Aspirational assertion: text-only LLM clusters ~55 on this pattern; tightens post-S4 logicalConsistencyMarkers + originalityIndex signals."
+        }
+      ]
+    },
+    {
+      "id": "indep-quitting-engineer-meander",
+      "kind": "independence",
+      "promptText": "A senior engineer is threatening to quit because they say management ignores their feedback. How do you handle the conversation?",
+      "transcript": "OK so. The first thing — actually, before that — the thing I'd want to know going in is whether this is the third time they've raised the feedback or the first time. Because if it's the first time, that's a totally different conversation than if it's the third. The pattern matters more than the content. If it's the first time, my read is they're not actually ready to quit yet — they're testing whether you'll engage. The threat is the message. If it's the third, then the leverage has shifted. They've already decided. So — and this is the part I keep coming back to — the conversation isn't about the feedback. It's about whether they trust the system. Trying to debate the merits of whatever they raised would miss the actual ask.",
+      "durationMs": 60000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "structure",
+          "max": 55,
+          "rationale": "Pair: structure vs thinking, direction disorganized-but-deep. 'OK so. The first thing — actually, before that —' false start; no enumerated scaffolding; thoughts loop back ('and this is the part I keep coming back to'). Structure must drop. Aspirational assertion: post-S2 logicalFlowScore signal pins this below 55."
+        },
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: structure vs thinking. Real insight: distinguishes first-time vs third-time as the load-bearing variable, reframes 'feedback' to 'trust in the system', identifies the threat as a signal not a literal claim. Thinking must score strong even though structure is poor."
+        }
+      ]
+    },
+    {
+      "id": "indep-rushed-bank-pitch",
+      "kind": "independence",
+      "promptText": "Pitch your fintech startup to a busy investor in 30 seconds.",
+      "transcript": "We help small banks compete with megabanks by giving them a deposit-pricing engine that updates rates daily. Currently, they update quarterly. That gap costs them about three percent of new deposits per year. We close it. Our customers — twelve community banks so far — saw deposit growth jump fourteen percent in the first quarter we deployed. We charge a fixed monthly fee, no percentage, which means the math works for any bank size.",
+      "durationMs": 18000,
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "delivery",
+          "max": 50,
+          "rationale": "Pair: delivery vs tone, direction variety-with-bad-rate. ~88 words in 18 seconds = ~290 wpm, far above the DNA optimal 140-170 band. Delivery must score below standard for pace alone. Note: text-only LLM may underweight pace until prosody worker (Ch.S5) is wired — this rep stress-tests the delivery-from-density signal."
+        },
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 60,
+          "rationale": "Pair: delivery vs tone. Sentence types vary (declarative, qualifier-clause, dash-set-aside, conditional), no upspeak markers, conviction-forward language. Tone should land in or near competent band even though Delivery suffers."
+        }
+      ]
+    },
+    {
+      "id": "indep-monotone-review-process",
+      "kind": "independence",
+      "promptText": "Convince the team to adopt a new code review process.",
+      "transcript": "We need a new code review process. The current process takes too long. Reviewers wait too many days. Authors lose context. Bugs slip through. A new process would shorten the cycle. Reviewers would respond within a day. Authors would maintain context. Bugs would surface earlier. The new process has three rules. Rules are simple to follow. Rules keep us aligned. We should adopt the new process. The process is ready to roll out. The team should agree by Friday.",
+      "durationMs": 34000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "delivery",
+          "min": 65,
+          "rationale": "Pair: delivery vs tone, direction monotone-with-good-rate. ~85 words in 34 seconds = 150 wpm, dead in the DNA optimal band. Delivery scores in competent band on pace."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "Pair: delivery vs tone. Every sentence is the same length and structure (subject-verb-object, 5-9 words), no rhetorical variety, no emphasis markers — text-detectable monotony. Tone must drop below competent even though pacing is good. Aspirational assertion: post-S5 prosody worker (pitch variance) is the load-bearing signal."
+        }
+      ]
+    },
+    {
+      "id": "indep-velocity-jargon-revelation",
+      "kind": "independence",
+      "promptText": "Tell me about a time you changed your mind about something important.",
+      "transcript": "There's this — I'd been operating under the assumption that velocity was the proxy variable for team health, and the way that read into my decisioning was that I was, in effect, optimizing the wrong gradient. The realization came in slow, through what I'd call inverse correlation: the highest-velocity quarters were also the highest-attrition quarters, and once that fact entered the loss function, I had to fundamentally reframe what I was reading off velocity numbers. The proxy was inverted to the thing I cared about, which is to say, sustainable output. So the assumption flipped.",
+      "durationMs": 38000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: clarity vs thinking, direction deep-but-unclear. Real insight: velocity inversely correlates with team health via attrition; the metric was a misleading proxy. Thinking must score strong. Aspirational assertion: text-only LLM under-grades thinking when language is jargon-tangled; post-S1 wordPrecisionScore + post-S4 originalityIndex signals separate insight from clarity surface."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "clarity",
+          "max": 55,
+          "rationale": "Pair: clarity vs thinking. 'Decisioning', 'proxy variable', 'optimizing the wrong gradient', 'loss function' stack ML jargon for a behavioral interview audience. Same idea in plain language would be twice as clear. Clarity must drop below competent even though Thinking is strong."
+        }
+      ]
+    },
+    {
+      "id": "indep-earnings-explainer-empty",
+      "kind": "independence",
+      "promptText": "How would you explain quarterly earnings to a new analyst who has never seen them?",
+      "transcript": "Quarterly earnings are how a company shows how it did over three months. There are four quarters in a year. Companies report numbers like revenue, which is how much money came in, and profit, which is what's left after costs. Investors look at those numbers to decide if the company is doing well or not. That's the basic idea.",
+      "durationMs": 26000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "clarity",
+          "min": 75,
+          "rationale": "Pair: clarity vs thinking, direction simple-but-shallow. Plain English, no jargon, definitions track linearly — Clarity must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 50,
+          "rationale": "Pair: clarity vs thinking. Explanation is dictionary-true but contains zero analytical content: no GAAP vs non-GAAP, no guidance vs actuals, no segment reporting, no YoY-vs-QoQ framing. An analyst leaves no smarter than a textbook. Thinking must drop below competent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic explanations below 55."
+        }
+      ]
+    },
+    {
+      "id": "indep-q4-risks-no-frame",
+      "kind": "independence",
+      "promptText": "What's our biggest risk going into Q4?",
+      "transcript": "The Asia partner deal. If it slips past November we miss the December quota. Also — well, related to that — the FX exposure isn't hedged past Q3. And the new sales hire ramped slow. Those are the things.",
+      "durationMs": 15000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "conciseness",
+          "min": 75,
+          "rationale": "Pair: conciseness vs structure, direction concise-but-unstructured. ~38 words, dense, no filler. Conciseness must score strong. Aspirational assertion: post-S3 stoppingPointAccuracy + filler-density signals lift this reliably above 75."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "structure",
+          "max": 50,
+          "rationale": "Pair: conciseness vs structure. Three risks but no ranking (which is BIGGEST?), no taxonomy (commercial / operational / financial), throwaway closer 'those are the things'. Structure must drop below competent even though Conciseness is high."
+        }
+      ]
+    },
+    {
+      "id": "indep-pricing-three-part-padded",
+      "kind": "independence",
+      "promptText": "Your platform is too expensive — your competitor charges 40% less. Why should we still choose you?",
+      "transcript": "Let me break this down into three parts so we can work through it together. First, the acknowledgment: yes, our pricing is meaningfully higher than the competitor you're referring to. I want to be upfront about that and not dance around the price difference, because pretending it isn't there would erode trust before we even start. Second, the reframe — and this is where I want to spend the most time, because I think this is the part that often gets missed when teams are evaluating us against the competitor: the unit of comparison matters. The competitor charges per seat, with overage fees that kick in at thirty percent of typical usage and again at sixty percent. We charge a flat platform fee, no per-seat, no overage. Third, the evidence: in the seven enterprise migrations we ran in the last year, the average annualized total cost — including overage at the competitor's pricing — came in twenty-two percent below their headline number, and eighteen percent below ours.",
+      "durationMs": 70000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "structure",
+          "min": 80,
+          "rationale": "Pair: conciseness vs structure, direction structured-but-verbose. Explicit 'First / Second / Third' with named buckets (acknowledgment / reframe / evidence). Structure must score strong-to-excellent."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "conciseness",
+          "max": 55,
+          "rationale": "Pair: conciseness vs structure. 'Let me break this down into three parts so we can work through it together', 'I want to be upfront and not dance around', 'this is the part that often gets missed when teams are evaluating us' — every section is padded with audience-management filler. Conciseness must drop below competent even though Structure is excellent. Aspirational assertion: LLM is biased upward on Conciseness (+8.7 in baseline doc); post-S3 stoppingPointAccuracy + word-density signals tighten this below 60."
+        }
+      ]
+    },
+    {
+      "id": "indep-launch-miss-breathless",
+      "kind": "independence",
+      "promptText": "Walk the board through why your last product launch missed forecast by 30 percent.",
+      "transcript": "OK so the miss is real, the miss has three components, the first is forecast methodology, we built the forecast off the public beta conversion rate which was running at twelve percent, but the public beta cohort self-selected — they were the most product-ready segment — and the GA cohort converted at four percent, which is closer to the segment-blended industry baseline, so we should have used that, the second component is GTM timing, we shipped the launch into a quiet announcement window thinking that would maximize attention, but the dominant headlines that week were three competitor moves we hadn't priced in, and the third is positioning, we led with the integration story when our actual differentiation was the latency win, the integration story is what marketing tested, the latency win is what closed deals in beta, we should have flipped them.",
+      "durationMs": 22000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "thinking_quality",
+          "min": 75,
+          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "delivery",
+          "max": 45,
+          "rationale": "Pair: thinking vs delivery. ~145 words in 22 seconds = 395 wpm, breathless. Comma-spliced run-on (one sentence covers all three components), no breath markers — text-detectable rapid pacing. Delivery must drop into below-standard band even though Thinking is strong."
+        }
+      ]
+    },
+    {
+      "id": "indep-future-of-work-pitch",
+      "kind": "independence",
+      "promptText": "Pitch your AI productivity tool in 30 seconds.",
+      "transcript": "We're building the future of work. Our AI-native platform uses cutting-edge machine learning to make teams more productive, more aligned, and more efficient. We integrate with all the tools you already use — Slack, email, calendar, the whole stack. Early customers are seeing transformational results. We're at the beginning of a paradigm shift in how knowledge work gets done, and we'd love for you to be part of it.",
+      "durationMs": 28000,
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "delivery",
+          "min": 65,
+          "rationale": "Pair: thinking vs delivery, direction fluent-but-shallow. ~70 words in 28 seconds = 150 wpm, optimal pace. Sentence types vary (declarative, list, dash-set-aside, conditional close). Delivery must score in competent-or-better band."
+        },
+        {
+          "kind": "maxScore",
+          "dimension": "thinking_quality",
+          "max": 45,
+          "rationale": "Pair: thinking vs delivery. Pure boilerplate: 'future of work', 'AI-native', 'cutting-edge machine learning', 'transformational results', 'paradigm shift' — zero specificity on customer, metric, differentiation, or pricing. Thinking must drop into below-standard band even though Delivery is fluent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic startup phrasing below 45."
+        }
+      ]
+    },
+    {
+      "id": "qa-poor-frontend-status",
+      "kind": "band",
+      "promptText": "What's the status of the checkout migration this sprint?",
+      "transcript": "Yeah um so the checkout thing is, it's, you know we've been working on it and there's some stuff that's going on with the like, the API piece I think. But yeah it's still like, I'd say it's mostly, um, in progress. There's some bugs we're still figuring out and the team is yeah working on it. So that's kind of where we're at right now I guess.",
+      "durationMs": 24000,
+      "expected": {
+        "composite": 26,
+        "band": "poor",
+        "dimensions": {
+          "clarity": 22,
+          "structure": 20,
+          "conciseness": 28,
+          "thinking_quality": 22,
+          "delivery": 30,
+          "tone": 50
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "qa-below-investor-runway",
+      "kind": "band",
+      "promptText": "What's your current runway?",
+      "transcript": "So our runway, um, depends on a few things. We have, you know, a certain amount in the bank right now and our burn has been going up a little. I'd say we're in pretty good shape, probably we have, I think it's around eighteen months or so, but that depends on hiring and stuff. We're also looking at the next round but that's still kind of early. So yeah eighteen months-ish is my best guess for now.",
+      "durationMs": 30000,
+      "expected": {
+        "composite": 48,
+        "band": "below_standard",
+        "dimensions": {
+          "clarity": 50,
+          "structure": 42,
+          "conciseness": 38,
+          "thinking_quality": 50,
+          "delivery": 55,
+          "tone": 60
+        }
+      }
+    },
+    {
+      "id": "qa-competent-roadmap-fit",
+      "kind": "band",
+      "promptText": "Why this roadmap order?",
+      "transcript": "Three reasons we're sequencing it this way. First, payments unlocks revenue we can't run without — that's the gating constraint. Second, the dashboard work is staffed and ready, so it's lower risk than starting something cold. Third, the SSO work depends on the security audit, and that audit is scheduled for May, so we can't start until then. We're holding the bigger items for Q3.",
+      "durationMs": 27000,
+      "expected": {
+        "composite": 69,
+        "band": "competent",
+        "dimensions": {
+          "clarity": 72,
+          "structure": 75,
+          "conciseness": 68,
+          "thinking_quality": 65,
+          "delivery": 65,
+          "tone": 65
+        }
+      }
+    },
+    {
+      "id": "qa-strong-pricing-question",
+      "kind": "band",
+      "promptText": "Why are you priced thirty percent higher than your nearest competitor?",
+      "transcript": "Two answers — value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year — that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "durationMs": 33000,
+      "expected": {
+        "composite": 78,
+        "band": "strong",
+        "dimensions": {
+          "clarity": 80,
+          "structure": 82,
+          "conciseness": 78,
+          "thinking_quality": 78,
+          "delivery": 72,
+          "tone": 72
+        }
+      }
+    },
+    {
+      "id": "qa-excellent-board-regulatory",
+      "kind": "band",
+      "promptText": "How will you respond if Section 6 of the new regulation becomes restrictive in committee?",
+      "transcript": "Three contingencies, ranked by likelihood. Most likely path — Section 6 narrows but keeps the data-portability carve-out. We're already on standard. Second — full restrictive language, which would force product changes in our EU stack. We've scoped that work; it's a six-week migration, owned by Aliya, with a budget delta of four hundred thousand. Third — extreme outcome, market exit. We'd absorb the impact through lifetime value already booked, no operational shock. We're not betting on outcome three. We're insuring against outcome two.",
+      "durationMs": 31000,
+      "expected": {
+        "composite": 87,
+        "band": "excellent",
+        "dimensions": {
+          "clarity": 88,
+          "structure": 90,
+          "conciseness": 87,
+          "thinking_quality": 90,
+          "delivery": 80,
+          "tone": 80
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "objection-poor-too-expensive",
+      "kind": "band",
+      "promptText": "Honestly, you're just too expensive.",
+      "transcript": "I mean, yeah, we're, we're not the cheapest, that's true. But like, our value, it's, you know, we offer a lot. I think if you, um, if you really look at it the price is fair. Like, other companies charge similar amounts and, yeah. We try to be competitive but it's hard with the features we have. So, yeah. I'd say give it a chance and see.",
+      "durationMs": 24000,
+      "expected": {
+        "composite": 30,
+        "band": "poor",
+        "dimensions": {
+          "clarity": 30,
+          "structure": 22,
+          "conciseness": 30,
+          "thinking_quality": 25,
+          "delivery": 38,
+          "tone": 50
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "objection-below-not-feature-rich",
+      "kind": "band",
+      "promptText": "Your platform doesn't have feature X — that's a dealbreaker for us.",
+      "transcript": "Yeah so feature X is something we hear about from time to time. We don't have it currently and I won't pretend we do. We've been thinking about adding it and it's on our roadmap, like sometime this year I think. Some customers do work around it with our existing tools. I think for your use case there might be options, we could probably figure something out together. So it's a real gap but not a fatal one in my view.",
+      "durationMs": 32000,
+      "expected": {
+        "composite": 51,
+        "band": "below_standard",
+        "dimensions": {
+          "clarity": 52,
+          "structure": 48,
+          "conciseness": 45,
+          "thinking_quality": 50,
+          "delivery": 55,
+          "tone": 60
+        }
+      }
+    },
+    {
+      "id": "objection-competent-late-launch",
+      "kind": "band",
+      "promptText": "The launch slipped again — what changed this time?",
+      "transcript": "Two things changed since the November estimate. First, the security audit came back with three findings we hadn't anticipated; closing them added four weeks to the path. Second, our lead engineer on the core integration moved teams in January, and ramp on the replacement took longer than I scoped. The new commit date is May thirtieth, with a one-week buffer. I'm asking for a check-in at the buffer point so we catch slippage early this time.",
+      "durationMs": 32000,
+      "expected": {
+        "composite": 68,
+        "band": "competent",
+        "dimensions": {
+          "clarity": 70,
+          "structure": 72,
+          "conciseness": 65,
+          "thinking_quality": 68,
+          "delivery": 65,
+          "tone": 65
+        }
+      }
+    },
+    {
+      "id": "objection-strong-security-concern",
+      "kind": "band",
+      "promptText": "After the breach in your industry last quarter, how do I trust you with our data?",
+      "transcript": "Three layers of answer. First, we don't store the data the breached vendor stored — our model is encrypt-and-forward, not encrypt-at-rest. The blast radius for us is structurally smaller. Second, we run quarterly third-party penetration tests; the most recent report is in your data room from last week. Third, on the specific vector that hit them, we patched eighteen months ago because we sit on the same disclosure list. Three controls, all auditable. I'd rather earn the trust on evidence than ask for it.",
+      "durationMs": 33000,
+      "expected": {
+        "composite": 81,
+        "band": "strong",
+        "dimensions": {
+          "clarity": 82,
+          "structure": 85,
+          "conciseness": 80,
+          "thinking_quality": 82,
+          "delivery": 72,
+          "tone": 75
+        }
+      }
+    },
+    {
+      "id": "objection-excellent-incumbent-loyalty",
+      "kind": "band",
+      "promptText": "We've been with our current vendor for eight years — switching feels risky.",
+      "transcript": "Eight years is real. Switching costs are real. So let's reframe — we're not asking you to switch, we're asking you to run a thirty-day side-by-side. Your team picks the workload, you pick the metrics, and at day thirty you compare. Three of the firms in your peer group ran exactly that test last year. Two switched. The third stayed and renegotiated their incumbent contract on the back of our numbers. Either outcome wins for you. The question is whether you're comfortable knowing the answer.",
+      "durationMs": 30000,
+      "expected": {
+        "composite": 87,
+        "band": "excellent",
+        "dimensions": {
+          "clarity": 88,
+          "structure": 90,
+          "conciseness": 87,
+          "thinking_quality": 92,
+          "delivery": 80,
+          "tone": 80
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "interview-poor-greatest-weakness",
+      "kind": "band",
+      "promptText": "What's your greatest weakness?",
+      "transcript": "Um, that's a hard one. I'd say my greatest weakness is probably that I work too hard sometimes. Like, I really care about my work and I just put in long hours. Some people would say that's a strength but I see it as something I should manage better. I also sometimes can be too detail-oriented. So those are like the things I'm working on, I guess.",
+      "durationMs": 25000,
+      "expected": {
+        "composite": 35,
+        "band": "poor",
+        "dimensions": {
+          "clarity": 35,
+          "structure": 28,
+          "conciseness": 35,
+          "thinking_quality": 22,
+          "delivery": 50,
+          "tone": 55
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "interview-below-why-this-role",
+      "kind": "band",
+      "promptText": "Why are you interested in this role?",
+      "transcript": "I'm really excited about this role. Your company has a great mission and I love the products you build. I think I would be a good fit because I have, um, the skills you're looking for in the job description. I also think I would learn a lot here and grow as a professional. The team seems great from what I've seen on LinkedIn. So yeah, I really want to work here and I think it would be a good match for both of us.",
+      "durationMs": 32000,
+      "expected": {
+        "composite": 48,
+        "band": "below_standard",
+        "dimensions": {
+          "clarity": 55,
+          "structure": 45,
+          "conciseness": 45,
+          "thinking_quality": 35,
+          "delivery": 55,
+          "tone": 60
+        }
+      }
+    },
+    {
+      "id": "interview-competent-tell-me-about-yourself",
+      "kind": "band",
+      "promptText": "Tell me about yourself.",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite — that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "durationMs": 36000,
+      "expected": {
+        "composite": 68,
+        "band": "competent",
+        "dimensions": {
+          "clarity": 72,
+          "structure": 70,
+          "conciseness": 68,
+          "thinking_quality": 65,
+          "delivery": 65,
+          "tone": 65
+        }
+      }
+    },
+    {
+      "id": "interview-strong-conflict-story",
+      "kind": "band",
+      "promptText": "Tell me about a time you had to navigate conflict at work.",
+      "transcript": "Last June I had a senior engineer pushing back hard on a deadline I'd committed to. He felt the scope was unrealistic; I'd heard him but greenlit anyway under pressure from sales. The conflict was visible in standup — bad for the team. So I did three things. Cancelled the standup the next morning, sat with him for an hour to map the actual scope risk, then went back to sales with a revised commit. We slipped two weeks but shipped clean. The lesson — hearing isn't agreeing, and ignoring a push-back from someone closer to the work is almost always more expensive than the slip would have been.",
+      "durationMs": 38000,
+      "expected": {
+        "composite": 79,
+        "band": "strong",
+        "dimensions": {
+          "clarity": 82,
+          "structure": 80,
+          "conciseness": 78,
+          "thinking_quality": 80,
+          "delivery": 72,
+          "tone": 75
+        }
+      }
+    },
+    {
+      "id": "interview-excellent-leadership-failure",
+      "kind": "band",
+      "promptText": "Tell me about a time you failed as a leader.",
+      "transcript": "Q1 last year. I'd built a high-performing team but I was the bottleneck on every decision — my team called it out in their three-sixty reviews. I had read it as engagement; it was actually fragility. The failure was that I'd confused responsiveness with leadership. So I ran a six-week experiment — two days a week I was unreachable by chat. The team had to make calls without me. Three things broke, fixably; eleven things shipped that wouldn't have. I was wrong about the ratio of my own value-add. The principle that came out of it — if your team can't fail without you, you don't have a team, you have an extension cord.",
+      "durationMs": 38000,
+      "expected": {
+        "composite": 87,
+        "band": "excellent",
+        "dimensions": {
+          "clarity": 88,
+          "structure": 88,
+          "conciseness": 85,
+          "thinking_quality": 92,
+          "delivery": 80,
+          "tone": 80
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "scenario-poor-breach-explanation",
+      "kind": "band",
+      "promptText": "Explain a security breach to a non-technical CEO.",
+      "transcript": "So we had like an exfil event on the auth subsystem, the threat actor leveraged a known CVE in our Kerberos handler to pivot through the lateral plane, basically owning a domain controller. The blast radius is being scoped now, we're triangulating against the SIEM, but indicators point to PII egress through a C2 channel. Containment is in progress but the dwell time was, you know, non-trivial. We're still characterizing the impact.",
+      "durationMs": 24000,
+      "expected": {
+        "composite": 38,
+        "band": "poor",
+        "dimensions": {
+          "clarity": 18,
+          "structure": 35,
+          "conciseness": 55,
+          "thinking_quality": 35,
+          "delivery": 55,
+          "tone": 55
+        },
+        "subSkills": {
+          "audience_awareness": 12,
+          "word_choice": 18,
+          "concreteness": 22
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "scenario-below-team-restructure",
+      "kind": "band",
+      "promptText": "Tell your team you're restructuring.",
+      "transcript": "So, hey everyone, thanks for joining. I wanted to talk about, um, some changes that are coming. Leadership has been thinking about how the team is structured and there are going to be some shifts in how we're organized going forward. I know change can be hard and I want to acknowledge that. We'll share more details in the next few weeks. Some teams may move and some roles may shift. We'll be here to support you through this transition. Any questions?",
+      "durationMs": 32000,
+      "expected": {
+        "composite": 50,
+        "band": "below_standard",
+        "dimensions": {
+          "clarity": 50,
+          "structure": 50,
+          "conciseness": 45,
+          "thinking_quality": 42,
+          "delivery": 60,
+          "tone": 60
+        }
+      }
+    },
+    {
+      "id": "scenario-competent-board-bad-quarter",
+      "kind": "band",
+      "promptText": "Brief the board on missing the quarter.",
+      "transcript": "We came in fourteen percent short on revenue this quarter. The headline number is bad, here's what's underneath. Pipeline conversion was on plan; the gap was deal velocity — our top ten deals slipped from Q1 to Q2 because of procurement freezes at three of our largest accounts. Two of those have committed signing this month. We're forecasting Q2 at one twenty percent of plan to recover the gap. The deeper question is whether the slip is structural or one-time, and we'll have a clearer read in three weeks based on the early-Q2 pipeline.",
+      "durationMs": 35000,
+      "expected": {
+        "composite": 68,
+        "band": "competent",
+        "dimensions": {
+          "clarity": 70,
+          "structure": 72,
+          "conciseness": 65,
+          "thinking_quality": 68,
+          "delivery": 65,
+          "tone": 65
+        }
+      }
+    },
+    {
+      "id": "scenario-strong-customer-incident-apology",
+      "kind": "band",
+      "promptText": "Apologize to a major customer about a four-hour outage during their go-live.",
+      "transcript": "Saskia, I'm sorry. The outage on Tuesday hit you on the worst possible day, and that's on us. Here's what happened — a database migration we'd validated three times in staging behaved differently against your dataset's scale. The hole in our process was that staging's largest dataset is one tenth of yours, and we hadn't caught the gap. Three things we're committing to. We're upgrading staging to production-equivalent dataset by the end of the month. We're crediting you for two months of service against the SLA breach. And I'd like a thirty-minute call this week to walk through your runbook so we know exactly what your team needed during the four hours that we couldn't deliver.",
+      "durationMs": 41000,
+      "expected": {
+        "composite": 79,
+        "band": "strong",
+        "dimensions": {
+          "clarity": 82,
+          "structure": 82,
+          "conciseness": 75,
+          "thinking_quality": 80,
+          "delivery": 72,
+          "tone": 75
+        }
+      }
+    },
+    {
+      "id": "persuasive-poor-promotion-case",
+      "kind": "band",
+      "promptText": "Make the case for your own promotion.",
+      "transcript": "I mean, I think I'd be good for the senior role. I've been here a while now, two years almost. I've worked on a lot of projects and people seem to like working with me. I'm hoping to grow more and I think the senior title would help me do that. I'm not sure exactly what I'd say is my biggest contribution but I've been pretty consistent. So yeah I'd appreciate the consideration.",
+      "durationMs": 28000,
+      "expected": {
+        "composite": 37,
+        "band": "poor",
+        "dimensions": {
+          "clarity": 35,
+          "structure": 32,
+          "conciseness": 38,
+          "thinking_quality": 25,
+          "delivery": 55,
+          "tone": 55
+        },
+        "untestableDimensions": ["tone"]
+      }
+    },
+    {
+      "id": "persuasive-below-policy-unlimited-pto",
+      "kind": "band",
+      "promptText": "Argue for adopting unlimited PTO at our company.",
+      "transcript": "Unlimited PTO is something a lot of companies are doing now. It's a popular policy and it can help with recruiting because candidates expect it. Employees also feel trusted when they have flexibility. Some studies say it works well in practice. I think we should consider it because it would make us more competitive. There are some downsides like people not actually taking time off but most companies handle that with required minimums. Overall I think it's worth doing.",
+      "durationMs": 31000,
+      "expected": {
+        "composite": 53,
+        "band": "below_standard",
+        "dimensions": {
+          "clarity": 55,
+          "structure": 55,
+          "conciseness": 50,
+          "thinking_quality": 42,
+          "delivery": 60,
+          "tone": 60
+        }
+      }
+    },
+    {
+      "id": "persuasive-competent-tool-adoption",
+      "kind": "band",
+      "promptText": "Convince your team to adopt a new project tracker.",
+      "transcript": "Three reasons we should switch to Linear. First, our current tool's slow load time is costing us roughly two hours a week per engineer based on the productivity survey we ran in February — that's a real number. Second, Linear's API is a generation ahead, which means our automation roadmap can actually ship instead of being blocked on integration limits. Third, three of our peer-stage companies have switched and report higher follow-through on stale issues. The migration risk is the main concern; I'd suggest a two-week pilot with the platform team before we commit. If they sign off, the rest of us follow.",
+      "durationMs": 38000,
+      "expected": {
+        "composite": 70,
+        "band": "competent",
+        "dimensions": {
+          "clarity": 72,
+          "structure": 75,
+          "conciseness": 68,
+          "thinking_quality": 70,
+          "delivery": 65,
+          "tone": 65
+        }
+      }
+    },
+    {
+      "id": "persuasive-strong-budget-cut-defense",
+      "kind": "band",
+      "promptText": "Defend a budget reallocation that cuts a popular internal R&D project.",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability — we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment — it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "durationMs": 38000,
+      "expected": {
+        "composite": 81,
+        "band": "strong",
+        "dimensions": {
+          "clarity": 82,
+          "structure": 82,
+          "conciseness": 78,
+          "thinking_quality": 85,
+          "delivery": 75,
+          "tone": 75
+        }
+      }
     }
   ]
 }
