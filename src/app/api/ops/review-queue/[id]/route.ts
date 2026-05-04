@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import { submitReview } from "@/lib/db/queries/review-queue";
 
 export const runtime = "nodejs";
@@ -30,6 +31,17 @@ export async function POST(
   const profile = await getUserProfile(me.id);
   if (!profile?.isOperator) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  // Defense in depth: 60 verdicts/min upper bound for any single operator.
+  const rl = await rateLimit(getRateLimitIdentifier(req), {
+    count: 60,
+    window: "1 m",
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", message: "Too many submissions. Wait a moment." },
+      { status: 429 },
+    );
   }
 
   const body = await req.json().catch(() => null);

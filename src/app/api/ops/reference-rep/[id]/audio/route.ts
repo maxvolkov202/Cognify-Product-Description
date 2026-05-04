@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
+import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import {
   loadReferenceBank,
   uploadReferenceRepAudio,
@@ -50,6 +51,19 @@ export async function POST(
   const op = await requireOperator();
   if (!op) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  // Defense in depth: even though operator-gated, a compromised op
+  // account shouldn't be able to flood Supabase storage. 30 uploads
+  // per minute is well above intended use.
+  const rl = await rateLimit(getRateLimitIdentifier(req), {
+    count: 30,
+    window: "1 m",
+  });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate_limited", message: "Too many uploads. Wait a moment." },
+      { status: 429 },
+    );
   }
   const rep = findRep(id);
   if (!rep) {
