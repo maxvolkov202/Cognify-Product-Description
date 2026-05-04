@@ -116,8 +116,13 @@ const scoringResponseSchema = z.object({
   dimensions: z.array(dimensionScoreSchema).length(ALL_DIMENSIONS.length),
   structuralAdherence: z.number().min(0).max(100).nullable().optional(),
   callouts: z.array(calloutSchema).min(3).max(3),
-  /** One-line diagnostic verdict — see HEADLINE RULES in systemPrompt. */
-  headline: z.string().min(1).max(120),
+  /** One-line diagnostic verdict — see HEADLINE RULES in systemPrompt.
+   * Cap was 120 but prod logs (May 2026) showed Haiku regularly emitting
+   * 130-150 char headlines on rich-signal reps; rejecting them dropped
+   * /api/score into mock-fallback. 200 keeps the headline visibly
+   * one-line on the ScoreHero (~2 lines on mobile worst-case) without
+   * weaponizing the cap. */
+  headline: z.string().min(1).max(200),
   /** Phase 2 first-class bullets. Allow 0–2 so junk reps (composite < 25)
    *  can omit didWell without manufacturing praise. The prompt enforces
    *  "exactly 2" in the normal case. */
