@@ -71,10 +71,13 @@ export default function PrivacyPage() {
           </h2>
           <p className="mt-2 leading-relaxed">
             We use a small number of third-party services to run Cognify:
-            Supabase (database, auth, file storage), Anthropic (Claude, for scoring and feedback), Deepgram (speech-to-text), Vercel (hosting), Resend
-            (email). Each of these has its own privacy policy and processes only
-            the data required to perform its job. We don&apos;t share more than
-            we need to.
+            Supabase (database, auth, file storage), Anthropic (Claude, for
+            scoring and feedback), OpenAI (GPT, fallback scorer when Anthropic
+            is unavailable), Deepgram (speech-to-text), Hume.ai (vocal prosody
+            analysis for tone scoring), Vercel (hosting), Resend (email). Each
+            of these has its own privacy policy and processes only the data
+            required to perform its job. We don&apos;t share more than we need
+            to.
           </p>
         </div>
 
