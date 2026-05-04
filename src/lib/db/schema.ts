@@ -360,6 +360,10 @@ export const calibrationRuns = cognifyV2Schema.table(
     rubricVersion: text("rubric_version"),
     modelVersion: text("model_version"),
     status: text("status"),
+    /** Ch.C1 — when the alert webhook fired for this run. NULL when
+     *  no alert was needed or webhook was unconfigured. Same value
+     *  for every row in a run_id group (set on insert from the cron). */
+    alertSentAt: timestamp("alert_sent_at", { withTimezone: true }),
   },
   (t) => [
     index("calibration_runs_ran_at_idx").on(t.ranAt),
