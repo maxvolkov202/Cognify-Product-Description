@@ -821,10 +821,12 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const response = await anthropic.messages.create({
     model: MODELS.scoring,
-    // Bounded output: 6 dimension scores + ~3 callouts. 1024 is the 95th
-    // percentile observed across recent reps; 1200 leaves headroom without
-    // letting the model ramble.
-    max_tokens: 1200,
+    // Bounded output: 6 dimension scores + ~3 callouts + didWell/didntLand/
+    // nextRepFocus arrays. Prod log analysis (May 2026) showed 1200 truncated
+    // mid-JSON on multi-signal responses, dropping us into mock-fallback. 2400
+    // is the 99th percentile observed across rich-signal reps; further bumps
+    // become wasteful given prompt-cap discipline.
+    max_tokens: 2400,
     system: [
       {
         type: "text",
