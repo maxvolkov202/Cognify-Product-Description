@@ -71,9 +71,12 @@ const ASSUMED_CONTEXT_TO_AUDIENCE: readonly Anchor[] = [
   [5, 30],
 ];
 
-/** Higher sentence complexity → lower precision (long winding clauses
- *  reduce precision per sentence). */
-const COMPLEXITY_TO_PRECISION: readonly Anchor[] = [
+/** Ch.S1 — sentence complexity now drives logical_sequencing (not
+ *  precision). Long winding clauses degrade the listener's ability to
+ *  follow the SEQUENCE of ideas, which is what logical_sequencing
+ *  measures. Curve unchanged from the prior precision mapping — just
+ *  the destination sub-skill changes. */
+const COMPLEXITY_TO_LOGICAL_SEQ: readonly Anchor[] = [
   [0, 75],
   [1, 80],
   [1.5, 78],
@@ -81,6 +84,32 @@ const COMPLEXITY_TO_PRECISION: readonly Anchor[] = [
   [3, 55],
   [5, 35],
   [8, 25],
+];
+
+/** Ch.S1 — Word precision (0-100, derived from concreteness lexicon)
+ *  drives the precision sub-skill. Higher precision score = more
+ *  concrete vocabulary = higher precision sub-skill. */
+const WORD_PRECISION_TO_PRECISION: readonly Anchor[] = [
+  [0, 25],
+  [25, 40],
+  [40, 55],
+  [55, 70],
+  [62, 75],
+  [75, 85],
+  [88, 92],
+];
+
+/** Ch.S1 — Idea density (ideas/sentence) → idea_isolation. Cleaner
+ *  isolation (lower density) scores higher; ideas crammed together
+ *  score lower. DNA target: density <2.5. */
+const IDEA_DENSITY_TO_ISOLATION: readonly Anchor[] = [
+  [0.5, 60],
+  [1.0, 80],
+  [1.5, 85],
+  [2.0, 78],
+  [2.5, 65],
+  [3.5, 50],
+  [5.0, 35],
 ];
 
 /** More abstraction markers without examples → lower concreteness. */
@@ -220,6 +249,8 @@ const TEXT_DRIVEN_SUB_SKILLS: ReadonlySet<SubSkillId> = new Set<SubSkillId>([
   "audience_awareness",
   "precision",
   "concreteness",
+  "idea_isolation", // Ch.S1
+  "logical_sequencing", // Ch.S1 (was dimension_fallback pre-S1)
   // Structure
   "signposting",
   "opening_hook",
@@ -263,13 +294,23 @@ export function mapSignalsToSubSkillScores(
     score: interpolate(c.assumedContextMarkers, ASSUMED_CONTEXT_TO_AUDIENCE),
     signalSource: `assumedContextMarkers=${c.assumedContextMarkers}`,
   };
+  // Ch.S1: precision is now driven by wordPrecisionScore (concreteness
+  // lexicon); sentence complexity moves to logical_sequencing.
   map.precision = {
-    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_PRECISION),
-    signalSource: `sentenceComplexityIndex=${c.sentenceComplexityIndex}`,
+    score: interpolate(c.wordPrecisionScore, WORD_PRECISION_TO_PRECISION),
+    signalSource: `wordPrecisionScore=${c.wordPrecisionScore}`,
   };
   map.concreteness = {
     score: interpolate(c.abstractionMarkerCount, ABSTRACTION_TO_CONCRETENESS),
     signalSource: `abstractionMarkerCount=${c.abstractionMarkerCount}`,
+  };
+  map.logical_sequencing = {
+    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_LOGICAL_SEQ),
+    signalSource: `sentenceComplexityIndex=${c.sentenceComplexityIndex}`,
+  };
+  map.idea_isolation = {
+    score: interpolate(c.ideaDensity, IDEA_DENSITY_TO_ISOLATION),
+    signalSource: `ideaDensity=${c.ideaDensity}`,
   };
 
   // Structure

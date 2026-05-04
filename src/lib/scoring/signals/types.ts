@@ -30,6 +30,16 @@ export type ClarityTextSignals = {
    *  WITHOUT a concrete example within ±1 sentence. Higher = abstract
    *  language without grounding. */
   abstractionMarkerCount: number;
+  /** Ch.S1 — Distinct content nouns per sentence. Lemmatized count of
+   *  ≥2-char non-stopword tokens divided by sentence count. High =
+   *  many ideas crammed per sentence (low idea isolation); low = ideas
+   *  isolated cleanly. DNA target: <2.5. */
+  ideaDensity: number;
+  /** Ch.S1 — Word precision score 0-100 derived from average lexical
+   *  concreteness against `concreteness-words.ts` (Brysbaert subset).
+   *  Higher = concrete vocabulary; lower = abstract vocabulary.
+   *  DNA target: ≥3.5 on the underlying 1-5 scale (≥62 here). */
+  wordPrecisionScore: number;
 };
 
 export type StructureTextSignals = {

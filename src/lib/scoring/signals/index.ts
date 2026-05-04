@@ -112,7 +112,7 @@ export function renderTextSignalsBlock(signals: TextSignals | null): string | nu
 
   return [
     "SIGNALS (objective text-derived measurements — score the four LLM-scored content dimensions PRIMARILY against these numbers; the transcript is for verification + bullet grounding only):",
-    `  Clarity: jargon ${c.jargonRatePerMinute}/min (target <1) | assumed-context ${c.assumedContextMarkers} | sentence complexity ${c.sentenceComplexityIndex} clauses/sentence (target <2.0) | abstraction-without-example ${c.abstractionMarkerCount}`,
+    `  Clarity: jargon ${c.jargonRatePerMinute}/min (target <1) | assumed-context ${c.assumedContextMarkers} | sentence complexity ${c.sentenceComplexityIndex} clauses/sentence (target <2.0) | abstraction-without-example ${c.abstractionMarkerCount} | idea density ${c.ideaDensity} ideas/sentence (target <2.5) | word precision ${c.wordPrecisionScore}/100 (target ≥62)`,
     `  Structure: transitions ${s.transitionMarkerCount} (rate ${s.transitionMarkerRate}/min, target ≥3 per minute) | opening-position ${s.openingPositionScore}/100 | hierarchy markers ${s.pointHierarchyMarkers} | arc opening=${arc.clearOpening ? "Y" : "N"} middle=${arc.developedMiddle ? "Y" : "N"} close=${arc.definitiveClose ? "Y" : "N"}`,
     `  Conciseness: hedge ${cn.hedgeRatePerMinute}/min (target <1) | n-gram repetition ${cn.repetitionScore} (target <0.20) | words-per-distinct-idea ${cn.wordsPerDistinctIdea}`,
     `  Thinking Quality: claim-support ${(t.claimSupportRate * 100).toFixed(0)}% (target >70%) | counterargument ${t.counterargumentMarkers} | depth markers ${t.depthOfAnalysisMarkers} | honesty markers ${t.intellectualHonestyMarkers}`,

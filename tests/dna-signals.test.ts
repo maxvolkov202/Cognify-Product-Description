@@ -607,6 +607,209 @@ section("Ch.16b — planFocusWorkout preferSubSkill routes through drill bank");
 }
 
 // ————————————————————————————————————————————————————————————————
+// Ch.S1 — ideaDensity + wordPrecisionScore + sub-skill rewiring
+// ————————————————————————————————————————————————————————————————
+section("Ch.S1 — ideaDensity + wordPrecisionScore");
+
+{
+  // Determinism: same transcript → same idea density / precision score.
+  const idem1 = extractClaritySignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  const idem2 = extractClaritySignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    idem1.ideaDensity === idem2.ideaDensity,
+    `S1 ideaDensity is deterministic (${idem1.ideaDensity})`,
+  );
+  assert(
+    idem1.wordPrecisionScore === idem2.wordPrecisionScore,
+    `S1 wordPrecisionScore is deterministic (${idem1.wordPrecisionScore})`,
+  );
+
+  // ideaDensity bounds: never negative, finite even on empty-ish input.
+  const trivial = extractClaritySignals({
+    transcript: "Hi.",
+    durationMs: 1000,
+  });
+  assert(
+    trivial.ideaDensity >= 0 && Number.isFinite(trivial.ideaDensity),
+    `S1 ideaDensity stays finite & non-negative on minimal input (${trivial.ideaDensity})`,
+  );
+
+  // Concrete-vocabulary transcript scores HIGH on word precision.
+  const concrete = extractClaritySignals({
+    transcript:
+      "I unlocked the door, walked into the kitchen, opened the fridge, picked up the milk and bread, and made breakfast on a yellow plate.",
+    durationMs: 12000,
+  });
+  assert(
+    concrete.wordPrecisionScore >= 60,
+    `S1 concrete-vocabulary rep wordPrecisionScore=${concrete.wordPrecisionScore} ≥ 60`,
+  );
+
+  // Abstract-only transcript scores LOW on word precision.
+  const abstract = extractClaritySignals({
+    transcript:
+      "We need to ensure alignment, accountability, and resilience to drive innovation, productivity, and excellence across the entire organization with integrity and purpose.",
+    durationMs: 12000,
+  });
+  assert(
+    abstract.wordPrecisionScore <= 50,
+    `S1 abstract-vocabulary rep wordPrecisionScore=${abstract.wordPrecisionScore} ≤ 50`,
+  );
+
+  // Concrete > abstract on the same length transcripts (key independence
+  // assertion — the precision signal is doing real work).
+  assert(
+    concrete.wordPrecisionScore > abstract.wordPrecisionScore,
+    `S1 concrete (${concrete.wordPrecisionScore}) > abstract (${abstract.wordPrecisionScore}) on word precision`,
+  );
+
+  // ideaDensity: sentence with many distinct nouns scores HIGHER density
+  // than sentence with the same idea repeated.
+  const denseIdeas = extractClaritySignals({
+    transcript:
+      "The customer wants pricing transparency, a refund window, integration with their existing tools, and a vendor with experience in regulated industries.",
+    durationMs: 10000,
+  });
+  const oneIdea = extractClaritySignals({
+    transcript:
+      "The customer wants pricing. The customer wants pricing. The customer wants pricing. The customer wants pricing.",
+    durationMs: 10000,
+  });
+  assert(
+    denseIdeas.ideaDensity > oneIdea.ideaDensity,
+    `S1 dense-idea rep ideaDensity=${denseIdeas.ideaDensity} > repetitive ideaDensity=${oneIdea.ideaDensity}`,
+  );
+
+  // Stopwords are excluded from idea-density count: a transcript of
+  // pure stopwords has near-zero density.
+  const stopwordsOnly = extractClaritySignals({
+    transcript: "The. And. Or. But. So. Yes. No.",
+    durationMs: 5000,
+  });
+  assert(
+    stopwordsOnly.ideaDensity < 0.5,
+    `S1 stopword-only ideaDensity=${stopwordsOnly.ideaDensity} < 0.5`,
+  );
+
+  // wordPrecisionScore range bounds.
+  assert(
+    concrete.wordPrecisionScore >= 0 && concrete.wordPrecisionScore <= 100,
+    `S1 wordPrecisionScore in [0,100] (${concrete.wordPrecisionScore})`,
+  );
+  assert(
+    abstract.wordPrecisionScore >= 0 && abstract.wordPrecisionScore <= 100,
+    `S1 wordPrecisionScore in [0,100] for abstract too (${abstract.wordPrecisionScore})`,
+  );
+
+  // Sub-skill rewiring: precision sub-skill is now driven by
+  // wordPrecisionScore, NOT sentenceComplexityIndex.
+  const concreteAll = extractAllTextSignals({
+    transcript:
+      "I unlocked the door, walked into the kitchen, opened the fridge, picked up the milk and bread, and made breakfast on a yellow plate.",
+    durationMs: 12000,
+  });
+  const abstractAll = extractAllTextSignals({
+    transcript:
+      "We need to ensure alignment, accountability, and resilience to drive innovation, productivity, and excellence across the entire organization with integrity and purpose.",
+    durationMs: 12000,
+  });
+  const concreteMap = mapSignalsToSubSkillScores(concreteAll, {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  });
+  const abstractMap = mapSignalsToSubSkillScores(abstractAll, {
+    clarity: 70,
+    structure: 70,
+    conciseness: 70,
+    thinking_quality: 70,
+    delivery: 70,
+    tone: 70,
+  });
+  assert(
+    (concreteMap.precision?.score ?? 0) > (abstractMap.precision?.score ?? 0),
+    `S1 precision sub-skill differentiates concrete (${concreteMap.precision?.score}) > abstract (${abstractMap.precision?.score})`,
+  );
+  assert(
+    concreteMap.precision?.signalSource?.startsWith("wordPrecisionScore"),
+    `S1 precision sub-skill signalSource is wordPrecisionScore (was sentenceComplexityIndex pre-S1)`,
+  );
+
+  // logical_sequencing now exists as a text-driven sub-skill (was
+  // dimension_fallback pre-S1).
+  assert(
+    concreteMap.logical_sequencing?.signalSource?.startsWith(
+      "sentenceComplexityIndex",
+    ),
+    `S1 logical_sequencing sub-skill signalSource is sentenceComplexityIndex`,
+  );
+
+  // idea_isolation now exists as a text-driven sub-skill.
+  assert(
+    concreteMap.idea_isolation != null,
+    `S1 idea_isolation sub-skill is text-driven (not dimension_fallback)`,
+  );
+  assert(
+    concreteMap.idea_isolation!.signalSource?.startsWith("ideaDensity"),
+    `S1 idea_isolation signalSource is ideaDensity`,
+  );
+
+  // SIGNALS block renders the new fields.
+  const allSignals = extractAllTextSignals({
+    transcript: STRONG_TRANSCRIPT,
+    durationMs: STRONG_DURATION_MS,
+  });
+  assert(
+    typeof allSignals.clarity.ideaDensity === "number",
+    `S1 TextSignals.clarity.ideaDensity is a number`,
+  );
+  assert(
+    typeof allSignals.clarity.wordPrecisionScore === "number",
+    `S1 TextSignals.clarity.wordPrecisionScore is a number`,
+  );
+
+  // Plurals are normalized: "cars" stems to "car" (in lexicon at 5.0).
+  const plural = extractClaritySignals({
+    transcript: "The cars on the streets pass houses every minute.",
+    durationMs: 5000,
+  });
+  assert(
+    plural.wordPrecisionScore >= 50,
+    `S1 plural-aware lookup: 'cars/streets/houses' → wordPrecisionScore=${plural.wordPrecisionScore} ≥ 50`,
+  );
+
+  // Out-of-vocabulary tokens (proper nouns, numbers) don't dominate
+  // the score — falls back to neutral 50 when no in-lex tokens present.
+  const oov = extractClaritySignals({
+    transcript: "Klaviyo Hubspot Marketo Bombora Pardot Drift Mailchimp Outreach.",
+    durationMs: 5000,
+  });
+  assert(
+    oov.wordPrecisionScore === 50,
+    `S1 OOV-only transcript falls back to neutral 50 (got ${oov.wordPrecisionScore})`,
+  );
+
+  // Empty transcript guard: ideaDensity returns 0 (not NaN).
+  const empty = extractClaritySignals({
+    transcript: "",
+    durationMs: 5000,
+  });
+  assert(
+    empty.ideaDensity === 0 && Number.isFinite(empty.ideaDensity),
+    `S1 empty-transcript ideaDensity=0 (not NaN)`,
+  );
+}
+
+// ————————————————————————————————————————————————————————————————
 // Summary
 // ————————————————————————————————————————————————————————————————
 console.log(`\n${pass} passed, ${fail} failed`);
