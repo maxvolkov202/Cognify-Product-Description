@@ -832,6 +832,15 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     // is the 99th percentile observed across rich-signal reps; further bumps
     // become wasteful given prompt-cap discipline.
     max_tokens: 2400,
+    // Calibration stability: Anthropic SDK defaults temperature to 1.0,
+    // which causes 30-50pt run-to-run swings on the same input (documented
+    // in docs/calibration-baseline-2026-05-d2.md). Dropping to 0.2 keeps
+    // some output variation (helpful for callout phrasing diversity) but
+    // tightens dim-score variance to ±2-5pt across runs — within the ±5
+    // tolerance the harness gates against. We deliberately don't go to 0
+    // because at temp=0 the LLM produces near-identical callouts on
+    // similar reps, which surfaces in the user UI as repetitive feedback.
+    temperature: 0.2,
     system: [
       {
         type: "text",
