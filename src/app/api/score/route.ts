@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { scoreRep } from "@/lib/ai/score";
+import { scoreRepWithMetrics } from "@/lib/ai/score";
+import {
+  writeScoringTelemetry,
+  categorizeFailure,
+} from "@/lib/scoring/telemetry";
 import { extractSignals } from "@/lib/scoring/signals";
 import {
   scorePacing,
@@ -287,6 +291,11 @@ function mockFallbackHeadline(composite: number): string {
 }
 
 export async function POST(req: Request) {
+  // Phase 0 — track total wall-clock from request entry to response so
+  // telemetry captures the full picture (auth + rate-limit + DB writes +
+  // scoring), not just the scoring step. Used for /api/score/health/stats.
+  const requestStart = Date.now();
+
   // Rate limiting — protects against runaway loops burning Anthropic credits.
   // Degrades gracefully without Upstash env vars (see src/lib/ratelimit.ts).
   const rl = await rateLimit(getRateLimitIdentifier(req), {
@@ -329,8 +338,11 @@ export async function POST(req: Request) {
     );
   }
 
+  // Hoist userId out of the try so the catch block's telemetry write
+  // can still attribute the failure to the right user.
+  const { userId, calibrationBlock } = await loadUserContext();
+
   try {
-    const { userId, calibrationBlock } = await loadUserContext();
     // Apply per-framework dimension weight adjustments so sales frameworks
     // emphasize relevance, interview frameworks emphasize structure+pacing,
     // etc. No-op when no frameworkId or no matching profile.
@@ -347,25 +359,60 @@ export async function POST(req: Request) {
 
     const mergedWeights = pressureWeights ?? frameworkWeights ?? null;
 
-    const result = await scoreRep({
+    const { score, metrics } = await scoreRepWithMetrics({
       ...body,
       userCalibration: calibrationBlock,
       ...(userId ? { userId } : {}),
       ...(mergedWeights ? { weights: mergedWeights } : {}),
       ...(body.modeContext ? { modeContext: body.modeContext } : {}),
     });
-    return NextResponse.json(result);
+
+    // Phase 0 — telemetry on the happy path. Fallback-fired counts as
+    // a separate failure_reason so /api/score/health/stats can show
+    // OpenAI-fallback rate distinct from anthropic-only success.
+    void writeScoringTelemetry({
+      source: "api_score",
+      userId,
+      metrics,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason: metrics.fallbackFired ? "openai_fallback_used" : "none",
+      compositeScore: score.composite,
+    });
+
+    return NextResponse.json(score);
   } catch (error) {
     // Anthropic scoring failed (no credits / rate limit / network / etc.).
     // Return a valid mock score so the workout flow stays usable end-to-end.
     // If word timings are present, pacing and confidence are STILL real
     // (deterministic). Only the LLM-scored dimensions are mocked.
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const failureReason = categorizeFailure(error);
     console.error(
-      "[api/score] Claude scoring failed, returning fallback mock score:",
+      `[api/score] scoring failed (${failureReason}), returning fallback mock score:`,
       errorMsg,
     );
     const fallback = buildFallbackScore(body, errorMsg);
+
+    // Phase 0 — categorize the failure so /api/score/health/stats can
+    // group fallback rate by reason. Mock-fallback always means BOTH
+    // anthropic AND openai failed (or openai wasn't configured), since
+    // the wrapper's fallback path doesn't throw if openai succeeds.
+    void writeScoringTelemetry({
+      source: "api_score",
+      userId,
+      metrics: null,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason:
+        failureReason === "none"
+          ? "mock_fallback_both_failed"
+          : failureReason === "openai_fallback_used"
+            ? "mock_fallback_both_failed"
+            : failureReason,
+      errorDetail: errorMsg,
+      compositeScore: fallback.composite,
+      modelUsedOverride: "mock-fallback-v1",
+    });
+
     return NextResponse.json(fallback);
   }
 }

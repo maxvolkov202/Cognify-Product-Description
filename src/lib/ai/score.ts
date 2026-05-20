@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { anthropic, MODELS, MODEL_VERSIONS } from "./claude";
+import { anthropic, MODELS, MODEL_VERSIONS, type AnthropicCallMetrics } from "./claude";
 import {
   ALL_DIMENSIONS,
   DIMENSION_RUBRIC,
@@ -743,7 +743,40 @@ function pickSubSkillsForDim(
   return any ? out : undefined;
 }
 
+/**
+ * Phase 0 — merged metrics from a single scoring call. Joins the
+ * upstream LLM-call metrics from anthropic.messages.createWithMetrics
+ * with the validation+sanitization timing that happens here in scoreRep.
+ * Total server duration of the scoring step is the sum, captured at the
+ * scoreRep boundary.
+ *
+ * Route handlers wrap their own outer timing (which includes auth +
+ * rate-limit + DB writes) and merge into a scoring_telemetry row.
+ */
+export type ScoreRepMetrics = AnthropicCallMetrics & {
+  validationDurationMs: number;
+  /** scoreRep boundary total — model + validation, EXCLUDING route-level
+   *  auth / rate-limit / DB writes. */
+  scoreRepTotalMs: number;
+};
+
+export type ScoreRepResult = {
+  score: RepScore;
+  metrics: ScoreRepMetrics;
+};
+
+/**
+ * Phase 0 — backward-compat wrapper. Existing callers (e.g. test scripts)
+ * keep using the legacy single-return shape; production route handlers
+ * use scoreRepWithMetrics directly so they can write a scoring_telemetry
+ * row at request end.
+ */
 export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
+  const { score } = await scoreRepWithMetrics(input);
+  return score;
+}
+
+export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRepResult> {
   const timedTranscript = renderTimedTranscript(input.transcript, input.words);
   const hasWordTimestamps = input.words && input.words.length > 0;
 
@@ -824,7 +857,16 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     .filter(Boolean)
     .join("\n\n");
 
-  const response = await anthropic.messages.create({
+  // Compute prompt size in bytes BEFORE the call so the metrics row
+  // records what we actually shipped (cache_control blocks count even
+  // when they're cache-read). Sums system blocks + user message text.
+  const systemTextBytes = [systemPrompt, rubricBlock, COMPACT_KNOWLEDGE, SUB_SKILL_REFERENCE, input.userCalibration ?? ""]
+    .reduce((acc, s) => acc + Buffer.byteLength(s ?? "", "utf8"), 0);
+  const userTextBytes = Buffer.byteLength(userPrompt, "utf8");
+  const promptSizeBytes = systemTextBytes + userTextBytes;
+
+  const scoreRepStart = Date.now();
+  const { response, metrics: callMetrics } = await anthropic.messages.createWithMetrics({
     model: MODELS.scoring,
     // Bounded output: 6 dimension scores + ~3 callouts + didWell/didntLand/
     // nextRepFocus arrays. Prod log analysis (May 2026) showed 1200 truncated
@@ -882,8 +924,9 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
         content: [{ type: "text", text: userPrompt }],
       },
     ],
-  });
+  }, promptSizeBytes);
 
+  const validationStart = Date.now();
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
     throw new Error("Claude returned no text content");
@@ -1057,7 +1100,10 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const compositeScore = composite(dimensionMap, input.weights);
 
-  return {
+  const validationDurationMs = Date.now() - validationStart;
+  const scoreRepTotalMs = Date.now() - scoreRepStart;
+
+  const score: RepScore = {
     composite: compositeScore,
     dimensions: finalDimensions,
     ...(validated.structuralAdherence != null
@@ -1079,5 +1125,14 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     // back the score from the user; they see it immediately. The flag
     // surfaces in /ops so operators can retroactively confirm or correct.
     requiresHumanReview: compositeScore >= 95,
+  };
+
+  return {
+    score,
+    metrics: {
+      ...callMetrics,
+      validationDurationMs,
+      scoreRepTotalMs,
+    },
   };
 }

@@ -231,6 +231,101 @@ async function messagesCreateWithFallback(
 }
 
 /**
+ * Phase 0 — telemetry-bearing variant of messagesCreateWithFallback.
+ * Returns the same Anthropic-shaped response PLUS a metrics object
+ * capturing what actually happened upstream so the scoring path can
+ * write a scoring_telemetry row at request end.
+ *
+ * Why a separate function rather than overloading `create`: most call
+ * sites (framework gen, weekly narrative, talking points, prompt gen,
+ * etc.) don't care about metrics — keeping `create` unchanged means
+ * those paths stay zero-overhead and we don't have to update them.
+ * Only the scoring path uses this variant.
+ *
+ * The metrics object DOES NOT include validation/sanitization timing
+ * — that happens in scoreRep after this returns, so scoreRep wraps
+ * its own timing around the validation step and merges.
+ */
+export type AnthropicCallMetrics = {
+  /** Final model that answered. 'openai-fallback:<model>' on fallback. */
+  modelUsed: string;
+  /** Wall-clock time of the upstream call (anthropic OR openai, includes
+   *  fallback overhead when fallback fired). */
+  modelDurationMs: number;
+  /** Prompt size we sent — sum of system blocks + user message bytes.
+   *  Computed by the caller (the wrapper doesn't know what counts as
+   *  "the prompt"); passed in via the recordPromptSize callback. */
+  promptSizeBytes: number | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  cacheReadTokens: number | null;
+  cacheCreationTokens: number | null;
+  /** Whether the OpenAI fallback fired. When true, the wrapper consumed
+   *  both an Anthropic failure AND an OpenAI call. */
+  fallbackFired: boolean;
+};
+
+export type AnthropicCallResult = {
+  response: Anthropic.Messages.Message;
+  metrics: AnthropicCallMetrics;
+};
+
+async function messagesCreateWithMetrics(
+  params: Anthropic.Messages.MessageCreateParamsNonStreaming,
+  promptSizeBytes?: number,
+): Promise<AnthropicCallResult> {
+  const start = Date.now();
+  let fallbackFired = false;
+
+  let response: Anthropic.Messages.Message;
+  try {
+    response = (await realAnthropic.messages.create(
+      params,
+    )) as Anthropic.Messages.Message;
+  } catch (err) {
+    if (!shouldFallback(err) || !realOpenAI) {
+      // Surface the error so the caller can categorize it for telemetry.
+      throw err;
+    }
+    fallbackFired = true;
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[ai] Anthropic call failed — falling back to OpenAI ${openaiFallbackModel}. Reason:`,
+      errMsg.slice(0, 200),
+    );
+    const openaiParams = translateToOpenAI(params);
+    const openaiResp = await realOpenAI.chat.completions.create(openaiParams);
+    response = translateFromOpenAI(openaiResp);
+  }
+
+  const modelDurationMs = Date.now() - start;
+  const usage = response.usage;
+
+  const metrics: AnthropicCallMetrics = {
+    modelUsed: response.model,
+    modelDurationMs,
+    promptSizeBytes: promptSizeBytes ?? null,
+    inputTokens: usage?.input_tokens ?? null,
+    outputTokens: usage?.output_tokens ?? null,
+    cacheReadTokens: usage?.cache_read_input_tokens ?? null,
+    cacheCreationTokens: usage?.cache_creation_input_tokens ?? null,
+    fallbackFired,
+  };
+
+  // Single structured log line per call — `[score] anthropic: ...` is
+  // grep-friendly in Vercel logs and lets us correlate without joining
+  // the telemetry table.
+  console.log(
+    `[ai] call: model=${metrics.modelUsed} promptBytes=${metrics.promptSizeBytes ?? "?"} ` +
+      `cacheRead=${metrics.cacheReadTokens ?? 0} cacheCreate=${metrics.cacheCreationTokens ?? 0} ` +
+      `input=${metrics.inputTokens ?? 0} output=${metrics.outputTokens ?? 0} ` +
+      `durMs=${metrics.modelDurationMs} fallback=${metrics.fallbackFired}`,
+  );
+
+  return { response, metrics };
+}
+
+/**
  * The public `anthropic` export. Preserves the
  * `anthropic.messages.create(...)` shape every call site already uses,
  * but routes through the fallback wrapper above. Streaming is NOT
@@ -240,6 +335,11 @@ async function messagesCreateWithFallback(
 export const anthropic = {
   messages: {
     create: messagesCreateWithFallback,
+    /** Phase 0 — telemetry-bearing variant. Use from the scoring path
+     *  only. Returns `{ response, metrics }` so the caller can write a
+     *  scoring_telemetry row. Other call sites should keep using
+     *  `.create()` (zero-overhead, no metrics). */
+    createWithMetrics: messagesCreateWithMetrics,
   },
 };
 

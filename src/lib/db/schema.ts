@@ -783,6 +783,70 @@ export const repsRelations = relations(reps, ({ many, one }) => ({
 }));
 
 /**
+ * Phase 0 — scoring pipeline telemetry. One row per scoring request, written
+ * by /api/score and /api/score-internal regardless of outcome. Drives the
+ * /api/score/health/stats dashboard and lets us prove (or disprove) that
+ * latency/fallback changes actually moved the needle.
+ *
+ * failureReason classification:
+ *   none                      — happy path, anthropic answered cleanly
+ *   timeout                   — anthropic exceeded SCORING_ANTHROPIC_TIMEOUT_MS
+ *   rate_limit_429            — anthropic returned 429
+ *   validation_failed         — anthropic returned, Zod parse rejected
+ *   truncated                 — output hit max_tokens mid-JSON
+ *   openai_fallback_used      — anthropic failed, openai answered
+ *   mock_fallback_both_failed — anthropic AND openai (or no openai key) failed
+ *   network_error             — couldn't reach anthropic at all
+ *   unknown                   — caught error didn't match any category
+ *
+ * Append-only; we never UPDATE these rows. Old rows can be pruned by a
+ * weekly cron once retention exceeds 90d if needed.
+ */
+export const scoringTelemetry = cognifyV2Schema.table(
+  "scoring_telemetry",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Nullable — /api/score (sync user-facing path) doesn't know repId at
+    // scoring time; only /api/score-internal does.
+    repId: uuid("rep_id"),
+    userId: uuid("user_id"),
+    // Which endpoint wrote this row.
+    source: text("source").notNull(), // 'api_score' | 'api_score_internal'
+    // Final model that actually returned content. On fallback this is
+    // 'openai-fallback:<model>'. On full failure this is 'mock-fallback-v1'.
+    modelUsed: text("model_used").notNull(),
+    // Prompt-size budget telemetry — the lever we're optimizing.
+    promptSizeBytes: integer("prompt_size_bytes"),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    cacheReadTokens: integer("cache_read_tokens"),
+    cacheCreationTokens: integer("cache_creation_tokens"),
+    // Timing breakdown — what's actually expensive.
+    modelDurationMs: integer("model_duration_ms"),
+    validationDurationMs: integer("validation_duration_ms"),
+    totalServerDurationMs: integer("total_server_duration_ms"),
+    // Future phases populate these (kept nullable so the schema is stable):
+    //   Phase 4: ragDurationMs (knowledge retrieval timing)
+    //   Phase 5: stage1DurationMs / stage2DurationMs (two-stage scoring)
+    ragDurationMs: integer("rag_duration_ms"),
+    failureReason: text("failure_reason").notNull(), // see classification above
+    // Server-only error detail for debugging. Never user-facing. Trimmed
+    // to 500 chars at write time so a verbose Anthropic error doesn't bloat
+    // the table.
+    errorDetail: text("error_detail"),
+    compositeScore: integer("composite_score"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("scoring_telemetry_created_idx").on(t.createdAt),
+    index("scoring_telemetry_failure_idx").on(t.failureReason, t.createdAt),
+    index("scoring_telemetry_model_idx").on(t.modelUsed),
+  ],
+);
+
+/**
  * DNA Ch.C2 — operator review verdicts on flagged reps.
  *
  * One row per operator review of a rep that flagged for human review
