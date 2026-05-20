@@ -44,8 +44,8 @@ export const metadata: Metadata = {
     description: "The Duolingo for communication.",
   },
   icons: {
-    icon: [{ url: "/logo/mark.svg", type: "image/svg+xml" }],
-    apple: "/logo/mark.svg",
+    icon: [{ url: "/logo/mark.png", type: "image/png" }],
+    apple: "/logo/mark.png",
   },
   manifest: "/manifest.json",
 };

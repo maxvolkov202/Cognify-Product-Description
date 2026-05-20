@@ -122,8 +122,8 @@ export default function HowItWorksPage() {
           to a moment in your transcript. No black-box scoring.
         </p>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-ink-200">
-          <table className="w-full text-left">
+        <div className="mt-10 overflow-x-auto rounded-2xl border border-ink-200">
+          <table className="w-full min-w-[640px] text-left">
             <thead>
               <tr className="bg-ink-50 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
                 <th className="px-6 py-4">Group</th>

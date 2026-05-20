@@ -55,3 +55,8 @@ next-env.d.ts
 seed-operator.mjs
 
 .vercel
+
+# local reference transcripts (dropped in by Max for context, not part of repo)
+*_transcript.txt
+nick_saraev_*.txt
+Build_mobile_apps_*.txt

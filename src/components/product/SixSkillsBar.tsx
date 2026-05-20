@@ -139,7 +139,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
           onClick={toggle}
           aria-expanded={!effectiveCollapsed}
           aria-label={effectiveCollapsed ? "Expand skills bar" : "Collapse skills bar"}
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 md:size-7"
         >
           {effectiveCollapsed ? (
             <ChevronUp className="size-4" aria-hidden="true" />

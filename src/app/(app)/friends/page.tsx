@@ -148,7 +148,7 @@ function RealFriendsView({
 
   return (
     <>
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
         <QuickStat
           icon={<Users className="size-4" />}
           label="Friends"
@@ -416,7 +416,7 @@ function MockFriendsPreview() {
         />
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
         <QuickStat
           icon={<Users className="size-4" />}
           label="Friends"
@@ -597,7 +597,7 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
         <button
           type="button"
           disabled
-          className="hidden rounded-lg border border-ink-200 p-1.5 text-ink-300 sm:inline-flex"
+          className="inline-flex rounded-lg border border-ink-200 p-1.5 text-ink-300"
           title="Message (preview)"
           aria-label="Message this friend (preview — coming soon)"
         >

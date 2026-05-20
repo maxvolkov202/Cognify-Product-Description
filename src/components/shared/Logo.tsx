@@ -6,19 +6,29 @@ type LogoProps = {
   variant?: "mark" | "full";
   className?: string;
   href?: string;
+  /** Rendered pixel size of the mark. Default 36 for nav legibility. */
+  size?: number;
 };
 
-export function Logo({ variant = "full", className, href = "/" }: LogoProps) {
+export function Logo({
+  variant = "full",
+  className,
+  href = "/",
+  size = 36,
+}: LogoProps) {
   const content = (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
-        src="/logo/mark.svg"
+        src="/logo/mark.png"
         alt=""
         aria-hidden="true"
-        width={32}
-        height={32}
+        width={256}
+        height={256}
         priority
-        className="size-8 rounded-[10px]"
+        quality={100}
+        sizes={`${size}px`}
+        className="shrink-0"
+        style={{ width: size, height: size }}
       />
       {variant === "full" && (
         <span className="text-[21px] font-extrabold tracking-tight text-ink-900">
