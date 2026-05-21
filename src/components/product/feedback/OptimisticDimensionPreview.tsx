@@ -20,34 +20,73 @@ import { cn } from "@/lib/utils/cn";
  */
 
 type Props = {
-  /** The two deterministic dim scores (delivery + thinking_quality). */
+  /** Dim scores known so far. Phase 2 path: 2 deterministic dims
+   *  (delivery + thinking_quality). Phase 5 path: all 6 dims from
+   *  /api/score/stage1. Cards without a score render as shimmer. */
   optimisticDims: DimensionScore[];
+  /** Phase 5 — when stage 1 has landed, all 6 dims are populated so
+   *  we show a composite + "writing your feedback…" headline strip
+   *  above the grid. Optional so the Phase 2 path keeps its existing
+   *  shape (no header, just 2 cards + shimmer). */
+  stage1Header?: {
+    composite: number;
+    headlineTone: "blunt" | "directive" | "praise" | "celebratory";
+  };
 };
 
-export function OptimisticDimensionPreview({ optimisticDims }: Props) {
+export function OptimisticDimensionPreview({
+  optimisticDims,
+  stage1Header,
+}: Props) {
   const scoreByDim = new Map<SkillDimension, DimensionScore>();
   for (const d of optimisticDims) scoreByDim.set(d.dimension, d);
 
   return (
-    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
-      {SKILL_DIMENSIONS.map((dim, i) => {
-        const real = scoreByDim.get(dim);
-        if (real) {
-          return (
-            <div key={dim}>
-              <DimensionCard
-                dimension={dim}
-                score={real.score}
-                callouts={[]}
-                expanded={false}
-                onToggle={() => {}}
-                delaySec={0.1 + i * 0.04}
-              />
+    <div className="space-y-4">
+      {stage1Header && (
+        <div className="rounded-2xl border border-ink-200 bg-white p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-ink-400">
+                This rep
+              </div>
+              <div className="mt-0.5 text-2xl font-extrabold text-ink-900">
+                {Math.round(stage1Header.composite)}
+                <span className="ml-1 text-base font-semibold text-ink-400">/100</span>
+              </div>
             </div>
-          );
-        }
-        return <ShimmerCard key={dim} dimension={dim} />;
-      })}
+            <div className="text-right text-xs text-ink-500">
+              <div className="inline-flex items-center gap-2 rounded-full bg-ink-50 px-3 py-1 font-medium text-ink-700">
+                <span className="size-1.5 animate-pulse rounded-full bg-brand-purple" />
+                Writing your detailed feedback…
+              </div>
+              <div className="mt-1 text-[11px] text-ink-400">
+                Headline tone: {stage1Header.headlineTone}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
+        {SKILL_DIMENSIONS.map((dim, i) => {
+          const real = scoreByDim.get(dim);
+          if (real) {
+            return (
+              <div key={dim}>
+                <DimensionCard
+                  dimension={dim}
+                  score={real.score}
+                  callouts={[]}
+                  expanded={false}
+                  onToggle={() => {}}
+                  delaySec={0.1 + i * 0.04}
+                />
+              </div>
+            );
+          }
+          return <ShimmerCard key={dim} dimension={dim} />;
+        })}
+      </div>
     </div>
   );
 }

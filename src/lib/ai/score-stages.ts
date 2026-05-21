@@ -662,18 +662,22 @@ export async function scoreStage2(
 
 // ——— Combined wrapper (for backward-compat callers) ———————————
 
-/** Sequential two-stage scoring that returns the same RepScore shape as
- *  the legacy scoreRepWithMetrics. Useful for callers that don't want
- *  the progressive UI benefit but want the two-stage cleanliness. */
-export async function scoreRepTwoStage(
-  input: ScoreRepInput,
-): Promise<ScoreRepResult> {
-  const t0 = Date.now();
-  const { stage1, context, metrics: stage1Metrics } = await scoreStage1(input);
-  const { stage2, metrics: stage2Metrics } = await scoreStage2(input, stage1, context);
-  const scoreRepTotalMs = Date.now() - t0;
-
-  const score: RepScore = {
+/**
+ * Phase 5 — assemble the full RepScore from stage1 + stage2 outputs.
+ * Exported so the /api/score/stage2 route can return the same shape
+ * /api/score does, keeping client-side saveRep persistence unchanged.
+ *
+ * Stage1Output + Stage2Output + the (optional) prosody features from
+ * the scoring context are all we need to produce a complete RepScore.
+ * When prosody is absent (e.g. /api/score/stage2 was called without
+ * a precomputed context), prosodyAvailable defaults to false.
+ */
+export function assembleRepScore(
+  stage1: Stage1Output,
+  stage2: Stage2Output,
+  opts?: { prosodyFeatures?: ProsodyFeatures | null },
+): RepScore {
+  return {
     composite: stage1.composite,
     dimensions: stage1.dimensions,
     ...(stage1.structuralAdherence != null
@@ -690,9 +694,27 @@ export async function scoreRepTwoStage(
     headlineTone: stage1.headlineTone,
     nextRepHint: stage2.nextRepHint,
     feedbackVersion: FEEDBACK_VERSION,
-    prosodyAvailable: hasWorkerProsody(context.prosodyFeatures),
+    prosodyAvailable: opts?.prosodyFeatures
+      ? hasWorkerProsody(opts.prosodyFeatures)
+      : false,
     requiresHumanReview: stage1.composite >= 95,
   };
+}
+
+/** Sequential two-stage scoring that returns the same RepScore shape as
+ *  the legacy scoreRepWithMetrics. Useful for callers that don't want
+ *  the progressive UI benefit but want the two-stage cleanliness. */
+export async function scoreRepTwoStage(
+  input: ScoreRepInput,
+): Promise<ScoreRepResult> {
+  const t0 = Date.now();
+  const { stage1, context, metrics: stage1Metrics } = await scoreStage1(input);
+  const { stage2, metrics: stage2Metrics } = await scoreStage2(input, stage1, context);
+  const scoreRepTotalMs = Date.now() - t0;
+
+  const score = assembleRepScore(stage1, stage2, {
+    prosodyFeatures: context.prosodyFeatures,
+  });
 
   // Sum the two stages' metrics into one ScoreRepMetrics shape that
   // mirrors the legacy single-call result. modelDurationMs is the SUM
