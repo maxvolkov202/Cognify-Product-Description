@@ -141,8 +141,10 @@ export type Callout = {
   body: string;
   quote: string | null;
   suggestedRewrite: string | null;
-  transcriptStart: number;
-  transcriptEnd: number;
+  /** Nullable: LLMs occasionally omit the timestamps when they can't
+   *  ground the callout. UI renders without jump-to-moment when null. */
+  transcriptStart: number | null;
+  transcriptEnd: number | null;
 };
 
 export type DimensionScore = {

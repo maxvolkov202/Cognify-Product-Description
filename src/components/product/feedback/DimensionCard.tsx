@@ -129,7 +129,12 @@ function CalloutDetail({ callout }: { callout: Callout }) {
   const { seekToMs, getCalloutId } = useAudioControl();
   const isPositive = callout.tone === "positive" || callout.tone === "neutral";
   const accentText = isPositive ? "text-success" : "text-brand-purple";
-  const timestamp = formatTimestamp(callout.transcriptStart);
+  // transcriptStart is nullable when the LLM couldn't ground the callout.
+  // Hide the jump-to-moment button in that case rather than seek to 0.
+  const hasTimestamp = callout.transcriptStart != null;
+  const timestamp = hasTimestamp
+    ? formatTimestamp(callout.transcriptStart!)
+    : null;
   const calloutId = getCalloutId(callout);
   const showCorrection =
     !isPositive && calloutId && callout.dimension !== "structural_adherence";
@@ -168,13 +173,15 @@ function CalloutDetail({ callout }: { callout: Callout }) {
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => seekToMs(callout.transcriptStart)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition-colors hover:border-ink-300 hover:text-ink-900"
-        >
-          Jump to {timestamp}
-        </button>
+        {hasTimestamp && (
+          <button
+            type="button"
+            onClick={() => seekToMs(callout.transcriptStart!)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition-colors hover:border-ink-300 hover:text-ink-900"
+          >
+            Jump to {timestamp}
+          </button>
+        )}
         {showCorrection && calloutId && (
           <CalloutCorrectionRow
             calloutId={calloutId}

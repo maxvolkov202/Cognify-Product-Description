@@ -19,6 +19,9 @@ import type { ScoreRepModeContext } from "@/lib/ai/score";
 import { RecordButton } from "./RecordButton";
 import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
 import { FlowFeedbackPanel } from "./FlowFeedbackPanel";
+import { OptimisticDimensionPreview } from "./feedback/OptimisticDimensionPreview";
+import { computeOptimisticDims } from "@/lib/scoring/deterministic-client";
+import type { DimensionScore } from "@/types/domain";
 import { RepFrameworkStrip } from "./RepFrameworkStrip";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { GradientButton } from "@/components/shared/GradientButton";
@@ -143,7 +146,39 @@ type Phase =
       durationRatio: number;
       canProceed: boolean;
     }
-  | { kind: "scoring" }
+  | {
+      kind: "scoring";
+      /** Phase 2: deterministic dim scores computed client-side from word
+       *  timings the moment Deepgram returns. Populates the
+       *  OptimisticDimensionPreview with real delivery + thinking_quality
+       *  cards while the LLM call is in flight. Absent when word timings
+       *  are missing (audio-only paths or transcription failed). */
+      optimisticDims?: DimensionScore[];
+    }
+  | {
+      // Phase 5 progressive UI — intermediate state after /api/score/stage1
+      // returns. All 6 dim scores + composite + headlineTone in hand; only
+      // the copy (headline + callouts + bullets) is still loading via
+      // /api/score/stage2. UI shows the dim grid with real scores instead
+      // of shimmer placeholders + a "writing your detailed feedback…"
+      // header strip.
+      kind: "scoring-copy";
+      stage1: {
+        composite: number;
+        dimensions: DimensionScore[];
+        primaryFocusDimension:
+          | "clarity"
+          | "structure"
+          | "conciseness"
+          | "thinking_quality"
+          | "delivery"
+          | "tone";
+        headlineTone: "blunt" | "directive" | "praise" | "celebratory";
+      };
+      recording: RecordingResult;
+      transcript: string;
+      words: { word: string; startMs: number; endMs: number }[];
+    }
   | { kind: "saving" }
   | {
       // Async path: Edge Function is processing the rep. Shows progress UI
@@ -154,6 +189,8 @@ type Phase =
       recording: RecordingResult;
       transcript: string;
       words: { word: string; startMs: number; endMs: number }[];
+      /** Phase 2: same optimistic dims as the sync scoring phase. */
+      optimisticDims?: DimensionScore[];
     }
   | {
       kind: "done";
@@ -174,6 +211,13 @@ type Phase =
 // on a public URL.
 const USE_ASYNC_SCORING =
   process.env.NEXT_PUBLIC_USE_ASYNC_SCORING === "true";
+
+// Phase 5 progressive UI flag — when set to "true", the sync scoring
+// path calls /api/score/stage1 first (renders dim grid immediately),
+// then /api/score/stage2 (fills in headline + callouts + bullets).
+// Default OFF for safety; set in .env.local for dev testing.
+const USE_TWO_STAGE_SCORING =
+  process.env.NEXT_PUBLIC_USE_TWO_STAGE_SCORING === "true";
 
 export function RepSurface({
   prompt,
@@ -351,6 +395,20 @@ export function RepSurface({
     transcript: string,
     words: { word: string; startMs: number; endMs: number }[],
   ) => {
+    // Phase 2 — compute deterministic dim scores client-side from word
+    // timings the moment we have them. delivery + thinking_quality
+    // render immediately while the LLM call is in flight; the other
+    // four dims shimmer. When the server response arrives, all six
+    // dims get replaced with the canonical values (which will MATCH
+    // the optimistic ones since both compute from the same pure
+    // functions — server is still source of truth).
+    const optimisticDims =
+      computeOptimisticDims({
+        words,
+        transcript,
+        durationMs: result.durationMs,
+        timeBudgetMs: maxDurationMs,
+      }) ?? undefined;
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
     // Supabase session, skip the blocking /api/score call and instead:
@@ -410,6 +468,7 @@ export function RepSurface({
           recording: result,
           transcript,
           words,
+          ...(optimisticDims ? { optimisticDims } : {}),
         });
         return;
       }
@@ -418,7 +477,33 @@ export function RepSurface({
     }
 
     let score: RepScore;
-    setPhase({ kind: "scoring" });
+    setPhase({
+      kind: "scoring",
+      ...(optimisticDims ? { optimisticDims } : {}),
+    });
+
+    // Body the scoring endpoints all consume — same shape across legacy,
+    // stage1, stage2. Built once and reused.
+    const scoreBody = {
+      transcript:
+        transcript ||
+        `Rep recorded for ${Math.round(result.durationMs / 1000)}s on: ${prompt}`,
+      promptText: prompt,
+      durationMs: result.durationMs,
+      ...(words.length > 0 ? { words } : {}),
+      ...(framework
+        ? {
+            frameworkId: framework.id,
+            frameworkNodes: framework.nodes.map((n) => ({
+              label: n.label,
+              description: n.description,
+            })),
+          }
+        : {}),
+      ...(pressureArchetypeId ? { pressureArchetypeId } : {}),
+      ...(scoreModeContext ? { modeContext: scoreModeContext } : {}),
+    };
+
     // Client-side timeout so Claude hangs don't trap the user. Bumped from
     // 20s → 45s because the server route has maxDuration=30 AND Claude
     // calls against the full knowledge base + rubric can run 15-25s on
@@ -427,50 +512,107 @@ export function RepSurface({
     // the true ceiling.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 45_000);
-    try {
-      const res = await fetch("/api/score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          transcript:
-            transcript ||
-            `Rep recorded for ${Math.round(result.durationMs / 1000)}s on: ${prompt}`,
-          promptText: prompt,
-          durationMs: result.durationMs,
-          ...(words.length > 0 ? { words } : {}),
-          ...(framework
-            ? {
-                frameworkId: framework.id,
-                frameworkNodes: framework.nodes.map((n) => ({
-                  label: n.label,
-                  description: n.description,
-                })),
-              }
-            : {}),
-          ...(pressureArchetypeId
-            ? { pressureArchetypeId }
-            : {}),
-          ...(scoreModeContext ? { modeContext: scoreModeContext } : {}),
-        }),
-      });
-      clearTimeout(timeoutId);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? "Scoring failed.");
+
+    if (USE_TWO_STAGE_SCORING) {
+      // Phase 5 progressive UI path. Stage 1 returns scores quickly,
+      // we render the dim grid with real numbers + a "writing your
+      // feedback…" header, then stage 2 fills in the copy.
+      try {
+        const s1Res = await fetch("/api/score/stage1", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify(scoreBody),
+        });
+        if (!s1Res.ok) {
+          const body = await s1Res.json().catch(() => ({}));
+          throw new Error(body.message ?? "Stage 1 scoring failed.");
+        }
+        const { stage1 } = (await s1Res.json()) as {
+          stage1: {
+            composite: number;
+            dimensions: DimensionScore[];
+            primaryFocusDimension:
+              | "clarity"
+              | "structure"
+              | "conciseness"
+              | "thinking_quality"
+              | "delivery"
+              | "tone";
+            headlineTone: "blunt" | "directive" | "praise" | "celebratory";
+          };
+        };
+
+        // Render the intermediate "scoring-copy" state — user sees real
+        // dim scores immediately while stage 2 generates the copy.
+        setPhase({
+          kind: "scoring-copy",
+          stage1,
+          recording: result,
+          transcript,
+          words,
+        });
+
+        const s2Res = await fetch("/api/score/stage2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({ ...scoreBody, stage1 }),
+        });
+        clearTimeout(timeoutId);
+        if (!s2Res.ok) {
+          // Stage 2 specifically failed — we still have real scores
+          // from stage 1. Fall back to error state with a partial
+          // notice rather than full mock. Future polish: render a
+          // "scores only" version of FeedbackPanel.
+          const body = await s2Res.json().catch(() => ({}));
+          throw new Error(
+            body.message ?? "Detailed feedback generation failed.",
+          );
+        }
+        const { score: assembledScore } = (await s2Res.json()) as {
+          score: RepScore;
+        };
+        score = assembledScore;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        const isTimeout =
+          err instanceof DOMException && err.name === "AbortError";
+        const message = isTimeout
+          ? "Scoring took longer than 45 seconds — your audio is saved below. Tap Retry to score again."
+          : err instanceof Error
+            ? `${err.message}. Your recording was captured and is playable below — tap Retry to score again.`
+            : "Scoring failed. Your recording is saved — tap Retry.";
+        setPhase({ kind: "error", message, recording: result });
+        return;
       }
-      score = (await res.json()) as RepScore;
-    } catch (err) {
-      clearTimeout(timeoutId);
-      const isTimeout =
-        err instanceof DOMException && err.name === "AbortError";
-      const message = isTimeout
-        ? "Scoring took longer than 45 seconds — your audio is saved below. Tap Retry to score again. Slow networks (mobile/hotspot) sometimes need a second try."
-        : err instanceof Error
-          ? `${err.message}. Your recording was captured and is playable below — tap Retry to score again.`
-          : "Scoring failed. Your recording is saved — tap Retry.";
-      setPhase({ kind: "error", message, recording: result });
-      return;
+    } else {
+      // Legacy single-call path. Keeps working unchanged.
+      try {
+        const res = await fetch("/api/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify(scoreBody),
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message ?? "Scoring failed.");
+        }
+        score = (await res.json()) as RepScore;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        const isTimeout =
+          err instanceof DOMException && err.name === "AbortError";
+        const message = isTimeout
+          ? "Scoring took longer than 45 seconds — your audio is saved below. Tap Retry to score again. Slow networks (mobile/hotspot) sometimes need a second try."
+          : err instanceof Error
+            ? `${err.message}. Your recording was captured and is playable below — tap Retry to score again.`
+            : "Scoring failed. Your recording is saved — tap Retry.";
+        setPhase({ kind: "error", message, recording: result });
+        return;
+      }
     }
 
     // Persist the Supabase Storage path (not the signed URL) so we can
@@ -718,6 +860,7 @@ export function RepSurface({
   const isWorking =
     phase.kind === "transcribing" ||
     phase.kind === "scoring" ||
+    phase.kind === "scoring-copy" ||
     phase.kind === "saving" ||
     phase.kind === "processing-async";
 
@@ -881,14 +1024,54 @@ export function RepSurface({
             <Loader2 className="size-4 animate-spin text-brand-purple" />
             {phase.kind === "transcribing" && "Transcribing your rep…"}
             {phase.kind === "scoring" && "Scoring based on proprietary rubric…"}
+            {phase.kind === "scoring-copy" &&
+              "Scores in. Writing your detailed feedback…"}
             {phase.kind === "saving" && "Saving your progress…"}
             {phase.kind === "processing-async" &&
               "Scoring in the background. Realtime updates incoming…"}
           </div>
           <LoadingEvidence />
-          {(phase.kind === "scoring" ||
-            phase.kind === "saving" ||
-            phase.kind === "processing-async") && <FeedbackSkeleton />}
+          {(() => {
+            // Phase 5 progressive UI — when stage 1 has returned, all 6
+            // dim scores are real. Render OptimisticDimensionPreview
+            // with stage1Header (composite + tone band) above the grid.
+            if (phase.kind === "scoring-copy") {
+              return (
+                <OptimisticDimensionPreview
+                  optimisticDims={phase.stage1.dimensions}
+                  stage1Header={{
+                    composite: phase.stage1.composite,
+                    headlineTone: phase.stage1.headlineTone,
+                  }}
+                />
+              );
+            }
+            // Phase 2 — when the scoring / async-processing phase carries
+            // optimistic deterministic dims, render the partial dimension
+            // grid (2 real cards + 4 shimmer) instead of a generic
+            // skeleton. The user sees real scores ~immediately on every
+            // rep with word timings (the common case) instead of waiting
+            // ~5s for the full LLM response.
+            const optimisticDims =
+              (phase.kind === "scoring" && phase.optimisticDims) ||
+              (phase.kind === "processing-async" && phase.optimisticDims) ||
+              null;
+            if (optimisticDims) {
+              return (
+                <OptimisticDimensionPreview optimisticDims={optimisticDims} />
+              );
+            }
+            // No word timings (transcription failed / audio-only path):
+            // fall back to the generic skeleton.
+            if (
+              phase.kind === "scoring" ||
+              phase.kind === "saving" ||
+              phase.kind === "processing-async"
+            ) {
+              return <FeedbackSkeleton />;
+            }
+            return null;
+          })()}
         </>
       )}
 

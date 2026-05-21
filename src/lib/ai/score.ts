@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { anthropic, MODELS, MODEL_VERSIONS } from "./claude";
+import { anthropic, MODELS, MODEL_VERSIONS, type AnthropicCallMetrics } from "./claude";
+import {
+  retrieveKnowledgeForRep,
+  renderRagContextBlock,
+} from "./rag/retrieve";
 import {
   ALL_DIMENSIONS,
   DIMENSION_RUBRIC,
@@ -80,8 +84,12 @@ const calloutSchema = z.object({
   body: z.string().max(320),
   quote: z.string().max(320).nullable(),
   suggestedRewrite: z.string().max(360).nullable(),
-  transcriptStart: z.number().min(0),
-  transcriptEnd: z.number().min(0),
+  // Nullable to match the Callout domain type. Missing keys (undefined)
+  // are coerced to null upstream by normalizeProviderQuirks() before
+  // the schema parse — that handles the gpt-4o "field omitted entirely"
+  // case which was the dominant validation_failed cause (2026-05-21).
+  transcriptStart: z.number().min(0).nullable(),
+  transcriptEnd: z.number().min(0).nullable(),
 });
 
 const dimensionEnumSchema = z.enum([
@@ -480,8 +488,8 @@ type RawCallout = {
   body: string;
   quote: string | null;
   suggestedRewrite: string | null;
-  transcriptStart: number;
-  transcriptEnd: number;
+  transcriptStart: number | null;
+  transcriptEnd: number | null;
 };
 
 function calloutContainsBanned(c: RawCallout): boolean {
@@ -705,16 +713,57 @@ function normalizeSubSkillField(value: unknown): unknown {
 function normalizeBulletArray(arr: unknown): unknown {
   if (!Array.isArray(arr)) return arr;
   return arr.map((b) => {
-    if (b && typeof b === "object" && "subSkill" in b) {
-      return { ...b, subSkill: normalizeSubSkillField((b as { subSkill: unknown }).subSkill) };
+    if (!b || typeof b !== "object") return b;
+    const obj = { ...(b as Record<string, unknown>) };
+    if ("subSkill" in obj) obj.subSkill = normalizeSubSkillField(obj.subSkill);
+    // Coerce missing-or-undefined transcript anchors to null so the
+    // nullable Zod field accepts. LLMs sometimes drop these entirely.
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
     }
-    return b;
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    return obj;
+  });
+}
+
+/** Coerce missing transcript anchors on callouts to null. gpt-4o sometimes
+ *  omits the fields entirely when it can't ground the callout — that lands
+ *  as `undefined` after JSON.parse, which the nullable Zod schema rejects.
+ *  This was the dominant validation_failed → mock-fallback cause in
+ *  2026-05-21 telemetry. */
+function normalizeCalloutsArray(arr: unknown): unknown {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((c) => {
+    if (!c || typeof c !== "object") return c;
+    const obj = { ...(c as Record<string, unknown>) };
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
+    }
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    if (
+      !("suggestedRewrite" in obj) ||
+      obj.suggestedRewrite === undefined
+    ) {
+      obj.suggestedRewrite = null;
+    }
+    return obj;
   });
 }
 
 function normalizeProviderQuirks(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== "object") return parsed;
   const obj = { ...(parsed as Record<string, unknown>) };
+  if ("callouts" in obj) obj.callouts = normalizeCalloutsArray(obj.callouts);
   if ("didWell" in obj) obj.didWell = normalizeBulletArray(obj.didWell);
   if ("didntLand" in obj) obj.didntLand = normalizeBulletArray(obj.didntLand);
   if ("nextRepFocus" in obj)
@@ -743,7 +792,46 @@ function pickSubSkillsForDim(
   return any ? out : undefined;
 }
 
+/**
+ * Phase 0 — merged metrics from a single scoring call. Joins the
+ * upstream LLM-call metrics from anthropic.messages.createWithMetrics
+ * with the validation+sanitization timing that happens here in scoreRep.
+ * Total server duration of the scoring step is the sum, captured at the
+ * scoreRep boundary.
+ *
+ * Route handlers wrap their own outer timing (which includes auth +
+ * rate-limit + DB writes) and merge into a scoring_telemetry row.
+ */
+export type ScoreRepMetrics = AnthropicCallMetrics & {
+  validationDurationMs: number;
+  /** scoreRep boundary total — model + validation, EXCLUDING route-level
+   *  auth / rate-limit / DB writes. */
+  scoreRepTotalMs: number;
+  /** Phase 4 — RAG retrieval wall-clock. Includes the OpenAI embed call
+   *  + pgvector query. 0 when RAG was disabled or returned empty. */
+  ragDurationMs: number;
+  /** Phase 4 — number of chunks injected into the user prompt. 0 when
+   *  RAG was disabled, failed, or returned no chunks. */
+  ragChunkCount: number;
+};
+
+export type ScoreRepResult = {
+  score: RepScore;
+  metrics: ScoreRepMetrics;
+};
+
+/**
+ * Phase 0 — backward-compat wrapper. Existing callers (e.g. test scripts)
+ * keep using the legacy single-return shape; production route handlers
+ * use scoreRepWithMetrics directly so they can write a scoring_telemetry
+ * row at request end.
+ */
 export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
+  const { score } = await scoreRepWithMetrics(input);
+  return score;
+}
+
+export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRepResult> {
   const timedTranscript = renderTimedTranscript(input.transcript, input.words);
   const hasWordTimestamps = input.words && input.words.length > 0;
 
@@ -776,6 +864,23 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     ? COMPACT_RUBRIC_WITH_ANCHORS
     : COMPACT_RUBRIC;
 
+  // Phase 4 — RAG retrieval. Embed the transcript, fetch top-K chunks
+  // from pgvector, inject as supplemental anchors in the user prompt.
+  // Concurrent with prosody worker call below — neither blocks the
+  // other. Gated by FF_RAG_RETRIEVE so we can ramp safely; falls back
+  // to no-RAG path on any failure or when disabled.
+  const ragEnabled = process.env.FF_RAG_RETRIEVE !== "false"; // default ON in Phase 4
+  const ragPromise = ragEnabled
+    ? retrieveKnowledgeForRep({
+        transcript: input.transcript,
+        scoredDims: LLM_SCORED_DIMENSIONS,
+      })
+    : Promise.resolve<Awaited<ReturnType<typeof retrieveKnowledgeForRep>>>({
+        chunks: [],
+        durationMs: 0,
+        failureReason: null,
+      });
+
   // Ch.3a: derive inline prosody features from word timings when caller
   // didn't supply pre-computed features. Ch.3b: concurrently call the
   // external prosody worker (when configured) and merge its pitch/RMS
@@ -796,7 +901,13 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           durationMs: input.durationMs,
         })
       : Promise.resolve(null);
-  const workerProsody = await workerPromise;
+  // Await both concurrently — RAG retrieval and prosody worker have no
+  // dependency on each other.
+  const [workerProsody, ragResult] = await Promise.all([
+    workerPromise,
+    ragPromise,
+  ]);
+  const ragBlock = renderRagContextBlock(ragResult.chunks);
   const prosodyFeatures =
     input.prosodyFeatures ??
     (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
@@ -811,6 +922,11 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
+    // Phase 4 — RAG context block. Injected BEFORE deterministic signals
+    // so the model has access to the rich anchors for the four
+    // LLM-scored dims before reading the numerical signals + transcript.
+    // Uncached (changes per rep based on transcript similarity).
+    ragBlock,
     // Ch.11c — text-derived signals (FF-gated). Placed BEFORE prosody +
     // transcript so Claude sees the objective measurements first and
     // can score the four LLM-scored content dimensions AGAINST the
@@ -824,14 +940,27 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     .filter(Boolean)
     .join("\n\n");
 
-  const response = await anthropic.messages.create({
+  // Compute prompt size in bytes BEFORE the call so the metrics row
+  // records what we actually shipped (cache_control blocks count even
+  // when they're cache-read). Sums system blocks + user message text.
+  const systemTextBytes = [systemPrompt, rubricBlock, COMPACT_KNOWLEDGE, SUB_SKILL_REFERENCE, input.userCalibration ?? ""]
+    .reduce((acc, s) => acc + Buffer.byteLength(s ?? "", "utf8"), 0);
+  const userTextBytes = Buffer.byteLength(userPrompt, "utf8");
+  const promptSizeBytes = systemTextBytes + userTextBytes;
+
+  const scoreRepStart = Date.now();
+  const { response, metrics: callMetrics } = await anthropic.messages.createWithMetrics({
     model: MODELS.scoring,
     // Bounded output: 6 dimension scores + ~3 callouts + didWell/didntLand/
-    // nextRepFocus arrays. Prod log analysis (May 2026) showed 1200 truncated
-    // mid-JSON on multi-signal responses, dropping us into mock-fallback. 2400
-    // is the 99th percentile observed across rich-signal reps; further bumps
-    // become wasteful given prompt-cap discipline.
-    max_tokens: 2400,
+    // nextRepFocus arrays. Phase 8 (2026-05-21) — Anthropic console logs
+    // showed Haiku 4.5 hitting EXACTLY 2400 output tokens on every
+    // production scoring call, meaning the response was truncating
+    // mid-JSON and falling through to mock-fallback. 2400 was NOT the
+    // 99th percentile in practice — it was the censoring ceiling. 4000
+    // gives the model real room to finish; cost increase is ~$0.005
+    // worst-case per call ($16 / 1M output × 1600 extra tokens) which
+    // is rounding error vs. the 0% mock-fallback rate it buys us.
+    max_tokens: 4000,
     // Calibration stability: Anthropic SDK defaults temperature to 1.0,
     // which causes 30-50pt run-to-run swings on the same input (documented
     // in docs/calibration-baseline-2026-05-d2.md). Dropping to 0.2 keeps
@@ -882,8 +1011,9 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
         content: [{ type: "text", text: userPrompt }],
       },
     ],
-  });
+  }, promptSizeBytes);
 
+  const validationStart = Date.now();
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
     throw new Error("Claude returned no text content");
@@ -1057,7 +1187,10 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const compositeScore = composite(dimensionMap, input.weights);
 
-  return {
+  const validationDurationMs = Date.now() - validationStart;
+  const scoreRepTotalMs = Date.now() - scoreRepStart;
+
+  const score: RepScore = {
     composite: compositeScore,
     dimensions: finalDimensions,
     ...(validated.structuralAdherence != null
@@ -1079,5 +1212,16 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     // back the score from the user; they see it immediately. The flag
     // surfaces in /ops so operators can retroactively confirm or correct.
     requiresHumanReview: compositeScore >= 95,
+  };
+
+  return {
+    score,
+    metrics: {
+      ...callMetrics,
+      validationDurationMs,
+      scoreRepTotalMs,
+      ragDurationMs: ragResult.durationMs,
+      ragChunkCount: ragResult.chunks.length,
+    },
   };
 }

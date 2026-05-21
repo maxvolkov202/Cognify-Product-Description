@@ -28,6 +28,15 @@ import {
  */
 
 /**
+ * v3.3.0 (Phase 3 — slim knowledge anchors, 2026-05-21): replaced the
+ * full ~25KB skill knowledge blocks (clarity, structure, conciseness,
+ * tone) injected into the score prompt with ~6KB of anchor-only signal
+ * lists. Rich originals moved to skills-full/ for Phase 4 RAG
+ * ingestion. No scoring math change; the model has less prose to read,
+ * faster prompt generation, smaller cache footprint. Reps scored under
+ * v3.3.0 should fall within ±5pt of v3.2.0 on the calibration harness
+ * — verified before merge.
+ *
  * v3.2.0 (Ch.13 — Band copy + per-dim rubric anchors 2026-05-02): adds
  * 30 anchored band statements (6 dims × 5 bands) into the score prompt
  * via `rubric-anchors.ts` (FF_BAND_ANCHORS-gated). Surface band copy
@@ -43,7 +52,7 @@ import {
  * with the current version anyway — the version is the rubric the rep
  * was eligible for, not the path it took.
  */
-export const RUBRIC_VERSION = "v3.2.0";
+export const RUBRIC_VERSION = "v3.3.0";
 
 export type DimensionGroup = "content" | "delivery";
 

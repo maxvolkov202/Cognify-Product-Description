@@ -9,9 +9,14 @@ import {
   callouts as calloutsTable,
   progressSnapshots,
 } from "@/lib/db/schema";
-import { scoreRep } from "@/lib/ai/score";
+import { scoreRepWithMetrics } from "@/lib/ai/score";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { encodeDimensionSignals } from "@/lib/scoring/signals";
+import {
+  writeScoringTelemetry,
+  categorizeFailure,
+  resolveFallbackReason,
+} from "@/lib/scoring/telemetry";
 import type { SkillDimension } from "@/types/domain";
 
 export const runtime = "nodejs";
@@ -32,6 +37,11 @@ export const maxDuration = 60;
  *      writes compositeScore + modelVersion + rubricVersion.
  */
 export async function POST(req: Request) {
+  // Phase 0 — total wall-clock for the route handler. scoring_telemetry
+  // writes the merged duration so /api/score/health/stats can show
+  // p50/p95/p99 across both endpoints.
+  const requestStart = Date.now();
+
   // CTO scan C2 — timing-safe secret comparison. Plain `===` leaks
   // byte-by-byte info via response time on careful probes; node:crypto's
   // timingSafeEqual returns in constant time relative to input length.
@@ -71,6 +81,9 @@ export async function POST(req: Request) {
     );
   }
   const body = parsed.data;
+  // Phase 0 — captured for catch-block telemetry; body is consumed by
+  // safeParse above so we can't re-read it from the request.
+  const capturedRepId = body.repId;
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
@@ -86,7 +99,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "rep_not_found" }, { status: 404 });
     }
 
-    const score = await scoreRep({
+    const { score, metrics: scoreMetrics } = await scoreRepWithMetrics({
       transcript: body.transcript,
       promptText: body.promptText,
       durationMs: body.durationMs,
@@ -163,13 +176,46 @@ export async function POST(req: Request) {
       );
     }
 
+    // Phase 0 — happy-path telemetry. score-internal always has repId
+    // because the Edge Function only invokes this endpoint with a real
+    // pending rep in hand.
+    void writeScoringTelemetry({
+      source: "api_score_internal",
+      repId: body.repId,
+      userId: rep.userId,
+      metrics: scoreMetrics,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason: resolveFallbackReason(scoreMetrics),
+      compositeScore: score.composite,
+    });
+
     return NextResponse.json({
       score,
       calloutIds,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "scoring_failed";
-    console.error("[api/score-internal] failed:", message);
+    const failureReason = categorizeFailure(error);
+    console.error(`[api/score-internal] failed (${failureReason}):`, message);
+
+    // Phase 0 — failure-path telemetry. Best-effort attribution: we may
+    // or may not have repId in scope depending on which try-block step
+    // threw; safeParse + the rep lookup are above the scoring call, so
+    // by this point repId is usually known. Try-catch the lookup so a
+    // telemetry write never blocks the error response.
+    void writeScoringTelemetry({
+      source: "api_score_internal",
+      repId: capturedRepId,
+      metrics: null,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason:
+        failureReason === "none"
+          ? "mock_fallback_both_failed"
+          : failureReason,
+      errorDetail: message,
+      modelUsedOverride: "mock-fallback-v1",
+    });
+
     return NextResponse.json({ error: "scoring_failed", message }, { status: 500 });
   }
 }

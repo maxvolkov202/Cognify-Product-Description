@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { scoreRep } from "@/lib/ai/score";
+import { scoreRepWithMetrics } from "@/lib/ai/score";
+import {
+  writeScoringTelemetry,
+  categorizeFailure,
+  resolveFallbackReason,
+} from "@/lib/scoring/telemetry";
 import { extractSignals } from "@/lib/scoring/signals";
 import {
   scorePacing,
@@ -110,6 +115,53 @@ const bodySchema = z.object({
 type ScoreBody = z.infer<typeof bodySchema>;
 
 /**
+ * Phase 1 — reason-aware user-facing copy for the mock-fallback callout.
+ * Always consumer-neutral (never references billing/credits/tokens) but
+ * differentiates the *kind* of problem so users get actionable signal
+ * instead of a single generic message.
+ *
+ * Two distinct user moments to address:
+ *   1. They might retry now (timeout, rate_limit → "try again in a moment")
+ *   2. The pipeline itself is broken (validation, network → "saved, we're investigating")
+ */
+function fallbackCalloutCopy(
+  failureReason: import("@/lib/scoring/telemetry").FailureReason,
+  hasWords: boolean,
+): { title: string; body: string } {
+  const realDimsBlurb = hasWords
+    ? " Your delivery and thinking quality below are scored from real signals."
+    : "";
+  switch (failureReason) {
+    case "timeout":
+      return {
+        title: "Scoring took longer than expected",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment — usually clears up immediately.`,
+      };
+    case "rate_limit_429":
+      return {
+        title: "Too many scoring requests right now",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+    case "validation_failed":
+      return {
+        title: "Scoring had a hiccup on this one",
+        body: `Your rep is saved.${realDimsBlurb} This is rare — try another rep and it should clear.`,
+      };
+    case "network_error":
+      return {
+        title: "Couldn't reach the scoring service",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+    case "mock_fallback_both_failed":
+    default:
+      return {
+        title: "Scoring is taking a moment",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+  }
+}
+
+/**
  * Build a fallback RepScore when the Claude scoring call fails (no
  * credits, rate limit, network, etc.). The fallback keeps the workout
  * flow fully usable so users can still experience end-to-end UX.
@@ -119,8 +171,16 @@ type ScoreBody = z.infer<typeof bodySchema>;
  * dimensions are always real even in mock mode. The LLM-scored
  * dimensions (clarity, structure, relevance, tone) get neutral mock
  * values with a clear "mock mode" callout explaining what happened.
+ *
+ * Phase 1 — accepts a `failureReason` so the user-facing callout copy
+ * differentiates by problem type instead of always saying "Scoring is
+ * taking a moment".
  */
-function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
+function buildFallbackScore(
+  body: ScoreBody,
+  errorMsg: string,
+  failureReason: import("@/lib/scoring/telemetry").FailureReason = "mock_fallback_both_failed",
+): RepScore {
   const words = body.words ?? [];
   const hasWords = words.length > 0;
 
@@ -192,15 +252,14 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
   // Server-side log keeps the full error for debugging; user-visible
   // callout is consumer-neutral — never reference billing/credits/tokens
   // in copy that ships to end users.
-  console.error("[score] mock fallback triggered:", errorMsg);
+  console.error(`[score] mock fallback triggered (${failureReason}):`, errorMsg);
+  const copy = fallbackCalloutCopy(failureReason, hasWords);
   const callouts: Callout[] = [
     {
       dimension: "clarity",
       tone: "neutral",
-      title: "Scoring is taking a moment",
-      body: hasWords
-        ? "Your delivery and thinking quality are scored from real signals. Detailed per-moment feedback will catch up shortly — try another rep in a moment."
-        : "We couldn't reach the scoring service. Your rep is recorded — try another rep in a moment.",
+      title: copy.title,
+      body: copy.body,
       quote: null,
       suggestedRewrite: null,
       transcriptStart: 0,
@@ -287,6 +346,11 @@ function mockFallbackHeadline(composite: number): string {
 }
 
 export async function POST(req: Request) {
+  // Phase 0 — track total wall-clock from request entry to response so
+  // telemetry captures the full picture (auth + rate-limit + DB writes +
+  // scoring), not just the scoring step. Used for /api/score/health/stats.
+  const requestStart = Date.now();
+
   // Rate limiting — protects against runaway loops burning Anthropic credits.
   // Degrades gracefully without Upstash env vars (see src/lib/ratelimit.ts).
   const rl = await rateLimit(getRateLimitIdentifier(req), {
@@ -329,8 +393,11 @@ export async function POST(req: Request) {
     );
   }
 
+  // Hoist userId out of the try so the catch block's telemetry write
+  // can still attribute the failure to the right user.
+  const { userId, calibrationBlock } = await loadUserContext();
+
   try {
-    const { userId, calibrationBlock } = await loadUserContext();
     // Apply per-framework dimension weight adjustments so sales frameworks
     // emphasize relevance, interview frameworks emphasize structure+pacing,
     // etc. No-op when no frameworkId or no matching profile.
@@ -347,25 +414,61 @@ export async function POST(req: Request) {
 
     const mergedWeights = pressureWeights ?? frameworkWeights ?? null;
 
-    const result = await scoreRep({
+    const { score, metrics } = await scoreRepWithMetrics({
       ...body,
       userCalibration: calibrationBlock,
       ...(userId ? { userId } : {}),
       ...(mergedWeights ? { weights: mergedWeights } : {}),
       ...(body.modeContext ? { modeContext: body.modeContext } : {}),
     });
-    return NextResponse.json(result);
+
+    // Phase 0 — telemetry on the happy path. Fallback-fired counts as
+    // a separate failure_reason so /api/score/health/stats can show
+    // OpenAI-fallback rate distinct from anthropic-only success.
+    void writeScoringTelemetry({
+      source: "api_score",
+      userId,
+      metrics,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason: resolveFallbackReason(metrics),
+      compositeScore: score.composite,
+    });
+
+    return NextResponse.json(score);
   } catch (error) {
     // Anthropic scoring failed (no credits / rate limit / network / etc.).
     // Return a valid mock score so the workout flow stays usable end-to-end.
     // If word timings are present, pacing and confidence are STILL real
     // (deterministic). Only the LLM-scored dimensions are mocked.
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const failureReason = categorizeFailure(error);
     console.error(
-      "[api/score] Claude scoring failed, returning fallback mock score:",
+      `[api/score] scoring failed (${failureReason}), returning fallback mock score:`,
       errorMsg,
     );
-    const fallback = buildFallbackScore(body, errorMsg);
+    const fallback = buildFallbackScore(body, errorMsg, failureReason);
+
+    // Phase 0 — categorize the failure so /api/score/health/stats can
+    // group fallback rate by reason. Mock-fallback always means BOTH
+    // anthropic AND openai failed (or openai wasn't configured), since
+    // the wrapper's fallback path doesn't throw if openai succeeds.
+    void writeScoringTelemetry({
+      source: "api_score",
+      userId,
+      metrics: null,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason:
+        failureReason === "none"
+          ? "mock_fallback_both_failed"
+          : failureReason === "openai_fallback_used" ||
+              failureReason === "anthropic_fallback_used"
+            ? "mock_fallback_both_failed"
+            : failureReason,
+      errorDetail: errorMsg,
+      compositeScore: fallback.composite,
+      modelUsedOverride: "mock-fallback-v1",
+    });
+
     return NextResponse.json(fallback);
   }
 }

@@ -8,6 +8,7 @@ import {
   type ReferenceRep,
 } from "@/lib/calibration/reference-bank";
 import { ReferenceRepUploader } from "./uploader";
+import { ReplayRepButton } from "./replay";
 
 export const metadata = {
   title: "Reference bank · Ops · Cognify",
@@ -56,7 +57,13 @@ export default async function ReferenceBankOpsPage() {
         <p className="mt-3 max-w-2xl text-base text-ink-600">
           Calibration reference reps. Upload audio per rep to enable Ch.S5
           prosody calibration; without audio, Tone scoring cannot be
-          honestly verified against ground truth.
+          honestly verified against ground truth. The{" "}
+          <span className="font-semibold">Replay</span> column on each row
+          fires the rep&apos;s transcript through{" "}
+          <code className="rounded bg-ink-50 px-1 py-0.5 font-mono text-[11px]">
+            /api/score
+          </code>{" "}
+          so you can smoke-test scoring without recording a fresh rep.
         </p>
       </div>
 
@@ -161,6 +168,7 @@ function RepTable({
           <th className="px-3 py-2 text-left">Expected / assertions</th>
           <th className="px-3 py-2 text-left">Audio</th>
           <th className="px-3 py-2 text-left">Upload</th>
+          <th className="px-3 py-2 text-left">Replay</th>
         </tr>
       </thead>
       <tbody>
@@ -219,6 +227,16 @@ function RepTable({
               </td>
               <td className="px-3 py-3">
                 <ReferenceRepUploader repId={r.id} hasAudio={!!audio} />
+              </td>
+              <td className="px-3 py-3">
+                <ReplayRepButton
+                  rep={{
+                    id: r.id,
+                    promptText: r.promptText,
+                    transcript: r.transcript,
+                    durationMs: r.durationMs,
+                  }}
+                />
               </td>
             </tr>
           );
