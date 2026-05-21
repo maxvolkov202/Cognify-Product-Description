@@ -257,8 +257,10 @@ const calloutSchema = z.object({
   body: z.string().max(320),
   quote: z.string().max(320).nullable(),
   suggestedRewrite: z.string().max(360).nullable(),
-  transcriptStart: z.number().min(0),
-  transcriptEnd: z.number().min(0),
+  // Nullable; upstream normalize coerces missing keys (undefined) to null
+  // before parse so the LLM omitting these doesn't trip the schema.
+  transcriptStart: z.number().min(0).nullable(),
+  transcriptEnd: z.number().min(0).nullable(),
 });
 
 const bulletSchema = z.object({
@@ -421,6 +423,45 @@ function computePromptBytes(systemText: string, userText: string): number {
   return Buffer.byteLength(systemText, "utf8") + Buffer.byteLength(userText, "utf8");
 }
 
+/** Coerce missing transcript anchors / quote on callout + bullet items
+ *  to null. gpt-4o + others sometimes omit those fields entirely (lands
+ *  as `undefined` after JSON.parse) which the nullable Zod schemas
+ *  reject. Was the dominant validation_failed cause in 2026-05-21 replay
+ *  testing. */
+function normalizeAnchorFieldsInArrays(parsed: unknown): unknown {
+  if (!parsed || typeof parsed !== "object") return parsed;
+  const obj = { ...(parsed as Record<string, unknown>) };
+  for (const key of [
+    "callouts",
+    "didWell",
+    "didntLand",
+    "nextRepFocus",
+  ] as const) {
+    const arr = obj[key];
+    if (!Array.isArray(arr)) continue;
+    obj[key] = arr.map((item) => {
+      if (!item || typeof item !== "object") return item;
+      const it = { ...(item as Record<string, unknown>) };
+      if (!("transcriptStart" in it) || it.transcriptStart === undefined) {
+        it.transcriptStart = null;
+      }
+      if (!("transcriptEnd" in it) || it.transcriptEnd === undefined) {
+        it.transcriptEnd = null;
+      }
+      if (!("quote" in it) || it.quote === undefined) {
+        it.quote = null;
+      }
+      if (key === "callouts") {
+        if (!("suggestedRewrite" in it) || it.suggestedRewrite === undefined) {
+          it.suggestedRewrite = null;
+        }
+      }
+      return it;
+    });
+  }
+  return obj;
+}
+
 function parseJsonResponse<T>(
   responseText: string,
   schema: z.ZodSchema<T>,
@@ -451,6 +492,7 @@ function parseJsonResponse<T>(
       `${stageName} response was not valid JSON. Got: ${responseText.slice(0, 500)}`,
     );
   }
+  parsed = normalizeAnchorFieldsInArrays(parsed);
   return schema.parse(parsed);
 }
 

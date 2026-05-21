@@ -474,8 +474,12 @@ export const callouts = cognifyV2Schema.table(
     body: text("body").notNull(),
     quote: text("quote"),
     suggestedRewrite: text("suggested_rewrite"),
-    transcriptStartMs: integer("transcript_start_ms").notNull(),
-    transcriptEndMs: integer("transcript_end_ms").notNull(),
+    // Nullable to match the Callout domain type: LLMs occasionally
+    // omit transcript anchors when they can't ground the callout to
+    // a specific moment. Eliminated the dominant validation_failed
+    // mock-fallback path (2026-05-21).
+    transcriptStartMs: integer("transcript_start_ms"),
+    transcriptEndMs: integer("transcript_end_ms"),
   },
   (t) => [index("callouts_rep_idx").on(t.repId)],
 );

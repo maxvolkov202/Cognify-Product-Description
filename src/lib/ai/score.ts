@@ -84,8 +84,12 @@ const calloutSchema = z.object({
   body: z.string().max(320),
   quote: z.string().max(320).nullable(),
   suggestedRewrite: z.string().max(360).nullable(),
-  transcriptStart: z.number().min(0),
-  transcriptEnd: z.number().min(0),
+  // Nullable to match the Callout domain type. Missing keys (undefined)
+  // are coerced to null upstream by normalizeProviderQuirks() before
+  // the schema parse — that handles the gpt-4o "field omitted entirely"
+  // case which was the dominant validation_failed cause (2026-05-21).
+  transcriptStart: z.number().min(0).nullable(),
+  transcriptEnd: z.number().min(0).nullable(),
 });
 
 const dimensionEnumSchema = z.enum([
@@ -484,8 +488,8 @@ type RawCallout = {
   body: string;
   quote: string | null;
   suggestedRewrite: string | null;
-  transcriptStart: number;
-  transcriptEnd: number;
+  transcriptStart: number | null;
+  transcriptEnd: number | null;
 };
 
 function calloutContainsBanned(c: RawCallout): boolean {
@@ -709,16 +713,57 @@ function normalizeSubSkillField(value: unknown): unknown {
 function normalizeBulletArray(arr: unknown): unknown {
   if (!Array.isArray(arr)) return arr;
   return arr.map((b) => {
-    if (b && typeof b === "object" && "subSkill" in b) {
-      return { ...b, subSkill: normalizeSubSkillField((b as { subSkill: unknown }).subSkill) };
+    if (!b || typeof b !== "object") return b;
+    const obj = { ...(b as Record<string, unknown>) };
+    if ("subSkill" in obj) obj.subSkill = normalizeSubSkillField(obj.subSkill);
+    // Coerce missing-or-undefined transcript anchors to null so the
+    // nullable Zod field accepts. LLMs sometimes drop these entirely.
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
     }
-    return b;
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    return obj;
+  });
+}
+
+/** Coerce missing transcript anchors on callouts to null. gpt-4o sometimes
+ *  omits the fields entirely when it can't ground the callout — that lands
+ *  as `undefined` after JSON.parse, which the nullable Zod schema rejects.
+ *  This was the dominant validation_failed → mock-fallback cause in
+ *  2026-05-21 telemetry. */
+function normalizeCalloutsArray(arr: unknown): unknown {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((c) => {
+    if (!c || typeof c !== "object") return c;
+    const obj = { ...(c as Record<string, unknown>) };
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
+    }
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    if (
+      !("suggestedRewrite" in obj) ||
+      obj.suggestedRewrite === undefined
+    ) {
+      obj.suggestedRewrite = null;
+    }
+    return obj;
   });
 }
 
 function normalizeProviderQuirks(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== "object") return parsed;
   const obj = { ...(parsed as Record<string, unknown>) };
+  if ("callouts" in obj) obj.callouts = normalizeCalloutsArray(obj.callouts);
   if ("didWell" in obj) obj.didWell = normalizeBulletArray(obj.didWell);
   if ("didntLand" in obj) obj.didntLand = normalizeBulletArray(obj.didntLand);
   if ("nextRepFocus" in obj)
