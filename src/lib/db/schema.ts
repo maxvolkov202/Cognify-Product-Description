@@ -783,6 +783,44 @@ export const repsRelations = relations(reps, ({ many, one }) => ({
 }));
 
 /**
+ * Phase 7 — weekly drift report. One row per (week_start, dimension,
+ * sub_skill, verdict). The cron writes a fresh batch every week from
+ * the callout_corrections data; rows persist so the ops UI can show
+ * trends across weeks.
+ *
+ * Rates are computed at write time so the ops UI doesn't need to
+ * re-aggregate on each page load.
+ */
+export const calloutDriftReports = cognifyV2Schema.table(
+  "callout_drift_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    weekStart: date("week_start").notNull(),
+    dimension: dimensionEnum("dimension").notNull(),
+    /** Sub-skill within the dim. NULL when corrections didn't carry a
+     *  sub-skill (legacy bullets). */
+    subSkill: text("sub_skill"),
+    /** wrong | not_relevant | agree — same enum as callout_corrections. */
+    verdict: text("verdict").notNull(),
+    count: integer("count").notNull(),
+    /** Total corrections for this (week, dim, sub_skill) across all
+     *  verdicts — denominator for wrong_rate. */
+    totalForGroup: integer("total_for_group").notNull(),
+    wrongRate: real("wrong_rate").notNull(),
+    /** Flagged when wrongRate >= 0.25 AND totalForGroup >= 4 (signal
+     *  threshold — 1 of 4 wrong isn't enough to act on). */
+    flagged: boolean("flagged").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("callout_drift_week_dim_idx").on(t.weekStart, t.dimension),
+    index("callout_drift_flagged_idx").on(t.flagged, t.weekStart),
+  ],
+);
+
+/**
  * Phase 6 — reference reps for few-shot exemplar retrieval.
  *
  * One row per calibrated rep: known-good transcript + scores + (optionally)
