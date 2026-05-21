@@ -31,10 +31,21 @@ import OpenAI from "openai";
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
-// Default to gpt-4.1-mini (faster + cheaper than gpt-4o, matches the
-// speed-first philosophy of the Anthropic Haiku 4.5 primary).
+// Speed-first default. Benchmarked 2026-05-21 against the actual scoring
+// prompt shape (~25KB system, ~3KB user, 4000 max_tokens, 2 successive
+// calls to measure prompt-cache benefit):
+//   gpt-4o         5.6s cold / 9.2s warm — winner on raw latency
+//   gpt-4.1-nano   7.3s cold / 6.5s warm — 25x cheaper than 4o, similar speed
+//   gpt-4.1-mini   7.3s / 8.3s          — slower in practice (was prior default)
+//   gpt-4o-mini    8.3s / 8.8s
+//   gpt-4.1       11.7s / 8.2s
+//   gpt-5-mini    14.1s / 18.9s         — reasoning model, wrong shape for live scoring
+// gpt-4o is the speed-first choice (matches Anthropic Haiku 4.5's
+// speed-first philosophy on the primary side). For cost-first non-live
+// scoring, set OPENAI_FALLBACK_MODEL=gpt-4.1-nano in env — same latency,
+// 25x cheaper, quality TBD against the calibration harness.
 const openaiFallbackModel =
-  process.env.OPENAI_FALLBACK_MODEL ?? "gpt-4.1-mini";
+  process.env.OPENAI_FALLBACK_MODEL ?? "gpt-4o";
 
 // SCORING_PROVIDER chooses which provider is the canonical primary for
 // the scoring path. Values: "anthropic" (default) | "openai". Anything
@@ -57,19 +68,18 @@ if (rawProvider !== SCORING_PROVIDER && process.env.NODE_ENV !== "test") {
 //   Anthropic: 5s — credit_balance + auth errors return in <500ms; real
 //     responses take 2-4s on Haiku 4.5. 5s leaves headroom for slow
 //     responses without letting a genuinely stuck call drag the user.
-//   OpenAI:    25s — gpt-4.1-mini (the new default fallback) on the
-//     scoring prompt typically returns in 14-22s; tail to 28s on dense
-//     reps. 25s catches truly stuck calls without clipping healthy
-//     responses. If switching back to gpt-4o set SCORING_OPENAI_TIMEOUT_MS=12000
-//     since that model's p95 was ~9s on the same payload (Phase 0
-//     baseline data).
+//   OpenAI:    15s — gpt-4o (the default fallback) on the scoring prompt
+//     returns in 5-9s cold, faster with cache. 15s catches truly stuck
+//     calls without clipping healthy responses. If switching to a slower
+//     model like gpt-4.1-mini, bump to 25-30s; if switching to a faster
+//     model like gpt-4.1-nano, tighten to 10s.
 // Tunable via env so we can adjust without a redeploy.
 const ANTHROPIC_TIMEOUT_MS = parseInt(
   process.env.SCORING_ANTHROPIC_TIMEOUT_MS ?? "5000",
   10,
 );
 const OPENAI_TIMEOUT_MS = parseInt(
-  process.env.SCORING_OPENAI_TIMEOUT_MS ?? "25000",
+  process.env.SCORING_OPENAI_TIMEOUT_MS ?? "15000",
   10,
 );
 
@@ -248,8 +258,15 @@ function translateFromOpenAI(
     usage: {
       input_tokens: resp.usage?.prompt_tokens ?? 0,
       output_tokens: resp.usage?.completion_tokens ?? 0,
+      // OpenAI auto-caches prefixes >= 1024 tokens (no header needed).
+      // The cached count lives at usage.prompt_tokens_details.cached_tokens.
+      // Surface it through the same field the Anthropic path uses so the
+      // health/stats dashboard's cache-hit rate works for both providers.
       cache_creation_input_tokens: null,
-      cache_read_input_tokens: null,
+      cache_read_input_tokens:
+        (
+          resp.usage as { prompt_tokens_details?: { cached_tokens?: number } }
+        )?.prompt_tokens_details?.cached_tokens ?? null,
       server_tool_use: null,
       service_tier: null,
       cache_creation: null,

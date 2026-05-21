@@ -284,6 +284,49 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
+## Priority 4 — Speed pass (model swap + OpenAI cache + replay UI) `[x]` shipped 2026-05-21
+
+Per Max's push to make feedback come back faster, benchmarked the OpenAI model family against the actual scoring prompt shape and verified caching.
+
+**Model benchmark (~25KB system, 2 successive calls):**
+
+| Model         | Cold  | Warm  | Cached tokens (warm) | Status |
+|---------------|-------|-------|----------------------|--------|
+| **gpt-4o**    | 5.6s  | 9.2s  | 3072                 | speed winner |
+| gpt-4.1-nano  | 7.3s  | 6.5s  | 2944                 | 25× cheaper than 4o, similar speed |
+| gpt-4o-mini   | 8.3s  | 8.8s  | 3968                 |  |
+| gpt-4.1-mini  | 7.3s  | 8.3s  | 0 (cache miss)       | prior default — slow in live path |
+| gpt-4.1       | 11.7s | 8.2s  | 3072                 |  |
+| gpt-5-mini    | 14.1s | 18.9s | 3840                 | reasoning model, wrong shape for live scoring |
+
+**Changes:**
+- `OPENAI_FALLBACK_MODEL` default flipped back: gpt-4.1-mini → **gpt-4o**. Rationale + benchmark table embedded in the env comment.
+- `SCORING_OPENAI_TIMEOUT_MS` default reset: 25000 → 15000 (fits gpt-4o's actual response time).
+- `translateFromOpenAI` now surfaces `usage.prompt_tokens_details.cached_tokens` through `cache_read_input_tokens` so the existing /api/score/health/stats dashboard's cache-hit rate works across both providers. (OpenAI auto-caches prefixes ≥ 1024 tokens; no extra header needed.)
+- New `/ops/reference-bank` "Replay" column — per-row "Score this rep" button POSTs the transcript through /api/score and renders composite + headline + per-dim scores inline. Max can smoke-test scoring on any of the 48 calibration reps without recording a fresh one each time. JSON copy-to-clipboard for deeper inspection.
+
+**Verification baseline (`plans/baselines/phase-10-gpt4o-primary.json`):**
+- p50 latency: **7615ms** (down from 21345ms with gpt-4.1-mini → -64% latency)
+- p95 latency: **15476ms** (down from 27882ms → -45%)
+- Cache hit rate: **80%** (up from 0% — OpenAI auto-caching now visible)
+- 8 of 10 reps served cleanly by `openai:gpt-4o-2024-08-06` with 4096 cached tokens each
+- 2 mock-fallbacks (1 validation_failed, 1 unknown — same Zod-schema-incompliance issue seen on gpt-4.1-mini)
+
+**Open trade-off Max can act on:**
+- For cost-first non-live scoring (batch backfills, regression evals, calibration harness), `OPENAI_FALLBACK_MODEL=gpt-4.1-nano` is 25× cheaper than gpt-4o at similar latency. Quality on our schema isn't verified yet — needs a full calibration harness run before committing.
+- For absolute fastest live response: gpt-4o stays the default. Stick with it for the user-facing path.
+
+**On ChatGPT's architecture suggestions (which Max forwarded):**
+Most are already shipped in this overhaul:
+- Two-stage scoring split = Phase 5 (stage1 scores → stage2 copy, progressive UI).
+- Static rubric vs dynamic transcript = Phase 3 slim rubric + Phase 4 RAG dynamic injection, with Anthropic `cache_control` blocks.
+- Deterministic pre-scoring = Phase 2 / Ch.11c — delivery is fully deterministic, thinking_quality is 60/40 deterministic/LLM blend, text signals injected pre-LLM.
+- Evidence quotes required = the rubric forces verbatim quotes; `sanitizeBullets` strips fabricated grounding.
+- Confidence + needs_second_pass = `requiresHumanReview` flag on composite ≥ 95.
+The genuine open architectural lever is **model routing by urgency** (fast for live, cheap for batch, escalate on low-confidence) — `SCORING_PROVIDER` is the binary version of that; a future pass could add `SCORING_BATCH_MODEL` + a confidence-escalation hook. Recorded as a follow-up, not done here.
+
+---
+
 ## Phase 8 — Verification + Production Merge `[~]` awaiting user decision
 
 **Verification checks (all green):**

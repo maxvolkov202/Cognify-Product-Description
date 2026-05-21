@@ -1,0 +1,273 @@
+{
+  "phase": "10-gpt4o-primary",
+  "baseUrl": "http://127.0.0.1:3336",
+  "startedAt": "2026-05-21T13:52:43.234Z",
+  "subsetIds": [
+    "band-poor-mic-test",
+    "band-below-rambling-pitch",
+    "band-competent-okay-pitch",
+    "band-strong-clean-pitch",
+    "band-excellent-tight-pitch",
+    "edge-shallow-but-organized",
+    "edge-fast-no-fillers",
+    "edge-variety-with-upspeak",
+    "indep-clear-but-padded",
+    "qa-strong-pricing-question"
+  ],
+  "perRep": [
+    {
+      "id": "band-poor-mic-test",
+      "kind": "band",
+      "composite": 70,
+      "modelVersion": "mock-fallback-v1",
+      "clientLatencyMs": 9279
+    },
+    {
+      "id": "band-below-rambling-pitch",
+      "kind": "band",
+      "composite": 32,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 6257
+    },
+    {
+      "id": "band-competent-okay-pitch",
+      "kind": "band",
+      "composite": 79,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7070
+    },
+    {
+      "id": "band-strong-clean-pitch",
+      "kind": "band",
+      "composite": 79,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7483
+    },
+    {
+      "id": "band-excellent-tight-pitch",
+      "kind": "band",
+      "composite": 79,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7759
+    },
+    {
+      "id": "edge-shallow-but-organized",
+      "kind": "independence",
+      "composite": 39,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 5892
+    },
+    {
+      "id": "edge-fast-no-fillers",
+      "kind": "independence",
+      "composite": 70,
+      "modelVersion": "mock-fallback-v1",
+      "clientLatencyMs": 15519
+    },
+    {
+      "id": "edge-variety-with-upspeak",
+      "kind": "independence",
+      "composite": 59,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7846
+    },
+    {
+      "id": "indep-clear-but-padded",
+      "kind": "independence",
+      "composite": 63,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 15116
+    },
+    {
+      "id": "qa-strong-pricing-question",
+      "kind": "band",
+      "composite": 77,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7694
+    }
+  ],
+  "summary": {
+    "count": 10,
+    "totalLatencyMs": {
+      "p50": 7615,
+      "p95": 15476,
+      "p99": 15476
+    },
+    "modelLatencyMs": {
+      "p50": 6912,
+      "p95": 14485,
+      "p99": 14485
+    },
+    "avgPromptSizeBytes": 26201,
+    "cacheHitRate": 0.8,
+    "failureReasonCounts": {
+      "validation_failed": 1,
+      "none": 8,
+      "unknown": 1
+    },
+    "mockFallbackRate": 0,
+    "openaiFallbackRate": 0
+  },
+  "rows": [
+    {
+      "id": "b30e2bc5-63f2-44f2-bfbe-705e0e9c4b3f",
+      "source": "api_score",
+      "model_used": "mock-fallback-v1",
+      "prompt_size_bytes": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": null,
+      "validation_duration_ms": null,
+      "total_server_duration_ms": 7100,
+      "failure_reason": "validation_failed",
+      "composite_score": 70,
+      "created_at": "2026-05-21T13:52:51.376Z"
+    },
+    {
+      "id": "527dce0d-c3bb-4538-88ec-97634ffd3a4d",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 25364,
+      "input_tokens": 5988,
+      "output_tokens": 773,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 5689,
+      "validation_duration_ms": 2,
+      "total_server_duration_ms": 6176,
+      "failure_reason": "none",
+      "composite_score": 32,
+      "created_at": "2026-05-21T13:52:57.764Z"
+    },
+    {
+      "id": "ec906c75-bab7-42d4-b9f6-d7e3eca9bb63",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26553,
+      "input_tokens": 6204,
+      "output_tokens": 957,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6476,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 7017,
+      "failure_reason": "none",
+      "composite_score": 79,
+      "created_at": "2026-05-21T13:53:05.085Z"
+    },
+    {
+      "id": "3962115b-0d88-4b10-9bce-b3291397148c",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26236,
+      "input_tokens": 6182,
+      "output_tokens": 1012,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 7069,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 7423,
+      "failure_reason": "none",
+      "composite_score": 79,
+      "created_at": "2026-05-21T13:53:12.828Z"
+    },
+    {
+      "id": "589347fe-890c-4010-bdd7-29c7952f2026",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26376,
+      "input_tokens": 6175,
+      "output_tokens": 933,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6784,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 7701,
+      "failure_reason": "none",
+      "composite_score": 79,
+      "created_at": "2026-05-21T13:53:20.849Z"
+    },
+    {
+      "id": "ac3142e0-bd0f-4677-880c-40f531635cc7",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 25125,
+      "input_tokens": 5865,
+      "output_tokens": 858,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 5266,
+      "validation_duration_ms": 4,
+      "total_server_duration_ms": 5819,
+      "failure_reason": "none",
+      "composite_score": 39,
+      "created_at": "2026-05-21T13:53:27.002Z"
+    },
+    {
+      "id": "31383d29-f088-4b3b-9510-cca67cf4034e",
+      "source": "api_score",
+      "model_used": "mock-fallback-v1",
+      "prompt_size_bytes": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": null,
+      "validation_duration_ms": null,
+      "total_server_duration_ms": 15476,
+      "failure_reason": "unknown",
+      "composite_score": 70,
+      "created_at": "2026-05-21T13:53:42.776Z"
+    },
+    {
+      "id": "8626fce5-4a81-4090-8079-8769edb3f917",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26221,
+      "input_tokens": 6146,
+      "output_tokens": 968,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 7343,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 7759,
+      "failure_reason": "none",
+      "composite_score": 59,
+      "created_at": "2026-05-21T13:53:50.882Z"
+    },
+    {
+      "id": "e1662973-da45-4e13-a9f6-341001d5bbf4",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26752,
+      "input_tokens": 6266,
+      "output_tokens": 920,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 14485,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 15033,
+      "failure_reason": "none",
+      "composite_score": 63,
+      "created_at": "2026-05-21T13:54:06.250Z"
+    },
+    {
+      "id": "153e78fd-9ef4-45c4-b99d-903a190fc838",
+      "source": "api_score",
+      "model_used": "openai:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 26982,
+      "input_tokens": 6286,
+      "output_tokens": 1018,
+      "cache_read_tokens": 4096,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6912,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 7615,
+      "failure_reason": "none",
+      "composite_score": 77,
+      "created_at": "2026-05-21T13:54:14.205Z"
+    }
+  ]
+}
