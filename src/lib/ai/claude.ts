@@ -52,22 +52,24 @@ if (rawProvider !== SCORING_PROVIDER && process.env.NODE_ENV !== "test") {
 
 // Phase 1 — explicit per-call timeouts. Without these, a slow upstream
 // could block the scoring route for the full Vercel maxDuration (60s).
-// Defaults tuned against the Phase 0 baseline (39 KB prompts, ~8000 input
-// tokens):
+// Defaults tuned against measured latency on the scoring path (26 KB
+// prompt after Phase 3 slim, ~8000 input tokens, 4000 max_tokens):
 //   Anthropic: 5s — credit_balance + auth errors return in <500ms; real
 //     responses take 2-4s on Haiku 4.5. 5s leaves headroom for slow
 //     responses without letting a genuinely stuck call drag the user.
-//   OpenAI:    12s — gpt-4o on a 39KB prompt typically returns in 5-7s
-//     but tail can reach 10s+ before slowing. 12s catches truly stuck
-//     calls without clipping healthy responses. After Phase 3 (slim
-//     knowledge → ~10KB prompt) we can tighten this back to ~6s.
+//   OpenAI:    25s — gpt-4.1-mini (the new default fallback) on the
+//     scoring prompt typically returns in 14-22s; tail to 28s on dense
+//     reps. 25s catches truly stuck calls without clipping healthy
+//     responses. If switching back to gpt-4o set SCORING_OPENAI_TIMEOUT_MS=12000
+//     since that model's p95 was ~9s on the same payload (Phase 0
+//     baseline data).
 // Tunable via env so we can adjust without a redeploy.
 const ANTHROPIC_TIMEOUT_MS = parseInt(
   process.env.SCORING_ANTHROPIC_TIMEOUT_MS ?? "5000",
   10,
 );
 const OPENAI_TIMEOUT_MS = parseInt(
-  process.env.SCORING_OPENAI_TIMEOUT_MS ?? "12000",
+  process.env.SCORING_OPENAI_TIMEOUT_MS ?? "25000",
   10,
 );
 

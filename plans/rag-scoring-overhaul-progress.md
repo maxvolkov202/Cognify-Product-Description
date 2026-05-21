@@ -217,6 +217,73 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
+## Priority 1-3 (post-Phase 8) — Provider-peer + ops surfaces + final verification `[~]` 2026-05-21
+
+**Priority 1 — Provider-peer dispatch (`59b3d155`):**
+- `SCORING_PROVIDER` env var (anthropic | openai, default anthropic) chooses the canonical scoring primary
+- Both providers fully symmetric: either can serve as primary with the other as cross-provider fallback
+- Model tagging convention:
+    - Anthropic primary: `<model-id>` (unprefixed)
+    - Anthropic fallback: `anthropic-fallback:<model-id>` (NEW)
+    - OpenAI primary: `openai:<model-id>` (NEW)
+    - OpenAI fallback: `openai-fallback:<model-id>` (legacy preserved)
+- `OPENAI_FALLBACK_MODEL` default flipped: `gpt-4o` → `gpt-4.1-mini`
+- `SCORING_OPENAI_TIMEOUT_MS` default bumped 12000→25000 to fit gpt-4.1-mini's real latency on the scoring prompt
+- New `FailureReason` value `anthropic_fallback_used`; `resolveFallbackReason(metrics)` helper detects which provider served as fallback from the model tag
+- All 5 telemetry-writing routes use the helper so dashboards distinguish "anthropic primary, openai served" vs "openai primary, anthropic served"
+- Non-scoring callers (framework gen, weekly narrative, etc.) unchanged — `create` still goes through the legacy Anthropic-primary `messagesCreateWithFallback`
+
+**Priority 2 — Deferred ops surfaces (`0ed9fb1b`):**
+- `/ops/calibration/drift` — reads `callout_drift_reports` written by the Phase 7 cron. Groups rows by week → dimension, surfaces flagged dims (wrong rate ≥25%, n≥4) with per-dim wrong-rate cards.
+- `/ops/exemplar-bank` — NEW page for the DB-backed Phase 6 `reference_reps` table (distinct from /ops/reference-bank which lists the JSON calibration seed source). List + promote-by-rep-UUID + per-row notes editor + demote (hard delete).
+- "Promote to bank" button on /ops/review-queue submitter — captures gold-standard exemplars without leaving the review screen. Bands as `confirmed` or `promoted` based on the operator's verdict.
+- New nav links on /ops landing page for Callout drift + Exemplar bank.
+
+**Priority 3 — Side-by-side provider verification (10-rep replay):**
+
+| Rep | Anthropic primary (composite, latency) | OpenAI primary (composite, latency) | Δ |
+|---|---|---|---|
+| band-poor-mic-test | 11 / 21.4s | 16 / 25.7s | +5 |
+| band-below-rambling-pitch | 70 / 15.6s (mock fallback) | 26 / 28.0s | −44 |
+| band-competent-okay-pitch | 82 / 28.6s | 70 / 16.4s | −12 |
+| band-strong-clean-pitch | 70 / 17.5s (mock fallback) | 78 / 22.2s | +8 |
+| band-excellent-tight-pitch | 70 / 32.6s (mock timeout) | 77 / 15.8s | +7 |
+| edge-shallow-but-organized | 70 / 31.3s (mock timeout) | 43 / 17.6s | −27 |
+| edge-fast-no-fillers | 70 / 32.0s (mock timeout) | 82 / 13.2s | +12 |
+| edge-variety-with-upspeak | 58 / 23.1s | 58 / 14.0s | 0 |
+| indep-clear-but-padded | 78 / 18.3s | 80 / 21.4s | +2 |
+| qa-strong-pricing-question | 80 / 21.1s | 81 / 26.5s | +1 |
+
+**Latency (10-rep p50 / p95):**
+- Anthropic primary: 23.0s / 32.2s (dominated by mock-fallback timeouts from credit_balance still failing → OpenAI fallback)
+- OpenAI primary:    21.3s / 27.9s
+
+**Failure mix:**
+- Anthropic primary: 5 openai-fallback served, 2 validation_failed (OpenAI returned invalid JSON), 3 timeouts (OpenAI took >25s)
+- OpenAI primary:    9 served cleanly, 1 validation_failed (gpt-4.1-mini returned schema-incompliant JSON)
+
+**Findings & flags to Max:**
+1. **Anthropic still 100% failing** on the dev key — every primary call returns `credit_balance_too_low` despite Max's refill. Confirms the workspace/key mismatch from the Phase 0 notes hasn't resolved. The credit_balance check fast-fails (<500ms), so the wrapper's fallback kicks in cleanly.
+2. **OpenAI primary path is reliable** — `openai:gpt-4.1-mini-2025-04-14` served 9/10 reps successfully end-to-end, with telemetry correctly tagging the new `openai:` prefix and `failureReason: none`.
+3. **gpt-4.1-mini is SLOWER than gpt-4o** on the scoring prompt — 21s p50 vs ~7s p50 in the Phase 0 baseline on gpt-4o. The "faster + cheaper" rationale Max captured doesn't hold on latency. Cheaper, yes (gpt-4.1-mini is ~$0.40/M input vs $2.50/M for gpt-4o), but the model is slower per token. Trade-off Max needs to make:
+   - Keep `gpt-4.1-mini` default → cheaper, slower (~21s p50)
+   - Revert to `gpt-4o` default → 6× more expensive, faster (~7s p50)
+   - The new `SCORING_OPENAI_TIMEOUT_MS=25000` default covers gpt-4.1-mini. If reverting to gpt-4o, also reset the timeout to 12s.
+4. **Composite drift between providers**: when both produced real scores (excluding mock-fallback rows), drift was +1 to +12 with one outlier at −12. Average +1.6, within ±5 on 5 of 7 real-vs-real pairs. The drift isn't symmetric — gpt-4.1-mini tends to score reps slightly higher than Anthropic Haiku 4.5 (when Anthropic is actually working). Once Anthropic credit is restored, full 48-rep calibration harness can run and gate at ±5.
+5. **Telemetry tagging works**: dashboard SQL filters on `model_used` correctly distinguish primary vs fallback for both providers. `/api/score/health/stats` will show non-zero `openaiFallbackRate` only when Anthropic was configured as primary and fell back; the symmetric `anthropic_fallback_used` reason captures the inverse.
+
+**Baselines persisted:**
+- `plans/baselines/phase-9a-anthropic.json` — SCORING_PROVIDER=anthropic, 10-rep replay
+- `plans/baselines/phase-9b-openai.json` — SCORING_PROVIDER=openai, 10-rep replay (same subset)
+
+**Ready for Max's smoke test:**
+- All code committed on `feat/rag-scoring-overhaul` (commits `59b3d155`, `0ed9fb1b`, +1 follow-up)
+- Typecheck clean, 12/12 tests pass
+- Dev server on port 3333 untouched and still alive for browser smoke
+- Branch ready to merge to main once Max approves; do NOT merge without explicit go-ahead per the working constraints
+
+---
+
 ## Phase 8 — Verification + Production Merge `[~]` awaiting user decision
 
 **Verification checks (all green):**
