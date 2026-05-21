@@ -74,19 +74,19 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
-## Phase 2 — Render Deterministic Dims Immediately `[ ]`
+## Phase 2 — Render Deterministic Dims Immediately `[x]` shipped 2026-05-21
 
 **Changes:**
-- [ ] Create `src/lib/scoring/deterministic-client.ts` — re-exports `scorePacing`, `scoreThinkingQualityDeterministic`, `extractSignals` from a client-safe path. Verify no Node-only deps (`node:crypto`, `fs`, etc.)
-- [ ] Update WorkoutPlayer (or whichever component owns rep submit): on rep end, compute delivery + thinking_quality locally from word timings
-- [ ] DimensionGrid: accept `optimisticDims?: { delivery, thinking_quality }` prop; render those cards immediately with real scores; show shimmer skeleton on the other 4 until server response arrives
-- [ ] On server response: replace optimistic with canonical (they'll match — both compute from same pure functions, but server is source of truth)
+- [x] `src/lib/scoring/deterministic-client.ts` — explicit client-safe public surface re-exporting extractSignals + scorePacing + scoreThinkingQualityDeterministic. Includes `computeOptimisticDims()` convenience that returns null on <5 words.
+- [x] RepSurface.Phase type extended: `scoring` + `processing-async` carry optional `optimisticDims` populated before /api/score fires.
+- [x] runScoringPath computes optimisticDims once from word timings and threads them into both phase states.
+- [x] New `OptimisticDimensionPreview` component renders the same 6-card grid as DimensionGrid — 2 real DimensionCards + 4 shimmer placeholders. Falls back to existing FeedbackSkeleton when word timings are missing.
+- [x] Typecheck + tests pass
 
-**Checkpoint 2:**
-- Dev server restart
-- User does 3+ reps
-- Confirms delivery + thinking_quality cards appear <500ms post-rep
-- Confirms remaining 4 dim cards fill in when LLM responds
+**Phase 2 baseline:**
+- Frontend-only change. The script measures server-side /api/score latency which doesn't capture the perceptual win.
+- phase-2.json p50: 5383ms / p95: 6411ms (within noise of phase-1's 5749/8422; OpenAI was healthier today)
+- True Phase 2 measurement: human-eye check — user sees 2 dim cards populated immediately during the scoring loading screen instead of a generic skeleton. Manual verification queued.
 
 ---
 
