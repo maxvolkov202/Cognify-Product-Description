@@ -77,10 +77,22 @@ export default async function OpsPage() {
           Calibration drift →
         </a>
         <a
+          href="/ops/calibration/drift"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
+        >
+          Callout drift →
+        </a>
+        <a
           href="/ops/reference-bank"
           className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
         >
           Reference bank →
+        </a>
+        <a
+          href="/ops/exemplar-bank"
+          className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3.5 py-1.5 text-[12px] font-semibold text-brand-purple hover:bg-brand-purple/15"
+        >
+          Exemplar bank →
         </a>
         <a
           href="/ops/review-queue"
