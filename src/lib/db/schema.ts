@@ -10,6 +10,7 @@ import {
   date,
   index,
   primaryKey,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -259,9 +260,16 @@ export const reps = cognifyV2Schema.table(
     pressureArchetypeId: pressureArchetypeEnum("pressure_archetype_id"),
     // Muscle-group pivot (migration 0020). Nullable so legacy reps + Skill
     // Lab reps stay untouched; populated when a rep originates inside a
-    // workout-day session.
-    exerciseId: uuid("exercise_id"),
-    muscleGroupDayId: uuid("muscle_group_day_id"),
+    // workout-day session. Forward thunks to exercises/muscleGroupDays —
+    // those tables are declared after reps in this file; same pattern
+    // already used for frameworkId.
+    exerciseId: uuid("exercise_id").references(() => exercises.id, {
+      onDelete: "set null",
+    }),
+    muscleGroupDayId: uuid("muscle_group_day_id").references(
+      () => muscleGroupDays.id,
+      { onDelete: "set null" },
+    ),
     isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
     scoreFailureFlag: boolean("score_failure_flag").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -1013,12 +1021,11 @@ export const scoreCorrections = cognifyV2Schema.table(
  * Phase 1 is migration-only; no app code reads these yet. See
  * plans/muscle-group-pivot-progress.md for the full plan.
  *
- * Note on FK declarations: workoutSessions.graduationRepId is a plain
- * uuid column here even though the SQL migration adds the FK constraint
- * to reps(id). Declaring the FK on the Drizzle side would force
- * exercises/muscleGroupDays/workoutSessions to live in the schema file
- * above reps, which is a noisier reshuffle than is warranted. The DB
- * still enforces the constraint at the SQL level.
+ * Forward-thunk FKs (`.references(() => exercises.id, …)`) are used so
+ * the new tables can be declared after `reps` without a file reshuffle —
+ * same pattern already used for `reps.frameworkId → frameworks`. The
+ * `muscleGroupDays.previousDayId` self-ref uses the `AnyPgColumn` cast
+ * to break Drizzle's circular type inference.
  */
 export const exercises = cognifyV2Schema.table(
   "exercises",
@@ -1073,7 +1080,10 @@ export const muscleGroupDays = cognifyV2Schema.table(
     /** planned | in_progress | complete | abandoned | frozen_skip */
     status: text("status").notNull().default("planned"),
     compositeAtClose: real("composite_at_close"),
-    previousDayId: uuid("previous_day_id"),
+    previousDayId: uuid("previous_day_id").references(
+      (): AnyPgColumn => muscleGroupDays.id,
+      { onDelete: "set null" },
+    ),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -1103,7 +1113,9 @@ export const workoutSessions = cognifyV2Schema.table(
     state: text("state").notNull().default("idle"),
     pausedAt: timestamp("paused_at", { withTimezone: true }),
     resumedAt: timestamp("resumed_at", { withTimezone: true }),
-    graduationRepId: uuid("graduation_rep_id"),
+    graduationRepId: uuid("graduation_rep_id").references(() => reps.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -1185,6 +1197,10 @@ export const workoutSessionsRelations = relations(
     user: one(users, {
       fields: [workoutSessions.userId],
       references: [users.id],
+    }),
+    graduationRep: one(reps, {
+      fields: [workoutSessions.graduationRepId],
+      references: [reps.id],
     }),
   }),
 );

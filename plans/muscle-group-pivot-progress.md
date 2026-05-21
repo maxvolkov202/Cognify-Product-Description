@@ -22,9 +22,9 @@ Read the design brief at [`plans/muscle-group-pivot-design-brief.md`](./muscle-g
 
 ---
 
-## Phase 1 — Data model + Drizzle migration `[~]`
+## Phase 1 — Data model + Drizzle migration `[x]`
 
-> **2026-05-21:** Migration `0020_muscle_group_pivot.sql` applied clean against dev DB; re-run is a NOTICE-only no-op. All 5 tables present in `cognify_v2`, all 4 new `reps` columns present, `workout_sessions_grad_rep_fk` constraint present. `npx tsc --noEmit` clean, `npm run build` green. No app code imports the new exports. Awaiting Max's checkpoint sign-off before flipping to `[x]` and starting Phase 2.
+> **2026-05-21:** Migration `0020_muscle_group_pivot.sql` applied clean against dev DB; re-run is a NOTICE-only no-op. All 5 tables present in `cognify_v2`, all 4 new `reps` columns present, `workout_sessions_grad_rep_fk` constraint present. Drizzle column-level FKs wired via forward thunks (matching the existing `reps.frameworkId → frameworks` pattern); `muscleGroupDays.previousDayId` self-ref uses `AnyPgColumn` cast. `npx tsc --noEmit` clean, `npm run build` green. No app code imports the new exports yet.
 
 **Goal:** Land the schema foundation for the muscle-group pivot: five new `cognify_v2` tables (`exercises`, `exercise_prompts`, `muscle_group_days`, `workout_sessions`, `exercise_engagement`) plus two nullable FKs on `reps`. Migration-only — no runtime code consumes the new tables yet. Drizzle types compile clean so Phase 2 can start typed.
 
