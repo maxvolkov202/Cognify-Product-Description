@@ -217,7 +217,44 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
-## Phase 8 — Verification + Production Merge `[ ]`
+## Phase 8 — Verification + Production Merge `[~]` awaiting user decision
+
+**Verification checks (all green):**
+- [x] `npm run typecheck` — passes
+- [x] `npm test` — 12/12 pass
+- [x] `npm run lint` — only the pre-existing UserMenu.tsx warning (not our work)
+- [x] /api/cron/weekly-callout-drift smoke test — returns 200, writes drift rows
+- [ ] Full calibration harness side-by-side — BLOCKED on Anthropic credit/workspace issue (would compare Phase 8 branch vs main on 48 reference reps)
+- [ ] Manual smoke test in browser (workout / focus / pressure / framework / scenario) — handoff to user
+- [ ] Telemetry vs target (mock-fallback <2%, p95 latency target) — currently dominated by 100% OpenAI fallback; will revisit when Anthropic resolved
+
+**Latency arc across phases (server-side baseline, 10-rep replay):**
+
+| Phase | p50 (ms) | p95 (ms) | Avg Prompt | Note |
+|---|---|---|---|---|
+| Phase 0 degraded | 8032 | 15845 | 39 KB | 100% OpenAI fallback, no instrumentation |
+| Phase 0 canonical | 7175 | 9480 | 39 KB | Same after restart, instrumentation live |
+| Phase 1 | 5749 | 8422 | 39 KB | −20%/−11% via tight timeouts |
+| Phase 2 | 5383 | 6411 | 39 KB | Frontend optimistic preview (server unchanged) |
+| Phase 3 | **5118** | **5580** | **21 KB** | **−45% prompt size; best snapshot vs baseline** |
+| Phase 4 | 6672 | 8222 | 26 KB | RAG quality win, +485ms retrieval cost |
+| Phase 5 | 10738 | 11760 | 37 KB | Two-stage adds 2nd LLM call (no cache to amortize) |
+| Phase 6 | 12059 | 15161 | 38 KB | +1s few-shot retrieval on stage 2 |
+
+**Why Phases 5+6 look "slower":** the Phase 0 baseline runs 100% on OpenAI fallback (no Anthropic prompt cache). Two-stage scoring + few-shot exemplars are designed to win when (a) Anthropic returns + cache hits land OR (b) client UI consumes /api/score/stage1 then /api/score/stage2 progressively. With Anthropic cache amortizing stage 2's shared blocks, projected latency is ~800ms stage 1 + ~3s stage 2 (~3.8s total) vs today's 12s. With progressive UI, the user sees scores at ~800ms, copy at ~3.8s — vs today's all-or-nothing wait.
+
+**What's ready to merge as-is (no Anthropic dependency):**
+- Phase 1: tight timeouts + faster fallback → user-visible win today
+- Phase 2: client-side deterministic dim preview → user-visible win today
+- Phase 3: slim knowledge anchors → user-visible win today (45% prompt reduction)
+- Phase 7: drift detection cron infrastructure (no user-visible change)
+
+**What's ready but value gated on Anthropic+UI:**
+- Phase 4: RAG knowledge retrieval (485ms cost, quality benefit)
+- Phase 5: two-stage infrastructure (no client UI yet)
+- Phase 6: few-shot exemplars (1s stage 2 cost, quality benefit)
+
+**Decision needed (see commit summary):** merge all, merge subset, or hold for Anthropic fix.
 
 **Pre-merge:**
 - [ ] Full calibration harness run, side-by-side vs `feat/openai-fallback`, drift <±5pt tolerance on all 20+ reference reps

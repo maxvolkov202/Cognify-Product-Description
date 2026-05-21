@@ -465,7 +465,6 @@ export type Stage1Result = {
 };
 
 export async function scoreStage1(input: ScoreRepInput): Promise<Stage1Result> {
-  const start = Date.now();
   const context = await prepareContext(input);
 
   const systemText =
