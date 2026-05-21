@@ -73,6 +73,10 @@ import {
   retrieveKnowledgeForRep,
   renderRagContextBlock,
 } from "./rag/retrieve";
+import {
+  retrieveSimilarReps,
+  renderReferenceRepsBlock,
+} from "./rag/reference-reps";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
 
 // ——— Stage 1 system prompt (SCORING ONLY) ——————————————————————
@@ -553,6 +557,9 @@ export async function scoreStage1(input: ScoreRepInput): Promise<Stage1Result> {
 export type Stage2Result = {
   stage2: Stage2Output;
   metrics: ScoreStageMetrics;
+  /** Phase 6 — diagnostic info on the few-shot exemplar retrieval. */
+  exemplarMatches: number;
+  exemplarRetrieveMs: number;
 };
 
 export async function scoreStage2(
@@ -561,6 +568,18 @@ export async function scoreStage2(
   contextIn?: ScoringContext,
 ): Promise<Stage2Result> {
   const context = contextIn ?? (await prepareContext(input));
+
+  // Phase 6 — few-shot exemplar retrieval. Fires BEFORE the stage 2
+  // LLM call so we can inject the matches. Per-call timeout is 1s; on
+  // any failure we proceed without exemplars (Stage 2 falls back to
+  // rubric + RAG anchors). Gated by FF_REFERENCE_REPS so the bank can
+  // be disabled if it ever shows quality regressions.
+  const refRepsEnabled = process.env.FF_REFERENCE_REPS !== "false";
+  const refRepsResult: Awaited<ReturnType<typeof retrieveSimilarReps>> =
+    refRepsEnabled
+      ? await retrieveSimilarReps({ transcript: input.transcript })
+      : { matches: [], durationMs: 0, failureReason: null };
+  const exemplarsBlock = renderReferenceRepsBlock(refRepsResult.matches);
 
   // Stage 2 adds the stage 1 output to the user prompt so the
   // copywriting can ground in the actual scores.
@@ -578,7 +597,17 @@ export async function scoreStage2(
     2,
   )}`;
 
-  const userPromptWithStage1 = `${stage1Block}\n\n${context.userPrompt}`;
+  // Compose the user prompt. Exemplars come BEFORE stage 1 + the rest
+  // of the context so the model reads "what good feedback looks like
+  // on similar reps" first, then the canonical scores it has to
+  // ground in.
+  const userPromptWithStage1 = [
+    exemplarsBlock,
+    stage1Block,
+    context.userPrompt,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const systemText =
     stage2SystemPrompt +
@@ -622,6 +651,8 @@ export async function scoreStage2(
       ragDurationMs: 0,
       ragChunkCount: context.ragChunkCount,
     },
+    exemplarMatches: refRepsResult.matches.length,
+    exemplarRetrieveMs: refRepsResult.durationMs,
   };
 }
 
