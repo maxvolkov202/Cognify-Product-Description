@@ -55,20 +55,22 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
-## Phase 1 — Tight Timeouts & Faster Fallback `[ ]`
+## Phase 1 — Tight Timeouts & Faster Fallback `[x]` shipped 2026-05-21
 
 **Changes:**
-- [ ] `AbortController` wrapping Anthropic call in `messagesCreateWithFallback`, 8s default timeout (env `SCORING_ANTHROPIC_TIMEOUT_MS`)
-- [ ] Extend `shouldFallback()` in `claude.ts` to recognize `AbortError` / `DOMException` name `AbortError`
-- [ ] OpenAI fallback gets its own 6s `AbortController` timeout
-- [ ] Both-failed path writes specific `failureReason` to telemetry instead of generic "Unknown error"
-- [ ] Improve `buildFallbackScore` callout copy: differentiate by reason (timeout vs validation vs both-failed)
-- [ ] Add specific `failureReason` field to `RepScore` type so the UI can render contextual messaging
+- [x] `AbortController` on Anthropic call, 5s default (env `SCORING_ANTHROPIC_TIMEOUT_MS`). Tuned from initial 8s after baseline showed Anthropic returns credit_balance errors in <500ms.
+- [x] Recognize AbortError as fallback-eligible in `claude.ts` wrapper
+- [x] OpenAI fallback gets 12s `AbortController` timeout (env `SCORING_OPENAI_TIMEOUT_MS`). Tuned from initial 6s after baseline showed it clipped healthy responses; will tighten back after Phase 3 cuts prompt size.
+- [x] Both-failed path throws combined error preserving both causes ("both providers failed | anthropic: X | openai: Y"), AbortError name preserved on wrapper
+- [x] `AnthropicCallMetrics` extended with `underlyingAnthropicError`, `anthropicDurationMs`, `openaiDurationMs`. Telemetry now captures causal context on the happy-fallback path.
+- [x] `buildFallbackScore` takes FailureReason → reason-aware callout copy (timeout / rate_limit / validation / network / both-failed get distinct consumer-neutral copy)
+- [x] Typecheck + tests pass; baseline re-run committed as `plans/baselines/phase-1.json`
 
-**Checkpoint 1:**
-- Dev server restart
-- User runs 5 reps; one should be a long/complex rep to test the timeout
-- User confirms mock-fallback rate dropped and remaining mock callouts have better copy
+**Phase 1 baseline (10-rep replay):**
+- Total p50/p95: **7175ms → 5749ms (−20%) / 9480ms → 8422ms (−11%)**
+- Mock-fallback rate: 10% (same count as Phase 0; now correctly categorized as `validation_failed` instead of leaking to `unknown`)
+- OpenAI-fallback rate: 90% (unchanged — Anthropic still failing; cache hit rate still 0%; Phase 3 will help most)
+- Captured underlying Anthropic error in error_detail on every fallback row (was null before)
 
 ---
 

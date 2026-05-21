@@ -19,6 +19,9 @@ import type { ScoreRepModeContext } from "@/lib/ai/score";
 import { RecordButton } from "./RecordButton";
 import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
 import { FlowFeedbackPanel } from "./FlowFeedbackPanel";
+import { OptimisticDimensionPreview } from "./feedback/OptimisticDimensionPreview";
+import { computeOptimisticDims } from "@/lib/scoring/deterministic-client";
+import type { DimensionScore } from "@/types/domain";
 import { RepFrameworkStrip } from "./RepFrameworkStrip";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { GradientButton } from "@/components/shared/GradientButton";
@@ -143,7 +146,15 @@ type Phase =
       durationRatio: number;
       canProceed: boolean;
     }
-  | { kind: "scoring" }
+  | {
+      kind: "scoring";
+      /** Phase 2: deterministic dim scores computed client-side from word
+       *  timings the moment Deepgram returns. Populates the
+       *  OptimisticDimensionPreview with real delivery + thinking_quality
+       *  cards while the LLM call is in flight. Absent when word timings
+       *  are missing (audio-only paths or transcription failed). */
+      optimisticDims?: DimensionScore[];
+    }
   | { kind: "saving" }
   | {
       // Async path: Edge Function is processing the rep. Shows progress UI
@@ -154,6 +165,8 @@ type Phase =
       recording: RecordingResult;
       transcript: string;
       words: { word: string; startMs: number; endMs: number }[];
+      /** Phase 2: same optimistic dims as the sync scoring phase. */
+      optimisticDims?: DimensionScore[];
     }
   | {
       kind: "done";
@@ -351,6 +364,20 @@ export function RepSurface({
     transcript: string,
     words: { word: string; startMs: number; endMs: number }[],
   ) => {
+    // Phase 2 — compute deterministic dim scores client-side from word
+    // timings the moment we have them. delivery + thinking_quality
+    // render immediately while the LLM call is in flight; the other
+    // four dims shimmer. When the server response arrives, all six
+    // dims get replaced with the canonical values (which will MATCH
+    // the optimistic ones since both compute from the same pure
+    // functions — server is still source of truth).
+    const optimisticDims =
+      computeOptimisticDims({
+        words,
+        transcript,
+        durationMs: result.durationMs,
+        timeBudgetMs: maxDurationMs,
+      }) ?? undefined;
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
     // Supabase session, skip the blocking /api/score call and instead:
@@ -410,6 +437,7 @@ export function RepSurface({
           recording: result,
           transcript,
           words,
+          ...(optimisticDims ? { optimisticDims } : {}),
         });
         return;
       }
@@ -418,7 +446,10 @@ export function RepSurface({
     }
 
     let score: RepScore;
-    setPhase({ kind: "scoring" });
+    setPhase({
+      kind: "scoring",
+      ...(optimisticDims ? { optimisticDims } : {}),
+    });
     // Client-side timeout so Claude hangs don't trap the user. Bumped from
     // 20s → 45s because the server route has maxDuration=30 AND Claude
     // calls against the full knowledge base + rubric can run 15-25s on
@@ -886,9 +917,33 @@ export function RepSurface({
               "Scoring in the background. Realtime updates incoming…"}
           </div>
           <LoadingEvidence />
-          {(phase.kind === "scoring" ||
-            phase.kind === "saving" ||
-            phase.kind === "processing-async") && <FeedbackSkeleton />}
+          {(() => {
+            // Phase 2 — when the scoring / async-processing phase carries
+            // optimistic deterministic dims, render the partial dimension
+            // grid (2 real cards + 4 shimmer) instead of a generic
+            // skeleton. The user sees real scores ~immediately on every
+            // rep with word timings (the common case) instead of waiting
+            // ~5s for the full LLM response.
+            const optimisticDims =
+              (phase.kind === "scoring" && phase.optimisticDims) ||
+              (phase.kind === "processing-async" && phase.optimisticDims) ||
+              null;
+            if (optimisticDims) {
+              return (
+                <OptimisticDimensionPreview optimisticDims={optimisticDims} />
+              );
+            }
+            // No word timings (transcription failed / audio-only path):
+            // fall back to the generic skeleton.
+            if (
+              phase.kind === "scoring" ||
+              phase.kind === "saving" ||
+              phase.kind === "processing-async"
+            ) {
+              return <FeedbackSkeleton />;
+            }
+            return null;
+          })()}
         </>
       )}
 
