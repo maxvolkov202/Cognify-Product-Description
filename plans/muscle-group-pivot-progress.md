@@ -171,7 +171,9 @@ The `workout_sessions.graduation_rep_id` FK is added trailing so the cycle resol
 
 ---
 
-## Phase 2 — Exercise catalog ingestion + gap-fill `[ ]`
+## Phase 2 — Exercise catalog ingestion + gap-fill `[x]`
+
+> **2026-05-21:** 54 exercises (33 DNA-v1 + 21 gap-fills) × 15-16 prompts each = 848 total prompts shipped via 6 per-dim manifest files under `scripts/exercise-catalog/v1/`. Seed script `scripts/seed-exercise-catalog.mjs` applied clean; re-run is a true no-op (diff-based skip, not blind upsert). `--dim <name>` filter works. `npm run seed:exercises` wired. Per-dim counts: clarity 9/144, structure 9/135, conciseness 9/144, thinking_quality 9/144, pacing 9/146, tone 9/135. No within-dim prompt duplicates. **Note:** the spec said `v1.json` (singular) but I shipped `v1/{dim}.json` (one file per muscle group) — easier to author, diff, and edit per the plan's "one author per dim" rule. The seed script assembles them at runtime. Document in `scripts/exercise-catalog/README.md`.
 
 **Goal:** Stand up the seeded `cognify_v2.exercises` + `cognify_v2.exercise_prompts` data layer. Author the v1 manifest with all 33 DNA-doc exercises + 21 net-new gap-fills, ship a manifest-driven idempotent seed script.
 
