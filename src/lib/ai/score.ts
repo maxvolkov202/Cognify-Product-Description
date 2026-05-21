@@ -907,11 +907,15 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
   const { response, metrics: callMetrics } = await anthropic.messages.createWithMetrics({
     model: MODELS.scoring,
     // Bounded output: 6 dimension scores + ~3 callouts + didWell/didntLand/
-    // nextRepFocus arrays. Prod log analysis (May 2026) showed 1200 truncated
-    // mid-JSON on multi-signal responses, dropping us into mock-fallback. 2400
-    // is the 99th percentile observed across rich-signal reps; further bumps
-    // become wasteful given prompt-cap discipline.
-    max_tokens: 2400,
+    // nextRepFocus arrays. Phase 8 (2026-05-21) — Anthropic console logs
+    // showed Haiku 4.5 hitting EXACTLY 2400 output tokens on every
+    // production scoring call, meaning the response was truncating
+    // mid-JSON and falling through to mock-fallback. 2400 was NOT the
+    // 99th percentile in practice — it was the censoring ceiling. 4000
+    // gives the model real room to finish; cost increase is ~$0.005
+    // worst-case per call ($16 / 1M output × 1600 extra tokens) which
+    // is rounding error vs. the 0% mock-fallback rate it buys us.
+    max_tokens: 4000,
     // Calibration stability: Anthropic SDK defaults temperature to 1.0,
     // which causes 30-50pt run-to-run swings on the same input (documented
     // in docs/calibration-baseline-2026-05-d2.md). Dropping to 0.2 keeps

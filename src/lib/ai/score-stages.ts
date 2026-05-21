@@ -619,8 +619,13 @@ export async function scoreStage2(
       {
         model: MODELS.scoring,
         // Stage 2 output is large: headline + 3 callouts + 6 bullets.
-        // 1800 matches prod observations from the legacy single-call path.
-        max_tokens: 1800,
+        // Phase 8 (2026-05-21) — bumped from 1800 to 2800 after the
+        // legacy /api/score path showed Haiku consistently hitting its
+        // max_tokens cap on rich-signal reps. Stage 2 is similar in
+        // shape (callouts + bullets dominate output) so we apply the
+        // same cap headroom here. Stage 1 stays at 400 since its
+        // output is genuinely small (6 dim scores + 3 short fields).
+        max_tokens: 2800,
         temperature: 0.2,
         system: [
           { type: "text", text: stage2SystemPrompt, cache_control: { type: "ephemeral" } },
