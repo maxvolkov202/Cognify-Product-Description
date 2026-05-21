@@ -112,7 +112,18 @@ Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic 
 
 ---
 
-## Phase 4 — pgvector + RAG Knowledge Retrieval `[ ]`
+## Phase 4 — pgvector + RAG Knowledge Retrieval `[x]` shipped 2026-05-21
+
+**Shipped:**
+- 0016_pgvector_knowledge_chunks.sql migration: pgvector extension + knowledge_chunks (243 rows: 47 skill + 129 framework + 67 domain), HNSW index
+- scripts/embed-knowledge.mjs: chunks markdown on H2, merges short sections, idempotent on (source_file, section, content_hash). Bulk embed cost ~$0.001
+- src/lib/ai/rag/retrieve.ts: top-K cosine via pgvector <=>, coverage re-rank (≥1 per scored_dim), 1.5s timeout, graceful degradation
+- Wire into scoreRep: FF_RAG_RETRIEVE gate (default ON), runs concurrent with prosody worker
+- ragDurationMs + ragChunkCount surfaced through telemetry
+
+**Phase 4 baseline:** total p50 5118→6672ms (+30% expected regression, RAG embed adds ~485ms avg). avg prompt 21KB→26KB. validation_failed 2→0 (cleaner grounding). When Anthropic returns + cache hits land, RAG cost will be largely absorbed.
+
+---
 
 **Database (Drizzle migration):**
 - [ ] Enable `pgvector` extension in Supabase

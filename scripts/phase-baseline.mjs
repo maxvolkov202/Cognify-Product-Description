@@ -47,6 +47,12 @@ const REF_REPS_PATH = resolve(__dirname, "calibration", "reference-reps.json");
 const BASELINES_DIR = resolve(__dirname, "..", "plans", "baselines");
 const BASE_URL = process.env.DEV_BASE_URL ?? "http://127.0.0.1:3333";
 const PHASE = process.env.PHASE ?? "0";
+// Phase 5+ — set TWO_STAGE=true to baseline the two-stage endpoint
+// (/api/score/twostage) instead of the legacy single-call /api/score.
+// Output JSON tags itself so phase-N.json comparisons stay
+// apples-to-apples within the same endpoint mode.
+const TWO_STAGE = process.env.TWO_STAGE === "true";
+const SCORE_ENDPOINT = TWO_STAGE ? "/api/score/twostage" : "/api/score";
 
 // Fixed deterministic subset — DO NOT change between phases.
 // If you add reps to reference-reps.json, do NOT add them here without
@@ -85,7 +91,7 @@ async function scoreOne(rep) {
   if (rep.audioUrl) body.audioUrl = rep.audioUrl;
 
   const t0 = Date.now();
-  const res = await fetch(`${BASE_URL}/api/score`, {
+  const res = await fetch(`${BASE_URL}${SCORE_ENDPOINT}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -180,7 +186,7 @@ function summarizeTelemetry(rows) {
 }
 
 async function main() {
-  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL} ===\n`);
+  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL}${SCORE_ENDPOINT} (twoStage=${TWO_STAGE}) ===\n`);
 
   const allReps = loadReferenceReps();
   const subset = SUBSET_IDS.map((id) => {
