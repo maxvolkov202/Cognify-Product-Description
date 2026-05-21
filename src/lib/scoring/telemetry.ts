@@ -112,9 +112,16 @@ export async function writeScoringTelemetry(
     input.metrics?.modelUsed ??
     "mock-fallback-v1";
 
-  const errorDetail = input.errorDetail
-    ? input.errorDetail.slice(0, 500)
-    : null;
+  // Phase 1 — on the fallback-succeeded path, the route handler doesn't
+  // see what made Anthropic fail (the wrapper swallowed it). The metrics
+  // object carries that underlying error so telemetry can show
+  // "fallback fired because of <reason>" without grepping logs.
+  // Explicit errorDetail input wins (catch-block context is richer),
+  // metrics.underlyingAnthropicError is used as a fallback when explicit
+  // is absent (happy-fallback path).
+  const rawErrorDetail =
+    input.errorDetail ?? input.metrics?.underlyingAnthropicError ?? null;
+  const errorDetail = rawErrorDetail ? rawErrorDetail.slice(0, 500) : null;
 
   await safeDb(async () => {
     await db.insert(scoringTelemetry).values({

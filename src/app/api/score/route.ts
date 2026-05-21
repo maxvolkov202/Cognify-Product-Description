@@ -114,6 +114,53 @@ const bodySchema = z.object({
 type ScoreBody = z.infer<typeof bodySchema>;
 
 /**
+ * Phase 1 — reason-aware user-facing copy for the mock-fallback callout.
+ * Always consumer-neutral (never references billing/credits/tokens) but
+ * differentiates the *kind* of problem so users get actionable signal
+ * instead of a single generic message.
+ *
+ * Two distinct user moments to address:
+ *   1. They might retry now (timeout, rate_limit → "try again in a moment")
+ *   2. The pipeline itself is broken (validation, network → "saved, we're investigating")
+ */
+function fallbackCalloutCopy(
+  failureReason: import("@/lib/scoring/telemetry").FailureReason,
+  hasWords: boolean,
+): { title: string; body: string } {
+  const realDimsBlurb = hasWords
+    ? " Your delivery and thinking quality below are scored from real signals."
+    : "";
+  switch (failureReason) {
+    case "timeout":
+      return {
+        title: "Scoring took longer than expected",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment — usually clears up immediately.`,
+      };
+    case "rate_limit_429":
+      return {
+        title: "Too many scoring requests right now",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+    case "validation_failed":
+      return {
+        title: "Scoring had a hiccup on this one",
+        body: `Your rep is saved.${realDimsBlurb} This is rare — try another rep and it should clear.`,
+      };
+    case "network_error":
+      return {
+        title: "Couldn't reach the scoring service",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+    case "mock_fallback_both_failed":
+    default:
+      return {
+        title: "Scoring is taking a moment",
+        body: `Your rep is saved.${realDimsBlurb} Try another rep in a moment.`,
+      };
+  }
+}
+
+/**
  * Build a fallback RepScore when the Claude scoring call fails (no
  * credits, rate limit, network, etc.). The fallback keeps the workout
  * flow fully usable so users can still experience end-to-end UX.
@@ -123,8 +170,16 @@ type ScoreBody = z.infer<typeof bodySchema>;
  * dimensions are always real even in mock mode. The LLM-scored
  * dimensions (clarity, structure, relevance, tone) get neutral mock
  * values with a clear "mock mode" callout explaining what happened.
+ *
+ * Phase 1 — accepts a `failureReason` so the user-facing callout copy
+ * differentiates by problem type instead of always saying "Scoring is
+ * taking a moment".
  */
-function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
+function buildFallbackScore(
+  body: ScoreBody,
+  errorMsg: string,
+  failureReason: import("@/lib/scoring/telemetry").FailureReason = "mock_fallback_both_failed",
+): RepScore {
   const words = body.words ?? [];
   const hasWords = words.length > 0;
 
@@ -196,15 +251,14 @@ function buildFallbackScore(body: ScoreBody, errorMsg: string): RepScore {
   // Server-side log keeps the full error for debugging; user-visible
   // callout is consumer-neutral — never reference billing/credits/tokens
   // in copy that ships to end users.
-  console.error("[score] mock fallback triggered:", errorMsg);
+  console.error(`[score] mock fallback triggered (${failureReason}):`, errorMsg);
+  const copy = fallbackCalloutCopy(failureReason, hasWords);
   const callouts: Callout[] = [
     {
       dimension: "clarity",
       tone: "neutral",
-      title: "Scoring is taking a moment",
-      body: hasWords
-        ? "Your delivery and thinking quality are scored from real signals. Detailed per-moment feedback will catch up shortly — try another rep in a moment."
-        : "We couldn't reach the scoring service. Your rep is recorded — try another rep in a moment.",
+      title: copy.title,
+      body: copy.body,
       quote: null,
       suggestedRewrite: null,
       transcriptStart: 0,
@@ -391,7 +445,7 @@ export async function POST(req: Request) {
       `[api/score] scoring failed (${failureReason}), returning fallback mock score:`,
       errorMsg,
     );
-    const fallback = buildFallbackScore(body, errorMsg);
+    const fallback = buildFallbackScore(body, errorMsg, failureReason);
 
     // Phase 0 — categorize the failure so /api/score/health/stats can
     // group fallback rate by reason. Mock-fallback always means BOTH

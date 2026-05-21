@@ -27,6 +27,27 @@ const apiKey = process.env.ANTHROPIC_API_KEY;
 const openaiKey = process.env.OPENAI_API_KEY;
 const openaiFallbackModel = process.env.OPENAI_FALLBACK_MODEL ?? "gpt-4o";
 
+// Phase 1 — explicit per-call timeouts. Without these, a slow upstream
+// could block the scoring route for the full Vercel maxDuration (60s).
+// Defaults tuned against the Phase 0 baseline (39 KB prompts, ~8000 input
+// tokens):
+//   Anthropic: 5s — credit_balance + auth errors return in <500ms; real
+//     responses take 2-4s on Haiku 4.5. 5s leaves headroom for slow
+//     responses without letting a genuinely stuck call drag the user.
+//   OpenAI:    12s — gpt-4o on a 39KB prompt typically returns in 5-7s
+//     but tail can reach 10s+ before slowing. 12s catches truly stuck
+//     calls without clipping healthy responses. After Phase 3 (slim
+//     knowledge → ~10KB prompt) we can tighten this back to ~6s.
+// Tunable via env so we can adjust without a redeploy.
+const ANTHROPIC_TIMEOUT_MS = parseInt(
+  process.env.SCORING_ANTHROPIC_TIMEOUT_MS ?? "5000",
+  10,
+);
+const OPENAI_TIMEOUT_MS = parseInt(
+  process.env.SCORING_OPENAI_TIMEOUT_MS ?? "12000",
+  10,
+);
+
 if (!apiKey && process.env.NODE_ENV !== "test") {
   console.warn("[ai] ANTHROPIC_API_KEY is not set. Claude calls will fail.");
 }
@@ -263,6 +284,19 @@ export type AnthropicCallMetrics = {
   /** Whether the OpenAI fallback fired. When true, the wrapper consumed
    *  both an Anthropic failure AND an OpenAI call. */
   fallbackFired: boolean;
+  /** Phase 1 — when fallback fired but ultimately succeeded, the route
+   *  handler's catch never sees what caused the original Anthropic
+   *  failure. Capture it here so telemetry can show "fallback fired
+   *  because of <reason>" without joining log lines. Trimmed to ~300
+   *  chars at write time. Null when no fallback fired. */
+  underlyingAnthropicError: string | null;
+  /** Phase 1 — Anthropic call wall-clock specifically (vs modelDurationMs
+   *  which spans the full wrapper including fallback). Useful for
+   *  distinguishing "Anthropic was slow then OpenAI saved us" from
+   *  "Anthropic returned an error fast and OpenAI took the time". */
+  anthropicDurationMs: number;
+  /** Phase 1 — OpenAI call wall-clock when fallback fired. Null otherwise. */
+  openaiDurationMs: number | null;
 };
 
 export type AnthropicCallResult = {
@@ -270,35 +304,125 @@ export type AnthropicCallResult = {
   metrics: AnthropicCallMetrics;
 };
 
+/**
+ * Phase 1 — wrap a promise in an AbortController timeout. Rejects with
+ * an AbortError if the timeout fires first. The categorizer recognizes
+ * AbortError → "timeout" so telemetry buckets these correctly.
+ *
+ * Both Anthropic and OpenAI SDKs accept `{ signal }` in their request
+ * options, so the abort is honored upstream (the HTTP request is
+ * actually cancelled, not just our promise dropped).
+ */
+function withTimeout<T>(
+  start: () => Promise<T>,
+  timeoutMs: number,
+  label: string,
+): { promise: Promise<T>; signal: AbortSignal } {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new Error(`${label} timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
+  const promise = start().finally(() => clearTimeout(timer));
+  return { promise, signal: controller.signal };
+}
+
 async function messagesCreateWithMetrics(
   params: Anthropic.Messages.MessageCreateParamsNonStreaming,
   promptSizeBytes?: number,
 ): Promise<AnthropicCallResult> {
-  const start = Date.now();
+  const wrapperStart = Date.now();
   let fallbackFired = false;
+  let underlyingAnthropicError: string | null = null;
+  let anthropicDurationMs = 0;
+  let openaiDurationMs: number | null = null;
 
   let response: Anthropic.Messages.Message;
+  const anthropicController = new AbortController();
+  const anthropicTimer = setTimeout(() => {
+    anthropicController.abort();
+  }, ANTHROPIC_TIMEOUT_MS);
+
   try {
-    response = (await realAnthropic.messages.create(
-      params,
-    )) as Anthropic.Messages.Message;
+    const anthropicStart = Date.now();
+    try {
+      response = (await realAnthropic.messages.create(params, {
+        signal: anthropicController.signal,
+      })) as Anthropic.Messages.Message;
+    } finally {
+      clearTimeout(anthropicTimer);
+      anthropicDurationMs = Date.now() - anthropicStart;
+    }
   } catch (err) {
-    if (!shouldFallback(err) || !realOpenAI) {
-      // Surface the error so the caller can categorize it for telemetry.
+    // Recognize SDK abort as a timeout-shaped error so shouldFallback +
+    // the categorizer treat it consistently.
+    const isAbort =
+      anthropicController.signal.aborted ||
+      (err instanceof Error && err.name === "AbortError") ||
+      /\babort(ed)?\b/i.test(err instanceof Error ? err.message : String(err));
+    if (isAbort) {
+      underlyingAnthropicError = `anthropic timeout after ${ANTHROPIC_TIMEOUT_MS}ms`;
+    } else {
+      underlyingAnthropicError =
+        err instanceof Error ? err.message : String(err);
+    }
+
+    // Only fall back when the error class warrants it. For timeouts we
+    // explicitly DO want to fall back (OpenAI may be healthy when
+    // Anthropic stalls), so extend shouldFallback's allow-list to
+    // include abort-shaped errors.
+    const fallbackEligible = isAbort || shouldFallback(err);
+    if (!fallbackEligible || !realOpenAI) {
       throw err;
     }
+
     fallbackFired = true;
-    const errMsg = err instanceof Error ? err.message : String(err);
     console.warn(
       `[ai] Anthropic call failed — falling back to OpenAI ${openaiFallbackModel}. Reason:`,
-      errMsg.slice(0, 200),
+      (underlyingAnthropicError ?? "").slice(0, 200),
     );
-    const openaiParams = translateToOpenAI(params);
-    const openaiResp = await realOpenAI.chat.completions.create(openaiParams);
-    response = translateFromOpenAI(openaiResp);
+
+    const openaiController = new AbortController();
+    const openaiTimer = setTimeout(() => {
+      openaiController.abort();
+    }, OPENAI_TIMEOUT_MS);
+    const openaiStart = Date.now();
+    try {
+      const openaiParams = translateToOpenAI(params);
+      const openaiResp = await realOpenAI.chat.completions.create(
+        openaiParams,
+        { signal: openaiController.signal },
+      );
+      response = translateFromOpenAI(openaiResp);
+    } catch (openaiErr) {
+      // BOTH providers failed. Wrap the OpenAI error with the original
+      // Anthropic cause so the route handler's catch + telemetry write
+      // can show "both providers failed" + the actual reason on each.
+      // Without this wrap, only the OpenAI error would survive, hiding
+      // why the call ever fell back in the first place.
+      const openaiIsAbort =
+        openaiController.signal.aborted ||
+        (openaiErr instanceof Error && openaiErr.name === "AbortError") ||
+        /\babort(ed)?\b/i.test(
+          openaiErr instanceof Error ? openaiErr.message : String(openaiErr),
+        );
+      const openaiSummary = openaiIsAbort
+        ? `openai timeout after ${OPENAI_TIMEOUT_MS}ms`
+        : openaiErr instanceof Error
+          ? openaiErr.message
+          : String(openaiErr);
+      const combinedMsg = `both providers failed | anthropic: ${underlyingAnthropicError ?? "?"} | openai: ${openaiSummary}`;
+      const wrapped = new Error(combinedMsg);
+      // Preserve abort-ness on the wrapper so categorizer correctly
+      // assigns failure_reason=timeout when OpenAI was the abort cause.
+      if (openaiIsAbort) wrapped.name = "AbortError";
+      throw wrapped;
+    } finally {
+      clearTimeout(openaiTimer);
+      openaiDurationMs = Date.now() - openaiStart;
+    }
   }
 
-  const modelDurationMs = Date.now() - start;
+  const modelDurationMs = Date.now() - wrapperStart;
   const usage = response.usage;
 
   const metrics: AnthropicCallMetrics = {
@@ -310,20 +434,30 @@ async function messagesCreateWithMetrics(
     cacheReadTokens: usage?.cache_read_input_tokens ?? null,
     cacheCreationTokens: usage?.cache_creation_input_tokens ?? null,
     fallbackFired,
+    underlyingAnthropicError,
+    anthropicDurationMs,
+    openaiDurationMs,
   };
 
-  // Single structured log line per call — `[score] anthropic: ...` is
-  // grep-friendly in Vercel logs and lets us correlate without joining
-  // the telemetry table.
+  // Single structured log line per call — grep-friendly in Vercel logs
+  // and lets us correlate without joining the telemetry table.
   console.log(
     `[ai] call: model=${metrics.modelUsed} promptBytes=${metrics.promptSizeBytes ?? "?"} ` +
       `cacheRead=${metrics.cacheReadTokens ?? 0} cacheCreate=${metrics.cacheCreationTokens ?? 0} ` +
       `input=${metrics.inputTokens ?? 0} output=${metrics.outputTokens ?? 0} ` +
-      `durMs=${metrics.modelDurationMs} fallback=${metrics.fallbackFired}`,
+      `anthropicMs=${metrics.anthropicDurationMs} openaiMs=${metrics.openaiDurationMs ?? "-"} ` +
+      `totalMs=${metrics.modelDurationMs} fallback=${metrics.fallbackFired}` +
+      (metrics.underlyingAnthropicError
+        ? ` why="${metrics.underlyingAnthropicError.slice(0, 120)}"`
+        : ""),
   );
 
   return { response, metrics };
 }
+
+// Silence unused-import warnings — `withTimeout` is exported for
+// potential streaming use in Phase 5.
+void withTimeout;
 
 /**
  * The public `anthropic` export. Preserves the
