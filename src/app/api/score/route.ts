@@ -4,6 +4,7 @@ import { scoreRepWithMetrics } from "@/lib/ai/score";
 import {
   writeScoringTelemetry,
   categorizeFailure,
+  resolveFallbackReason,
 } from "@/lib/scoring/telemetry";
 import { extractSignals } from "@/lib/scoring/signals";
 import {
@@ -429,7 +430,7 @@ export async function POST(req: Request) {
       userId,
       metrics,
       totalServerDurationMs: Date.now() - requestStart,
-      failureReason: metrics.fallbackFired ? "openai_fallback_used" : "none",
+      failureReason: resolveFallbackReason(metrics),
       compositeScore: score.composite,
     });
 
@@ -459,7 +460,8 @@ export async function POST(req: Request) {
       failureReason:
         failureReason === "none"
           ? "mock_fallback_both_failed"
-          : failureReason === "openai_fallback_used"
+          : failureReason === "openai_fallback_used" ||
+              failureReason === "anthropic_fallback_used"
             ? "mock_fallback_both_failed"
             : failureReason,
       errorDetail: errorMsg,

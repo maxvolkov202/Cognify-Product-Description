@@ -4,6 +4,7 @@ import { scoreStage1, type Stage1Output } from "@/lib/ai/score-stages";
 import {
   writeScoringTelemetry,
   categorizeFailure,
+  resolveFallbackReason,
 } from "@/lib/scoring/telemetry";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
@@ -166,7 +167,7 @@ export async function POST(req: Request) {
           metrics.modelDurationMs + metrics.validationDurationMs,
       },
       totalServerDurationMs: Date.now() - requestStart,
-      failureReason: metrics.fallbackFired ? "openai_fallback_used" : "none",
+      failureReason: resolveFallbackReason(metrics),
       compositeScore: stage1.composite,
     });
 
@@ -187,7 +188,8 @@ export async function POST(req: Request) {
       failureReason:
         failureReason === "none"
           ? "mock_fallback_both_failed"
-          : failureReason === "openai_fallback_used"
+          : failureReason === "openai_fallback_used" ||
+              failureReason === "anthropic_fallback_used"
             ? "mock_fallback_both_failed"
             : failureReason,
       errorDetail: errorMsg,

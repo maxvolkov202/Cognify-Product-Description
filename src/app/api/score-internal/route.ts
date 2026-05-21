@@ -15,6 +15,7 @@ import { encodeDimensionSignals } from "@/lib/scoring/signals";
 import {
   writeScoringTelemetry,
   categorizeFailure,
+  resolveFallbackReason,
 } from "@/lib/scoring/telemetry";
 import type { SkillDimension } from "@/types/domain";
 
@@ -184,7 +185,7 @@ export async function POST(req: Request) {
       userId: rep.userId,
       metrics: scoreMetrics,
       totalServerDurationMs: Date.now() - requestStart,
-      failureReason: scoreMetrics.fallbackFired ? "openai_fallback_used" : "none",
+      failureReason: resolveFallbackReason(scoreMetrics),
       compositeScore: score.composite,
     });
 

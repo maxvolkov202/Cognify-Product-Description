@@ -23,9 +23,34 @@ export type FailureReason =
   | "validation_failed"
   | "truncated"
   | "openai_fallback_used"
+  | "anthropic_fallback_used"
   | "mock_fallback_both_failed"
   | "network_error"
   | "unknown";
+
+/**
+ * Resolve the success-path failureReason. On the happy path returns
+ * "none". When fallback fired, returns the provider-specific tag so the
+ * dashboard can show "anthropic primary, openai served" vs "openai
+ * primary, anthropic served" distinctly.
+ *
+ * Detection keys on the model_used tag set by `claude.ts` translateFromOpenAI
+ * + callAnthropicOnce:
+ *   - "openai-fallback:..."    → openai_fallback_used
+ *   - "anthropic-fallback:..." → anthropic_fallback_used
+ *   - anything else with fallbackFired=true → openai_fallback_used
+ *     (back-compat default; the legacy tag was always openai-fallback)
+ */
+export function resolveFallbackReason(metrics: {
+  fallbackFired: boolean;
+  modelUsed: string;
+}): FailureReason {
+  if (!metrics.fallbackFired) return "none";
+  if (metrics.modelUsed.startsWith("anthropic-fallback:")) {
+    return "anthropic_fallback_used";
+  }
+  return "openai_fallback_used";
+}
 
 /**
  * Categorize a thrown error into one of the FailureReason buckets so
