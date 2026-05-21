@@ -56,7 +56,19 @@ export function categorizeFailure(err: unknown): FailureReason {
   if (/ECONNREFUSED|ETIMEDOUT|fetch failed|EAI_AGAIN|ENOTFOUND/i.test(msg)) {
     return "network_error";
   }
-  if (/ZodError|invalid_input|invalid_json|was not valid JSON|exceeded.*size cap/i.test(msg)) {
+  // ZodError detection — match by error name first (most reliable when the
+  // error wasn't re-thrown), then fall through to message patterns that
+  // catch ZodIssue arrays. The "invalid_type" / "received.*undefined"
+  // patterns are Zod-issue-array signatures — these show up when the LLM
+  // returns JSON missing required fields (common with non-Anthropic
+  // providers that don't follow our schema strictly).
+  if (
+    name === "ZodError" ||
+    /ZodError|invalid_input|invalid_json|was not valid JSON|exceeded.*size cap/i.test(msg) ||
+    /"code":\s*"invalid_type"/i.test(msg) ||
+    /"received":\s*"undefined"/i.test(msg) ||
+    /"path":\s*\[\s*"(callouts|dimensions|didWell|didntLand|nextRepFocus)"/i.test(msg)
+  ) {
     return "validation_failed";
   }
   if (/max_tokens|truncated|stop_reason.*max_tokens/i.test(msg)) {

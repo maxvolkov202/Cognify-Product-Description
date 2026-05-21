@@ -18,23 +18,40 @@ If picking up across sessions: read this file first, find the current phase, res
 
 ---
 
-## Phase 0 — Instrumentation & Baseline `[ ]`
+## Phase 0 — Instrumentation & Baseline `[~]` (code complete, awaiting checkpoint)
 
 **Why first:** Need numbers before changing anything. Can't tell if improvements helped without baseline.
 
 **Changes:**
-- [ ] Drizzle migration: `scoring_telemetry` table (rep_id, prompt_size_bytes, cache_read_tokens, cache_creation_tokens, model_duration_ms, validation_duration_ms, total_server_duration_ms, model_used, failure_reason enum, created_at)
-- [ ] Wrap Anthropic call in `scoreRep` with timing + size capture
-- [ ] Categorize mock-fallback triggers by reason: `none`, `timeout`, `rate_limit_429`, `validation_failed`, `truncated`, `openai_fallback_used`, `mock_fallback_both_failed`, `network_error`
-- [ ] Extend `/api/score/health` endpoint: p50/p95/p99 latency, mock-fallback rate, OpenAI-fallback rate, cache-hit rate over 1h/24h/7d windows
-- [ ] Server log line on every Anthropic call: `[score] anthropic: model=<x>, promptBytes=<n>, cacheRead=<y>, durMs=<z>, failureReason=<r>`
-- [ ] Verify telemetry row written for happy path AND every fallback path
+- [x] Drizzle migration `0015_scoring_telemetry.sql` — applied to DB, verified 18 columns, 0 rows
+- [x] `anthropic.messages.createWithMetrics` wrapper in `src/lib/ai/claude.ts` returns { response, metrics } (modelUsed, modelDurationMs, promptSizeBytes, input/output/cache tokens, fallbackFired)
+- [x] `scoreRepWithMetrics` in `src/lib/ai/score.ts` — computes prompt size, captures validation timing, returns { score, metrics }. `scoreRep` stays as thin backward-compat wrapper.
+- [x] Categorize failures via `categorizeFailure()` in `src/lib/scoring/telemetry.ts` — buckets: none, timeout, rate_limit_429, validation_failed, truncated, openai_fallback_used, mock_fallback_both_failed, network_error, unknown
+- [x] `writeScoringTelemetry()` helper — fire-and-forget, safeDb-wrapped, never blocks response
+- [x] /api/score and /api/score-internal both write telemetry on success AND failure paths
+- [x] New `/api/score/health/stats` endpoint — p50/p95/p99 latency, fallback rates, cache hit rate, failure_reason distribution over 1h/24h/7d windows
+- [x] Structured `[ai] call: model=… promptBytes=… cacheRead=… durMs=… fallback=…` log line per call
+- [x] Typecheck passes, test suite passes (12/12)
+- [x] Committed as `656022ef`
 
-**Checkpoint 0:**
-- Dev server runs at http://localhost:3333
-- User runs 5–10 reps in /workout
-- Then hits `/api/score/health` to see numbers
-- User confirms baseline numbers before Phase 1 begins
+**Checkpoint 0:** ✅ baseline captured 2026-05-21 (against degraded provider state)
+
+Baseline source: `scripts/phase-baseline.mjs` replays a fixed 10-rep subset from `scripts/calibration/reference-reps.json` through `/api/score`. Same subset will be re-run at every subsequent phase. Persisted as `plans/baselines/phase-0.json` and `phase-0-degraded-openai-only.json` (the pre-refill snapshot).
+
+**Phase 0 canonical baseline (10 reps):**
+- Latency total p50/p95/p99: **7175 / 9480 / 9480 ms**
+- Latency model p50/p95/p99: **7172 / 9463 / 9463 ms**
+- Avg prompt size: **39050 bytes**
+- Cache hit rate: **0.0%**
+- Mock-fallback rate: **10.0%** (1 of 10; OpenAI fallback returned JSON missing transcriptStart/transcriptEnd → Zod rejected)
+- OpenAI-fallback rate: **90.0%**
+- Anthropic-served rate: **0.0%**
+
+**Important caveat:** baseline is against the OpenAI fallback path, not the canonical Anthropic-happy path. Anthropic returns `credit_balance_too_low` on every scoring call despite the user's $53 balance + $498 monthly headroom. Probable workspace/key mismatch (the cheap probe to `/api/score/health` succeeds, but real scoring calls fail). User to verify key's workspace at https://console.anthropic.com/settings/keys matches the refilled billing workspace.
+
+**Phase 0 also caught a small classifier bug:** the mock-fallback row from a ZodError landed in the `unknown` bucket instead of `validation_failed` because the regex didn't match Zod-issue-array signatures. Patched in `src/lib/scoring/telemetry.ts` — categorizer now matches by `name === "ZodError"` AND by Zod-issue-shape patterns (`"code":"invalid_type"`, `"received":"undefined"`, `"path":["callouts"…]`).
+
+Proceeding to Phase 1 with OpenAI as the de-facto serving model. When Anthropic comes back online (workspace fix), the cache discipline + Haiku speed will be an additional 3-5x win on top of every other phase improvement — bigger gains, not blocked work.
 
 ---
 
@@ -204,9 +221,27 @@ If picking up across sessions: read this file first, find the current phase, res
 
 ---
 
+## Phase 9 (POST-PLAN) — Muscle-Group Product Pivot `[ ]` (do NOT start until Phase 8 ships)
+
+**This is a stub, not a plan.** After the 8-phase scoring overhaul merges to main, a new focused planning session opens to scope this. Recorded here so it doesn't get lost between sessions.
+
+**What it is:** merge Daily Workout + Skill Lab into a single "brain-gym muscle group per week" adventure-path product. Each communication dimension = one muscle group. Brief daily reps. Habit-building loop. See `~/.claude-personal/projects/.../memory/project_muscle-group-pivot.md` for the long-form description and open questions.
+
+**Why post-plan, not interleaved:**
+- 7 of 8 overhaul phases are pure backend (orthogonal to UI pivot)
+- Feedback overhaul is foundational — fast/accurate feedback REQUIRED for brief-daily-habit framing
+- Pivot is bigger than the feedback fix; deserves its own focused deep-think
+- Modification: Phase 2 (deterministic client-side rendering) extracts pure functions but defers UI wire-in until the pivot work
+
+**Process when this starts:** use the parallel-brainstorm pattern (10 sub-agents proposing divergent mechanism designs across UI / progression / session structure / exercise library / db schema), filter, merge into ambitious version. Do NOT bolt onto the scoring overhaul.
+
+---
+
 ## Notes & decisions log
 
 - 2026-05-20: Branched off `feat/openai-fallback` (not `main`) because that branch has 20+ scoring/prosody/calibration commits unmerged to main — our work needs to build on the latest scoring state.
+- 2026-05-21: Phase 0 baseline first revealed Anthropic credit_balance_too_low on every call → 100% OpenAI fallback. Saved that data as `phase-0-degraded-openai-only.json` as evidence of the pre-fix user experience. After credit refill, re-baselined for the canonical Phase 0 numbers.
+- 2026-05-21: Product pivot to muscle-group / adventure-path agreed (max + CTO/CEO team). Scheduled as POST-PLAN Phase 9 stub above. Saved to memory under `project_muscle-group-pivot.md` for cross-session continuity.
 - 2026-05-20: Logo polish committed (`06f3df7c`) on `feat/openai-fallback` to clear the workspace before starting.
 - 2026-05-20: `Build_mobile_apps_*_transcript.txt` and `nick_saraev_*_transcript.txt` patterns added to .gitignore (Max's local reference materials).
 - 2026-05-20: Parallel-brainstorm preference saved to memory (`feedback_parallel-brainstorm.md`) for use NEXT time we scope something big.
