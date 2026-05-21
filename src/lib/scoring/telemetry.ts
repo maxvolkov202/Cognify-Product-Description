@@ -137,7 +137,9 @@ export async function writeScoringTelemetry(
       modelDurationMs: input.metrics?.modelDurationMs ?? null,
       validationDurationMs: input.metrics?.validationDurationMs ?? null,
       totalServerDurationMs: input.totalServerDurationMs,
-      ragDurationMs: null, // Phase 4 will populate
+      // Phase 4 — populated by scoreRepWithMetrics; null on mock-fallback
+      // path where scoring never ran.
+      ragDurationMs: input.metrics?.ragDurationMs ?? null,
       failureReason: input.failureReason,
       errorDetail,
       compositeScore: input.compositeScore ?? null,

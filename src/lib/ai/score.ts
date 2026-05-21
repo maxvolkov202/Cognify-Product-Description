@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { anthropic, MODELS, MODEL_VERSIONS, type AnthropicCallMetrics } from "./claude";
 import {
+  retrieveKnowledgeForRep,
+  renderRagContextBlock,
+} from "./rag/retrieve";
+import {
   ALL_DIMENSIONS,
   DIMENSION_RUBRIC,
   RUBRIC_VERSION,
@@ -758,6 +762,12 @@ export type ScoreRepMetrics = AnthropicCallMetrics & {
   /** scoreRep boundary total — model + validation, EXCLUDING route-level
    *  auth / rate-limit / DB writes. */
   scoreRepTotalMs: number;
+  /** Phase 4 — RAG retrieval wall-clock. Includes the OpenAI embed call
+   *  + pgvector query. 0 when RAG was disabled or returned empty. */
+  ragDurationMs: number;
+  /** Phase 4 — number of chunks injected into the user prompt. 0 when
+   *  RAG was disabled, failed, or returned no chunks. */
+  ragChunkCount: number;
 };
 
 export type ScoreRepResult = {
@@ -809,6 +819,23 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     ? COMPACT_RUBRIC_WITH_ANCHORS
     : COMPACT_RUBRIC;
 
+  // Phase 4 — RAG retrieval. Embed the transcript, fetch top-K chunks
+  // from pgvector, inject as supplemental anchors in the user prompt.
+  // Concurrent with prosody worker call below — neither blocks the
+  // other. Gated by FF_RAG_RETRIEVE so we can ramp safely; falls back
+  // to no-RAG path on any failure or when disabled.
+  const ragEnabled = process.env.FF_RAG_RETRIEVE !== "false"; // default ON in Phase 4
+  const ragPromise = ragEnabled
+    ? retrieveKnowledgeForRep({
+        transcript: input.transcript,
+        scoredDims: LLM_SCORED_DIMENSIONS,
+      })
+    : Promise.resolve<Awaited<ReturnType<typeof retrieveKnowledgeForRep>>>({
+        chunks: [],
+        durationMs: 0,
+        failureReason: null,
+      });
+
   // Ch.3a: derive inline prosody features from word timings when caller
   // didn't supply pre-computed features. Ch.3b: concurrently call the
   // external prosody worker (when configured) and merge its pitch/RMS
@@ -829,7 +856,13 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
           durationMs: input.durationMs,
         })
       : Promise.resolve(null);
-  const workerProsody = await workerPromise;
+  // Await both concurrently — RAG retrieval and prosody worker have no
+  // dependency on each other.
+  const [workerProsody, ragResult] = await Promise.all([
+    workerPromise,
+    ragPromise,
+  ]);
+  const ragBlock = renderRagContextBlock(ragResult.chunks);
   const prosodyFeatures =
     input.prosodyFeatures ??
     (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
@@ -844,6 +877,11 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
+    // Phase 4 — RAG context block. Injected BEFORE deterministic signals
+    // so the model has access to the rich anchors for the four
+    // LLM-scored dims before reading the numerical signals + transcript.
+    // Uncached (changes per rep based on transcript similarity).
+    ragBlock,
     // Ch.11c — text-derived signals (FF-gated). Placed BEFORE prosody +
     // transcript so Claude sees the objective measurements first and
     // can score the four LLM-scored content dimensions AGAINST the
@@ -1133,6 +1171,8 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
       ...callMetrics,
       validationDurationMs,
       scoreRepTotalMs,
+      ragDurationMs: ragResult.durationMs,
+      ragChunkCount: ragResult.chunks.length,
     },
   };
 }
