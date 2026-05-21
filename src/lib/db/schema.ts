@@ -257,6 +257,13 @@ export const reps = cognifyV2Schema.table(
     // WS-3 pressure rep tagging — replaces the "Pressure · X" topic
     // prefix hack. Nullable for non-pressure reps + historical rows.
     pressureArchetypeId: pressureArchetypeEnum("pressure_archetype_id"),
+    // Muscle-group pivot (migration 0020). Nullable so legacy reps + Skill
+    // Lab reps stay untouched; populated when a rep originates inside a
+    // workout-day session.
+    exerciseId: uuid("exercise_id"),
+    muscleGroupDayId: uuid("muscle_group_day_id"),
+    isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
+    scoreFailureFlag: boolean("score_failure_flag").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -264,6 +271,8 @@ export const reps = cognifyV2Schema.table(
     index("reps_user_created_idx").on(t.userId, t.createdAt),
     index("reps_status_idx").on(t.status),
     index("reps_pressure_archetype_idx").on(t.pressureArchetypeId),
+    index("reps_exercise_idx").on(t.exerciseId),
+    index("reps_mgd_idx").on(t.muscleGroupDayId),
   ],
 );
 
@@ -784,6 +793,14 @@ export const repsRelations = relations(reps, ({ many, one }) => ({
   }),
   dimensionScores: many(dimensionScores),
   callouts: many(callouts),
+  exercise: one(exercises, {
+    fields: [reps.exerciseId],
+    references: [exercises.id],
+  }),
+  muscleGroupDay: one(muscleGroupDays, {
+    fields: [reps.muscleGroupDayId],
+    references: [muscleGroupDays.id],
+  }),
 }));
 
 /**
@@ -981,4 +998,207 @@ export const scoreCorrections = cognifyV2Schema.table(
     index("score_corrections_rep_idx").on(t.repId),
     index("score_corrections_reviewed_at_idx").on(t.reviewedAt),
   ],
+);
+
+/**
+ * Migration 0020 — muscle-group adventure-path pivot.
+ *
+ * Five tables backing the daily-muscle-group product:
+ *   - exercises             named drills per dimension (catalog)
+ *   - exercisePrompts       prompt bank per exercise (~20 prompts)
+ *   - muscleGroupDays       one row per (user, calendar day)
+ *   - workoutSessions       live runtime traversal of a muscle-group day
+ *   - exerciseEngagement    (exercise, user) aggregates feeding rotation
+ *
+ * Phase 1 is migration-only; no app code reads these yet. See
+ * plans/muscle-group-pivot-progress.md for the full plan.
+ *
+ * Note on FK declarations: workoutSessions.graduationRepId is a plain
+ * uuid column here even though the SQL migration adds the FK constraint
+ * to reps(id). Declaring the FK on the Drizzle side would force
+ * exercises/muscleGroupDays/workoutSessions to live in the schema file
+ * above reps, which is a noisier reshuffle than is warranted. The DB
+ * still enforces the constraint at the SQL level.
+ */
+export const exercises = cognifyV2Schema.table(
+  "exercises",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    dimension: dimensionEnum("dimension").notNull(),
+    description: text("description").notNull(),
+    instructions: text("instructions"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("exercises_dim_active_idx").on(t.dimension, t.isActive)],
+);
+
+export const exercisePrompts = cognifyV2Schema.table(
+  "exercise_prompts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    exerciseId: uuid("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    promptText: text("prompt_text").notNull(),
+    promptId: text("prompt_id").notNull().unique(),
+    difficulty: integer("difficulty").notNull().default(2),
+    tags: jsonb("tags").notNull().default([]),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("exercise_prompts_exercise_active_idx").on(t.exerciseId, t.isActive),
+  ],
+);
+
+export const muscleGroupDays = cognifyV2Schema.table(
+  "muscle_group_days",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dayDate: date("day_date").notNull(),
+    dimension: dimensionEnum("dimension").notNull(),
+    plannedExerciseIds: jsonb("planned_exercise_ids").notNull(),
+    completedReps: integer("completed_reps").notNull().default(0),
+    /** planned | in_progress | complete | abandoned | frozen_skip */
+    status: text("status").notNull().default("planned"),
+    compositeAtClose: real("composite_at_close"),
+    previousDayId: uuid("previous_day_id"),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("mgd_user_date_uniq_idx").on(t.userId, t.dayDate),
+    index("mgd_user_dim_date_idx").on(t.userId, t.dimension, t.dayDate),
+  ],
+);
+
+export const workoutSessions = cognifyV2Schema.table(
+  "workout_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    muscleGroupDayId: uuid("muscle_group_day_id")
+      .notNull()
+      .references(() => muscleGroupDays.id, { onDelete: "cascade" }),
+    practiceSessionId: uuid("practice_session_id")
+      .notNull()
+      .references(() => practiceSessions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    currentStationIndex: integer("current_station_index").notNull().default(0),
+    state: text("state").notNull().default("idle"),
+    pausedAt: timestamp("paused_at", { withTimezone: true }),
+    resumedAt: timestamp("resumed_at", { withTimezone: true }),
+    graduationRepId: uuid("graduation_rep_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("workout_sessions_mgd_idx").on(t.muscleGroupDayId),
+    index("workout_sessions_user_idx").on(t.userId),
+  ],
+);
+
+export const exerciseEngagement = cognifyV2Schema.table(
+  "exercise_engagement",
+  {
+    exerciseId: uuid("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    shownCount: integer("shown_count").notNull().default(0),
+    completedCount: integer("completed_count").notNull().default(0),
+    avgComposite: real("avg_composite"),
+    recentComposite: real("recent_composite"),
+    lastTrainedAt: timestamp("last_trained_at", { withTimezone: true }),
+    lastEventAt: timestamp("last_event_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.exerciseId, t.userId] }),
+    index("exercise_engagement_user_idx").on(t.userId),
+  ],
+);
+
+export const exercisesRelations = relations(exercises, ({ many }) => ({
+  prompts: many(exercisePrompts),
+  reps: many(reps),
+  engagement: many(exerciseEngagement),
+}));
+
+export const exercisePromptsRelations = relations(
+  exercisePrompts,
+  ({ one }) => ({
+    exercise: one(exercises, {
+      fields: [exercisePrompts.exerciseId],
+      references: [exercises.id],
+    }),
+  }),
+);
+
+export const muscleGroupDaysRelations = relations(
+  muscleGroupDays,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [muscleGroupDays.userId],
+      references: [users.id],
+    }),
+    previousDay: one(muscleGroupDays, {
+      fields: [muscleGroupDays.previousDayId],
+      references: [muscleGroupDays.id],
+      relationName: "muscle_group_day_chain",
+    }),
+    workoutSessions: many(workoutSessions),
+    reps: many(reps),
+  }),
+);
+
+export const workoutSessionsRelations = relations(
+  workoutSessions,
+  ({ one }) => ({
+    muscleGroupDay: one(muscleGroupDays, {
+      fields: [workoutSessions.muscleGroupDayId],
+      references: [muscleGroupDays.id],
+    }),
+    practiceSession: one(practiceSessions, {
+      fields: [workoutSessions.practiceSessionId],
+      references: [practiceSessions.id],
+    }),
+    user: one(users, {
+      fields: [workoutSessions.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const exerciseEngagementRelations = relations(
+  exerciseEngagement,
+  ({ one }) => ({
+    exercise: one(exercises, {
+      fields: [exerciseEngagement.exerciseId],
+      references: [exercises.id],
+    }),
+    user: one(users, {
+      fields: [exerciseEngagement.userId],
+      references: [users.id],
+    }),
+  }),
 );
