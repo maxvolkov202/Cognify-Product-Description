@@ -38,17 +38,23 @@ export type FetchCandidatesResult = {
 };
 
 const PROMPT_BIAS_WINDOW = 30;
+/** Slide to the next-wider filter tier if the current tier returns fewer
+ *  than this many prompts. Matches the Shuffle candidate count (k=5) so we
+ *  never lock onto a too-thin bank when a wider one would give real rotation. */
+const MIN_BANK_SIZE = 5;
 
 /**
- * Map each user-vertical enum to the set of prompt tags considered
- * "personalized" for that vertical. When the workout's personalize
- * toggle is ON, the picker draws from prompts whose tags overlap with
- * this set for the user's vertical.
+ * Legacy tag map — the original 864 vertical-flavored prompts (Phase 2 seed)
+ * were tagged with single keys like "finance", "business", "leadership",
+ * "healthcare", "science". The Wave 1 vertical bank (4,320 prompts) uses the
+ * vertical id itself as the first tag ("sales", "leadership", etc.) plus
+ * persona + goal ids. The vertical filter unions both schemes so the legacy
+ * bank stays in rotation.
  *
- * "other" intentionally has no mapping → personalize-on for an "other"
- * user falls back to general behavior.
+ * "other" maps to an empty array; vertical filtering for "other" users
+ * relies entirely on the new vertical-id tag.
  */
-const VERTICAL_TAG_MAP: Record<string, string[]> = {
+const LEGACY_VERTICAL_TAGS: Record<string, string[]> = {
   sales: ["business", "leadership"],
   consulting: ["business", "leadership"],
   finance: ["finance", "business"],
@@ -62,9 +68,10 @@ const VERTICAL_TAG_MAP: Record<string, string[]> = {
 export async function fetchPromptCandidates(input: {
   exerciseId: string;
   preferEasier?: boolean;
-  /** Phase HB-3 — when true, draws from prompts whose tags overlap
-   *  with the user's vertical (mapped via VERTICAL_TAG_MAP). When
-   *  false / unset, draws from general-tagged prompts only. */
+  /** Phase HB-3 — when true, the picker cascades through the user's
+   *  vertical + personas + goals to find a personalized bank, falling
+   *  through to general only if every personalized tier is too thin.
+   *  When false / unset, draws from general-tagged prompts only. */
   personalize?: boolean;
 }): Promise<FetchCandidatesResult> {
   const user = await currentUser();
@@ -87,18 +94,27 @@ export async function fetchPromptCandidates(input: {
       .limit(1);
     if (!exerciseRow) return fallback;
 
-    // Resolve user's vertical (NULL for anonymous + onboarding-skipped).
-    let userVerticalTags: string[] = [];
+    // Resolve user's vertical / personas / goals (NULL for anon + skipped).
+    let userVertical: string | null = null;
+    let userPersonas: string[] = [];
+    let userGoals: string[] = [];
     if (input.personalize && user) {
       const [userRow] = await db
-        .select({ vertical: users.vertical })
+        .select({
+          vertical: users.vertical,
+          personas: users.personas,
+          improvementGoals: users.improvementGoals,
+        })
         .from(users)
         .where(eq(users.id, user.id))
         .limit(1);
-      const v = userRow?.vertical ?? null;
-      if (v && VERTICAL_TAG_MAP[v]) {
-        userVerticalTags = VERTICAL_TAG_MAP[v];
-      }
+      userVertical = userRow?.vertical ?? null;
+      userPersonas = Array.isArray(userRow?.personas)
+        ? (userRow.personas as string[])
+        : [];
+      userGoals = Array.isArray(userRow?.improvementGoals)
+        ? (userRow.improvementGoals as string[])
+        : [];
     }
 
     // Recent dim composite drives the difficulty bias hint.
@@ -126,18 +142,61 @@ export async function fetchPromptCandidates(input: {
       .map((row) => row.prompt_id)
       .filter((id): id is string => id != null);
 
-    // Tag filter (HD-1: fall back to general if personalized bank is empty):
-    //   personalize=true + mapped vertical → prompts whose tags overlap
-    //     the user's vertical-tag set (e.g. ["finance", "business"]).
-    //     If empty, fall through to general so the picker never shows
-    //     "no exercises available" — the catalog has uneven vertical
-    //     coverage per exercise.
-    //   personalize=false (or anon/other) → prompts tagged "general".
-    const personalizeReady = input.personalize && userVerticalTags.length > 0;
-    const personalizedFilter = personalizeReady
-      ? drizzleSql`${exercisePrompts.tags} ?| ${userVerticalTags}::text[]`
-      : null;
+    // Tag filter cascade — try the most-specific filter first, slide to a
+    // wider one if the bank is too thin for real rotation. The picker never
+    // shows "no prompts available" because the cascade ends at general,
+    // which has full 54-exercise coverage.
+    //
+    // Tiers when personalize=true and a vertical is set:
+    //   1. vertical ∧ any-of-personas ∧ any-of-goals
+    //   2. vertical ∧ any-of-personas
+    //   3. vertical ∧ any-of-goals
+    //   4. vertical only
+    //   5. general
+    //
+    // Tier "vertical" unions the new vertical-id tag (Wave 1 bank) with the
+    // legacy tag map (Phase 2 bank). "other" users have no legacy mapping,
+    // so for them the vertical filter is just `tags ? 'other'`.
+    const legacy = userVertical ? LEGACY_VERTICAL_TAGS[userVertical] ?? [] : [];
+    const verticalFilter =
+      input.personalize && userVertical
+        ? legacy.length > 0
+          ? drizzleSql`(${exercisePrompts.tags} ? ${userVertical} OR ${exercisePrompts.tags} ?| ${legacy}::text[])`
+          : drizzleSql`${exercisePrompts.tags} ? ${userVertical}`
+        : null;
+    const personaFilter =
+      input.personalize && userPersonas.length > 0
+        ? drizzleSql`${exercisePrompts.tags} ?| ${userPersonas}::text[]`
+        : null;
+    const goalFilter =
+      input.personalize && userGoals.length > 0
+        ? drizzleSql`${exercisePrompts.tags} ?| ${userGoals}::text[]`
+        : null;
     const generalFilter = drizzleSql`${exercisePrompts.tags} ? 'general'`;
+
+    const tiers: Array<{ label: string; filter: ReturnType<typeof drizzleSql> }> = [];
+    if (verticalFilter && personaFilter && goalFilter) {
+      tiers.push({
+        label: "vertical+persona+goal",
+        filter: drizzleSql`${verticalFilter} AND ${personaFilter} AND ${goalFilter}`,
+      });
+    }
+    if (verticalFilter && personaFilter) {
+      tiers.push({
+        label: "vertical+persona",
+        filter: drizzleSql`${verticalFilter} AND ${personaFilter}`,
+      });
+    }
+    if (verticalFilter && goalFilter) {
+      tiers.push({
+        label: "vertical+goal",
+        filter: drizzleSql`${verticalFilter} AND ${goalFilter}`,
+      });
+    }
+    if (verticalFilter) {
+      tiers.push({ label: "vertical", filter: verticalFilter });
+    }
+    tiers.push({ label: "general", filter: generalFilter });
 
     const selectBank = (filter: ReturnType<typeof drizzleSql>) =>
       db
@@ -157,24 +216,37 @@ export async function fetchPromptCandidates(input: {
           ),
         );
 
-    let bankRows = personalizedFilter ? await selectBank(personalizedFilter) : [];
-    let fallbackToGeneral = false;
-    if (bankRows.length === 0) {
-      if (personalizedFilter) {
-        fallbackToGeneral = true;
-        console.log(
-          JSON.stringify({
-            event: "prompt_selection.fallback_to_general",
-            ts: new Date().toISOString(),
-            userId,
-            exerciseId: input.exerciseId,
-            verticalTags: userVerticalTags,
-          }),
-        );
+    let bankRows: Awaited<ReturnType<typeof selectBank>> = [];
+    let bankTier = "none";
+    for (const tier of tiers) {
+      const rows = await selectBank(tier.filter);
+      if (rows.length >= MIN_BANK_SIZE) {
+        bankRows = rows;
+        bankTier = tier.label;
+        break;
       }
-      bankRows = await selectBank(generalFilter);
+      // Keep the largest non-empty bank seen so far as a defensive default,
+      // in case every tier comes back below MIN_BANK_SIZE.
+      if (rows.length > bankRows.length) {
+        bankRows = rows;
+        bankTier = tier.label;
+      }
     }
-    void fallbackToGeneral; // available for future telemetry threading
+    if (bankTier !== "vertical+persona+goal" && tiers.length > 1) {
+      console.log(
+        JSON.stringify({
+          event: "prompt_selection.bank_tier",
+          ts: new Date().toISOString(),
+          userId,
+          exerciseId: input.exerciseId,
+          tier: bankTier,
+          size: bankRows.length,
+          vertical: userVertical,
+          personas: userPersonas,
+          goals: userGoals,
+        }),
+      );
+    }
 
     const preferEasier =
       input.preferEasier ?? (recentDimComposite != null && recentDimComposite < 60);

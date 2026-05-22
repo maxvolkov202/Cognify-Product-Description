@@ -1,0 +1,870 @@
+{
+  "version": "v1-vertical",
+  "vertical": "finance",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        { "text": "Explain to a new analyst what a paid-in-kind toggle in our credit doc actually does.", "difficulty": "core", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain to your CFO what working-capital drag means for next quarter's cash.", "difficulty": "core", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Explain to an LP why your fund's TVPI dropped without a single realization.", "difficulty": "stretch", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain to a portfolio manager what springing covenants are.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain to a junior associate how the EBITDA bridge ties to the cash flow statement.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain to an IC member why the entry multiple matters more than the exit multiple.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain to a sell-side analyst what really moved gross margin this quarter.", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "Explain to a new audit committee chair what a Key Audit Matter signals.", "difficulty": "stretch", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "Explain to your VP what a make-whole premium does to refinancing math.", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Explain to a treasury peer how a delayed-draw term loan changes the funding stack.", "difficulty": "core", "tags": ["finance", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        { "text": "Are we still recommending the deal at the revised purchase price?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Will the company breach its leverage covenant by Q4?", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the going-concern flag warranted this audit cycle?", "difficulty": "stretch", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Should we mark the portfolio company down this quarter?", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Did we beat the Street on EPS or just on revenue?", "difficulty": "intro", "tags": ["finance", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Is the FY forecast still defensible after the July miss?", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Should the IC approve the deal with the seller's working-capital adjustment?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Is the management team strong enough to back without a CFO change?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Should the firm exit the position before the next earnings print?", "difficulty": "stretch", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Do we accept the auditor's proposed adjustment or push back?", "difficulty": "intro", "tags": ["finance", "procurement", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        { "text": "Explain to a CFO how the leverage on this LBO amplifies both downside and IRR.", "difficulty": "core", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Explain to your VP how a debt amortization schedule eats free cash flow.", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Explain to a portfolio manager how a tail event reshapes our risk budget.", "difficulty": "core", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain to an IC member how working capital seasonality flatters Q3 numbers.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain to an LP how vintage diversification protects the fund.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain to a new associate how a sensitivity table reads when leverage moves.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain to the audit committee how revenue cut-off testing protects them.", "difficulty": "core", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "Explain to a sell-side analyst how our segment mix flatters consolidated margin.", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "Explain to the CFO how a delayed-draw facility behaves like an option.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Explain to a hostile IC how the deal compounds despite a soft year-one.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        { "text": "Explain DPI and TVPI to a first-time LP without using the acronyms.", "difficulty": "core", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain EBITDA adjustments to your CEO who keeps calling them 'fake numbers'.", "difficulty": "core", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Explain a senior secured tranche to a corporate development peer.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain a deferred revenue waterfall to a non-finance board member.", "difficulty": "stretch", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "Explain a quality-of-earnings finding to the deal's seller.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Explain a dividend recap to a new IC member who's never seen one.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain a working-capital peg to your operations partner.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain a rep and warranty insurance policy to your CFO.", "difficulty": "core", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Explain a Section 363 sale to a colleague who works in equity research.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "Explain a payment-in-kind feature to a treasury teammate covering for you.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        { "text": "Why does the 15% IRR hold up under a 2-turn lower exit multiple?", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion", "handling_objections"] },
+        { "text": "Why should the CFO trust your Q4 cash forecast after July's variance?", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Why is this credit facility worth pricing inside comparable issuances?", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Why does your sell rating stand even after the company's beat-and-raise?", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "persuasion"] },
+        { "text": "Why is the management team's 20% margin guidance credible this time?", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Why is the company's add-back of $4M of severance defensible?", "difficulty": "intro", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "Why does the audit committee need a deeper look at the inventory reserve?", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion"] },
+        { "text": "Why is the IC right to hold the deal until we see Q2 actuals?", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Why does our base-case still pencil with a 200bp rate move?", "difficulty": "stretch", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Why is this LP letter the right place to disclose the markdown?", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        { "text": "What's the single biggest risk in the LBO model we just lit up?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "What's the one number on page 12 of the IC deck that has to be right?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "What's the one variance the CFO will ask about in the Friday close meeting?", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Why did the deal slip past last quarter's IC window?", "difficulty": "core", "tags": ["finance", "manager", "handling_objections"] },
+        { "text": "What's the single load-bearing assumption in your DCF?", "difficulty": "core", "tags": ["finance", "peer", "thinking_on_the_spot"] },
+        { "text": "What's the one KAM the audit partner won't let go this cycle?", "difficulty": "intro", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "What's the one thing in the credit memo your director will flag?", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Why did the buy-side analyst on the call hit you on gross margin first?", "difficulty": "core", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "What's the one reason this LP should re-up despite the down quarter?", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Why is the deal still a buy at the higher entry multiple?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        { "text": "Explain the difference between unlevered and levered free cash flow.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain the difference between IRR and MOIC for a new LP.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain the difference between EBITDA and adjusted EBITDA in our model.", "difficulty": "core", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Explain the difference between a budget variance and a forecast variance.", "difficulty": "core", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Explain the difference between maintenance and incurrence covenants to the IC.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain the difference between a buy and a hold to a junior analyst on your team.", "difficulty": "core", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain the difference between materiality and tolerable misstatement.", "difficulty": "stretch", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "Explain the difference between unitranche and second-lien to a portfolio manager.", "difficulty": "core", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain the difference between gross IRR and net IRR to an LP advisor.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain why a beat on revenue doesn't mean a beat on the quarter.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        { "text": "Tell me why our deal beats the comp-set sponsors on entry economics.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Tell me why your forecast deserves more weight than last quarter's miss.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Tell me why a 4.5x exit multiple is defensible in this market.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Tell me why the inventory reserve as booked isn't aggressive.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Tell me why we should hold the portfolio company through the cycle.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Tell me why our sell rating is right even as the stock keeps climbing.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "confidence"] },
+        { "text": "Tell me why the new revenue recognition policy is appropriate.", "difficulty": "core", "tags": ["finance", "procurement", "persuasion"] },
+        { "text": "Tell me why this LP's commitment is worth fighting for at re-up.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Tell me why we should refinance the term loan now instead of waiting six months.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Tell me why this deal clears IC despite a soft year-one bridge.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        { "text": "Brief the MD on your top deal before he walks into IC.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize the quarter to your CFO in the elevator.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Describe the LP letter's headline in one sentence.", "difficulty": "intro", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Sum up the company's earnings call in 30 words for your PM.", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Brief the audit committee chair on the one issue she'll care about.", "difficulty": "core", "tags": ["finance", "board_investor", "thinking_on_the_spot"] },
+        { "text": "Pitch the deal to a hostile IC in 30 words.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Summarize the variance to forecast in one sentence for the CEO.", "difficulty": "intro", "tags": ["finance", "vp_executive", "presenting"] },
+        { "text": "Describe the deal's central risk in 30 words.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Pitch the markdown rationale to your most demanding LP in 30 words.", "difficulty": "stretch", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Brief the board the day before the 10-K signs in one sentence.", "difficulty": "stretch", "tags": ["finance", "board_investor", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        { "text": "Give three reasons IC should approve the deal at the revised purchase price.", "difficulty": "intro", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Defend your buy rating in three points to a skeptical portfolio manager.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Make the case for refinancing the term loan in three points.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Argue why we should pass on the deal in three points.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Defend the working-capital peg to the seller's banker.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Convince the audit committee the going-concern flag is appropriate.", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion"] },
+        { "text": "Make three arguments for adding to the position before earnings.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Defend the markdown to your LP advisory board.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Convince the CFO to bring FP&A under a single COO instead of finance.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Argue why the fund should waive a covenant breach for the portfolio company.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        { "text": "Tell the story of an IC that almost killed your deal.", "difficulty": "intro", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Walk me through the toughest model defense of your career.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Tell the story of a portfolio company that almost breached covenants.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Walk me through a deal that slipped past two IC windows before clearing.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Tell the story of an audit dispute that escalated to the audit committee.", "difficulty": "core", "tags": ["finance", "procurement", "storytelling", "handling_objections"] },
+        { "text": "Recount a quarter where you had to defend a missed forecast to the board.", "difficulty": "core", "tags": ["finance", "board_investor", "storytelling"] },
+        { "text": "Walk me through the earnings call where the stock moved on your question.", "difficulty": "core", "tags": ["finance", "economic_buyer", "storytelling"] },
+        { "text": "Tell the story of a buy thesis that finally paid off after two bad years.", "difficulty": "core", "tags": ["finance", "client_customer", "storytelling", "persuasion"] },
+        { "text": "Recount the LP call where you had to take a markdown on the phone.", "difficulty": "stretch", "tags": ["finance", "client_customer", "storytelling", "handling_objections"] },
+        { "text": "Walk me through the all-night model rebuild before the MD walked in.", "difficulty": "stretch", "tags": ["finance", "manager", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        { "text": "Approve the deal at the new purchase price, or hold?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Mark the position down this quarter or keep it at cost?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Push the close to next quarter or get it through IC Wednesday?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Take the dividend recap now or wait for a stronger comp window?", "difficulty": "intro", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Issue the going-concern qualification or accept management's plan?", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Hold through earnings or trim ahead of the print?", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Restate the prior quarter or correct in the current period?", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Accept the seller's working-capital number or push back?", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Take the unsolicited bid for the portfolio company or hold for the IPO?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Approve the budget as filed or send it back to the business heads?", "difficulty": "stretch", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        { "text": "Q3 revenue came in 8% under forecast. Walk the CFO through it.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "The portfolio company's leverage ratio jumped to 6.2x. Address it for IC.", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Three deals in the pipeline slipped past IC Wednesday. Talk through what's next.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Your model's gross margin no longer ties to the QofE. Solve it.", "difficulty": "intro", "tags": ["finance", "peer", "thinking_on_the_spot"] },
+        { "text": "The auditor is pushing for a $12M inventory writedown. Address it.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "An LP just emailed asking why you're below the prior NAV mark. Respond.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "FP&A's monthly close keeps slipping past day 8. Fix it.", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "The company's covenant cushion is now 4%. Walk IC through it.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "A buy-side analyst just challenged your model on the live earnings call. Respond.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "The board just asked why your top three forecast assumptions all moved the same way. Address it.", "difficulty": "stretch", "tags": ["finance", "board_investor", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        { "text": "Persuade your VP to let you take the deal to IC this Wednesday.", "difficulty": "intro", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Convince a junior analyst to volunteer for the all-hands model rebuild.", "difficulty": "intro", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Persuade an LP to re-up despite the down quarter.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Rally your IC to greenlight a deal with a higher entry multiple than usual.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion", "negotiation"] },
+        { "text": "Persuade the CFO to fund a six-figure investment in close automation.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Convince the audit committee to expand the scope of the KAM review.", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion"] },
+        { "text": "Persuade the portfolio manager to add to a battered position before earnings.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Convince a hostile board to approve the dividend recap.", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion", "negotiation"] },
+        { "text": "Rally an exhausted deal team after a third IC postponement.", "difficulty": "stretch", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Convince the LP base to accept a one-year extension on the fund.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        { "text": "Walk me through how you'd run a first IC presentation on a new deal.", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain how you'd structure a quarterly portfolio review with your LP.", "difficulty": "intro", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Describe how you'd onboard a new associate to your sector coverage.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Walk through your process for running the monthly close from day 1 to 8.", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Explain how you'd respond to an auditor's proposed adjustment.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Walk me through your steps to defend a buy rating ahead of earnings.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Describe your approach to running an IC for a covenant waiver.", "difficulty": "core", "tags": ["finance", "stakeholder", "presenting"] },
+        { "text": "Explain how you'd run a sensitivity table review with your MD.", "difficulty": "core", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Walk through how you'd structure an LP call to announce a markdown.", "difficulty": "stretch", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Describe how you'd structure a year-one finance function at a new portco.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        { "text": "Make the case for raising the entry multiple by half a turn.", "difficulty": "intro", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Argue why the deal team should own the QofE process this cycle.", "difficulty": "intro", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Convince your VP that the model needs a full rebuild before IC.", "difficulty": "intro", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Sell a peer on co-leading the credit memo with you.", "difficulty": "intro", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Make the case for trimming the position rather than holding through earnings.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Argue why the board should hire a new CFO instead of promoting the controller.", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion"] },
+        { "text": "Convince an LP to support a fund-level facility for the next vintage.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Make the case to push the audit signoff by one week.", "difficulty": "core", "tags": ["finance", "procurement", "negotiation"] },
+        { "text": "Argue why the fund should bet next vintage's strategy on private credit.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Convince the board to approve a write-down before quarter-end.", "difficulty": "stretch", "tags": ["finance", "board_investor", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        { "text": "Senior secured vs unitranche for this deal's capital stack.", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Hold the position vs trim ahead of the print.", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Internal candidate vs external hire for the open CFO seat.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Pass on the deal vs counter at a lower entry multiple.", "difficulty": "intro", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Buy-side coverage vs sell-side coverage on the same name.", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "Going-concern qualification vs emphasis-of-matter paragraph.", "difficulty": "core", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "Recap the portco now vs wait twelve months for stronger EBITDA.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "IPO path vs continuation vehicle for the fund's top asset.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Strategic buyer vs sponsor exit for the largest position.", "difficulty": "stretch", "tags": ["finance", "client_customer", "negotiation"] },
+        { "text": "Fund-level subscription line vs deal-by-deal financing for next vintage.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        { "text": "Why do most IC memos fail to defend the entry multiple?", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Why do junior bankers keep losing the model defense on page 12?", "difficulty": "intro", "tags": ["finance", "peer", "giving_feedback"] },
+        { "text": "Why does FP&A's forecast slip every Q3?", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Why does the audit committee always linger on revenue cut-off?", "difficulty": "intro", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "Why do CFOs override FP&A's variance commentary at the eleventh hour?", "difficulty": "core", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Why do deal sponsors fight QofE adjustments harder than purchase price ones?", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Why do LP letters bury the markdown commentary in paragraph four?", "difficulty": "core", "tags": ["finance", "client_customer", "giving_feedback"] },
+        { "text": "Why do covenant waivers cost the lender more than the borrower?", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Why do equity research models converge around consensus three weeks before earnings?", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Why do most going-concern flags get reversed in the next audit cycle?", "difficulty": "stretch", "tags": ["finance", "procurement", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        { "text": "Give a 30-second status on the deal heading to IC Wednesday.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Update your VP on where the credit memo stands.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief the CFO on yesterday's variance review with the business unit.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Recap the earnings call for someone covering for you.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain why the model's IRR dropped 200 bps overnight.", "difficulty": "core", "tags": ["finance", "manager", "handling_objections"] },
+        { "text": "Brief the partner on a competitive bid you're losing on price.", "difficulty": "core", "tags": ["finance", "manager", "handling_objections"] },
+        { "text": "Status report on the QofE workstream before the IC pre-meeting.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Brief the audit committee chair the morning before the meeting.", "difficulty": "core", "tags": ["finance", "board_investor", "thinking_on_the_spot"] },
+        { "text": "Update the LP base on the markdown ahead of the quarterly letter.", "difficulty": "stretch", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Brief the board the morning after your forecast missed by 12%.", "difficulty": "stretch", "tags": ["finance", "board_investor", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        { "text": "Tell me about a deal that died in IC.", "difficulty": "intro", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Describe a quarter where you had to defend a missed forecast.", "difficulty": "intro", "tags": ["finance", "vp_executive", "storytelling"] },
+        { "text": "Tell me about an LP relationship that almost ended in non-renewal.", "difficulty": "intro", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Share a piece of feedback from your MD that changed how you build models.", "difficulty": "intro", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Describe an audit dispute you couldn't resolve at the manager level.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Talk about the toughest model defense of your associate years.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Explain a forecast assumption you regret carrying.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the moment your deal thesis turned in your favor.", "difficulty": "core", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Defend your sell rating on a live call with a hostile portfolio manager.", "difficulty": "stretch", "tags": ["finance", "client_customer", "confidence", "handling_objections"] },
+        { "text": "Defend your fund's quarterly NAV in front of the LP advisory board.", "difficulty": "stretch", "tags": ["finance", "client_customer", "confidence", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        { "text": "Will the deal clear IC on Wednesday?", "difficulty": "intro", "tags": ["finance", "stakeholder", "confidence"] },
+        { "text": "Is management's FY guidance achievable?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Should we mark the position to fair value this quarter?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Should we recommend a sell on the name?", "difficulty": "intro", "tags": ["finance", "economic_buyer", "confidence"] },
+        { "text": "Was the dividend recap the right call last year?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Is discounting our hurdle rate the right call on this deal?", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Should we replace the portco CFO before next audit cycle?", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Is the going-concern flag the right call this cycle?", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Will the LP base re-up at the next vintage?", "difficulty": "stretch", "tags": ["finance", "client_customer", "confidence"] },
+        { "text": "Should the firm pull back from leveraged loans entirely?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        { "text": "What's the main reason the deal slipped past IC last cycle?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Why did the model's IRR drop in the latest build?", "difficulty": "intro", "tags": ["finance", "peer", "handling_objections"] },
+        { "text": "What's the biggest risk to your Q4 forecast?", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "What's the one thing the deal team needs to do differently before IC?", "difficulty": "intro", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "What's the single objection holding up the audit signoff?", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Why is FP&A's variance commentary missing the mark?", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "What's driving the slip in your covenant cushion this quarter?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Why is the top LP threatening to skip the next vintage?", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "What's the central reason to bet next year on private credit?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Why should the board double the fund's deployment pace next year?", "difficulty": "stretch", "tags": ["finance", "board_investor", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        { "text": "IC this Wednesday or wait until next cycle?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Mark down or hold at cost?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Hire a senior associate or two analysts?", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Buy or sell into the print?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Walk from the deal or counter at a lower price?", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Escalate to the CFO or work it through the controller?", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Refinance now or wait for the next coupon reset?", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Issue the going-concern or accept management's plan?", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Accept the seller's earnout or push for cash up front?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Restate the prior period or correct in the current?", "difficulty": "stretch", "tags": ["finance", "procurement", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        { "text": "Pitch our fund to a first-time LP.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Explain why the deal's leverage is appropriate.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Describe how a sensitivity table reads in the IC deck.", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Pitch the case for raising the hurdle rate.", "difficulty": "intro", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Explain how a covenant waiver protects both sides.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Describe how to defend a buy rating on a live earnings call.", "difficulty": "core", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "Pitch the value of bringing QofE in-house to your CFO.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Explain why we should walk away from a deal sitting on the IC table.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Pitch our flagship strategy to an LP board you've never met.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Defend the FY forecast to a CFO who thinks it's inflated.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "confidence", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        { "text": "Explain how the waterfall distributes proceeds.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Describe how a deal moves from sourcing to IC.", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Walk through how working-capital adjustments settle post-close.", "difficulty": "intro", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Explain how the monthly close cadence runs at our shop.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Describe how a 10-K signoff sequence unfolds.", "difficulty": "core", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "Explain how our carry pays out on a single deal exit.", "difficulty": "core", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Walk through how the audit committee reviews KAMs.", "difficulty": "core", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "Describe how a rating agency rolls a sector through a downgrade.", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "Explain how a continuation vehicle gets structured.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Walk through how covenant cushions reset after a quarter of EBITDA growth.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        { "text": "Tell me about your top deal.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through your week on the desk.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Introduce yourself to a new LP at the annual meeting.", "difficulty": "intro", "tags": ["finance", "client_customer", "confidence"] },
+        { "text": "Tell me about the pipeline at the next pipeline meeting.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Open the IC presentation with the recommendation.", "difficulty": "core", "tags": ["finance", "stakeholder", "presenting"] },
+        { "text": "Kick off the variance review with the headline number.", "difficulty": "core", "tags": ["finance", "vp_executive", "presenting"] },
+        { "text": "Open the audit committee with the one issue that matters.", "difficulty": "core", "tags": ["finance", "board_investor", "presenting"] },
+        { "text": "Start the earnings call Q&A with your sharpest question.", "difficulty": "core", "tags": ["finance", "economic_buyer", "asking_questions"] },
+        { "text": "Open the LP call before disclosing the markdown.", "difficulty": "stretch", "tags": ["finance", "client_customer", "confidence", "handling_objections"] },
+        { "text": "Open the annual investor day to a roomful of skeptical LPs.", "difficulty": "stretch", "tags": ["finance", "client_customer", "presenting", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        { "text": "Summarize your top deal in one sentence.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the fund's strategy.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Define what your firm covers to a peer at an industry dinner.", "difficulty": "intro", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Sum up this quarter for your CFO.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Summarize the QofE finding most likely to kill the deal.", "difficulty": "core", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "State the deal's central risk.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Define why we are pricing inside the comp set.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Sum up the IC meeting in one sentence to your VP afterward.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize the entire failed deal in one line for the partner.", "difficulty": "stretch", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "State the fund's reason to exist for next vintage's PPM cover.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        { "text": "Argue why our hurdle rate is too low for current credit spreads.", "difficulty": "intro", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Make the case that our QofE process misses three out of ten add-back errors.", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Argue why sensitivity testing only matters at the exit multiple line.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Convince me that EBITDA add-backs are systematically overstated in the comp set.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Argue that the best PMs cut positions before earnings, not after.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Make the case that this quarter's forecast is structurally optimistic.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Argue that most missed forecasts are killed in the May reforecast cycle.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Convince me that the IC voted the wrong way on our last passed deal.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Argue that our entry multiples are mispriced for our deployment pace.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Make the case that the fund's mark-to-model is overstating NAV by 200bps.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        { "text": "Make the strongest case AGAINST approving the deal in IC this Wednesday.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Steel man the auditor pushing for a $12M inventory writedown.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Build the strongest case for the buy-side PM who's selling your top long.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Make the case for the competing bidder offering 1x more on EBITDA.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Steel man the CFO who told you the budget is unachievable.", "difficulty": "core", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Build the best argument against your own buy rating heading into earnings.", "difficulty": "stretch", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Steel man the LP who thinks the fund's last vintage was a bust.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Argue convincingly that the deal we just won should never have closed.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Make the strongest case for the analyst on your team you wanted to manage out.", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Steel man the audit committee member who keeps reopening last cycle's KAM.", "difficulty": "intro", "tags": ["finance", "board_investor", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        { "text": "Why does the firm need an investment committee at all?", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "What is leverage, fundamentally? Strip the jargon.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Why do LPs pay management fees on uncalled capital?", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "What is EBITDA actually trying to measure? Forget the formula.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Why does the audit function exist? Build the answer from zero.", "difficulty": "stretch", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "What is a covenant really for? Not the document — the relationship.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Why do credit ratings exist between issuer and investor?", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "What is a forecast supposed to do, fundamentally?", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Why do we hold quarterly board meetings at all?", "difficulty": "intro", "tags": ["finance", "board_investor", "explaining"] },
+        { "text": "What is FP&A for? Strip it to first principles.", "difficulty": "core", "tags": ["finance", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        { "text": "List three things that went well in the quarter for FP&A.", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Walk me through the deals your team closed this year.", "difficulty": "intro", "tags": ["finance", "manager", "presenting"] },
+        { "text": "Describe the parts of the IC deck the partner spent the most time on.", "difficulty": "intro", "tags": ["finance", "stakeholder", "presenting"] },
+        { "text": "Recap the key takeaways from the LP advisory board meeting.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Summarize the audit committee's comments from the latest cycle.", "difficulty": "core", "tags": ["finance", "board_investor", "thinking_on_the_spot"] },
+        { "text": "Tell me about the new investments the fund made this year.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Walk through the buy-side names you've added coverage on.", "difficulty": "core", "tags": ["finance", "economic_buyer", "explaining"] },
+        { "text": "List the variances over $1M from this month's close.", "difficulty": "core", "tags": ["finance", "vp_executive", "presenting"] },
+        { "text": "Describe the new tools FP&A adopted this year.", "difficulty": "stretch", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Summarize the LP interviews you ran for the next vintage.", "difficulty": "stretch", "tags": ["finance", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        { "text": "Defend the auditor pushing for a deeper KAM disclosure — from their seat.", "difficulty": "core", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Argue as the CFO who just rejected your reforecast.", "difficulty": "core", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Defend the LP who chose a competing fund over yours.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Argue as the IC member who voted against the deal everyone else loved.", "difficulty": "core", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "Defend the MD who put your model on a re-do.", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Argue as the buy-side analyst who downgraded a name you cover.", "difficulty": "intro", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "Defend the board chair who killed your dividend recap.", "difficulty": "stretch", "tags": ["finance", "board_investor", "handling_objections"] },
+        { "text": "Argue as the controller who flagged your aggressive revenue cut-off.", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Defend the seller's banker who insisted on the higher working-capital peg.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Argue as the rating agency that put your portfolio company on negative watch.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        { "text": "Will the deal clear IC in the next 30 days?", "difficulty": "core", "tags": ["finance", "stakeholder", "confidence"] },
+        { "text": "Where will the company's EBITDA land at year-end?", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will the CFO still be in the seat 12 months from now?", "difficulty": "stretch", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Predict whether your top three positions outperform or underperform the index.", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Will AI agents replace junior FP&A analysts by year-end?", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Forecast where our fund's TVPI lands in 18 months.", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Will the rating agencies downgrade the sector in two quarters?", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Predict the next major shift in how LPs evaluate fund managers.", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Will private credit be a real funding channel for mid-market deals in two years?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Forecast your own career trajectory five years out in finance.", "difficulty": "intro", "tags": ["finance", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        { "text": "Argue we should expand the platform into Europe next year.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Make the case for rewriting the FP&A playbook from scratch.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Argue your sector coverage needs to split in half.", "difficulty": "intro", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Make the case to acquire the smaller competing fund for their LP base.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Argue that the firm should go all-in on private credit next vintage.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Make the case for switching the carry waterfall to a deal-by-deal structure.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Argue we should sunset our oldest fund and consolidate into the new vehicle.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Make the case for moving your top portco out of the fund and into a continuation vehicle.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Argue the firm should stop bidding on auctioned deals entirely.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Make the case to fire the top LP for being too operationally heavy.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        { "text": "You believe this deal clears IC this Wednesday. What would prove you wrong?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You think your FY forecast holds. What evidence would flip you?", "difficulty": "stretch", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "You believe the buy thesis is still intact. What would tell you otherwise?", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "You think your top associate is irreplaceable. What would change your mind?", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "You believe leverage at 6x is safe here. What data would shake that?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You think the new variance commentary system is working. What would tell you it isn't?", "difficulty": "intro", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "You believe the QofE caught every add-back. What would prove it didn't?", "difficulty": "core", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "You think the portco's covenant cushion holds. What would tell you it won't?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You believe the competitor won't beat us on this deal. What would change that?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You think the LP base will re-up at full size. What would convince you they won't?", "difficulty": "stretch", "tags": ["finance", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        { "text": "How big does the company's TAM need to be to support a 5x exit multiple?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How much EBITDA does the portfolio company need to support 6x leverage?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How many basis points of fee compression can the fund absorb before carry breaks?", "difficulty": "intro", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "How big a working-capital swing should we model for a Q3-heavy business?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How many deals does an associate need to staff to make VP in three years?", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "How much capex run-rate does a mid-market industrial really need?", "difficulty": "stretch", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "How many bps over SOFR clears the market for a unitranche right now?", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How long does it take a new FP&A hire to be net positive at a $500M portco?", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How much dry powder should the fund hold back for follow-ons?", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How many KAMs is the right ceiling for a clean audit opinion?", "difficulty": "stretch", "tags": ["finance", "procurement", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        { "text": "Walk through how your team runs IC prep week.", "difficulty": "intro", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Describe your monthly close from day 1 to day 8.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Walk me through your average sourcing-to-LOI cadence on a deal.", "difficulty": "intro", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Explain how you onboard a new LP through their first capital call.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Talk through how a deal moves from teaser to IC.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Describe how you ran the last earnings preview call with your PM.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Walk me through your annual LP meeting from intro to Q&A.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Explain how you handle a covenant breach from notification to waiver.", "difficulty": "core", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "Walk through a 10-K signoff from first draft to filing.", "difficulty": "stretch", "tags": ["finance", "procurement", "explaining"] },
+        { "text": "Take me through delivering a markdown to your most exposed LP.", "difficulty": "stretch", "tags": ["finance", "client_customer", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        { "text": "Pitch the deal to a CFO who has five minutes.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Make the case to hire two more deal associates this year.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Open an IC presentation in front of a hostile chair.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Introduce yourself at a first meeting with a new LP.", "difficulty": "intro", "tags": ["finance", "client_customer", "confidence"] },
+        { "text": "Pitch a continuation vehicle to a champion LP still on the fence.", "difficulty": "intro", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Recommend a covenant waiver to a skeptical credit committee.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Brief the exec team on the quarter that just slipped past guidance.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Open a town hall after losing the firm's largest LP.", "difficulty": "stretch", "tags": ["finance", "manager", "presenting"] },
+        { "text": "Pitch a new sector focus to a roomful of skeptical MDs.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Sell a hostile board on doubling the deployment pace next year.", "difficulty": "stretch", "tags": ["finance", "board_investor", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        { "text": "Tell me about a deal you lost in IC and why.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Explain a forecast assumption you regret carrying.", "difficulty": "stretch", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the worst earnings-call question you've ever fielded.", "difficulty": "stretch", "tags": ["finance", "economic_buyer", "confidence"] },
+        { "text": "Walk through a model defense where you missed badly.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Tell me about an LP who left mid-vintage.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Explain an audit dispute you couldn't resolve.", "difficulty": "stretch", "tags": ["finance", "procurement", "handling_objections"] },
+        { "text": "Describe a time you had to mark down a position you championed.", "difficulty": "stretch", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Talk about a deal that broke before close.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "Explain a credit memo finding you couldn't underwrite around.", "difficulty": "core", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "Describe what you'd change about your last LP annual meeting.", "difficulty": "core", "tags": ["finance", "client_customer", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        { "text": "Make the case for our deal's entry multiple to a hostile IC member.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Argue why your team should own the QofE workstream above $250M EV.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Defend the markdown you just took to your CIO.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Make three arguments for the longer hold period on the top portco.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Convince an LP that next steps include a deeper sector concentration.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Argue why this deal beats the strategic bidder at a lower headline price.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Defend the trade-off you made on the working-capital peg.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation"] },
+        { "text": "Make the case for promoting senior over outside hire on the next VP slot.", "difficulty": "core", "tags": ["finance", "manager", "persuasion"] },
+        { "text": "Argue your forecast holds despite three months of revenue softness.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "confidence"] },
+        { "text": "Pitch why your audit committee deserves a deeper KAM disclosure this cycle.", "difficulty": "core", "tags": ["finance", "board_investor", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        { "text": "Explain how you handled the LP escalation last quarter.", "difficulty": "core", "tags": ["finance", "client_customer", "handling_objections"] },
+        { "text": "Walk through the moment you realized the deal was breaking.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Describe the call where the CFO killed your reforecast.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "handling_objections"] },
+        { "text": "Talk through your reaction when the auditor proposed a $20M adjustment.", "difficulty": "core", "tags": ["finance", "procurement", "thinking_on_the_spot"] },
+        { "text": "Explain how you broke a missed-EBITDA warning to your MD.", "difficulty": "stretch", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through a competitive auction from teaser to second-round bid.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Describe a meltdown in IC over a single sensitivity table line.", "difficulty": "core", "tags": ["finance", "stakeholder", "handling_objections"] },
+        { "text": "Talk through the renegotiation where the top LP threatened to redeem.", "difficulty": "stretch", "tags": ["finance", "client_customer", "negotiation"] },
+        { "text": "Explain how you handled a hostile audit committee review on a KAM dispute.", "difficulty": "core", "tags": ["finance", "board_investor", "handling_objections"] },
+        { "text": "Walk through the moment you had to walk away from a deal sitting at IC.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        { "text": "Tell me about your finance career so far.", "difficulty": "core", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Walk me through how you got into private equity.", "difficulty": "intro", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Tell the story of your first IC win as a lead.", "difficulty": "core", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Describe the LP relationship that defined your year.", "difficulty": "core", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Tell me about the longest deal you've ever closed.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Walk through how you built sector coverage from scratch.", "difficulty": "core", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Tell the story of a partner who taught you how to underwrite.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Describe how your deal team came together after a bad close.", "difficulty": "core", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Tell me about an LP who became a long-term anchor.", "difficulty": "core", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Walk through the year you almost left finance entirely.", "difficulty": "stretch", "tags": ["finance", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        { "text": "What's the most important deal you closed this year?", "difficulty": "core", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Describe the single best LP you've ever worked with.", "difficulty": "core", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "What's the riskiest position your fund is holding right now?", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Tell me the one number that defines this quarter for FP&A.", "difficulty": "core", "tags": ["finance", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Describe the most memorable IC of your career.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "What's the most surprising question a buy-side analyst has ever raised?", "difficulty": "core", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "Tell me about the proudest model defense of your career.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "What's the most dangerous assumption your fund is making about leverage?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Describe the best LP feedback you've ever received.", "difficulty": "intro", "tags": ["finance", "client_customer", "giving_feedback"] },
+        { "text": "What's the one risk you'll never underwrite around again?", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        { "text": "Brief the team on next quarter's deployment goals.", "difficulty": "core", "tags": ["finance", "manager", "presenting"] },
+        { "text": "Present your sector thesis to a skeptical CIO.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Walk LPs through your fund's playbook this vintage.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Present your fund's results to the LP advisory board.", "difficulty": "stretch", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Brief your team on a strategy reset after a slow deployment year.", "difficulty": "stretch", "tags": ["finance", "manager", "presenting"] },
+        { "text": "Present a deal win at the firm-wide kickoff.", "difficulty": "stretch", "tags": ["finance", "peer", "presenting", "storytelling"] },
+        { "text": "Open a board meeting with your year's forecast plan.", "difficulty": "core", "tags": ["finance", "board_investor", "presenting"] },
+        { "text": "Brief deal associates on tomorrow's competitive auction.", "difficulty": "core", "tags": ["finance", "peer", "presenting"] },
+        { "text": "Pitch your new sourcing motion at the firm all-hands.", "difficulty": "core", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Walk a top LP through their fund-specific co-invest pipeline.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        { "text": "45 seconds: introduce yourself to a new LP at the cocktail hour.", "difficulty": "intro", "tags": ["finance", "client_customer", "confidence"] },
+        { "text": "45 seconds: give your weekly pipeline update to the partner.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: pitch the fund to a new LP in an elevator.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "45 seconds: summarize the broken deal for executives.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "45 seconds: brief an associate before they cover your deal in IC.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "45 seconds: present your top deal's risks to your VP.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: open a town hall after a missed forecast.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "presenting"] },
+        { "text": "45 seconds: pitch your buy thesis to the portfolio manager.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "45 seconds: explain your DCF methodology to a new finance partner.", "difficulty": "core", "tags": ["finance", "peer", "explaining"] },
+        { "text": "45 seconds: recap the quarter to your fund's board.", "difficulty": "stretch", "tags": ["finance", "board_investor", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        { "text": "Walk me through what you did with your top deal yesterday.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Explain how your sourcing routine usually goes.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Give me a status update on your top three deals.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the last IC you sat through as a backup.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Walk through the architecture of our fund's carry waterfall.", "difficulty": "core", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain how our deal stages are structured.", "difficulty": "core", "tags": ["finance", "manager", "explaining"] },
+        { "text": "Run through last quarter's portfolio highlights.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Summarize the credit memo's central thesis end to end.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Describe how a deal moves from teaser to IC to close.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Narrate your entire quarterly LP update without notes.", "difficulty": "stretch", "tags": ["finance", "client_customer", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        { "text": "Tell the story of how you got into finance.", "difficulty": "intro", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Recap the most memorable deal you've ever closed.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Walk me through your favorite LP relationship.", "difficulty": "intro", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Tell me about a mentor who taught you to underwrite.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Pitch the fund in 90 seconds to a hostile LP.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion", "confidence"] },
+        { "text": "Tell the origin story of your top portfolio company.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling"] },
+        { "text": "Describe a turning point in your finance career.", "difficulty": "core", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Walk a CFO through the case for our restructuring proposal.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Tell the story of a deal that nearly fell apart in the eleventh hour.", "difficulty": "core", "tags": ["finance", "stakeholder", "storytelling", "negotiation"] },
+        { "text": "Give a keynote about why our sector strategy has to evolve — now.", "difficulty": "stretch", "tags": ["finance", "client_customer", "presenting", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        { "text": "Tell me about your deal team.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Describe a teammate who quietly carries the bench.", "difficulty": "intro", "tags": ["finance", "peer", "giving_feedback"] },
+        { "text": "Tell me about an LP who shaped how you think about reporting.", "difficulty": "intro", "tags": ["finance", "client_customer", "storytelling"] },
+        { "text": "Talk about a portfolio CFO you've stayed in touch with for years.", "difficulty": "intro", "tags": ["finance", "vp_executive", "storytelling"] },
+        { "text": "Introduce your associates to a new MD.", "difficulty": "core", "tags": ["finance", "manager", "presenting"] },
+        { "text": "Tell an LP about the associate who built their co-invest model.", "difficulty": "core", "tags": ["finance", "peer", "storytelling"] },
+        { "text": "Walk a recruit through what it's like to work in your group.", "difficulty": "core", "tags": ["finance", "peer", "persuasion"] },
+        { "text": "Describe your favorite portfolio company relationship.", "difficulty": "core", "tags": ["finance", "vp_executive", "storytelling"] },
+        { "text": "Introduce your LP champion to the founding partner at the annual meeting.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Deliver a goodbye message to a portco CFO who's retiring.", "difficulty": "stretch", "tags": ["finance", "vp_executive", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        { "text": "State what you're best at as an underwriter in one sentence, three times.", "difficulty": "intro", "tags": ["finance", "peer", "confidence"] },
+        { "text": "Tell me three things you know for certain about deal sourcing.", "difficulty": "intro", "tags": ["finance", "peer", "confidence"] },
+        { "text": "Declare your sector coverage and your top three names.", "difficulty": "intro", "tags": ["finance", "manager", "confidence"] },
+        { "text": "List five facts about the deal that you'd stake your career on.", "difficulty": "intro", "tags": ["finance", "stakeholder", "persuasion", "confidence"] },
+        { "text": "Tell the board the new hurdle rate is working.", "difficulty": "core", "tags": ["finance", "board_investor", "confidence", "persuasion"] },
+        { "text": "Defend this quarter's deployment targets against pushback.", "difficulty": "core", "tags": ["finance", "manager", "confidence"] },
+        { "text": "Tell the team we are not changing the carry structure and explain why.", "difficulty": "core", "tags": ["finance", "peer", "persuasion", "confidence"] },
+        { "text": "Brief the seller's banker on why our terms are non-negotiable.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation", "confidence"] },
+        { "text": "Address the team the day after losing the firm's largest LP.", "difficulty": "stretch", "tags": ["finance", "manager", "confidence", "presenting"] },
+        { "text": "Tell a roomful of skeptical LPs why the markdown isn't a thesis break.", "difficulty": "stretch", "tags": ["finance", "client_customer", "persuasion", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        { "text": "Describe what your finance role involves day-to-day.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Tell me three things you did to move deals last week.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "List the portfolio companies you've covered this year and one win from each.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "State your name, your sector, and the top deal you're working.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize what the fund does in five sentences for a new LP.", "difficulty": "core", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Recap last week's IC decisions for someone who missed the meeting.", "difficulty": "core", "tags": ["finance", "stakeholder", "explaining"] },
+        { "text": "Lay out the four pillars of your portfolio strategy.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Describe your standard QofE workstream.", "difficulty": "core", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Explain how you evaluate whether an investment is real.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk an outside auditor through how revenue recognition runs here.", "difficulty": "stretch", "tags": ["finance", "procurement", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        { "text": "What's a finance question you've been chewing on lately?", "difficulty": "intro", "tags": ["finance", "peer", "thinking_on_the_spot"] },
+        { "text": "Talk about a finance book or idea that's stuck with you this month.", "difficulty": "intro", "tags": ["finance", "peer", "giving_feedback"] },
+        { "text": "Wonder out loud about why a recent deal almost didn't clear IC.", "difficulty": "intro", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Describe a sourcing tactic you keep meaning to try.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Brainstorm three new sourcing plays, thinking out loud.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through a buy-side objection you don't yet have a great answer for.", "difficulty": "core", "tags": ["finance", "economic_buyer", "handling_objections"] },
+        { "text": "Talk through a deal you're still trying to figure out how to underwrite.", "difficulty": "core", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Speculate about where LP capital flows in five years.", "difficulty": "core", "tags": ["finance", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Explore why a recent earnings print didn't follow management's playbook.", "difficulty": "core", "tags": ["finance", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Speculate on what your competing fund is about to do, and why.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        { "text": "Tell me one underwriting belief you hold that most analysts don't.", "difficulty": "intro", "tags": ["finance", "peer", "confidence"] },
+        { "text": "State the principle that guides how you build a sensitivity table.", "difficulty": "intro", "tags": ["finance", "peer", "confidence"] },
+        { "text": "Name the rule you refuse to break in a negotiation, and why.", "difficulty": "intro", "tags": ["finance", "stakeholder", "negotiation", "confidence"] },
+        { "text": "Tell me the one piece of advice you give every new associate.", "difficulty": "intro", "tags": ["finance", "manager", "giving_feedback"] },
+        { "text": "Argue why entry multiple discipline is the only metric that matters.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion", "confidence"] },
+        { "text": "Make the case for the single metric the fund should be judged on.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Defend your refusal to discount the hurdle rate on a deal everyone wants closed.", "difficulty": "core", "tags": ["finance", "stakeholder", "negotiation", "confidence"] },
+        { "text": "Tell LPs why this is the right fund, the right vintage, the right team.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion", "confidence"] },
+        { "text": "Make the case that QofE adjustments hide more than they reveal.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Tell a longtime LP you're not letting them into the next vintage, and why.", "difficulty": "stretch", "tags": ["finance", "client_customer", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        { "text": "Update me on your top deal, your second, and your third.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Cover the three portcos on your plate right now.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through what closed, what slipped, and what's next in the pipeline.", "difficulty": "intro", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief me on sourcing, diligence, and IC stages.", "difficulty": "intro", "tags": ["finance", "peer", "explaining"] },
+        { "text": "Brief me on new deployments, follow-ons, and exits — in that order.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Give updates on TVPI, DPI, and deployment pace.", "difficulty": "core", "tags": ["finance", "client_customer", "presenting"] },
+        { "text": "Cover three deals on your forecast, each at a different stage.", "difficulty": "core", "tags": ["finance", "manager", "thinking_on_the_spot"] },
+        { "text": "Move through last week's wins, this week's risks, and next week's IC.", "difficulty": "core", "tags": ["finance", "stakeholder", "presenting"] },
+        { "text": "Pitch the deal, then walk the diligence, then close on the IC ask.", "difficulty": "core", "tags": ["finance", "stakeholder", "persuasion"] },
+        { "text": "Update the board on fund growth, on a portco lawsuit, and on a senior departure.", "difficulty": "stretch", "tags": ["finance", "board_investor", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        { "text": "Introduce yourself — to a CFO, then to your audit partner.", "difficulty": "intro", "tags": ["finance", "vp_executive", "explaining"] },
+        { "text": "Describe the fund — to a procurement-style LP gatekeeper, then to a co-invest sponsor.", "difficulty": "intro", "tags": ["finance", "client_customer", "explaining"] },
+        { "text": "Explain what you do this weekend — to a new LP, then to your MD.", "difficulty": "intro", "tags": ["finance", "peer", "confidence"] },
+        { "text": "Tell the story of your top deal — to a peer, then to a managing director.", "difficulty": "intro", "tags": ["finance", "manager", "storytelling"] },
+        { "text": "Deliver the same pitch — to a credit committee, then to a CFO.", "difficulty": "core", "tags": ["finance", "vp_executive", "persuasion"] },
+        { "text": "Pitch the fund — to a skeptical buy-side analyst.", "difficulty": "core", "tags": ["finance", "economic_buyer", "persuasion"] },
+        { "text": "Share your forecast — to your team, then to your CFO, then to the board.", "difficulty": "core", "tags": ["finance", "board_investor", "presenting"] },
+        { "text": "Explain the deal terms — to a champion LP, then to a hostile auditor.", "difficulty": "core", "tags": ["finance", "procurement", "negotiation"] },
+        { "text": "Walk through the buy thesis — to an associate, then to the portfolio manager.", "difficulty": "core", "tags": ["finance", "client_customer", "persuasion"] },
+        { "text": "Defend the same deal — to a friendly IC member, then to a hostile MD.", "difficulty": "stretch", "tags": ["finance", "stakeholder", "handling_objections", "persuasion"] }
+      ]
+    }
+  ]
+}

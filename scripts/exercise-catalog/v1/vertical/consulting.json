@@ -1,0 +1,5216 @@
+{
+  "version": "v1-vertical",
+  "vertical": "consulting",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        {
+          "text": "Explain MECE to a client analyst joining the working session tomorrow.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to your exec sponsor what a hypothesis tree actually does for the project.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the pyramid principle to the client team before Thursday's readout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the CIO what 'so what' means in our recommendation slides.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the change lead what a Day-One plan covers in plain language.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a procurement lead what hours-based vs fixed-fee billing actually means.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the firm's three-week diagnostic to a CEO who's never bought consulting before.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a skeptical CFO what 'hypothesis-driven' means without sounding evasive.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain to your new associate what an issue tree is and why we build one first.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a hostile steering committee what a no-regrets move is.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        {
+          "text": "Did the diagnostic prove the cost-out hypothesis?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should the client launch in Q3 or delay to Q4?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is the operating-model recommendation still the right call after the new data?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Was Tuesday's working session a productive one?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should we extend the engagement another six weeks?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Did the pilot site hit the savings target?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is the CIO's pushback going to kill the IT consolidation track?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should the steering committee approve the new go-live date?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Was the partner right to challenge our cost baseline?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should we walk away from the scope creep on workstream three?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        {
+          "text": "Explain to the CFO how the hypothesis tree narrows the savings opportunity.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the client team what waterfalling capacity from old to new processes feels like.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a junior client how an executive summary differs from a status update.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the steering committee why phased rollouts beat big-bang launches here.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain to a new associate how the partner-review loop actually shapes a deck.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the COO how change-management investment compounds over the rollout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the procurement lead why a fixed-fee model carries risk back to us.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to the board how our run-rate savings model gets to the headline number.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a client SME what 'driver-based forecasting' really means for their P&L.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain to a hostile IT director how our migration de-risks itself wave by wave.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        {
+          "text": "Explain 'zero-based budgeting' to a frontline manager who's never seen consulting before.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the firm's 'value-capture roadmap' to a plant manager on the floor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain 'target operating model' to the HR business partner across the table.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain 'span-of-control benchmarks' to a director whose org you're about to flatten.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain 'synergy realization' to a CFO who's heard it from three firms already.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain 'workstream' to a client analyst on day one of the engagement.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain 'EBITDA bridge' to a non-finance executive in the steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain 'change readiness' to a union rep before the workforce announcement.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain 'pace layering' to a CIO who's seen too many consulting frameworks.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain 'agile cadence' to a finance director who runs everything in waterfall.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        {
+          "text": "Why is the $40M savings number on page 7 defensible to a skeptical CFO?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why does Thursday's steering committee need to approve the org redesign now, not next month?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is our recommendation different from the last three firms who tried this?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why does the IT director's objection about timeline actually make our case stronger?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why should the client trust your interim recommendation when the analysis isn't done?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is the pilot site the right place to start, not the largest region?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why does the change lead need a dedicated budget line, not just a workstream?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why should the exec sponsor fund a six-week extension after a missed milestone?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is your hypothesis still right after the data pulled in pointed the other way?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why should a board override the COO's pushback on the workforce plan?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        {
+          "text": "What's the single biggest risk to landing this engagement on time?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the one reason the client should approve the org redesign?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why did Tuesday's working session miss its decision target?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the single biggest source of value in the cost-out program?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the one finding from the diagnostic the partner most needs to hear?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is the change lead the only person who can unblock the rollout?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the one number that defines whether the pilot worked?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is the IT director the right escalation path for the data issue?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the single biggest reason the client's last transformation failed?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is now the right moment to recommend a strategic pause?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        {
+          "text": "Explain the difference between a recommendation and a decision.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between a working session and a steering committee.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between a diagnostic and an implementation phase.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between gross savings and net realized savings to the CFO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between an executive summary and a chapter cover slide.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between scope creep and a legitimate change request.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between an MD-led readout and a partner check-in.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain the difference between change resistance and capacity issues to the sponsor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain why a verbal nod from the sponsor isn't an approved decision.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain the difference between an interim recommendation and a final answer.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        {
+          "text": "Tell me why the $80M cost-out target is achievable in 18 months.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why the operating-model recommendation beats the status quo.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why this engagement is on track despite missing last week's milestone.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why the pilot region's results will scale to the full footprint.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why the client's IT team can absorb this migration on the proposed timeline.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why your three-week diagnostic deserves another six weeks of work.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why your change-management plan won't repeat the last firm's failure.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me why the steering committee should reject the CIO's counter-proposal.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Tell me why our recommendation is right even though the client SMEs disagree.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Tell me why your associate's slide is actually the cleanest in the deck.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        {
+          "text": "Pitch the engagement's central finding to the CEO in one breath.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the workstream's status for the partner in the hallway.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the engagement's ideal client outcome in one sentence.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain why Thursday's steering committee got pushed a week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the recommendation to the CFO in 30 words.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the client's biggest objection to the operating model.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Describe your champion on the client side in one sentence.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Brief the MD on the engagement at risk of slipping the final readout.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the renewal of a $4M engagement to a skeptical exec sponsor in 30 words.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the next phase's plan for the steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        {
+          "text": "Pitch the kickoff agenda to a CEO who's funding the engagement.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Give three reasons the steering committee should approve the org redesign now.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend why the cost-out target should stay at $80M, not the CFO's $50M.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why we should pause workstream four after the partner review.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for adding a dedicated change-management workstream.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why your associate should run Wednesday's working session, not you.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend the firm's interim recommendation to a skeptical IT director.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Convince the client's CFO that procurement should sign off this week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why the engagement deserves a six-week extension at full burn rate.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince a hostile board to back the workforce plan during a hiring freeze.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        {
+          "text": "Tell the story of an engagement that almost collapsed in week three.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through the toughest partner review of your career.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of how a hostile CIO became your strongest sponsor.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "storytelling",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through a steering committee that voted against your recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Tell the story of a client team that disengaged halfway through the engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recount a deliverable that landed flat in front of the CEO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through a working session where the client team and your team disagreed sharply.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of a change initiative that worked despite real resistance.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "storytelling",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through the engagement where you had to fire the client.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recount a partner who challenged your hypothesis ten minutes before the readout.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting",
+            "thinking_on_the_spot"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        {
+          "text": "Should we extend the engagement another six weeks or hand off now?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pilot first or full rollout in the largest region?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is the CIO's pushback a real blocker or a stall tactic?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Escalate to the exec sponsor or work it through the client team?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Take the smaller fixed-fee phase or push for the full transformation mandate?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Should we walk from the scope creep or absorb it for the client relationship?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Push the steering committee this week or risk losing the decision window?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recommend the operating model the CFO will accept or the one the data supports?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Replace the underperforming associate or coach them through the next milestone?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Hold the line on the recommendation or soften it to keep the client engaged?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        {
+          "text": "Three of the client's SMEs missed the last two working sessions. Address it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "The client team can't produce the data we need by Friday. Solve it.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "The change lead just told you they don't have headcount for the rollout. Address it.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Your associate is rebuilding the same slide for the third time. Solve it.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "The CFO won't take a meeting until the savings model is locked. Fix it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "The IT director keeps reopening decisions the steering committee already approved. Solve it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "The exec sponsor's calendar has slipped to once every three weeks. Address it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Workstream two has missed its second milestone in a row. Talk about it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Two of your top client champions just got reorged out. Address it.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "The board just asked why month-three savings are at 20% of plan. Respond.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        {
+          "text": "Convince the change lead to commit a full-time deputy to the engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Rally your associates to push through Thursday's partner-review weekend.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Persuade a junior consultant to take on the toughest client interview track.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince a wavering champion to introduce you to the CEO this week.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Persuade the exec sponsor to fast-track the operating-model decision.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Rally the procurement lead to fold change-management work into the MSA without rebidding.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Convince a skeptical CFO to fund the full implementation phase.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Persuade the partner to back your interim recommendation in front of the client.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince the board to approve the workforce plan over the COO's objection.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Rally a deflated client team to relaunch a failed pilot in the next quarter.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        {
+          "text": "Walk me through how you'd run a first client interview with the head of finance.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "Explain how you'd structure a kickoff with a new client executive sponsor.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe how you'd onboard a new associate in their first week on the project.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Walk through your process for building a hypothesis tree on day three.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how you'd run Thursday's steering committee end to end.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through your approach to a CFO meeting where the savings model is contested.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Describe how you'd structure a four-week diagnostic for a new client.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how you'd respond to a sponsor asking for a recommendation a week early.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through how you'd recover an engagement that's missed three milestones.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe your playbook for displacing an incumbent firm mid-engagement.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        {
+          "text": "Make the case for adding a fourth workstream on data quality.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why the engagement deserves a senior expert flown in for one week.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince a champion to host a dinner with the executive team.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Sell a peer on co-leading the next steering committee with you.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for moving the deliverable date back two weeks.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Argue why the partner should defend your interim recommendation, not soften it.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince a skeptical sponsor to expand the engagement scope into operations.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for cutting the bottom-priority workstream to save the rest.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Argue why we should bet the engagement's reputation on a single bold recommendation.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince the board to back a transformation plan that pays back over five years.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        {
+          "text": "Centralized vs federated operating model for the client's new function.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Internal change lead vs external program manager for the rollout.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Three-week diagnostic vs six-week deep-dive for the new client.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Big-bang launch vs phased rollout for the new ERP.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Partner-led deliverable vs MD review for the final readout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Fixed-fee engagement vs time-and-materials for the next phase.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Promote your senior associate vs hire an experienced engagement manager.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Lean cost-out program vs full transformation for the underperforming business unit.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walking away vs accepting the scope creep on a six-figure engagement.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pivoting the recommendation to match the CFO vs holding the data-backed answer.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        {
+          "text": "Why do most diagnostic engagements never convert into implementation?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why do client champions disappear after the first deliverable?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why does procurement always come in late to the consulting deal?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "procurement",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why do partners restructure 30% of a deck the night before a readout?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why do CFOs reject recommendations their own sponsor approved?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why do change initiatives stall right when the consulting team leaves?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is multi-threading inside the client org so hard for new managers?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why do steering committees rubber-stamp instead of decide?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why do scope changes always land in the final two weeks of the engagement?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why do most reorgs the firm recommends fail in year two?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        {
+          "text": "Give a 30-second status on workstream three to the partner in the hallway.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Update the engagement team on where the savings model lands today.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief the exec sponsor on yesterday's working session.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recap the steering committee for the partner who couldn't attend.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain why the deliverable date slipped a week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief the MD on a workstream the CFO is now openly challenging.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Update the client team on the new operating-model recommendation in 30 seconds.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Status report on the engagement's most-at-risk milestone.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief the CEO on the recommendation at risk before the board meeting.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Update the board on why your savings forecast just dropped 30%.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        {
+          "text": "Tell me about an engagement that didn't land.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the biggest client win of your career.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about a champion who made the engagement work.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Share a piece of feedback from a partner that changed how you consult.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe a client SME who consistently undermined your recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Talk about the hardest pushback you've fielded in a steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain a recommendation you wish you'd made differently.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the moment the engagement turned in your favor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the firm to a hostile prospect with no warm-up.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Defend your interim recommendation on a live partner-review call.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "confidence",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        {
+          "text": "Will the engagement close on time?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is the client champion actually going to push the recommendation?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is the operating-model recommendation the right call?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should we kill workstream four?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Was the partner right to challenge our cost baseline?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Is extending the engagement the right move for the client?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should we fire the underperforming associate?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Is the new sponsor going to back the implementation?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Will the steering committee approve the workforce plan?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Should the firm walk away from this engagement entirely?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        {
+          "text": "What's the main reason the deliverable slipped?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why did the pilot region miss its savings target?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the biggest risk to next month's steering committee?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the one thing the engagement team needs to do differently next week?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What's the single objection holding up the org redesign?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why are associates missing on the synthesis step?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What's driving the slip in your savings forecast?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Why is the client's change lead threatening to step off the program?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "What's the central reason the CFO won't accept our recommendation?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Why should the board approve the transformation budget over the COO's objection?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        {
+          "text": "Extend or hand off?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Push Thursday's readout or let it slip?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Senior associate or experienced engagement manager?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Diagnostic first or full transformation up front?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Walk away from the scope creep or absorb it?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Escalate to the CEO or keep working the sponsor?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Cut the recommendation 30% or hold the position?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Replace the associate or coach them through next week?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Accept the multi-year extension at a thinner fee or hold for full rates?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Cancel the engagement or push it past the audit committee?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        {
+          "text": "Pitch the engagement scope to a new exec sponsor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain why the kickoff matters more than people think.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe what makes a strong client champion.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Pitch the case for adding a change-management workstream.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain how phased rollouts protect both sides on a big transformation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how to handle a CFO objection live in a working session.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Pitch the value of a six-week diagnostic to a skeptical CEO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain why the firm should walk away from this engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the recommendation to a board you've never met.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend your savings model to a CFO who thinks it's inflated.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        {
+          "text": "Explain how the engagement's workstreams are structured.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how a steering committee decision actually gets made.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Walk through how the savings model bridges from gross to net.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how the partner-review loop reshapes a deck overnight.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how a hypothesis tree narrows the diagnostic over three weeks.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how the firm's change-management approach hands off to the client.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Walk through how our scope-of-work clauses limit out-of-scope requests.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how we forecast value capture across the rollout waves.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how partner discounting authority cascades up the firm.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Walk through how a multi-firm engagement coordinates deliverables.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        {
+          "text": "Tell me about your toughest workstream.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through your week on the client site.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Introduce yourself to a new client sponsor.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about your engagement portfolio.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open the steering committee with the agenda.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Kick off the working session with the day's decision.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open the partner check-in with the headline finding.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Start the CFO meeting with your recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open the readout in front of three skeptical execs.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "confidence",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open the engagement kickoff to a roomful of unconvinced client leaders.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting",
+            "confidence"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        {
+          "text": "Summarize the engagement's central finding in one sentence.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe your role on the engagement.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Define what the firm does for the client at a cocktail party.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Sum up this week's work in one sentence.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the CFO's central objection.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "State the engagement's central risk.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Define why the steering committee needs to decide on Thursday.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Sum up the partner check-in in one sentence.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize an entire failed transformation in one line for your MD.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "State the firm's value proposition for the next pursuit deck cover.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        {
+          "text": "Argue why most diagnostics fail to land their interim recommendation.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case that the firm's working-session model is broken on this engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Argue why multi-threading inside the client org wins more decisions than any deck.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince me that the steering committee should have killed workstream three.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue that the best consultants spend less time on slides, not more.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Make the case that this engagement's savings target was always unrealistic.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Argue that most failed transformations die in the first six weeks of fieldwork.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince me that the associate we just rolled off was actually our best long-term hire.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Argue that the firm's fixed-fee pricing is mispriced for transformation work.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case that the firm's playbook needs to be rewritten for AI-era clients.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        {
+          "text": "Make the strongest case AGAINST the recommendation your team is presenting Thursday.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Steel man the CIO who keeps pushing back on the migration timeline.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Build the strongest case for the CFO who said your savings model is inflated.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Make the case for the incumbent firm the client is comparing you to.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Steel man the client SME who said the diagnostic is asking the wrong questions.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Build the best argument against your own final recommendation.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Steel man a sponsor who thinks the engagement should be cut short.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Argue convincingly that the org redesign workstream should be paused.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the strongest case for the associate you wanted to roll off the project.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Steel man the change lead who's gone quiet on you for two weeks.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        {
+          "text": "Why does the client need our firm at all? Build from zero.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What is a hypothesis tree, fundamentally? Forget the textbook.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why do executives pay $5M for advice they could form themselves?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What is a steering committee for, actually? Build the answer from scratch.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why does the partner-review loop exist? Define it from zero.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What is a champion really for? Not the textbook answer.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why do consulting engagements have scope-of-work documents at all?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What is an executive summary supposed to do, fundamentally?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Why do we have quarterly business reviews with the client after the engagement closes?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What is a recommendation, fundamentally? Strip it of MBA jargon.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        {
+          "text": "List three things that went well in the diagnostic phase.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through the workstreams the engagement closed this month.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the features of the operating model the CFO was most excited about.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recap the key takeaways from this week's working sessions.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the client interviews you ran this week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about the new client logos the firm won this year.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through the steering committee on your top engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "List the objections you've heard from the CIO this month.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Describe the firm's AI tools your team adopted on the last engagement.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the SME interviews you ran this quarter.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        {
+          "text": "Defend the procurement lead who's stalling the engagement renewal — from their chair.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "procurement",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Argue as the CFO who just rejected the firm's savings model.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Defend the client who chose the incumbent firm over yours.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue as the champion who couldn't get internal alignment for the rollout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Defend the partner who tore apart your deck the night before the readout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Argue as the client SME who said the engagement is wasting their time.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Defend the IT director who killed the migration workstream.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Argue as the associate who told the client the model doesn't support that recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend the sponsor who insisted on a six-month phased rollout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue as the analyst who told the steering committee a competitor's approach is safer.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        {
+          "text": "Will the engagement land its interim recommendation by Thursday?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Where will the savings forecast land at the end of the diagnostic?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Will your champion still be at the company in 12 months?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Predict whether the top three rollout sites hit savings or slip.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Will AI agents replace junior consultants by the end of next year?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Forecast where the average engagement length lands in 18 months.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Will the new partner staffing model improve realization in two quarters?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Predict the next major shift in how clients buy consulting work.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Will fixed-fee transformation engagements outpace T&M by 2030?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Forecast your own career trajectory in consulting five years out.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        {
+          "text": "Argue we should expand the engagement into operations next quarter.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for rewriting the firm's transformation playbook from scratch.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue the engagement team needs to double in size for implementation.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case to acquire a niche firm to staff the next engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue that the firm should go all-in on AI-enabled diagnostics next year.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for switching to outcome-based fees on transformation work.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue we should sunset the firm's most-discounted SKU service line.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for moving your top client account to a different partner.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue the engagement team should stop running working sessions entirely.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case to fire your top client for being unprofitable to serve.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        {
+          "text": "You believe the engagement closes on time. What would prove you wrong?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You think the savings model is rock solid. What evidence would flip you?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You believe your champion will defend the recommendation. What would tell you otherwise?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You think your top associate is irreplaceable. What would change your mind?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "You believe phased rollouts beat big-bang launches. What data would shake that?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You think the firm's new pricing model is working. What would tell you it isn't?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "procurement",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You believe the working-session cadence is strong. What would prove it isn't?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "You think the client SME is a real ally. What would tell you they aren't?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You believe the CFO will sign off by Friday. What would change that?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "You think the engagement renewal is locked. What would convince you it's at risk?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        {
+          "text": "How many client interviews does a four-week diagnostic actually need?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "How long should it take to land an interim recommendation on a cost-out engagement?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How many slides should a steering committee deck actually have?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How big does an engagement need to be to justify a dedicated partner?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How many champions does a complex transformation really need?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How much can you discount on a master services agreement before margin alarms go off?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "How many questions should you ask in a first client interview?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "How long does it take a new engagement manager to become net positive?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How much realized savings should an 18-month engagement target as a multiple of fees?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "How many touches does it take to revive a lost client relationship?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        {
+          "text": "Walk through how your engagement runs its weekly partner check-in.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe your client-interview process from intro to next steps.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "Walk me through a typical engagement week from Monday travel to Friday office.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how you onboard a new client champion through the first two weeks.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Talk through how a workstream moves from kickoff to deliverable.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how you ran the readout for your last cost-out diagnostic.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through your weekly steering committee with the client exec team.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain how you handle a competitive bake-off against another firm start to finish.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through a master services agreement negotiation from kickoff to signature.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Take me through a roll-off conversation with an underperforming associate.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        {
+          "text": "Pitch the engagement's recommendation to a CFO who has five minutes.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case to add two more associates this week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open the kickoff with a board-level executive sponsor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Introduce yourself at the client's leadership team meeting on day one.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch a six-week diagnostic to a champion who's still on the fence.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recommend a multi-year extension to a skeptical procurement lead.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Brief the exec team on a workstream that just slipped a milestone.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Open a town hall after the client's CEO publicly questioned the engagement.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch your new operating-model recommendation to a roomful of skeptical directors.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Sell a hostile board on doubling investment in the change program.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        {
+          "text": "Tell me about an engagement you lost and why.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain a recommendation you regret making.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the worst client interview you've ever conducted.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through a partner review where you missed the mark badly.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about a champion who left mid-engagement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain a client escalation you couldn't recover.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Describe a time you had to roll off an associate you liked.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Talk about an engagement that churned without warning at renewal.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Explain a recommendation the client refused to implement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Describe what you'd change about your last final readout.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        {
+          "text": "Make the case for the new operating-model recommendation to a CFO.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why your team should own implementation, not just diagnostic.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend the partner's restructure of your deck to the engagement team.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Make three arguments for extending the engagement six weeks.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Convince a champion that next steps include the CEO this week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue why this client should pick our firm over the incumbent.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend the trade-off you made on workstream scope.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Make the case for an experienced engagement manager over a senior associate.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Argue your savings forecast holds despite three workstreams slipping.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch why your change-management workstream deserves a doubled budget.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        {
+          "text": "Explain how you handled the client escalation last week.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Walk through the moment you realized the recommendation wouldn't land.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the readout where the CFO killed your savings model.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Talk through your reaction when the data pull came back the wrong way.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain how you broke a missed milestone to your MD.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through a competitive displacement from kickoff to win.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe a champion meltdown ten minutes before a steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Talk through the renegotiation where your top client threatened to fire the firm.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Explain how you handled a hostile procurement review on a multi-year MSA.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Walk through the call where you had to recommend the firm walk away.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        {
+          "text": "Tell me about your consulting career so far.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through how you got into consulting.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of your first lead-engagement-manager role.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the client relationship that defined your career.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about the longest engagement you've ever delivered.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through how you built your top client account from scratch.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of a partner who taught you how to consult.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe how your engagement team came together after a tough first month.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about a client who became a long-term advocate for the firm.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through the year you almost left consulting entirely.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        {
+          "text": "What's the most important engagement you closed this year?",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the single best client champion you've ever worked with.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the riskiest workstream the engagement team is running right now?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me the one number that defines your engagement this quarter.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the most memorable client interview of your career.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the most surprising pushback a client has ever given you in a readout?",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Tell me about the proudest consulting moment of your career.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "What's the most dangerous assumption your engagement team is making about the data?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the best feedback a client ever gave you.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "What's the one objection you'll never close around in a steering committee?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        {
+          "text": "Brief the engagement team on next phase's goals.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Present your transformation plan to a skeptical MD.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk the steering committee through your implementation roadmap.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Present this engagement's results to the client's executive team.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief your team on a strategy reset after a missed final readout.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Present client wins at the firm's kickoff retreat.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting",
+            "storytelling"
+          ]
+        },
+        {
+          "text": "Open a CFO meeting with your year's value-capture plan.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief your associates on tomorrow's working session with the client.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch your new service line at the firm's all-hands.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk a top prospect through their executive briefing center visit.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        {
+          "text": "45 seconds: introduce yourself to a new client sponsor.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: give your weekly partner check-in update.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: pitch the firm to a CEO in an elevator.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: summarize the workstream slip for the steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: brief a co-leader before they take over the engagement.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "45 seconds: present your top engagement's risks to the MD.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: open a town hall after losing the year's biggest client.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: pitch a competitive displacement to your partner.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "45 seconds: explain your savings model to a new finance partner on the client side.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "45 seconds: recap the quarter to your firm's board.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        {
+          "text": "Walk me through what you did on your top workstream yesterday.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain how your client-interview routine usually goes.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "Give me a status update on your top three workstreams.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the last working session you sat through as an observer.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Walk through the structure of the firm's transformation playbook.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain how the firm's case teams are staffed across engagements.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Run through last quarter's engagement highlights.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize the engagement stages end to end.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Describe how a workstream moves from hypothesis to interim recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Narrate the entire steering committee deck without notes.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        {
+          "text": "Tell the story of how you got into consulting.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Recap the most memorable engagement you've ever led.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk me through your favorite client story.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me about a partner who shaped how you consult.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the firm in 90 seconds to a skeptical CEO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Tell the origin story of your top client relationship.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe a turning point in your consulting career.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk a CFO through the case for the firm's transformation practice.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of a transformation that nearly fell apart in week ten.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Give a keynote about why consulting has to change — now.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting",
+            "persuasion"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        {
+          "text": "Tell me about your engagement team.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe an associate who quietly carries the case team.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Tell me about a client who shaped how you consult.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Talk about a champion you've stayed in touch with for years.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Introduce your associates to a new client sponsor.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell a client about the analyst who built their savings model.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk a recruit through what it's like to consult on your case team.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe your favorite client relationship.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Introduce your client champion to your firm's CEO at the partner summit.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "champion",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Deliver a goodbye message to your top client's outgoing sponsor.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        {
+          "text": "State what you're best at as a consultant in one sentence, three times.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me three things you know for certain about how to land a recommendation.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Declare your role and the workstreams you own on the engagement.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "List five facts about the firm's transformation practice you'd stake your career on.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Tell the board the new operating model is working.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "confidence",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend this phase's milestones against the CIO's pushback.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Tell the engagement team we are not changing the recommendation, and explain why.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Brief the client's procurement team on why our fee terms are non-negotiable.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Address the team the day after losing the firm's largest client.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "confidence",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell a roomful of skeptical execs why your data justifies the recommendation.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting",
+            "confidence"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        {
+          "text": "Describe what your consulting role actually involves day-to-day.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Tell me three things you did to move the engagement last week.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "List the engagements you've led this year and one win from each.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "State your name, your case team, and the top workstream you own.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Summarize what the firm does in five sentences for a CFO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Recap last week's working session decisions for someone who missed the call.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Lay out the four pillars of your engagement plan.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe your standard discovery interview framework.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "Explain how you evaluate whether a recommendation will land.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk an outside auditor through how the firm tracks realized savings.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        {
+          "text": "What's a consulting question you've been chewing on lately?",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Talk about a consulting book or idea that's stuck with you this month.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Wonder out loud about why a recent engagement almost didn't close.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe a synthesis technique you keep meaning to try.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brainstorm three new pursuit themes, thinking out loud.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through a client objection you don't yet have a great answer for.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "handling_objections"
+          ]
+        },
+        {
+          "text": "Talk through a workstream you're still trying to figure out how to land.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Speculate about where executive buying behavior moves over the next five years.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explore why a recent client didn't follow the firm's usual playbook.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Speculate on what your top competitor firm is about to do, and why.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        {
+          "text": "Tell me one consulting belief you hold that most associates don't.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "State the principle that guides how you run a client interview.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "client_customer",
+            "asking_questions"
+          ]
+        },
+        {
+          "text": "Name the rule you refuse to break in a partner review, and why.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell me the one piece of advice you give every new associate.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Argue why decision-clarity is the only metric that matters in a steering committee.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Make the case for the single metric your engagement should be judged on.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend your refusal to soften a recommendation everyone wants you to soften.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the partner why this is the right team, the right engagement, the right time.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting",
+            "confidence"
+          ]
+        },
+        {
+          "text": "Make the case that 80% of consulting decks are unnecessary.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell a longtime client you're recommending the firm step off the account, and why.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        {
+          "text": "Update me on your top workstream, your second, and your third.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Cover the three engagements on your plate right now.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Walk through what landed, what slipped, and what's next.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Brief me on diagnostic, design, and implementation phases.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Brief me on cost-out, growth, and operating-model workstreams — in that order.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Give updates on staffing, scope, and burn rate.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Cover three workstreams on your engagement, each at a different stage.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Move through last week's wins, this week's risks, and next week's decisions.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "stakeholder",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the diagnostic, walk the synthesis, then close on the recommendation.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Update the board on growth, on a client lawsuit, and on a partner's exit.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        {
+          "text": "Introduce yourself — to a CFO, then to your client champion.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Describe the firm's approach — to a procurement lead, then to an end user.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "procurement",
+            "explaining"
+          ]
+        },
+        {
+          "text": "Explain what you did this weekend — to a new client, then to your MD.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "peer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Tell the story of your top engagement — to a peer, then to your partner.",
+          "difficulty": "intro",
+          "tags": [
+            "consulting",
+            "manager",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Deliver the same recommendation — to a CIO, then to a CFO.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Pitch the firm — to a skeptical economic buyer.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Share your savings forecast — to your team, then to the partner, then to the board.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Explain the engagement scope — to a champion, then to procurement.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "procurement",
+            "negotiation"
+          ]
+        },
+        {
+          "text": "Walk through the value capture — to an end user, then to the economic buyer.",
+          "difficulty": "core",
+          "tags": [
+            "consulting",
+            "economic_buyer",
+            "presenting"
+          ]
+        },
+        {
+          "text": "Defend the same recommendation — to a friendly champion, then to a hostile CFO.",
+          "difficulty": "stretch",
+          "tags": [
+            "consulting",
+            "vp_executive",
+            "handling_objections",
+            "presenting"
+          ]
+        }
+      ]
+    }
+  ]
+}

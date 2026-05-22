@@ -1,0 +1,870 @@
+{
+  "version": "v1-vertical",
+  "vertical": "healthcare",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        { "text": "Explain to a scared patient what sepsis means and why we're admitting them.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a worried mom what an NSTEMI is.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a patient's daughter what hospice actually is.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a new admit what palliative care covers and doesn't.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a teenager why their dad is on a ventilator.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a patient what an ejection fraction of 25% means for their life.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a pre-op patient what general anesthesia actually does.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a worried spouse what a stroke code means in plain words.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a discharge patient what afib is and why warfarin matters.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a family what brain death means before the apnea test.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        { "text": "Is the patient in bay 4 stable enough to transfer to the floor?", "difficulty": "core", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Did the antibiotics work or do we need to broaden coverage?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Should this patient go to the OR tonight or wait until morning?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Was the biopsy benign or malignant?", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Should we extubate today?", "difficulty": "core", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Is this patient a candidate for the clinical trial?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Did the CT show what you were looking for?", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Should mom be made comfort care?", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Is the unit safe to staff at this ratio tonight?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Should we deny the transfer request from the outside hospital?", "difficulty": "stretch", "tags": ["healthcare", "manager", "asking_questions"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        { "text": "Explain to a patient how chemo kills cancer cells but spares most healthy ones.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a family how a stent props open a clogged artery.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a new diabetic how insulin works in their body.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a parent why their child's seizure was not a sign of brain damage.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a patient what dialysis does that their kidneys can't.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a worried spouse how a pacemaker rewires the heart's signal.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a patient how immunotherapy is different from chemo.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a teen patient how ADHD meds work in their brain.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain to a family how a coma is different from sleep.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain to a hesitant patient what a port-a-cath is and why it beats daily IVs.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        { "text": "Explain a pulmonary embolism to a patient's anxious husband.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain a DNR order to a patient deciding their code status.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain pre-eclampsia to a first-time mom in triage.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain a CABG to the patient's adult kids in the waiting room.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain SBAR to a brand-new nursing student on day one.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain GFR to a patient whose kidney numbers just dropped.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain a TIPS procedure to a patient with cirrhosis.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain prior authorization to a patient asking why they can't pick up their med.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain a cath lab activation to a patient's family during a STEMI.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain MEDDPICC-style risk stratification to a new fellow.", "difficulty": "stretch", "tags": ["healthcare", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        { "text": "Why does smoking cessation matter even after the heart attack already happened?", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Why is medication adherence the single biggest factor in CHF readmissions?", "difficulty": "core", "tags": ["healthcare", "patient_role", "giving_feedback"] },
+        { "text": "Why do we need a family meeting before pulling back on care?", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Why does hand hygiene cut infection rates more than every new antibiotic combined?", "difficulty": "intro", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Why is early mobility critical for an ICU patient on day three?", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Why does this patient need surgery this week instead of next month?", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Why does the prior auth denial harm this patient specifically?", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Why does burnout in nursing predict patient mortality on the floor?", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Why should the board fund a sepsis bundle even though it raises labor costs?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Why does a five-minute discharge teach-back cut 30-day readmits?", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        { "text": "What's the single biggest reason this patient is decompensating?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "What's the one thing the night shift needs to watch for?", "difficulty": "intro", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Why did the discharge plan fail and the patient bounce back in 72 hours?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "What's the single biggest risk if we extubate this morning?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "What's the one thing this resident needs to change in their presentation?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Why is the unit short-staffed three weekends in a row?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "What's the single piece of the consent the patient still doesn't understand?", "difficulty": "core", "tags": ["healthcare", "patient_role", "asking_questions"] },
+        { "text": "Why did the patient's family lose trust in us this admission?", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "giving_feedback"] },
+        { "text": "What's the one fact this M&M case turns on?", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Why should the chief approve buying the new ventilator fleet?", "difficulty": "stretch", "tags": ["healthcare", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        { "text": "Explain the difference between palliative care and hospice to a family.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain the difference between DNR and DNI to a patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain the difference between sepsis and septic shock to a worried spouse.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain why a positive test doesn't always mean the disease is present.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain the difference between a stroke and a TIA to a discharge patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain the difference between generic and brand for the same prescription.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain the difference between Type 1 and Type 2 diabetes to a newly diagnosed teen.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain the difference between an attending and a resident to a confused family.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain the difference between dementia and delirium to a daughter visiting her dad.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain the difference between fee-for-service and value-based care to a hospital board.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        { "text": "Tell me why surgery is the right call for this patient over watchful waiting.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Tell me why this patient should be transferred to the ICU now.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Tell me why the M&M case wasn't preventable, despite the bad outcome.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Tell me why this MRI is medically necessary on the peer-to-peer call.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Tell me why the patient should consent to the procedure today.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Tell me why this resident is ready for unsupervised call.", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Tell me why this dose change cuts the patient's stroke risk in half.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Tell me why hospice is the right path for your mother now.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Tell me why the unit needs an additional charge nurse on nights.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Tell me why this experimental therapy is worth the off-label risk for this patient.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        { "text": "Summarize the patient's overnight course for sign-out.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Describe the chief complaint and plan to the attending in the hallway.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Update the family on grandma's status before they walk in.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Brief the OR team on the patient's anesthesia risk in 30 words.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Pitch the M&M case to the moderator in one breath.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Summarize the peer-to-peer ask for the insurance medical director.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Pitch the floor transfer to the accepting service in 30 words.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Summarize the consent risks before the patient signs.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Brief the chief on the staffing crisis before morning huddle.", "difficulty": "stretch", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Update the board on the sepsis bundle results in 30 words.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        { "text": "Give three reasons this patient should consent to the surgery today.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Give three reasons this family should consider hospice.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Defend why this patient deserves the MRI on the peer-to-peer call.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Argue why your unit needs two more nurses before winter surge.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for transferring this patient to a tertiary center tonight.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Argue why this resident should be pulled from the rotation.", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Defend the choice to escalate to comfort care over more chemo.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Convince the family that ICU is the right place for their dad right now.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "persuasion"] },
+        { "text": "Argue why this device rep's product is worth a six-month pilot on the floor.", "difficulty": "stretch", "tags": ["healthcare", "procurement", "persuasion"] },
+        { "text": "Convince the C-suite to invest in a 24/7 in-house intensivist program.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        { "text": "Tell me about a patient case that almost ended badly but didn't.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk me through the most stressful call you've taken as a resident.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell the story of the first time you broke bad news.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Recount a code where everything went right.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Walk me through an M&M case that changed your practice.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Tell the story of a diagnosis you initially missed.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe a family meeting that turned a conflict into agreement.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "storytelling"] },
+        { "text": "Walk me through a peer-to-peer review that overturned a denial.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Tell the story of a nurse on your unit who saved a patient before you saw it.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Recount the shift where you had to deliver three deaths in one night.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        { "text": "Should we operate tonight or wait until tomorrow morning?", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Is the patient ready for discharge?", "difficulty": "intro", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Should mom be made full comfort care?", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Push for ICU bed or hold on the floor?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Activate the cath lab or treat medically?", "difficulty": "core", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Transfuse now or wait on the labs?", "difficulty": "core", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Recommend the patient enroll in the clinical trial?", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Should the family withdraw the ventilator today?", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Approve the staffing waiver or stay at safe ratios?", "difficulty": "core", "tags": ["healthcare", "manager", "asking_questions"] },
+        { "text": "Should the hospital close the OB unit due to staffing?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "asking_questions"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        { "text": "ED wait times crossed five hours last night. Address it.", "difficulty": "intro", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Three nurses called out and you're charge tonight. Talk through your plan.", "difficulty": "intro", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] },
+        { "text": "Patients keep missing follow-up appointments after discharge. Fix it.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "giving_feedback"] },
+        { "text": "Residents are skipping bedside rounds. Address it.", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Sepsis bundle compliance dropped to 60% this quarter. Solve it.", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Hand-off errors caused two near-misses on your unit this month. Address it.", "difficulty": "core", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Prior auth denials are blocking 30% of your imaging orders. Fix it.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "A patient's family is refusing all our hospice recommendations. Resolve it.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "handling_objections"] },
+        { "text": "Nurse turnover hit 30% this year. Address it to the C-suite.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "An anonymous report says an attending is impaired on shift. Handle it.", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        { "text": "Convince a hesitant patient to accept the recommended chemo regimen.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Persuade a family to transition their loved one to hospice.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "persuasion"] },
+        { "text": "Rally the night shift to push back on unsafe staffing this weekend.", "difficulty": "intro", "tags": ["healthcare", "care_team", "persuasion"] },
+        { "text": "Convince a colleague to take your call shift after a death in your family.", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Persuade administration to fund a dedicated rapid response team.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Rally the department behind a new handoff protocol you designed.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Convince an insurance medical director to overturn a denial on a live call.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Persuade the chief to back you on a near-miss that nobody wants to escalate.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Convince a hospital board to approve a $4M robotic surgery program.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Rally a demoralized unit the week after a patient suicide on the floor.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        { "text": "Walk me through how you'd run a goals-of-care family meeting.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Explain how you'd onboard a new resident on the first day of the rotation.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Describe how you'd present a case at M&M conference.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Walk through how you'd hand off your patient list at end of shift.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Explain how you'd run a code blue debrief.", "difficulty": "core", "tags": ["healthcare", "care_team", "presenting"] },
+        { "text": "Walk me through how you'd obtain informed consent for a high-risk surgery.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Describe how you'd evaluate a patient with vague chest pain in the ED.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Explain your process for delivering a terminal diagnosis using SPIKES.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Walk through how you'd structure a peer-to-peer prior auth call.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Describe how you'd respond to a mass casualty incident as charge.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        { "text": "Make the case for transferring this patient to ICU.", "difficulty": "intro", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Argue why your team should round earlier on Mondays.", "difficulty": "intro", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Convince a patient to take their statin every day.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Sell the resident on covering your weekend in exchange for next month.", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Argue why your hospital should adopt a new sepsis screening tool.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for moving the discharge huddle to 8 AM.", "difficulty": "core", "tags": ["healthcare", "care_team", "persuasion"] },
+        { "text": "Argue why bedside ultrasound should be a residency core skill.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Convince the chief to back your refusal to admit an unsafe transfer.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Argue why your unit should pilot the device rep's new monitor for a quarter.", "difficulty": "stretch", "tags": ["healthcare", "procurement", "persuasion"] },
+        { "text": "Make the case to administration for ending a unit's overflow agreement.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        { "text": "Surgical versus medical management for this patient's condition.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Inpatient versus outpatient workup for the same chest pain presentation.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Tertiary transfer versus admit to your hospital for a complex case.", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Telehealth versus in-person follow-up for chronic disease management.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Full code versus DNR for an 89-year-old with end-stage cancer.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Robotic versus open surgical approach for the same procedure.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "In-house intensivist coverage versus tele-ICU for night shifts.", "difficulty": "core", "tags": ["healthcare", "manager", "explaining"] },
+        { "text": "Promote internally versus hire externally for the next chief role.", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Generic substitution versus brand for a patient who can't afford either.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Single-payer versus employer-sponsored, briefed to a hospital board.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        { "text": "Why do most M&M cases trace back to a missed handoff?", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Why do families say they weren't told, even when the team documented they were?", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "giving_feedback"] },
+        { "text": "Why do residents miss the diagnosis on the second admission?", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Why do nurses leave great units in their second year?", "difficulty": "intro", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Why do prior auth denials cluster on the most expensive imaging?", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Why do code blue debriefs almost always blame the team and never the system?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Why do patients refuse hospice even when it's clearly the right call?", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Why do EHR alerts cause more harm than they prevent?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Why do most hospital readmissions happen in the first 72 hours?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Why do most safety reports never reach the person who could fix the problem?", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        { "text": "Give a 30-second update to the attending on bed 7.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Update the family on grandma's overnight course in 30 seconds.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Brief the OR team on the patient walking in for emergent surgery.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Recap the morning's complications for the relief resident.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Explain why you canceled the discharge in 30 seconds.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Brief the rapid response team in the hallway as they arrive.", "difficulty": "core", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] },
+        { "text": "Update the chief on the unit's overnight admissions.", "difficulty": "core", "tags": ["healthcare", "manager", "explaining"] },
+        { "text": "Brief the next shift charge nurse before you sign out.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Brief the press officer before they take a hospital incident to the local paper.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Update the board on a sentinel event in 30 seconds before the meeting starts.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        { "text": "Tell me about a case where you missed something.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe your toughest call as a resident.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell me about a patient who changed how you practice.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Share a piece of feedback an attending gave that you still carry.", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Describe the colleague who you'd never want to work with again.", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Talk about the hardest end-of-life conversation you've had.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "storytelling"] },
+        { "text": "Explain a clinical decision you'd take back if you could.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe a patient case that almost broke you.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Deliver bad news to a family in the waiting room.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Address the unit after a colleague's death by suicide.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        { "text": "Is this patient ready for discharge?", "difficulty": "intro", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Did the antibiotics work?", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Should this patient be made DNR?", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Was the surgery a success?", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Should the resident be pulled from this rotation?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Is the unit safe to staff tonight?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Was the diagnosis missed in the ED?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Should this patient have been transferred 12 hours sooner?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Was the consent fully informed?", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "giving_feedback"] },
+        { "text": "Should the hospital report this as a sentinel event?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        { "text": "What's the main reason the patient decompensated?", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Why did this discharge fail at 48 hours?", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "What's the single biggest risk to this patient overnight?", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "What's the one thing the resident needs to fix?", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "What's the root cause of the missed sepsis diagnosis?", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Why are nurses leaving the step-down unit?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "What's driving the readmission rate for CHF?", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Why is the family losing trust in the team?", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "giving_feedback"] },
+        { "text": "What's the central finding of the M&M case?", "difficulty": "stretch", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Why should the board fund the new ICU build over the cancer center expansion?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        { "text": "Admit or send home?", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Operate now or wait until morning?", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Page the attending or handle it yourself?", "difficulty": "intro", "tags": ["healthcare", "peer", "asking_questions"] },
+        { "text": "Transfuse or watch the hemoglobin?", "difficulty": "intro", "tags": ["healthcare", "care_team", "asking_questions"] },
+        { "text": "Antibiotics or watchful waiting?", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Comfort care or push for another round of chemo?", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Approve the peer-to-peer escalation or accept the denial?", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Pull the resident from call or coach in place?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Report the impaired colleague or talk to them first?", "difficulty": "stretch", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Close the unit for the weekend or staff at unsafe ratios?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "asking_questions"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        { "text": "Explain why early mobility matters in the ICU.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Describe what a good handoff looks like.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Pitch why bedside teaching matters more than the lecture hall.", "difficulty": "intro", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Explain why teach-back beats nodding on consent.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Describe how the sepsis bundle works.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain what palliative care actually does.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Pitch the value of preventive care to a busy patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Describe how prior authorization works to a confused patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Defend the surgical approach you chose to a skeptical chief.", "difficulty": "stretch", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Explain CAR-T therapy to a curious patient considering enrollment.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        { "text": "Explain how the ICU admission process works.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Describe how a code blue gets called on the floor.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Walk through how an order set gets activated.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain how the EHR routes labs back to the ordering physician.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Describe how a rapid response team mobilizes overnight.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain how mRNA vaccines train the immune system.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Walk through how a STEMI alert moves from EMS to cath lab.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Describe how the new discharge huddle scores patient readiness.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain how immunotherapy targets a tumor cell.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Walk through how a hospital negotiates a payer contract.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        { "text": "Open the patient handoff to the night team.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Open morning rounds with the most important update.", "difficulty": "intro", "tags": ["healthcare", "care_team", "presenting"] },
+        { "text": "Introduce yourself to the patient's family in the ICU waiting room.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Open the family meeting with the headline.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "presenting"] },
+        { "text": "Kick off the M&M case with the central question.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Open the code debrief by naming the central decision point.", "difficulty": "core", "tags": ["healthcare", "care_team", "presenting"] },
+        { "text": "Open the peer-to-peer call by stating the ask.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Open the consent conversation with the procedure name.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Open the all-staff huddle the morning after a sentinel event.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Open testimony in front of a state regulator after a patient death.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        { "text": "Summarize the patient's chief complaint and plan.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Describe your service in one sentence to a new admit.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Sum up the shift in one sentence for the relief team.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Define what your unit does in one sentence to a visitor.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Summarize the family's biggest fear after the meeting.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "State the clinical question the M&M case turns on.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Define why this patient needs ICU-level care in one line.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Summarize the consent risks in one sentence for the patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Summarize the entire peer-to-peer denial appeal in one line.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "State the hospital's reason to exist for the next board meeting.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        { "text": "Argue why bedside ultrasound should be a residency core skill.", "difficulty": "intro", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Make the case that EHR alerts cause more harm than they prevent.", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Argue that 12-hour shifts hurt patients more than they help units.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Convince me that early palliative care extends life, not just comfort.", "difficulty": "core", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Argue that hospitals overuse imaging because of malpractice fear.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Make the case that your service's last sentinel event was a system failure, not a person.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Argue that most clinical guidelines lag the evidence by five years.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Convince me that ozempic is reshaping outpatient medicine, not just endocrinology.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Argue that resident duty-hour limits made teaching hospitals less safe.", "difficulty": "stretch", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case that prior auth is the single biggest driver of physician burnout.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        { "text": "Make the strongest case AGAINST early extubation for this patient.", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Steel man the insurance company's denial of the imaging order.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Build the strongest case for the family that's refusing hospice.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "handling_objections"] },
+        { "text": "Make the strongest case for the patient who refuses surgery you recommended.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "handling_objections"] },
+        { "text": "Steel man the colleague who voted to keep the impaired physician on staff.", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Build the best argument against your own treatment plan for this case.", "difficulty": "stretch", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Steel man the case for keeping a resident on probation in clinical work.", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Argue convincingly that the M&M case wasn't preventable.", "difficulty": "stretch", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Make the strongest case for the nurse who refused your order last night.", "difficulty": "core", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Steel man the position that single-payer would hurt frontline clinicians.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        { "text": "Why do hospitals have residency programs at all?", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "What is rounding for, actually? Build from zero.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Why do we have informed consent? Strip it to fundamentals.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "What is a hospital actually supposed to do for a community?", "difficulty": "core", "tags": ["healthcare", "vp_executive", "explaining"] },
+        { "text": "Why does your specialty exist? Not the textbook answer.", "difficulty": "stretch", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "What is M&M conference fundamentally for?", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Why do we have payer middlemen in clinical decisions?", "difficulty": "core", "tags": ["healthcare", "stakeholder", "explaining"] },
+        { "text": "What is a clinical guideline really meant to do?", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Why do we still keep paper charts as a backup?", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "What is the attending-resident relationship actually for?", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        { "text": "List three things that went well on the unit this month.", "difficulty": "intro", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Walk me through the patients you admitted last call.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Describe the new protocols your service rolled out this quarter.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Recap the key takeaways from the last grand rounds.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Summarize this year's clinical quality dashboard.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Tell me about the residents who graduated this year.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk through outcomes data from your last sepsis initiative.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "List the patient experience themes from this month's surveys.", "difficulty": "core", "tags": ["healthcare", "patient_role", "giving_feedback"] },
+        { "text": "Describe the workflow changes the EHR upgrade triggered.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Recap the regulatory changes affecting your specialty this year.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        { "text": "Defend the insurance medical director who denied your peer-to-peer.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Argue as the resident being asked to discharge a patient they think isn't ready.", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Defend the patient who left AMA — from their perspective.", "difficulty": "core", "tags": ["healthcare", "patient_role", "thinking_on_the_spot"] },
+        { "text": "Argue as the family that wants everything done, even when the prognosis is dismal.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "handling_objections"] },
+        { "text": "Defend the hospital admin who closed the OB unit citing volume.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "explaining"] },
+        { "text": "Argue as the nurse on hour 11 of a 12-hour shift, defending the slow workflow you'd reform.", "difficulty": "core", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Defend the device rep who pushed back on your switching vendors.", "difficulty": "stretch", "tags": ["healthcare", "procurement", "handling_objections"] },
+        { "text": "Argue as the regulator pushing the staffing-ratio law your hospital is fighting.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Defend the chief who passed you over for the fellowship spot.", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Argue as the parent of the patient whose attending you'd report.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        { "text": "Will AI replace radiologists in the next decade?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Where will Medicare reimbursement land for your specialty in five years?", "difficulty": "core", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will your unit still exist in five years? Where does your confidence end?", "difficulty": "stretch", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Predict whether telehealth visits rise or fall as a share by 2030.", "difficulty": "core", "tags": ["healthcare", "patient_role", "thinking_on_the_spot"] },
+        { "text": "Will GLP-1 drugs cut cardiovascular admissions by 30% in five years?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Forecast the next major shift in how primary care is delivered.", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Will gene therapy be a first-line option for any common cancer by 2035?", "difficulty": "stretch", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Predict whether physician unions become mainstream in 10 years.", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Forecast which procedure your specialty does least 15 years from now.", "difficulty": "stretch", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Predict your own clinical career trajectory five years out.", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        { "text": "Argue we should add an ICU bed bank for surge season.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for rewriting the discharge protocol from scratch.", "difficulty": "core", "tags": ["healthcare", "care_team", "persuasion"] },
+        { "text": "Argue that your residency program needs to recruit two more fellows.", "difficulty": "intro", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case to acquire the smaller community hospital across town.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Argue that the department should adopt AI-led triage in the ED.", "difficulty": "stretch", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Make the case for switching the hospital's EHR vendor.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Argue we should sunset the hospital's family medicine training track.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for closing the inpatient psych unit and partnering externally.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Argue that the C-suite should reverse last year's nursing pay cuts.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Make the case for ending your hospital's relationship with one major payer.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        { "text": "You believe early mobility cuts ICU length of stay. What would prove you wrong?", "difficulty": "core", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] },
+        { "text": "You think this M&M case was unavoidable. What evidence would flip you?", "difficulty": "stretch", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "You believe AI will improve diagnostic accuracy. What would tell you it isn't?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "You think the resident is ready for independent call. What would change your mind?", "difficulty": "core", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "You believe screening colonoscopy saves lives. What data would shake that?", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "You think your hospital's safety culture is healthy. What would prove it isn't?", "difficulty": "intro", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "You believe your discharge process is solid. What would tell you it isn't?", "difficulty": "core", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "You think your patient is competent to refuse the recommended treatment. What would change that?", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "thinking_on_the_spot"] },
+        { "text": "You believe the new sepsis bundle is working. What would tell you it isn't?", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "You think your unit's morale is fine. What would convince you it isn't?", "difficulty": "intro", "tags": ["healthcare", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        { "text": "How many ICU beds does a city of 500,000 actually need?", "difficulty": "core", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How many patients per nurse is the safe ceiling on a med-surg floor?", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "How many minutes does a true informed-consent conversation take?", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "How big a panel can one PCP responsibly carry?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "How many handoffs happen on a typical patient's hospital stay?", "difficulty": "intro", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] },
+        { "text": "How much should a hospital spend on cybersecurity per bed per year?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How many residents does an academic department need to stay credentialed?", "difficulty": "intro", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "How many false-positive imaging findings does the average ED workup generate?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "How long should it take a new attending to feel independent on service?", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "How many primary care physicians does a state really need per 100,000?", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        { "text": "Walk through how you'd run morning rounds on the medicine service.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Describe how you'd hand off your patient list at the end of shift.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Walk me through a routine clinic day from first patient to last.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain how you'd onboard a new intern in the first week of the rotation.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Talk through how a discharge huddle works on your unit.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Describe the architecture of your service's call schedule.", "difficulty": "core", "tags": ["healthcare", "manager", "explaining"] },
+        { "text": "Walk me through your family meeting from intro to plan.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "presenting"] },
+        { "text": "Explain how an MRI scan actually produces an image, to a curious patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Walk through your incident response process for a sentinel event.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Take me through a layoff conversation you'd have to deliver tomorrow.", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        { "text": "Recommend a treatment plan to a patient who looks scared.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Tell a family that their loved one is dying.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Open a family meeting in the ICU consultation room.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "presenting"] },
+        { "text": "Introduce yourself at grand rounds before presenting your case.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Pitch a teaching moment to a resident in the middle of a busy day.", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Recommend hospice to a patient still hoping for another round of chemo.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Brief the executive team on a missed quality target.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Open the all-staff huddle after a serious safety event.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Pitch a new fellowship track to the department chair.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for switching device vendors in a pre-purchase meeting.", "difficulty": "stretch", "tags": ["healthcare", "procurement", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        { "text": "Tell me about a clinical decision you'd take back if you could.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Explain a diagnosis you initially missed.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe the worst feedback an attending ever gave you.", "difficulty": "stretch", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Walk through a complication you caused on a routine procedure.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell me about a code where you couldn't get them back.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Explain a patient case you still think about years later.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Describe a time you had to fire someone on your unit.", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Talk about a family meeting that went badly.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "storytelling"] },
+        { "text": "Explain the M&M case where you were named.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Describe what you'd change about your last difficult discharge.", "difficulty": "core", "tags": ["healthcare", "patient_role", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        { "text": "Make the case for your treatment plan to a skeptical patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Argue why your team should own the new sepsis protocol.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Defend the staffing cut you just announced to the unit.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Make three arguments for adopting bedside ultrasound on rounds.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Convince a family to consent to surgery on their unconscious mother.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "persuasion"] },
+        { "text": "Argue why this drug should get FDA approval to a regulatory panel.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "persuasion"] },
+        { "text": "Defend the surgical approach you chose for a complex case.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Make the case for keeping the patient another 24 hours.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
+        { "text": "Argue your unit deserves the new ventilators ahead of the OR.", "difficulty": "stretch", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Defend why you're the right physician to lead the new sepsis initiative.", "difficulty": "stretch", "tags": ["healthcare", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        { "text": "Explain how you handled the code blue at 4 AM.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Walk through the moment you realized the patient was crashing.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe the ED shift where everything went wrong.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Talk through your reaction the first time you lost a young patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Explain how you broke the news of a death to a family at 2 AM.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Walk me through the sentinel event from detection to root-cause analysis.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Describe walking the unit through a colleague's sudden death.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Talk through the day a patient assaulted a staff member on your unit.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Explain how you responded to a hostile family escalation.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "handling_objections"] },
+        { "text": "Walk through the call where you had to deliver a terminal diagnosis.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        { "text": "Tell me about your medical career so far.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk me through how you chose your specialty.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell the story of the patient case that shaped your practice.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Describe the attending who taught you to think clinically.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell me about the longest call shift you've ever survived.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk through how your unit came together during a tough surge.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Tell the story of a patient who became a friend.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Describe your relationship with your first chief resident.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk me through the year you almost left medicine.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell the story of the trial whose result you waited five years to see.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        { "text": "What's the most important lesson you've learned at the bedside?", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Describe the single best teacher you ever had in training.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "What's the riskiest clinical call your team has made this year?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Tell me the one number that defines your unit's quarter.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Describe the most memorable patient you've ever treated.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "What's the most surprising finding from a recent case?", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Tell me about the proudest moment of your clinical career.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "What's the most dangerous assumption your service is making?", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Describe the best lesson a patient ever taught you.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "What's the one principle you'd never compromise on as a clinician?", "difficulty": "stretch", "tags": ["healthcare", "peer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        { "text": "Brief the team on next quarter's quality goals.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Present your treatment proposal to a skeptical patient and spouse.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "persuasion"] },
+        { "text": "Walk leadership through your service's safety roadmap.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Present this year's outcomes data to the board.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Brief your team on a strategy reset after a missed quality target.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Present your research findings at a national conference keynote.", "difficulty": "stretch", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Open a family meeting with your assessment of where things stand.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "presenting"] },
+        { "text": "Brief the trauma team on tomorrow's complex case.", "difficulty": "core", "tags": ["healthcare", "care_team", "presenting"] },
+        { "text": "Pitch your new clinic line at the department meeting.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Walk a new patient through their entire treatment journey at first visit.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        { "text": "45 seconds: introduce yourself to a new patient on admission.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "45 seconds: give your patient list update at sign-out.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "45 seconds: present the case to the attending on rounds.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "45 seconds: summarize the sentinel event for the executive team.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "45 seconds: brief a colleague before they cover your service.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "45 seconds: present your patient's case at M&M.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "45 seconds: open the all-staff huddle the day after big news.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "45 seconds: brief the rapid response team in motion.", "difficulty": "core", "tags": ["healthcare", "care_team", "thinking_on_the_spot"] },
+        { "text": "45 seconds: explain your research to a smart non-expert.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "45 seconds: brief the press officer before they speak to local media.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        { "text": "Walk me through your morning rounds in detail.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Explain how your clinic schedule usually unfolds.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Give me a status update on your top three patients.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Describe the last family meeting you led.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "presenting"] },
+        { "text": "Walk through the architecture of the new sepsis order set.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Explain how your unit's staffing model is structured.", "difficulty": "core", "tags": ["healthcare", "manager", "explaining"] },
+        { "text": "Run through last quarter's quality dashboard highlights.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Summarize the patient intake workflow end to end.", "difficulty": "core", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Describe how a deal moves through hospital procurement.", "difficulty": "core", "tags": ["healthcare", "procurement", "explaining"] },
+        { "text": "Narrate your entire weekly safety report top to bottom.", "difficulty": "stretch", "tags": ["healthcare", "manager", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        { "text": "Tell the story of how you ended up in this specialty.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Recap the most memorable patient case you've ever managed.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Walk me through the first death you witnessed in training.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Tell me about an attending who shaped how you practice.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Pitch your residency program in 90 seconds to a recruit.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Tell the origin story of your hospital's flagship program.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "storytelling"] },
+        { "text": "Describe a turning point in your clinical career.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk a patient through the case for the recommended surgery.", "difficulty": "core", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Tell the story of a save that nearly went the other way.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Give a keynote about why your specialty has to change — now.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        { "text": "Tell me about your unit.", "difficulty": "intro", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Describe a nurse on your floor patients ask for by name.", "difficulty": "intro", "tags": ["healthcare", "care_team", "giving_feedback"] },
+        { "text": "Tell me about an attending who shaped how you see medicine.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Talk about a colleague you've trained with for years.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Introduce your team to a new chief joining the department.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Tell a worried family about the surgeon who will be in the OR.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Walk a new resident through what it feels like to join your service.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Tell me about the patient relationship you're proudest of.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Deliver a goodbye to a colleague leaving the hospital after 20 years.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Welcome a family whose loved one is starting hospice care.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        { "text": "State what you're best at as a clinician in one sentence, three times.", "difficulty": "intro", "tags": ["healthcare", "peer", "confidence"] },
+        { "text": "Tell me three things you know for certain about your specialty.", "difficulty": "intro", "tags": ["healthcare", "peer", "confidence"] },
+        { "text": "Declare your role and what you own on the service.", "difficulty": "intro", "tags": ["healthcare", "care_team", "confidence"] },
+        { "text": "List five facts about the new sepsis protocol you'd stake your career on.", "difficulty": "intro", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Tell the board the new quality initiative is working.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Defend this quarter's staffing plan against pushback.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Tell the team we are not transferring this patient and explain why.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Brief the press on the patient safety event — what happened, what's fixed.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Walk the audit committee through why your billing controls are sound.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] },
+        { "text": "Deliver a diagnosis and treatment plan to the patient's family.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        { "text": "Describe what your role on the service actually involves day-to-day.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Tell me three things you did on the floor last shift.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "List the patients you're carrying today and one detail about each.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "State your name, role, and the case you're presenting today.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Summarize what your service does in five sentences for a new admit.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Recap last week's M&M decisions for someone who missed it.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Lay out the four pillars of your unit's quality strategy.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Describe your treatment protocol for a routine case.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain how you evaluate a new admission overnight.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Walk an outside auditor through how your billing process works.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        { "text": "What's a clinical question you've been chewing on lately?", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Talk about a paper or idea that's stuck with you this month.", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Wonder out loud about something in your specialty you don't yet understand.", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Describe a clinical interest you keep meaning to pursue.", "difficulty": "intro", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Brainstorm three new ways to cut readmissions, thinking out loud.", "difficulty": "core", "tags": ["healthcare", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through a patient problem you don't yet have a great answer for.", "difficulty": "core", "tags": ["healthcare", "patient_role", "thinking_on_the_spot"] },
+        { "text": "Talk through a treatment tradeoff you're still weighing.", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Speculate about where your specialty will be in ten years.", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Explore why a recent case didn't follow the textbook.", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] },
+        { "text": "Reflect on a patient whose disease course you can't fully explain.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        { "text": "Tell me one clinical belief you hold that most peers don't.", "difficulty": "intro", "tags": ["healthcare", "peer", "confidence"] },
+        { "text": "State the principle that guides how you practice.", "difficulty": "intro", "tags": ["healthcare", "peer", "confidence"] },
+        { "text": "Name the rule you refuse to break, and why.", "difficulty": "intro", "tags": ["healthcare", "peer", "confidence"] },
+        { "text": "Tell me the one piece of advice you give every new intern.", "difficulty": "intro", "tags": ["healthcare", "peer", "giving_feedback"] },
+        { "text": "Argue why bedside teaching is the only thing that produces real clinicians.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Make the case for a single safety metric your unit should be judged on.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
+        { "text": "Make the case for ordering fewer tests, more carefully.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Defend a controversial clinical decision you'd make again.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
+        { "text": "Tell the family why you're refusing further aggressive care.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Tell a longtime patient you're firing them from the practice, and why.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        { "text": "Update me on your top three patients on rounds.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Cover the three cases on your plate right now.", "difficulty": "intro", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Walk through what you admitted, who you discharged, and who's next.", "difficulty": "intro", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Brief me on the OR, then the floor, then the ICU.", "difficulty": "intro", "tags": ["healthcare", "care_team", "explaining"] },
+        { "text": "Give updates on admissions, discharges, and pending consults.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Cover three patients on your rounds today, each with a different status.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Move through last week's wins, this week's risks, and next week's focus.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
+        { "text": "Brief the family on the good news, the hard news, and the path forward.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Cover three classroom case discussions, each with a different tone.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Update the board on growth, a lawsuit, and a CMO departure in one meeting.", "difficulty": "stretch", "tags": ["healthcare", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        { "text": "Introduce yourself — to a new patient, then to their teenage child.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Describe your role — to a curious eight-year-old patient.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "Explain what you do — to a peer at a conference, then to a worried spouse.", "difficulty": "intro", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Tell the story of your week — to a colleague, then to your own family.", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Deliver the same diagnosis — to a patient, then to a colleague at sign-out.", "difficulty": "core", "tags": ["healthcare", "peer", "explaining"] },
+        { "text": "Pitch the new clinical program — to a skeptical board.", "difficulty": "core", "tags": ["healthcare", "vp_executive", "persuasion"] },
+        { "text": "Share quarterly outcomes — to a team that just lost a long-term patient.", "difficulty": "core", "tags": ["healthcare", "care_team", "presenting"] },
+        { "text": "Explain the treatment plan — to the patient, then to the family privately.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Walk through the case — to an attending on rounds, then to a med student.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Defend the same decision — to a friendly chief, then to the malpractice committee.", "difficulty": "stretch", "tags": ["healthcare", "manager", "handling_objections"] }
+      ]
+    }
+  ]
+}

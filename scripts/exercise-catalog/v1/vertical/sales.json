@@ -1,0 +1,870 @@
+{
+  "version": "v1-vertical",
+  "vertical": "sales",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        { "text": "Explain to a skeptical CFO how our usage-based pricing works.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain to a new prospect what an annual contract value actually means.", "difficulty": "intro", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "Explain to your champion how procurement's redlining process slows the deal.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Explain to a buyer's spouse why this tool is worth what we charge.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Explain to a procurement lead how our SOC 2 controls protect their data.", "difficulty": "core", "tags": ["sales", "procurement", "explaining"] },
+        { "text": "Explain to a CFO what payback period means in plain terms.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain to a non-technical buyer what our integration actually does.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "explaining"] },
+        { "text": "Explain to a hostile board how our multi-year ramp pricing works.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Explain to a champion why their CFO will ask about gross margin impact.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Explain to a hostile procurement lead what our breach indemnity clause covers.", "difficulty": "stretch", "tags": ["sales", "procurement", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        { "text": "Should we discount 20% to close this deal by quarter-end?", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Is this deal going to close this quarter?", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Did our last pricing change hurt or help win rates?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Should we walk away from the deal procurement is stalling?", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Is your champion strong enough to push this past their CFO?", "difficulty": "core", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Should we push the pilot deeper or close on what we have?", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Did the demo move the economic buyer or just the champion?", "difficulty": "intro", "tags": ["sales", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Should the board fund the new sales region next year?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Is the prospect's objection about price or about trust?", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Should we replace your champion with a stronger advocate?", "difficulty": "stretch", "tags": ["sales", "champion", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        { "text": "Explain to a CFO how our multi-year discount stacks over time.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining", "persuasion"] },
+        { "text": "Explain to your champion how a procurement review actually works.", "difficulty": "intro", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Explain to a buyer what our implementation timeline really feels like.", "difficulty": "core", "tags": ["sales", "economic_buyer", "explaining"] },
+        { "text": "Explain to a skeptic why pilots almost always under-represent value.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Explain to a new SDR how the discovery-to-close pipeline flows.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain to a CFO how lifetime value compounds against acquisition cost.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain to a procurement lead why our SLA structure protects them.", "difficulty": "core", "tags": ["sales", "procurement", "persuasion"] },
+        { "text": "Explain to a board how our churn risk model translates into revenue.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain to a client what switching costs really mean for their roadmap.", "difficulty": "core", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "Explain to a skeptical CIO how our migration de-risks itself in phases.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        { "text": "Explain net retention to a champion who's never sold software before.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Explain a master services agreement to a small business owner.", "difficulty": "intro", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "Explain a pilot conversion target to your new sales manager.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Explain a ramp deal to a CFO who hates our pricing structure.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Explain auto-renewal to a procurement lead who's flagging the clause.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Explain a multi-threaded deal to a champion who wants to keep us quiet.", "difficulty": "core", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Explain a discounting policy to a new rep on your team.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain a co-term clause to a buyer's general counsel.", "difficulty": "stretch", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Explain a quota retire credit to a skeptical exec.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain MEDDPICC to a brand-new account executive in plain language.", "difficulty": "stretch", "tags": ["sales", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        { "text": "Why is our product worth twice what the competitor charges?", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion", "handling_objections"] },
+        { "text": "Why should the CFO trust your forecast for next quarter?", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Why does your champion believe in you when their boss doesn't?", "difficulty": "core", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Why is multi-threading worth the extra week it costs you?", "difficulty": "intro", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Why does our pricing scale better than incumbents for enterprise buyers?", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Why do most enterprise pilots fail to convert, and how do we beat the odds?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Why do procurement leads keep stalling deals at the same stage?", "difficulty": "core", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Why should the board approve sales hiring during a freeze?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Why is your champion the right person to drive consensus internally?", "difficulty": "intro", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Why should a skeptical CIO bet a budget cycle on a startup vendor?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        { "text": "What's the single reason this deal stalled out last week?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the one thing you'd change about the pitch deck?", "difficulty": "intro", "tags": ["sales", "peer", "giving_feedback"] },
+        { "text": "Why did the prospect choose the competitor over us?", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "What's the single biggest risk to closing the Q4 pipeline?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the one objection you hear on every CFO call?", "difficulty": "intro", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Why should this buyer commit by Friday instead of next quarter?", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion", "negotiation"] },
+        { "text": "What's the single biggest reason your top rep crushes quota?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Why is this account worth fighting for after three lost cycles?", "difficulty": "stretch", "tags": ["sales", "client_customer", "persuasion"] },
+        { "text": "What's the one weakness in our current sales playbook?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Why is now the right moment to walk away from this deal?", "difficulty": "stretch", "tags": ["sales", "stakeholder", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        { "text": "Explain the difference between a champion and an economic buyer.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain the difference between a pilot and a proof of value.", "difficulty": "core", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "Explain the difference between gross retention and net retention.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Explain the difference between a discount and a price concession.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Explain the difference between objection handling and objection prevention.", "difficulty": "core", "tags": ["sales", "peer", "handling_objections"] },
+        { "text": "Explain the difference between a closed-lost and a no-decision deal.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Explain the difference between budget authority and signing authority.", "difficulty": "core", "tags": ["sales", "economic_buyer", "explaining"] },
+        { "text": "Explain why a small contract today beats a big one in twelve months.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Explain the difference between selling features and selling outcomes.", "difficulty": "stretch", "tags": ["sales", "peer", "giving_feedback"] },
+        { "text": "Explain why a verbal yes from a champion isn't a closed deal.", "difficulty": "stretch", "tags": ["sales", "champion", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        { "text": "Tell me why our product wins against the incumbent in head-to-head deals.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion", "handling_objections"] },
+        { "text": "Tell me why your quota is achievable this year.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Tell me why this prospect is worth six more weeks of effort.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Tell me why your forecast deserves more credibility than last quarter's.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Tell me why our pricing model lands better than the competitor's.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Tell me why the champion you're working with is real.", "difficulty": "intro", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Tell me why discounting now would cost us more than walking away.", "difficulty": "core", "tags": ["sales", "vp_executive", "negotiation"] },
+        { "text": "Tell me why this deal moves from commit to closed by Friday.", "difficulty": "stretch", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Tell me why our security posture beats every competitor in the bake-off.", "difficulty": "core", "tags": ["sales", "procurement", "persuasion"] },
+        { "text": "Tell me why we should sign this deal even though margins fall below target.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        { "text": "Pitch your product to a CFO in one breath.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Summarize the deal for your sales manager in the hallway.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe your ideal customer in one sentence.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain why this deal slipped last quarter.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Pitch your top deal to the VP of Sales in 30 words.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Summarize the prospect's number-one objection.", "difficulty": "intro", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Describe your champion in one sentence.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Brief the CEO on a deal at risk of slipping.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Pitch a 7-figure renewal to a skeptical CFO in 30 words.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion", "negotiation"] },
+        { "text": "Summarize next quarter's pipeline strategy.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        { "text": "Pitch our offering to a CFO who's never heard of us.", "difficulty": "intro", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Give three reasons this prospect should choose us over the incumbent.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Defend why your top deal moves from commit to closed-won this quarter.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Argue why we should walk away from a deal stuck in procurement.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Make the case for hiring two more AEs before next quarter.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Argue why your champion needs an internal sponsor at the VP level.", "difficulty": "core", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Defend a 15% discount to your sales manager.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Convince the prospect's CFO our platform pays for itself in six months.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion", "handling_objections"] },
+        { "text": "Argue why this enterprise deal is worth a six-month custom integration.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Convince a hostile board to approve a 7-figure renewal during a budget freeze.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        { "text": "Tell the story of a deal you almost lost but closed.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Walk me through the toughest negotiation of your career.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling", "negotiation"] },
+        { "text": "Tell the story of how you turned a skeptical CFO into a champion.", "difficulty": "core", "tags": ["sales", "vp_executive", "storytelling", "persuasion"] },
+        { "text": "Walk me through a procurement battle that nearly killed the deal.", "difficulty": "core", "tags": ["sales", "procurement", "storytelling", "handling_objections"] },
+        { "text": "Tell the story of a champion who disappeared mid-cycle.", "difficulty": "core", "tags": ["sales", "champion", "storytelling"] },
+        { "text": "Recount a deal that slipped a quarter and what you learned.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Walk me through the discovery call that flipped a closed-lost back to active.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Tell the story of a competitor displacement you didn't think you could win.", "difficulty": "core", "tags": ["sales", "stakeholder", "storytelling", "persuasion"] },
+        { "text": "Walk me through a 7-figure deal that closed in the final 48 hours.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
+        { "text": "Recount the board negotiation that reset your largest customer relationship.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "storytelling", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        { "text": "Should we drop the price 10% or hold the line?", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Discount now or let the deal slip a quarter?", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Is the prospect's procurement objection real or a stall tactic?", "difficulty": "intro", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Should we escalate to the champion's boss or wait it out?", "difficulty": "intro", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Take the smaller two-year deal or push for the three-year?", "difficulty": "core", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Should we walk from this deal or keep grinding?", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Push the CFO meeting this week or risk losing the slot?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Sign the pilot at break-even or hold for full commercial terms?", "difficulty": "core", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Fire the underperforming rep or coach them through next quarter?", "difficulty": "stretch", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Settle for a paid pilot or hold out for the full commercial deal?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        { "text": "Our win rate dropped 15 points last quarter. Address it.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Three deals slipped at the procurement stage. Solve it.", "difficulty": "intro", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Your champion just got laid off. Talk through what's next.", "difficulty": "intro", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Pipeline coverage is at 2x but should be 4x. Address it.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "The buyer's CFO won't take a meeting. Fix it.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Our pricing keeps losing to a competitor undercutting by 30%. Solve it.", "difficulty": "core", "tags": ["sales", "stakeholder", "negotiation", "handling_objections"] },
+        { "text": "Reps are skipping the discovery stage. Address it.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "The deal is stuck on a security review for six weeks. Talk about it.", "difficulty": "core", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Net retention dropped from 115% to 95% in one quarter. Address it.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "The board just asked why your top three deals all slipped. Respond.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        { "text": "Convince a champion to commit to a 30-day pilot.", "difficulty": "intro", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Rally your sales team to push harder in the last two weeks of quarter.", "difficulty": "intro", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Persuade a junior AE to take on a stretch enterprise account.", "difficulty": "intro", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Convince a champion to introduce you to their CFO this week.", "difficulty": "intro", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Persuade the economic buyer to fast-track legal review.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion", "negotiation"] },
+        { "text": "Rally procurement to fold in a custom integration without re-pricing.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Convince a skeptical CFO to sign a three-year contract.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion", "negotiation"] },
+        { "text": "Persuade your sales manager to fund a customer-advisory dinner.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Convince the board to approve a 7-figure deal at a thin margin.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion", "negotiation"] },
+        { "text": "Rally a deflated team to relaunch a failed flagship account.", "difficulty": "stretch", "tags": ["sales", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        { "text": "Walk me through how you'd run a discovery call with a new prospect.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain how you'd structure a quarterly pipeline review.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Describe how you'd onboard a new sales hire in their first two weeks.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Walk through your process for qualifying a new enterprise lead.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain how you'd handle a price objection from a CFO.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Walk me through your steps for closing a stalled deal.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe your approach to running a multi-stakeholder demo.", "difficulty": "core", "tags": ["sales", "peer", "presenting"] },
+        { "text": "Explain how you'd respond to a procurement RFP from a Fortune 500.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Walk through how you'd recover a 7-figure deal that just went dark.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "handling_objections"] },
+        { "text": "Describe your playbook for displacing a deeply embedded incumbent.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        { "text": "Make the case for raising our list price 15%.", "difficulty": "intro", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Argue why your top deal deserves a custom legal carve-out.", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Convince a champion to fly out for the executive briefing.", "difficulty": "intro", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Sell a teammate on co-selling the deal with you.", "difficulty": "intro", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Make the case for moving the deal to a different solutions engineer.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Argue why your team should run all CFO meetings this quarter.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Convince a skeptical prospect to expand the pilot scope.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion", "handling_objections"] },
+        { "text": "Make the case for cutting the bottom 20% of accounts from your book.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Argue why we should bet next quarter's hiring plan on enterprise reps.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Convince the board to approve a renegotiated multi-year deal with a key customer.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        { "text": "Our product vs the incumbent: pitch the comparison to a buyer.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Annual vs multi-year contract for a mid-market customer.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Inside sales vs field sales for our enterprise segment.", "difficulty": "intro", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Discounting now vs holding the line for next quarter.", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Champion-led deal vs executive-driven deal: which closes faster?", "difficulty": "core", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Land-and-expand vs full commit at first contract.", "difficulty": "core", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Promote internally vs hire a new VP of Sales from the outside.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "PLG motion vs enterprise sales-led for our product.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Walking away vs continuing to negotiate after six weeks of silence.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "negotiation"] },
+        { "text": "Pivoting upmarket vs doubling down on the SMB pipeline.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        { "text": "Why do most pilots never convert to paid?", "difficulty": "intro", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "Why do champions disappear in the final week of a deal?", "difficulty": "intro", "tags": ["sales", "champion", "handling_objections"] },
+        { "text": "Why does procurement always come in late?", "difficulty": "intro", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Why do reps overweight their commit number every quarter?", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Why do CFOs say no to deals their champion already approved?", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Why do enterprise deals slip three times before they close?", "difficulty": "core", "tags": ["sales", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "Why is multi-threading so hard for new account executives?", "difficulty": "core", "tags": ["sales", "peer", "giving_feedback"] },
+        { "text": "Why do top reps win deals with worse demos than the rest of us?", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Why do most discount requests come right before quarter end?", "difficulty": "stretch", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Why do half of all sales orgs miss number the year after their first big win?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        { "text": "Give a 30-second status on your top deal.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Update the team on this quarter's commit number.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief your manager on yesterday's CFO meeting.", "difficulty": "intro", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Recap the discovery call for someone covering for you.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain why the deal slipped last week.", "difficulty": "core", "tags": ["sales", "manager", "handling_objections"] },
+        { "text": "Brief the VP of Sales on a competitive bake-off you're losing.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Update the team on the new pricing rollout in 30 seconds.", "difficulty": "core", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Status report on the largest deal in your pipeline.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief the CEO on the renewal at risk before the all-hands.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Update the board on why your forecast just dropped 20%.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        { "text": "Tell me about a deal you lost.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Describe your biggest sales win this year.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Tell me about a champion who made your career.", "difficulty": "intro", "tags": ["sales", "champion", "storytelling"] },
+        { "text": "Share a piece of feedback from your manager that changed how you sell.", "difficulty": "intro", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Describe a competitor who consistently beats you.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Talk about the hardest objection you've ever fielded on a live call.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Explain a discount you regret giving.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Describe the moment a deal turned in your favor.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling"] },
+        { "text": "Pitch the company to a hostile prospect with no warm-up.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion", "confidence"] },
+        { "text": "Defend your forecast on a live board call.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "confidence", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        { "text": "Will the deal close this quarter?", "difficulty": "intro", "tags": ["sales", "manager", "confidence"] },
+        { "text": "Is the prospect actually serious about buying?", "difficulty": "intro", "tags": ["sales", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Is your champion strong enough to drive consensus?", "difficulty": "intro", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Should we cut the legacy SKU?", "difficulty": "intro", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Was the last campaign worth its cost?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Is discounting the right call to hit this quarter's number?", "difficulty": "core", "tags": ["sales", "vp_executive", "negotiation"] },
+        { "text": "Should we fire the underperforming AE?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Is the new pricing model winning more deals?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will the renewal happen on time?", "difficulty": "stretch", "tags": ["sales", "client_customer", "confidence"] },
+        { "text": "Should the company pull back from the enterprise segment entirely?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        { "text": "What's the main reason this deal stalled?", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Why did the pilot fail to convert?", "difficulty": "intro", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "What's the biggest risk to your quarter?", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the one thing the team needs to do differently?", "difficulty": "intro", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "What's the single objection holding the deal up?", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Why are reps missing on discovery?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "What's driving the slip in your forecast?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Why is your top account threatening to churn?", "difficulty": "core", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "What's the central reason to bet the year on enterprise?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Why should the board double the sales budget?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        { "text": "Discount now or hold the line?", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Push to close Friday or let it slip?", "difficulty": "intro", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Hire the senior rep or two juniors?", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Pilot first or full deal up front?", "difficulty": "intro", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Walk away or keep pushing the deal?", "difficulty": "core", "tags": ["sales", "stakeholder", "negotiation"] },
+        { "text": "Escalate to the CFO or keep working the champion?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Cut the price 10% or add an extra year?", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Fire the rep or coach them another quarter?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Accept the multi-year at a discount or hold for full price annually?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] },
+        { "text": "Cancel the deal or push it past the audit committee?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        { "text": "Pitch our product to a buyer.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Explain why discovery matters.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Describe what makes a good champion.", "difficulty": "intro", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Pitch the case for raising prices next year.", "difficulty": "intro", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Explain how multi-year contracts protect both sides.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Describe how to handle a price objection on a live call.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Pitch the value of a paid pilot to a skeptical CFO.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Explain why we should walk away from a stalled deal.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Pitch our flagship product to a board you've never met.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Defend your forecast to a CFO who thinks it's inflated.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "confidence", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        { "text": "Explain how our pricing tiers work.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "explaining"] },
+        { "text": "Describe how a deal moves through your pipeline.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Walk through how renewal terms get negotiated.", "difficulty": "intro", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Explain how lead routing works on our team.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Describe how a champion gets escalated to executive sponsor.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Explain how our commission plan pays out by deal type.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Walk through how our security review process unfolds.", "difficulty": "core", "tags": ["sales", "procurement", "explaining"] },
+        { "text": "Describe how we forecast pipeline by stage.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Explain how enterprise discounting authority cascades up the chain.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] },
+        { "text": "Walk through how a multi-product bundled discount calculates.", "difficulty": "stretch", "tags": ["sales", "procurement", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        { "text": "Tell me about your top deal.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through your week.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Introduce yourself to a new prospect.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "confidence"] },
+        { "text": "Tell me about your pipeline.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Open the sales call with the agenda.", "difficulty": "core", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Kick off the QBR with the headline.", "difficulty": "core", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Open the pipeline review with the most important number.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Start the executive briefing with your recommendation.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Open the CFO meeting in front of three skeptical execs.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "confidence", "persuasion"] },
+        { "text": "Open the annual kickoff keynote to a deflated sales org.", "difficulty": "stretch", "tags": ["sales", "manager", "presenting", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        { "text": "Summarize your top deal in one sentence.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe your sales territory.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Define what your product does to a stranger at a conference.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Sum up this quarter in one sentence.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize the buyer's objection.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "State the deal's central risk.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Define why this prospect should sign now.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Sum up the CFO meeting in one sentence.", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Summarize an entire failed enterprise deal in one line for your VP.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "State the company's reason to exist for the next board meeting.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        { "text": "Argue why discounting destroys our long-term win rate.", "difficulty": "intro", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Make the case that our discovery process is broken.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Argue why multi-threading wins more deals than any other tactic.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Convince me that pilots are a sign of weak qualification.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Argue that the best AEs spend less time on discovery, not more.", "difficulty": "intro", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Make the case that this quarter's pipeline is dramatically overstated.", "difficulty": "stretch", "tags": ["sales", "manager", "handling_objections"] },
+        { "text": "Argue that most lost deals are killed in the first 10 minutes of discovery.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Convince me that the rep we just fired was actually our best long-term bet.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Argue that our pricing model is mispriced for the market we sell into.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Make the case that the entire sales playbook needs to be rewritten this year.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        { "text": "Make the strongest case AGAINST giving the discount your team wants.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Steel man the procurement lead who keeps stalling your deal.", "difficulty": "core", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Build the strongest case for the prospect who said our product is overpriced.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Make the case for the competitor your prospect is favoring.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Steel man the CFO who told you the ROI doesn't pencil out.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Build the best argument against your own forecast for this quarter.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Steel man a buyer who thinks pilots are a waste of their time.", "difficulty": "core", "tags": ["sales", "economic_buyer", "handling_objections"] },
+        { "text": "Argue convincingly that your top deal should be marked closed-lost.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Make the strongest case for the rep on your team you wanted to fire.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Steel man the champion who's gone dark on you for three weeks.", "difficulty": "intro", "tags": ["sales", "champion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        { "text": "Why does your company need account executives at all?", "difficulty": "intro", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "What is a sales pipeline, actually? Build from zero.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Why do customers pay for software they could build themselves?", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "What is a quota, fundamentally? Forget the spreadsheet.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Why does discovery exist? Define it from scratch.", "difficulty": "stretch", "tags": ["sales", "peer", "explaining"] },
+        { "text": "What is a champion really for? Not the textbook answer.", "difficulty": "core", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Why do contracts exist at all between buyer and seller?", "difficulty": "core", "tags": ["sales", "procurement", "explaining"] },
+        { "text": "What is a sales forecast supposed to do, fundamentally?", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Why do we have quarterly business reviews?", "difficulty": "intro", "tags": ["sales", "client_customer", "explaining"] },
+        { "text": "What is enterprise sales for? Strip it to fundamentals.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        { "text": "List three things that went well in your pipeline this quarter.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through your team's latest closed-won deals.", "difficulty": "intro", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Describe the features your prospect was most excited about.", "difficulty": "intro", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Recap the key takeaways from this week's sales kickoff.", "difficulty": "core", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Summarize the prospect's discovery answers.", "difficulty": "core", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "Tell me about the new logos you signed this year.", "difficulty": "core", "tags": ["sales", "vp_executive", "storytelling"] },
+        { "text": "Walk through the buying committee on your top deal.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "List the objections you've heard this month.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Describe the tools your team adopted this year.", "difficulty": "stretch", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Summarize the customer interviews you ran this quarter.", "difficulty": "stretch", "tags": ["sales", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        { "text": "Defend the procurement lead who's slowing your deal — from their chair.", "difficulty": "core", "tags": ["sales", "procurement", "handling_objections"] },
+        { "text": "Argue as the CFO who just rejected your proposal.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Defend the customer who chose your competitor over you.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Argue as the champion who couldn't get internal alignment.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
+        { "text": "Defend the sales manager who put you on a performance plan.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Argue as the prospect who said they're not ready to buy.", "difficulty": "intro", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Defend the VP of Sales who killed your favorite enterprise account.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Argue as the SE who told the buyer the product can't do it.", "difficulty": "core", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "Defend the buyer who insisted on a six-month pilot.", "difficulty": "core", "tags": ["sales", "economic_buyer", "negotiation"] },
+        { "text": "Argue as the analyst who told your prospect a competitor is the safer bet.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        { "text": "Will this deal close in the next 30 days?", "difficulty": "core", "tags": ["sales", "manager", "confidence"] },
+        { "text": "Where will our win rate land next quarter?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will your champion still be at the company in 12 months?", "difficulty": "stretch", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "Predict whether your top three accounts renew at expansion or churn.", "difficulty": "core", "tags": ["sales", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Will AI agents replace SDRs by the end of next year?", "difficulty": "core", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "Forecast where our average deal size lands in 18 months.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Will the new pricing model improve net retention in two quarters?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Predict the next major shift in how enterprise software gets bought.", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will outbound be a real channel for us in two years?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Forecast your own career trajectory in sales five years out.", "difficulty": "intro", "tags": ["sales", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        { "text": "Argue we should expand the sales team to Europe this year.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Make the case for rewriting our sales playbook from scratch.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Argue your territory needs to be split in half.", "difficulty": "intro", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Make the case to acquire a smaller competitor for their book.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Argue that the company should go all-in on enterprise next year.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Make the case for switching the comp plan to a multi-year structure.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Argue we should sunset our most-discounted SKU.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Make the case for moving your top account out of your book.", "difficulty": "core", "tags": ["sales", "client_customer", "persuasion"] },
+        { "text": "Argue your team should stop running pilots entirely.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Make the case to fire your top customer for being unprofitable.", "difficulty": "stretch", "tags": ["sales", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        { "text": "You believe this deal closes this quarter. What would prove you wrong?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "You think your forecast is rock solid. What evidence would flip you?", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "You believe your champion is going to sign. What would tell you otherwise?", "difficulty": "core", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "You think your top rep is irreplaceable. What would change your mind?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "You believe pilots increase win rate. What data would shake that?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "You think the new pricing model is working. What would tell you it isn't?", "difficulty": "intro", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "You believe your team's discovery process is strong. What would prove it isn't?", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "You think this prospect is a serious buyer. What would tell you they aren't?", "difficulty": "intro", "tags": ["sales", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You believe the competitor will never beat us on this account. What would change that?", "difficulty": "core", "tags": ["sales", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You think your renewal book is locked. What would convince you it's at risk?", "difficulty": "stretch", "tags": ["sales", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        { "text": "How many opportunities does a rep need in pipeline to hit 100% of quota?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "How long should it take to close a six-figure enterprise deal?", "difficulty": "core", "tags": ["sales", "economic_buyer", "thinking_on_the_spot"] },
+        { "text": "How many meetings does an AE need to book per week to make quota?", "difficulty": "intro", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "How big does a deal need to be to justify an executive sponsor?", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How many champions does a complex enterprise deal really need?", "difficulty": "intro", "tags": ["sales", "champion", "thinking_on_the_spot"] },
+        { "text": "How much discount can you give before margin alarms go off?", "difficulty": "stretch", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "How many discovery questions should you ask in a first call?", "difficulty": "intro", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "How long does it take a new AE to ramp to full quota?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "How much pipeline should an AE carry above quota to feel safe?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "How many touches does it take to revive a closed-lost account?", "difficulty": "stretch", "tags": ["sales", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        { "text": "Walk through how your team runs weekly pipeline review.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Describe your discovery call from intro to next steps.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Walk me through your average sales cycle stage by stage.", "difficulty": "intro", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Explain how you onboard a champion through the buying process.", "difficulty": "intro", "tags": ["sales", "champion", "explaining"] },
+        { "text": "Talk through how a deal moves from MQL to closed-won.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Describe how you ran the demo for your last enterprise prospect.", "difficulty": "core", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Walk me through your quarterly business review with a top account.", "difficulty": "core", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Explain how you handle a competitive bake-off start to finish.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Walk through a renewal negotiation from kick-off to signature.", "difficulty": "stretch", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Take me through a layoff conversation with an underperforming rep.", "difficulty": "stretch", "tags": ["sales", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        { "text": "Pitch our product to a CFO who has five minutes.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Make the case to hire two more enterprise AEs this quarter.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Open a sales call with a board-level economic buyer.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Introduce yourself at a prospect's leadership team meeting.", "difficulty": "intro", "tags": ["sales", "vp_executive", "confidence"] },
+        { "text": "Pitch a 30-day pilot to a champion who's still on the fence.", "difficulty": "intro", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Recommend a multi-year deal to a skeptical procurement lead.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Brief the exec team on a deal that just slipped a quarter.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Open a town hall after losing your largest renewal.", "difficulty": "stretch", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Pitch your new sales motion to a roomful of skeptical reps.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Sell a hostile board on doubling sales spend next year.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        { "text": "Tell me about a deal you lost and why.", "difficulty": "stretch", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Explain a discount you regret giving.", "difficulty": "stretch", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Describe the worst sales call you've ever run.", "difficulty": "stretch", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Walk through a forecast call where you missed badly.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Tell me about a champion who left mid-cycle.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
+        { "text": "Explain a customer escalation you couldn't recover.", "difficulty": "stretch", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "Describe a time you had to fire a rep you liked.", "difficulty": "stretch", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Talk about a renewal that churned without warning.", "difficulty": "stretch", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "Explain a product gap you couldn't sell around.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Describe what you'd change about your last quarterly business review.", "difficulty": "core", "tags": ["sales", "client_customer", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        { "text": "Make the case for our new pricing model to a buyer.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Argue why your team should own enterprise accounts above $250k.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Defend the discount you just gave to your VP of Sales.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "negotiation"] },
+        { "text": "Make three arguments for the multi-year contract.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Convince a champion that next steps include the CFO.", "difficulty": "core", "tags": ["sales", "champion", "persuasion"] },
+        { "text": "Argue why this prospect should pick us over the incumbent.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Defend the trade-off you made on the deal's scope.", "difficulty": "core", "tags": ["sales", "manager", "negotiation"] },
+        { "text": "Make the case for senior over junior on the next AE hire.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Argue your forecast holds despite three deals slipping.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "confidence"] },
+        { "text": "Pitch why your renewal motion deserves a doubled budget.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        { "text": "Explain how you handled the customer escalation last week.", "difficulty": "core", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "Walk through the moment you realized the deal was slipping.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the call where the CFO killed your proposal.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
+        { "text": "Talk through your reaction when the pipeline dropped 30% in a week.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Explain how you broke missed-number news to your VP of Sales.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Walk me through a competitive displacement from kickoff to close.", "difficulty": "core", "tags": ["sales", "stakeholder", "storytelling"] },
+        { "text": "Describe a champion meltdown on a critical call.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
+        { "text": "Talk through the renegotiation where your top customer threatened to leave.", "difficulty": "stretch", "tags": ["sales", "client_customer", "negotiation"] },
+        { "text": "Explain how you handled a hostile procurement review on a 7-figure deal.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Walk through the call where you had to walk away from a six-figure deal.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        { "text": "Tell me about your sales career so far.", "difficulty": "core", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Walk me through how you got into sales.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Tell the story of your first enterprise close.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Describe the customer relationship that defined your year.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Tell me about the longest deal you've ever closed.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling"] },
+        { "text": "Walk through how you built your top territory from scratch.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Tell the story of a mentor who taught you to sell.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Describe how your team came together after a bad quarter.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Tell me about a customer who became a long-term advocate.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Walk through the year you almost left sales entirely.", "difficulty": "stretch", "tags": ["sales", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        { "text": "What's the most important deal you closed this year?", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Describe the single best champion you've ever worked with.", "difficulty": "core", "tags": ["sales", "champion", "storytelling"] },
+        { "text": "What's the riskiest deal your team is working right now?", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Tell me the one number that defines your quarter.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the most memorable customer call of your career.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "What's the most surprising objection a prospect has ever raised?", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Tell me about the proudest sales moment of your career.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "What's the most dangerous assumption your team is making about pipeline?", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Describe the best feedback a customer ever gave you.", "difficulty": "intro", "tags": ["sales", "client_customer", "giving_feedback"] },
+        { "text": "What's the one objection you'll never close around?", "difficulty": "stretch", "tags": ["sales", "stakeholder", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        { "text": "Brief the team on next quarter's sales goals.", "difficulty": "core", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Present your enterprise plan to a skeptical VP of Sales.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Walk leadership through your renewal playbook.", "difficulty": "core", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Present your quarter's results to the executive team.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Brief your team on a strategy reset after a missed quarter.", "difficulty": "stretch", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Present customer wins at the company kickoff.", "difficulty": "stretch", "tags": ["sales", "peer", "presenting", "storytelling"] },
+        { "text": "Open a CFO meeting with your year's pipeline plan.", "difficulty": "core", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Brief your sales engineers on tomorrow's competitive bake-off.", "difficulty": "core", "tags": ["sales", "peer", "presenting"] },
+        { "text": "Pitch your new pricing structure at the all-hands.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Walk a top prospect through their executive briefing center experience.", "difficulty": "core", "tags": ["sales", "economic_buyer", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        { "text": "45 seconds: introduce yourself to a new prospect.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "confidence"] },
+        { "text": "45 seconds: give your weekly pipeline update.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: pitch your company to a CFO in an elevator.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "45 seconds: summarize the deal slip for executives.", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "45 seconds: brief a co-seller before they take over your deal.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "45 seconds: present your top deal's risks to your VP.", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "45 seconds: open a town hall after losing the year's biggest deal.", "difficulty": "stretch", "tags": ["sales", "manager", "presenting"] },
+        { "text": "45 seconds: pitch a competitive displacement to your manager.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "45 seconds: explain your forecast methodology to a new finance partner.", "difficulty": "core", "tags": ["sales", "peer", "explaining"] },
+        { "text": "45 seconds: recap the quarter to your board.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        { "text": "Walk me through what you did with your top deal yesterday.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Explain how your prospecting routine usually goes.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Give me a status update on your top three deals.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the last sales call you sat through as a backup.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Walk through the architecture of our enterprise pricing tiers.", "difficulty": "core", "tags": ["sales", "economic_buyer", "explaining"] },
+        { "text": "Explain how our sales territories are structured.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Run through last quarter's pipeline highlights.", "difficulty": "core", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Summarize the deal stages end to end.", "difficulty": "core", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Describe how a deal moves from MQL to closed-won.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Narrate your entire quarterly board update without notes.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        { "text": "Tell the story of how you got into sales.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Recap the most memorable deal you've ever closed.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Walk me through your favorite customer story.", "difficulty": "intro", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Tell me about a mentor who shaped how you sell.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Pitch our company in 90 seconds to a hostile prospect.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion", "confidence"] },
+        { "text": "Tell the origin story of your top customer relationship.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Describe a turning point in your sales career.", "difficulty": "core", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Walk a CFO through the case for our enterprise tier.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Tell the story of a 7-figure deal that nearly fell apart.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
+        { "text": "Give a keynote about why your sales motion has to change — now.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "presenting", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        { "text": "Tell me about your sales team.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Describe a teammate who quietly carries the team.", "difficulty": "intro", "tags": ["sales", "peer", "giving_feedback"] },
+        { "text": "Tell me about a customer who shaped how you sell.", "difficulty": "intro", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Talk about a champion you've stayed in touch with for years.", "difficulty": "intro", "tags": ["sales", "champion", "storytelling"] },
+        { "text": "Introduce your reps to a new VP of Sales.", "difficulty": "core", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Tell a customer about the solutions engineer who built their POC.", "difficulty": "core", "tags": ["sales", "peer", "storytelling"] },
+        { "text": "Walk a recruit through what it's like to sell on your team.", "difficulty": "core", "tags": ["sales", "peer", "persuasion"] },
+        { "text": "Describe your favorite client relationship.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Introduce your champion to your CEO at the customer summit.", "difficulty": "core", "tags": ["sales", "champion", "presenting"] },
+        { "text": "Deliver a goodbye message to your top customer's outgoing champion.", "difficulty": "stretch", "tags": ["sales", "champion", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        { "text": "State what you're best at as a seller in one sentence, three times.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Tell me three things you know for certain about how to close deals.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Declare your role and the accounts you own.", "difficulty": "intro", "tags": ["sales", "manager", "confidence"] },
+        { "text": "List five facts about our product that you'd stake your career on.", "difficulty": "intro", "tags": ["sales", "economic_buyer", "persuasion", "confidence"] },
+        { "text": "Tell the board the new pricing is working.", "difficulty": "core", "tags": ["sales", "vp_executive", "confidence", "persuasion"] },
+        { "text": "Defend this quarter's quota targets against pushback.", "difficulty": "core", "tags": ["sales", "manager", "confidence"] },
+        { "text": "Tell the team we are not lowering prices and explain why.", "difficulty": "core", "tags": ["sales", "manager", "persuasion", "confidence"] },
+        { "text": "Brief the buyer's procurement team on why our terms are non-negotiable.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation", "confidence"] },
+        { "text": "Address the team the day after losing your largest renewal.", "difficulty": "stretch", "tags": ["sales", "manager", "confidence", "presenting"] },
+        { "text": "Tell a roomful of skeptical buyers why our trial data justifies the price.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "persuasion", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        { "text": "Describe what your sales role actually involves day-to-day.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Tell me three things you did to move deals last week.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "List the accounts you've owned this year and one win from each.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "State your name, your territory, and the top deal you're working.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize what your product does in five sentences for a CFO.", "difficulty": "core", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Recap last week's pipeline decisions for someone who missed the call.", "difficulty": "core", "tags": ["sales", "manager", "explaining"] },
+        { "text": "Lay out the four pillars of your account strategy.", "difficulty": "core", "tags": ["sales", "client_customer", "presenting"] },
+        { "text": "Describe your standard discovery framework.", "difficulty": "core", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Explain how you evaluate whether a deal is real.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk an outside finance partner through how your forecast is built.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        { "text": "What's a sales question you've been chewing on lately?", "difficulty": "intro", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "Talk about a sales book or idea that's stuck with you this month.", "difficulty": "intro", "tags": ["sales", "peer", "giving_feedback"] },
+        { "text": "Wonder out loud about why a recent deal almost didn't close.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe a sales tactic you keep meaning to try.", "difficulty": "intro", "tags": ["sales", "peer", "thinking_on_the_spot"] },
+        { "text": "Brainstorm three new outbound plays, thinking out loud.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through a customer objection you don't yet have a great answer for.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
+        { "text": "Talk through a deal you're still trying to figure out how to close.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Speculate about where enterprise buying behavior moves in five years.", "difficulty": "core", "tags": ["sales", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Explore why a recent prospect didn't follow your usual playbook.", "difficulty": "core", "tags": ["sales", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Speculate on what your top competitor is about to do, and why.", "difficulty": "stretch", "tags": ["sales", "stakeholder", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        { "text": "Tell me one sales belief you hold that most reps don't.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "State the principle that guides how you run a discovery call.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Name the rule you refuse to break in a negotiation, and why.", "difficulty": "intro", "tags": ["sales", "procurement", "negotiation", "confidence"] },
+        { "text": "Tell me the one piece of advice you give every new AE.", "difficulty": "intro", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Argue why pipeline coverage is the only metric that matters.", "difficulty": "core", "tags": ["sales", "manager", "persuasion", "confidence"] },
+        { "text": "Make the case for the single metric your team should be judged on.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Defend your refusal to discount on a deal everyone wants you to close.", "difficulty": "core", "tags": ["sales", "manager", "negotiation", "confidence"] },
+        { "text": "Tell investors why this is the right sales team, the right year, the right play.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion", "confidence"] },
+        { "text": "Make the case that pilots destroy more value than they create.", "difficulty": "stretch", "tags": ["sales", "manager", "persuasion"] },
+        { "text": "Tell a longtime customer you're firing them, and why it's the right call.", "difficulty": "stretch", "tags": ["sales", "client_customer", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        { "text": "Update me on your top deal, your second, and your third.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Cover the three accounts on your plate right now.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through what you closed, what slipped, and what's next.", "difficulty": "intro", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief me on prospecting, discovery, and close stages.", "difficulty": "intro", "tags": ["sales", "peer", "explaining"] },
+        { "text": "Brief me on new business, expansion, and renewals — in that order.", "difficulty": "core", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Give updates on quota attainment, pipeline coverage, and ramp time.", "difficulty": "core", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Cover three deals on your forecast, each at a different stage.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
+        { "text": "Move through last week's wins, this week's risks, and next week's plan.", "difficulty": "core", "tags": ["sales", "manager", "presenting"] },
+        { "text": "Pitch the deal, then walk the diligence, then close on the ask.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Update the board on growth, on a customer lawsuit, and on a top rep's exit.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        { "text": "Introduce yourself — to a CFO, then to your champion.", "difficulty": "intro", "tags": ["sales", "vp_executive", "explaining"] },
+        { "text": "Describe your product — to a procurement lead, then to an end user.", "difficulty": "intro", "tags": ["sales", "procurement", "explaining"] },
+        { "text": "Explain what you do this weekend — to a new prospect, then to your VP.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Tell the story of your top deal — to a peer, then to your sales manager.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Deliver the same product pitch — to engineering, then to a CFO.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
+        { "text": "Pitch the company — to a skeptical economic buyer.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Share your forecast — to your team, then to your VP, then to the board.", "difficulty": "core", "tags": ["sales", "vp_executive", "presenting"] },
+        { "text": "Explain the contract terms — to a champion, then to procurement.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
+        { "text": "Walk through the value prop — to an end user, then to the economic buyer.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },
+        { "text": "Defend the same deal — to a friendly champion, then to a hostile CFO.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections", "persuasion"] }
+      ]
+    }
+  ]
+}
