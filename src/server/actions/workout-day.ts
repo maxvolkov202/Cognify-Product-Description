@@ -212,6 +212,45 @@ async function fetchCatalogExercises(
 
 // ─── Public actions ──────────────────────────────────────────────────────
 
+/**
+ * Preview the 4 exercises that startMuscleGroupDay() would create today
+ * for the given dim — without persisting anything. Uses the SAME seed
+ * as the real action, so tapping Start lands on the identical 4
+ * exercises the preview just showed.
+ *
+ * Used by the workout page to reveal "Today's Training" before the user
+ * starts the workout.
+ */
+export async function previewTodaysWorkoutPlan(input: {
+  dim: MuscleGroupId;
+}): Promise<{ stations: Station[]; persisted: false }> {
+  const user = await currentUser();
+  const userId = user?.id ?? "anonymous";
+  const dayDate = todayISODateUTC(new Date());
+
+  return safeDb<{ stations: Station[]; persisted: false }>(async () => {
+    const [available, recentDays] = await Promise.all([
+      fetchCatalogExercises(input.dim),
+      fetchRecentDays(userId),
+    ]);
+    const sampled = sampleExercises({
+      available,
+      recentDays,
+      n: 4,
+      seed: `${userId}:${dayDate}:${input.dim}`,
+    });
+    const stations: Station[] = sampled.map((ex, index) => ({
+      index,
+      exerciseId: ex.id,
+      exerciseSlug: ex.slug,
+      exerciseName: ex.name,
+      rule: ex.description,
+      why: ex.instructions,
+    }));
+    return { stations, persisted: false };
+  }, { stations: [], persisted: false });
+}
+
 export type SuggestResult = SelectResult & {
   /** Latest matching muscle_group_day if one already exists for today. */
   existingDayId: string | null;

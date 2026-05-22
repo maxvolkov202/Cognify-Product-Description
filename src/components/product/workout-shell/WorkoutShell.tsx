@@ -13,7 +13,7 @@
 // During in-workout phases (prompt-selecting, recording, etc.) the
 // StartCard is replaced by RepControls in the same slot.
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
@@ -101,23 +101,18 @@ function WorkoutShellInner({
     [send],
   );
 
-  // Start: dispatches local START + fires server action to create the
-  // day, then reloads with the fresh active-day payload.
+  // Start: fire the server action + reload. We deliberately do NOT
+  // dispatch a local "START" event here — that would transition phase
+  // to prompt-selecting BEFORE the server day exists, and RepControls
+  // would flash "No station available" until the reload landed.
+  // StartCard owns the loading spinner during the await.
   const [, startTransitionPending] = useTransition();
-  const startTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (startTimer.current) clearTimeout(startTimer.current);
-    },
-    [],
-  );
   const onStartWorkout = useCallback(() => {
-    send({ type: "START" });
     startTransitionPending(async () => {
       await startMuscleGroupDay();
       if (typeof window !== "undefined") window.location.reload();
     });
-  }, [send]);
+  }, []);
 
   const station =
     state.stations[state.currentStationIndex] ??
@@ -219,11 +214,15 @@ function WorkoutShellInner({
         </AnimatePresence>
       </div>
 
-      {/* Today's Training */}
+      {/* Today's Training. In idle phase we render the preview stations
+          but don't highlight any as "current" (the user hasn't started
+          yet) — pass -1 so no row matches. */}
       <div className="mt-5">
         <TrainingList
           stations={state.stations}
-          currentStationIndex={state.currentStationIndex}
+          currentStationIndex={
+            state.phase === "idle" ? -1 : state.currentStationIndex
+          }
           dim={payload.dimension}
         />
       </div>

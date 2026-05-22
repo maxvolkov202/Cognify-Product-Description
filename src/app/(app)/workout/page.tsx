@@ -17,7 +17,10 @@ import {
   type ShellStation,
   type WorkoutShellHydratedPayload,
 } from "@/lib/workout/types";
-import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
+import {
+  suggestTodaysMuscleGroup,
+  previewTodaysWorkoutPlan,
+} from "@/server/actions/workout-day";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { isMuscleGroupWorkoutEnabled } from "@/lib/flags";
@@ -51,16 +54,24 @@ async function fetchTodaysDayPayload(
 
     if (!day || !isMuscleGroupId(day.dimension as string)) {
       // No active day yet → empty shell + suggestion rationale + prior-day
-      // banner data for the suggested dim.
+      // banner data for the suggested dim + preview of the 4 exercises
+      // that startMuscleGroupDay() will create (same seed → identical
+      // exercises). Surfaces "Today's Training" before the user taps.
       const suggestion = await suggestTodaysMuscleGroup();
-      const [lastDay, streak] = await Promise.all([
+      const [lastDay, streak, preview] = await Promise.all([
         getLastMuscleGroupDay(userId, suggestion.suggested),
         getStreakStatus(userId),
+        previewTodaysWorkoutPlan({ dim: suggestion.suggested }),
       ]);
       return {
         ...EMPTY_SHELL_PAYLOAD,
         rationale: suggestion.rationale,
         dimension: suggestion.suggested,
+        stations: preview.stations.map((s) => ({
+          ...s,
+          status: "locked" as const,
+          compositeScore: null,
+        })),
         lastDay: lastDay
           ? {
               lastComposite: lastDay.lastComposite,
@@ -107,14 +118,20 @@ async function fetchTodaysDayPayload(
         }),
       );
       const suggestion = await suggestTodaysMuscleGroup();
-      const [lastDay, streak] = await Promise.all([
+      const [lastDay, streak, preview] = await Promise.all([
         getLastMuscleGroupDay(userId, suggestion.suggested),
         getStreakStatus(userId),
+        previewTodaysWorkoutPlan({ dim: suggestion.suggested }),
       ]);
       return {
         ...EMPTY_SHELL_PAYLOAD,
         rationale: suggestion.rationale,
         dimension: suggestion.suggested,
+        stations: preview.stations.map((s) => ({
+          ...s,
+          status: "locked" as const,
+          compositeScore: null,
+        })),
         lastDay: lastDay
           ? {
               lastComposite: lastDay.lastComposite,
