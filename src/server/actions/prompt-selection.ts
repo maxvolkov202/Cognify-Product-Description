@@ -17,6 +17,7 @@ import {
   exercises,
   promptSelectionEvents,
   reps,
+  users,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
@@ -38,9 +39,33 @@ export type FetchCandidatesResult = {
 
 const PROMPT_BIAS_WINDOW = 30;
 
+/**
+ * Map each user-vertical enum to the set of prompt tags considered
+ * "personalized" for that vertical. When the workout's personalize
+ * toggle is ON, the picker draws from prompts whose tags overlap with
+ * this set for the user's vertical.
+ *
+ * "other" intentionally has no mapping → personalize-on for an "other"
+ * user falls back to general behavior.
+ */
+const VERTICAL_TAG_MAP: Record<string, string[]> = {
+  sales: ["business", "leadership"],
+  consulting: ["business", "leadership"],
+  finance: ["finance", "business"],
+  healthcare: ["healthcare", "science"],
+  law: ["business", "current events"],
+  education: ["education", "science"],
+  leadership: ["leadership", "business"],
+  other: [],
+};
+
 export async function fetchPromptCandidates(input: {
   exerciseId: string;
   preferEasier?: boolean;
+  /** Phase HB-3 — when true, draws from prompts whose tags overlap
+   *  with the user's vertical (mapped via VERTICAL_TAG_MAP). When
+   *  false / unset, draws from general-tagged prompts only. */
+  personalize?: boolean;
 }): Promise<FetchCandidatesResult> {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
@@ -61,6 +86,20 @@ export async function fetchPromptCandidates(input: {
       .where(eq(exercises.id, input.exerciseId))
       .limit(1);
     if (!exerciseRow) return fallback;
+
+    // Resolve user's vertical (NULL for anonymous + onboarding-skipped).
+    let userVerticalTags: string[] = [];
+    if (input.personalize && user) {
+      const [userRow] = await db
+        .select({ vertical: users.vertical })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+      const v = userRow?.vertical ?? null;
+      if (v && VERTICAL_TAG_MAP[v]) {
+        userVerticalTags = VERTICAL_TAG_MAP[v];
+      }
+    }
 
     // Recent dim composite drives the difficulty bias hint.
     const [compRow] = await db.execute<{ avg: number | null }>(drizzleSql`
@@ -87,6 +126,17 @@ export async function fetchPromptCandidates(input: {
       .map((row) => row.prompt_id)
       .filter((id): id is string => id != null);
 
+    // Tag filter:
+    //   personalize=true + mapped vertical → prompts whose tags overlap
+    //     the user's vertical-tag set (e.g. ["finance", "business"]).
+    //   personalize=false (or anon/other) → prompts tagged "general".
+    // The catalog seeded in Phase HB-1 puts ["general"] on the 1,080
+    // universal prompts; the original 864 carry vertical tags.
+    const personalizeReady = input.personalize && userVerticalTags.length > 0;
+    const tagFilter = personalizeReady
+      ? drizzleSql`${exercisePrompts.tags} ?| ${userVerticalTags}::text[]`
+      : drizzleSql`${exercisePrompts.tags} ? 'general'`;
+
     const bankRows = await db
       .select({
         id: exercisePrompts.id,
@@ -100,6 +150,7 @@ export async function fetchPromptCandidates(input: {
         and(
           eq(exercisePrompts.exerciseId, input.exerciseId),
           eq(exercisePrompts.isActive, true),
+          tagFilter,
         ),
       );
 

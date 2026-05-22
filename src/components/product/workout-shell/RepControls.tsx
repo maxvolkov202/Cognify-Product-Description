@@ -39,6 +39,8 @@ export type RepControlsProps = {
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
   lastScore: number | null;
   lastScoreFailure: boolean;
+  /** Phase HB-3 — personalize-toggle state from the landing screen. */
+  personalize?: boolean;
   onStartWorkout?: () => void;
   onPromptSelected?: (params: {
     promptId: string;
@@ -65,6 +67,7 @@ export default function RepControls({
   selectedPrompt,
   lastScore,
   lastScoreFailure,
+  personalize = false,
   onStartWorkout,
   onPromptSelected,
   onSkipStation,
@@ -92,6 +95,7 @@ export default function RepControls({
             rule={station.rule}
             why={station.why}
             workoutSessionId={workoutSessionId}
+            personalize={personalize}
             onSelect={(params) =>
               onPromptSelected?.({
                 promptId: params.promptId,

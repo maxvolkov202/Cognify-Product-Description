@@ -40,6 +40,10 @@ export type PromptPickerProps = {
   rule: string;
   why?: string | null;
   workoutSessionId: string | null;
+  /** Phase HB-3 — when true, fetchPromptCandidates filters to prompts
+   *  whose tags overlap with the user's vertical. Default false →
+   *  general prompts. */
+  personalize?: boolean;
   /** Called with the selected promptId. Phase 7 advances RepControls
    *  from 'prompt-selecting' → 'recording' on this callback. */
   onSelect: (params: {
@@ -56,6 +60,7 @@ export default function PromptPicker({
   rule,
   why,
   workoutSessionId,
+  personalize = false,
   onSelect,
   onSkip,
 }: PromptPickerProps) {
@@ -69,7 +74,7 @@ export default function PromptPicker({
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    fetchPromptCandidates({ exerciseId }).then((res) => {
+    fetchPromptCandidates({ exerciseId, personalize }).then((res) => {
       if (cancelled) return;
       dispatch({
         type: "INIT",
@@ -81,12 +86,12 @@ export default function PromptPicker({
     return () => {
       cancelled = true;
     };
-  }, [exerciseId]);
+  }, [exerciseId, personalize]);
 
   const handleCycle = useCallback(() => {
     if (isCycling) return;
     setIsCycling(true);
-    fetchPromptCandidates({ exerciseId }).then((res) => {
+    fetchPromptCandidates({ exerciseId, personalize }).then((res) => {
       dispatch({
         type: "RESHUFFLE",
         candidates: res.candidates.slice(0, CANDIDATES_PER_CYCLE),
@@ -94,7 +99,7 @@ export default function PromptPicker({
       });
       setIsCycling(false);
     });
-  }, [exerciseId, isCycling]);
+  }, [exerciseId, personalize, isCycling]);
 
   // Idle auto-pick: 15s without interaction → auto_idle event + pick the
   // top candidate. Stops the user from getting stuck if they wander off.

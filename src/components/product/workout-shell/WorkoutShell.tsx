@@ -13,7 +13,7 @@
 // During in-workout phases (prompt-selecting, recording, etc.) the
 // StartCard is replaced by RepControls in the same slot.
 
-import { useCallback, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
@@ -133,6 +133,27 @@ function WorkoutShellInner({
   const stationCount = state.stations.length || 4;
   const estimatedMinutes = Math.round((stationCount * 45) / 60);
 
+  // Phase HB-3 — personalize toggle. Default General. Persists in
+  // localStorage so the user doesn't have to reset every workout.
+  const [personalize, setPersonalize] = useState(false);
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("cognify.workout.personalize");
+      if (stored === "true") setPersonalize(true);
+    } catch {
+      // localStorage blocked — keep default.
+    }
+  }, []);
+  const onTogglePersonalize = useCallback((next: boolean) => {
+    setPersonalize(next);
+    try {
+      window.localStorage.setItem(
+        "cognify.workout.personalize",
+        next ? "true" : "false",
+      );
+    } catch {}
+  }, []);
+
   return (
     <div
       className={cn(
@@ -171,6 +192,18 @@ function WorkoutShellInner({
         />
       </div>
 
+      {/* Personalization toggle. Only renders in idle (before the
+          workout starts) — switching mid-rep would invalidate the
+          current prompt selection. */}
+      {state.phase === "idle" && (
+        <div className="mt-4">
+          <PersonalizeSwitch
+            value={personalize}
+            onChange={onTogglePersonalize}
+          />
+        </div>
+      )}
+
       {/* Main interactive slot: StartCard in idle, RepControls otherwise. */}
       <div className="mt-5">
         <AnimatePresence mode="wait" initial={false}>
@@ -201,6 +234,7 @@ function WorkoutShellInner({
                 selectedPrompt={state.selectedPrompt}
                 lastScore={state.lastScore}
                 lastScoreFailure={state.lastScoreFailure}
+                personalize={personalize}
                 onStartWorkout={onStartWorkout}
                 onPromptSelected={onPromptSelected}
                 onSkipStation={onSkipStation}
@@ -312,5 +346,70 @@ function Pill({
     >
       {children}
     </span>
+  );
+}
+
+/** Dual-mode switcher: General | Personalized. Light-theme pill with a
+ *  sliding indicator. Settings persist via localStorage (the caller
+ *  handles the I/O). */
+function PersonalizeSwitch({
+  value,
+  onChange,
+}: {
+  value: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+        Prompt mode
+      </div>
+      <div
+        role="radiogroup"
+        aria-label="Prompt mode"
+        className="relative inline-flex rounded-full border border-slate-200 bg-white p-1 shadow-sm"
+      >
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!value}
+          onClick={() => onChange(false)}
+          className={cn(
+            "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
+            !value ? "text-white" : "text-slate-600 hover:text-slate-900",
+          )}
+        >
+          General
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={value}
+          onClick={() => onChange(true)}
+          className={cn(
+            "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
+            value ? "text-white" : "text-slate-600 hover:text-slate-900",
+          )}
+        >
+          Personalized
+        </button>
+        {/* Sliding indicator. Two states: left (General) / right (Personalized). */}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute top-1 bottom-1 w-[110px] rounded-full bg-gradient-to-br from-purple-500 to-pink-500 transition-transform duration-300 ease-out",
+            "shadow-[0_4px_12px_-4px_rgba(168,85,247,0.6)]",
+          )}
+          style={{
+            transform: value ? "translateX(110px)" : "translateX(0)",
+          }}
+        />
+      </div>
+      <div className="text-[11px] text-slate-500 text-center max-w-xs leading-tight">
+        {value
+          ? "Prompts tuned to your work context."
+          : "Universal prompts — relationships, decisions, opinions."}
+      </div>
+    </div>
   );
 }
