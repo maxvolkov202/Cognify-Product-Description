@@ -855,7 +855,9 @@ CREATE INDEX ON cognify_v2.user_notifications (user_id, read_at, created_at DESC
 
 ---
 
-## Phase 11 — Skill Lab boundary refactor `[ ]`
+## Phase 11 — Skill Lab boundary refactor `[~]`
+
+> **2026-05-22 — partial ship.** The user-facing UX bits are in: sidebar nav demotes "Skill Lab" to "Practice" (URL unchanged), `SkillLabDailyPromo` strip appears at top of /skill-lab when today's muscle-group day is unfinished (hides post-completion, server-side gate via `fetchTodayPromoState`), and one-time `SkillLabPivotTooltip` explains the Workout/Practice split (dismiss persisted via localStorage; server-side persistence is a follow-up when `user_preferences` lands). **Deferred to a separate refactor PR:** the full RepRunner extraction. RepSurface is 1236 LoC with ~23 callers (BuildARepFlow, ChallengeRunner, BaselineRep, SkillLabSession, the archived WorkoutSession, etc.) — pulling that into a new `src/components/product/rep-runner/` module is a multi-session refactor with real regression risk, and the workout shell + scoring already work fine with the existing RepSurface (Phase 7 wires it directly, Phase 8 threads exerciseId props through). The plan-aligned RepRunner extraction is queued as a post-launch cleanup; Phase 11 ships the **user-facing** boundary signal (nav reshuffle, promo, tooltip) which is what affects the product experience.
 
 **Goal:** Extract the shared "record one rep + score it" primitive from `RepSurface`/`SkillLabSession`/`WorkoutSession` into a single `<RepRunner>` module both the new Workout and the (preserved) Skill Lab consume, while explicitly preserving Skill Lab's freeform shape and reframing it as the secondary "Practice" surface.
 

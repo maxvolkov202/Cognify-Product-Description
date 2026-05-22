@@ -3,6 +3,8 @@ import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 import { SkillLabClient } from "@/components/product/SkillLabClient";
+import SkillLabDailyPromo from "@/components/product/SkillLabDailyPromo";
+import SkillLabPivotTooltip from "@/components/product/SkillLabPivotTooltip";
 import {
   SKILL_DIMENSIONS,
   type SkillDimension,
@@ -56,6 +58,11 @@ export default async function SkillLabPage({
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30">
       <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
+        {/* Phase 11 — daily-workout promo + pivot tooltip. Both
+            self-gate (promo hides post-completion; tooltip persists
+            dismissal in localStorage). */}
+        <SkillLabPivotTooltip />
+        <SkillLabDailyPromo />
         <SkillLabClient
           currentScores={scores ?? {}}
           improvementGoals={profile?.improvementGoals ?? []}

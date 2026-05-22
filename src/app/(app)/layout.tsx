@@ -13,10 +13,14 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 // Nav items. Phase 5: /scenario replaced by /build-a-rep. The /scenario
 // route still exists as a redirect to /build-a-rep for backwards compat
 // until Phase 6 cleanup deletes it.
+// Phase 11 nav reshuffle: Workout is the daily-default; Skill Lab is
+// reframed as a focused "Practice" surface for targeted drills,
+// framework practice, and custom reps. The URL stays /skill-lab so
+// links + bookmarks don't break.
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/workout", label: "Daily Workout" },
-  { href: "/skill-lab", label: "Skill Lab" },
+  { href: "/workout", label: "Workout" },
+  { href: "/skill-lab", label: "Practice" },
   { href: "/build-a-rep", label: "Build a Rep" },
   { href: "/library", label: "Library" },
   { href: "/progress", label: "Progress" },
