@@ -44,6 +44,12 @@ next-env.d.ts
 # drizzle
 /drizzle/meta
 
+# serwist (built service worker — emitted on `next build`, not source)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+/public/swe-worker-*.js.map
+
 # editor
 .idea/
 .vscode/*

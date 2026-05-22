@@ -106,7 +106,7 @@ These are tracked in `plans/muscle-group-pivot-progress.md`:
 4. **RAG retrieve filter by exercise** (Phase 8 deferred). Tighter few-shot grounding per-exercise; needs the RAG path edited.
 5. **48-rep calibration replay** (Phase 8 + 15 deferred). Needs ~$2 of OpenAI/Anthropic credits + ~5min wall-clock to run.
 6. ~~**Playwright tap-target audit** (Phase 12 deferred). E2E harness for mobile-readiness gates.~~ Shipped in Phase C — `npm run test:e2e` after `npx playwright install chromium` + running dev server.
-7. **Service worker via Serwist** (Phase 12 deferred). Offline browsing of catalog + prompt JSON.
-8. **MediaSession lock-screen integration** (Phase 12 deferred).
-9. **PATCH `/api/me/tz`** (Phase 10 deferred). Client-detected timezone persistence; defaults to UTC until built.
-10. **`/ops/calibration` per-exercise drift view** (Phase 8 deferred). Telemetry exists; UI doesn't.
+7. ~~**Service worker via Serwist** (Phase 12 deferred).~~ Shipped in Phase D. `withSerwist` in `next.config.ts`, source at `src/app/sw.ts`, registers in production via `ServiceWorkerRegister.tsx`. Default Serwist runtime caching; API routes intentionally bypassed.
+8. ~~**MediaSession lock-screen integration** (Phase 12 deferred).~~ Shipped in Phase D. `useMediaSession` hook in `src/hooks/use-media-session.ts`; wired into `WorkoutShell`. Best-effort: Android Chrome / Edge / desktop show the card; iOS Safari needs active playback to honor it (won't show during recording).
+9. ~~**PATCH `/api/me/tz`** (Phase 10 deferred).~~ Shipped in Phase A. `src/app/api/me/tz/route.ts` + `TimezoneDetector` client component mounted in `(app)` layout.
+10. ~~**`/ops/calibration` per-exercise drift view** (Phase 8 deferred).~~ Shipped in Phase B at `/ops/calibration/per-exercise`.

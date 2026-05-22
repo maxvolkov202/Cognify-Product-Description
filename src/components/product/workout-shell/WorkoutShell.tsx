@@ -15,6 +15,7 @@ import MuscleGroupHeader from "./MuscleGroupHeader";
 import MascotStage from "./MascotStage";
 import RepControls from "./RepControls";
 import MissedDayModal from "./MissedDayModal";
+import { useMediaSession } from "@/hooks/use-media-session";
 
 export type WorkoutShellProps = {
   payload: WorkoutShellHydratedPayload;
@@ -129,6 +130,18 @@ function WorkoutShellInner({
     state.stations[state.currentStationIndex] ??
     state.stations[0] ??
     null;
+
+  // Phase D — lock-screen card while a day is open. Clears on the
+  // day-complete / day-complete-prompt phases.
+  useMediaSession({
+    active:
+      payload.hasActiveDay &&
+      state.phase !== "day-complete" &&
+      state.phase !== "day-complete-prompt",
+    dim: payload.dimension,
+    stationIndex: state.currentStationIndex,
+    totalStations: state.stations.length || 4,
+  });
 
   return (
     <div

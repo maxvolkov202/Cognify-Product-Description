@@ -44,8 +44,14 @@ export const metadata: Metadata = {
     description: "The Duolingo for communication.",
   },
   icons: {
-    icon: [{ url: "/logo/mark.png", type: "image/png" }],
-    apple: "/logo/mark.png",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/logo/mark.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   // Phase 12 — the muscle-group pivot ships /manifest.webmanifest with
   // the brain-gym framing + standalone display + idle-mascot splash
@@ -60,9 +66,51 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// iOS standalone-mode splash images. Targeting the modern iPhone +
+// iPad-mini sizes; older devices fall back to the default white splash.
+// Phase D — list comes from scripts/generate-app-icons.mjs.
+const APPLE_SPLASH = [
+  {
+    href: "/icons/apple-splash-iphone-15-pro-max.png",
+    media:
+      "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-iphone-15-pro.png",
+    media:
+      "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-iphone-14-13.png",
+    media:
+      "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-ipad-mini.png",
+    media:
+      "(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2)",
+  },
+];
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Cognify" />
+        {APPLE_SPLASH.map((s) => (
+          <link
+            key={s.href}
+            rel="apple-touch-startup-image"
+            href={s.href}
+            media={s.media}
+          />
+        ))}
+      </head>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

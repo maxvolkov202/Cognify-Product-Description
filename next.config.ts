@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -22,8 +23,25 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "microphone=(self)" },
         ],
       },
+      // Service-worker file must serve with no-cache so updates roll
+      // out on the next page load instead of waiting out a CDN TTL.
+      {
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }],
+      },
     ];
   },
 };
 
-export default config;
+// Phase D — Serwist PWA service worker. Disabled in dev so HMR isn't
+// fighting a cached bundle. Builds emit public/sw.js on production
+// builds; ServiceWorkerRegister.tsx registers it client-side.
+const withSerwist = withSerwistInit({
+  swSrc: "src/app/sw.ts",
+  swDest: "public/sw.js",
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
+export default withSerwist(config);
