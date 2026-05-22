@@ -5,7 +5,7 @@
 // All use safeDb so DB outages degrade gracefully (null / empty
 // arrays) instead of throwing.
 
-import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
@@ -128,7 +128,7 @@ export async function getMuscleGroupTimeline(
         isGraduationRep: reps.isGraduationRep,
       })
       .from(reps)
-      .where(drizzleSql`${reps.muscleGroupDayId} = ANY(${dayIds}::uuid[])`);
+      .where(inArray(reps.muscleGroupDayId, dayIds));
 
     // Pull exercise names in one query.
     const exerciseIds = Array.from(
@@ -141,7 +141,7 @@ export async function getMuscleGroupTimeline(
             name: exercises.name,
           })
           .from(exercises)
-          .where(drizzleSql`${exercises.id} = ANY(${exerciseIds}::uuid[])`)
+          .where(inArray(exercises.id, exerciseIds))
       : [];
     const exNameById = new Map(exerciseRows.map((r) => [r.id, r.name]));
 

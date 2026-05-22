@@ -10,7 +10,7 @@
 // file is the thin DB-fetching wrapper.
 
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, gte, isNull, sql as drizzleSql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
@@ -615,7 +615,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
       instructions: exercises.instructions,
     })
     .from(exercises)
-    .where(drizzleSql`${exercises.id} = ANY(${exerciseIds}::uuid[])`);
+    .where(inArray(exercises.id, exerciseIds));
 
   const byId = new Map(rows.map((r) => [r.id, r]));
   return exerciseIds

@@ -1,4 +1,4 @@
-import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   exercises,
@@ -99,7 +99,7 @@ async function fetchTodaysDayPayload(
               instructions: exercises.instructions,
             })
             .from(exercises)
-            .where(drizzleSql`${exercises.id} = ANY(${exerciseIds}::uuid[])`)
+            .where(inArray(exercises.id, exerciseIds))
         : [];
 
     // Orphan-day self-heal: if planned exercise IDs reference rows that
