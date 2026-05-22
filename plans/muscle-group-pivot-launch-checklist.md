@@ -63,9 +63,9 @@ verified from a CI sandbox.
 Per Phase 15 spec: replay the calibration set against the post-pivot
 scoring path; persist baseline; diff vs pre-pivot.
 
-- [ ] `node scripts/phase-baseline.mjs --mode=muscle-group-final` (extension TBD — currently `scripts/phase-baseline.mjs` doesn't have the `--mode` branch; build it as part of the actual launch run with real credits).
+- [ ] `node scripts/phase-baseline.mjs --mode=muscle-group-final --compare-against=plans/baselines/phase-pre-pivot.json` — runs the 10-rep subset through `/api/score/twostage`, persists `plans/baselines/muscle-group-pivot-final.json`, and exits non-zero if composite drift exceeds ±5 on more than 1 of 10 reps. Scaffold landed in Phase C; needs ~$2 of Anthropic credits to execute.
 - [ ] Drift tolerance: composite ±5 per rep, dim ±8 per rep, hold on ≥9 of 10 reps. Fail closed.
-- [ ] Per-exercise mini-harness: replay 5 reps each against {Explain Like I'm 12, Headline First, The 3 Point Rule, The 30 Second Rule, Bottom Line First, Kill the Filler}. Spot-check that the XML block appears in the prompt-log debug pane and the filler fast-fail floors conciseness when triggered.
+- [ ] Per-exercise mini-harness: `node scripts/phase-baseline.mjs --mode=muscle-group-final --exercise-id=<slug>` for each of {explain-like-im-12, headline-first, the-3-point-rule, the-30-second-rule, bottom-line-first, kill-the-filler}. Spot-check the per-rep composite + that the XML block appears in the prompt-log debug pane and the filler fast-fail floors conciseness when triggered.
 
 ## Rollout (Phase 0 → 100%)
 
@@ -105,7 +105,7 @@ These are tracked in `plans/muscle-group-pivot-progress.md`:
 3. **Mascot polish** (Phase 14, optional). Max-authored Figma → SVG layer swap. The Phase 4 placeholder is production-acceptable.
 4. **RAG retrieve filter by exercise** (Phase 8 deferred). Tighter few-shot grounding per-exercise; needs the RAG path edited.
 5. **48-rep calibration replay** (Phase 8 + 15 deferred). Needs ~$2 of OpenAI/Anthropic credits + ~5min wall-clock to run.
-6. **Playwright tap-target audit** (Phase 12 deferred). E2E harness for mobile-readiness gates.
+6. ~~**Playwright tap-target audit** (Phase 12 deferred). E2E harness for mobile-readiness gates.~~ Shipped in Phase C — `npm run test:e2e` after `npx playwright install chromium` + running dev server.
 7. **Service worker via Serwist** (Phase 12 deferred). Offline browsing of catalog + prompt JSON.
 8. **MediaSession lock-screen integration** (Phase 12 deferred).
 9. **PATCH `/api/me/tz`** (Phase 10 deferred). Client-detected timezone persistence; defaults to UTC until built.

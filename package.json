@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts && tsx tests/workout-assignment.test.ts && tsx tests/workout-session-machine.test.ts && tsx tests/muscle-group-day-status.test.ts && tsx tests/mascot-voice.test.ts && tsx tests/timezones-iana.test.ts && tsx tests/rag-rerank.test.ts",
     "test:dna": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts",
+    "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.0.0-beta.8",
     "@types/node": "^22.19.17",
     "@types/react": "^19.0.2",

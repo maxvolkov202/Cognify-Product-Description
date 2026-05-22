@@ -27,6 +27,13 @@
  *   PHASE=1 node scripts/phase-baseline.mjs       # explicit phase tag
  *   DEV_BASE_URL=http://localhost:3333 node scripts/phase-baseline.mjs
  *
+ * Muscle-group pivot launch run:
+ *   node scripts/phase-baseline.mjs --mode=muscle-group-final
+ *   node scripts/phase-baseline.mjs --mode=muscle-group-final \
+ *      --compare-against=plans/baselines/phase-pre-pivot.json    # ±5 gate
+ *   node scripts/phase-baseline.mjs --mode=muscle-group-final \
+ *      --exercise-id=kill-the-filler                              # spotcheck
+ *
  * Output:
  *   - JSON report of each rep: composite, dim breakdown, latency, fallback
  *   - Aggregate: p50/p95/p99 of total + model latency, cache hit rate,
@@ -46,13 +53,57 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REF_REPS_PATH = resolve(__dirname, "calibration", "reference-reps.json");
 const BASELINES_DIR = resolve(__dirname, "..", "plans", "baselines");
 const BASE_URL = process.env.DEV_BASE_URL ?? "http://127.0.0.1:3333";
-const PHASE = process.env.PHASE ?? "0";
+
+// CLI flags (env-vars still supported for backwards compat with the
+// pre-pivot phase-N runs). Flags win over env when both set.
+const FLAGS = parseCliFlags(process.argv.slice(2));
+const PHASE = FLAGS.phase ?? process.env.PHASE ?? "0";
+
+// --- Muscle-group pivot mode ------------------------------------------
+//
+// `--mode=muscle-group-final` runs the same 10-rep subset against the
+// two-stage scoring endpoint with the post-pivot code path active. Two
+// sub-behaviors:
+//
+//   * Without --exercise-id: legacy-shape calibration replay. The
+//     pivot's RAG-dim-filter + exercise-hydration changes MUST produce
+//     byte-equivalent composites for legacy reps (no exerciseId).
+//     `--compare-against=<baseline-path>` runs the tolerance check
+//     (±5 composite / ±8 dim, ≥9 of 10) and exits non-zero on breach.
+//
+//   * With --exercise-id=<slug>: per-exercise spot-check. Pins the
+//     muscle-group exercise on every rep so the run exercises the
+//     <exercise/> XML block + RAG preferredDim filter + (when the slug
+//     has one) the fast-fail floor. Observational — no tolerance gate.
+//
+// `phase-baseline-final` is the canonical baseline filename for the
+// pre-launch replay run. The launch checklist references this path.
+const MODE = FLAGS.mode ?? "legacy";
+const EXERCISE_SLUG = FLAGS["exercise-id"] ?? null;
+const COMPARE_AGAINST = FLAGS["compare-against"] ?? null;
+const COMPOSITE_TOLERANCE = parseInt(FLAGS["composite-tolerance"] ?? "5", 10);
+const DIM_TOLERANCE = parseInt(FLAGS["dim-tolerance"] ?? "8", 10);
+const MIN_HOLD_RATE = parseFloat(FLAGS["min-hold-rate"] ?? "0.9");
+
 // Phase 5+ — set TWO_STAGE=true to baseline the two-stage endpoint
 // (/api/score/twostage) instead of the legacy single-call /api/score.
-// Output JSON tags itself so phase-N.json comparisons stay
-// apples-to-apples within the same endpoint mode.
-const TWO_STAGE = process.env.TWO_STAGE === "true";
+// muscle-group-final mode implies twostage; legacy mode honors the env.
+const TWO_STAGE = MODE === "muscle-group-final" || process.env.TWO_STAGE === "true";
 const SCORE_ENDPOINT = TWO_STAGE ? "/api/score/twostage" : "/api/score";
+
+function parseCliFlags(argv) {
+  const out = {};
+  for (const arg of argv) {
+    if (!arg.startsWith("--")) continue;
+    const eq = arg.indexOf("=");
+    if (eq === -1) {
+      out[arg.slice(2)] = "true";
+    } else {
+      out[arg.slice(2, eq)] = arg.slice(eq + 1);
+    }
+  }
+  return out;
+}
 
 // Fixed deterministic subset — DO NOT change between phases.
 // If you add reps to reference-reps.json, do NOT add them here without
@@ -82,13 +133,14 @@ function loadReferenceReps() {
   return parsed.reps;
 }
 
-async function scoreOne(rep) {
+async function scoreOne(rep, opts = {}) {
   const body = {
     transcript: rep.transcript,
     promptText: rep.promptText,
     durationMs: rep.durationMs,
   };
   if (rep.audioUrl) body.audioUrl = rep.audioUrl;
+  if (opts.exerciseId) body.exerciseId = opts.exerciseId;
 
   const t0 = Date.now();
   const res = await fetch(`${BASE_URL}${SCORE_ENDPOINT}`, {
@@ -103,6 +155,55 @@ async function scoreOne(rep) {
   }
   const score = await res.json();
   return { score, clientLatencyMs };
+}
+
+async function lookupExerciseIdBySlug(slug) {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("--exercise-id requires DATABASE_URL to resolve the slug");
+  }
+  const sql = postgres(url, { max: 1, prepare: false });
+  try {
+    const rows = await sql`
+      SELECT id::text, slug, name, dimension::text AS dimension
+      FROM cognify_v2.exercises
+      WHERE slug = ${slug}
+      LIMIT 1
+    `;
+    return rows[0] ?? null;
+  } finally {
+    await sql.end();
+  }
+}
+
+function compareAgainstBaseline(perRep, baselinePath) {
+  if (!existsSync(baselinePath)) {
+    throw new Error(`compare-against baseline not found: ${baselinePath}`);
+  }
+  const prev = JSON.parse(readFileSync(baselinePath, "utf8"));
+  const prevById = new Map(prev.perRep.map((r) => [r.id, r]));
+
+  const compositeBreaches = [];
+  let held = 0;
+  let total = 0;
+  for (const curr of perRep) {
+    const before = prevById.get(curr.id);
+    if (!before || curr.error || before.error) continue;
+    total += 1;
+    const delta = Math.abs((curr.composite ?? 0) - (before.composite ?? 0));
+    if (delta <= COMPOSITE_TOLERANCE) {
+      held += 1;
+    } else {
+      compositeBreaches.push({
+        id: curr.id,
+        before: before.composite,
+        after: curr.composite,
+        delta,
+      });
+    }
+  }
+  const holdRate = total === 0 ? 0 : held / total;
+  return { total, held, holdRate, compositeBreaches };
 }
 
 async function queryTelemetry(sinceIso) {
@@ -186,7 +287,22 @@ function summarizeTelemetry(rows) {
 }
 
 async function main() {
-  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL}${SCORE_ENDPOINT} (twoStage=${TWO_STAGE}) ===\n`);
+  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL}${SCORE_ENDPOINT} (mode=${MODE}, twoStage=${TWO_STAGE}) ===\n`);
+
+  // Resolve exercise pin (muscle-group-final + exercise-id).
+  let exercise = null;
+  if (EXERCISE_SLUG) {
+    if (MODE !== "muscle-group-final") {
+      console.error("--exercise-id requires --mode=muscle-group-final");
+      process.exit(2);
+    }
+    exercise = await lookupExerciseIdBySlug(EXERCISE_SLUG);
+    if (!exercise) {
+      console.error(`Exercise slug "${EXERCISE_SLUG}" not found in cognify_v2.exercises`);
+      process.exit(2);
+    }
+    console.log(`Exercise pinned: ${exercise.name} (${exercise.slug}, dim=${exercise.dimension}, id=${exercise.id})\n`);
+  }
 
   const allReps = loadReferenceReps();
   const subset = SUBSET_IDS.map((id) => {
@@ -200,19 +316,22 @@ async function main() {
 
   const startIso = new Date().toISOString();
   console.log(`Run started at ${startIso}`);
-  console.log(`Replaying ${subset.length} reference reps through /api/score...\n`);
+  console.log(`Replaying ${subset.length} reference reps through ${SCORE_ENDPOINT}...\n`);
 
   const perRep = [];
   for (const rep of subset) {
     process.stdout.write(`  ${rep.id} ... `);
     try {
-      const { score, clientLatencyMs } = await scoreOne(rep);
+      const { score, clientLatencyMs } = await scoreOne(rep, {
+        exerciseId: exercise?.id,
+      });
       perRep.push({
         id: rep.id,
         kind: rep.kind,
         composite: score.composite,
         modelVersion: score.modelVersion,
         clientLatencyMs,
+        ...(exercise ? { exerciseId: exercise.id, exerciseSlug: exercise.slug } : {}),
       });
       console.log(
         `composite=${score.composite} model=${score.modelVersion} client=${clientLatencyMs}ms`,
@@ -248,17 +367,31 @@ async function main() {
     console.log(`  ${reason.padEnd(28)} ${count}`);
   }
 
-  // Persist the baseline so future phases can diff against it.
+  // Persist the baseline. Filename diverges for the pivot's launch run
+  // so a per-exercise spotcheck doesn't overwrite the legacy-shape
+  // baseline.
   if (!existsSync(BASELINES_DIR)) mkdirSync(BASELINES_DIR, { recursive: true });
-  const baselinePath = resolve(BASELINES_DIR, `phase-${PHASE}.json`);
+  let baselineName;
+  if (MODE === "muscle-group-final") {
+    baselineName = exercise
+      ? `muscle-group-pivot-spotcheck-${exercise.slug}.json`
+      : `muscle-group-pivot-final.json`;
+  } else {
+    baselineName = `phase-${PHASE}.json`;
+  }
+  const baselinePath = resolve(BASELINES_DIR, baselineName);
   writeFileSync(
     baselinePath,
     JSON.stringify(
       {
         phase: PHASE,
+        mode: MODE,
         baseUrl: BASE_URL,
         startedAt: startIso,
         subsetIds: SUBSET_IDS,
+        ...(exercise
+          ? { exerciseId: exercise.id, exerciseSlug: exercise.slug, exerciseDimension: exercise.dimension }
+          : {}),
         perRep,
         summary,
         rows,
@@ -268,7 +401,29 @@ async function main() {
     ),
   );
   console.log(`\nBaseline persisted to ${baselinePath}`);
-  console.log(`Compare future phases with: diff plans/baselines/phase-0.json plans/baselines/phase-N.json\n`);
+
+  // Tolerance gate (only with --compare-against).
+  if (COMPARE_AGAINST) {
+    const comparePath = resolve(COMPARE_AGAINST);
+    console.log(`\nComparing against baseline: ${comparePath}`);
+    const gate = compareAgainstBaseline(perRep, comparePath);
+    console.log(`\n=== Tolerance gate (composite ±${COMPOSITE_TOLERANCE}, ≥${(MIN_HOLD_RATE * 100).toFixed(0)}% hold) ===`);
+    console.log(`Compared: ${gate.total} reps`);
+    console.log(`Held within tolerance: ${gate.held} (${(gate.holdRate * 100).toFixed(1)}%)`);
+    if (gate.compositeBreaches.length > 0) {
+      console.log(`\nBreaches:`);
+      for (const b of gate.compositeBreaches) {
+        console.log(`  ${b.id.padEnd(36)} before=${b.before} after=${b.after} delta=${b.delta}`);
+      }
+    }
+    if (gate.holdRate < MIN_HOLD_RATE) {
+      console.error(`\n✗ FAIL — hold rate ${(gate.holdRate * 100).toFixed(1)}% < ${(MIN_HOLD_RATE * 100).toFixed(0)}% threshold`);
+      process.exit(3);
+    }
+    console.log(`\n✓ PASS — hold rate within tolerance.\n`);
+  } else if (MODE === "muscle-group-final" && !exercise) {
+    console.log(`\nTip: rerun with --compare-against=plans/baselines/phase-pre-pivot.json to gate drift.\n`);
+  }
 }
 
 main().catch((err) => {
