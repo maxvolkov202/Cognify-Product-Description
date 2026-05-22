@@ -96,6 +96,15 @@ export type SessionMachineEvent =
   | { type: "ACCEPT_GRADUATION" }
   | { type: "SKIP_GRADUATION" }
   | { type: "GRADUATION_DONE"; composite: number | null; repId: string | null }
+  | {
+      /** HD-2: inject freshly-created stations from startMuscleGroupDay
+       *  into the running reducer state. Lets the shell transition from
+       *  the empty preview into the live picker WITHOUT a full page
+       *  reload. */
+      type: "HYDRATE_DAY";
+      stations: ShellStation[];
+      currentStationIndex?: number;
+    }
   | { type: "PAUSE" }
   | { type: "RESUME" }
   | { type: "NETWORK_DROP" }
@@ -166,6 +175,19 @@ export function reduce(
   state: SessionMachineState,
   event: SessionMachineEvent,
 ): SessionMachineState {
+  // HD-2: HYDRATE_DAY runs from any phase. Replaces the stations array
+  // (typically swapping preview stations for the freshly-created server
+  // day's stations). Optionally resets currentStationIndex (defaults to
+  // current value when omitted). Phase is NOT touched here — caller
+  // typically dispatches START separately right after.
+  if (event.type === "HYDRATE_DAY") {
+    return {
+      ...state,
+      stations: event.stations,
+      currentStationIndex:
+        event.currentStationIndex ?? state.currentStationIndex,
+    };
+  }
   // PAUSE wraps almost any state by capturing the current phase.
   if (event.type === "PAUSE") {
     if (state.phase === "paused" || state.phase === "day-complete") return state;

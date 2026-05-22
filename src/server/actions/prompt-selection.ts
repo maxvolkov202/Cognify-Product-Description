@@ -126,33 +126,55 @@ export async function fetchPromptCandidates(input: {
       .map((row) => row.prompt_id)
       .filter((id): id is string => id != null);
 
-    // Tag filter:
+    // Tag filter (HD-1: fall back to general if personalized bank is empty):
     //   personalize=true + mapped vertical → prompts whose tags overlap
     //     the user's vertical-tag set (e.g. ["finance", "business"]).
+    //     If empty, fall through to general so the picker never shows
+    //     "no exercises available" — the catalog has uneven vertical
+    //     coverage per exercise.
     //   personalize=false (or anon/other) → prompts tagged "general".
-    // The catalog seeded in Phase HB-1 puts ["general"] on the 1,080
-    // universal prompts; the original 864 carry vertical tags.
     const personalizeReady = input.personalize && userVerticalTags.length > 0;
-    const tagFilter = personalizeReady
+    const personalizedFilter = personalizeReady
       ? drizzleSql`${exercisePrompts.tags} ?| ${userVerticalTags}::text[]`
-      : drizzleSql`${exercisePrompts.tags} ? 'general'`;
+      : null;
+    const generalFilter = drizzleSql`${exercisePrompts.tags} ? 'general'`;
 
-    const bankRows = await db
-      .select({
-        id: exercisePrompts.id,
-        promptId: exercisePrompts.promptId,
-        text: exercisePrompts.promptText,
-        difficulty: exercisePrompts.difficulty,
-        tags: exercisePrompts.tags,
-      })
-      .from(exercisePrompts)
-      .where(
-        and(
-          eq(exercisePrompts.exerciseId, input.exerciseId),
-          eq(exercisePrompts.isActive, true),
-          tagFilter,
-        ),
-      );
+    const selectBank = (filter: ReturnType<typeof drizzleSql>) =>
+      db
+        .select({
+          id: exercisePrompts.id,
+          promptId: exercisePrompts.promptId,
+          text: exercisePrompts.promptText,
+          difficulty: exercisePrompts.difficulty,
+          tags: exercisePrompts.tags,
+        })
+        .from(exercisePrompts)
+        .where(
+          and(
+            eq(exercisePrompts.exerciseId, input.exerciseId),
+            eq(exercisePrompts.isActive, true),
+            filter,
+          ),
+        );
+
+    let bankRows = personalizedFilter ? await selectBank(personalizedFilter) : [];
+    let fallbackToGeneral = false;
+    if (bankRows.length === 0) {
+      if (personalizedFilter) {
+        fallbackToGeneral = true;
+        console.log(
+          JSON.stringify({
+            event: "prompt_selection.fallback_to_general",
+            ts: new Date().toISOString(),
+            userId,
+            exerciseId: input.exerciseId,
+            verticalTags: userVerticalTags,
+          }),
+        );
+      }
+      bankRows = await selectBank(generalFilter);
+    }
+    void fallbackToGeneral; // available for future telemetry threading
 
     const preferEasier =
       input.preferEasier ?? (recentDimComposite != null && recentDimComposite < 60);

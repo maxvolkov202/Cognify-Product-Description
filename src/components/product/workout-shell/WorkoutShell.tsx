@@ -14,9 +14,11 @@
 // StartCard is replaced by RepControls in the same slot.
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
+import type { ShellStation } from "@/lib/workout/types";
 import {
   WorkoutSessionProvider,
   useWorkoutSession,
@@ -126,18 +128,43 @@ function WorkoutShellInner({
     [send],
   );
 
-  // Start: fire the server action + reload. We deliberately do NOT
-  // dispatch a local "START" event here — that would transition phase
-  // to prompt-selecting BEFORE the server day exists, and RepControls
-  // would flash "No station available" until the reload landed.
-  // StartCard owns the loading spinner during the await.
+  // HD-2: Smooth start without a hard reload.
+  // 1. Fire startMuscleGroupDay() (returns the freshly-created stations
+  //    + sessionId in the same call).
+  // 2. Dispatch HYDRATE_DAY locally with the returned stations so the
+  //    reducer sees real station data instead of the empty preview.
+  // 3. Dispatch START to transition phase idle → prompt-selecting.
+  // 4. router.refresh() in the background to update other payload bits
+  //    (workoutSessionId, lastDay, streak, etc.) without unmounting.
+  // No window.location.reload() — the user sees a clean fade from
+  // StartCard to PromptPicker via AnimatePresence.
   const [, startTransitionPending] = useTransition();
+  const router = useRouter();
   const onStartWorkout = useCallback(() => {
     startTransitionPending(async () => {
-      await startMuscleGroupDay();
-      if (typeof window !== "undefined") window.location.reload();
+      const result = await startMuscleGroupDay();
+      if (!result.persisted || result.stations.length === 0) {
+        // Server fallback path (DB outage etc.) — defensive hard reload.
+        if (typeof window !== "undefined") window.location.reload();
+        return;
+      }
+      const hydrated: ShellStation[] = result.stations.map((s, i) => ({
+        index: s.index,
+        exerciseId: s.exerciseId,
+        exerciseSlug: s.exerciseSlug,
+        exerciseName: s.exerciseName,
+        rule: s.rule,
+        why: s.why,
+        status: i === 0 ? "current" : "locked",
+        compositeScore: null,
+      }));
+      send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });
+      send({ type: "START" });
+      // Update payload (workoutSessionId, rationale, lastDay, streak)
+      // without unmounting the React tree.
+      router.refresh();
     });
-  }, []);
+  }, [send, router]);
 
   // HB-4 — Resume after Cancel: clear the override + fire Start. The
   // server action's idempotent branch reuses the still-existing day,
