@@ -1008,7 +1008,9 @@ Tap-revealed mascot tooltips stay in voice: "She's loading her playlist…", "Ca
 
 ---
 
-## Phase 13 — Copy + voice system `[ ]`
+## Phase 13 — Copy + voice system `[x]`
+
+> **2026-05-22:** Voice system shipped. `src/content/mascot/voice.ts` is the single source of truth — every bucket has ≥4 variants (≥8 for high-frequency walkingComments + scoreReactions), every line ≤12 words. Buckets: `idleGreeting` × 4 ToD, `walkingComments` × 3 feels, `atStationIntro` keyed by 25 exercise slugs + generic fallback, `scoreReactions` × 5 bands × 2 (firstOfDay / lateInDay), `dayCompleteCelebrations` × 5 delta bands, `freezeConsumed`, `partialDay`, `fullDay`, `retroNarratives`, `errorFallbacks` × 5 reason codes, plus `a11yLabels` for the mascot + station strip. `src/content/mascot/pick.ts` provides per-bucket pickers + a generic `pickVoiceLine` + `formatVoice` interpolator. Seeded shuffle uses FNV-1a (pure JS — bundles to browser; node:crypto was rejected by webpack on the client). `pickWithMemory` avoids back-to-back repeats via localStorage. Time-of-day, score-band, and delta-band helpers expose decision logic so callers don't fork the math. `src/content/banners/day-comparison.ts` holds the 4 Q4 template strings; MuscleGroupHeader now uses `formatVoice(template, slots)` instead of inline literals. 173 mascot-voice tests cover interpolation, time-of-day boundaries, score-band boundaries, delta-band matrix, every bucket's cardinality minimum, every template's existence, and the ≤12-words constraint across every line (1 inline edit to one Max-approved line to fit the limit). Build green. **Note for Max's copy-review checklist:** I authored variants matching the tone of the 10 approved samples from the design brief, but Phase 13's "Max writes first pass" guidance means the new lines deserve a human read-through before launch.
 
 **Goal:** Define and centralize every user-facing string in the Workout flow under one voice system with deterministic variation so the experience feels alive, never templated.
 

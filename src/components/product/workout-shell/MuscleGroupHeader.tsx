@@ -13,6 +13,8 @@
 import { useEffect } from "react";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
+import { dayComparisonTemplates } from "@/content/banners/day-comparison";
+import { formatVoice } from "@/content/mascot/pick";
 
 const DIM_BADGE_BG: Record<MuscleGroupId, string> = {
   clarity: "bg-[#6aa3ff]/15 text-[#a5c8ff] border-[#6aa3ff]/40",
@@ -76,15 +78,23 @@ function bannerCopy(
   dim: MuscleGroupId,
 ): string | null {
   const label = MUSCLE_GROUP_LABELS[dim];
+  const slots: Record<string, string | number> =
+    "composite" in variant
+      ? {
+          dim: label,
+          days: variant.days,
+          composite: Math.round(variant.composite),
+        }
+      : { dim: label };
   switch (variant.kind) {
     case "firstEver":
-      return `First ${label} day. Set the baseline.`;
+      return formatVoice(dayComparisonTemplates.firstEver, slots);
     case "previousExists":
-      return `Last ${label} day (${variant.days}d ago): composite ${Math.round(variant.composite)}. Beat it.`;
+      return formatVoice(dayComparisonTemplates.previousExists, slots);
     case "previousStrong":
-      return `Last ${label} day: composite ${Math.round(variant.composite)} — strong. Don't slip.`;
+      return formatVoice(dayComparisonTemplates.previousStrong, slots);
     case "previousWeak":
-      return `Last ${label} day: composite ${Math.round(variant.composite)} — let's climb.`;
+      return formatVoice(dayComparisonTemplates.previousWeak, slots);
     case "none":
       return null;
   }
