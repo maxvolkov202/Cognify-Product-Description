@@ -384,7 +384,9 @@ Phase 14 (new, deferred to the end of the plan) is where Max swaps the visual SV
 
 ---
 
-## Phase 5 — Workout Shell UI `[ ]`
+## Phase 5 — Workout Shell UI `[x]`
+
+> **2026-05-21:** Workout page rewritten as split-screen shell. New components under `src/components/product/workout-shell/`: `WorkoutShell` (outer container + session provider), `MuscleGroupHeader` (dim badge + rationale + "last day composite" banner), `MascotStage` (animated mascot + station strip), `StationStrip` + `StationCard` (4 cards with locked/current/complete states; keyboard nav: Tab + ArrowLeft/Right), `RepControls` (bottom-half panel with per-phase placeholders + the Start CTA wired to `startMuscleGroupDay`). Skeletal `useWorkoutSession()` hook at `src/lib/workout/use-workout-session.tsx`. Zod schemas at `src/lib/workout/types.ts`. Legacy `WorkoutSession.tsx` archived at `src/components/_archive/workout-session-v1/` with `@ts-nocheck` + eslint ignore. Bundle: /workout 4.08 KB, /dev/mascot 3.81 KB. Build green, 27 tests pass. **Deferred to manual verification:** Lighthouse a11y ≥95 — not testable in this sandbox.
 
 **Goal:** Replace the legacy single-column Workout page with a touch-first, split-screen shell hosting the mascot above 4 stations and a swappable rep-controls panel below — the visual frame every other Workout-day surface plugs into.
 

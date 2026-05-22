@@ -1,3 +1,9 @@
+// @ts-nocheck
+// ARCHIVED 2026-05-21 — legacy single-column WorkoutSession from the
+// pre-muscle-group product. Phase 7 may lift residual patterns (rep
+// progression, transcript handling, scoring wire-up) from this file
+// when wiring the new session runtime. Do not import — kept for
+// reference only. The relative imports below are intentionally stale.
 "use client";
 
 import { useState, useEffect, useRef } from "react";

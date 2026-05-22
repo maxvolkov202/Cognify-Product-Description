@@ -132,7 +132,9 @@ export function seededShuffle<T>(arr: readonly T[], seed: string): T[] {
   }
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(next() * (i + 1));
-    [copy[i]!, copy[j]!] = [copy[j]!, copy[i]!];
+    const tmp = copy[i] as T;
+    copy[i] = copy[j] as T;
+    copy[j] = tmp;
   }
   return copy;
 }
