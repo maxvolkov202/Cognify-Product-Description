@@ -8,6 +8,7 @@
 import { and, desc, eq, inArray, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  dimensionScores,
   exercises,
   muscleGroupDays,
   reps,
@@ -198,6 +199,61 @@ export async function getMuscleGroupTimeline(
         exercises: ordered,
       };
     });
+  }, []);
+}
+
+/**
+ * HC-4 — per-rep breakdown for the end-of-day summary. Returns each
+ * rep on the day with its composite + per-dim scores in chronological
+ * order (rep 1 → rep 4 + optional graduation rep).
+ */
+export type DayRepBreakdown = {
+  repId: string;
+  repIndex: number; // chronological 0..N-1
+  composite: number;
+  perDim: Partial<Record<string, number>>;
+  isGraduationRep: boolean;
+};
+
+export async function getDayRepsBreakdown(
+  dayId: string,
+): Promise<DayRepBreakdown[]> {
+  return safeDb<DayRepBreakdown[]>(async () => {
+    const repRows = await db
+      .select({
+        id: reps.id,
+        composite: reps.compositeScore,
+        createdAt: reps.createdAt,
+        isGraduationRep: reps.isGraduationRep,
+      })
+      .from(reps)
+      .where(eq(reps.muscleGroupDayId, dayId))
+      .orderBy(reps.createdAt);
+    if (repRows.length === 0) return [];
+
+    const repIds = repRows.map((r) => r.id);
+    const dimRows = await db
+      .select({
+        repId: dimensionScores.repId,
+        dimension: dimensionScores.dimension,
+        score: dimensionScores.score,
+      })
+      .from(dimensionScores)
+      .where(inArray(dimensionScores.repId, repIds));
+
+    const dimsByRep = new Map<string, Partial<Record<string, number>>>();
+    for (const r of dimRows) {
+      if (!dimsByRep.has(r.repId)) dimsByRep.set(r.repId, {});
+      dimsByRep.get(r.repId)![r.dimension] = r.score;
+    }
+
+    return repRows.map((r, i) => ({
+      repId: r.id,
+      repIndex: i,
+      composite: Math.round(r.composite ?? 0),
+      perDim: dimsByRep.get(r.id) ?? {},
+      isGraduationRep: r.isGraduationRep ?? false,
+    }));
   }, []);
 }
 

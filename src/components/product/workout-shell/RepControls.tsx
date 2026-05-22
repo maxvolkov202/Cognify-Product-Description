@@ -23,11 +23,10 @@ import { cn } from "@/lib/utils/cn";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
 import {
-  fetchDayRetrospective,
+  fetchDaySummary,
   tagWorkoutRep,
 } from "@/server/actions/workout-session";
-import DayRetrospective from "./DayRetrospective";
-import type { MuscleGroupComparison } from "@/lib/db/queries/muscle-group-progress";
+import DayCompleteSummary from "./DayCompleteSummary";
 
 export type RepControlsProps = {
   phase: SessionPhase;
@@ -357,9 +356,9 @@ function DayCompleteControls({
   dim: MuscleGroupId | null;
   muscleGroupDayId: string | null;
 }) {
-  const [comparison, setComparison] = useState<MuscleGroupComparison | null>(
-    null,
-  );
+  const [summary, setSummary] = useState<
+    Awaited<ReturnType<typeof fetchDaySummary>>
+  >(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -369,9 +368,9 @@ function DayCompleteControls({
     }
     let cancelled = false;
     setLoading(true);
-    fetchDayRetrospective({ dayId: muscleGroupDayId, dim }).then((res) => {
+    fetchDaySummary({ dayId: muscleGroupDayId, dim }).then((res) => {
       if (cancelled) return;
-      setComparison(res ?? null);
+      setSummary(res);
       setLoading(false);
     });
     return () => {
@@ -383,12 +382,12 @@ function DayCompleteControls({
     return (
       <div className="flex flex-col items-center text-center gap-2 py-4">
         <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-        <p className="text-sm text-slate-500">Loading retrospective…</p>
+        <p className="text-sm text-slate-500">Building your summary…</p>
       </div>
     );
   }
 
-  if (!dim || !comparison) {
+  if (!dim || !summary) {
     return (
       <div className="flex flex-col items-center text-center gap-3">
         <Sparkles className="w-5 h-5 text-purple-500" />
@@ -410,7 +409,13 @@ function DayCompleteControls({
     );
   }
 
-  return <DayRetrospective dim={dim} comparison={comparison} />;
+  return (
+    <DayCompleteSummary
+      dim={dim}
+      comparison={summary.comparison}
+      reps={summary.reps}
+    />
+  );
 }
 
 function PlaceholderControls({

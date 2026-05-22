@@ -160,7 +160,9 @@ export async function recordGraduationRep(
 // ─── Phase 9 — comparison fetcher for the day-complete retrospective ──
 
 import {
+  getDayRepsBreakdown,
   getMuscleGroupComparison,
+  type DayRepBreakdown,
   type MuscleGroupComparison,
 } from "@/lib/db/queries/muscle-group-progress";
 import type { MuscleGroupId } from "@/types/domain";
@@ -174,6 +176,27 @@ export async function fetchDayRetrospective(input: {
   const user = await currentUser();
   if (!user?.id) return null;
   return getMuscleGroupComparison(user.id, input.dim, input.dayId);
+}
+
+/** HC-4 — end-of-day summary. Returns the prior-day comparison +
+ *  the per-rep breakdown so the summary can render mini-bars + a
+ *  per-dim trend line across the 4 (or 5 with graduation) reps. */
+export type FetchDaySummaryResult = {
+  comparison: MuscleGroupComparison | null;
+  reps: DayRepBreakdown[];
+} | null;
+
+export async function fetchDaySummary(input: {
+  dayId: string;
+  dim: MuscleGroupId;
+}): Promise<FetchDaySummaryResult> {
+  const user = await currentUser();
+  if (!user?.id) return null;
+  const [comparison, repsBreakdown] = await Promise.all([
+    getMuscleGroupComparison(user.id, input.dim, input.dayId),
+    getDayRepsBreakdown(input.dayId),
+  ]);
+  return { comparison, reps: repsBreakdown };
 }
 
 // ─── Rep tagging on completion ───────────────────────────────────────────
