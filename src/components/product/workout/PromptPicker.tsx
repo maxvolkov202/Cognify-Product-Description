@@ -17,7 +17,6 @@ import {
   useState,
 } from "react";
 import { Loader2, RefreshCcw } from "lucide-react";
-import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import {
   fetchPromptCandidates,
   logPromptSelection,
@@ -31,7 +30,6 @@ import { cn } from "@/lib/utils/cn";
 import PromptCard from "./PromptCard";
 import RuleReminder from "./RuleReminder";
 
-const IDLE_TIMEOUT_MS = 15_000;
 const CANDIDATES_PER_CYCLE = 5;
 
 export type PromptPickerProps = {
@@ -52,6 +50,9 @@ export type PromptPickerProps = {
     mode: "shuffle" | "list" | "surprise" | "auto_idle";
   }) => void;
   onSkip?: () => void;
+  /** Phase HB-4 — Cancel workout. Returns the user to landing while
+   *  preserving the muscle_group_day so they can resume later. */
+  onCancelWorkout?: () => void;
 };
 
 export default function PromptPicker({
@@ -63,6 +64,7 @@ export default function PromptPicker({
   personalize = false,
   onSelect,
   onSkip,
+  onCancelWorkout,
 }: PromptPickerProps) {
   const [state, dispatch] = useReducer(pickerReducer, undefined, initialPickerState);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,21 +103,11 @@ export default function PromptPicker({
     });
   }, [exerciseId, personalize, isCycling]);
 
-  // Idle auto-pick: 15s without interaction → auto_idle event + pick the
-  // top candidate. Stops the user from getting stuck if they wander off.
-  useIdleTimeout({
-    timeoutMs: IDLE_TIMEOUT_MS,
-    enabled: !state.selectedPromptId && !isLoading,
-    onIdle: () => {
-      const top = state.shuffleCandidates[0];
-      if (!top) return;
-      void persistAndAdvance({
-        promptId: top.id,
-        promptText: top.text,
-        mode: "auto_idle",
-      });
-    },
-  });
+  // Phase HB-4 — disabled the 15s idle auto-pick. Max's 2026-05-22
+  // report: the auto-advance was firing while users were still reading
+  // prompts, making it feel like the picker wasn't waiting for them.
+  // The picker now stays open indefinitely until the user explicitly
+  // taps a prompt, cycles, or cancels.
 
   const persistAndAdvance = useCallback(
     async (params: {
@@ -237,6 +229,21 @@ export default function PromptPicker({
           </button>
         )}
       </div>
+
+      {/* Phase HB-4 — Cancel workout. Returns the user to landing
+          (idle phase) while preserving the muscle_group_day in the DB.
+          When they come back, the picker reopens at the same station. */}
+      {onCancelWorkout && (
+        <div className="text-center mt-2">
+          <button
+            type="button"
+            onClick={onCancelWorkout}
+            className="text-xs text-slate-400 hover:text-slate-600 underline-offset-2 hover:underline"
+          >
+            ← Cancel workout
+          </button>
+        </div>
+      )}
     </div>
   );
 }

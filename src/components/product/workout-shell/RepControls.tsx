@@ -56,6 +56,8 @@ export type RepControlsProps = {
   onAdvanceNow?: () => void;
   onAcceptGraduation?: () => void;
   onSkipGraduation?: () => void;
+  /** Phase HB-4 — Cancel workout (returns to landing; preserves day). */
+  onCancelWorkout?: () => void;
 };
 
 export default function RepControls({
@@ -75,6 +77,7 @@ export default function RepControls({
   onAdvanceNow,
   onAcceptGraduation,
   onSkipGraduation,
+  onCancelWorkout,
 }: RepControlsProps) {
   return (
     <div
@@ -96,6 +99,7 @@ export default function RepControls({
             why={station.why}
             workoutSessionId={workoutSessionId}
             personalize={personalize}
+            {...(onCancelWorkout ? { onCancelWorkout } : {})}
             onSelect={(params) =>
               onPromptSelected?.({
                 promptId: params.promptId,

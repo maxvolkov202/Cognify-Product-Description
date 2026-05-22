@@ -76,6 +76,18 @@ function WorkoutShellInner({
     send({ type: "ADVANCE" });
   }, [send]);
 
+  // Phase HB-4 — Cancel workout. UI-only escape hatch: a local override
+  // that flips us back to landing-shape rendering even though the
+  // muscle_group_day still exists in DB. On Start re-tap, the override
+  // clears and startMuscleGroupDay's idempotent branch reuses the day,
+  // dropping the user back into the picker at the current station.
+  const [cancelledLocally, setCancelledLocally] = useState(false);
+  const onCancelWorkout = useCallback(() => {
+    setCancelledLocally(true);
+  }, []);
+  // onResumeAfterCancel is declared LATER, after onStartWorkout, so it
+  // can reference it without hitting TDZ.
+
   const onRepScored = useCallback(
     (params: { composite: number | null; repId: string; failure: boolean }) => {
       if (params.failure) {
@@ -113,6 +125,15 @@ function WorkoutShellInner({
       if (typeof window !== "undefined") window.location.reload();
     });
   }, []);
+
+  // HB-4 — Resume after Cancel: clear the override + fire Start. The
+  // server action's idempotent branch reuses the still-existing day,
+  // and the reload drops the user back into the picker at their last
+  // station.
+  const onResumeAfterCancel = useCallback(() => {
+    setCancelledLocally(false);
+    onStartWorkout();
+  }, [onStartWorkout]);
 
   const station =
     state.stations[state.currentStationIndex] ??
@@ -195,7 +216,7 @@ function WorkoutShellInner({
       {/* Personalization toggle. Only renders in idle (before the
           workout starts) — switching mid-rep would invalidate the
           current prompt selection. */}
-      {state.phase === "idle" && (
+      {(state.phase === "idle" || cancelledLocally) && (
         <div className="mt-4">
           <PersonalizeSwitch
             value={personalize}
@@ -204,10 +225,13 @@ function WorkoutShellInner({
         </div>
       )}
 
-      {/* Main interactive slot: StartCard in idle, RepControls otherwise. */}
+      {/* Main interactive slot: StartCard in idle (or after Cancel),
+          RepControls otherwise. cancelledLocally is the HB-4 escape
+          hatch — flips the view back to landing without touching the
+          DB row. */}
       <div className="mt-5">
         <AnimatePresence mode="wait" initial={false}>
-          {state.phase === "idle" ? (
+          {state.phase === "idle" || cancelledLocally ? (
             <motion.div
               key="start-card"
               initial={{ opacity: 0, y: 10 }}
@@ -215,7 +239,9 @@ function WorkoutShellInner({
               exit={{ opacity: 0, y: -16, scale: 0.96 }}
               transition={{ duration: 0.28, ease: "easeOut" }}
             >
-              <StartCard onStart={onStartWorkout} />
+              <StartCard
+                onStart={cancelledLocally ? onResumeAfterCancel : onStartWorkout}
+              />
             </motion.div>
           ) : (
             <motion.div
@@ -242,6 +268,7 @@ function WorkoutShellInner({
                 onAdvanceNow={onAdvanceNow}
                 onAcceptGraduation={onAcceptGraduation}
                 onSkipGraduation={onSkipGraduation}
+                onCancelWorkout={onCancelWorkout}
               />
             </motion.div>
           )}
