@@ -20,6 +20,7 @@ import {
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
+import { isMuscleGroupWorkoutEnabled } from "@/lib/flags";
 
 export const dynamic = "force-dynamic";
 
@@ -183,6 +184,14 @@ async function fetchTodaysDayPayload(
 }
 
 export default async function WorkoutPage() {
+  // Phase 15 — feature-flag gate. Production launches with the flag
+  // off; flip FF_MUSCLE_GROUP_WORKOUT=true on Vercel once smoke + KPI
+  // gates pass. Off-state renders BetaSoon (legacy WorkoutSession is
+  // archived; reanimating it would be its own restore PR).
+  if (!isMuscleGroupWorkoutEnabled()) {
+    return <BetaSoon />;
+  }
+
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
   const payload = await fetchTodaysDayPayload(userId);
@@ -202,4 +211,29 @@ export default async function WorkoutPage() {
   }
 
   return <WorkoutShell payload={payload} />;
+}
+
+function BetaSoon() {
+  return (
+    <div className="min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex items-center justify-center px-6">
+      <div className="max-w-md text-center space-y-4">
+        <h1 className="text-2xl font-semibold">Workout&apos;s getting a refresh</h1>
+        <p className="text-sm text-slate-400 leading-relaxed">
+          We&apos;re finishing the new muscle-group flow — brain mascot, 4-rep
+          days, and progression tracking that ties it all together. Back
+          soon.
+        </p>
+        <p className="text-xs text-slate-500">
+          In the meantime, Practice (formerly Skill Lab) is still up for
+          targeted drills and custom reps.
+        </p>
+        <a
+          href="/skill-lab"
+          className="inline-block mt-2 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
+        >
+          Go to Practice
+        </a>
+      </div>
+    </div>
+  );
 }

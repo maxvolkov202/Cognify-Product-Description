@@ -1140,7 +1140,9 @@ Tap-revealed mascot tooltips stay in voice: "She's loading her playlist…", "Ca
 
 ---
 
-## Phase 15 — Verification + launch `[ ]`
+## Phase 15 — Verification + launch `[~]`
+
+> **2026-05-22 — partial ship.** Launch scaffolding in place; the manual smoke + KPI gates require Max + real-API credit access. `src/lib/flags.ts` exports `isMuscleGroupWorkoutEnabled()` — server-side flag reading FF_MUSCLE_GROUP_WORKOUT. Defaults: on in dev/preview, off in production unless explicitly set. `src/app/(app)/workout/page.tsx` short-circuits to a `BetaSoon` placeholder when flag is off (legacy WorkoutSession is archived at `src/components/_archive/`; reanimating it for a true-legacy serve is a separate restore PR if ever needed). `.env.example` documents the flag. Full launch checklist at `plans/muscle-group-pivot-launch-checklist.md` covers pre-merge automated + manual gates, scoring drift check, rollout phases (Phase 0 → 5% → 25% → 100%, ≥24h observation each), KPI gates, rollback procedure (~5min), and the known-deferral list. **Deferred to launch session w/ Max:** smoke matrix execution on real device, 48-rep calibration replay w/ API credits, KPI gates at each rollout step. Build green.
 
 **Goal:** Prove the muscle-group Workout pivot ships without regressing scoring quality, Skill Lab, or `/ops/calibration/drift` — and can be rolled back in <5 minutes if it does.
 
