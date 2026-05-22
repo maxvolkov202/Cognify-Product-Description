@@ -69,6 +69,9 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
       daysSince: z.number().int().min(0),
     })
     .nullable(),
+  /** Phase 10 — engagement-loop signals for the header pill. */
+  streakDays: z.number().int().nullable(),
+  streakFreezes: z.number().int().nullable(),
   /** Sparse: only present once today's day is complete. */
   todaysComposite: z.number().nullable(),
   rationale: z.string().nullable(),
@@ -90,6 +93,8 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   workoutSessionId: null,
   previousDayComposite: null,
   lastDay: null,
+  streakDays: null,
+  streakFreezes: null,
   todaysComposite: null,
   rationale: null,
 };

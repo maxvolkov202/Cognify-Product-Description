@@ -37,6 +37,9 @@ export type MuscleGroupHeaderProps = {
   /** Legacy prop from Phase 5; kept for backward compat. Used as a
    *  fallback when lastDay isn't passed. */
   previousDayComposite?: number | null;
+  /** Phase 10 — streak count + freezes balance for the engagement pill. */
+  streakDays?: number | null;
+  streakFreezes?: number | null;
 };
 
 type BannerVariant =
@@ -92,6 +95,8 @@ export default function MuscleGroupHeader({
   rationale,
   lastDay,
   previousDayComposite,
+  streakDays,
+  streakFreezes,
 }: MuscleGroupHeaderProps) {
   const variant = dim ? pickVariant(lastDay, previousDayComposite) : { kind: "none" as const };
   const banner = dim ? bannerCopy(variant, dim) : null;
@@ -135,6 +140,22 @@ export default function MuscleGroupHeader({
         <p className="text-sm text-slate-400 max-w-md">{rationale}</p>
       )}
       {banner && <p className="text-xs text-slate-300">{banner}</p>}
+      {(streakDays != null || streakFreezes != null) && (
+        <div className="flex items-center gap-2 mt-1">
+          {streakDays != null && streakDays > 0 && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-200 border border-orange-400/30 text-[11px] font-medium">
+              <span aria-hidden>🔥</span>
+              {streakDays}d streak
+            </span>
+          )}
+          {streakFreezes != null && streakFreezes > 0 && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-200 border border-sky-400/30 text-[11px] font-medium">
+              <span aria-hidden>❄</span>
+              {streakFreezes} freeze{streakFreezes === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+      )}
     </header>
   );
 }

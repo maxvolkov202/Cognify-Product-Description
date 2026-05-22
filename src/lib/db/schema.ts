@@ -148,6 +148,10 @@ export const users = cognifyV2Schema.table("users", {
   // WS-8 PWA install prompt gate — cross-device rep count (was
   // previously client-localStorage only).
   completedRepsCount: integer("completed_reps_count").notNull().default(0),
+  // Phase 10 — IANA timezone string ('America/New_York', 'UTC'…). The
+  // muscle-group rollover cron closes each day at user-local midnight.
+  // Best-effort inferred client-side on first launch; defaults to UTC.
+  tz: text("tz").notNull().default("UTC"),
 });
 
 export const teams = cognifyV2Schema.table("teams", {
@@ -1094,6 +1098,11 @@ export const muscleGroupDays = cognifyV2Schema.table(
     ),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    // Phase 10 — lifecycle close-out columns.
+    graduatedAt: timestamp("graduated_at", { withTimezone: true }),
+    closedOutAt: timestamp("closed_out_at", { withTimezone: true }),
+    /** When the day was closed as frozen_skip, the freeze-grant date. */
+    freezeAppliedDate: date("freeze_applied_date"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -1101,6 +1110,35 @@ export const muscleGroupDays = cognifyV2Schema.table(
   (t) => [
     index("mgd_user_date_uniq_idx").on(t.userId, t.dayDate),
     index("mgd_user_dim_date_idx").on(t.userId, t.dimension, t.dayDate),
+  ],
+);
+
+/**
+ * Phase 10 — user-facing notifications surfaced by the missed-day
+ * modal, the freeze-consumed toast, etc. Generic shape so future
+ * push-notification work doesn't need a new table.
+ */
+export const userNotifications = cognifyV2Schema.table(
+  "user_notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** freeze_consumed | day_missed | day_complete | day_partial */
+    kind: text("kind").notNull(),
+    payload: jsonb("payload").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("user_notifications_user_idx").on(
+      t.userId,
+      t.readAt,
+      t.createdAt,
+    ),
   ],
 );
 

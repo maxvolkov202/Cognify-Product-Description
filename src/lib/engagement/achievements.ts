@@ -58,7 +58,18 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: "explore_focus_drill", bucket: "exploration", name: "Focused", description: "Complete a Skill Lab focus drill.", tier: "bronze" },
   { id: "explore_build_a_rep", bucket: "exploration", name: "Tailored", description: "Use Build-a-Rep for a real moment.", tier: "bronze" },
   { id: "explore_first_perfect", bucket: "exploration", name: "No Notes", description: "Hit 95+ on every dimension in a single rep.", tier: "platinum" },
+
+  // ——— Muscle-group (Phase 10) ————————————————————————
+  { id: "mg_day_complete_first", bucket: "exploration", name: "Day One", description: "Complete your first muscle-group day (4 reps).", tier: "bronze" },
+  { id: "mg_day_complete_streak_7", bucket: "streak", name: "Seven Strong", description: "Complete 7 muscle-group days in a row.", tier: "silver" },
+  { id: "mg_graduated_first", bucket: "exploration", name: "Graduation", description: "Finish your first graduation rep.", tier: "silver" },
 ];
+
+// Phase 10 — bonus XP awarded when a user opts in + finishes a graduation
+// rep. Awarded regardless of the rep's score (the reward is for opting
+// in + completing, not for hitting a threshold). Single source of truth
+// so balance can be tuned without code churn.
+export const GRADUATION_REP_BONUS_XP = 25;
 
 /** Unique achievement ids — type-narrowing helper for runtime checks. */
 export const ACHIEVEMENT_IDS = ACHIEVEMENTS.map((a) => a.id);

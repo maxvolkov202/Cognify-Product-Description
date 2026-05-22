@@ -14,6 +14,7 @@ import type { WorkoutShellHydratedPayload } from "@/lib/workout/types";
 import MuscleGroupHeader from "./MuscleGroupHeader";
 import MascotStage from "./MascotStage";
 import RepControls from "./RepControls";
+import MissedDayModal from "./MissedDayModal";
 
 export type WorkoutShellProps = {
   payload: WorkoutShellHydratedPayload;
@@ -147,7 +148,10 @@ function WorkoutShellInner({
         rationale={payload.rationale}
         lastDay={payload.lastDay}
         previousDayComposite={payload.previousDayComposite}
+        streakDays={payload.streakDays}
+        streakFreezes={payload.streakFreezes}
       />
+      <MissedDayModal />
 
       <main className="flex flex-col items-center justify-end min-h-0">
         <MascotStage

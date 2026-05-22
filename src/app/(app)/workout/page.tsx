@@ -19,6 +19,7 @@ import {
 } from "@/lib/workout/types";
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,10 @@ async function fetchTodaysDayPayload(
       // No active day yet → empty shell + suggestion rationale + prior-day
       // banner data for the suggested dim.
       const suggestion = await suggestTodaysMuscleGroup();
-      const lastDay = await getLastMuscleGroupDay(userId, suggestion.suggested);
+      const [lastDay, streak] = await Promise.all([
+        getLastMuscleGroupDay(userId, suggestion.suggested),
+        getStreakStatus(userId),
+      ]);
       return {
         ...EMPTY_SHELL_PAYLOAD,
         rationale: suggestion.rationale,
@@ -62,6 +66,8 @@ async function fetchTodaysDayPayload(
               daysSince: lastDay.daysSince,
             }
           : null,
+        streakDays: streak?.streakDays ?? null,
+        streakFreezes: streak?.freezesAvailable ?? null,
       };
     }
 
@@ -107,6 +113,9 @@ async function fetchTodaysDayPayload(
       };
       return [station];
     });
+
+    // Streak + freezes for Phase 10's header pill.
+    const streak = await getStreakStatus(userId);
 
     // Most recent prior day in the same dim — for Phase 9's banner.
     const [previousDay] = await db
@@ -165,6 +174,8 @@ async function fetchTodaysDayPayload(
             daysSince: 0,
           }
         : null,
+      streakDays: streak?.streakDays ?? null,
+      streakFreezes: streak?.freezesAvailable ?? null,
       todaysComposite: day.compositeAtClose,
       rationale: null,
     };

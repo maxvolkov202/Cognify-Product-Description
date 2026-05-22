@@ -762,7 +762,9 @@ Retrospective is the emotionally loaded screen — flawless at 375px. Full-scree
 
 ---
 
-## Phase 10 — Streak + missed-day handling `[ ]`
+## Phase 10 — Streak + missed-day handling `[x]`
+
+> **2026-05-22:** Engagement-loop mechanics shipped. Migration 0023 adds `graduated_at`, `closed_out_at`, `freeze_applied_date` to `muscle_group_days`; `tz` (IANA, default UTC) to users; new `cognify_v2.user_notifications` table for the missed-day/freeze/complete modal. Pure `decideStatus()` + DB-touching `closeOutDay()` in `src/lib/muscle-groups/day-status.ts` resolves 5 end-states (complete / complete_graduated / partial / frozen_skip / missed) with deterministic streak-preserved + freeze-consume + baseline-set semantics. `bumpDayStatusOnRepSave()` updates the in-progress status on each rep insert. Hourly cron at `/api/cron/muscle-group-day-rollover` scans for open past-local-midnight days, respects a 60min grace window, calls `closeOutDay()`, idempotent on re-run. New achievements (`mg_day_complete_first`, `mg_day_complete_streak_7`, `mg_graduated_first`) + `GRADUATION_REP_BONUS_XP = 25` constant in `src/lib/engagement/achievements.ts`. UI: streak + freezes pill in `MuscleGroupHeader`, `MissedDayModal` with 4 copy variants mounted in `WorkoutShell`, `fetchPendingDayNotification`/`markNotificationRead` server actions. 33 pure-function tests cover all 5 end-states + idempotency + edge cases. **Deferred to manual verification:** end-to-end cron run with seeded missed-day fixtures, tz inference on first launch (PATCH /api/me/tz endpoint not yet built — falls back to UTC). Build green, 79 unit tests pass.
 
 **Goal:** Wire the engagement-loop mechanics for per-day muscle-group product — define what "showing up" means, close out each day with final status, reuse existing streak-freeze rails.
 
