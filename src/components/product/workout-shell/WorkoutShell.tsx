@@ -5,7 +5,8 @@
 // src/lib/workout/use-workout-session.tsx — the provider now drives
 // the state machine, persistence, mascot orchestration, and timers.
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import {
   WorkoutSessionProvider,
@@ -70,8 +71,24 @@ function WorkoutShellInner({
     // re-open the picker mid-rep.
   }, []);
 
+  // Ready-stance window: brief moment where the mascot flexes and the
+  // landing CTA fades out before the prompt picker animates in. Pure UI
+  // flourish — the state machine still transitions immediately so any
+  // downstream consumers see the actual phase change without delay.
+  const [readyStance, setReadyStance] = useState(false);
+  const readyStanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (readyStanceTimer.current) clearTimeout(readyStanceTimer.current);
+    },
+    [],
+  );
+
   const onStartWorkout = useCallback(() => {
+    setReadyStance(true);
     send({ type: "START" });
+    if (readyStanceTimer.current) clearTimeout(readyStanceTimer.current);
+    readyStanceTimer.current = setTimeout(() => setReadyStance(false), 900);
   }, [send]);
 
   const onPromptSelected = useCallback(
@@ -174,7 +191,9 @@ function WorkoutShellInner({
     >
       <MissedDayModal />
 
-      {/* Top: mascot walks across station path. Compresses in-workout. */}
+      {/* Top: mascot walks across station path. Compresses in-workout.
+          During the ready-stance window the mascot does a flex/warmup
+          while the gradient CTA fades out. */}
       <MascotPathStrip
         phase={state.phase}
         stations={state.stations}
@@ -182,6 +201,7 @@ function WorkoutShellInner({
         dim={payload.dimension}
         lastScore={state.lastScore}
         compact={inWorkout}
+        forceMascotState={readyStance ? "celebrating-rep" : null}
       />
 
       {/* Hero: dim badge, "Today: {Dim}", rationale, banner copy. */}
@@ -203,12 +223,29 @@ function WorkoutShellInner({
         streakFreezes={payload.streakFreezes ?? null}
       />
 
-      {/* Main interactive slot. Morphs by phase. */}
+      {/* Main interactive slot. Morphs by phase with a fade/slide
+          animation so the StartCard → picker transition feels guided. */}
       <div className="mt-5">
-        {state.phase === "idle" ? (
-          <StartCard onStart={onStartWorkout} />
-        ) : (
-          <RepControls
+        <AnimatePresence mode="wait" initial={false}>
+          {state.phase === "idle" ? (
+            <motion.div
+              key="start-card"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+            >
+              <StartCard onStart={onStartWorkout} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`controls-${state.phase}`}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.32, ease: "easeOut", delay: 0.05 }}
+            >
+              <RepControls
             phase={state.phase}
             station={station}
             workoutSessionId={payload.workoutSessionId}
@@ -224,8 +261,10 @@ function WorkoutShellInner({
             onAdvanceNow={onAdvanceNow}
             onAcceptGraduation={onAcceptGraduation}
             onSkipGraduation={onSkipGraduation}
-          />
-        )}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Today's Training list — always visible, current station

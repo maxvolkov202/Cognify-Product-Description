@@ -57,6 +57,10 @@ export type MascotPathStripProps = {
   /** Compact mode: shrinks strip height + mascot size for in-workout
    *  phases. Default false (full landing-screen height). */
   compact?: boolean;
+  /** Optional override of the mascot state derived from `phase`. Used
+   *  by the shell to flash a `flexing` ready-stance during the
+   *  Start-tap → first-prompt transition. */
+  forceMascotState?: MascotState | null;
 };
 
 export default function MascotPathStrip({
@@ -66,8 +70,12 @@ export default function MascotPathStrip({
   dim,
   lastScore,
   compact = false,
+  forceMascotState,
 }: MascotPathStripProps) {
-  const mascotState = useMemo(() => mascotStateForPhase(phase), [phase]);
+  const mascotState = useMemo(
+    () => forceMascotState ?? mascotStateForPhase(phase),
+    [phase, forceMascotState],
+  );
 
   // Default 4-station fill when no day yet (landing pre-Start CTA).
   const slots: (ShellStation | null)[] = useMemo(() => {
