@@ -104,7 +104,19 @@ function WorkoutShellInner({
     [send],
   );
 
-  const onAdvanceNow = useCallback(() => send({ type: "ADVANCE" }), [send]);
+  const onAdvanceNow = useCallback(() => {
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        JSON.stringify({
+          event: "workout_shell.advance_now",
+          ts: new Date().toISOString(),
+          fromPhase: state.phase,
+          currentStationIndex: state.currentStationIndex,
+        }),
+      );
+    }
+    send({ type: "ADVANCE" });
+  }, [send, state.phase, state.currentStationIndex]);
   const onAcceptGraduation = useCallback(
     () => send({ type: "ACCEPT_GRADUATION" }),
     [send],
@@ -219,6 +231,7 @@ function WorkoutShellInner({
           dim={payload.dimension}
           stations={state.stations}
           currentStationIndex={state.currentStationIndex}
+          onBack={onCancelWorkout}
         />
       )}
 

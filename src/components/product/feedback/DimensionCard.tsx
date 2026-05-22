@@ -155,7 +155,13 @@ function CalloutDetail({ callout }: { callout: Callout }) {
 
       <p className="mt-2 text-[13px] leading-relaxed text-ink-600">
         <span className={cn("font-semibold", accentText)}>
-          {isPositive ? "Why it worked: " : "Why it's an issue: "}
+          {isPositive
+            ? callout.quote
+              ? "Why it worked: "
+              : "What worked across the response: "
+            : callout.quote
+              ? "Why it's an issue: "
+              : "Across the response: "}
         </span>
         {callout.body}
       </p>
@@ -164,7 +170,7 @@ function CalloutDetail({ callout }: { callout: Callout }) {
         <div className="mt-3 rounded-lg border border-ink-200 bg-white px-3 py-2.5">
           <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
             <Sparkles className="size-3" strokeWidth={2.5} aria-hidden="true" />
-            Try instead
+            {callout.quote ? "Try instead" : "Guiding principle"}
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-ink-800">
             &ldquo;{callout.suggestedRewrite}&rdquo;

@@ -86,17 +86,12 @@ export function WorkoutSessionProvider({
 
   // ─── Side effects keyed off phase transitions ───────────────────────
 
-  // 1) Auto-advance 5s after score-reveal.
-  useEffect(() => {
-    if (state.phase !== "score-reveal") {
-      cancelAdvance();
-      return;
-    }
-    advanceTimerRef.current = setTimeout(() => {
-      send({ type: "ADVANCE" });
-    }, AUTO_ADVANCE_MS);
-    return () => cancelAdvance();
-  }, [state.phase, send, cancelAdvance]);
+  // 1) Auto-advance after score-reveal — DISABLED 2026-05-22 per Max's
+  //    HC-2 feedback. The 5s timer was firing while users were still
+  //    reading the feedback panel, making it look like the "Next
+  //    station →" button didn't work (it had already advanced silently).
+  //    Advance is now purely user-driven via the FeedbackPanel CTA.
+  void cancelAdvance; // kept for the cancelAdvance ref; no longer used here
 
   // 2) Mascot walk timer — match the visual transition duration.
   useEffect(() => {

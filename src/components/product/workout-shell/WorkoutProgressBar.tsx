@@ -5,7 +5,7 @@
 // actually in a station. Shows: dim day label, current rep #/total,
 // current exercise name, and 4 status dots.
 
-import { Check, Mic } from "lucide-react";
+import { ArrowLeft, Check, Mic } from "lucide-react";
 import { motion } from "motion/react";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import type { ShellStation } from "@/lib/workout/types";
@@ -15,12 +15,16 @@ export type WorkoutProgressBarProps = {
   dim: MuscleGroupId | null;
   stations: ShellStation[];
   currentStationIndex: number;
+  /** Back arrow handler — returns to landing without discarding the
+   *  day. When unset, the back arrow is hidden. */
+  onBack?: () => void;
 };
 
 export default function WorkoutProgressBar({
   dim,
   stations,
   currentStationIndex,
+  onBack,
 }: WorkoutProgressBarProps) {
   const totalStations = stations.length || 4;
   const currentStation = stations[currentStationIndex] ?? null;
@@ -29,7 +33,17 @@ export default function WorkoutProgressBar({
   return (
     <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/80 via-white to-violet-50/60 p-4 sm:p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Back to start"
+            className="shrink-0 w-9 h-9 rounded-full bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600">
             {dimLabel} Day · Rep {Math.min(currentStationIndex + 1, totalStations)} of {totalStations}
           </div>

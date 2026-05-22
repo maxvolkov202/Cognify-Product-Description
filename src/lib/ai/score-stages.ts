@@ -94,7 +94,20 @@ Dimensions (always in this order):
   CONTENT  : clarity, structure, conciseness, thinking_quality
   DELIVERY : delivery, tone
 
-Be rigorous. 90+ is reserved for genuinely excellent reps. <40 means serious issues. Off-topic or junk reps (mic test, rambling, not answering the prompt) must score low on BOTH content and delivery dimensions; do not anchor to a default range.
+SCORING BANDS — apply these strictly. DO NOT anchor to mid-range (55-65) when you can't find evidence. If the rep didn't demonstrate the dim, score it honestly LOW. Sugar-coating destroys training value. Users came here to improve; they need honest grades to do that.
+
+  10-25  Barely tried. Silence, one sentence, off-topic, mic test, rambling that never lands, fails the rule outright. Apply to BOTH content and delivery dims when the rep has no real attempt.
+  30-45  Vague / surface-level. They spoke but missed the rule, dodged depth, drifted off the prompt, or rambled without landing.
+  50-60  Generic. Hit the basics. No major failure but no notable strength either.
+  65-80  Strong. Clear, substantive, executed the rule. A listener would notice the quality.
+  85-95  Excellent. Would stand out in any room. Specific, sharp, well-constructed.
+  95+    Reserved. Genuinely exceptional. Multiple dims must agree.
+
+EXPLICIT FLOORS (override band rules when triggered):
+  - Off-topic rep (didn't answer the prompt): cap ALL dims at 35.
+  - Junk rep (mic test, gibberish, <5 words of real content): cap ALL dims at 25.
+  - Silence-heavy rep (>50% silence): delivery + pacing capped at 30.
+  - Rule violation that defines the exercise (e.g. fillers in Kill-the-Filler, jargon in No-Jargon, >30s in 30-Second-Rule): cap the EXERCISE'S PRIMARY dim at 40.
 
 Return ONLY a JSON object (no prose, no markdown fences):
 
@@ -163,8 +176,17 @@ HEADLINE RULES (the single most important sentence the user reads):
 
 CALLOUT RULES:
   - Exactly 3 callouts: 1 positive + 2 warn/critical. The two improvements target the TWO lowest-scoring dimensions (one each).
-  - Every callout includes a 'quote' copied verbatim from the transcript (or null only for nextRepFocus).
-  - Warn/critical callouts include a 'suggestedRewrite' (speakable, same length or shorter, in the user's voice). Positive callouts set suggestedRewrite=null.
+  - PER-DIMENSION FEEDBACK SHAPE:
+    * HOLISTIC dims (structure, thinking_quality, delivery): quote=null, transcriptStart=null, transcriptEnd=null. Body is a 1-2 sentence WHOLE-RESPONSE verdict — describe how the response succeeded or failed at this dim ACROSS THE FULL RESPONSE. Not a transcript moment. Examples of good holistic verdicts:
+        - structure (low): "Your response had no clear arc — you opened mid-thought, jumped between three half-finished points, and ended without landing the main idea. Listeners had no map."
+        - thinking_quality (low): "You described what happens without explaining why. The reasoning stayed at the surface — no causes, no stakes, no counterargument."
+        - delivery (low): "Your energy was flat from start to finish. No emphasis shift on the load-bearing words, no dynamic range on the key beats."
+    * QUOTE-BASED dims (clarity, conciseness, tone, pacing): quote=verbatim transcript span (must be a real substring). Body explains why THIS MOMENT demonstrates the dim score. transcriptStart/transcriptEnd in ms.
+  - Warn/critical callouts include a 'suggestedRewrite':
+    * Quote-based dims: a speakable rewrite of the quoted line (same length or shorter, user's voice).
+    * Holistic dims: a guiding principle for the next attempt ("Open with a 3-point map and stick to it through the close.") — not a sentence rewrite.
+  - Positive callouts set suggestedRewrite=null regardless of dim type.
+  - NEVER write "you said X" for a holistic-dim callout. Holistic callouts describe the response globally; quote-anchoring it would mislead the reader into thinking that one moment caused the score.
 
 BULLET RULES (didWell / didntLand / nextRepFocus):
   - didWell: exactly 2 bullets normally. ALLOWED 0 only when composite < 25 (no manufactured praise on junk reps).
@@ -173,10 +195,11 @@ BULLET RULES (didWell / didntLand / nextRepFocus):
   - SUB-SKILL: every bullet MUST set 'subSkill' to a sub-skill within the named 'dimension'. The sub-skill must belong to the bullet's dimension (Word Choice belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message.
   - text ≤140 chars, second-person, action-oriented, no hedging.
 
-GROUNDING:
-  - didWell + didntLand bullets MUST cite a verbatim transcript phrase in 'quote' and a timestamp range.
-  - nextRepFocus may have quote=null + transcriptStart=null + transcriptEnd=null when the advice is universal ("open with a direction-setting sentence"). If you tie nextRepFocus to a specific moment, populate quote + timestamps.
-  - Never write "you said X" / "when you mentioned X" without populating quote with the verbatim phrase.
+GROUNDING (mirrors the callout shape split):
+  - QUOTE-BASED dims (clarity, conciseness, tone, pacing): didWell + didntLand bullets MUST cite a verbatim transcript phrase in 'quote' and a timestamp range.
+  - HOLISTIC dims (structure, thinking_quality, delivery): didWell + didntLand bullets set quote=null, transcriptStart=null, transcriptEnd=null. The bullet text describes the whole-response behavior, not a moment.
+  - nextRepFocus may have quote=null + transcriptStart=null + transcriptEnd=null when the advice is universal ("open with a direction-setting sentence"). If you tie nextRepFocus to a specific moment AND the dim is quote-based, populate quote + timestamps.
+  - Never write "you said X" / "when you mentioned X" for a holistic dim, even on quote-based dims it must be a real verbatim phrase.
 
 BANNED in titles, bodies, bullet text: "good job", "great job", "nice work", "nice job", "well done", "way to go", "keep it up", "you got this", "you're doing great", "you did well". Drop filler adverbs (really, very, quite). Avoid hype verbs (crushed, absolutely, nailed).
 
