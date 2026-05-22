@@ -16,8 +16,7 @@ import {
 import type { WorkoutShellHydratedPayload } from "@/lib/workout/types";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import MuscleGroupHeader from "./MuscleGroupHeader";
-import MascotPathStrip from "./MascotPathStrip";
-import StartCard from "./StartCard";
+import AdventurePath from "./AdventurePath";
 import TrainingList from "./TrainingList";
 import RepControls from "./RepControls";
 import MissedDayModal from "./MissedDayModal";
@@ -194,8 +193,12 @@ function WorkoutShellInner({
   return (
     <div
       className={cn(
-        "min-h-[100dvh] w-full bg-slate-950 text-slate-100",
-        "max-w-3xl mx-auto px-4 sm:px-6 pb-12",
+        "min-h-[100dvh] w-full",
+        // Light theme override — workout's its own training-room feel
+        // distinct from the dark rest of the app. Subtle violet wash.
+        "bg-gradient-to-b from-violet-50 via-white to-violet-50/40",
+        "text-slate-900",
+        "max-w-2xl mx-auto px-4 sm:px-6 pb-12 pt-6",
       )}
       data-workout-shell
       data-phase={state.phase}
@@ -203,41 +206,46 @@ function WorkoutShellInner({
     >
       <MissedDayModal />
 
-      {/* Top: mascot walks across station path. Compresses in-workout.
-          During the ready-stance window the mascot does a flex/warmup
-          while the gradient CTA fades out. */}
-      <MascotPathStrip
-        phase={state.phase}
-        stations={state.stations}
-        currentStationIndex={state.currentStationIndex}
-        dim={payload.dimension}
-        lastScore={state.lastScore}
-        compact={inWorkout}
-        forceMascotState={readyStance ? "celebrating-rep" : null}
-      />
+      {/* Hero: dim badge, "Today: {Dim}", rationale. Light-theme styling
+          applied via inline tweaks; MuscleGroupHeader still does the
+          heavy lifting on banner copy + variant selection. */}
+      <div className="text-center">
+        <MuscleGroupHeader
+          dim={payload.dimension}
+          rationale={payload.rationale}
+          lastDay={payload.lastDay}
+          previousDayComposite={payload.previousDayComposite}
+          streakDays={payload.streakDays}
+          streakFreezes={payload.streakFreezes}
+        />
+      </div>
 
-      {/* Hero: dim badge, "Today: {Dim}", rationale, banner copy. */}
-      <MuscleGroupHeader
-        dim={payload.dimension}
-        rationale={payload.rationale}
-        lastDay={payload.lastDay}
-        previousDayComposite={payload.previousDayComposite}
-        streakDays={payload.streakDays}
-        streakFreezes={payload.streakFreezes}
-      />
+      {/* Adventure path — zig-zag station layout with curved connectors.
+          Replaces the previous horizontal MascotPathStrip. Active
+          station glows + handles the Start tap. */}
+      <div className="mt-2">
+        <AdventurePath
+          stations={state.stations}
+          currentStationIndex={state.currentStationIndex}
+          dim={payload.dimension}
+          {...(state.phase === "idle" && !readyStance
+            ? { onActivateCurrent: onStartWorkout }
+            : {})}
+        />
+      </div>
 
       {/* Pills row */}
-      <PillsRow
-        dim={payload.dimension}
-        stationCount={stationCount}
-        estimatedMinutes={estimatedMinutes}
-        streakDays={payload.streakDays ?? null}
-        streakFreezes={payload.streakFreezes ?? null}
-      />
+      <div className="mt-4">
+        <PillsRow
+          dim={payload.dimension}
+          stationCount={stationCount}
+          estimatedMinutes={estimatedMinutes}
+          streakDays={payload.streakDays ?? null}
+          streakFreezes={payload.streakFreezes ?? null}
+        />
+      </div>
 
-      {/* Today's Training list — placed ABOVE the main slot so the user
-          always sees what's coming up, even mid-workout. Highlights the
-          current station. */}
+      {/* Today's Training list — light theme. */}
       <div className="mt-5">
         <TrainingList
           stations={state.stations}
@@ -246,49 +254,40 @@ function WorkoutShellInner({
         />
       </div>
 
-      {/* Main interactive slot. Morphs by phase with a fade/slide
-          animation so the StartCard → picker transition feels guided. */}
-      <div className="mt-5">
-        <AnimatePresence mode="wait" initial={false}>
-          {state.phase === "idle" ? (
-            <motion.div
-              key="start-card"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16, scale: 0.96 }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
-            >
-              <StartCard onStart={onStartWorkout} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`controls-${state.phase}`}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.32, ease: "easeOut", delay: 0.05 }}
-            >
-              <RepControls
-            phase={state.phase}
-            station={station}
-            workoutSessionId={payload.workoutSessionId}
-            muscleGroupDayId={payload.dayId}
-            dimension={payload.dimension}
-            selectedPrompt={state.selectedPrompt}
-            lastScore={state.lastScore}
-            lastScoreFailure={state.lastScoreFailure}
-            onStartWorkout={onStartWorkout}
-            onPromptSelected={onPromptSelected}
-            onSkipStation={onSkipStation}
-            onRepScored={onRepScored}
-            onAdvanceNow={onAdvanceNow}
-            onAcceptGraduation={onAcceptGraduation}
-            onSkipGraduation={onSkipGraduation}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* Main interactive slot. Idle has no surface here — the
+          AdventurePath above IS the CTA (tap the glowing active
+          station to start). Non-idle phases render the picker /
+          recording / retrospective. */}
+      <AnimatePresence mode="wait" initial={false}>
+        {state.phase !== "idle" && (
+          <motion.div
+            key={`controls-${state.phase}`}
+            className="mt-5"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.32, ease: "easeOut", delay: 0.05 }}
+          >
+            <RepControls
+              phase={state.phase}
+              station={station}
+              workoutSessionId={payload.workoutSessionId}
+              muscleGroupDayId={payload.dayId}
+              dimension={payload.dimension}
+              selectedPrompt={state.selectedPrompt}
+              lastScore={state.lastScore}
+              lastScoreFailure={state.lastScoreFailure}
+              onStartWorkout={onStartWorkout}
+              onPromptSelected={onPromptSelected}
+              onSkipStation={onSkipStation}
+              onRepScored={onRepScored}
+              onAdvanceNow={onAdvanceNow}
+              onAcceptGraduation={onAcceptGraduation}
+              onSkipGraduation={onSkipGraduation}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
@@ -308,9 +307,9 @@ function PillsRow({
   streakFreezes: number | null;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-4 px-2 justify-center">
+    <div className="flex flex-wrap items-center gap-2 px-2 justify-center">
       {dim && (
-        <Pill className="bg-purple-500/20 border-purple-400/40 text-purple-100">
+        <Pill className="bg-purple-100 border-purple-200 text-purple-800">
           <span aria-hidden>●</span>
           {MUSCLE_GROUP_LABELS[dim]} Day
         </Pill>
@@ -324,7 +323,7 @@ function PillsRow({
         ~{estimatedMinutes} min
       </Pill>
       {streakDays != null && streakDays > 0 ? (
-        <Pill className="bg-orange-500/15 border-orange-400/30 text-orange-200">
+        <Pill className="bg-orange-100 border-orange-200 text-orange-700">
           <Flame className="w-3.5 h-3.5" />
           {streakDays}d streak
         </Pill>
@@ -335,7 +334,7 @@ function PillsRow({
         </Pill>
       )}
       {streakFreezes != null && streakFreezes > 0 && (
-        <Pill className="bg-sky-500/15 border-sky-400/30 text-sky-200">
+        <Pill className="bg-sky-100 border-sky-200 text-sky-700">
           <Snowflake className="w-3.5 h-3.5" />
           {streakFreezes} freeze{streakFreezes === 1 ? "" : "s"}
         </Pill>
@@ -355,7 +354,7 @@ function Pill({
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium",
-        "bg-slate-800/60 border-slate-700 text-slate-200",
+        "bg-white border-purple-200 text-purple-700",
         className,
       )}
     >

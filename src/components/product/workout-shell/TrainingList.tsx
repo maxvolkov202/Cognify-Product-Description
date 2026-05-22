@@ -23,26 +23,24 @@ export default function TrainingList({
   dim,
 }: TrainingListProps) {
   if (stations.length === 0) {
-    // Pre-Start placeholder — list slots so the panel has shape but no
-    // exercise names yet (those reveal on Start).
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 mb-3">
           Today&apos;s Training
         </div>
-        <ul className="space-y-2 opacity-60">
+        <ul className="space-y-2">
           {[1, 2, 3, 4].map((n) => (
             <li
               key={n}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-900/50"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50"
             >
-              <span className="w-7 h-7 rounded-full bg-slate-800 text-slate-500 text-sm font-semibold flex items-center justify-center">
+              <span className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold flex items-center justify-center">
                 {n}
               </span>
               <span className="flex-1 text-sm text-slate-500">
                 Revealed when you start
               </span>
-              <Lock className="w-3.5 h-3.5 text-slate-600" />
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
             </li>
           ))}
         </ul>
@@ -51,7 +49,7 @@ export default function TrainingList({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 mb-3">
         Today&apos;s Training
       </div>
@@ -86,8 +84,8 @@ function TrainingRow({
       className={cn(
         "flex items-center gap-3 px-3 py-3 rounded-xl border transition-colors",
         current
-          ? "bg-slate-900/80 border-slate-700"
-          : "bg-slate-900/30 border-transparent",
+          ? "bg-purple-50 border-purple-200"
+          : "bg-slate-50 border-transparent",
       )}
       data-current={current ? "true" : "false"}
     >
@@ -95,15 +93,15 @@ function TrainingRow({
         className={cn(
           "w-7 h-7 rounded-full text-sm font-semibold flex items-center justify-center shrink-0",
           isComplete
-            ? "bg-emerald-500/20 text-emerald-200"
+            ? "bg-emerald-500 text-white"
             : current
-              ? "bg-pink-500 text-white"
-              : "bg-slate-800 text-slate-300",
+              ? "bg-purple-600 text-white"
+              : "bg-purple-100 text-purple-700",
         )}
         aria-hidden="true"
       >
         {isComplete ? (
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-3.5 h-3.5" strokeWidth={3} />
         ) : (
           station.index + 1
         )}
@@ -113,13 +111,13 @@ function TrainingRow({
           <span
             className={cn(
               "font-semibold text-sm truncate",
-              current ? "text-slate-100" : "text-slate-200",
+              current ? "text-slate-900" : "text-slate-800",
             )}
           >
             {station.exerciseName}
           </span>
           {current && (
-            <Mic className="w-3.5 h-3.5 text-pink-300 shrink-0" />
+            <Mic className="w-3.5 h-3.5 text-purple-600 shrink-0" />
           )}
         </div>
         <div className="text-xs text-slate-500 truncate">
@@ -127,7 +125,7 @@ function TrainingRow({
           {station.rule}
         </div>
       </div>
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 shrink-0 tabular-nums">
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 shrink-0 tabular-nums">
         <span>{ESTIMATED_REP_SECONDS}s</span>
         {isLocked && <Lock className="w-3 h-3" />}
       </div>
