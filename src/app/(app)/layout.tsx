@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/shared/AppNav";
 import { InstallPrompt } from "@/components/product/InstallPrompt";
+import TimezoneDetector from "@/components/product/TimezoneDetector";
 import { SixSkillsBar } from "@/components/product/SixSkillsBar";
 import { SkillsFocusProvider } from "@/components/product/SkillsFocusContext";
 import { ReportBugButton } from "@/components/product/ReportBugButton";
@@ -65,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <InstallPrompt />
           <ReportBugButton />
           <LeavePromptModal />
+          {user ? <TimezoneDetector /> : null}
         </div>
       </SettingsDirtyProvider>
     </SkillsFocusProvider>
