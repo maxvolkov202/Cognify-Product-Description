@@ -91,6 +91,41 @@ async function fetchTodaysDayPayload(
             .where(drizzleSql`${exercises.id} = ANY(${exerciseIds}::uuid[])`)
         : [];
 
+    // Orphan-day self-heal: if planned exercise IDs reference rows that
+    // no longer exist (catalog re-seeded with new UUIDs while a prior
+    // day was open), fall through to the no-active-day branch so the
+    // Start CTA reappears. startMuscleGroupDay will then re-sample +
+    // update the existing row so the next render is clean.
+    if (exerciseIds.length > 0 && exerciseRows.length === 0) {
+      console.warn(
+        JSON.stringify({
+          event: "workout.day.orphaned",
+          userId,
+          dayId: day.id,
+          plannedCount: exerciseIds.length,
+          resolvedCount: 0,
+        }),
+      );
+      const suggestion = await suggestTodaysMuscleGroup();
+      const [lastDay, streak] = await Promise.all([
+        getLastMuscleGroupDay(userId, suggestion.suggested),
+        getStreakStatus(userId),
+      ]);
+      return {
+        ...EMPTY_SHELL_PAYLOAD,
+        rationale: suggestion.rationale,
+        dimension: suggestion.suggested,
+        lastDay: lastDay
+          ? {
+              lastComposite: lastDay.lastComposite,
+              daysSince: lastDay.daysSince,
+            }
+          : null,
+        streakDays: streak?.streakDays ?? null,
+        streakFreezes: streak?.freezesAvailable ?? null,
+      };
+    }
+
     const exById = new Map(exerciseRows.map((r) => [r.id, r]));
 
     const stations: ShellStation[] = exerciseIds.flatMap((id, index) => {

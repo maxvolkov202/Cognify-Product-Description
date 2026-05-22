@@ -123,182 +123,254 @@ const MascotCharacter = forwardRef<SVGSVGElement, MascotCharacterProps>(
         {...svgProps}
       >
         <defs>
-          <linearGradient id="mascot-brain-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f7a8e8" />
-            <stop offset="100%" stopColor="#c771ff" />
+          {/* Brain body — soft salmon → coral, matches the cute-brain reference. */}
+          <linearGradient id="mascot-brain-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffc1c1" />
+            <stop offset="100%" stopColor="#f08585" />
           </linearGradient>
+          {/* Brain highlight — subtle glossy top */}
+          <radialGradient id="mascot-brain-highlight" cx="0.5" cy="0.25" r="0.5">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
           <linearGradient id="mascot-dumbbell-grad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3b3349" />
             <stop offset="100%" stopColor="#1f1a29" />
           </linearGradient>
           <radialGradient id="mascot-cheek-grad" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%" stopColor="#ffb3e8" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="#ffb3e8" stopOpacity="0" />
+            <stop offset="0%" stopColor="#ff7a8a" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#ff7a8a" stopOpacity="0" />
           </radialGradient>
         </defs>
 
         <Layer layerName="ground-shadow" animated={animated} state={state}>
-          <ellipse cx="60" cy="150" rx="28" ry="4" fill="#1f1a29" opacity="0.18" />
+          <ellipse cx="60" cy="152" rx="26" ry="3.5" fill="#1f1a29" opacity="0.16" />
         </Layer>
 
+        {/* Limbs are coral, thin, with rounded feet/hands — cartoon-friendly. */}
         <Layer layerName="left-leg" animated={animated} state={state}>
           <line
             x1="52"
             y1="110"
             x2="48"
-            y2="146"
-            stroke="#3b3349"
-            strokeWidth="5.5"
+            y2="142"
+            stroke="#d05a5a"
+            strokeWidth="4.2"
             strokeLinecap="round"
           />
-          <ellipse cx="46" cy="148" rx="7" ry="3.2" fill="#1f1a29" />
+          {/* Shoe / foot */}
+          <ellipse cx="46" cy="146" rx="6.5" ry="3" fill="#b34a4a" />
         </Layer>
         <Layer layerName="right-leg" animated={animated} state={state}>
           <line
             x1="68"
             y1="110"
             x2="72"
-            y2="146"
-            stroke="#3b3349"
-            strokeWidth="5.5"
+            y2="142"
+            stroke="#d05a5a"
+            strokeWidth="4.2"
             strokeLinecap="round"
           />
-          <ellipse cx="74" cy="148" rx="7" ry="3.2" fill="#1f1a29" />
+          <ellipse cx="74" cy="146" rx="6.5" ry="3" fill="#b34a4a" />
         </Layer>
 
+        {/* Brain stem stub — small, just to suggest the neck. */}
         <Layer layerName="body" animated={animated} state={state}>
-          <rect x="54" y="96" width="12" height="18" rx="5" fill="#3b3349" />
+          <rect x="56" y="92" width="8" height="14" rx="3" fill="#d05a5a" />
         </Layer>
 
         <Layer layerName="left-arm" animated={animated} state={state}>
           <line
-            x1="46"
-            y1="92"
-            x2="26"
-            y2="104"
-            stroke="#3b3349"
-            strokeWidth="5.5"
+            x1="34"
+            y1="78"
+            x2="20"
+            y2="92"
+            stroke="#d05a5a"
+            strokeWidth="4.2"
             strokeLinecap="round"
           />
           <Layer layerName="left-dumbbell" animated={animated} state={state}>
             <rect
-              x="20"
-              y="102"
+              x="17"
+              y="91"
               width="3"
-              height="10"
+              height="9"
               rx="1"
               fill="url(#mascot-dumbbell-grad)"
             />
-            <circle cx="21.5" cy="100" r="5" fill="url(#mascot-dumbbell-grad)" />
-            <circle cx="21.5" cy="114" r="5" fill="url(#mascot-dumbbell-grad)" />
+            <circle cx="18.5" cy="89" r="4.5" fill="url(#mascot-dumbbell-grad)" />
+            <circle cx="18.5" cy="102" r="4.5" fill="url(#mascot-dumbbell-grad)" />
           </Layer>
         </Layer>
 
         <Layer layerName="right-arm" animated={animated} state={state}>
           <line
-            x1="74"
-            y1="92"
-            x2="94"
-            y2="104"
-            stroke="#3b3349"
-            strokeWidth="5.5"
+            x1="86"
+            y1="78"
+            x2="100"
+            y2="92"
+            stroke="#d05a5a"
+            strokeWidth="4.2"
             strokeLinecap="round"
           />
           <Layer layerName="right-dumbbell" animated={animated} state={state}>
             <rect
-              x="97"
-              y="102"
+              x="100"
+              y="91"
               width="3"
-              height="10"
+              height="9"
               rx="1"
               fill="url(#mascot-dumbbell-grad)"
             />
-            <circle cx="98.5" cy="100" r="5" fill="url(#mascot-dumbbell-grad)" />
-            <circle cx="98.5" cy="114" r="5" fill="url(#mascot-dumbbell-grad)" />
+            <circle cx="101.5" cy="89" r="4.5" fill="url(#mascot-dumbbell-grad)" />
+            <circle cx="101.5" cy="102" r="4.5" fill="url(#mascot-dumbbell-grad)" />
           </Layer>
         </Layer>
 
+        {/*
+          HEAD — the brain. Two hemispheres with lumpy outlines + visible
+          sulcus folds. Reference image style: rounded, cartoon-like, NOT
+          geometric. The bottom dips slightly to suggest a brainstem
+          connection. Animation pivots are unchanged.
+        */}
         <Layer layerName="head" animated={animated} state={state}>
+          {/* Left hemisphere outline — lumpy, organic curve */}
           <path
-            d="M 60 14 C 40 14, 24 28, 24 50 C 24 70, 36 84, 50 88 C 54 92, 60 92, 60 88 Z"
+            d="M 60 18
+               C 46 16, 30 22, 24 36
+               C 18 50, 22 70, 32 82
+               C 38 90, 48 94, 60 94
+               L 60 18 Z"
             fill="url(#mascot-brain-grad)"
+            stroke="#c75050"
+            strokeWidth="0.8"
+            strokeOpacity="0.5"
           />
+          {/* Right hemisphere outline */}
           <path
-            d="M 60 14 C 80 14, 96 28, 96 50 C 96 70, 84 84, 70 88 C 66 92, 60 92, 60 88 Z"
+            d="M 60 18
+               C 74 16, 90 22, 96 36
+               C 102 50, 98 70, 88 82
+               C 82 90, 72 94, 60 94
+               L 60 18 Z"
             fill="url(#mascot-brain-grad)"
+            stroke="#c75050"
+            strokeWidth="0.8"
+            strokeOpacity="0.5"
           />
+          {/* Glossy highlight on top */}
+          <ellipse cx="60" cy="32" rx="32" ry="14" fill="url(#mascot-brain-highlight)" />
+          {/* Central sulcus — the divide between hemispheres */}
           <path
-            d="M 60 16 L 60 88"
-            stroke="#9a4fc9"
-            strokeWidth="1.6"
+            d="M 60 20 Q 58 40 60 60 Q 62 78 60 92"
+            stroke="#c75050"
+            strokeWidth="1.4"
             strokeLinecap="round"
-            opacity="0.45"
+            opacity="0.55"
             fill="none"
           />
+          {/* Left hemisphere sulcus folds — three curved lines */}
           <path
-            d="M 38 34 q 8 -6 16 0"
-            stroke="#9a4fc9"
+            d="M 30 38 Q 36 36 44 40"
+            stroke="#c75050"
             strokeWidth="1.2"
-            opacity="0.35"
+            opacity="0.4"
             fill="none"
             strokeLinecap="round"
           />
           <path
-            d="M 66 34 q 8 -6 16 0"
-            stroke="#9a4fc9"
+            d="M 26 54 Q 36 50 46 54"
+            stroke="#c75050"
             strokeWidth="1.2"
-            opacity="0.35"
+            opacity="0.4"
             fill="none"
             strokeLinecap="round"
           />
           <path
-            d="M 34 62 q 10 6 18 0"
-            stroke="#9a4fc9"
+            d="M 30 72 Q 38 68 48 72"
+            stroke="#c75050"
             strokeWidth="1.2"
-            opacity="0.35"
+            opacity="0.4"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Right hemisphere sulcus folds */}
+          <path
+            d="M 76 40 Q 84 36 90 38"
+            stroke="#c75050"
+            strokeWidth="1.2"
+            opacity="0.4"
             fill="none"
             strokeLinecap="round"
           />
           <path
-            d="M 68 62 q 10 6 18 0"
-            stroke="#9a4fc9"
+            d="M 74 54 Q 84 50 94 54"
+            stroke="#c75050"
             strokeWidth="1.2"
-            opacity="0.35"
+            opacity="0.4"
             fill="none"
             strokeLinecap="round"
           />
-          <circle cx="40" cy="64" r="6" fill="url(#mascot-cheek-grad)" />
-          <circle cx="80" cy="64" r="6" fill="url(#mascot-cheek-grad)" />
+          <path
+            d="M 72 72 Q 82 68 90 72"
+            stroke="#c75050"
+            strokeWidth="1.2"
+            opacity="0.4"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Cheek blush dots */}
+          <circle cx="36" cy="68" r="5" fill="url(#mascot-cheek-grad)" />
+          <circle cx="84" cy="68" r="5" fill="url(#mascot-cheek-grad)" />
         </Layer>
 
+        {/* Headband — across the forehead, color set by dim. Tie tail on right side. */}
         <Layer layerName="headband" animated={animated} state={state}>
           <path
-            d="M 24 36 C 24 28, 36 22, 60 22 C 84 22, 96 28, 96 36 L 96 42 C 96 44, 92 46, 60 46 C 28 46, 24 44, 24 42 Z"
+            d="M 24 38
+               C 24 30, 38 26, 60 26
+               C 82 26, 96 30, 96 38
+               L 96 46
+               C 96 49, 84 51, 60 51
+               C 36 51, 24 49, 24 46 Z"
             fill={bandColor}
           />
-          <circle cx="95" cy="36" r="3.2" fill={bandColor} />
-          <line
-            x1="96"
-            y1="36"
-            x2="102"
-            y2="40"
-            stroke={bandColor}
-            strokeWidth="3"
-            strokeLinecap="round"
+          {/* Knot on right side */}
+          <circle cx="94" cy="40" r="3.5" fill={bandColor} />
+          <path
+            d="M 96 38 L 104 36 L 102 42 Z"
+            fill={bandColor}
           />
         </Layer>
 
+        {/*
+          FACE — eyes + mouth. Eyes are larger and rounder than the
+          placeholder; mouth is a wider friendly smile. The face block
+          sits BELOW the headband (y >= 58).
+        */}
         <Layer layerName="face" animated={animated} state={state}>
-          <circle cx="48" cy="60" r="3" fill="#1f1a29" />
-          <circle cx="72" cy="60" r="3" fill="#1f1a29" />
-          <circle cx="49" cy="59" r="0.9" fill="#ffffff" />
-          <circle cx="73" cy="59" r="0.9" fill="#ffffff" />
+          {/* Left eye */}
+          <ellipse cx="46" cy="64" rx="4" ry="4.5" fill="#ffffff" />
+          <circle cx="46" cy="65" r="2.8" fill="#1f1a29" />
+          <circle cx="47" cy="63.5" r="1" fill="#ffffff" />
+          {/* Right eye */}
+          <ellipse cx="74" cy="64" rx="4" ry="4.5" fill="#ffffff" />
+          <circle cx="74" cy="65" r="2.8" fill="#1f1a29" />
+          <circle cx="75" cy="63.5" r="1" fill="#ffffff" />
+          {/* Mouth — wide friendly smile */}
           <path
-            d="M 52 74 q 8 5 16 0"
+            d="M 50 78 Q 60 86 70 78"
             stroke="#1f1a29"
             strokeWidth="1.8"
             strokeLinecap="round"
             fill="none"
+          />
+          {/* Tiny tongue tip showing — adds personality */}
+          <path
+            d="M 58 82 Q 60 84 62 82"
+            stroke="#1f1a29"
+            strokeWidth="0.8"
+            fill="#ff8888"
           />
         </Layer>
       </Layer>

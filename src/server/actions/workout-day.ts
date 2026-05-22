@@ -129,7 +129,7 @@ async function fetchRecentRepsAggregates(
     JOIN cognify_v2.exercises e ON e.id = r.exercise_id
     WHERE r.user_id = ${userId}
       AND r.exercise_id IS NOT NULL
-      AND r.created_at >= NOW() - INTERVAL ${`${REP_HISTORY_DAYS * 2} days`}
+      AND r.created_at >= NOW() - (${REP_HISTORY_DAYS * 2} * INTERVAL '1 day')
     GROUP BY e.dimension
   `);
 
@@ -336,9 +336,52 @@ export async function startMuscleGroupDay(input: {
       .limit(1);
 
     if (existing) {
-      const stations = await hydrateStations(
-        existing.plannedExerciseIds as string[],
-      );
+      const plannedIds = (existing.plannedExerciseIds as string[]) ?? [];
+      let stations = await hydrateStations(plannedIds);
+
+      // Orphan-day self-heal: planned IDs point at exercises that no
+      // longer exist (catalog re-seeded with fresh UUIDs while this
+      // day was open). Re-sample 4 exercises in the same dim, update
+      // the row in place, and continue. Safe because no reps can have
+      // been logged against orphaned exercise IDs.
+      if (plannedIds.length > 0 && stations.length === 0) {
+        const existingDim = existing.dimension as MuscleGroupId;
+        if (isMuscleGroupId(existingDim)) {
+          const [available, recentDays] = await Promise.all([
+            fetchCatalogExercises(existingDim),
+            fetchRecentDays(userId),
+          ]);
+          const resampled = sampleExercises({
+            available,
+            recentDays,
+            n: 4,
+            seed: `${userId}:${dayDate}:${existingDim}:heal`,
+          });
+          if (resampled.length > 0) {
+            const freshIds = resampled.map((s) => s.id);
+            await db
+              .update(muscleGroupDays)
+              .set({ plannedExerciseIds: freshIds })
+              .where(eq(muscleGroupDays.id, existing.id));
+            stations = resampled.map((ex, index) => ({
+              index,
+              exerciseId: ex.id,
+              exerciseSlug: ex.slug,
+              exerciseName: ex.name,
+              rule: ex.description,
+              why: ex.instructions,
+            }));
+            logEvent("workout.day.self_healed", {
+              userId,
+              dayId: existing.id,
+              dim: existingDim,
+              fromIds: plannedIds,
+              toIds: freshIds,
+            });
+          }
+        }
+      }
+
       // Reuse the most-recent workout_session for this day if one
       // exists; otherwise open a fresh one (handles resume on a new
       // device or after the session was abandoned mid-day).
