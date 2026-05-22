@@ -110,16 +110,37 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
  *  chunk (where a chunk "covers" a dim if tags.topic === dim). Greedy
  *  selection from the cosine-ordered list — keep the top per-dim
  *  coverage chunk, then fill remaining slots with the next-best by
- *  similarity regardless of dim. */
+ *  similarity regardless of dim.
+ *
+ *  Phase B follow-up: when `preferredDim` is set (muscle-group rep with
+ *  a known exercise dimension), the highest-similarity chunk matching
+ *  that dim wins slot 0, ahead of the rest of the coverage loop. The
+ *  remaining coverage passes are unchanged so the other 5 dims still
+ *  get representation. Falls through silently when no matching chunk
+ *  exists. */
 function rerankForCoverage(
   rows: RetrievedChunk[],
   scoredDims: SkillDimension[],
   returnCount: number,
+  preferredDim: SkillDimension | null,
 ): RetrievedChunk[] {
   const picked: RetrievedChunk[] = [];
   const usedIds = new Set<string>();
-  // Pass 1: coverage — best chunk per scored dim.
+  // Pass 0: preferred-dim slot. Highest-similarity chunk tagged with
+  // the exercise's dimension takes priority over the standard coverage
+  // order.
+  if (preferredDim) {
+    const top = rows.find((r) => r.tags.topic === preferredDim);
+    if (top) {
+      picked.push(top);
+      usedIds.add(top.id);
+      if (picked.length >= returnCount) return picked;
+    }
+  }
+  // Pass 1: coverage — best chunk per scored dim (skip the preferred
+  // dim since pass 0 already covered it).
   for (const dim of scoredDims) {
+    if (dim === preferredDim) continue;
     const match = rows.find(
       (r) => !usedIds.has(r.id) && r.tags.topic === dim,
     );
@@ -140,6 +161,11 @@ function rerankForCoverage(
   return picked;
 }
 
+/** Test-only export. The rerank ordering is the part we can validate
+ *  without the embedding API + pgvector roundtrip; tests construct
+ *  synthetic chunks and assert the slot 0 / coverage / fill order. */
+export const __rerankForCoverageForTests = rerankForCoverage;
+
 export type RetrieveInput = {
   transcript: string;
   scoredDims: SkillDimension[];
@@ -150,6 +176,12 @@ export type RetrieveInput = {
   topK?: number;
   /** Per-call timeout. Defaults to RAG_RETRIEVE_TIMEOUT_MS env (1500ms). */
   timeoutMs?: number;
+  /** Phase B follow-up — when set, the rerank pins the highest-similarity
+   *  chunk whose `tags.topic === preferredDim` as slot 0. Used by the
+   *  muscle-group scoring path so an exercise like "kill-the-filler"
+   *  prioritizes the conciseness knowledge chunk above generic top-K.
+   *  Null / undefined keeps the legacy coverage-only behavior. */
+  preferredDim?: SkillDimension | null;
 };
 
 export type RetrieveResult = {
@@ -240,7 +272,12 @@ export async function retrieveKnowledgeForRep(
       }));
 
       // 3. Re-rank for coverage.
-      return rerankForCoverage(ranked, input.scoredDims, returnCount);
+      return rerankForCoverage(
+        ranked,
+        input.scoredDims,
+        returnCount,
+        input.preferredDim ?? null,
+      );
     })();
 
     const chunks = await withTimeout(work, timeoutMs, "RAG retrieve");

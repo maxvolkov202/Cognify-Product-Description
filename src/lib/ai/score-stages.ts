@@ -84,6 +84,7 @@ import {
   tryExerciseFastFail,
   type ExerciseScoringContext,
 } from "./muscle-group-exercises";
+import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 
 // ——— Stage 1 system prompt (SCORING ONLY) ——————————————————————
 
@@ -329,6 +330,26 @@ type ScoringContext = {
 async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
   const hasWordTimestamps = !!(input.words && input.words.length > 0);
 
+  // Phase 8 + B — exercise hydration moved before RAG so the muscle-
+  // group dimension can pin the preferred RAG chunk. Hydration runs
+  // concurrently with prosody / RAG via Promise.all below; the
+  // resolved value is used both for the user-prompt XML block and the
+  // RAG preferredDim hint. Legacy reps (no exerciseId) skip entirely
+  // and produce byte-identical prompts to today.
+  const exerciseCtxPromise: Promise<ExerciseScoringContext | null> =
+    input.exerciseId
+      ? getExerciseScoringContext(input.exerciseId)
+      : Promise.resolve(null);
+
+  // Resolve the exercise hint up front so we know the preferred dim for
+  // RAG. This is one small indexed SELECT (~5ms p50); negligible against
+  // the ~1.5-3s scoring path. Reused below for the XML block and rubric
+  // hint, so the cost is amortized.
+  const exerciseCtx = await exerciseCtxPromise;
+  const preferredDim = exerciseCtx
+    ? muscleGroupToSkillDim(exerciseCtx.dimension)
+    : null;
+
   // RAG retrieval — fire concurrently with prosody worker (when worker
   // is configured).
   const ragEnabled = process.env.FF_RAG_RETRIEVE !== "false";
@@ -336,6 +357,7 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
     ? retrieveKnowledgeForRep({
         transcript: input.transcript,
         scoredDims: LLM_SCORED_DIMENSIONS,
+        preferredDim,
       })
     : Promise.resolve<Awaited<ReturnType<typeof retrieveKnowledgeForRep>>>({
         chunks: [],
@@ -380,12 +402,6 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
     signalsBlock = renderTextSignalsBlock(textSignals);
   }
 
-  // Phase 8 — hydrate the muscle-group exercise context when set. Fully
-  // gated so legacy reps (no exerciseId) skip the lookup entirely and
-  // produce byte-identical prompts to today.
-  const exerciseCtx = input.exerciseId
-    ? await getExerciseScoringContext(input.exerciseId)
-    : null;
   const exerciseXml = exerciseCtx ? renderExerciseXmlBlock(exerciseCtx) : null;
 
   const timedTranscript = input.transcript;

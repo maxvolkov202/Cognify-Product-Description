@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
@@ -81,9 +82,17 @@ export default async function CalibrationOpsPage() {
             drift is catchable as soon as it surfaces.
           </p>
         </div>
-        <span className="rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3 py-1 text-[11px] font-semibold text-brand-purple">
-          {profile.name ?? profile.email ?? "Operator"}
-        </span>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/ops/calibration/per-exercise"
+            className="rounded-full border border-ink-200 px-3 py-1 text-[11px] font-semibold text-ink-600 hover:bg-ink-50"
+          >
+            Per-exercise drift →
+          </Link>
+          <span className="rounded-full border border-brand-purple/30 bg-brand-purple/10 px-3 py-1 text-[11px] font-semibold text-brand-purple">
+            {profile.name ?? profile.email ?? "Operator"}
+          </span>
+        </div>
       </div>
 
       {/* First-rep distribution */}
