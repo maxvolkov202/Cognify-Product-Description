@@ -302,7 +302,9 @@ The `workout_sessions.graduation_rep_id` FK is added trailing so the cycle resol
 
 ---
 
-## Phase 4 — Mascot animation system + placeholder character (Claude-authored) `[ ]`
+## Phase 4 — Mascot animation system + placeholder character (Claude-authored) `[x]`
+
+> **2026-05-21:** Mascot system shipped via `motion/react` (Framer Motion v12, already in deps). Six files: `src/lib/animations/mascot-state.ts` (state enum + transitions + timings + scoreBandFor), `src/components/product/workout/mascot/MascotCharacter.tsx` (hand-authored geometric brain — hemispheres, sulcus, headband, dumbbells, face — layered into named `<Layer layerName="...">` groups for Phase 14 swap), `variants.ts` (per-layer Framer Motion variants + score-band intensity map), `MascotFallback.tsx` (reduced-motion still-frame + 200ms opacity cross-fade), `Mascot.tsx` (wrapper: state→ARIA + station-X translate + reduced-motion swap + onTap), `/dev/mascot/page.tsx` (full debug surface with state picker, score band, station, dim, viewport sim, transition log, walk sequence). Dev route bundle: 7.72 KB (well under 30KB budget). Build green, typecheck clean. **Deferred to manual verification:** frame-budget ≤8ms on Pixel 6a and CLS=0 measurements require a real device — not testable in this sandbox.
 
 **Goal:** Ship a working brain mascot that walks between 4 stations and reacts to rep events, with a fully Claude-authored placeholder character (SVG + CSS/Framer Motion animations) that's intentional and on-brand, not a throwaway stub. The animation system, state machine, ARIA wiring, and reduced-motion fallback all ship here. Phase 14 later swaps the visual layers for Max's final Figma-designed character without touching any of this scaffolding. If Phase 14 never happens, the product still ships looking deliberate.
 
