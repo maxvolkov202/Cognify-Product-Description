@@ -18,6 +18,7 @@ import {
   type WorkoutShellHydratedPayload,
 } from "@/lib/workout/types";
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
+import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +48,20 @@ async function fetchTodaysDayPayload(
       .limit(1);
 
     if (!day || !isMuscleGroupId(day.dimension as string)) {
-      // No active day yet → empty shell + suggestion rationale.
+      // No active day yet → empty shell + suggestion rationale + prior-day
+      // banner data for the suggested dim.
       const suggestion = await suggestTodaysMuscleGroup();
+      const lastDay = await getLastMuscleGroupDay(userId, suggestion.suggested);
       return {
         ...EMPTY_SHELL_PAYLOAD,
         rationale: suggestion.rationale,
         dimension: suggestion.suggested,
+        lastDay: lastDay
+          ? {
+              lastComposite: lastDay.lastComposite,
+              daysSince: lastDay.daysSince,
+            }
+          : null,
       };
     }
 
@@ -146,6 +155,16 @@ async function fetchTodaysDayPayload(
         activeSession?.index ?? Math.min(day.completedReps, 3),
       workoutSessionId: activeSession?.id ?? null,
       previousDayComposite: previousDay?.composite ?? null,
+      lastDay: previousDay
+        ? {
+            lastComposite: previousDay.composite,
+            // Banner uses a coarse "days since" — for an active day we
+            // already have the current date, so compute against the
+            // previous day's compositeAtClose (kept simple; Phase 9
+            // server query offers the canonical version when needed).
+            daysSince: 0,
+          }
+        : null,
       todaysComposite: day.compositeAtClose,
       rationale: null,
     };

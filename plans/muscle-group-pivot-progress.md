@@ -690,7 +690,9 @@ CREATE INDEX scoring_telemetry_exercise_idx
 
 ---
 
-## Phase 9 — Progression surface `[ ]`
+## Phase 9 — Progression surface `[x]`
+
+> **2026-05-21:** Three surfaces wired. (a) `MuscleGroupHeader` banner now has 4 variants (firstEver / previousExists / previousStrong / previousWeak) driven by `lastDay: { lastComposite, daysSince }` plumbed through the WorkoutShellHydratedPayload from `getLastMuscleGroupDay`. (b) `DayRetrospective.tsx` renders after `day-complete`: composite hero + delta vs last day, per-dim delta grid with arrow indicators, highlights ("best dim", "biggest jump", "watch"), CTA to /progress/muscle-groups. Data fetched via new `fetchDayRetrospective` server action wrapping `getMuscleGroupComparison`. (c) `/progress/muscle-groups?dim=clarity` page (server component) with filter chips, three SVG-only charts (CompositeLineChart, VolumeBars, TrainingHeatmap — no deps), and `MuscleGroupTimelineRow` cards. Three new server queries in `src/lib/db/queries/muscle-group-progress.ts` (getLastMuscleGroupDay, getMuscleGroupTimeline, getMuscleGroupComparison). Telemetry: `progression_banner_shown`, `retrospective_opened`, `muscle_group_timeline_viewed`. Build green; /progress/muscle-groups is 4.37 KB. **Deferred to manual verification:** screenshots at 375px, <500ms load with 60-day history (need seeded data + real device).
 
 **Goal:** Make the "you trained Clarity 6 days ago — beat your previous composite of 64" narrative visible at three moments: before the workout (banner), immediately after (retrospective), on-demand (timeline). Progression is the whole reason rotation exists.
 

@@ -14,20 +14,28 @@
 //   paused              → resume CTA
 
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Loader2, Mic, Sparkles, Trophy, X } from "lucide-react";
 import type { ShellStation, SessionPhase } from "@/lib/workout/types";
 import type { PickMode } from "@/lib/workout/session-machine";
+import type { MuscleGroupId } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
-import { tagWorkoutRep } from "@/server/actions/workout-session";
+import {
+  fetchDayRetrospective,
+  tagWorkoutRep,
+} from "@/server/actions/workout-session";
+import DayRetrospective from "./DayRetrospective";
+import type { MuscleGroupComparison } from "@/lib/db/queries/muscle-group-progress";
 
 export type RepControlsProps = {
   phase: SessionPhase;
   station: ShellStation | null;
   workoutSessionId: string | null;
   muscleGroupDayId: string | null;
+  /** Phase 9 — dim of today's workout, used to fetch the retrospective. */
+  dimension: MuscleGroupId | null;
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
   lastScore: number | null;
   lastScoreFailure: boolean;
@@ -53,6 +61,7 @@ export default function RepControls({
   station,
   workoutSessionId,
   muscleGroupDayId,
+  dimension,
   selectedPrompt,
   lastScore,
   lastScoreFailure,
@@ -146,7 +155,11 @@ export default function RepControls({
         )}
 
         {phase === "day-complete" && (
-          <DayCompleteControls lastScore={lastScore} />
+          <DayCompleteControls
+            lastScore={lastScore}
+            dim={dimension}
+            muscleGroupDayId={muscleGroupDayId}
+          />
         )}
 
         {phase === "paused" && (
@@ -329,28 +342,67 @@ function GraduationPrompt({
 
 function DayCompleteControls({
   lastScore,
+  dim,
+  muscleGroupDayId,
 }: {
   lastScore: number | null;
+  dim: MuscleGroupId | null;
+  muscleGroupDayId: string | null;
 }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-3">
-      <Sparkles className="w-5 h-5 text-pink-300" />
-      <h2 className="text-base font-semibold text-slate-100">
-        Workout complete
-      </h2>
-      <p className="text-sm text-slate-400">
-        {lastScore != null
-          ? `Final rep: ${Math.round(lastScore)}. Phase 9 retrospective ships here.`
-          : "Phase 9 retrospective ships here."}
-      </p>
-      <a
-        href="/dashboard"
-        className="text-xs text-slate-500 hover:text-slate-300 mt-1"
-      >
-        Back to dashboard
-      </a>
-    </div>
+  const [comparison, setComparison] = useState<MuscleGroupComparison | null>(
+    null,
   );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!dim || !muscleGroupDayId) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    fetchDayRetrospective({ dayId: muscleGroupDayId, dim }).then((res) => {
+      if (cancelled) return;
+      setComparison(res ?? null);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dim, muscleGroupDayId]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center text-center gap-2 py-4">
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+        <p className="text-sm text-slate-400">Loading retrospective…</p>
+      </div>
+    );
+  }
+
+  if (!dim || !comparison) {
+    return (
+      <div className="flex flex-col items-center text-center gap-3">
+        <Sparkles className="w-5 h-5 text-pink-300" />
+        <h2 className="text-base font-semibold text-slate-100">
+          Workout complete
+        </h2>
+        {lastScore != null && (
+          <p className="text-sm text-slate-400">
+            Final rep: {Math.round(lastScore)}.
+          </p>
+        )}
+        <a
+          href="/dashboard"
+          className="text-xs text-slate-500 hover:text-slate-300"
+        >
+          Back to dashboard
+        </a>
+      </div>
+    );
+  }
+
+  return <DayRetrospective dim={dim} comparison={comparison} />;
 }
 
 function PlaceholderControls({

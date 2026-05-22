@@ -61,6 +61,14 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   workoutSessionId: z.string().uuid().nullable(),
   /** From the prior same-dim day; drives Phase 9's banner. */
   previousDayComposite: z.number().nullable(),
+  /** Phase 9 — full prior-day comparison context. Supersedes
+   *  previousDayComposite when present. */
+  lastDay: z
+    .object({
+      lastComposite: z.number().nullable(),
+      daysSince: z.number().int().min(0),
+    })
+    .nullable(),
   /** Sparse: only present once today's day is complete. */
   todaysComposite: z.number().nullable(),
   rationale: z.string().nullable(),
@@ -81,6 +89,7 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   currentStationIndex: 0,
   workoutSessionId: null,
   previousDayComposite: null,
+  lastDay: null,
   todaysComposite: null,
   rationale: null,
 };

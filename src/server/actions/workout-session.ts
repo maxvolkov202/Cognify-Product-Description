@@ -157,6 +157,25 @@ export async function recordGraduationRep(
   }, { persisted: false });
 }
 
+// ─── Phase 9 — comparison fetcher for the day-complete retrospective ──
+
+import {
+  getMuscleGroupComparison,
+  type MuscleGroupComparison,
+} from "@/lib/db/queries/muscle-group-progress";
+import type { MuscleGroupId } from "@/types/domain";
+
+export type FetchRetrospectiveResult = MuscleGroupComparison | null;
+
+export async function fetchDayRetrospective(input: {
+  dayId: string;
+  dim: MuscleGroupId;
+}): Promise<FetchRetrospectiveResult> {
+  const user = await currentUser();
+  if (!user?.id) return null;
+  return getMuscleGroupComparison(user.id, input.dim, input.dayId);
+}
+
 // ─── Rep tagging on completion ───────────────────────────────────────────
 
 /** When a rep is logged via the normal pipeline, the session runtime

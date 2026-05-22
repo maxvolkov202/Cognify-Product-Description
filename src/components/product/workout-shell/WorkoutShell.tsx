@@ -145,6 +145,7 @@ function WorkoutShellInner({
       <MuscleGroupHeader
         dim={payload.dimension}
         rationale={payload.rationale}
+        lastDay={payload.lastDay}
         previousDayComposite={payload.previousDayComposite}
       />
 
@@ -165,6 +166,7 @@ function WorkoutShellInner({
         station={station}
         workoutSessionId={payload.workoutSessionId}
         muscleGroupDayId={payload.dayId}
+        dimension={payload.dimension}
         selectedPrompt={state.selectedPrompt}
         lastScore={state.lastScore}
         lastScoreFailure={state.lastScoreFailure}
