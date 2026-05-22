@@ -47,7 +47,11 @@ export const metadata: Metadata = {
     icon: [{ url: "/logo/mark.png", type: "image/png" }],
     apple: "/logo/mark.png",
   },
-  manifest: "/manifest.json",
+  // Phase 12 — the muscle-group pivot ships /manifest.webmanifest with
+  // the brain-gym framing + standalone display + idle-mascot splash
+  // colors. Legacy /manifest.json was pre-pivot; keep redirecting via
+  // public/ for backwards compat with browsers that cached it.
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {

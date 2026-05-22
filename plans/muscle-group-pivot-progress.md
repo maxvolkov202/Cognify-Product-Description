@@ -933,7 +933,9 @@ CREATE INDEX ON cognify_v2.user_notifications (user_id, read_at, created_at DESC
 
 ---
 
-## Phase 12 — Mobile conversion readiness `[ ]`
+## Phase 12 — Mobile conversion readiness `[~]`
+
+> **2026-05-22 — partial ship.** Platform abstraction + Capacitor-compat audit shipped; heavy infra (Playwright, Serwist, vaul, Lighthouse CI, real icons) deferred to a real-device session. Shipped: `src/lib/platform/{mic.ts, haptics.ts, recording-store.ts}` — web implementations today with explicit Capacitor TODO comments matching the native API shape. `src/hooks/use-swipe.ts` pointer-events swipe primitive with iOS back-swipe edge avoidance baked into the docs. `public/manifest.webmanifest` with brain-gym framing, `display: standalone`, `start_url=/workout?source=pwa`, theme color matching the workout shell. Root layout switched from `/manifest.json` to `/manifest.webmanifest`. Capacitor-compat audit at `plans/muscle-group-pivot-capacitor-audit.md` catalogues every new server action / route handler / page from Phases 1-11 with web/native verdicts + the one caching tweak (listAllPrompts 30min revalidate) + the risk register. **Deferred to real-device session:** Playwright tap-target gate, Serwist service-worker config, vaul bottom-sheet PromptPicker rewrite, real app icons (currently placeholder paths), Moto-G7 Lighthouse perf budget in CI, `npx cap add ios|android` bootstrap, MediaSession lock-screen integration. Build green.
 
 **Goal:** Ship the Workout pivot in a state that converts cleanly to a mobile app within ~1 sprint post-launch. Audit every new surface from Phases 5/6/7/9 for touch-first correctness, lock Capacitor as recommended native path, land PWA quick-win.
 
