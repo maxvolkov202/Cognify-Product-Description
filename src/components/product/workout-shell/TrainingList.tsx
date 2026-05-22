@@ -1,7 +1,7 @@
 "use client";
 
-// "Today's Training" numbered list — the v3 workout shell's persistent
-// reference panel. Shows all 4 stations always; status icon + duration
+// "Today's Training" numbered list — light theme, matches v2-neon
+// reference. Shows all 4 stations always; status icon + duration
 // estimate per row. Highlights the current station.
 
 import { Check, Lock, Mic } from "lucide-react";
@@ -34,7 +34,7 @@ export default function TrainingList({
               key={n}
               className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50"
             >
-              <span className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold flex items-center justify-center">
+              <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-sm font-semibold flex items-center justify-center">
                 {n}
               </span>
               <span className="flex-1 text-sm text-slate-500">
@@ -85,7 +85,7 @@ function TrainingRow({
         "flex items-center gap-3 px-3 py-3 rounded-xl border transition-colors",
         current
           ? "bg-purple-50 border-purple-200"
-          : "bg-slate-50 border-transparent",
+          : "bg-slate-50/60 border-transparent",
       )}
       data-current={current ? "true" : "false"}
     >
@@ -96,7 +96,7 @@ function TrainingRow({
             ? "bg-emerald-500 text-white"
             : current
               ? "bg-purple-600 text-white"
-              : "bg-purple-100 text-purple-700",
+              : "bg-slate-200 text-slate-700",
         )}
         aria-hidden="true"
       >

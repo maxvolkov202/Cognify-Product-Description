@@ -17,12 +17,12 @@ import { dayComparisonTemplates } from "@/content/banners/day-comparison";
 import { formatVoice } from "@/content/mascot/pick";
 
 const DIM_BADGE_BG: Record<MuscleGroupId, string> = {
-  clarity: "bg-purple-100 text-purple-700 border-purple-200",
-  structure: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  conciseness: "bg-pink-100 text-pink-700 border-pink-200",
-  thinking_quality: "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
-  pacing: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  tone: "bg-amber-100 text-amber-700 border-amber-200",
+  clarity: "bg-[#6aa3ff]/15 text-[#a5c8ff] border-[#6aa3ff]/40",
+  structure: "bg-[#b39bff]/15 text-[#d5c4ff] border-[#b39bff]/40",
+  conciseness: "bg-[#e77cf0]/15 text-[#f3b9f6] border-[#e77cf0]/40",
+  thinking_quality: "bg-[#b072ff]/15 text-[#d5b1ff] border-[#b072ff]/40",
+  pacing: "bg-[#7fd6c8]/15 text-[#a8e8de] border-[#7fd6c8]/40",
+  tone: "bg-[#ffb38a]/15 text-[#ffd1b8] border-[#ffb38a]/40",
 };
 
 export type BannerLastDay = {
@@ -135,31 +135,31 @@ export default function MuscleGroupHeader({
       {dim && (
         <div
           className={cn(
-            "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-[0.18em]",
-            "text-purple-600",
+            "inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium uppercase tracking-wide",
+            DIM_BADGE_BG[dim],
           )}
         >
           <span aria-hidden>●</span>
           Today&apos;s muscle
         </div>
       )}
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+      <h1 className="text-2xl sm:text-3xl font-semibold text-slate-100">
         {dim ? `Today: ${MUSCLE_GROUP_LABELS[dim]}` : "Daily Workout"}
       </h1>
       {rationale && (
-        <p className="text-sm sm:text-base text-slate-600 max-w-md leading-snug">{rationale}</p>
+        <p className="text-sm text-slate-400 max-w-md">{rationale}</p>
       )}
-      {banner && <p className="text-xs text-slate-500">{banner}</p>}
+      {banner && <p className="text-xs text-slate-300">{banner}</p>}
       {(streakDays != null || streakFreezes != null) && (
         <div className="flex items-center gap-2 mt-1">
           {streakDays != null && streakDays > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200 text-[11px] font-medium">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-200 border border-orange-400/30 text-[11px] font-medium">
               <span aria-hidden>🔥</span>
               {streakDays}d streak
             </span>
           )}
           {streakFreezes != null && streakFreezes > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200 text-[11px] font-medium">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-200 border border-sky-400/30 text-[11px] font-medium">
               <span aria-hidden>❄</span>
               {streakFreezes} freeze{streakFreezes === 1 ? "" : "s"}
             </span>
