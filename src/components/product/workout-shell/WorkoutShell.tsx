@@ -25,6 +25,7 @@ import type { WorkoutShellHydratedPayload } from "@/lib/workout/types";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import StartCard from "./StartCard";
 import TrainingList from "./TrainingList";
+import WorkoutProgressBar from "./WorkoutProgressBar";
 import RepControls from "./RepControls";
 import MissedDayModal from "./MissedDayModal";
 import { useMediaSession } from "@/hooks/use-media-session";
@@ -154,6 +155,16 @@ function WorkoutShellInner({
   const stationCount = state.stations.length || 4;
   const estimatedMinutes = Math.round((stationCount * 45) / 60);
 
+  // HB-5 — at-rest vs in-workout split. At-rest = idle phase, day-
+  // complete phases, OR the Cancel override. Everything else (prompt
+  // picker, recording, scoring, walking, etc.) collapses into the
+  // compact progress bar.
+  const showLanding =
+    state.phase === "idle" ||
+    state.phase === "day-complete" ||
+    state.phase === "day-complete-prompt" ||
+    cancelledLocally;
+
   // Phase HB-3 — personalize toggle. Default General. Persists in
   // localStorage so the user doesn't have to reset every workout.
   const [personalize, setPersonalize] = useState(false);
@@ -189,49 +200,55 @@ function WorkoutShellInner({
     >
       <MissedDayModal />
 
-      {/* Hero */}
-      <header className="space-y-2">
-        <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600">
-          Today&apos;s Workout
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
-          Ready to train?
-        </h1>
-        <p className="text-base text-slate-500">
-          No notes. No prep. Just reps.
-        </p>
-      </header>
-
-      {/* Pills */}
-      <div className="mt-4">
-        <PillsRow
+      {showLanding ? (
+        // At-rest hero
+        <header className="space-y-2">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600">
+            Today&apos;s Workout
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+            Ready to train?
+          </h1>
+          <p className="text-base text-slate-500">
+            No notes. No prep. Just reps.
+          </p>
+        </header>
+      ) : (
+        // In-workout: compact progress bar replaces the hero
+        <WorkoutProgressBar
           dim={payload.dimension}
-          stationCount={stationCount}
-          estimatedMinutes={estimatedMinutes}
-          streakDays={payload.streakDays ?? null}
-          streakFreezes={payload.streakFreezes ?? null}
+          stations={state.stations}
+          currentStationIndex={state.currentStationIndex}
         />
-      </div>
-
-      {/* Personalization toggle. Only renders in idle (before the
-          workout starts) — switching mid-rep would invalidate the
-          current prompt selection. */}
-      {(state.phase === "idle" || cancelledLocally) && (
-        <div className="mt-4">
-          <PersonalizeSwitch
-            value={personalize}
-            onChange={onTogglePersonalize}
-          />
-        </div>
       )}
 
-      {/* Main interactive slot: StartCard in idle (or after Cancel),
-          RepControls otherwise. cancelledLocally is the HB-4 escape
-          hatch — flips the view back to landing without touching the
-          DB row. */}
+      {/* Pills + personalize toggle — landing chrome only. */}
+      {showLanding && (
+        <>
+          <div className="mt-4">
+            <PillsRow
+              dim={payload.dimension}
+              stationCount={stationCount}
+              estimatedMinutes={estimatedMinutes}
+              streakDays={payload.streakDays ?? null}
+              streakFreezes={payload.streakFreezes ?? null}
+            />
+          </div>
+          <div className="mt-4">
+            <PersonalizeSwitch
+              value={personalize}
+              onChange={onTogglePersonalize}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Main interactive slot: StartCard at-rest, RepControls
+          otherwise. HB-5: layout collapses chrome during in-workout
+          so the picker/recording surface gets prime real estate. */}
       <div className="mt-5">
         <AnimatePresence mode="wait" initial={false}>
-          {state.phase === "idle" || cancelledLocally ? (
+          {showLanding ? (
             <motion.div
               key="start-card"
               initial={{ opacity: 0, y: 10 }}
@@ -275,22 +292,21 @@ function WorkoutShellInner({
         </AnimatePresence>
       </div>
 
-      {/* Today's Training. In idle phase we render the preview stations
-          but don't highlight any as "current" (the user hasn't started
-          yet) — pass -1 so no row matches. */}
-      <div className="mt-5">
-        <TrainingList
-          stations={state.stations}
-          currentStationIndex={
-            state.phase === "idle" ? -1 : state.currentStationIndex
-          }
-          dim={payload.dimension}
-        />
-      </div>
+      {/* Today's Training — landing only. In-workout users see the
+          progress bar at the top instead. */}
+      {showLanding && (
+        <div className="mt-5">
+          <TrainingList
+            stations={state.stations}
+            currentStationIndex={-1}
+            dim={payload.dimension}
+          />
+        </div>
+      )}
 
-      {/* Footer: dim rationale + prior-day banner. Subordinate to the
-          hero so it doesn't compete with the CTA. */}
-      {(payload.rationale || payload.dimension) && (
+      {/* Footer: dim rationale + prior-day banner. Landing only —
+          during workout it's redundant with the progress bar header. */}
+      {showLanding && (payload.rationale || payload.dimension) && (
         <div className="mt-6 text-center text-xs text-slate-500 max-w-md mx-auto">
           {payload.dimension && (
             <span className="font-semibold text-purple-700">
