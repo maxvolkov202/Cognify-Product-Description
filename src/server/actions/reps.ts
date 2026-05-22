@@ -67,6 +67,13 @@ export type SaveRepInput = {
   framework: Framework | null;
   topic: string | null;
   sessionId: string | null;
+  /** Phase 8 — muscle-group exercise + day this rep belongs to. NULL
+   *  for legacy Skill Lab / scenario reps; preserved end-to-end so
+   *  scoring + telemetry can slice per-exercise. */
+  exerciseId?: string | null;
+  muscleGroupDayId?: string | null;
+  /** Phase 8 — pressure graduation rep tag. */
+  isGraduationRep?: boolean;
 };
 
 export type SaveRepResult = {
@@ -107,6 +114,12 @@ export type InsertPendingRepInput = {
   sessionId: string | null;
   timeBudgetMs?: number;
   words?: { word: string; startMs: number; endMs: number }[];
+  /** Phase 8 — muscle-group context. Persisted to reps.exercise_id /
+   *  reps.muscle_group_day_id so /api/score-internal can read them when
+   *  hydrating the scoring input. */
+  exerciseId?: string | null;
+  muscleGroupDayId?: string | null;
+  isGraduationRep?: boolean;
 };
 
 export type InsertPendingRepResult = {
@@ -157,6 +170,16 @@ export async function insertPendingRep(
         transcript: { text: input.transcript } as unknown as object,
         topic: input.topic ?? input.promptText,
         status: "pending",
+        // Phase 8 — muscle-group context, threaded end-to-end. Nullable
+        // FKs from migration 0020; legacy callers pass undefined and
+        // these columns remain NULL.
+        ...(input.exerciseId ? { exerciseId: input.exerciseId } : {}),
+        ...(input.muscleGroupDayId
+          ? { muscleGroupDayId: input.muscleGroupDayId }
+          : {}),
+        ...(input.isGraduationRep
+          ? { isGraduationRep: true }
+          : {}),
         frameworkSnapshot: input.framework
           ? ({
               id: input.framework.id,
@@ -221,6 +244,14 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         modelVersion: input.score.modelVersion,
         rubricVersion: input.score.rubricVersion,
         topic: input.topic ?? input.promptText,
+        // Phase 8 — muscle-group context, threaded end-to-end.
+        ...(input.exerciseId ? { exerciseId: input.exerciseId } : {}),
+        ...(input.muscleGroupDayId
+          ? { muscleGroupDayId: input.muscleGroupDayId }
+          : {}),
+        ...(input.isGraduationRep
+          ? { isGraduationRep: true }
+          : {}),
         frameworkSnapshot: input.framework
           ? ({
               name: input.framework.name,

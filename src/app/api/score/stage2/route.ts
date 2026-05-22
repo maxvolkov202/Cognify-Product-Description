@@ -107,6 +107,10 @@ const bodySchema = z.object({
   pressureArchetypeId: pressureArchetypeIdEnum.optional(),
   modeContext: modeContextSchema.optional(),
   audioUrl: z.string().url().optional(),
+  // Phase 8 — muscle-group context for exercise-aware scoring.
+  exerciseId: z.string().uuid().optional(),
+  muscleGroupDayId: z.string().uuid().optional(),
+  isGraduationRep: z.boolean().optional(),
   // The stage1 result from the previous call
   stage1: stage1Schema,
 });

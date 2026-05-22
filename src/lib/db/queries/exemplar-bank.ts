@@ -119,6 +119,9 @@ export async function promoteRepToExemplar(
   input: PromoteFromRepInput,
 ): Promise<{ refId: string; created: boolean }> {
   // Load rep + dim scores.
+  // Phase 8 — also pull exercise_id so the exemplar tags can carry
+  // it, enabling Phase 8's "filter exemplars by exercise" branch in
+  // RAG retrieve.
   const repRow = await db
     .select({
       id: reps.id,
@@ -128,6 +131,7 @@ export async function promoteRepToExemplar(
       composite: reps.compositeScore,
       modelVersion: reps.modelVersion,
       rubricVersion: reps.rubricVersion,
+      exerciseId: reps.exerciseId,
     })
     .from(reps)
     .where(eq(reps.id, input.repId))
@@ -178,12 +182,18 @@ export async function promoteRepToExemplar(
     dimensions,
     band: input.band ?? "promoted",
   };
-  const tags = {
+  const tags: Record<string, unknown> = {
     kind: "promoted",
     band: input.band ?? "promoted",
     model_version: rep.modelVersion ?? "unknown",
     rubric_version: rep.rubricVersion ?? "unknown",
   };
+  // Phase 8 — stamp exercise_id so RAG retrieve can filter by exercise
+  // for tighter few-shot grounding. Missing tag = "match any exercise"
+  // (do NOT exclude legacy exemplars).
+  if (rep.exerciseId) {
+    tags.exercise_id = rep.exerciseId;
+  }
   // Empty for promotions (operator-confirmed scores live in knownScores;
   // feedback shape is undefined until canonical-copy promotion lands).
   const knownFeedback = {};
@@ -203,7 +213,7 @@ export async function promoteRepToExemplar(
       ${rep.promptText},
       ${sql.json(knownScores)},
       ${sql.json(knownFeedback)},
-      ${sql.json(tags)},
+      ${sql.json(tags as Record<string, string | number | boolean | null>)},
       ${embStr}::vector,
       ${input.promotedBy}::uuid,
       ${input.notes ?? null}

@@ -71,6 +71,12 @@ export async function POST(req: Request) {
       .array(z.object({ word: z.string(), startMs: z.number(), endMs: z.number() }))
       .optional(),
     userCalibration: z.string().nullable().optional(),
+    // Phase 8 — muscle-group context. Optional; when set, overrides the
+    // values on the rep row (rep row may not have them yet — they're
+    // tagged via Phase 7's tagWorkoutRep which races with this call).
+    exerciseId: z.string().uuid().optional(),
+    muscleGroupDayId: z.string().uuid().optional(),
+    isGraduationRep: z.boolean().optional(),
   });
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -109,6 +115,22 @@ export async function POST(req: Request) {
       userCalibration: body.userCalibration ?? null,
       ...(rep.userId ? { userId: rep.userId } : {}),
       ...(frameworkWeights ? { weights: frameworkWeights } : {}),
+      // Phase 8 — surface the muscle-group exercise context to scoring.
+      // Body values take priority because tagWorkoutRep races with this
+      // call (it tags after the rep is saved); the rep row may not have
+      // the FKs yet at scoring time, but the client knows them.
+      ...(body.exerciseId || rep.exerciseId
+        ? { exerciseId: body.exerciseId ?? rep.exerciseId! }
+        : {}),
+      ...(body.muscleGroupDayId || rep.muscleGroupDayId
+        ? {
+            muscleGroupDayId:
+              body.muscleGroupDayId ?? rep.muscleGroupDayId!,
+          }
+        : {}),
+      ...(body.isGraduationRep || rep.isGraduationRep
+        ? { isGraduationRep: true }
+        : {}),
     });
 
     // CTO-scan H6 — wrap dim_scores + progress_snapshots + callouts
@@ -187,6 +209,12 @@ export async function POST(req: Request) {
       totalServerDurationMs: Date.now() - requestStart,
       failureReason: resolveFallbackReason(scoreMetrics),
       compositeScore: score.composite,
+      // Phase 8 — muscle-group slicing.
+      exerciseId: body.exerciseId ?? rep.exerciseId ?? null,
+      muscleGroupDayId:
+        body.muscleGroupDayId ?? rep.muscleGroupDayId ?? null,
+      isGraduationRep:
+        body.isGraduationRep ?? rep.isGraduationRep ?? false,
     });
 
     return NextResponse.json({

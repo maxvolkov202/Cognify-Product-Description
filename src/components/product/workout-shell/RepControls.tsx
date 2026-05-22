@@ -248,6 +248,9 @@ function ActiveRep({
       feedbackRepIndex={station.index + 1}
       feedbackTotalReps={4}
       feedbackModeLabel={graduation ? "GRADUATION" : "WORKOUT"}
+      exerciseId={station.exerciseId}
+      muscleGroupDayId={muscleGroupDayId}
+      isGraduationRep={!!graduation}
       onComplete={async (payload) => {
         if (muscleGroupDayId) {
           try {

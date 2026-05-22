@@ -131,6 +131,12 @@ type Props = {
   }) => void;
   onNext?: () => void;
   nextLabel?: string;
+  /** Phase 8 — muscle-group context. Threaded into insertPendingRep +
+   *  saveRep + /api/score-internal body so the scoring pipeline gets
+   *  the exercise XML + rubric hint. NULL/undefined for legacy callers. */
+  exerciseId?: string | null;
+  muscleGroupDayId?: string | null;
+  isGraduationRep?: boolean;
 };
 
 type Phase =
@@ -251,6 +257,9 @@ export function RepSurface({
   onComplete,
   onNext,
   nextLabel = "Next rep",
+  exerciseId,
+  muscleGroupDayId,
+  isGraduationRep,
 }: Props) {
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [frameworkVisible, setFrameworkVisible] = useState(
@@ -450,6 +459,10 @@ export function RepSurface({
         sessionId: sessionId ?? null,
         timeBudgetMs: maxDurationMs,
         words,
+        // Phase 8 — muscle-group threading.
+        ...(exerciseId ? { exerciseId } : {}),
+        ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
+        ...(isGraduationRep ? { isGraduationRep: true } : {}),
       });
 
       if (pending) {
@@ -502,6 +515,12 @@ export function RepSurface({
         : {}),
       ...(pressureArchetypeId ? { pressureArchetypeId } : {}),
       ...(scoreModeContext ? { modeContext: scoreModeContext } : {}),
+      // Phase 8 — muscle-group context for exercise-aware scoring.
+      // Sent in the request body so the scoring pipeline sees it
+      // BEFORE the rep row's tagWorkoutRep finishes (those race).
+      ...(exerciseId ? { exerciseId } : {}),
+      ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
+      ...(isGraduationRep ? { isGraduationRep: true } : {}),
     };
 
     // Client-side timeout so Claude hangs don't trap the user. Bumped from
@@ -650,6 +669,10 @@ export function RepSurface({
         framework: framework ?? null,
         topic: topic ?? null,
         sessionId: sessionId ?? null,
+        // Phase 8 — muscle-group threading.
+        ...(exerciseId ? { exerciseId } : {}),
+        ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
+        ...(isGraduationRep ? { isGraduationRep: true } : {}),
       });
       savedRepId = saved.repId;
       savedCalloutIds = saved.calloutIds;

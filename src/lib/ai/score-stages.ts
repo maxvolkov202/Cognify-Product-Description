@@ -78,6 +78,12 @@ import {
   renderReferenceRepsBlock,
 } from "./rag/reference-reps";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
+import {
+  getExerciseScoringContext,
+  renderExerciseXmlBlock,
+  tryExerciseFastFail,
+  type ExerciseScoringContext,
+} from "./muscle-group-exercises";
 
 // ——— Stage 1 system prompt (SCORING ONLY) ——————————————————————
 
@@ -315,6 +321,9 @@ type ScoringContext = {
   ragDurationMs: number;
   ragChunkCount: number;
   hasWordTimestamps: boolean;
+  /** Phase 8 — exercise context for Stage 2's constraint-hint append.
+   *  NULL when input.exerciseId was unset or hydration failed. */
+  exerciseCtx: ExerciseScoringContext | null;
 };
 
 async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
@@ -371,8 +380,17 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
     signalsBlock = renderTextSignalsBlock(textSignals);
   }
 
+  // Phase 8 — hydrate the muscle-group exercise context when set. Fully
+  // gated so legacy reps (no exerciseId) skip the lookup entirely and
+  // produce byte-identical prompts to today.
+  const exerciseCtx = input.exerciseId
+    ? await getExerciseScoringContext(input.exerciseId)
+    : null;
+  const exerciseXml = exerciseCtx ? renderExerciseXmlBlock(exerciseCtx) : null;
+
   const timedTranscript = input.transcript;
   const userPrompt = [
+    exerciseXml,
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
@@ -416,6 +434,7 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
     ragDurationMs: ragResult.durationMs,
     ragChunkCount: ragResult.chunks.length,
     hasWordTimestamps,
+    exerciseCtx,
   };
 }
 
@@ -568,6 +587,36 @@ export async function scoreStage1(input: ScoreRepInput): Promise<Stage1Result> {
         ? { dimension: "thinking_quality" as const, score: blended, signals: [...thinkDet.signals, `(LLM: ${llmThink})`] }
         : d,
     );
+
+    // Phase 8 — exercise fast-fail. Only fires when context.exerciseCtx
+    // is set; legacy reps (Skill Lab, scenario, baseline) skip this
+    // entirely and produce byte-identical composites.
+    if (context.exerciseCtx) {
+      const fastFail = tryExerciseFastFail({
+        slug: context.exerciseCtx.slug,
+        fillerRate: sig.fillerRate,
+        durationMs: input.durationMs,
+      });
+      if (fastFail) {
+        for (const [dim, override] of Object.entries(fastFail.overrides)) {
+          if (override == null) continue;
+          const d = dim as SkillDimension;
+          dimensionMap[d] = override;
+          finalDimensions = finalDimensions.map((dx) =>
+            dx.dimension === d
+              ? {
+                  dimension: d,
+                  score: override,
+                  signals: [
+                    ...(dx.signals ?? []),
+                    `(exercise fast-fail: ${context.exerciseCtx!.slug})`,
+                  ],
+                }
+              : dx,
+          );
+        }
+      }
+    }
   }
 
   const compositeScore = composite(dimensionMap, input.weights);
@@ -638,6 +687,15 @@ export async function scoreStage2(
     2,
   )}`;
 
+  // Phase 8 — exercise rubric AUGMENTATION. Single operator-facing
+  // constraint sentence appended ONLY when a registered hint exists
+  // for the exercise. Phrased as a rubric instruction so the LLM
+  // treats it as a scoring rule, not feedback to render verbatim.
+  const exerciseHintBlock =
+    context.exerciseCtx?.hint
+      ? `EXERCISE CONSTRAINT (augments rubric — operator-facing, do NOT render to user verbatim):\n${context.exerciseCtx.hint}`
+      : null;
+
   // Compose the user prompt. Exemplars come BEFORE stage 1 + the rest
   // of the context so the model reads "what good feedback looks like
   // on similar reps" first, then the canonical scores it has to
@@ -645,6 +703,7 @@ export async function scoreStage2(
   const userPromptWithStage1 = [
     exemplarsBlock,
     stage1Block,
+    exerciseHintBlock,
     context.userPrompt,
   ]
     .filter(Boolean)

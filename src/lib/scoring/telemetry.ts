@@ -121,6 +121,13 @@ export type WriteTelemetryInput = {
    *  where no LLM was actually called. Defaults to metrics.modelUsed
    *  when metrics is present, otherwise "mock-fallback-v1". */
   modelUsedOverride?: string;
+  /** Phase 8 — muscle-group exercise the rep belongs to. NULL for
+   *  legacy Skill Lab / scenario reps. */
+  exerciseId?: string | null;
+  /** Phase 8 — muscle-group day the rep belongs to. */
+  muscleGroupDayId?: string | null;
+  /** Phase 8 — pressure graduation rep flag. */
+  isGraduationRep?: boolean;
 };
 
 /**
@@ -168,6 +175,12 @@ export async function writeScoringTelemetry(
       failureReason: input.failureReason,
       errorDetail,
       compositeScore: input.compositeScore ?? null,
+      // Phase 8 — muscle-group context. Nullable / default-false on
+      // existing rows; callers pass undefined for non-workout reps and
+      // the columns stay NULL / false.
+      exerciseId: input.exerciseId ?? null,
+      muscleGroupDayId: input.muscleGroupDayId ?? null,
+      isGraduationRep: input.isGraduationRep ?? false,
     });
     return true;
   }, false);

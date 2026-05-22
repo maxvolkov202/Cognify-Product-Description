@@ -963,6 +963,12 @@ export const scoringTelemetry = cognifyV2Schema.table(
     // the table.
     errorDetail: text("error_detail"),
     compositeScore: integer("composite_score"),
+    // Phase 8 — muscle-group context. Nullable so legacy Skill Lab + scenario
+    // telemetry rows continue to write unchanged. When set, ops dashboards
+    // can slice scoring drift per exercise / per muscle-group day.
+    exerciseId: uuid("exercise_id"),
+    muscleGroupDayId: uuid("muscle_group_day_id"),
+    isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -971,6 +977,8 @@ export const scoringTelemetry = cognifyV2Schema.table(
     index("scoring_telemetry_created_idx").on(t.createdAt),
     index("scoring_telemetry_failure_idx").on(t.failureReason, t.createdAt),
     index("scoring_telemetry_model_idx").on(t.modelUsed),
+    index("scoring_telemetry_exercise_idx").on(t.exerciseId, t.createdAt),
+    index("scoring_telemetry_mgd_idx").on(t.muscleGroupDayId, t.createdAt),
   ],
 );
 

@@ -110,6 +110,10 @@ const bodySchema = z.object({
    *  with the LLM call. Optional — score still works without it (Tone
    *  falls back to LLM-only with prosodyAvailable=false). */
   audioUrl: z.string().url().optional(),
+  // Phase 8 — muscle-group context for exercise-aware scoring.
+  exerciseId: z.string().uuid().optional(),
+  muscleGroupDayId: z.string().uuid().optional(),
+  isGraduationRep: z.boolean().optional(),
 });
 
 type ScoreBody = z.infer<typeof bodySchema>;

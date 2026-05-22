@@ -215,6 +215,18 @@ export type ScoreRepInput = {
    *  — keeps trial / unauthenticated flows on the legacy path while we
    *  ramp. */
   userId?: string;
+  /** Phase 8 — muscle-group exercise context. When set, the scoring
+   *  pipeline injects a `<exercise/>` XML block into the user prompt
+   *  and (if the exercise has a registered rubric hint) appends one
+   *  operator-facing constraint sentence to the Stage 2 user message.
+   *  When unset, scoring runs identically to today (Skill Lab / scenario
+   *  reps are unaffected). */
+  exerciseId?: string;
+  /** Phase 8 — muscle-group day this rep belongs to. Telemetry-only;
+   *  doesn't affect the prompt. */
+  muscleGroupDayId?: string;
+  /** Phase 8 — pressure-style graduation rep tag. Telemetry-only. */
+  isGraduationRep?: boolean;
 };
 
 /** Ch.11c — Two-knob feature flag. `FF_DETERMINISTIC_SIGNALS=true` is
