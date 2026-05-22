@@ -17,13 +17,10 @@ import {
   getSkillTrends,
   getRepById,
   getWeakestDimension,
-  getRunningAverages,
 } from "@/lib/db/queries/progress";
 import { LevelStreakCard } from "@/components/product/dashboard/LevelStreakCard";
 import { WeakestLinkCard } from "@/components/product/dashboard/WeakestLinkCard";
 import { SubSkillBreakdownCard } from "@/components/product/dashboard/SubSkillBreakdownCard";
-import { SkillAveragesGrid } from "@/components/product/dashboard/SkillAveragesGrid";
-import { StreakCalendar } from "@/components/product/dashboard/StreakCalendar";
 import { DailyQuestsStrip } from "@/components/product/dashboard/DailyQuestsStrip";
 import { getOrCreateTodayQuests } from "@/lib/db/queries/daily-quests";
 import { LeagueBoard } from "@/components/product/dashboard/LeagueBoard";
@@ -78,7 +75,6 @@ export default async function DashboardPage() {
     todaysQuests,
     leagueMember,
     subSkillStats,
-    runningAverages,
   ] = await Promise.all([
     getStreakStatus(userId),
     getRecentReps(userId, 5),
@@ -93,7 +89,6 @@ export default async function DashboardPage() {
     user && subSkillUiEnabled
       ? getSubSkillRunningAverages(user.id)
       : Promise.resolve({} as Partial<Record<SubSkillId, SubSkillStat>>),
-    user ? getRunningAverages(user.id) : Promise.resolve([]),
   ]);
 
   const subSkillBreakdown = bucketByDimension(subSkillStats);
@@ -218,56 +213,9 @@ export default async function DashboardPage() {
     <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-10 md:py-12">
       <ResumeBanner />
 
-      {profile && (
-        <LevelStreakCard
-          level={profile.level}
-          xp={profile.xp}
-          currentStreakDays={streakStatus.streakDays}
-          longestStreakDays={streakStatus.streakDays}
-        />
-      )}
-
-      {profile && (
-        <WeakestLinkCard
-          weakest={weakest}
-          totalReps={profile.lifetimeReps}
-          weakestSubSkill={weakestSubSkillForLink}
-        />
-      )}
-
-      {subSkillUiEnabled && profile && profile.lifetimeReps > 0 && (
-        <SubSkillBreakdownCard
-          breakdown={subSkillBreakdown}
-          totalSampleSize={totalSubSkillObservations}
-        />
-      )}
-
-      {profile && profile.lifetimeReps > 0 && (
-        <StreakCalendar
-          activity={activity.slice(-30)}
-          currentStreakDays={streakStatus.streakDays}
-        />
-      )}
-
-      {todaysQuests && (
-        <DailyQuestsStrip
-          quests={todaysQuests.quests}
-          completedIds={todaysQuests.completedIds}
-        />
-      )}
-
-      {leagueMember && cohort.length > 0 && user && (
-        <LeagueBoard
-          tier={leagueMember.tier}
-          selfUserId={user.id}
-          cohort={cohort.map((m) => ({
-            userId: m.userId,
-            weeklyXp: m.weeklyXp,
-            handle: anonymousHandle(m.userId, m.weekStart),
-          }))}
-        />
-      )}
-
+      {/* Greeting + vital signs (streak / last-5 / focus) + primary CTA.
+          Lands first so the user sees "Hey {name}. Time to train." at the
+          top of the page instead of scrolling past gamification cards. */}
       <DashboardHero
         firstName={firstName}
         streakDays={streakStatus.streakDays}
@@ -279,8 +227,7 @@ export default async function DashboardPage() {
         focusDimScore={focus.score}
       />
 
-      <WeekCalendar activity={sevenDayActivity} />
-
+      {/* Modes — Workout / Skill Lab / Build a Rep. */}
       <TrainingStackRow
         modes={[
           {
@@ -310,16 +257,59 @@ export default async function DashboardPage() {
         ]}
       />
 
-      <LibraryCallout />
+      {/* 7-day activity heatmap. The 30-day StreakCalendar was redundant
+          with this + the streak pill in DashboardHero — removed to cut
+          length. */}
+      <WeekCalendar activity={sevenDayActivity} />
 
-      {/* Ch.14 — DNA Gap 7. Six-dim running-average grid: weighted
-       *  recent average + 14-day delta arrow per dim. Sits above the
-       *  legacy SkillProgressBlock (latest-score bars) so users see
-       *  smoothed-vs-latest at a glance. Always mounted (renders
-       *  empty-state tiles for new users) so the six trained dims are
-       *  visible from rep #0. */}
-      {profile && <SkillAveragesGrid averages={runningAverages} />}
+      {/* Engagement loop */}
+      {profile && (
+        <LevelStreakCard
+          level={profile.level}
+          xp={profile.xp}
+          currentStreakDays={streakStatus.streakDays}
+          longestStreakDays={streakStatus.streakDays}
+        />
+      )}
 
+      {todaysQuests && (
+        <DailyQuestsStrip
+          quests={todaysQuests.quests}
+          completedIds={todaysQuests.completedIds}
+        />
+      )}
+
+      {leagueMember && cohort.length > 0 && user && (
+        <LeagueBoard
+          tier={leagueMember.tier}
+          selfUserId={user.id}
+          cohort={cohort.map((m) => ({
+            userId: m.userId,
+            weeklyXp: m.weeklyXp,
+            handle: anonymousHandle(m.userId, m.weekStart),
+          }))}
+        />
+      )}
+
+      {/* Skill progress + diagnosis */}
+      {profile && (
+        <WeakestLinkCard
+          weakest={weakest}
+          totalReps={profile.lifetimeReps}
+          weakestSubSkill={weakestSubSkillForLink}
+        />
+      )}
+
+      {subSkillUiEnabled && profile && profile.lifetimeReps > 0 && (
+        <SubSkillBreakdownCard
+          breakdown={subSkillBreakdown}
+          totalSampleSize={totalSubSkillObservations}
+        />
+      )}
+
+      {/* SkillProgressBlock subsumes the per-dim view that SkillAveragesGrid
+          rendered (same six bars, plus the streak/reps/sessions stats
+          row). Grid removed to cut page length. */}
       <SkillProgressBlock
         trends={trends}
         streakDays={streakStatus.streakDays}
@@ -330,6 +320,8 @@ export default async function DashboardPage() {
       {insights.length > 0 && <CoachMemo insights={insights} />}
 
       {hasAnyReps && <LastSessions recent={recent} />}
+
+      <LibraryCallout />
     </div>
   );
 }
