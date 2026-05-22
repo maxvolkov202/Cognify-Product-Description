@@ -1250,3 +1250,29 @@ All 7 open questions cleared with Max before Phase 1 cut. Locked in:
 5. **Mascot voice samples:** Claude drafts 10 representative lines before Phase 13 starts (delivered alongside this update).
 6. **Phase ordering:** linear 1→14. Mascot Phase 4 blocks Phase 5 shell (which needs at least a stub). Cleaner dependency chain.
 7. **Phase 14 rollout pace:** compressed to ~3-4 days end-to-end — Phase 0 internal → 5% → 25% → 100% with ≥24h observation per step (down from 48h). Better planning + smoke matrix justifies the tighter cadence.
+
+---
+
+## Post-launch follow-ups shipped (Phases A-F, 2026-05-22)
+
+After Phase 15's flag gate landed, a follow-up session closed five of the 10 deferrals listed in `plans/muscle-group-pivot-launch-checklist.md`. Each is its own commit on `feat/muscle-group-pivot`.
+
+- **Phase A — TZ correctness (`32079aad`).** `PATCH /api/me/tz` Zod-validated endpoint + `TimezoneDetector` client component mounted in `(app)` layout. Fixes the rollover-cron correctness bug (was UTC-only for every user → day boundaries misfired for non-UTC users by up to ~24h).
+- **Phase B — Scoring quality (`4210336d`).** RAG retrieve gains `preferredDim?: SkillDimension` — when set, the highest-similarity matching chunk wins slot 0 ahead of the standard per-dim coverage loop. Threaded from `score-stages.ts` via `muscleGroupToSkillDim()` (`pacing → delivery`). Legacy reps with no `exerciseId` produce byte-identical prompts. `/ops/calibration/per-exercise` drift view added — single grouped query over `scoring_telemetry × exercises` with mean / p50 / mock-rate / p95 latency over 30d.
+- **Phase C — Launch infra (`23c12a4e`).** `scripts/phase-baseline.mjs` gains `--mode=muscle-group-final`, `--exercise-id=<slug>`, `--compare-against=<baseline>` with a ±5 composite tolerance gate. Output filename diverges (`muscle-group-pivot-final.json` / `muscle-group-pivot-spotcheck-<slug>.json`) so spotchecks don't clobber legacy phase-N baselines. Playwright tap-target audit at `tests/e2e/mobile-audit.spec.ts` (iPhone-14 emulation, ≥44×44 assertion on `/workout` + `/progress/muscle-groups`). `@playwright/test` devDep installed; browser binary install (`npx playwright install chromium`) is a separate step documented in the spec.
+- **Phase D — PWA polish (`e0609931`).** Real app icons rendered from `public/logo/mark.png` via `scripts/generate-app-icons.mjs` (sharp transitive): 192/512/512-maskable PNGs + 180 touch icon + 4 iOS splash variants. `<head>` gains `apple-mobile-web-app-capable` + status-bar-style + 4 `apple-touch-startup-image` links. `useMediaSession` hook in `src/hooks/use-media-session.ts` sets lock-screen metadata while a day is active (best-effort: Android Chrome / Edge / desktop honor it; iOS Safari needs active audio playback). Serwist service worker via `@serwist/next`: `withSerwist` in `next.config.ts` (disabled in dev), source at `src/app/sw.ts`, `ServiceWorkerRegister.tsx` mounted in `(app)` layout (production only). API routes intentionally bypassed; `public/sw.js` served `no-cache`. `public/sw.js` + worker chunks `.gitignore`d.
+- **Phase E — RepRunner extraction plan only (`4a8c2e61`).** 7-caller, ~2-day refactor scoped at `plans/rep-runner-extraction.md`. Migration plan: extract `useRepRunner` hook → build `RepRunnerSurface` shell → migrate `RepControls` (muscle-group) first, then `SkillLabSession`, then the other 5. Each step is its own PR. Explicitly NOT done in this session — risk to Skill Lab / Practice / BuildARep / Challenge surfaces outweighs the architectural cleanup.
+- **Phase F — Housekeeping.** This section + memory refresh (`memory/project_muscle-group-pivot.md`) + `plans/muscle-group-pivot-launch-checklist.md` deferral ticks.
+
+### Still-deferred (intentionally)
+
+- **Phase G — Mascot art polish.** Max-authored Figma → SVG layer swap in `MascotCharacter.tsx`. Placeholder is production-acceptable. `<Layer layerName="...">` swap targets are ready.
+- **48-rep calibration replay.** Scaffold landed in Phase C; execution needs ~$2 of Anthropic credits + dev server.
+- **Smoke matrix on real device.** Per the launch checklist.
+- **RepRunner extraction.** See `plans/rep-runner-extraction.md`. Its own branch.
+- **Capacitor native shell.** Explicitly out of scope per Max's 2026-05-22 direction. Will be a separate ~1-sprint project later.
+
+### Decision points carried to next session
+
+- Are the placeholder mascot SVG + voice variants good enough to launch with, or block on Phase G art first?
+- Push `feat/muscle-group-pivot` to origin + open the draft PR for Bob? Needs Max's go-ahead per CLAUDE.md.
