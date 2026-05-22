@@ -57,6 +57,8 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   stations: z.array(StationSchema),
   sessionPhase: SessionPhaseSchema,
   currentStationIndex: z.number().int().min(0).max(3),
+  /** Active workout_sessions.id. Required for prompt_selection_events FK. */
+  workoutSessionId: z.string().uuid().nullable(),
   /** From the prior same-dim day; drives Phase 9's banner. */
   previousDayComposite: z.number().nullable(),
   /** Sparse: only present once today's day is complete. */
@@ -77,6 +79,7 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   stations: [],
   sessionPhase: "idle",
   currentStationIndex: 0,
+  workoutSessionId: null,
   previousDayComposite: null,
   todaysComposite: null,
   rationale: null,

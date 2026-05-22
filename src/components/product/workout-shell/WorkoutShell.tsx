@@ -61,6 +61,46 @@ function WorkoutShellInner({ payload }: { payload: WorkoutShellHydratedPayload }
     [dispatch],
   );
 
+  // Phase 6 → Phase 7 bridge: when the user picks a prompt, we advance
+  // to 'recording'. Phase 7 swaps this for the full state machine that
+  // triggers the mic + scoring pipeline.
+  const onPromptSelected = useCallback(
+    (params: {
+      promptId: string;
+      promptText: string;
+      mode: "shuffle" | "list" | "surprise" | "auto_idle";
+    }) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          JSON.stringify({
+            event: "workout_shell.prompt_picked",
+            ts: new Date().toISOString(),
+            mode: params.mode,
+            promptId: params.promptId,
+          }),
+        );
+      }
+      dispatch({ type: "SET_PHASE", phase: "recording" });
+    },
+    [dispatch],
+  );
+
+  const onSkipStation = useCallback(() => {
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        JSON.stringify({
+          event: "workout_shell.station_skipped",
+          ts: new Date().toISOString(),
+          index: state.currentStationIndex,
+        }),
+      );
+    }
+    // Phase 5/6 fallback behavior: bounce back to idle so the user can
+    // restart. Phase 7 owns the proper skip flow (advance station +
+    // mark skipped).
+    dispatch({ type: "SET_PHASE", phase: "idle" });
+  }, [dispatch, state.currentStationIndex]);
+
   const station =
     payload.stations[state.currentStationIndex] ??
     payload.stations[0] ??
@@ -95,7 +135,13 @@ function WorkoutShellInner({ payload }: { payload: WorkoutShellHydratedPayload }
         />
       </main>
 
-      <RepControls phase={state.phase} station={station} />
+      <RepControls
+        phase={state.phase}
+        station={station}
+        workoutSessionId={payload.workoutSessionId}
+        onPromptSelected={onPromptSelected}
+        onSkipStation={onSkipStation}
+      />
     </div>
   );
 }

@@ -1218,3 +1218,74 @@ export const exerciseEngagementRelations = relations(
     }),
   }),
 );
+
+/**
+ * Migration 0021 — prompt selection telemetry (Phase 6).
+ *
+ * One row per "user picked a prompt for a workout rep" event. Powers
+ * ops mix-dashboards and the auto_idle > 20% alert.
+ *
+ * Mode lifecycle:
+ *   shuffle    — picked from the 3 Shuffle candidates
+ *   list       — picked from the All prompts tab
+ *   surprise   — picked from Surprise Me's auto-suggestion
+ *   auto_idle  — 15s idle timeout → auto-picked top Shuffle candidate
+ */
+export const promptSelectionEvents = cognifyV2Schema.table(
+  "prompt_selection_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    workoutSessionId: uuid("workout_session_id")
+      .notNull()
+      .references(() => workoutSessions.id, { onDelete: "cascade" }),
+    exerciseId: uuid("exercise_id")
+      .notNull()
+      .references(() => exercises.id, { onDelete: "cascade" }),
+    promptId: uuid("prompt_id").references(() => exercisePrompts.id, {
+      onDelete: "set null",
+    }),
+    /** shuffle | list | surprise | auto_idle (CHECK constraint enforces). */
+    mode: text("mode").notNull(),
+    reshuffles: integer("reshuffles").notNull().default(0),
+    msToSelect: integer("ms_to_select").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("prompt_selection_events_user_created_idx").on(
+      t.userId,
+      t.createdAt,
+    ),
+    index("prompt_selection_events_exercise_idx").on(
+      t.exerciseId,
+      t.createdAt,
+    ),
+    index("prompt_selection_events_mode_idx").on(t.mode, t.createdAt),
+  ],
+);
+
+export const promptSelectionEventsRelations = relations(
+  promptSelectionEvents,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [promptSelectionEvents.userId],
+      references: [users.id],
+    }),
+    workoutSession: one(workoutSessions, {
+      fields: [promptSelectionEvents.workoutSessionId],
+      references: [workoutSessions.id],
+    }),
+    exercise: one(exercises, {
+      fields: [promptSelectionEvents.exerciseId],
+      references: [exercises.id],
+    }),
+    prompt: one(exercisePrompts, {
+      fields: [promptSelectionEvents.promptId],
+      references: [exercisePrompts.id],
+    }),
+  }),
+);

@@ -453,7 +453,9 @@ Phase 14 (new, deferred to the end of the plan) is where Max swaps the visual SV
 
 ---
 
-## Phase 6 — Prompt selection UX `[ ]`
+## Phase 6 — Prompt selection UX `[x]`
+
+> **2026-05-21:** Picker shipped via 3 tabs (Shuffle / All prompts / Surprise me) inside `<RepControls>` during `prompt-selecting`. Migration 0021 created `cognify_v2.prompt_selection_events` + Drizzle mirror. Server actions: `fetchPromptCandidates` (calls `pickPromptCandidates` from Phase 3 with difficulty bias when 14d composite <60), `listAllPrompts` (filterable by difficulty), `logPromptSelection`. `startMuscleGroupDay` now also opens a `workout_sessions` row so prompt-selection events have a FK target. New files: `src/components/product/workout/PromptPicker.tsx` (idle 15s → auto_idle pick + swipe-left reshuffle + one free reshuffle), `PromptCard.tsx`, `RuleReminder.tsx`, `src/hooks/use-idle-timeout.ts`, `src/lib/workout/prompt-picker-state.ts` (reducer), `src/server/actions/prompt-selection.ts`. Build green, 27 tests pass.
 
 **Goal:** Build the moment between "mascot arrives at station N" and "user hits record" — a tab-based picker letting the user choose one prompt from the exercise's ~20-prompt bank with fast default path (Shuffle), full agency (List), and no-decision escape (Surprise me).
 

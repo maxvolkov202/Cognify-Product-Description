@@ -1,26 +1,40 @@
 "use client";
 
 // Bottom-half swappable control panel. Renders different inner content
-// based on session.phase. Phase 5 ships the skeletal version: each
-// branch shows a placeholder card so the shell renders deterministically
-// without Phase 6 (prompt picker) or Phase 7 (recording / scoring).
+// based on session.phase. Phase 6 wired the real PromptPicker for the
+// 'prompt-selecting' branch; remaining phases still show placeholders
+// until Phase 7 lands the session runtime.
 
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import { useTransition } from "react";
 import { Loader2, Mic, Sparkles } from "lucide-react";
 import type { ShellStation, SessionPhase } from "@/lib/workout/types";
 import { cn } from "@/lib/utils/cn";
+import PromptPicker from "@/components/product/workout/PromptPicker";
 
 export type RepControlsProps = {
   phase: SessionPhase;
   station: ShellStation | null;
+  /** Active workout session id (FK target for prompt_selection_events). */
+  workoutSessionId: string | null;
   onStartWorkout?: () => void;
+  /** Phase 6 → Phase 7 handoff: fires when the user picks a prompt. */
+  onPromptSelected?: (params: {
+    promptId: string;
+    promptText: string;
+    mode: "shuffle" | "list" | "surprise" | "auto_idle";
+  }) => void;
+  /** "Skip this station" exit from the picker. Phase 10 reads. */
+  onSkipStation?: () => void;
 };
 
 export default function RepControls({
   phase,
   station,
+  workoutSessionId,
   onStartWorkout,
+  onPromptSelected,
+  onSkipStation,
 }: RepControlsProps) {
   return (
     <div
@@ -33,16 +47,22 @@ export default function RepControls({
         {phase === "idle" && (
           <IdleControls onStartWorkout={onStartWorkout} />
         )}
-        {phase === "prompt-selecting" && (
+        {phase === "prompt-selecting" && station && (
+          <PromptPicker
+            exerciseId={station.exerciseId}
+            exerciseName={station.exerciseName}
+            rule={station.rule}
+            why={station.why}
+            workoutSessionId={workoutSessionId}
+            onSelect={(params) => onPromptSelected?.(params)}
+            {...(onSkipStation ? { onSkip: onSkipStation } : {})}
+          />
+        )}
+        {phase === "prompt-selecting" && !station && (
           <PlaceholderControls
             icon={<Sparkles className="w-5 h-5" />}
             title="Pick a prompt"
-            sub={
-              station
-                ? `Station ${station.index + 1}: ${station.exerciseName}`
-                : "Choose what to speak against."
-            }
-            hint="Phase 6 ships the picker. The Shuffle / All / Surprise me tabs go here."
+            sub="No station available — pause until the next muscle group day."
           />
         )}
         {phase === "recording" && (

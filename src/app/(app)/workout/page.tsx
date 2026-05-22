@@ -116,6 +116,7 @@ async function fetchTodaysDayPayload(
     // Active workout session for resumption (Phase 7 reads this).
     const [activeSession] = await db
       .select({
+        id: workoutSessions.id,
         index: workoutSessions.currentStationIndex,
       })
       .from(workoutSessions)
@@ -123,11 +124,15 @@ async function fetchTodaysDayPayload(
       .orderBy(desc(workoutSessions.createdAt))
       .limit(1);
 
+    // Default to prompt-selecting when an active day exists so the
+    // picker mounts immediately. The legacy "idle when completedReps=0"
+    // branch only fires now when somehow no workout_session has been
+    // opened yet (shouldn't happen post-Phase-6 wiring).
     const phase =
       day.status === "complete"
         ? "day-complete"
-        : day.completedReps === 0
-          ? "idle"
+        : day.completedReps >= 4
+          ? "day-complete-prompt"
           : "prompt-selecting";
 
     return {
@@ -139,6 +144,7 @@ async function fetchTodaysDayPayload(
       sessionPhase: phase,
       currentStationIndex:
         activeSession?.index ?? Math.min(day.completedReps, 3),
+      workoutSessionId: activeSession?.id ?? null,
       previousDayComposite: previousDay?.composite ?? null,
       todaysComposite: day.compositeAtClose,
       rationale: null,

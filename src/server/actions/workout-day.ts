@@ -16,6 +16,7 @@ import {
   exercises,
   muscleGroupDays,
   reps,
+  workoutSessions,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
@@ -33,6 +34,7 @@ import {
   type RecentRepsSnapshot,
   type SelectResult,
 } from "@/server/lib/workout/assignment";
+import { createWorkoutSession } from "@/server/actions/sessions";
 
 const REP_HISTORY_DAYS = 14;
 const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
@@ -296,6 +298,9 @@ export type StartMuscleGroupDayResult = {
   dayId: string;
   dimension: MuscleGroupId;
   stations: Station[];
+  /** workout_sessions.id for the active session. Used by Phase 6 to FK
+   *  prompt_selection_events. NULL when the action falls back. */
+  workoutSessionId: string | null;
   alreadyExisted: boolean;
   persisted: boolean;
 };
@@ -312,6 +317,7 @@ export async function startMuscleGroupDay(input: {
     dayId: randomUUID(),
     dimension: input.dim ?? "clarity",
     stations: [],
+    workoutSessionId: null,
     alreadyExisted: false,
     persisted: false,
   };
@@ -333,10 +339,23 @@ export async function startMuscleGroupDay(input: {
       const stations = await hydrateStations(
         existing.plannedExerciseIds as string[],
       );
+      // Reuse the most-recent workout_session for this day if one
+      // exists; otherwise open a fresh one (handles resume on a new
+      // device or after the session was abandoned mid-day).
+      const [activeSession] = await db
+        .select({ id: workoutSessions.id })
+        .from(workoutSessions)
+        .where(eq(workoutSessions.muscleGroupDayId, existing.id))
+        .orderBy(desc(workoutSessions.createdAt))
+        .limit(1);
+      const sessionId =
+        activeSession?.id ?? (await createWorkoutSession(existing.id))
+          .workoutSessionId;
       return {
         dayId: existing.id,
         dimension: existing.dimension as MuscleGroupId,
         stations,
+        workoutSessionId: sessionId,
         alreadyExisted: true,
         persisted: true,
       };
@@ -398,17 +417,24 @@ export async function startMuscleGroupDay(input: {
       why: ex.instructions,
     }));
 
+    // Open the workout_session for the new day so the rest of the
+    // pipeline (prompt-selection events, rep recording state) has a
+    // session id to FK against.
+    const sessionResult = await createWorkoutSession(inserted!.id);
+
     logEvent("workout.day.started", {
       userId,
       dayId: inserted!.id,
       dim: chosenDim,
       exerciseIds: plannedIds,
+      workoutSessionId: sessionResult.workoutSessionId,
     });
 
     return {
       dayId: inserted!.id,
       dimension: chosenDim,
       stations,
+      workoutSessionId: sessionResult.workoutSessionId,
       alreadyExisted: false,
       persisted: true,
     };
