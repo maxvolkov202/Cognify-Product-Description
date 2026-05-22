@@ -78,6 +78,16 @@ const PHASE = FLAGS.phase ?? process.env.PHASE ?? "0";
 //
 // `phase-baseline-final` is the canonical baseline filename for the
 // pre-launch replay run. The launch checklist references this path.
+//
+// `--mode=post-strict-rubric` (Phase HC-5) runs against the same 10-rep
+// subset after the Phase HC-3 scoring tightening. Compares against the
+// pre-HC-3 baseline to QUANTIFY the rubric shift — we EXPECT scores to
+// drop on the "barely tried" and "vague" reps (10-25 and 30-45 bands)
+// while strong/excellent reps should stay within ±5. Output filename:
+// plans/baselines/post-strict-rubric.json. Run after Max funds API
+// credits (~$2-3 wall-clock):
+//   node scripts/phase-baseline.mjs --mode=post-strict-rubric \
+//        --compare-against=plans/baselines/phase-pre-pivot.json
 const MODE = FLAGS.mode ?? "legacy";
 const EXERCISE_SLUG = FLAGS["exercise-id"] ?? null;
 const COMPARE_AGAINST = FLAGS["compare-against"] ?? null;
@@ -87,8 +97,12 @@ const MIN_HOLD_RATE = parseFloat(FLAGS["min-hold-rate"] ?? "0.9");
 
 // Phase 5+ — set TWO_STAGE=true to baseline the two-stage endpoint
 // (/api/score/twostage) instead of the legacy single-call /api/score.
-// muscle-group-final mode implies twostage; legacy mode honors the env.
-const TWO_STAGE = MODE === "muscle-group-final" || process.env.TWO_STAGE === "true";
+// muscle-group-final + post-strict-rubric modes imply twostage; legacy
+// mode honors the env.
+const TWO_STAGE =
+  MODE === "muscle-group-final" ||
+  MODE === "post-strict-rubric" ||
+  process.env.TWO_STAGE === "true";
 const SCORE_ENDPOINT = TWO_STAGE ? "/api/score/twostage" : "/api/score";
 
 function parseCliFlags(argv) {
@@ -376,6 +390,8 @@ async function main() {
     baselineName = exercise
       ? `muscle-group-pivot-spotcheck-${exercise.slug}.json`
       : `muscle-group-pivot-final.json`;
+  } else if (MODE === "post-strict-rubric") {
+    baselineName = "post-strict-rubric.json";
   } else {
     baselineName = `phase-${PHASE}.json`;
   }
