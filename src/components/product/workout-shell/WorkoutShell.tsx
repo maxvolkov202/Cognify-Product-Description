@@ -5,9 +5,10 @@
 // src/lib/workout/use-workout-session.tsx — the provider now drives
 // the state machine, persistence, mascot orchestration, and timers.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
+import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import {
   WorkoutSessionProvider,
   useWorkoutSession,
@@ -84,11 +85,22 @@ function WorkoutShellInner({
     [],
   );
 
+  // Start workflow: flash the ready-stance + dispatch the local START
+  // event so the UI morphs immediately, AND fire the server action that
+  // actually creates today's muscle_group_day (or resamples an orphaned
+  // one). Reload picks up the fresh active-day payload. Without the
+  // server call the picker mounts with empty stations and falls into
+  // "No station available."
+  const [, startTransitionPending] = useTransition();
   const onStartWorkout = useCallback(() => {
     setReadyStance(true);
     send({ type: "START" });
     if (readyStanceTimer.current) clearTimeout(readyStanceTimer.current);
     readyStanceTimer.current = setTimeout(() => setReadyStance(false), 900);
+    startTransitionPending(async () => {
+      await startMuscleGroupDay();
+      if (typeof window !== "undefined") window.location.reload();
+    });
   }, [send]);
 
   const onPromptSelected = useCallback(
@@ -223,6 +235,17 @@ function WorkoutShellInner({
         streakFreezes={payload.streakFreezes ?? null}
       />
 
+      {/* Today's Training list — placed ABOVE the main slot so the user
+          always sees what's coming up, even mid-workout. Highlights the
+          current station. */}
+      <div className="mt-5">
+        <TrainingList
+          stations={state.stations}
+          currentStationIndex={state.currentStationIndex}
+          dim={payload.dimension}
+        />
+      </div>
+
       {/* Main interactive slot. Morphs by phase with a fade/slide
           animation so the StartCard → picker transition feels guided. */}
       <div className="mt-5">
@@ -267,15 +290,6 @@ function WorkoutShellInner({
         </AnimatePresence>
       </div>
 
-      {/* Today's Training list — always visible, current station
-          highlighted. Renders placeholder rows pre-Start. */}
-      <div className="mt-5">
-        <TrainingList
-          stations={state.stations}
-          currentStationIndex={state.currentStationIndex}
-          dim={payload.dimension}
-        />
-      </div>
     </div>
   );
 }

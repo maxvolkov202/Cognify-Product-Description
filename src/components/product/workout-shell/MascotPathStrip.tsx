@@ -101,7 +101,9 @@ export default function MascotPathStrip({
       data-mascot-strip
       data-compact={compact ? "true" : "false"}
     >
-      {/* Dashed path line — centered horizontally. */}
+      {/* Dashed path — segmented BETWEEN markers (not through them).
+          Each segment spans the gap between consecutive marker centers
+          with a 22px clearance so the dashes never touch the markers. */}
       <div
         className="absolute inset-x-0 flex justify-center pointer-events-none"
         style={{ bottom: 38 }}
@@ -112,16 +114,23 @@ export default function MascotPathStrip({
           viewBox={`0 0 ${PATH_WIDTH_PX + 32} 6`}
           aria-hidden="true"
         >
-          <line
-            x1="16"
-            y1="3"
-            x2={PATH_WIDTH_PX + 16}
-            y2="3"
-            stroke="rgba(255,255,255,0.18)"
-            strokeWidth="2"
-            strokeDasharray="4 5"
-            strokeLinecap="round"
-          />
+          {[0, 1, 2].map((i) => {
+            const startCenter = 16 + i * SPACING_PX;
+            const endCenter = 16 + (i + 1) * SPACING_PX;
+            return (
+              <line
+                key={i}
+                x1={startCenter + 22}
+                y1="3"
+                x2={endCenter - 22}
+                y2="3"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                strokeDasharray="3 4"
+                strokeLinecap="round"
+              />
+            );
+          })}
         </svg>
       </div>
 
@@ -209,11 +218,13 @@ function StationMarker({
         className={cn(
           "rounded-full flex items-center justify-center font-semibold text-white",
           "border-2 transition-colors",
+          // Opaque bg on every variant — keeps the dashed path from
+          // bleeding through the marker.
           isComplete
-            ? "border-emerald-300/80 bg-emerald-400/30"
+            ? "border-emerald-300/80 bg-emerald-500/40"
             : isCurrent
-              ? "bg-white/10"
-              : "bg-slate-800/60 border-slate-700",
+              ? "bg-slate-900"
+              : "bg-slate-900 border-slate-700",
         )}
         style={{
           width: size,
