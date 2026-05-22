@@ -134,6 +134,65 @@ export function getDimensionGroup(dim: SkillDimension): SkillDimensionGroup {
 export const MODE_IDS = ["daily_workout", "skill_lab", "scenario_training"] as const;
 export type ModeId = (typeof MODE_IDS)[number];
 
+// ——— Muscle groups (muscle-group adventure-path pivot — Phase 3 ————————
+//
+// The product surfaces 6 "muscle groups" the user trains daily. These map
+// 1:1 to the canonical 6 SKILL_DIMENSIONS except for one explicit rename:
+// the product uses `pacing` where the scoring rubric uses `delivery`.
+//
+// Rationale: the product team chose "Pacing" as user-facing language
+// (rate / pauses / fillers), but the v3 rubric (DNA reconciliation
+// 2026-05-01) consolidated under `delivery`. The DB dimension enum is
+// append-only and keeps both values, so we tag muscle-group rows with
+// `pacing` and rely on Phase 8's scoring-side aliasing to bridge to
+// `delivery` when reading dimension_scores.
+//
+// DO NOT collapse these — the product UI reads MUSCLE_GROUP_IDS,
+// scoring reads SKILL_DIMENSIONS. They diverge by design.
+export const MUSCLE_GROUP_IDS = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "pacing",
+  "tone",
+] as const;
+export type MuscleGroupId = (typeof MUSCLE_GROUP_IDS)[number];
+
+export const MUSCLE_GROUP_LABELS: Record<MuscleGroupId, string> = {
+  clarity: "Clarity",
+  structure: "Structure",
+  conciseness: "Conciseness",
+  thinking_quality: "Thinking Quality",
+  pacing: "Pacing",
+  tone: "Tone",
+};
+
+/** One of the 4 stations in a muscle-group day. */
+export type Station = {
+  index: number; // 0..3
+  exerciseId: string;
+  exerciseSlug: string;
+  exerciseName: string;
+  rule: string; // exercises.description in the DB
+  why: string | null; // exercises.instructions in the DB
+};
+
+/** Fully-hydrated muscle-group day for the Workout shell to render. */
+export type HydratedMuscleGroupDay = {
+  dayId: string;
+  userId: string;
+  dayDate: string; // YYYY-MM-DD
+  dimension: MuscleGroupId;
+  status: "planned" | "in_progress" | "complete" | "abandoned" | "frozen_skip";
+  completedReps: number;
+  stations: Station[];
+  previousDayId: string | null;
+  previousComposite: number | null; // composite_at_close from the prior same-dim day
+  startedAt: string | null;
+  completedAt: string | null;
+};
+
 export type Callout = {
   dimension: SkillDimension | "structural_adherence";
   tone: "positive" | "neutral" | "warn" | "critical";

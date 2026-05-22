@@ -240,7 +240,9 @@ The `workout_sessions.graduation_rep_id` FK is added trailing so the cycle resol
 
 ---
 
-## Phase 3 — Daily-assignment engine `[ ]`
+## Phase 3 — Daily-assignment engine `[x]`
+
+> **2026-05-21:** Pure decision logic in `src/server/lib/workout/assignment.ts` (selector + sampler + prompt picker). Server actions in `src/server/actions/workout-day.ts` (`suggestTodaysMuscleGroup`, `startMuscleGroupDay`, `swapMuscleGroup`). `createWorkoutSession()` helper added to `src/server/actions/sessions.ts`. `MUSCLE_GROUP_IDS` + `MUSCLE_GROUP_LABELS` + `Station` + `HydratedMuscleGroupDay` added to `src/types/domain.ts` — intentionally diverges from `SKILL_DIMENSIONS` to handle the `pacing` vs `delivery` split (documented inline). 27 unit tests pass (`tests/workout-assignment.test.ts`, wired into `npm test`). Dev-verify harness at `scripts/dev/verify-workout-assignment.mjs` for the manual checkpoint protocol. Telemetry events fire: `workout.assignment.suggested|overridden`, `workout.day.started`, `assignment.fallback.cold_start|sparse_engagement`. Typecheck + build clean.
 
 **Goal:** Server-side decision logic that, on every "open the Daily Workout" event, picks today's muscle group, samples 4 exercises, and binds them to 4 stations — implementing the Q3 hybrid rotation (weakest-first + 6-day floor + sharp-regression early-surface + user override).
 

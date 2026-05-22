@@ -10,7 +10,7 @@
     "start": "next start -p 3333",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts",
+    "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts && tsx tests/workout-assignment.test.ts",
     "test:dna": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
