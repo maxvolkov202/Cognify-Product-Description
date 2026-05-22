@@ -76,11 +76,11 @@ export default function RepControls({
   return (
     <div
       className={cn(
-        "w-full max-w-md mx-auto px-4",
-        "pb-[max(env(safe-area-inset-bottom),1rem)] pt-4",
+        "w-full mx-auto",
+        "pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2",
       )}
     >
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 min-h-[120px]">
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 min-h-[120px] shadow-sm">
         {phase === "idle" && (
           <IdleControls onStartWorkout={onStartWorkout} />
         )}
@@ -302,11 +302,11 @@ function GraduationPrompt({
 }) {
   return (
     <div className="flex flex-col items-center text-center gap-3">
-      <Trophy className="w-5 h-5 text-yellow-300" />
-      <h2 className="text-base font-semibold text-slate-100">
+      <Trophy className="w-5 h-5 text-amber-500" />
+      <h2 className="text-base font-semibold text-slate-900">
         One more rep — pressure mode. Want it?
       </h2>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-500">
         {failed
           ? "Optional. Bonus XP if you nail it."
           : lastScore != null
@@ -318,9 +318,9 @@ function GraduationPrompt({
           type="button"
           onClick={onAccept}
           className={cn(
-            "min-h-[44px] px-4 py-2 rounded-lg font-medium",
-            "bg-yellow-400 hover:bg-yellow-300 text-slate-900",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-200",
+            "min-h-[44px] px-4 py-2 rounded-lg font-semibold",
+            "bg-amber-400 hover:bg-amber-300 text-slate-900",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200",
           )}
         >
           Bring it on
@@ -330,7 +330,7 @@ function GraduationPrompt({
           onClick={onSkip}
           className={cn(
             "min-h-[44px] px-4 py-2 rounded-lg",
-            "border border-slate-700 text-slate-300 hover:bg-slate-800",
+            "border border-slate-200 text-slate-600 hover:bg-slate-50",
           )}
         >
           Call it a day
@@ -375,7 +375,7 @@ function DayCompleteControls({
     return (
       <div className="flex flex-col items-center text-center gap-2 py-4">
         <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-        <p className="text-sm text-slate-400">Loading retrospective…</p>
+        <p className="text-sm text-slate-500">Loading retrospective…</p>
       </div>
     );
   }
@@ -383,18 +383,18 @@ function DayCompleteControls({
   if (!dim || !comparison) {
     return (
       <div className="flex flex-col items-center text-center gap-3">
-        <Sparkles className="w-5 h-5 text-pink-300" />
-        <h2 className="text-base font-semibold text-slate-100">
+        <Sparkles className="w-5 h-5 text-purple-500" />
+        <h2 className="text-base font-semibold text-slate-900">
           Workout complete
         </h2>
         {lastScore != null && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             Final rep: {Math.round(lastScore)}.
           </p>
         )}
         <a
           href="/dashboard"
-          className="text-xs text-slate-500 hover:text-slate-300"
+          className="text-xs text-purple-600 hover:text-purple-800 font-semibold"
         >
           Back to dashboard
         </a>
@@ -417,12 +417,12 @@ function PlaceholderControls({
   return (
     <div className="flex flex-col items-center text-center gap-2">
       {icon && (
-        <div className="text-slate-200 flex items-center justify-center">
+        <div className="text-purple-500 flex items-center justify-center">
           {icon}
         </div>
       )}
-      <h2 className="text-base font-semibold text-slate-100">{title}</h2>
-      {sub && <p className="text-sm text-slate-400">{sub}</p>}
+      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+      {sub && <p className="text-sm text-slate-500">{sub}</p>}
     </div>
   );
 }

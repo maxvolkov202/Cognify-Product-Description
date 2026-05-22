@@ -201,16 +201,18 @@ export default function PromptPicker({
         </div>
       )}
 
-      <div className="flex items-center gap-2 mt-1">
+      <div className="flex items-center gap-2 mt-2">
         <button
           type="button"
           onClick={handleCycle}
           disabled={isLoading || isCycling}
           className={cn(
-            "flex-1 min-h-[44px] rounded-xl border flex items-center justify-center gap-2 text-sm font-medium",
-            "border-slate-700 text-slate-200 hover:bg-slate-800",
+            "flex-1 min-h-[44px] rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold",
+            "border-purple-200 bg-white text-purple-700",
+            "hover:bg-purple-50 hover:border-purple-300",
             "disabled:opacity-50 disabled:cursor-wait",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400",
+            "transition-colors",
           )}
         >
           {isCycling ? (
@@ -224,7 +226,7 @@ export default function PromptPicker({
           <button
             type="button"
             onClick={onSkip}
-            className="px-4 min-h-[44px] text-sm text-slate-400 hover:text-slate-200 rounded-xl"
+            className="px-4 min-h-[44px] text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
           >
             Skip
           </button>
@@ -236,7 +238,7 @@ export default function PromptPicker({
 
 function LoadingSkeleton() {
   return (
-    <div className="flex items-center justify-center min-h-[160px] text-slate-500 gap-2">
+    <div className="flex items-center justify-center min-h-[160px] text-slate-400 gap-2">
       <Loader2 className="w-4 h-4 animate-spin" />
       Loading prompts…
     </div>
@@ -248,3 +250,6 @@ function EmptyMessage({ children }: { children: React.ReactNode }) {
     <div className="text-sm text-slate-500 text-center py-6">{children}</div>
   );
 }
+
+// Type-side compatibility: EmptyMessage signature unchanged.
+// The dark theme is fully replaced; cards + chrome render on light bg.
