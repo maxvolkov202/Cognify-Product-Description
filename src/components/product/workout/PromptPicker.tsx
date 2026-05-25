@@ -20,7 +20,6 @@ import { Loader2, RefreshCcw } from "lucide-react";
 import {
   fetchPromptCandidates,
   logPromptSelection,
-  type PromptCandidate,
 } from "@/server/actions/prompt-selection";
 import {
   initialPickerState,

@@ -30,8 +30,6 @@ import { MASCOT_TIMINGS } from "@/lib/animations/mascot-state";
 import type { ShellStation, SessionPhase } from "./types";
 import { updateWorkoutSessionState } from "@/server/actions/workout-session";
 
-const AUTO_ADVANCE_MS = 5_000;
-
 type WorkoutSessionContextValue = {
   state: SessionMachineState;
   /** Send an event into the state machine. */

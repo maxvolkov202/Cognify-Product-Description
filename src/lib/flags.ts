@@ -7,11 +7,9 @@
 //
 // To enable in production: set FF_MUSCLE_GROUP_WORKOUT=true on Vercel.
 // To roll back: unset the env var (or set to false). The flag-off
-// state renders the BetaSoon placeholder, NOT a legacy fallback —
-// the pre-pivot WorkoutSession lives at src/components/_archive/ and
-// has stale imports; reanimating it is bigger than the rollback
-// scenario warrants. If a true legacy serve becomes mandatory, the
-// archived file is the starting point for a restore PR.
+// state renders the BetaSoon placeholder; no legacy fallback exists.
+// A true rollback means restoring the pre-pivot WorkoutSession from
+// git history (commit a68aaddd or earlier).
 
 /**
  * Muscle-group adventure-path Workout shell.

@@ -320,7 +320,7 @@ function buildTakeaway(
     return `You started at ${firstRep.composite} and finished at ${lastNonGradRep.composite} — you adjusted in real time. That ${compositeJump}-point climb is the muscle you came here to build.`;
   }
   if (compositeJump <= -10) {
-    return `Your composite dropped ${Math.abs(compositeJump)} points from rep 1 to ${lastNonGradRep.isGraduationRep ? "graduation" : "rep " + (lastNonGradRep.repIndex + 1)}. Fatigue or overconfidence — either way, set the next ${comparison ? MUSCLE_GROUP_LABELS_FROM_DIM_KEY(comparison) : "day"} up to finish strong.`;
+    return `Your composite dropped ${Math.abs(compositeJump)} points from rep 1 to ${lastNonGradRep.isGraduationRep ? "graduation" : "rep " + (lastNonGradRep.repIndex + 1)}. Fatigue or overconfidence — either way, set the next day up to finish strong.`;
   }
 
   // Otherwise: find biggest cross-rep gap per dim
@@ -354,11 +354,3 @@ function buildTakeaway(
   return `Composite landed at ${avg}. The next session, slow down — most of these reps lost points to rushed delivery and undercooked thinking, not missing skill.`;
 }
 
-// Helper used in the rare jump-takeaway branch where we want the dim
-// label but only have the comparison reference. Defensive: returns
-// "day" when nothing to read.
-function MUSCLE_GROUP_LABELS_FROM_DIM_KEY(
-  _c: MuscleGroupComparison,
-): string {
-  return "day";
-}

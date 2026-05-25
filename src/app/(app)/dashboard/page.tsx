@@ -49,10 +49,11 @@ import { LibraryCallout } from "@/components/product/LibraryCallout";
 import { buildNarrativeInsights } from "@/lib/insights/narrative";
 import {
   DIMENSION_LABELS,
-  SKILL_DIMENSIONS,
   SKILL_DIMENSION_GROUPS,
 } from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
+import { todayYmdInTz } from "@/lib/time/user-day";
+import { isDateCommitted } from "@/lib/onboarding/committed-days";
 
 export default async function DashboardPage() {
   const user = await currentUser();
@@ -233,20 +234,10 @@ export default async function DashboardPage() {
   // so the banner appeared for today but was keyed under tomorrow's
   // date → pre-dismissed when the user opened the app on real Monday.
   const userTzForRestDay = profile?.tz ?? "UTC";
-  const todayISO = (await import("@/lib/time/user-day")).todayYmdInTz(
-    userTzForRestDay,
-  );
-  let isRestDay = false;
-  if (profile) {
-    const { isDateCommitted } = await import(
-      "@/lib/onboarding/committed-days"
-    );
-    isRestDay = !isDateCommitted(
-      profile.committedDays,
-      new Date(),
-      userTzForRestDay,
-    );
-  }
+  const todayISO = todayYmdInTz(userTzForRestDay);
+  const isRestDay = profile
+    ? !isDateCommitted(profile.committedDays, new Date(), userTzForRestDay)
+    : false;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-10 md:py-12">
@@ -623,34 +614,4 @@ function SessionCard({ rep }: { rep: RecentRep }) {
   );
 }
 
-// ——— Today's focus dimension picker ————————————————————
-
-function pickFocusDim(
-  trends: { dimension: SkillDimension; points: { score: number }[] }[],
-): { dim: SkillDimension | null; score: number | null } {
-  // Latest score per dimension
-  const latest = new Map<SkillDimension, number>();
-  for (const t of trends) {
-    if (t.points.length === 0) continue;
-    latest.set(t.dimension, t.points[t.points.length - 1]!.score);
-  }
-
-  // First untrained dim takes priority — gives the user a clear next step
-  for (const d of SKILL_DIMENSIONS) {
-    if (!latest.has(d)) return { dim: d, score: null };
-  }
-
-  // Otherwise lowest-scored dim
-  let weakest: SkillDimension | null = null;
-  let min = Infinity;
-  for (const [d, s] of latest) {
-    if (s < min) {
-      min = s;
-      weakest = d;
-    }
-  }
-  return weakest
-    ? { dim: weakest, score: Math.round(min) }
-    : { dim: null, score: null };
-}
 

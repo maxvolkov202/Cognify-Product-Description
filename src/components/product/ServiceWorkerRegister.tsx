@@ -18,7 +18,6 @@ export default function ServiceWorkerRegister() {
     if (!("serviceWorker" in navigator)) return;
     if (process.env.NODE_ENV !== "production") return;
 
-    const controller = new AbortController();
     navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
       .catch((err) => {
@@ -26,8 +25,6 @@ export default function ServiceWorkerRegister() {
         // support. Log so we notice if it's failing for everyone.
         console.warn("[sw] registration failed:", err);
       });
-
-    return () => controller.abort();
   }, []);
 
   return null;

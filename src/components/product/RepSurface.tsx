@@ -17,7 +17,7 @@ import type {
 } from "@/types/domain";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import { RecordButton } from "./RecordButton";
-import { FeedbackPanel, type PreviousRepSummary } from "./FeedbackPanel";
+import { FeedbackPanel, type PreviousRepSummary } from "./feedback";
 import { FlowFeedbackPanel } from "./FlowFeedbackPanel";
 import { OptimisticDimensionPreview } from "./feedback/OptimisticDimensionPreview";
 import { computeOptimisticDims } from "@/lib/scoring/deterministic-client";

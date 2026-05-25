@@ -12,7 +12,7 @@ import { bumpCompletedRepCount } from "./InstallPrompt";
 import type { RepScore, SkillDimension } from "@/types/domain";
 import { DIMENSION_LABELS, SKILL_DIMENSION_GROUPS } from "@/types/domain";
 import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
-import type { PreviousRepSummary } from "./FeedbackPanel";
+import type { PreviousRepSummary } from "./feedback";
 
 type Phase = "countdown" | "prompt-select" | "rep" | "done";
 

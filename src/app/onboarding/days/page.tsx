@@ -12,11 +12,8 @@ import {
   DEFAULT_COMMITTED_DAYS,
   MIN_COMMITTED_DAYS,
   committedDayCount,
-  dayIdsToMask,
   isDayCommitted,
-  maskToDayIds,
   type DayBit,
-  type DayId,
 } from "@/lib/onboarding/committed-days";
 
 export default function OnboardingDaysPage() {
@@ -69,7 +66,6 @@ export default function OnboardingDaysPage() {
   }
 
   const count = committedDayCount(mask);
-  const selectedIds = maskToDayIds(mask);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12 md:py-16">

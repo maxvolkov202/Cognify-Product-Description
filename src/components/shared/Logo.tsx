@@ -19,16 +19,14 @@ export function Logo({
   const content = (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
-        src="/logo/mark.png"
+        src="/logo/mark.svg"
         alt=""
         aria-hidden="true"
-        width={256}
-        height={256}
+        width={size}
+        height={size}
         priority
-        quality={100}
-        sizes={`${size}px`}
+        unoptimized
         className="shrink-0"
-        style={{ width: size, height: size }}
       />
       {variant === "full" && (
         <span className="text-[21px] font-extrabold tracking-tight text-ink-900 dark:text-white">
