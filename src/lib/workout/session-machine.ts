@@ -208,6 +208,34 @@ export function reduce(
     return { ...state, networkBuffered: false };
   }
 
+  // Bug #5 — Score-done / fail-score must terminate the rep regardless of
+  // which intermediate phase the machine is in. The UI flow doesn't dispatch
+  // FINISH_RECORDING / TRANSCRIBE_DONE, so the machine can land here from
+  // "recording" directly — without this hoist, those events would be dropped
+  // and the user would get stuck (next-station click becomes a no-op because
+  // ADVANCE is only valid from "score-reveal").
+  if (event.type === "SCORE_DONE" || event.type === "FAIL_SCORE") {
+    const isTransientPrePhase =
+      state.phase === "recording" ||
+      state.phase === "transcribing" ||
+      state.phase === "scoring";
+    if (isTransientPrePhase) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          JSON.stringify({
+            event: "session_machine.score_done_hoisted",
+            ts: new Date().toISOString(),
+            fromPhase: state.phase,
+            eventType: event.type,
+          }),
+        );
+      }
+      return event.type === "SCORE_DONE"
+        ? finishRepWithScore(state, event.composite, event.repId, false)
+        : failScore(state, event.repId);
+    }
+  }
+
   switch (state.phase) {
     case "idle":
       if (event.type === "START") {

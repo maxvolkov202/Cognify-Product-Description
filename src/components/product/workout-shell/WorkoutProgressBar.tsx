@@ -31,25 +31,25 @@ export default function WorkoutProgressBar({
   const dimLabel = dim ? MUSCLE_GROUP_LABELS[dim] : "Workout";
 
   return (
-    <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/80 via-white to-violet-50/60 p-4 sm:p-5 shadow-sm">
+    <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 via-white to-violet-50/60 dark:from-purple-500/15 dark:via-ink-900 dark:to-ink-900 p-4 sm:p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
             aria-label="Back to start"
-            className="shrink-0 w-9 h-9 rounded-full bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+            className="shrink-0 w-9 h-9 rounded-full bg-white dark:bg-ink-900 border border-purple-200 dark:border-brand-purple/40 text-purple-700 dark:text-brand-lavender hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:border-purple-300 dark:hover:border-brand-purple/60 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
           </button>
         )}
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
             {dimLabel} Day · Rep {Math.min(currentStationIndex + 1, totalStations)} of {totalStations}
           </div>
           <div className="mt-0.5 flex items-center gap-2 min-w-0">
-            <Mic className="w-4 h-4 text-purple-600 shrink-0" strokeWidth={2.5} />
-            <div className="text-base sm:text-lg font-extrabold text-slate-900 truncate">
+            <Mic className="w-4 h-4 text-purple-600 dark:text-brand-lavender shrink-0" strokeWidth={2.5} />
+            <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate">
               {currentStation?.exerciseName ?? "—"}
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function WorkoutProgressBar({
                     ? "bg-emerald-500 text-white"
                     : isCurrent
                       ? "bg-purple-600 text-white ring-2 ring-purple-200"
-                      : "bg-slate-200",
+                      : "bg-slate-200 dark:bg-ink-700",
                 )}
                 style={{ width: isCurrent ? 22 : 18, height: isCurrent ? 22 : 18 }}
                 animate={{ scale: isCurrent ? 1.05 : 1 }}
@@ -87,18 +87,12 @@ export default function WorkoutProgressBar({
             Array.from({ length: totalStations - stations.length }).map((_, i) => (
               <div
                 key={`pad-${i}`}
-                className="rounded-full bg-slate-200"
+                className="rounded-full bg-slate-200 dark:bg-ink-700"
                 style={{ width: 18, height: 18 }}
               />
             ))}
         </div>
       </div>
-      {currentStation?.rule && (
-        <div className="mt-3 text-xs text-slate-500 leading-snug">
-          <span className="font-semibold text-slate-700">Rule:</span>{" "}
-          {currentStation.rule}
-        </div>
-      )}
     </div>
   );
 }

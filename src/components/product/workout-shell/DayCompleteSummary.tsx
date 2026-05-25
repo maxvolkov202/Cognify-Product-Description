@@ -75,22 +75,22 @@ export default function DayCompleteSummary({
     <div className="space-y-5">
       {/* Hero */}
       <div className="text-center">
-        <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600">
+        <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
           {MUSCLE_GROUP_LABELS[dim]} day complete
         </div>
-        <div className="mt-2 text-6xl sm:text-7xl font-extrabold text-slate-900 leading-none tabular-nums">
+        <div className="mt-2 text-6xl sm:text-7xl font-extrabold text-slate-900 dark:text-white leading-none tabular-nums">
           {composite != null ? Math.round(composite) : "—"}
         </div>
-        <div className="mt-1 text-xs text-slate-500 uppercase tracking-wider">
+        <div className="mt-1 text-xs text-slate-500 dark:text-ink-400 uppercase tracking-wider">
           Composite
         </div>
         {delta != null && (
           <div
             className={cn(
               "mt-3 inline-flex items-center gap-1.5 text-sm font-semibold",
-              isImprovement && "text-emerald-700",
-              isRegression && "text-rose-700",
-              !isImprovement && !isRegression && "text-slate-600",
+              isImprovement && "text-emerald-700 dark:text-emerald-400",
+              isRegression && "text-rose-700 dark:text-rose-400",
+              !isImprovement && !isRegression && "text-slate-600 dark:text-ink-300",
             )}
           >
             {isImprovement && <ArrowUpRight className="w-4 h-4" aria-hidden />}
@@ -108,7 +108,7 @@ export default function DayCompleteSummary({
           </div>
         )}
         {delta == null && comparison?.lastComposite == null && (
-          <div className="mt-3 text-sm text-slate-500">
+          <div className="mt-3 text-sm text-slate-500 dark:text-ink-400">
             First {MUSCLE_GROUP_LABELS[dim]} day — baseline set.
           </div>
         )}
@@ -116,8 +116,8 @@ export default function DayCompleteSummary({
 
       {/* Per-rep mini-bars */}
       {reps.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 mb-3">
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-3">
             Today&apos;s reps
           </div>
           <div className="flex items-end justify-around gap-3 h-32">
@@ -130,8 +130,8 @@ export default function DayCompleteSummary({
 
       {/* Per-dim trend line */}
       {reps.length >= 2 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 mb-2">
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-2">
             Per-dimension trend
           </div>
           <DimTrendChart reps={reps} />
@@ -139,7 +139,7 @@ export default function DayCompleteSummary({
             {ALL_DIMS.map((d) => (
               <span
                 key={d}
-                className="inline-flex items-center gap-1.5 text-[11px] text-slate-700"
+                className="inline-flex items-center gap-1.5 text-[11px] text-slate-700 dark:text-ink-200"
               >
                 <span
                   className="inline-block w-2.5 h-2.5 rounded-full"
@@ -155,17 +155,17 @@ export default function DayCompleteSummary({
 
       {/* Biggest takeaway */}
       {takeaway && (
-        <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/80 to-white p-4 shadow-sm flex items-start gap-3">
+        <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-500/15 dark:to-ink-900 p-4 shadow-sm flex items-start gap-3">
           <Sparkles
-            className="w-5 h-5 text-purple-600 mt-0.5 shrink-0"
+            className="w-5 h-5 text-purple-600 dark:text-brand-lavender mt-0.5 shrink-0"
             strokeWidth={2.5}
             aria-hidden
           />
           <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 mb-0.5">
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender mb-0.5">
               Biggest takeaway
             </div>
-            <p className="text-sm text-slate-800 leading-snug">{takeaway}</p>
+            <p className="text-sm text-slate-800 dark:text-ink-100 leading-snug">{takeaway}</p>
           </div>
         </div>
       )}
@@ -180,7 +180,7 @@ export default function DayCompleteSummary({
         </Link>
         <Link
           href="/dashboard"
-          className="inline-flex items-center justify-center min-h-[44px] px-5 py-2 rounded-xl text-sm font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+          className="inline-flex items-center justify-center min-h-[44px] px-5 py-2 rounded-xl text-sm font-semibold border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 transition-colors"
         >
           Back to dashboard
         </Link>
@@ -208,10 +208,10 @@ function RepMiniBar({ rep }: { rep: DayRepBreakdown }) {
           style={{ height: `${heightPct}%` }}
         />
       </div>
-      <div className="text-sm font-bold text-slate-900 tabular-nums">
+      <div className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
         {rep.composite}
       </div>
-      <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+      <div className="text-[10px] text-slate-500 dark:text-ink-400 uppercase tracking-wider">
         {rep.isGraduationRep ? "Grad" : `Rep ${rep.repIndex + 1}`}
       </div>
     </div>

@@ -75,6 +75,13 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   /** Sparse: only present once today's day is complete. */
   todaysComposite: z.number().nullable(),
   rationale: z.string().nullable(),
+  /** Whether the user has completed onboarding (vertical set). Drives
+   *  the personalize-toggle default — onboarded users get personalize=ON
+   *  by default since they took the time to fill it in. localStorage
+   *  override still wins if the user explicitly chose. */
+  hasPersonalizationProfile: z.boolean().default(false),
+  /** Surfaced label for the toggle. e.g. "Law · Partner/GC · Negotiation". */
+  personalizationSummary: z.string().nullable().default(null),
 });
 export type WorkoutShellHydratedPayload = z.infer<
   typeof WorkoutShellHydratedPayloadSchema
@@ -97,4 +104,6 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   streakFreezes: null,
   todaysComposite: null,
   rationale: null,
+  hasPersonalizationProfile: false,
+  personalizationSummary: null,
 };

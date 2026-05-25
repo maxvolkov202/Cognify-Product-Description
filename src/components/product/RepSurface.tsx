@@ -748,10 +748,10 @@ export function RepSurface({
                 aria-hidden="true"
               />
             </div>
-            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 md:text-3xl">
+            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 dark:text-white md:text-3xl">
               Your rep was shorter than the prompt suggested.
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink-600">
+            <p className="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
               You used about {Math.round(phase.durationRatio * 100)}% of the
               time budget ({phase.wordCount} words). Retry for a fuller take,
               or proceed and score what you have.
@@ -769,7 +769,7 @@ export function RepSurface({
                 <button
                   type="button"
                   onClick={handleProceed}
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-brand-purple bg-white px-5 py-2.5 text-sm font-semibold text-brand-purple hover:bg-brand-purple/5"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-brand-purple bg-white dark:bg-ink-900 px-5 py-2.5 text-sm font-semibold text-brand-purple dark:text-brand-lavender hover:bg-brand-purple/5"
                 >
                   Proceed anyway
                 </button>
@@ -778,7 +778,7 @@ export function RepSurface({
                   type="button"
                   disabled
                   title="Too few words captured to score — try again."
-                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-ink-200 bg-ink-100 px-5 py-2.5 text-sm font-semibold text-ink-400"
+                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-ink-100 dark:bg-ink-800 px-5 py-2.5 text-sm font-semibold text-ink-400 dark:text-ink-500"
                 >
                   Proceed anyway
                 </button>
@@ -786,12 +786,12 @@ export function RepSurface({
               <button
                 type="button"
                 onClick={handleDiscard}
-                className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-2.5 text-sm font-semibold text-ink-700 dark:text-ink-200 hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
               >
                 Discard
               </button>
             </div>
-            <p className="mt-4 text-[11px] text-ink-400">
+            <p className="mt-4 text-[11px] text-ink-400 dark:text-ink-500">
               {phase.canProceed
                 ? "Nothing has been saved yet. Proceeding scores your rep now."
                 : "Too few words captured to score — please retry."}
@@ -830,7 +830,7 @@ export function RepSurface({
         <button
           type="button"
           onClick={handleRetry}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-3 text-sm font-semibold text-ink-700 dark:text-ink-200 transition-colors hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
         >
           <RotateCcw className="size-4" /> Run it again
         </button>
@@ -898,7 +898,7 @@ export function RepSurface({
     <div
       className={cn(
         "mx-auto flex flex-col gap-6",
-        twoColumnLayout ? "max-w-5xl" : "max-w-2xl",
+        twoColumnLayout ? "max-w-3xl" : "max-w-2xl",
       )}
     >
       {/* ——— Focus overlay (retry takes precedence over carryover) ——— */}
@@ -926,7 +926,16 @@ export function RepSurface({
       {mode === "daily_workout" &&
         repTypeFramework &&
         phase.kind === "error" && (
-          <RepFrameworkStrip framework={repTypeFramework} allowNotes />
+          <RepFrameworkStrip
+            framework={repTypeFramework}
+            allowNotes
+            notesDefaultOpen
+            notesKey={
+              muscleGroupDayId && exerciseId
+                ? `${muscleGroupDayId}:${exerciseId}`
+                : undefined
+            }
+          />
         )}
 
       <div className="surface-card overflow-hidden">
@@ -935,13 +944,13 @@ export function RepSurface({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
             The prompt
           </p>
-          <h2 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-ink-900 md:text-4xl">
+          <h2 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-ink-900 dark:text-white md:text-4xl">
             {prompt}
           </h2>
 
           {framework && !frameworkVisible && revealFrameworkAfterMs > 0 && (
-            <div className="mt-6 border-t border-ink-200 pt-5">
-              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+            <div className="mt-6 border-t border-ink-200 dark:border-ink-700 pt-5">
+              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                 <span>Take a moment to read</span>
                 <span>
                   Framework in{" "}
@@ -951,7 +960,7 @@ export function RepSurface({
                   s
                 </span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
                 <div
                   className="brand-gradient h-full rounded-full transition-[width] duration-100"
                   style={{ width: `${readingProgress}%` }}
@@ -961,8 +970,8 @@ export function RepSurface({
           )}
 
           {framework && frameworkVisible && (
-            <div className="mt-6 border-t border-ink-200 pt-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            <div className="mt-6 border-t border-ink-200 dark:border-ink-700 pt-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
                 <Lightbulb className="size-3.5" />
                 Hold this structure · {framework.name}
               </div>
@@ -970,16 +979,16 @@ export function RepSurface({
                 {framework.nodes.map((node, i) => (
                   <li
                     key={node.id}
-                    className="flex items-start gap-3 rounded-lg border border-ink-200 bg-ink-50/60 p-3"
+                    className="flex items-start gap-3 rounded-lg border border-ink-200 dark:border-ink-700 bg-ink-50/60 dark:bg-ink-800/60 p-3"
                   >
                     <div className="brand-gradient grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-white">
                       {i + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-ink-900">
+                      <p className="text-sm font-bold text-ink-900 dark:text-white">
                         {node.label}
                       </p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-ink-600">
+                      <p className="mt-0.5 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
                         {node.description}
                       </p>
                     </div>
@@ -992,11 +1001,23 @@ export function RepSurface({
       </div>
 
       {twoColumnLayout ? (
-        <div className="grid gap-5 md:grid-cols-[1fr_1fr] md:items-stretch">
-          <div className="md:min-h-full">
-            <RepFrameworkStrip framework={repTypeFramework!} allowNotes />
-          </div>
-          <div className="brand-gradient relative flex min-h-[360px] flex-col items-center justify-center gap-5 overflow-hidden rounded-2xl p-8 text-center text-white shadow-[var(--shadow-glow)]">
+        // Vertical stack — was a 2-col grid that produced unbalanced
+        // heights (framework strip ~150px vs gradient card 360px, large
+        // empty space on the left). Stack keeps the brand CTA moment
+        // ("Speak clearly. Speak confidently.") AND the framework strip
+        // in symmetric full-width slots, mobile-clean by default.
+        <div className="flex flex-col gap-5">
+          <RepFrameworkStrip
+            framework={repTypeFramework!}
+            allowNotes
+            notesDefaultOpen
+            notesKey={
+              muscleGroupDayId && exerciseId
+                ? `${muscleGroupDayId}:${exerciseId}`
+                : undefined
+            }
+          />
+          <div className="brand-gradient relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl px-6 py-8 text-center text-white shadow-[var(--shadow-glow)] sm:px-10">
             <div
               className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10 blur-2xl"
               aria-hidden="true"
@@ -1005,13 +1026,9 @@ export function RepSurface({
               className="pointer-events-none absolute -bottom-16 -left-8 size-56 rounded-full bg-brand-magenta/30 blur-3xl"
               aria-hidden="true"
             />
-            <div className="relative">
-              <p className="text-2xl font-extrabold leading-tight tracking-tight md:text-3xl">
-                Speak clearly.
-                <br />
-                Speak confidently.
-              </p>
-            </div>
+            <p className="relative text-2xl font-extrabold leading-tight tracking-tight md:text-3xl">
+              Speak clearly. Speak confidently.
+            </p>
             <div className="relative">
               <RecordButton
                 maxDurationMs={maxDurationMs}
@@ -1020,13 +1037,13 @@ export function RepSurface({
                 {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
               />
             </div>
-            <p className="relative text-xs font-medium text-white/85">
-              3 second countdown then you are live
+            <p className="relative text-xs font-medium text-white/85 drop-shadow-sm">
+              3 second countdown then you&rsquo;re live
             </p>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 p-10">
+        <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 dark:border-ink-700 p-10">
           <RecordButton
             maxDurationMs={maxDurationMs}
             onComplete={handleRecordingComplete}
@@ -1034,7 +1051,7 @@ export function RepSurface({
             {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
           />
           {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
-            <p className="text-xs text-ink-400">
+            <p className="text-xs text-ink-400 dark:text-ink-500">
               Wait for the framework to appear before recording.
             </p>
           )}
@@ -1043,7 +1060,7 @@ export function RepSurface({
 
       {isWorking && (
         <>
-          <div className="surface-card flex items-center justify-center gap-3 p-6 text-sm text-ink-600">
+          <div className="surface-card flex items-center justify-center gap-3 p-6 text-sm text-ink-600 dark:text-ink-300">
             <Loader2 className="size-4 animate-spin text-brand-purple" />
             {phase.kind === "transcribing" && "Transcribing your rep…"}
             {phase.kind === "scoring" && "Scoring based on proprietary rubric…"}
@@ -1100,10 +1117,10 @@ export function RepSurface({
 
       {phase.kind === "error" && (
         <div className="surface-card p-6">
-          <p className="text-sm font-semibold text-ink-900">
+          <p className="text-sm font-semibold text-ink-900 dark:text-white">
             Recording captured
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-ink-500">
+          <p className="mt-1 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
             {phase.message}
           </p>
           {phase.recording && (
@@ -1117,7 +1134,7 @@ export function RepSurface({
           <button
             type="button"
             onClick={handleRetry}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 text-xs font-semibold text-ink-700 dark:text-ink-200 hover:border-ink-300 dark:hover:border-ink-600"
           >
             <RotateCcw className="size-3.5" />
             Record again
@@ -1170,12 +1187,12 @@ function LoadingEvidence() {
   }, []);
   const tip = EVIDENCE_TIPS[idx]!;
   return (
-    <div className="rounded-2xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+    <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
         While we score
       </p>
-      <p className="mt-1.5 text-sm font-semibold text-ink-900">{tip.title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-ink-600">{tip.body}</p>
+      <p className="mt-1.5 text-sm font-semibold text-ink-900 dark:text-white">{tip.title}</p>
+      <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">{tip.body}</p>
     </div>
   );
 }
@@ -1199,18 +1216,18 @@ function FocusOverlay({
           />
         </div>
         <div className="flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             {label}
           </p>
-          <p className="mt-0.5 text-sm font-bold text-ink-900">
+          <p className="mt-0.5 text-sm font-bold text-ink-900 dark:text-white">
             {callout.title}
           </p>
           {callout.suggestedRewrite && (
-            <p className="mt-1 text-xs italic leading-relaxed text-ink-700">
+            <p className="mt-1 text-xs italic leading-relaxed text-ink-700 dark:text-ink-200">
               &ldquo;{callout.suggestedRewrite}&rdquo;
             </p>
           )}
-          <p className="mt-1 text-xs leading-relaxed text-ink-600">
+          <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
             {callout.body}
           </p>
         </div>
@@ -1229,20 +1246,20 @@ function FeedbackSkeleton() {
     <div className="surface-card overflow-hidden animate-pulse">
       <div className="brand-gradient h-1" aria-hidden="true" />
       <div className="p-6">
-        <div className="h-3 w-24 rounded bg-ink-100" />
-        <div className="mt-2 h-7 w-40 rounded bg-ink-100" />
+        <div className="h-3 w-24 rounded bg-ink-100 dark:bg-ink-800" />
+        <div className="mt-2 h-7 w-40 rounded bg-ink-100 dark:bg-ink-800" />
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {[0, 1].map((col) => (
             <div key={col}>
-              <div className="h-2 w-16 rounded bg-ink-100" />
+              <div className="h-2 w-16 rounded bg-ink-100 dark:bg-ink-800" />
               <div className="mt-3 space-y-2.5">
                 {[0, 1, 2].map((i) => (
                   <div key={i}>
                     <div className="flex items-baseline justify-between">
-                      <div className="h-2 w-16 rounded bg-ink-100" />
-                      <div className="h-2 w-8 rounded bg-ink-100" />
+                      <div className="h-2 w-16 rounded bg-ink-100 dark:bg-ink-800" />
+                      <div className="h-2 w-8 rounded bg-ink-100 dark:bg-ink-800" />
                     </div>
-                    <div className="mt-1 h-1.5 w-full rounded-full bg-ink-100" />
+                    <div className="mt-1 h-1.5 w-full rounded-full bg-ink-100 dark:bg-ink-800" />
                   </div>
                 ))}
               </div>
@@ -1250,8 +1267,8 @@ function FeedbackSkeleton() {
           ))}
         </div>
         <div className="mt-6 space-y-2">
-          <div className="h-20 w-full rounded-2xl bg-ink-100" />
-          <div className="h-20 w-full rounded-2xl bg-ink-100" />
+          <div className="h-20 w-full rounded-2xl bg-ink-100 dark:bg-ink-800" />
+          <div className="h-20 w-full rounded-2xl bg-ink-100 dark:bg-ink-800" />
         </div>
       </div>
     </div>

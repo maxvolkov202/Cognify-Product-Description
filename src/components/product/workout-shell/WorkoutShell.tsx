@@ -26,6 +26,7 @@ import {
 import type { WorkoutShellHydratedPayload } from "@/lib/workout/types";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import StartCard from "./StartCard";
+import SkillScenariosCard from "./SkillScenariosCard";
 import TrainingList from "./TrainingList";
 import WorkoutProgressBar from "./WorkoutProgressBar";
 import RepControls from "./RepControls";
@@ -204,33 +205,39 @@ function WorkoutShellInner({
     state.phase === "day-complete-prompt" ||
     cancelledLocally;
 
-  // Phase HB-3 — personalize toggle. Default General. Persists in
-  // localStorage so the user doesn't have to reset every workout.
-  const [personalize, setPersonalize] = useState(false);
+  // Personalize toggle. Always defaults from the server payload:
+  // ON when the user has completed onboarding (vertical set), OFF
+  // otherwise. We intentionally do NOT persist the per-session choice
+  // to localStorage — a previous "false" from before the smart-default
+  // landed was pinning onboarded users to General, and the right
+  // mental model is "if you took the time to set up your profile, your
+  // workouts should reflect it by default every visit." Toggle clicks
+  // still work for the current page lifetime; next visit resets to
+  // the server-derived default.
+  const [personalize, setPersonalize] = useState(
+    payload.hasPersonalizationProfile,
+  );
+  // One-time migration: clear any value persisted by older toggle
+  // logic so stale "false" values don't survive in the wild after
+  // users update.
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("cognify.workout.personalize");
-      if (stored === "true") setPersonalize(true);
+      window.localStorage.removeItem("cognify.workout.personalize");
+      window.localStorage.removeItem("cognify.workout.personalize.v2");
     } catch {
-      // localStorage blocked — keep default.
+      // ignore
     }
   }, []);
   const onTogglePersonalize = useCallback((next: boolean) => {
     setPersonalize(next);
-    try {
-      window.localStorage.setItem(
-        "cognify.workout.personalize",
-        next ? "true" : "false",
-      );
-    } catch {}
   }, []);
 
   return (
     <div
       className={cn(
         "min-h-[100dvh] w-full",
-        "bg-gradient-to-b from-violet-50 via-white to-violet-50/40",
-        "text-slate-900",
+        "bg-gradient-to-b from-violet-50 via-white to-violet-50/40 dark:from-ink-950 dark:via-ink-900 dark:to-ink-950",
+        "text-slate-900 dark:text-white",
         "max-w-3xl mx-auto px-4 sm:px-6 pb-16 pt-8",
       )}
       data-workout-shell
@@ -242,13 +249,13 @@ function WorkoutShellInner({
       {showLanding ? (
         // At-rest hero
         <header className="space-y-2">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
             Today&apos;s Workout
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Ready to train?
           </h1>
-          <p className="text-base text-slate-500">
+          <p className="text-base text-slate-500 dark:text-ink-400">
             No notes. No prep. Just reps.
           </p>
         </header>
@@ -278,6 +285,8 @@ function WorkoutShellInner({
             <PersonalizeSwitch
               value={personalize}
               onChange={onTogglePersonalize}
+              summary={payload.personalizationSummary}
+              hasProfile={payload.hasPersonalizationProfile}
             />
           </div>
         </>
@@ -299,6 +308,12 @@ function WorkoutShellInner({
               <StartCard
                 onStart={cancelledLocally ? onResumeAfterCancel : onStartWorkout}
               />
+              {/* Phase E (#12) — pre-rep scenarios card. Auto-opens the
+                  first time the user encounters this dim; collapses to
+                  a "Why train X?" link after dismissal. */}
+              {payload.dimension && (
+                <SkillScenariosCard dim={payload.dimension} />
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -347,9 +362,9 @@ function WorkoutShellInner({
       {/* Footer: dim rationale + prior-day banner. Landing only —
           during workout it's redundant with the progress bar header. */}
       {showLanding && (payload.rationale || payload.dimension) && (
-        <div className="mt-6 text-center text-xs text-slate-500 max-w-md mx-auto">
+        <div className="mt-6 text-center text-xs text-slate-500 dark:text-ink-400 max-w-md mx-auto">
           {payload.dimension && (
-            <span className="font-semibold text-purple-700">
+            <span className="font-semibold text-purple-700 dark:text-brand-lavender">
               {MUSCLE_GROUP_LABELS[payload.dimension]} focus
             </span>
           )}
@@ -379,7 +394,7 @@ function PillsRow({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {dim && (
-        <Pill className="bg-purple-100 border-purple-200 text-purple-800">
+        <Pill className="bg-purple-100 dark:bg-purple-500/15 border-purple-200 dark:border-brand-purple/40 text-purple-800 dark:text-brand-lavender">
           {MUSCLE_GROUP_LABELS[dim]} Day
         </Pill>
       )}
@@ -423,7 +438,7 @@ function Pill({
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium",
-        "bg-white border-slate-200 text-slate-700",
+        "bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200",
         className,
       )}
     >
@@ -434,23 +449,29 @@ function Pill({
 
 /** Dual-mode switcher: General | Personalized. Light-theme pill with a
  *  sliding indicator. Settings persist via localStorage (the caller
- *  handles the I/O). */
+ *  handles the I/O). When the user has filled out onboarding, the
+ *  active Personalized state is summarized below the switch so they
+ *  see exactly which signals are driving prompt selection. */
 function PersonalizeSwitch({
   value,
   onChange,
+  summary,
+  hasProfile,
 }: {
   value: boolean;
   onChange: (next: boolean) => void;
+  summary: string | null;
+  hasProfile: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+      <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400">
         Prompt mode
       </div>
       <div
         role="radiogroup"
         aria-label="Prompt mode"
-        className="relative inline-flex rounded-full border border-slate-200 bg-white p-1 shadow-sm"
+        className="relative inline-flex rounded-full border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm"
       >
         <button
           type="button"
@@ -459,7 +480,7 @@ function PersonalizeSwitch({
           onClick={() => onChange(false)}
           className={cn(
             "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
-            !value ? "text-white" : "text-slate-600 hover:text-slate-900",
+            !value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
           General
@@ -471,7 +492,7 @@ function PersonalizeSwitch({
           onClick={() => onChange(true)}
           className={cn(
             "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
-            value ? "text-white" : "text-slate-600 hover:text-slate-900",
+            value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
           Personalized
@@ -488,10 +509,37 @@ function PersonalizeSwitch({
           }}
         />
       </div>
-      <div className="text-[11px] text-slate-500 text-center max-w-xs leading-tight">
-        {value
-          ? "Prompts tuned to your work context."
-          : "Universal prompts — relationships, decisions, opinions."}
+      <div className="text-[11px] text-slate-500 dark:text-ink-400 text-center max-w-xs leading-tight">
+        {value ? (
+          hasProfile && summary ? (
+            <>
+              Tuned to{" "}
+              <span className="font-semibold text-purple-700 dark:text-brand-lavender">
+                {summary}
+              </span>
+              .{" "}
+              <a
+                href="/settings"
+                className="underline underline-offset-2 hover:text-slate-700 dark:hover:text-ink-200"
+              >
+                Edit
+              </a>
+            </>
+          ) : (
+            <>
+              No profile yet —{" "}
+              <a
+                href="/settings"
+                className="font-semibold text-purple-700 dark:text-brand-lavender underline underline-offset-2"
+              >
+                set your vertical
+              </a>{" "}
+              to personalize.
+            </>
+          )
+        ) : (
+          "Universal prompts — relationships, decisions, opinions."
+        )}
       </div>
     </div>
   );

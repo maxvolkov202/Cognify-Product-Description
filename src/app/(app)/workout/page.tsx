@@ -3,10 +3,16 @@ import { db } from "@/lib/db/client";
 import {
   exercises,
   muscleGroupDays,
+  users,
   workoutSessions,
 } from "@/lib/db/schema";
+import {
+  VERTICALS,
+  IMPROVEMENT_GOALS,
+} from "@/lib/onboarding/constants";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import { getUserProfile } from "@/lib/db/queries/user";
 import {
   MUSCLE_GROUP_IDS,
   type MuscleGroupId,
@@ -33,6 +39,40 @@ function todayUTC(): string {
 
 function isMuscleGroupId(s: string): s is MuscleGroupId {
   return (MUSCLE_GROUP_IDS as readonly string[]).includes(s);
+}
+
+async function fetchPersonalizationContext(userId: string): Promise<{
+  hasPersonalizationProfile: boolean;
+  personalizationSummary: string | null;
+}> {
+  return safeDb(async () => {
+    const [u] = await db
+      .select({
+        vertical: users.vertical,
+        improvementGoals: users.improvementGoals,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!u || !u.vertical) {
+      return { hasPersonalizationProfile: false, personalizationSummary: null };
+    }
+    const verticalLabel =
+      VERTICALS.find((v) => v.id === u.vertical)?.label ?? u.vertical;
+    const goals = Array.isArray(u.improvementGoals)
+      ? (u.improvementGoals as string[])
+      : [];
+    const topGoalLabel = goals[0]
+      ? IMPROVEMENT_GOALS.find((g) => g.id === goals[0])?.label
+      : null;
+    const summary = topGoalLabel
+      ? `${verticalLabel} · ${topGoalLabel}`
+      : verticalLabel;
+    return {
+      hasPersonalizationProfile: true,
+      personalizationSummary: summary,
+    };
+  }, { hasPersonalizationProfile: false, personalizationSummary: null });
 }
 
 async function fetchTodaysDayPayload(
@@ -195,16 +235,21 @@ async function fetchTodaysDayPayload(
       .orderBy(desc(workoutSessions.createdAt))
       .limit(1);
 
-    // Default to prompt-selecting when an active day exists so the
-    // picker mounts immediately. The legacy "idle when completedReps=0"
-    // branch only fires now when somehow no workout_session has been
-    // opened yet (shouldn't happen post-Phase-6 wiring).
+    // Re-entry behavior: any active (incomplete) day always lands the
+    // user back on the "Ready to train" landing card. They tap Start to
+    // resume — the on-start handler calls the idempotent
+    // startMuscleGroupDay, which reuses the existing day and drops them
+    // back into the picker at the current station. This avoids the
+    // surprise of "I clicked Workout and the recording UI just appears."
+    //   - complete day → day-complete (retrospective)
+    //   - 4 reps logged but not finalized → day-complete-prompt (graduation CTA)
+    //   - otherwise → idle landing (Start resumes)
     const phase =
       day.status === "complete"
         ? "day-complete"
         : day.completedReps >= 4
           ? "day-complete-prompt"
-          : "prompt-selecting";
+          : "idle";
 
     return {
       hasActiveDay: true,
@@ -231,6 +276,9 @@ async function fetchTodaysDayPayload(
       streakFreezes: streak?.freezesAvailable ?? null,
       todaysComposite: day.compositeAtClose,
       rationale: null,
+      // Filled in by the parent (WorkoutPage) using fetchPersonalizationContext.
+      hasPersonalizationProfile: false,
+      personalizationSummary: null,
     };
   }, EMPTY_SHELL_PAYLOAD);
 }
@@ -246,7 +294,17 @@ export default async function WorkoutPage() {
 
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
-  const payload = await fetchTodaysDayPayload(userId);
+  const [payload, personalization] = await Promise.all([
+    fetchTodaysDayPayload(userId),
+    user
+      ? fetchPersonalizationContext(user.id)
+      : Promise.resolve({
+          hasPersonalizationProfile: false,
+          personalizationSummary: null,
+        }),
+  ]);
+  payload.hasPersonalizationProfile = personalization.hasPersonalizationProfile;
+  payload.personalizationSummary = personalization.personalizationSummary;
 
   // Lightweight viewed-telemetry log.
   if (process.env.NODE_ENV !== "production") {
@@ -261,6 +319,10 @@ export default async function WorkoutPage() {
       }),
     );
   }
+
+  // Phase D — rest-day banner has moved to /dashboard (it surfaces
+  // *before* the user opens the workout, where they're deciding what
+  // to do). Inside /workout the user already committed; no banner.
 
   return <WorkoutShell payload={payload} />;
 }
