@@ -62,6 +62,12 @@ export type AwardXpInput = {
    *  break, the first rep gets ×2 XP. Caller decides when this fires
    *  (Ch.9 streak surfaces own that detection). */
   comebackBonus?: boolean;
+  /** Phase D — rest-day bonus. When the user trains on a day that ISN'T
+   *  in their committed_days schedule (a "voluntary rep"), reward them
+   *  with ×1.5 XP. Stacks multiplicatively with comebackBonus, so a
+   *  rest-day comeback rep gets ×3 vs base. Caller computes by checking
+   *  `isDateCommitted(committedDays, today) === false`. */
+  restDayBonus?: boolean;
   /** Override the "now" timestamp for tests / backfill replays. Defaults
    *  to new Date(). */
   now?: Date;
@@ -91,6 +97,7 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
     composite,
     streakDays,
     comebackBonus = false,
+    restDayBonus = false,
     now = new Date(),
   } = input;
 
@@ -98,7 +105,8 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
     BASE_XP *
       bandMultiplier(composite) *
       streakMultiplier(streakDays) *
-      (comebackBonus ? 2 : 1),
+      (comebackBonus ? 2 : 1) *
+      (restDayBonus ? 1.5 : 1),
   );
 
   const fallback: AwardXpResult = {
@@ -168,12 +176,14 @@ export function computeXpGrant(opts: {
   composite: number;
   streakDays: number;
   comebackBonus?: boolean;
+  restDayBonus?: boolean;
 }): number {
   return Math.round(
     BASE_XP *
       bandMultiplier(opts.composite) *
       streakMultiplier(opts.streakDays) *
-      (opts.comebackBonus ? 2 : 1),
+      (opts.comebackBonus ? 2 : 1) *
+      (opts.restDayBonus ? 1.5 : 1),
   );
 }
 

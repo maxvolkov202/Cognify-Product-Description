@@ -152,6 +152,12 @@ export const users = cognifyV2Schema.table("users", {
   // muscle-group rollover cron closes each day at user-local midnight.
   // Best-effort inferred client-side on first launch; defaults to UTC.
   tz: text("tz").notNull().default("UTC"),
+  // Phase C — custom weekly training schedule. 7-bit bitmask: bit 0 = Mon,
+  // bit 6 = Sun. Default 31 (binary 0011111) = Mon..Fri ("5 days a week"
+  // trainer recommendation). Users opt down to any subset via onboarding
+  // or /settings. The daily assignment, streak math, and weakness-day
+  // logic all read from this. See src/lib/onboarding/committed-days.ts.
+  committedDays: integer("committed_days").notNull().default(31),
 });
 
 export const teams = cognifyV2Schema.table("teams", {

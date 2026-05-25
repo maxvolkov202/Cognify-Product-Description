@@ -27,6 +27,14 @@ export type UserProfile = {
   level: number;
   xp: number;
   lifetimeReps: number;
+  /** Phase C — committed training days bitmask. Mon=bit 0, Sun=bit 6.
+   *  Default 31 (Mon-Fri). */
+  committedDays: number;
+  /** IANA timezone (e.g. "America/Los_Angeles"). Defaults to "UTC" until
+   *  TimezoneDetector posts the browser-inferred TZ on first authenticated
+   *  app visit. CTO review B-4 — surfaced here so the dashboard can pass
+   *  it to isDateCommitted + todayYmdInTz. */
+  tz: string;
 };
 
 export async function getUserProfile(
@@ -54,6 +62,8 @@ export async function getUserProfile(
       level: row.level ?? 1,
       xp: row.xp ?? 0,
       lifetimeReps: row.lifetimeReps ?? 0,
+      committedDays: row.committedDays ?? 31,
+      tz: row.tz ?? "UTC",
     };
   }, null);
 }

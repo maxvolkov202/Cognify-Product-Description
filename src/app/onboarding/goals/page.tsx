@@ -12,10 +12,7 @@ import {
   type ImprovementGoalId,
   type VerticalId,
 } from "@/lib/onboarding/constants";
-import {
-  setImprovementGoalsAction,
-  completeOnboardingAction,
-} from "@/server/actions/onboarding";
+import { setImprovementGoalsAction } from "@/server/actions/onboarding";
 import { OnboardingProgress } from "@/components/product/OnboardingProgress";
 import {
   useOnboardingDraft,
@@ -67,13 +64,11 @@ export default function OnboardingGoalsPage() {
         );
         return;
       }
-      const completion = await completeOnboardingAction();
-      if (completion.ok) {
-        clearOnboardingDraft();
-        router.push("/onboarding/done");
-      } else {
-        setError("Something went wrong finishing setup. Try again.");
-      }
+      // Phase C — after goals, route to /days (new dedicated step) to
+      // pick training schedule. The /days page calls completeOnboardingAction
+      // itself after saving committed_days.
+      clearOnboardingDraft();
+      router.push("/onboarding/days");
     });
   }
 
@@ -87,6 +82,8 @@ export default function OnboardingGoalsPage() {
         Back
       </Link>
       <OnboardingProgress step={3} total={4} />
+      {/* total intentionally still 4: vertical → personas → goals → days.
+         Was 4-step with the old /done; now 4-step with /days in its place. */}
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           What do you want to get better at?

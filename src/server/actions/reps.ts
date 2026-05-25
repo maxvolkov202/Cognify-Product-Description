@@ -405,11 +405,31 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       // signal that fires reliably for actual comebacks.
       const priorLifetime = (await readLifetimeReps(userId)) ?? 0;
       const comebackBonus = streak === 1 && priorLifetime > 0;
+      // Phase D — rest-day bonus. If the user trains today despite today
+      // not being in their committed_days schedule, give them ×1.5 XP as
+      // a "voluntary rep" reward. Cheap read — single column.
+      let restDayBonus = false;
+      try {
+        const [u] = await db
+          .select({ committedDays: users.committedDays })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+        if (u) {
+          const { isDateCommitted } = await import(
+            "@/lib/onboarding/committed-days"
+          );
+          restDayBonus = !isDateCommitted(u.committedDays, new Date());
+        }
+      } catch {
+        // Best-effort; default to no bonus on read failure.
+      }
       xp = await awardXp({
         userId,
         composite: input.score.composite,
         streakDays: streak,
         comebackBonus,
+        restDayBonus,
       });
       // DNA Ch.9b — leagues weekly_xp accrual. Behind FF_LEAGUES so the
       // shadow-mode rollout per the master plan can run cohort math
