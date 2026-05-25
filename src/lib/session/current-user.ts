@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { and, eq, or } from "drizzle-orm";
@@ -17,7 +18,10 @@ export type ResolvedUser = {
   image: string | null;
 };
 
-export async function currentUser(): Promise<ResolvedUser | null> {
+// Request-scoped memo: every page that renders the (app) layout calls
+// this 4+ times (layout → page → server actions). Without cache() each
+// call re-hits Supabase auth + 1-3 user lookups.
+export const currentUser = cache(async (): Promise<ResolvedUser | null> => {
   // 1. Try Supabase Auth first (primary auth going forward)
   if (hasSupabase()) {
     try {
@@ -48,7 +52,7 @@ export async function currentUser(): Promise<ResolvedUser | null> {
     email: null,
     image: null,
   };
-}
+});
 
 /**
  * Reconcile a Supabase-authenticated user with our `users` table. Handles

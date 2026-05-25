@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, or } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   activityEvents,
@@ -138,14 +138,11 @@ export async function detectNewHigh(
   newComposite: number,
 ): Promise<{ score: number } | null> {
   return safeDb(async () => {
-    const prior = await db
-      .select({ s: reps.compositeScore })
+    const [row] = await db
+      .select({ max: sql<number | null>`MAX(${reps.compositeScore})` })
       .from(reps)
       .where(eq(reps.userId, userId));
-    const priorMax = prior.reduce<number>(
-      (max, r) => (r.s !== null && r.s > max ? r.s : max),
-      0,
-    );
+    const priorMax = row?.max ?? 0;
     // Threshold: beat the prior max AND at least 70 (avoid celebrating low scores)
     if (newComposite > priorMax && newComposite >= 70) {
       return { score: newComposite };

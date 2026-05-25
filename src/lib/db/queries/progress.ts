@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
@@ -224,9 +225,10 @@ export async function getRunningAverages(
   })));
 }
 
-export async function getCurrentSkillScores(
+// Request-scoped: layout SixSkillsBar + /progress radar both call this.
+export const getCurrentSkillScores = cache(async (
   userId: string,
-): Promise<Record<SkillDimension, number | null>> {
+): Promise<Record<SkillDimension, number | null>> => {
   return safeDb(async () => {
     const rows = await db
       .select({
@@ -248,7 +250,7 @@ export async function getCurrentSkillScores(
     for (const dim of ALL_DIMENSIONS) result[dim] = latest.get(dim) ?? null;
     return result;
   }, Object.fromEntries(ALL_DIMENSIONS.map((d) => [d, null])) as Record<SkillDimension, null>);
-}
+});
 
 export async function getActivityHeatmap(
   userId: string,

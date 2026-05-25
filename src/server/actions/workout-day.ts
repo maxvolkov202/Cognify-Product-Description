@@ -9,6 +9,7 @@
 // All decision logic lives in src/server/lib/workout/assignment.ts; this
 // file is the thin DB-fetching wrapper.
 
+import { cache } from "react";
 import { randomUUID } from "node:crypto";
 import { and, desc, eq, gte, inArray, isNull, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
@@ -22,6 +23,8 @@ import {
 import { isFinalCycleDay } from "@/lib/onboarding/committed-days";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import { getUserProfile } from "@/lib/db/queries/user";
+import { todayYmdInTz } from "@/lib/time/user-day";
 import {
   MUSCLE_GROUP_IDS,
   type MuscleGroupId,
@@ -41,8 +44,15 @@ import { createWorkoutSession } from "@/server/actions/sessions";
 const REP_HISTORY_DAYS = 14;
 const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
 
-function todayISODateUTC(now: Date): string {
-  return now.toISOString().slice(0, 10);
+// Resolve the user's local YYYY-MM-DD for keying `muscle_group_days.day_date`.
+// MUST match the rest-day banner + rollover cron, which both key off user-local
+// time. UTC-keyed days drift across the user's midnight (e.g. a Pacific user
+// training Sun 6pm PT writes Mon UTC, then Monday morning the row gets read
+// as "today already done"). getUserProfile is React.cached so this adds zero
+// roundtrips when the caller's render already loaded the profile.
+async function todayDateForUser(userId: string): Promise<string> {
+  const profile = await getUserProfile(userId);
+  return todayYmdInTz(profile?.tz ?? "UTC");
 }
 
 function logEvent(event: string, payload: Record<string, unknown>): void {
@@ -228,7 +238,7 @@ export async function previewTodaysWorkoutPlan(input: {
 }): Promise<{ stations: Station[]; persisted: false }> {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
-  const dayDate = todayISODateUTC(new Date());
+  const dayDate = await todayDateForUser(userId);
 
   return safeDb<{ stations: Station[]; persisted: false }>(async () => {
     const [available, recentDays] = await Promise.all([
@@ -258,11 +268,15 @@ export type SuggestResult = SelectResult & {
   existingDayId: string | null;
 };
 
-export async function suggestTodaysMuscleGroup(): Promise<SuggestResult> {
+// "use server" requires exports to be raw async functions, so we wrap an
+// inner cache()'d impl rather than `export const ... = cache(...)`. The
+// dashboard + workout page + startMuscleGroupDay all call this within a
+// single request — without dedupe each call re-runs 4 heavy aggregates.
+const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
   const today = new Date();
-  const dayDate = todayISODateUTC(today);
+  const dayDate = await todayDateForUser(userId);
 
   const fallback: SuggestResult = {
     suggested: "clarity",
@@ -376,6 +390,10 @@ export async function suggestTodaysMuscleGroup(): Promise<SuggestResult> {
 
     return { ...result, existingDayId: null };
   }, fallback);
+});
+
+export async function suggestTodaysMuscleGroup(): Promise<SuggestResult> {
+  return _suggestTodaysMuscleGroupImpl();
 }
 
 export type StartMuscleGroupDayResult = {
@@ -394,8 +412,7 @@ export async function startMuscleGroupDay(input: {
 } = {}): Promise<StartMuscleGroupDayResult> {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
-  const today = new Date();
-  const dayDate = todayISODateUTC(today);
+  const dayDate = await todayDateForUser(userId);
 
   const fallback: StartMuscleGroupDayResult = {
     dayId: randomUUID(),
@@ -522,7 +539,11 @@ export async function startMuscleGroupDay(input: {
 
     const plannedIds = sampled.map((s) => s.id);
 
-    const [inserted] = await db
+    // ON CONFLICT DO NOTHING so a concurrent double-tap of "Start" (or
+    // a page reload mid-FCP) doesn't 500 with a UNIQUE violation on
+    // (user_id, day_date). If we lose the race, re-SELECT the winner's
+    // row and treat the call as idempotent.
+    let [inserted] = await db
       .insert(muscleGroupDays)
       .values({
         userId,
@@ -533,7 +554,23 @@ export async function startMuscleGroupDay(input: {
         status: "planned",
         previousDayId: previousDay?.id ?? null,
       })
+      .onConflictDoNothing({
+        target: [muscleGroupDays.userId, muscleGroupDays.dayDate],
+      })
       .returning({ id: muscleGroupDays.id });
+    if (!inserted) {
+      const [winner] = await db
+        .select({ id: muscleGroupDays.id })
+        .from(muscleGroupDays)
+        .where(
+          and(
+            eq(muscleGroupDays.userId, userId),
+            eq(muscleGroupDays.dayDate, dayDate),
+          ),
+        )
+        .limit(1);
+      inserted = winner;
+    }
 
     const stations: Station[] = sampled.map((ex, index) => ({
       index,

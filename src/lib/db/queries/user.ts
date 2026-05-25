@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
@@ -37,9 +38,11 @@ export type UserProfile = {
   tz: string;
 };
 
-export async function getUserProfile(
+// Request-scoped: called by layout, dashboard, workout, settings, and
+// several server actions per render. cache() dedupes within a request.
+export const getUserProfile = cache(async (
   userId: string,
-): Promise<UserProfile | null> {
+): Promise<UserProfile | null> => {
   return safeDb(async () => {
     const row = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -66,7 +69,7 @@ export async function getUserProfile(
       tz: row.tz ?? "UTC",
     };
   }, null);
-}
+});
 
 export async function setUserVertical(
   userId: string,

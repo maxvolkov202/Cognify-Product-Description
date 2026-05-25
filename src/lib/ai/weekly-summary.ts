@@ -1,6 +1,13 @@
+import { z } from "zod";
 import { anthropic, MODELS } from "./claude";
 import type { SkillDimension } from "@/types/domain";
 import { DIMENSION_LABELS } from "@/types/domain";
+
+export const WeeklyNarrativeSchema = z.object({
+  paragraph: z.string(),
+  hookStat: z.string(),
+  nextFocus: z.string(),
+});
 
 export type WeeklyRepSummary = {
   weekStartISO: string;
@@ -22,11 +29,7 @@ export type WeeklyRepSummary = {
   weakestDimension: SkillDimension | null;
 };
 
-export type WeeklyNarrative = {
-  paragraph: string;
-  hookStat: string;
-  nextFocus: string;
-};
+export type WeeklyNarrative = z.infer<typeof WeeklyNarrativeSchema>;
 
 /**
  * Generate a one-paragraph weekly recap grounded in the user's rep data.

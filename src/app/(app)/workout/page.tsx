@@ -12,7 +12,6 @@ import {
 } from "@/lib/onboarding/constants";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
-import { getUserProfile } from "@/lib/db/queries/user";
 import {
   MUSCLE_GROUP_IDS,
   type MuscleGroupId,
@@ -30,12 +29,10 @@ import {
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { isMuscleGroupWorkoutEnabled } from "@/lib/flags";
+import { getUserProfile } from "@/lib/db/queries/user";
+import { todayYmdInTz } from "@/lib/time/user-day";
 
 export const dynamic = "force-dynamic";
-
-function todayUTC(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function isMuscleGroupId(s: string): s is MuscleGroupId {
   return (MUSCLE_GROUP_IDS as readonly string[]).includes(s);
@@ -78,7 +75,10 @@ async function fetchPersonalizationContext(userId: string): Promise<{
 async function fetchTodaysDayPayload(
   userId: string,
 ): Promise<WorkoutShellHydratedPayload> {
-  const dayDate = todayUTC();
+  // Key day rows by user-local date so 6pm PT trains as "today PT" not
+  // "tomorrow UTC". getUserProfile is React.cached.
+  const profile = await getUserProfile(userId);
+  const dayDate = todayYmdInTz(profile?.tz ?? "UTC");
 
   return safeDb<WorkoutShellHydratedPayload>(async () => {
     const [day] = await db
