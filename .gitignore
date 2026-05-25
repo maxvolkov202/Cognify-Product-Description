@@ -66,3 +66,14 @@ seed-operator.mjs
 *_transcript.txt
 nick_saraev_*.txt
 Build_mobile_apps_*.txt
+
+# one-shot debug / probe / audit scripts. CI-grade smoke + audit scripts
+# live in scripts/dev/ and ARE committed; these patterns cover the
+# investigation-only outputs left over from spelunking.
+/scripts/debug-*.mjs
+/scripts/probe-*.mjs
+/scripts/audit-*.mjs
+/scripts/audit-*.json
+/scripts/test-*.mjs
+/scripts/gaps/
+/scripts/_*.mjs
