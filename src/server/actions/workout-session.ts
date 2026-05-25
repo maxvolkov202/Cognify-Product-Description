@@ -6,6 +6,7 @@
 // resumes exactly where the user left off.
 
 import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/lib/db/client";
 import {
   muscleGroupDays,
@@ -14,7 +15,64 @@ import {
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
-import type { SessionPhase } from "@/lib/workout/types";
+import { SessionPhaseSchema, type SessionPhase } from "@/lib/workout/types";
+
+// ─── Auth/ownership helpers ──────────────────────────────────────────────
+
+class OwnershipError extends Error {
+  constructor(public reason: "unauthenticated" | "not_found" | "forbidden") {
+    super(reason);
+  }
+}
+
+async function assertUser(): Promise<{ id: string }> {
+  const user = await currentUser();
+  if (!user) throw new OwnershipError("unauthenticated");
+  return { id: user.id };
+}
+
+async function assertOwnsSession(
+  sessionId: string,
+  userId: string,
+): Promise<void> {
+  const [row] = await db
+    .select({ userId: workoutSessions.userId })
+    .from(workoutSessions)
+    .where(eq(workoutSessions.id, sessionId))
+    .limit(1);
+  if (!row) throw new OwnershipError("not_found");
+  if (row.userId !== userId) throw new OwnershipError("forbidden");
+}
+
+async function assertOwnsDay(dayId: string, userId: string): Promise<void> {
+  const [row] = await db
+    .select({ userId: muscleGroupDays.userId })
+    .from(muscleGroupDays)
+    .where(eq(muscleGroupDays.id, dayId))
+    .limit(1);
+  if (!row) throw new OwnershipError("not_found");
+  if (row.userId !== userId) throw new OwnershipError("forbidden");
+}
+
+async function assertOwnsRep(repId: string, userId: string): Promise<void> {
+  const [row] = await db
+    .select({ userId: reps.userId })
+    .from(reps)
+    .where(eq(reps.id, repId))
+    .limit(1);
+  if (!row) throw new OwnershipError("not_found");
+  if (row.userId !== userId) throw new OwnershipError("forbidden");
+}
+
+// ─── Input schemas ───────────────────────────────────────────────────────
+
+const updateStateSchema = z.object({
+  workoutSessionId: z.string().uuid(),
+  state: SessionPhaseSchema,
+  currentStationIndex: z.number().int().min(0).max(20),
+  pausedAt: z.date().nullable().optional(),
+  resumedAt: z.date().nullable().optional(),
+});
 
 // ─── State persistence ───────────────────────────────────────────────────
 
@@ -29,20 +87,41 @@ export type UpdateWorkoutSessionStateInput = {
 export async function updateWorkoutSessionState(
   input: UpdateWorkoutSessionStateInput,
 ): Promise<{ persisted: boolean }> {
-  return safeDb<{ persisted: boolean }>(async () => {
-    await db
-      .update(workoutSessions)
-      .set({
-        state: input.state,
-        currentStationIndex: input.currentStationIndex,
-        ...(input.pausedAt !== undefined ? { pausedAt: input.pausedAt } : {}),
-        ...(input.resumedAt !== undefined
-          ? { resumedAt: input.resumedAt }
-          : {}),
-      })
-      .where(eq(workoutSessions.id, input.workoutSessionId));
-    return { persisted: true };
-  }, { persisted: false });
+  try {
+    const user = await assertUser();
+    const validated = updateStateSchema.parse(input);
+    await assertOwnsSession(validated.workoutSessionId, user.id);
+    return safeDb<{ persisted: boolean }>(async () => {
+      await db
+        .update(workoutSessions)
+        .set({
+          state: validated.state,
+          currentStationIndex: validated.currentStationIndex,
+          ...(validated.pausedAt !== undefined
+            ? { pausedAt: validated.pausedAt }
+            : {}),
+          ...(validated.resumedAt !== undefined
+            ? { resumedAt: validated.resumedAt }
+            : {}),
+        })
+        .where(eq(workoutSessions.id, validated.workoutSessionId));
+      return { persisted: true };
+    }, { persisted: false });
+  } catch (err) {
+    // Ownership / validation failures degrade quietly to non-persistence.
+    // The client treats { persisted: false } as a hint to refetch — same
+    // shape as a DB outage.
+    if (err instanceof OwnershipError || err instanceof z.ZodError) {
+      console.warn(
+        JSON.stringify({
+          event: "workout_session.update_state.rejected",
+          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+        }),
+      );
+      return { persisted: false };
+    }
+    throw err;
+  }
 }
 
 // ─── Resume snapshot ─────────────────────────────────────────────────────
@@ -105,31 +184,54 @@ export type CompleteWorkoutDayInput = {
   composite: number | null;
 };
 
+const completeSchema = z.object({
+  workoutSessionId: z.string().uuid(),
+  muscleGroupDayId: z.string().uuid(),
+  composite: z.number().min(0).max(100).nullable(),
+});
+
 export async function completeWorkoutSession(
   input: CompleteWorkoutDayInput,
 ): Promise<{ persisted: boolean }> {
-  return safeDb<{ persisted: boolean }>(async () => {
-    // 1. Mark the muscle_group_day complete with the final composite.
-    await db
-      .update(muscleGroupDays)
-      .set({
-        status: "complete",
-        compositeAtClose: input.composite,
-        completedAt: new Date(),
-      })
-      .where(eq(muscleGroupDays.id, input.muscleGroupDayId));
+  try {
+    const user = await assertUser();
+    const validated = completeSchema.parse(input);
+    await Promise.all([
+      assertOwnsSession(validated.workoutSessionId, user.id),
+      assertOwnsDay(validated.muscleGroupDayId, user.id),
+    ]);
+    return safeDb<{ persisted: boolean }>(async () => {
+      await db
+        .update(muscleGroupDays)
+        .set({
+          status: "complete",
+          compositeAtClose: validated.composite,
+          completedAt: new Date(),
+        })
+        .where(eq(muscleGroupDays.id, validated.muscleGroupDayId));
 
-    // 2. Mark the workout_session at the closing state.
-    await db
-      .update(workoutSessions)
-      .set({
-        state: "day-complete",
-        currentStationIndex: 4,
-      })
-      .where(eq(workoutSessions.id, input.workoutSessionId));
+      await db
+        .update(workoutSessions)
+        .set({
+          state: "day-complete",
+          currentStationIndex: 4,
+        })
+        .where(eq(workoutSessions.id, validated.workoutSessionId));
 
-    return { persisted: true };
-  }, { persisted: false });
+      return { persisted: true };
+    }, { persisted: false });
+  } catch (err) {
+    if (err instanceof OwnershipError || err instanceof z.ZodError) {
+      console.warn(
+        JSON.stringify({
+          event: "workout_session.complete.rejected",
+          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+        }),
+      );
+      return { persisted: false };
+    }
+    throw err;
+  }
 }
 
 // ─── Graduation rep ──────────────────────────────────────────────────────
@@ -139,22 +241,46 @@ export type RecordGraduationRepInput = {
   repId: string;
 };
 
+const graduationSchema = z.object({
+  workoutSessionId: z.string().uuid(),
+  repId: z.string().uuid(),
+});
+
 export async function recordGraduationRep(
   input: RecordGraduationRepInput,
 ): Promise<{ persisted: boolean }> {
-  return safeDb<{ persisted: boolean }>(async () => {
-    await db
-      .update(reps)
-      .set({ isGraduationRep: true })
-      .where(eq(reps.id, input.repId));
+  try {
+    const user = await assertUser();
+    const validated = graduationSchema.parse(input);
+    await Promise.all([
+      assertOwnsSession(validated.workoutSessionId, user.id),
+      assertOwnsRep(validated.repId, user.id),
+    ]);
+    return safeDb<{ persisted: boolean }>(async () => {
+      await db
+        .update(reps)
+        .set({ isGraduationRep: true })
+        .where(eq(reps.id, validated.repId));
 
-    await db
-      .update(workoutSessions)
-      .set({ graduationRepId: input.repId })
-      .where(eq(workoutSessions.id, input.workoutSessionId));
+      await db
+        .update(workoutSessions)
+        .set({ graduationRepId: validated.repId })
+        .where(eq(workoutSessions.id, validated.workoutSessionId));
 
-    return { persisted: true };
-  }, { persisted: false });
+      return { persisted: true };
+    }, { persisted: false });
+  } catch (err) {
+    if (err instanceof OwnershipError || err instanceof z.ZodError) {
+      console.warn(
+        JSON.stringify({
+          event: "workout_session.graduation.rejected",
+          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+        }),
+      );
+      return { persisted: false };
+    }
+    throw err;
+  }
 }
 
 // ─── Phase 9 — comparison fetcher for the day-complete retrospective ──
@@ -214,9 +340,40 @@ export type TagWorkoutRepInput = {
   scoreFailure: boolean;
 };
 
+const tagWorkoutRepSchema = z.object({
+  repId: z.string().uuid(),
+  muscleGroupDayId: z.string().uuid(),
+  exerciseId: z.string().uuid().nullable(),
+  scoreFailure: z.boolean(),
+});
+
 export async function tagWorkoutRep(
   input: TagWorkoutRepInput,
 ): Promise<{ persisted: boolean }> {
+  // Auth + ownership: the rep must belong to the caller. Without this
+  // any logged-in user could tag another user's rep with a different
+  // exercise + day, polluting their engagement signal.
+  try {
+    const user = await assertUser();
+    tagWorkoutRepSchema.parse(input);
+    await Promise.all([
+      assertOwnsRep(input.repId, user.id),
+      assertOwnsDay(input.muscleGroupDayId, user.id),
+    ]);
+  } catch (err) {
+    if (err instanceof OwnershipError || err instanceof z.ZodError) {
+      console.warn(
+        JSON.stringify({
+          event: "tag_workout_rep.rejected",
+          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+          repId: input.repId,
+        }),
+      );
+      return { persisted: false };
+    }
+    throw err;
+  }
+
   // CTO review B-2 — every rep in prod had exercise_id=NULL because
   // safeDb was swallowing failures silently. Layered fix: (a) try/catch
   // outside safeDb so we see structured logs, (b) self-heal exerciseId
@@ -236,114 +393,112 @@ export async function tagWorkoutRep(
 
   try {
     const result = await safeDb<{ persisted: boolean }>(async () => {
-      // Self-heal: if exerciseId is missing, recover it from the day's
-      // planned list using the workout_sessions.current_station_index.
-      // This makes the engagement upsert robust even if the client lost
-      // the FK between insertPendingRep and the rep-complete dispatch.
-      let resolvedExerciseId = input.exerciseId;
-      if (!resolvedExerciseId) {
-        const [healed] = await db.execute<{
-          exercise_id: string | null;
-        }>(drizzleSql`
-          SELECT (mgd.planned_exercise_ids ->> ws.current_station_index)::text
-                   AS exercise_id
-          FROM cognify_v2.muscle_group_days mgd
-          JOIN cognify_v2.workout_sessions ws
-            ON ws.muscle_group_day_id = mgd.id
-          WHERE mgd.id = ${input.muscleGroupDayId}
-          ORDER BY ws.created_at DESC
-          LIMIT 1
+      // Wrap the three writes in a transaction so a mid-flight failure
+      // doesn't leave completed_reps incremented without the engagement
+      // upsert (which would let a client retry double-count the counter).
+      return await db.transaction(async (tx) => {
+        // Self-heal: if exerciseId is missing, recover it from the day's
+        // planned list using the workout_sessions.current_station_index.
+        let resolvedExerciseId = input.exerciseId;
+        if (!resolvedExerciseId) {
+          const [healed] = await tx.execute<{
+            exercise_id: string | null;
+          }>(drizzleSql`
+            SELECT (mgd.planned_exercise_ids ->> ws.current_station_index)::text
+                     AS exercise_id
+            FROM cognify_v2.muscle_group_days mgd
+            JOIN cognify_v2.workout_sessions ws
+              ON ws.muscle_group_day_id = mgd.id
+            WHERE mgd.id = ${input.muscleGroupDayId}
+            ORDER BY ws.created_at DESC
+            LIMIT 1
+          `);
+          resolvedExerciseId = healed?.exercise_id ?? null;
+          console.warn(
+            JSON.stringify({
+              event: "tag_workout_rep.self_heal_exercise_id",
+              ts: new Date().toISOString(),
+              repId: input.repId,
+              muscleGroupDayId: input.muscleGroupDayId,
+              healedTo: resolvedExerciseId,
+            }),
+          );
+        }
+
+        await tx
+          .update(reps)
+          .set({
+            muscleGroupDayId: input.muscleGroupDayId,
+            ...(resolvedExerciseId ? { exerciseId: resolvedExerciseId } : {}),
+            scoreFailureFlag: input.scoreFailure,
+          })
+          .where(eq(reps.id, input.repId));
+
+        // Increment completedReps on the day.
+        await tx.execute(drizzleSql`
+          UPDATE cognify_v2.muscle_group_days
+          SET completed_reps = completed_reps + 1
+          WHERE id = ${input.muscleGroupDayId}
         `);
-        resolvedExerciseId = healed?.exercise_id ?? null;
-        console.warn(
-          JSON.stringify({
-            event: "tag_workout_rep.self_heal_exercise_id",
-            ts: new Date().toISOString(),
-            repId: input.repId,
-            muscleGroupDayId: input.muscleGroupDayId,
-            healedTo: resolvedExerciseId,
-          }),
-        );
-      }
 
-      await db
-        .update(reps)
-        .set({
-          muscleGroupDayId: input.muscleGroupDayId,
-          ...(resolvedExerciseId ? { exerciseId: resolvedExerciseId } : {}),
-          scoreFailureFlag: input.scoreFailure,
-        })
-        .where(eq(reps.id, input.repId));
+        // Skip engagement upsert if we still couldn't resolve an exerciseId.
+        if (!resolvedExerciseId) {
+          console.error(
+            JSON.stringify({
+              event: "tag_workout_rep.no_exercise_id",
+              ts: new Date().toISOString(),
+              repId: input.repId,
+              muscleGroupDayId: input.muscleGroupDayId,
+              note: "engagement upsert skipped — could not resolve exercise_id",
+            }),
+          );
+          return { persisted: true };
+        }
 
-      // Increment completedReps on the day.
-      await db.execute(drizzleSql`
-        UPDATE cognify_v2.muscle_group_days
-        SET completed_reps = completed_reps + 1
-        WHERE id = ${input.muscleGroupDayId}
-      `);
+        // CTO review B-1 — score-failure reps must NOT pollute
+        // avg_composite. When recent_composite IS NULL, leave
+        // avg_composite and completed_count unchanged.
+        await tx.execute(drizzleSql`
+          INSERT INTO cognify_v2.exercise_engagement (
+            exercise_id, user_id, shown_count, completed_count,
+            avg_composite, recent_composite, last_trained_at, last_event_at
+          )
+          SELECT
+            ${resolvedExerciseId}::uuid,
+            r.user_id,
+            0,
+            CASE WHEN r.composite_score IS NULL THEN 0 ELSE 1 END,
+            r.composite_score,
+            r.composite_score,
+            r.created_at,
+            NOW()
+          FROM cognify_v2.reps r
+          WHERE r.id = ${input.repId}
+          ON CONFLICT (exercise_id, user_id) DO UPDATE SET
+            completed_count = cognify_v2.exercise_engagement.completed_count
+              + CASE WHEN EXCLUDED.recent_composite IS NULL THEN 0 ELSE 1 END,
+            avg_composite = CASE
+              WHEN EXCLUDED.recent_composite IS NULL
+                THEN cognify_v2.exercise_engagement.avg_composite
+              ELSE (
+                COALESCE(cognify_v2.exercise_engagement.avg_composite, 0)
+                  * cognify_v2.exercise_engagement.completed_count
+                + EXCLUDED.recent_composite
+              ) / NULLIF(cognify_v2.exercise_engagement.completed_count + 1, 0)
+            END,
+            recent_composite = COALESCE(
+              EXCLUDED.recent_composite,
+              cognify_v2.exercise_engagement.recent_composite
+            ),
+            last_trained_at = GREATEST(
+              cognify_v2.exercise_engagement.last_trained_at,
+              EXCLUDED.last_trained_at
+            ),
+            last_event_at = NOW()
+        `);
 
-      // Skip engagement upsert if we still couldn't resolve an exerciseId.
-      // The rep is tagged with the day, but engagement is exercise-keyed
-      // so we can't write the row. Log loudly so the gap is debuggable.
-      if (!resolvedExerciseId) {
-        console.error(
-          JSON.stringify({
-            event: "tag_workout_rep.no_exercise_id",
-            ts: new Date().toISOString(),
-            repId: input.repId,
-            muscleGroupDayId: input.muscleGroupDayId,
-            note: "engagement upsert skipped — could not resolve exercise_id",
-          }),
-        );
         return { persisted: true };
-      }
-
-      // CTO review B-1 — score-failure reps must NOT pollute
-      // avg_composite. Trace: prev avg=80, count=1, fail rep arrives
-      // with composite_score=NULL → previous SQL folded in 0-score
-      // sample → new avg=40. Anti-rotation signal got nuked by every
-      // scoring hiccup. Fix: when recent_composite IS NULL, leave
-      // avg_composite and completed_count unchanged.
-      await db.execute(drizzleSql`
-        INSERT INTO cognify_v2.exercise_engagement (
-          exercise_id, user_id, shown_count, completed_count,
-          avg_composite, recent_composite, last_trained_at, last_event_at
-        )
-        SELECT
-          ${resolvedExerciseId}::uuid,
-          r.user_id,
-          0,
-          CASE WHEN r.composite_score IS NULL THEN 0 ELSE 1 END,
-          r.composite_score,
-          r.composite_score,
-          r.created_at,
-          NOW()
-        FROM cognify_v2.reps r
-        WHERE r.id = ${input.repId}
-        ON CONFLICT (exercise_id, user_id) DO UPDATE SET
-          completed_count = cognify_v2.exercise_engagement.completed_count
-            + CASE WHEN EXCLUDED.recent_composite IS NULL THEN 0 ELSE 1 END,
-          avg_composite = CASE
-            WHEN EXCLUDED.recent_composite IS NULL
-              THEN cognify_v2.exercise_engagement.avg_composite
-            ELSE (
-              COALESCE(cognify_v2.exercise_engagement.avg_composite, 0)
-                * cognify_v2.exercise_engagement.completed_count
-              + EXCLUDED.recent_composite
-            ) / NULLIF(cognify_v2.exercise_engagement.completed_count + 1, 0)
-          END,
-          recent_composite = COALESCE(
-            EXCLUDED.recent_composite,
-            cognify_v2.exercise_engagement.recent_composite
-          ),
-          last_trained_at = GREATEST(
-            cognify_v2.exercise_engagement.last_trained_at,
-            EXCLUDED.last_trained_at
-          ),
-          last_event_at = NOW()
-      `);
-
-      return { persisted: true };
+      });
     }, { persisted: false });
 
     if (!result.persisted) {

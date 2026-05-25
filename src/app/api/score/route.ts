@@ -15,7 +15,7 @@ import { RUBRIC_VERSION, composite } from "@/lib/scoring/rubric";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
 import type { RepScore, SkillDimension, Callout } from "@/types/domain";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
 import {
   getUserCalibrationProfile,
@@ -355,9 +355,18 @@ export async function POST(req: Request) {
   // scoring), not just the scoring step. Used for /api/score/health/stats.
   const requestStart = Date.now();
 
-  // Rate limiting — protects against runaway loops burning Anthropic credits.
-  // Degrades gracefully without Upstash env vars (see src/lib/ratelimit.ts).
-  const rl = await rateLimit(getRateLimitIdentifier(req), {
+  // Auth: scoring is the single most expensive endpoint in the system
+  // (Anthropic Opus). Require a user (auth or guest cookie) so the open-
+  // internet anonymous-curl vector is closed. Rate-limit by user.id.
+  const callerUser = await currentUser();
+  if (!callerUser) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+
+  const rl = await rateLimit(`user:${callerUser.id}:score`, {
     count: 30,
     window: "1 m",
   });

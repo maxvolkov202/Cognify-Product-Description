@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { and, gte, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { scoringTelemetry } from "@/lib/db/schema";
+import { scoringTelemetry, users } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { currentUser } from "@/lib/session/current-user";
 
 /**
  * Phase 0 — scoring telemetry aggregates dashboard.
@@ -145,11 +146,35 @@ async function statsForWindow(windowKey: WindowKey): Promise<WindowStats> {
 }
 
 export async function GET(req: Request) {
+  // Operator-gated: this endpoint exposes pipeline failure rates +
+  // latency percentiles + mock-fallback rates. Public access would leak
+  // operational signal to competitors and tell attackers in real time
+  // which scoring path is broken.
+  const caller = await currentUser();
+  if (!caller) {
+    return NextResponse.json(
+      { error: "auth_required" },
+      { status: 401 },
+    );
+  }
+  const callerRow = await db.query.users.findFirst({
+    where: eq(users.id, caller.id),
+  });
+  if (!callerRow?.isOperator) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const url = new URL(req.url);
-  const windowParam = url.searchParams.get("window") as WindowKey | null;
+  const windowParam = url.searchParams.get("window");
+  if (windowParam && !(windowParam in WINDOWS)) {
+    return NextResponse.json(
+      { error: "invalid_window", message: "window must be 1h | 24h | 7d" },
+      { status: 400 },
+    );
+  }
 
   const windows: WindowKey[] = windowParam
-    ? [windowParam]
+    ? [windowParam as WindowKey]
     : ["1h", "24h", "7d"];
 
   const results = await Promise.all(windows.map((w) => statsForWindow(w)));

@@ -5,7 +5,8 @@ import {
   fallbackProgression,
   type ProgressionInput,
 } from "@/lib/ai/progression";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
+import { currentUser } from "@/lib/session/current-user";
 import { shouldHardFailOnMissingKey, warnMissingKey } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -57,7 +58,14 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const rl = await rateLimit(getRateLimitIdentifier(req), {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+  const rl = await rateLimit(`user:${user.id}:progression`, {
     count: 20,
     window: "1 m",
   });

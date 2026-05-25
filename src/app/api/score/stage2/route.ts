@@ -11,7 +11,7 @@ import {
   categorizeFailure,
   resolveFallbackReason,
 } from "@/lib/scoring/telemetry";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
 import {
   getUserCalibrationProfile,
@@ -137,7 +137,14 @@ async function loadUserContext() {
 export async function POST(req: Request) {
   const requestStart = Date.now();
 
-  const rl = await rateLimit(getRateLimitIdentifier(req), {
+  const callerUser = await currentUser();
+  if (!callerUser) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+  const rl = await rateLimit(`user:${callerUser.id}:score-stage2`, {
     count: 30,
     window: "1 m",
   });

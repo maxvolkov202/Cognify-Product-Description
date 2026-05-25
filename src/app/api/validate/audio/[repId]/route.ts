@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { reps } from "@/lib/db/schema";
+import { reps, users } from "@/lib/db/schema";
 import { hasDatabase } from "@/lib/db/safe";
 import { getAudioSignedUrl } from "@/lib/audio/upload";
+import { currentUser } from "@/lib/session/current-user";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,18 @@ export async function GET(
       { status: 503 },
     );
   }
+
+  // Auth: voice biometric. Previously, anyone with the rep UUID could
+  // pull a signed URL — leak via screenshot/log = audio exposure. Now
+  // require the caller to own the rep, or be an operator.
+  const caller = await currentUser();
+  if (!caller) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+
   try {
     const rep = await db.query.reps.findFirst({
       where: eq(reps.id, repId),
@@ -27,6 +40,17 @@ export async function GET(
         { error: "not_found", message: "Rep audio not available." },
         { status: 404 },
       );
+    }
+    if (rep.userId !== caller.id) {
+      const callerRow = await db.query.users.findFirst({
+        where: eq(users.id, caller.id),
+      });
+      if (!callerRow?.isOperator) {
+        return NextResponse.json(
+          { error: "forbidden", message: "Rep does not belong to caller." },
+          { status: 403 },
+        );
+      }
     }
     // reps.audioUrl stores the Supabase Storage path. Generate a fresh
     // signed URL on each request (short-lived, safer than persisting one).

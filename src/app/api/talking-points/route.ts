@@ -1,13 +1,28 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   generateTalkingPoints,
   defaultTalkingPoints,
   type GenerateTalkingPointsInput,
 } from "@/lib/ai/talking-points";
 import { hasAnthropic } from "@/lib/db/safe";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
+import { currentUser } from "@/lib/session/current-user";
 
 export const dynamic = "force-dynamic";
+
+const bodySchema = z.object({
+  scenario: z.string().min(1).max(2000),
+  archetype: z.string().max(100).optional(),
+  framework: z
+    .object({
+      slug: z.string().max(60),
+      label: z.string().max(120).optional(),
+    })
+    .optional(),
+  vertical: z.string().max(60).optional(),
+  goal: z.string().max(120).optional(),
+}).passthrough();
 
 /**
  * POST /api/talking-points
@@ -19,8 +34,15 @@ export const dynamic = "force-dynamic";
  * in dev without keys. Never returns a blank state.
  */
 export async function POST(request: Request) {
-  // Rate limiting — protects against abuse hitting Claude Opus.
-  const rl = await rateLimit(getRateLimitIdentifier(request), {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+
+  const rl = await rateLimit(`user:${user.id}:talking-points`, {
     count: 15,
     window: "1 m",
   });
@@ -41,17 +63,15 @@ export async function POST(request: Request) {
 
   let body: GenerateTalkingPointsInput;
   try {
-    body = (await request.json()) as GenerateTalkingPointsInput;
-  } catch {
+    const raw = await request.json();
+    body = bodySchema.parse(raw) as GenerateTalkingPointsInput;
+  } catch (err) {
+    const detail =
+      err instanceof z.ZodError
+        ? err.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
+        : "Bad request";
     return NextResponse.json(
-      { error: "invalid_json" },
-      { status: 400 },
-    );
-  }
-
-  if (!body.scenario || typeof body.scenario !== "string") {
-    return NextResponse.json(
-      { error: "scenario_required" },
+      { error: "invalid_body", message: detail },
       { status: 400 },
     );
   }

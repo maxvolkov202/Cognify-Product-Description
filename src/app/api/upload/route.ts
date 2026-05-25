@@ -1,14 +1,26 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { uploadAudio } from "@/lib/audio/upload";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
+import { currentUser } from "@/lib/session/current-user";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  // Rate limiting — Vercel Blob has cost per upload
-  const rl = await rateLimit(getRateLimitIdentifier(req), {
+  // Auth: require a user. Without the guest cookie this is 401 — closes
+  // the open-internet blob-storage write that previously only IP-rate-
+  // limited.
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+
+  // Rate-limit by user.id — IP buckets are useless behind shared NATs.
+  const rl = await rateLimit(`user:${user.id}:upload`, {
     count: 30,
     window: "1 m",
   });
@@ -43,14 +55,25 @@ export async function POST(req: Request) {
         { status: 413 },
       );
     }
+    const mime = file.type || "audio/webm";
+    if (!mime.startsWith("audio/")) {
+      return NextResponse.json(
+        { error: "unsupported_mime", message: "Audio mime type required." },
+        { status: 415 },
+      );
+    }
     const extension =
-      file.type.includes("webm") ? "webm" :
-      file.type.includes("ogg") ? "ogg" :
-      file.type.includes("mp4") ? "mp4" :
+      mime.includes("webm") ? "webm" :
+      mime.includes("ogg") ? "ogg" :
+      mime.includes("mp4") ? "mp4" :
+      mime.includes("mpeg") ? "mp3" :
+      mime.includes("wav") ? "wav" :
       "bin";
-    const key = `reps/${randomUUID()}.${extension}`;
+    // Namespace under the user id so blob-storage cleanup + per-user
+    // accounting are tractable.
+    const key = `reps/${user.id}/${randomUUID()}.${extension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await uploadAudio(key, buffer, file.type || "audio/webm");
+    const result = await uploadAudio(key, buffer, mime);
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed.";
