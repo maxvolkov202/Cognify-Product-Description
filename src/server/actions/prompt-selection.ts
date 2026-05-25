@@ -94,99 +94,127 @@ export async function fetchPromptCandidates(input: {
       .limit(1);
     if (!exerciseRow) return fallback;
 
-    // Resolve user's vertical / personas / goals (NULL for anon + skipped).
+    // Resolve user's vertical + goals (NULL for anon + skipped).
+    // Personas were dropped from the cascade — they layered an extra
+    // AND that narrowed banks below the MIN_BANK_SIZE threshold without
+    // adding meaningful personalization beyond vertical+goals. Vertical
+    // is the strongest signal; goals refine within it.
     let userVertical: string | null = null;
-    let userPersonas: string[] = [];
     let userGoals: string[] = [];
     if (input.personalize && user) {
       const [userRow] = await db
         .select({
           vertical: users.vertical,
-          personas: users.personas,
           improvementGoals: users.improvementGoals,
         })
         .from(users)
         .where(eq(users.id, user.id))
         .limit(1);
       userVertical = userRow?.vertical ?? null;
-      userPersonas = Array.isArray(userRow?.personas)
-        ? (userRow.personas as string[])
-        : [];
       userGoals = Array.isArray(userRow?.improvementGoals)
         ? (userRow.improvementGoals as string[])
         : [];
     }
 
     // Recent dim composite drives the difficulty bias hint.
-    const [compRow] = await db.execute<{ avg: number | null }>(drizzleSql`
-      SELECT AVG(r.composite_score)::real AS avg
-      FROM cognify_v2.reps r
-      JOIN cognify_v2.exercises e ON e.id = r.exercise_id
-      WHERE r.user_id = ${userId}
-        AND e.dimension = ${exerciseRow.dimension}
-        AND r.created_at >= NOW() - INTERVAL '14 days'
-    `);
-    const recentDimComposite = compRow?.avg ?? null;
+    // Recent prompt ids drive bias-away from already-used prompts.
+    // Both queries are gated to authenticated users — for anonymous guests
+    // the userId placeholder is the literal string "anonymous", and the
+    // reps.user_id column is a uuid. Passing a non-uuid string fails the
+    // query, which historically tripped safeDb's fallback and surfaced as
+    // "No prompts available". Skip the queries for guests instead.
+    let recentDimComposite: number | null = null;
+    let recentPromptIds: string[] = [];
+    if (user) {
+      try {
+        const [compRow] = await db.execute<{ avg: number | null }>(drizzleSql`
+          SELECT AVG(r.composite_score)::real AS avg
+          FROM cognify_v2.reps r
+          JOIN cognify_v2.exercises e ON e.id = r.exercise_id
+          WHERE r.user_id = ${userId}
+            AND e.dimension = ${exerciseRow.dimension}
+            AND r.created_at >= NOW() - INTERVAL '14 days'
+        `);
+        recentDimComposite = compRow?.avg ?? null;
 
-    // The user's last 30 prompt_ids for this exercise (for bias-away).
-    const recentRows = await db.execute<{ prompt_id: string | null }>(drizzleSql`
-      SELECT r.prompt_text, ep.prompt_id
-      FROM cognify_v2.reps r
-      LEFT JOIN cognify_v2.exercise_prompts ep ON ep.prompt_text = r.prompt_text
-      WHERE r.user_id = ${userId}
-        AND r.exercise_id = ${input.exerciseId}
-      ORDER BY r.created_at DESC
-      LIMIT ${PROMPT_BIAS_WINDOW}
-    `);
-    const recentPromptIds = recentRows
-      .map((row) => row.prompt_id)
-      .filter((id): id is string => id != null);
+        const recentRows = await db.execute<{ prompt_id: string | null }>(drizzleSql`
+          SELECT r.prompt_text, ep.prompt_id
+          FROM cognify_v2.reps r
+          LEFT JOIN cognify_v2.exercise_prompts ep ON ep.prompt_text = r.prompt_text
+          WHERE r.user_id = ${userId}
+            AND r.exercise_id = ${input.exerciseId}
+          ORDER BY r.created_at DESC
+          LIMIT ${PROMPT_BIAS_WINDOW}
+        `);
+        recentPromptIds = recentRows
+          .map((row) => row.prompt_id)
+          .filter((id): id is string => id != null);
+      } catch (err) {
+        // Bias signals are nice-to-have. If the queries fail (rare —
+        // network blip, query timeout) the picker still hands the user a
+        // fresh shuffle from the bank instead of crashing.
+        console.warn(
+          JSON.stringify({
+            event: "prompt_selection.bias_signal_failed",
+            ts: new Date().toISOString(),
+            userId,
+            exerciseId: input.exerciseId,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      }
+    }
 
     // Tag filter cascade — try the most-specific filter first, slide to a
-    // wider one if the bank is too thin for real rotation. The picker never
-    // shows "no prompts available" because the cascade ends at general,
-    // which has full 54-exercise coverage.
+    // wider one if the bank is too thin for real rotation. Cascade ends at
+    // "any active prompt", so the picker can never show "no prompts available"
+    // when the exerciseId points at a real row.
     //
     // Tiers when personalize=true and a vertical is set:
-    //   1. vertical ∧ any-of-personas ∧ any-of-goals
-    //   2. vertical ∧ any-of-personas
-    //   3. vertical ∧ any-of-goals
-    //   4. vertical only
-    //   5. general
+    //   1. vertical ∧ any-of-goals       (most personalized)
+    //   2. vertical only                  (still personalized, broader bank)
+    //   3. general                        (universal bank)
+    //   4. any active                     (final safety net)
     //
     // Tier "vertical" unions the new vertical-id tag (Wave 1 bank) with the
     // legacy tag map (Phase 2 bank). "other" users have no legacy mapping,
     // so for them the vertical filter is just `tags ? 'other'`.
+    //
+    // NOTE — using jsonb_exists / jsonb_exists_any function calls instead
+    // of the `?` and `?|` operators. Postgres treats them identically, but
+    // Drizzle/pg's parameter binder can confuse a bare `?` with a positional
+    // placeholder when the same query also carries bound params from the
+    // surrounding `and(eq(...), eq(...), ...)` builder. Function calls
+    // sidestep that ambiguity and keep the cascade reliable.
+    // Postgres array literal helper — binds each element individually via
+    // drizzle's sql.join so the array renders as `ARRAY['a','b']::text[]`
+    // instead of being bound as a single composite/record value (which
+    // fails with "cannot cast type record to text[]"). Without this every
+    // personalized tier query throws and the cascade silently falls
+    // through to general — the exact dark-Wave-2 bug from 2026-05-23.
+    const textArrayLit = (arr: readonly string[]) =>
+      drizzleSql`ARRAY[${drizzleSql.join(
+        arr.map((x) => drizzleSql`${x}`),
+        drizzleSql`, `,
+      )}]::text[]`;
+
     const legacy = userVertical ? LEGACY_VERTICAL_TAGS[userVertical] ?? [] : [];
     const verticalFilter =
       input.personalize && userVertical
         ? legacy.length > 0
-          ? drizzleSql`(${exercisePrompts.tags} ? ${userVertical} OR ${exercisePrompts.tags} ?| ${legacy}::text[])`
-          : drizzleSql`${exercisePrompts.tags} ? ${userVertical}`
-        : null;
-    const personaFilter =
-      input.personalize && userPersonas.length > 0
-        ? drizzleSql`${exercisePrompts.tags} ?| ${userPersonas}::text[]`
+          ? drizzleSql`(jsonb_exists(${exercisePrompts.tags}, ${userVertical}) OR jsonb_exists_any(${exercisePrompts.tags}, ${textArrayLit(legacy)}))`
+          : drizzleSql`jsonb_exists(${exercisePrompts.tags}, ${userVertical})`
         : null;
     const goalFilter =
       input.personalize && userGoals.length > 0
-        ? drizzleSql`${exercisePrompts.tags} ?| ${userGoals}::text[]`
+        ? drizzleSql`jsonb_exists_any(${exercisePrompts.tags}, ${textArrayLit(userGoals)})`
         : null;
-    const generalFilter = drizzleSql`${exercisePrompts.tags} ? 'general'`;
+    const generalFilter = drizzleSql`jsonb_exists(${exercisePrompts.tags}, 'general')`;
+    /** Unconditional safety net. Matches every active prompt for the
+     *  exercise regardless of tag. */
+    const anyActiveFilter = drizzleSql`true`;
 
     const tiers: Array<{ label: string; filter: ReturnType<typeof drizzleSql> }> = [];
-    if (verticalFilter && personaFilter && goalFilter) {
-      tiers.push({
-        label: "vertical+persona+goal",
-        filter: drizzleSql`${verticalFilter} AND ${personaFilter} AND ${goalFilter}`,
-      });
-    }
-    if (verticalFilter && personaFilter) {
-      tiers.push({
-        label: "vertical+persona",
-        filter: drizzleSql`${verticalFilter} AND ${personaFilter}`,
-      });
-    }
     if (verticalFilter && goalFilter) {
       tiers.push({
         label: "vertical+goal",
@@ -197,6 +225,7 @@ export async function fetchPromptCandidates(input: {
       tiers.push({ label: "vertical", filter: verticalFilter });
     }
     tiers.push({ label: "general", filter: generalFilter });
+    tiers.push({ label: "any", filter: anyActiveFilter });
 
     const selectBank = (filter: ReturnType<typeof drizzleSql>) =>
       db
@@ -219,7 +248,26 @@ export async function fetchPromptCandidates(input: {
     let bankRows: Awaited<ReturnType<typeof selectBank>> = [];
     let bankTier = "none";
     for (const tier of tiers) {
-      const rows = await selectBank(tier.filter);
+      // Per-tier try/catch — one bad filter (Drizzle composition quirk,
+      // jsonb operator edge case) MUST NOT take down the whole cascade.
+      // We log it and continue; the "any" tier at the end guarantees a
+      // non-empty bank even if every personalized tier fails.
+      let rows: Awaited<ReturnType<typeof selectBank>> = [];
+      try {
+        rows = await selectBank(tier.filter);
+      } catch (err) {
+        console.warn(
+          JSON.stringify({
+            event: "prompt_selection.tier_query_failed",
+            ts: new Date().toISOString(),
+            userId,
+            exerciseId: input.exerciseId,
+            tier: tier.label,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+        continue;
+      }
       if (rows.length >= MIN_BANK_SIZE) {
         bankRows = rows;
         bankTier = tier.label;
@@ -232,7 +280,7 @@ export async function fetchPromptCandidates(input: {
         bankTier = tier.label;
       }
     }
-    if (bankTier !== "vertical+persona+goal" && tiers.length > 1) {
+    if (bankTier !== "vertical+goal" && tiers.length > 1) {
       console.log(
         JSON.stringify({
           event: "prompt_selection.bank_tier",
@@ -242,7 +290,6 @@ export async function fetchPromptCandidates(input: {
           tier: bankTier,
           size: bankRows.length,
           vertical: userVertical,
-          personas: userPersonas,
           goals: userGoals,
         }),
       );

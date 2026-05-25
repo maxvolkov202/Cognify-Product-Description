@@ -10,6 +10,7 @@ import {
   Mic,
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
+import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
   getRecentReps,
@@ -38,6 +39,7 @@ import {
 } from "@/lib/db/queries/sub-skills";
 import type { SubSkillId } from "@/types/sub-skills";
 import { ResumeBanner } from "@/components/product/ResumeBanner";
+import { RestDayNotification } from "@/components/product/RestDayNotification";
 import { DnaStatsStrip } from "@/components/product/DnaStatsStrip";
 import { DashboardHero } from "@/components/product/DashboardHero";
 import { DayDotsPreview } from "@/components/product/DayDotsPreview";
@@ -134,9 +136,21 @@ export default async function DashboardPage() {
   const insights = buildNarrativeInsights(trends, avgRecent);
 
   // ——— Today's focus dimension ————————————————————————
-  // Lowest-scoring dim from the most recent point per dimension; falls back
-  // to the first untrained dimension; falls back to "clarity".
-  const focus = pickFocusDim(trends);
+  // Bug #8 fix: was `pickFocusDim(trends)` which read from the all-time
+  // weakest-trended dim. That visibly disagreed with what /workout actually
+  // serves (driven by selectMuscleGroupForToday). Use the same source of
+  // truth as the workout so dashboard + workout always match.
+  const todaysWorkout = user ? await suggestTodaysMuscleGroup() : null;
+  const focus: { dim: SkillDimension | null; score: number | null } =
+    todaysWorkout
+      ? {
+          dim: todaysWorkout.suggested as SkillDimension,
+          // Surface the user's current avg in that dim, when we have one.
+          score:
+            trends.find((t) => t.dimension === todaysWorkout.suggested)
+              ?.points.slice(-1)[0]?.score ?? null,
+        }
+      : { dim: null, score: null };
 
   // ——— This-week rep counts per mode ——————————————————
   // We don't track mode per rep here; instead derive a single "reps this
@@ -153,7 +167,7 @@ export default async function DashboardPage() {
   if (!hasAnyReps) {
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/10 to-brand-magenta/10 p-8 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] md:p-10">
+        <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/10 to-brand-magenta/10 p-8 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] dark:border-ink-700 dark:from-ink-900 dark:via-ink-800 dark:to-ink-900 md:p-10">
           <div
             className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-50 blur-3xl"
             aria-hidden="true"
@@ -163,13 +177,13 @@ export default async function DashboardPage() {
             }}
           />
           <div className="relative">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
               Welcome, {firstName}
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-white md:text-4xl">
               Day 1 of becoming someone who never loses the room.
             </h1>
-            <p className="mt-3 text-base text-ink-600 md:text-lg">
+            <p className="mt-3 text-base text-ink-600 dark:text-ink-300 md:text-lg">
               Five minutes. Four reps. Instant feedback. Your first rep becomes the baseline every future rep gets measured against.
             </p>
             <DayDotsPreview className="mt-7" />
@@ -179,16 +193,16 @@ export default async function DashboardPage() {
               </GradientButton>
               <Link
                 href="/tutorial"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-3 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-100 dark:hover:border-ink-600 dark:hover:bg-ink-700"
               >
                 Take the tour first
               </Link>
             </div>
-            <p className="mt-6 text-xs text-ink-500">
+            <p className="mt-6 text-xs text-ink-500 dark:text-ink-400">
               Prefer to start smaller?{" "}
               <Link
                 href="/build-a-rep"
-                className="font-semibold text-brand-purple hover:underline"
+                className="font-semibold text-brand-purple hover:underline dark:text-brand-lavender"
               >
                 Build a single rep around a real conversation you&rsquo;re
                 preparing for →
@@ -209,9 +223,36 @@ export default async function DashboardPage() {
     );
   }
 
+  // Phase D — rest-day notification. Shown above the hero when today
+  // isn't a committed training day. Dismissible per-day via localStorage.
+  //
+  // CTO review B-5 — both the "is today a rest day?" check AND the
+  // dismissal key MUST resolve to the same user-local calendar day.
+  // Server is UTC; an 11pm PT Sunday rest-day check using .toISOString
+  // for the key wrote "Mon UTC" while .getDay() returned Sun local,
+  // so the banner appeared for today but was keyed under tomorrow's
+  // date → pre-dismissed when the user opened the app on real Monday.
+  const userTzForRestDay = profile?.tz ?? "UTC";
+  const todayISO = (await import("@/lib/time/user-day")).todayYmdInTz(
+    userTzForRestDay,
+  );
+  let isRestDay = false;
+  if (profile) {
+    const { isDateCommitted } = await import(
+      "@/lib/onboarding/committed-days"
+    );
+    isRestDay = !isDateCommitted(
+      profile.committedDays,
+      new Date(),
+      userTzForRestDay,
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-10 md:py-12">
       <ResumeBanner />
+
+      {isRestDay && <RestDayNotification todayISO={todayISO} />}
 
       {/* Greeting + vital signs (streak / last-5 / focus) + primary CTA.
           Lands first so the user sees "Hey {name}. Time to train." at the
@@ -353,12 +394,12 @@ function SkillProgressBlock({
     { label: "Total sessions", value: totalSessions },
   ];
   return (
-    <section className="rounded-3xl border border-ink-200 bg-white p-6 md:p-7">
+    <section className="rounded-3xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900 md:p-7">
       <div className="mb-5 flex items-baseline justify-between gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
           Six core skills
         </p>
-        <p className="text-[11px] font-medium text-ink-400">
+        <p className="text-[11px] font-medium text-ink-400 dark:text-ink-500">
           What every Cognify rep is scored on.
         </p>
       </div>
@@ -371,7 +412,7 @@ function SkillProgressBlock({
           return (
             <div key={dim}>
               <div className="flex items-baseline justify-between">
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-800">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-800 dark:text-ink-100">
                   <span
                     className={
                       isContent
@@ -385,7 +426,7 @@ function SkillProgressBlock({
                   {score ?? "—"}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
                 <div
                   className="brand-gradient h-full rounded-full transition-[width]"
                   style={{ width: `${score ?? 0}%` }}
@@ -395,13 +436,13 @@ function SkillProgressBlock({
           );
         })}
       </div>
-      <div className="mt-7 grid grid-cols-3 gap-4 border-t border-ink-200 pt-5 text-center">
+      <div className="mt-7 grid grid-cols-3 gap-4 border-t border-ink-200 pt-5 text-center dark:border-ink-700">
         {stats.map((s) => (
           <div key={s.label}>
             <div className="brand-gradient-text text-3xl font-extrabold tabular-nums">
               {s.value}
             </div>
-            <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-ink-400">
+            <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               {s.label}
             </div>
           </div>
@@ -411,7 +452,9 @@ function SkillProgressBlock({
   );
 }
 
-// ——— Coach memo (server-rendered, dark gradient) ————————————
+// ——— Coach memo (light surface) ————————————
+// Original dark-gradient look preserved in docs/dark-palette.md as the
+// canonical reference for the future `.dark` theme.
 
 function CoachMemo({
   insights,
@@ -419,13 +462,13 @@ function CoachMemo({
   insights: ReturnType<typeof buildNarrativeInsights>;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-ink-900 via-ink-800 to-ink-900 p-6 text-white shadow-[0_24px_60px_-24px_rgba(20,20,40,0.5)] md:p-8">
+    <section className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:from-ink-900 dark:via-ink-800 dark:to-ink-900 md:p-8">
       <div
         className="pointer-events-none absolute -left-16 -top-16 size-56 rounded-full blur-3xl"
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(circle, rgba(106,163,255,0.35), transparent 70%)",
+            "radial-gradient(circle, rgba(106,163,255,0.18), transparent 70%)",
         }}
       />
       <div
@@ -433,20 +476,20 @@ function CoachMemo({
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(circle, rgba(231,124,240,0.3), transparent 70%)",
+            "radial-gradient(circle, rgba(231,124,240,0.15), transparent 70%)",
         }}
       />
 
       <div className="relative">
         <div className="flex items-center gap-2.5">
-          <div className="brand-gradient grid size-9 place-items-center rounded-xl">
+          <div className="brand-gradient grid size-9 place-items-center rounded-xl shadow-[0_8px_24px_-8px_rgba(176,114,255,0.55)]">
             <Sparkles className="size-4 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-lavender">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
               Coach&rsquo;s memo
             </p>
-            <p className="text-sm font-semibold text-white/80">
+            <p className="text-sm font-semibold text-ink-700 dark:text-white/80">
               What moved this week
             </p>
           </div>
@@ -455,13 +498,13 @@ function CoachMemo({
         <ol className="mt-5 space-y-3">
           {insights.map((insight, i) => (
             <li key={i} className="flex items-start gap-3">
-              <div className="grid size-6 shrink-0 place-items-center rounded-full bg-white/10 text-[10px] font-bold tabular-nums text-white/80">
+              <div className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-purple/10 text-[10px] font-bold tabular-nums text-brand-purple dark:bg-white/10 dark:text-brand-lavender">
                 {i + 1}
               </div>
               <div className="flex-1">
                 <div className="flex items-start gap-2">
                   <InsightIcon kind={insight.kind} />
-                  <p className="text-[13px] leading-relaxed text-white/90 md:text-sm">
+                  <p className="text-[13px] leading-relaxed text-ink-800 dark:text-white/90 md:text-sm">
                     {insight.text}
                   </p>
                 </div>
@@ -473,7 +516,7 @@ function CoachMemo({
         <div className="mt-5 flex justify-end">
           <Link
             href="/progress"
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/90 backdrop-blur-sm transition hover:bg-white/15"
+            className="inline-flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-brand-purple/5 px-3 py-1.5 text-[11px] font-bold text-brand-purple transition hover:bg-brand-purple/10 dark:border-white/20 dark:bg-white/10 dark:text-white/90 dark:hover:bg-white/15"
           >
             See full progress
             <ArrowRight className="size-3" strokeWidth={2.5} />
@@ -492,13 +535,13 @@ function InsightIcon({
   const cls = "mt-0.5 size-3.5 shrink-0";
   switch (kind) {
     case "improvement":
-      return <TrendingUp className={`${cls} text-emerald-400`} strokeWidth={2.5} />;
+      return <TrendingUp className={`${cls} text-emerald-600`} strokeWidth={2.5} />;
     case "regression":
-      return <TrendingDown className={`${cls} text-rose-400`} strokeWidth={2.5} />;
+      return <TrendingDown className={`${cls} text-rose-600`} strokeWidth={2.5} />;
     case "strength":
-      return <Sparkles className={`${cls} text-amber-300`} strokeWidth={2.5} />;
+      return <Sparkles className={`${cls} text-amber-500`} strokeWidth={2.5} />;
     case "steady":
-      return <Activity className={`${cls} text-brand-lavender`} strokeWidth={2.5} />;
+      return <Activity className={`${cls} text-brand-purple`} strokeWidth={2.5} />;
     case "opportunity":
       return <Target className={`${cls} text-brand-magenta`} strokeWidth={2.5} />;
   }
@@ -514,12 +557,12 @@ function LastSessions({ recent }: { recent: RecentRep[] }) {
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
           Last sessions
         </h2>
         <Link
           href="/progress"
-          className="text-xs font-bold text-brand-purple hover:text-brand-magenta"
+          className="text-xs font-bold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender dark:hover:text-brand-magenta"
         >
           See all →
         </Link>
@@ -546,14 +589,14 @@ function SessionCard({ rep }: { rep: RecentRep }) {
   return (
     <Link
       href={`/progress/rep/${rep.id}` as never}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-white to-brand-lavender/5 p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-[0_12px_36px_-16px_rgba(176,114,255,0.45)]"
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-white to-brand-lavender/5 p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-[0_12px_36px_-16px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:from-ink-900 dark:via-ink-900 dark:to-ink-800 dark:hover:border-brand-purple/40"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-ink-800">
+          <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-ink-800 dark:text-ink-100">
             {rep.promptText}
           </p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-ink-400">
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-ink-400 dark:text-ink-500">
             {date} · {seconds}s
           </p>
         </div>
@@ -562,7 +605,7 @@ function SessionCard({ rep }: { rep: RecentRep }) {
         </div>
       </div>
 
-      <div className="h-1.5 overflow-hidden rounded-full bg-ink-100">
+      <div className="h-1.5 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
         <div
           className="brand-gradient h-full rounded-full"
           style={{ width: `${fillPct}%` }}
@@ -570,11 +613,11 @@ function SessionCard({ rep }: { rep: RecentRep }) {
       </div>
 
       <div className="flex items-center justify-between text-[11px] font-bold">
-        <span className="inline-flex items-center gap-1 text-brand-purple opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="inline-flex items-center gap-1 text-brand-purple opacity-0 transition-opacity group-hover:opacity-100 dark:text-brand-lavender">
           <Mic className="size-3" strokeWidth={2.5} />
           Run it back
         </span>
-        <span className="text-ink-400">→ progress</span>
+        <span className="text-ink-400 dark:text-ink-500">→ progress</span>
       </div>
     </Link>
   );

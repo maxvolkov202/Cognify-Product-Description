@@ -22,6 +22,7 @@ import type { MuscleGroupId } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
+import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
 import {
   fetchDaySummary,
   tagWorkoutRep,
@@ -85,7 +86,7 @@ export default function RepControls({
         "pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2",
       )}
     >
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 min-h-[120px] shadow-sm">
+      <div className="bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 rounded-2xl p-5 sm:p-6 min-h-[120px] shadow-sm">
         {phase === "idle" && (
           <IdleControls onStartWorkout={onStartWorkout} />
         )}
@@ -127,6 +128,7 @@ export default function RepControls({
             selectedPrompt={selectedPrompt}
             workoutSessionId={workoutSessionId}
             muscleGroupDayId={muscleGroupDayId}
+            dimension={dimension}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
           />
@@ -155,6 +157,7 @@ export default function RepControls({
             selectedPrompt={selectedPrompt}
             workoutSessionId={workoutSessionId}
             muscleGroupDayId={muscleGroupDayId}
+            dimension={dimension}
             graduation
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
@@ -191,10 +194,10 @@ function IdleControls({
   const [isPending, startTransition] = useTransition();
   return (
     <div className="flex flex-col items-center text-center gap-3">
-      <h2 className="text-lg font-semibold text-slate-100">
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
         Start today&apos;s Workout
       </h2>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-600 dark:text-ink-300">
         4 reps. ~8 minutes. Let&apos;s move.
       </p>
       <button
@@ -225,6 +228,7 @@ function ActiveRep({
   selectedPrompt,
   workoutSessionId,
   muscleGroupDayId,
+  dimension,
   graduation,
   onRepScored,
   onAdvanceNow,
@@ -233,6 +237,7 @@ function ActiveRep({
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
   workoutSessionId: string | null;
   muscleGroupDayId: string | null;
+  dimension: MuscleGroupId | null;
   graduation?: boolean;
   onRepScored?: (params: {
     composite: number | null;
@@ -253,6 +258,8 @@ function ActiveRep({
     );
   }
 
+  const framework = getFrameworkForDimension(dimension);
+
   return (
     <RepSurface
       key={`${station.exerciseId}:${selectedPrompt.promptId}`}
@@ -271,14 +278,20 @@ function ActiveRep({
       exerciseId={station.exerciseId}
       muscleGroupDayId={muscleGroupDayId}
       isGraduationRep={!!graduation}
+      {...(framework ? { repTypeFramework: framework } : {})}
       onComplete={async (payload) => {
         if (muscleGroupDayId) {
           try {
+            // CTO review B-1 — composite === 0 (rare but possible)
+            // shouldn't misclassify as failure. Treat only null/undefined
+            // composite as failure; a real 0 score still counts as a rep.
+            const compositeMissing =
+              payload.score == null || payload.score.composite == null;
             await tagWorkoutRep({
               repId: payload.repId,
               muscleGroupDayId,
               exerciseId: station.exerciseId,
-              scoreFailure: !payload.score?.composite,
+              scoreFailure: compositeMissing,
             });
           } catch {
             // Tagging is best-effort; the rep is already saved.
@@ -310,10 +323,10 @@ function GraduationPrompt({
   return (
     <div className="flex flex-col items-center text-center gap-3">
       <Trophy className="w-5 h-5 text-amber-500" />
-      <h2 className="text-base font-semibold text-slate-900">
+      <h2 className="text-base font-semibold text-slate-900 dark:text-white">
         One more rep — pressure mode. Want it?
       </h2>
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-ink-400">
         {failed
           ? "Optional. Bonus XP if you nail it."
           : lastScore != null
@@ -337,7 +350,7 @@ function GraduationPrompt({
           onClick={onSkip}
           className={cn(
             "min-h-[44px] px-4 py-2 rounded-lg",
-            "border border-slate-200 text-slate-600 hover:bg-slate-50",
+            "border border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800",
           )}
         >
           Call it a day
@@ -381,8 +394,8 @@ function DayCompleteControls({
   if (loading) {
     return (
       <div className="flex flex-col items-center text-center gap-2 py-4">
-        <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
-        <p className="text-sm text-slate-500">Building your summary…</p>
+        <Loader2 className="w-5 h-5 animate-spin text-slate-400 dark:text-ink-500" />
+        <p className="text-sm text-slate-500 dark:text-ink-400">Building your summary…</p>
       </div>
     );
   }
@@ -390,18 +403,18 @@ function DayCompleteControls({
   if (!dim || !summary) {
     return (
       <div className="flex flex-col items-center text-center gap-3">
-        <Sparkles className="w-5 h-5 text-purple-500" />
-        <h2 className="text-base font-semibold text-slate-900">
+        <Sparkles className="w-5 h-5 text-purple-500 dark:text-brand-lavender" />
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white">
           Workout complete
         </h2>
         {lastScore != null && (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-ink-400">
             Final rep: {Math.round(lastScore)}.
           </p>
         )}
         <a
           href="/dashboard"
-          className="text-xs text-purple-600 hover:text-purple-800 font-semibold"
+          className="text-xs text-purple-600 dark:text-brand-lavender hover:text-purple-800 dark:hover:text-white font-semibold"
         >
           Back to dashboard
         </a>
@@ -430,12 +443,12 @@ function PlaceholderControls({
   return (
     <div className="flex flex-col items-center text-center gap-2">
       {icon && (
-        <div className="text-purple-500 flex items-center justify-center">
+        <div className="text-purple-500 dark:text-brand-lavender flex items-center justify-center">
           {icon}
         </div>
       )}
-      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-      {sub && <p className="text-sm text-slate-500">{sub}</p>}
+      <h2 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h2>
+      {sub && <p className="text-sm text-slate-500 dark:text-ink-400">{sub}</p>}
     </div>
   );
 }

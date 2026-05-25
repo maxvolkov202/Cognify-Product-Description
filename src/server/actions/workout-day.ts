@@ -16,8 +16,10 @@ import {
   exercises,
   muscleGroupDays,
   reps,
+  users,
   workoutSessions,
 } from "@/lib/db/schema";
+import { isFinalCycleDay } from "@/lib/onboarding/committed-days";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import {
@@ -296,11 +298,54 @@ export async function suggestTodaysMuscleGroup(): Promise<SuggestResult> {
       };
     }
 
-    const [engagement, recentReps, recentDays] = await Promise.all([
+    const [engagement, recentReps, recentDays, userRow] = await Promise.all([
       fetchEngagement(userId),
       fetchRecentRepsAggregates(userId),
       fetchRecentDays(userId),
+      db
+        .select({ committedDays: users.committedDays, tz: users.tz })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1),
     ]);
+
+    // Phase D — weakness day. If today is the user's final committed day
+    // of the week (their weekly "cap" day), override the normal selector
+    // with the weakest dim from this week's reps. The cycle = committed
+    // days in this calendar week; the final committed day = the day with
+    // no committed days after it this week.
+    //
+    // CTO review B-4 — pass user.tz so the weekday is resolved in the
+    // user's local time, not server-local. A 8pm-Thursday rep in PT
+    // would otherwise be evaluated as Friday on a UTC server.
+    const committedDaysMask = userRow[0]?.committedDays ?? 31;
+    const userTz = userRow[0]?.tz ?? "UTC";
+    if (isFinalCycleDay(committedDaysMask, today, userTz)) {
+      // Pick the weakest dim from reps this week.
+      const weeklyDimScores = recentReps
+        .filter((r) => (r.count14d ?? 0) > 0 && r.avgComposite7d != null)
+        .map((r) => ({
+          dim: r.dimension,
+          score: r.avgComposite7d as number,
+        }))
+        .sort((a, b) => a.score - b.score);
+      if (weeklyDimScores.length > 0 && weeklyDimScores[0]) {
+        const weakest = weeklyDimScores[0];
+        logEvent("assignment.weakness_day", {
+          userId,
+          dim: weakest.dim,
+          score: weakest.score,
+          allDimScores: weeklyDimScores,
+        });
+        return {
+          suggested: weakest.dim,
+          alternates: pickStaticAlternates(weakest.dim),
+          rationale: `${weakest.dim}'s your weakest this week — let's top it off.`,
+          rationaleCode: "weakest_recent",
+          existingDayId: null,
+        };
+      }
+    }
 
     const result = selectMuscleGroupForToday({
       today,

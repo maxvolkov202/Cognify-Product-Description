@@ -409,10 +409,18 @@ export function pickPromptCandidates(
   // 2) Shuffle each pool, prefer fresh, fill from used if needed.
   let pool = [...seededShuffle(fresh, seed), ...seededShuffle(used, seed + ":u")];
 
-  // 3) Difficulty bias toward intro+core when the user's recent composite is low.
-  if (input.preferEasier) {
-    pool = pool.sort((a, b) => a.difficulty - b.difficulty);
-  }
+  // 3) Difficulty bias — always intro→core→stretch.
+  //   Canon target is ~50/40/10 (intro/core/stretch); legacy banks ship
+  //   ~30/50/20. A stable sort by difficulty ASCENDING pushes intro to
+  //   the top of the served slice (k=5) without losing variety, since
+  //   the shuffle above already randomized within each difficulty tier.
+  //   `preferEasier` (composite < 60) is preserved as an explicit
+  //   signal for the caller, but the sort key is identical in both
+  //   paths because the canon never wants stretch-first ordering.
+  //   CTO review Phase F2 — default-on bias so the served bank
+  //   reflects the canon's intro-leaning target instead of Wave 2's
+  //   senior mix.
+  pool = pool.sort((a, b) => a.difficulty - b.difficulty);
 
   return pool.slice(0, k);
 }
