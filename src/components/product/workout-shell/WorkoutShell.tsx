@@ -14,6 +14,7 @@
 // StartCard is replaced by RepControls in the same slot.
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
@@ -501,7 +502,7 @@ function PersonalizeSwitch({
         <span
           aria-hidden
           className={cn(
-            "absolute top-1 bottom-1 w-[110px] rounded-full bg-gradient-to-br from-purple-500 to-pink-500 transition-transform duration-300 ease-out",
+            "absolute top-1 bottom-1 w-[110px] rounded-full brand-gradient transition-transform duration-300 ease-out",
             "shadow-[0_4px_12px_-4px_rgba(168,85,247,0.6)]",
           )}
           style={{
@@ -518,22 +519,22 @@ function PersonalizeSwitch({
                 {summary}
               </span>
               .{" "}
-              <a
+              <Link
                 href="/settings"
                 className="underline underline-offset-2 hover:text-slate-700 dark:hover:text-ink-200"
               >
                 Edit
-              </a>
+              </Link>
             </>
           ) : (
             <>
               No profile yet —{" "}
-              <a
+              <Link
                 href="/settings"
                 className="font-semibold text-purple-700 dark:text-brand-lavender underline underline-offset-2"
               >
                 set your vertical
-              </a>{" "}
+              </Link>{" "}
               to personalize.
             </>
           )

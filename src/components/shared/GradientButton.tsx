@@ -39,7 +39,10 @@ export function GradientButton({
 }: GradientButtonProps) {
   const classes = cn(
     "inline-flex items-center justify-center rounded-full font-semibold tracking-tight",
-    "focus-visible:ring-2 focus-visible:ring-offset-2",
+    // Explicit brand-purple ring color — Tailwind defaults to blue-500
+    // which is off-brand AND invisible on the brand-gradient bg.
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    "focus-visible:ring-brand-purple/60 dark:focus-visible:ring-brand-lavender/70",
     sizes[size],
     variants[variant],
     className,
