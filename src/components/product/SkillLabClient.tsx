@@ -290,9 +290,9 @@ function LabShell({
         aria-hidden="true"
       />
       <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 rounded-full border border-ink-200 bg-white/90 px-3 py-1.5 backdrop-blur">
-          <Beaker className="size-3.5 text-brand-purple" strokeWidth={2.5} />
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-ink-700">
+        <div className="flex items-center gap-2 rounded-full border border-ink-200 bg-white/90 px-3 py-1.5 backdrop-blur dark:border-ink-700 dark:bg-ink-900/90">
+          <Beaker className="size-3.5 text-brand-purple dark:text-brand-lavender" strokeWidth={2.5} />
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-ink-700 dark:text-ink-200">
             Skill Lab
           </p>
         </div>
@@ -300,7 +300,7 @@ function LabShell({
           <button
             type="button"
             onClick={onLeave}
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900"
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400 dark:hover:border-ink-600 dark:hover:text-white"
           >
             <ArrowLeft className="size-3" strokeWidth={2.5} />
             Lab home
@@ -358,29 +358,29 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
           Skill Lab
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl">
+        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl dark:text-white">
           Choose how you want to train.
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-ink-500 md:text-base">
+        <p className="mt-2 max-w-2xl text-sm text-ink-500 md:text-base dark:text-ink-400">
           The lab is yours. Daily Workout picks for you — in here you set the
           intent, pick the skill, and decide how many reps you want to put in.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-purple/10 px-3 py-1.5 text-[12px] font-bold text-brand-purple ring-1 ring-brand-purple/20">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-purple/10 px-3 py-1.5 text-[12px] font-bold text-brand-purple ring-1 ring-brand-purple/20 dark:bg-brand-purple/20 dark:text-brand-lavender">
             3 modes
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200">
             <Crosshair className="size-3.5" strokeWidth={2.5} />
             Any skill
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200">
             <Layers className="size-3.5" strokeWidth={2.5} />
             Any rep count
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200">
             <Flame className="size-3.5" strokeWidth={2.5} />
             No session cap
           </span>
@@ -399,7 +399,7 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
               whileHover={{ y: -3 }}
               onClick={() => onPick(s.id)}
               className={cn(
-                "group relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br p-6 text-left transition-all hover:border-brand-purple/40 hover:shadow-[0_24px_60px_-22px_rgba(176,114,255,0.5)]",
+                "group relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br p-6 text-left transition-all hover:border-brand-purple/40 hover:shadow-[0_24px_60px_-22px_rgba(176,114,255,0.5)] dark:border-ink-700",
                 theme.lobbyGlow,
               )}
             >
@@ -422,13 +422,13 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
               >
                 {theme.imperative}
               </span>
-              <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-ink-900">
+              <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-ink-900 dark:text-white">
                 {s.title}
               </h3>
-              <p className="mt-1.5 text-sm font-semibold text-ink-700">
+              <p className="mt-1.5 text-sm font-semibold text-ink-700 dark:text-ink-200">
                 {s.blurb}
               </p>
-              <p className="mt-3 text-[13px] leading-relaxed text-ink-500">
+              <p className="mt-3 text-[13px] leading-relaxed text-ink-500 dark:text-ink-400">
                 {s.pitch}
               </p>
               <div
@@ -442,8 +442,8 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
           );
         })}
       </div>
-      <p className="mt-6 flex items-center gap-2 rounded-2xl border border-ink-200 bg-ink-50/60 p-4 text-xs text-ink-500">
-        <Dumbbell className="size-3.5 text-ink-400" strokeWidth={2.5} />
+      <p className="mt-6 flex items-center gap-2 rounded-2xl border border-ink-200 bg-ink-50/60 p-4 text-xs text-ink-500 dark:border-ink-700 dark:bg-ink-800/60 dark:text-ink-400">
+        <Dumbbell className="size-3.5 text-ink-400 dark:text-ink-500" strokeWidth={2.5} />
         <span>
           Pick the lab when you know what to train. If you just want to put
           in a workout, the dashboard&rsquo;s Daily Workout chooses for you.
@@ -488,7 +488,7 @@ function FocusSkillStep({
       <button
         type="button"
         onClick={onBack}
-        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900"
+        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3" strokeWidth={2.5} />
         Back
@@ -516,16 +516,16 @@ function FocusSkillStep({
               <Crosshair className="size-3" strokeWidth={3} />
               Focus mode
             </p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl">
+            <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl dark:text-white">
               {theme.pickerHeadline}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-ink-600">
+            <p className="mt-2 max-w-2xl text-sm text-ink-600 dark:text-ink-300">
               {theme.pickerSubhead}
             </p>
           </div>
           {focusDim && (
             <div
-              className="hidden shrink-0 items-center gap-3 rounded-2xl border border-brand-blue/30 bg-white/80 p-3 backdrop-blur md:flex"
+              className="hidden shrink-0 items-center gap-3 rounded-2xl border border-brand-blue/30 bg-white/80 p-3 backdrop-blur md:flex dark:bg-ink-900/80"
               title="Recommended target based on your weakest dim"
             >
               <div
@@ -535,10 +535,10 @@ function FocusSkillStep({
                 <Crosshair className="size-5 text-white" strokeWidth={2.5} />
               </div>
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
                   Recommended
                 </p>
-                <p className="text-base font-extrabold tracking-tight text-ink-900">
+                <p className="text-base font-extrabold tracking-tight text-ink-900 dark:text-white">
                   {DIMENSION_LABELS[focusDim]}
                 </p>
               </div>
@@ -563,10 +563,10 @@ function FocusSkillStep({
               whileHover={{ y: -2 }}
               onClick={() => onPick(dim)}
               className={cn(
-                "group relative overflow-hidden rounded-3xl border bg-white p-5 text-left transition-all",
+                "group relative overflow-hidden rounded-3xl border bg-white p-5 text-left transition-all dark:bg-ink-900",
                 isFocus
                   ? "shadow-[0_18px_50px_-20px_rgba(106,163,255,0.55)]"
-                  : "border-ink-200 hover:shadow-[0_12px_30px_-16px_rgba(106,163,255,0.45)]",
+                  : "border-ink-200 hover:shadow-[0_12px_30px_-16px_rgba(106,163,255,0.45)] dark:border-ink-700",
               )}
               style={
                 isFocus
@@ -630,11 +630,11 @@ function FocusSkillStep({
                 />
                 Target
               </span>
-              <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900">
+              <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900 dark:text-white">
                 {DIMENSION_LABELS[dim]}
               </h3>
               <div className="mt-3 flex items-end justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">
                   Avg score
                 </p>
                 {hasScore ? (
@@ -645,7 +645,7 @@ function FocusSkillStep({
                     {score}
                   </p>
                 ) : (
-                  <span className="rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-500">
+                  <span className="rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-500 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400">
                     Untrained
                   </span>
                 )}
@@ -700,12 +700,12 @@ function RepCountStep({
         onBack={onBack}
       />
       {exerciseLabel && (
-        <div className="mb-5 flex flex-wrap items-baseline gap-2 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 px-4 py-3">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-purple">
+        <div className="mb-5 flex flex-wrap items-baseline gap-2 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 px-4 py-3 dark:bg-brand-purple/15">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
             {exerciseLabel}
           </span>
           {exerciseTagline && (
-            <span className="text-[12px] text-ink-600">
+            <span className="text-[12px] text-ink-600 dark:text-ink-300">
               {exerciseTagline}
             </span>
           )}
@@ -721,13 +721,13 @@ function RepCountStep({
             transition={{ duration: 0.28, delay: i * 0.04 }}
             whileHover={{ y: -3 }}
             onClick={() => onPick(c.value)}
-            className="group rounded-3xl border border-ink-200 bg-white p-5 text-left transition-all hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-22px_rgba(176,114,255,0.5)]"
+            className="group rounded-3xl border border-ink-200 bg-white p-5 text-left transition-all hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-22px_rgba(176,114,255,0.5)] dark:border-ink-700 dark:bg-ink-900"
           >
-            <p className="text-3xl font-extrabold tabular-nums tracking-tight text-ink-900">
+            <p className="text-3xl font-extrabold tabular-nums tracking-tight text-ink-900 dark:text-white">
               {c.label}
             </p>
-            <p className="mt-1 text-xs font-semibold text-ink-500">{c.sub}</p>
-            <div className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-brand-purple opacity-0 transition-opacity group-hover:opacity-100">
+            <p className="mt-1 text-xs font-semibold text-ink-500 dark:text-ink-400">{c.sub}</p>
+            <div className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-brand-purple opacity-0 transition-opacity group-hover:opacity-100 dark:text-brand-lavender">
               Start
               <ArrowRight className="size-3.5" strokeWidth={2.5} />
             </div>
@@ -763,7 +763,7 @@ function MixedSkillStep({
       <button
         type="button"
         onClick={onBack}
-        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900"
+        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3" strokeWidth={2.5} />
         Back
@@ -791,10 +791,10 @@ function MixedSkillStep({
               <Layers className="size-3" strokeWidth={3} />
               Mixed mode
             </p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl">
+            <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl dark:text-white">
               {theme.pickerHeadline}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-ink-600">
+            <p className="mt-2 max-w-2xl text-sm text-ink-600 dark:text-ink-300">
               {theme.pickerSubhead}
             </p>
           </div>
@@ -802,7 +802,7 @@ function MixedSkillStep({
         </div>
       </div>
 
-      <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-500">
+      <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
         Tap to add to your stack
       </p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -825,7 +825,7 @@ function MixedSkillStep({
                 "group relative overflow-hidden rounded-2xl border p-5 text-left transition-all",
                 isOn
                   ? "border-transparent shadow-[0_18px_50px_-20px_rgba(176,114,255,0.6)]"
-                  : "border-ink-200 bg-white hover:border-brand-purple/30 hover:shadow-[0_12px_30px_-16px_rgba(176,114,255,0.4)]",
+                  : "border-ink-200 bg-white hover:border-brand-purple/30 hover:shadow-[0_12px_30px_-16px_rgba(176,114,255,0.4)] dark:border-ink-700 dark:bg-ink-900",
               )}
               style={
                 isOn
@@ -847,7 +847,7 @@ function MixedSkillStep({
                 </motion.span>
               )}
               {!isOn && (
-                <span className="absolute right-4 top-4 grid size-7 place-items-center rounded-full border border-ink-200 bg-white text-ink-400 transition-colors group-hover:border-brand-purple/40 group-hover:text-brand-purple">
+                <span className="absolute right-4 top-4 grid size-7 place-items-center rounded-full border border-ink-200 bg-white text-ink-400 transition-colors group-hover:border-brand-purple/40 group-hover:text-brand-purple dark:border-ink-700 dark:bg-ink-900 dark:text-ink-500">
                   <Plus className="size-3.5" strokeWidth={3} />
                 </span>
               )}
@@ -861,11 +861,11 @@ function MixedSkillStep({
                 />
                 Layer
               </span>
-              <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900">
+              <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900 dark:text-white">
                 {DIMENSION_LABELS[dim]}
               </h3>
               <div className="mt-3 flex items-end justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">
                   Avg score
                 </p>
                 {hasScore ? (
@@ -876,7 +876,7 @@ function MixedSkillStep({
                     {score}
                   </p>
                 ) : (
-                  <span className="rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-500">
+                  <span className="rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-500 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400">
                     Untrained
                   </span>
                 )}
@@ -887,15 +887,15 @@ function MixedSkillStep({
       </div>
       <div
         className={cn(
-          "sticky bottom-3 mt-8 flex items-center justify-between gap-3 rounded-2xl border bg-white p-4 shadow-[0_12px_30px_-16px_rgba(176,114,255,0.45)]",
+          "sticky bottom-3 mt-8 flex items-center justify-between gap-3 rounded-2xl border bg-white p-4 shadow-[0_12px_30px_-16px_rgba(176,114,255,0.45)] dark:bg-ink-900",
           theme.chipBorder,
         )}
       >
         <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
             Stack
           </p>
-          <p className="text-sm font-bold text-ink-800">
+          <p className="text-sm font-bold text-ink-800 dark:text-ink-100">
             {selected.length === 0
               ? "Empty — pick at least one layer"
               : `${selected.length} layer${selected.length === 1 ? "" : "s"} selected`}
@@ -930,21 +930,21 @@ function StackPreview({
 }) {
   if (selected.length === 0) {
     return (
-      <div className="flex h-full min-h-[140px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-purple/30 bg-white/60 p-4 text-center">
+      <div className="flex h-full min-h-[140px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-purple/30 bg-white/60 p-4 text-center dark:bg-ink-900/60">
         <Layers
-          className="size-6 text-brand-purple/60"
+          className="size-6 text-brand-purple/60 dark:text-brand-lavender/70"
           strokeWidth={2}
           aria-hidden="true"
         />
-        <p className="text-[11px] font-semibold leading-snug text-ink-500">
+        <p className="text-[11px] font-semibold leading-snug text-ink-500 dark:text-ink-400">
           Your stack appears here as you tap layers below.
         </p>
       </div>
     );
   }
   return (
-    <div className="rounded-2xl border border-brand-purple/20 bg-white/80 p-3 backdrop-blur">
-      <p className="mb-2 px-1 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500">
+    <div className="rounded-2xl border border-brand-purple/20 bg-white/80 p-3 backdrop-blur dark:bg-ink-900/80">
+      <p className="mb-2 px-1 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
         Today&rsquo;s stack
       </p>
       <ul className="space-y-1.5">
@@ -956,7 +956,7 @@ function StackPreview({
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center gap-2 rounded-lg border border-ink-100 px-2.5 py-1.5"
+              className="flex items-center gap-2 rounded-lg border border-ink-100 px-2.5 py-1.5 dark:border-ink-700"
               style={{ backgroundColor: `${dimColor}10` }}
             >
               <span
@@ -965,7 +965,7 @@ function StackPreview({
               >
                 {idx + 1}
               </span>
-              <span className="flex-1 text-xs font-bold text-ink-800">
+              <span className="flex-1 text-xs font-bold text-ink-800 dark:text-ink-100">
                 {DIMENSION_LABELS[dim]}
               </span>
               <button
@@ -974,7 +974,7 @@ function StackPreview({
                   e.stopPropagation();
                   onRemove(dim);
                 }}
-                className="grid size-5 place-items-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700"
+                className="grid size-5 place-items-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700 dark:text-ink-500 dark:hover:bg-ink-800 dark:hover:text-ink-200"
                 aria-label={`Remove ${DIMENSION_LABELS[dim]} from stack`}
               >
                 <X className="size-3" strokeWidth={2.5} />
@@ -1025,13 +1025,13 @@ function MixedRepsStep({
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.25, delay: i * 0.04 }}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-ink-200 bg-white p-4"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900"
           >
             <div>
-              <p className="text-base font-extrabold tracking-tight text-ink-900">
+              <p className="text-base font-extrabold tracking-tight text-ink-900 dark:text-white">
                 {DIMENSION_LABELS[dim]}
               </p>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                 {reps[dim] === 0
                   ? "Skip"
                   : `${reps[dim]} rep${reps[dim] === 1 ? "" : "s"}`}
@@ -1042,19 +1042,19 @@ function MixedRepsStep({
                 type="button"
                 onClick={() => bump(dim, -1)}
                 disabled={reps[dim] === 0}
-                className="grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 disabled:cursor-not-allowed disabled:opacity-40"
+                className="grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
                 aria-label={`Decrease ${DIMENSION_LABELS[dim]} reps`}
               >
                 <Minus className="size-4" strokeWidth={2.5} />
               </button>
-              <span className="w-10 text-center text-2xl font-extrabold tabular-nums text-ink-900">
+              <span className="w-10 text-center text-2xl font-extrabold tabular-nums text-ink-900 dark:text-white">
                 {reps[dim]}
               </span>
               <button
                 type="button"
                 onClick={() => bump(dim, 1)}
                 disabled={reps[dim] === 5}
-                className="grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 disabled:cursor-not-allowed disabled:opacity-40"
+                className="grid size-9 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
                 aria-label={`Increase ${DIMENSION_LABELS[dim]} reps`}
               >
                 <Plus className="size-4" strokeWidth={2.5} />
@@ -1063,9 +1063,9 @@ function MixedRepsStep({
           </motion.div>
         ))}
       </div>
-      <div className="mt-6 flex items-center justify-between rounded-2xl border border-ink-200 bg-white p-4">
+      <div className="mt-6 flex items-center justify-between rounded-2xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             Session total
           </p>
           <p className="brand-gradient-text text-3xl font-extrabold tabular-nums tracking-tight">
@@ -1104,17 +1104,17 @@ const PRESSURE_ARCHETYPE_PREVIEW: Array<{ name: string; tagline: string }> = [
 
 function PressureLobbyHero() {
   return (
-    <div className="mb-7 overflow-hidden rounded-3xl border border-brand-magenta/30 bg-gradient-to-br from-brand-magenta/10 via-white to-brand-purple/5 p-6 md:p-7">
+    <div className="mb-7 overflow-hidden rounded-3xl border border-brand-magenta/30 bg-gradient-to-br from-brand-magenta/10 via-white to-brand-purple/5 p-6 md:p-7 dark:from-brand-magenta/20 dark:via-ink-900 dark:to-brand-purple/15">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="inline-flex items-center gap-1.5 rounded-full border border-brand-magenta/30 bg-brand-magenta/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-magenta">
             <Flame className="size-3" strokeWidth={3} />
             Pressure mode
           </p>
-          <h3 className="mt-2 text-2xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-[28px]">
+          <h3 className="mt-2 text-2xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-[28px] dark:text-white">
             Train the version of you that shows up under heat.
           </h3>
-          <p className="mt-1.5 max-w-2xl text-sm text-ink-600">
+          <p className="mt-1.5 max-w-2xl text-sm text-ink-600 dark:text-ink-300">
             Each rep loads a different stress mechanic — pushback, time
             compression, audience switch — so &ldquo;pressure&rdquo; never
             collapses into one habit. You cycle the catalog.
@@ -1125,7 +1125,7 @@ function PressureLobbyHero() {
         {PRESSURE_ARCHETYPE_PREVIEW.map((a) => (
           <li
             key={a.name}
-            className="inline-flex items-center gap-1.5 rounded-full border border-brand-magenta/25 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink-700 backdrop-blur"
+            className="inline-flex items-center gap-1.5 rounded-full border border-brand-magenta/25 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink-700 backdrop-blur dark:bg-ink-900/80 dark:text-ink-200"
             title={a.tagline}
           >
             <span className="size-1.5 rounded-full bg-brand-magenta" />
@@ -1155,18 +1155,18 @@ function StepHeader({
       <button
         type="button"
         onClick={onBack}
-        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900"
+        className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3" strokeWidth={2.5} />
         Back
       </button>
-      <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
         {eyebrow}
       </p>
-      <h2 className="mt-1.5 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl">
+      <h2 className="mt-1.5 text-3xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-4xl dark:text-white">
         {title}
       </h2>
-      <p className="mt-2 max-w-2xl text-base text-ink-500">{subtitle}</p>
+      <p className="mt-2 max-w-2xl text-base text-ink-500 dark:text-ink-400">{subtitle}</p>
     </div>
   );
 }

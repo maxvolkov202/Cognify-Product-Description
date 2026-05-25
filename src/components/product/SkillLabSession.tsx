@@ -340,7 +340,7 @@ function SessionShell({
           <button
             type="button"
             onClick={onExit}
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900"
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-500 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400 dark:hover:border-ink-600 dark:hover:text-white"
           >
             <ArrowLeft className="size-3" strokeWidth={2.5} />
             Exit lab
@@ -389,10 +389,10 @@ function SessionProgress({
           };
   const chipClass =
     styleChip.tone === "amber"
-      ? "border-amber-300/60 bg-amber-50 text-amber-700"
+      ? "border-amber-300/60 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
       : styleChip.tone === "blue"
-        ? "border-brand-blue/30 bg-brand-blue/5 text-brand-blue"
-        : "border-brand-purple/30 bg-brand-lavender/10 text-brand-purple";
+        ? "border-brand-blue/30 bg-brand-blue/5 text-brand-blue dark:bg-brand-blue/15"
+        : "border-brand-purple/30 bg-brand-lavender/10 text-brand-purple dark:bg-brand-purple/15 dark:text-brand-lavender";
   const dotClass =
     styleChip.tone === "amber"
       ? "bg-amber-500"
@@ -409,7 +409,7 @@ function SessionProgress({
           <span className={`size-1.5 rounded-full ${dotClass}`} />
           {styleChip.label}
         </span>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
           Rep {index + 1} of {total}
         </p>
       </div>
@@ -421,8 +421,8 @@ function SessionProgress({
               i < index
                 ? "brand-gradient h-1.5 w-8 rounded-full"
                 : i === index
-                  ? "h-1.5 w-8 rounded-full bg-ink-400"
-                  : "h-1.5 w-8 rounded-full bg-ink-200"
+                  ? "h-1.5 w-8 rounded-full bg-ink-400 dark:bg-ink-500"
+                  : "h-1.5 w-8 rounded-full bg-ink-200 dark:bg-ink-700"
             }
           />
         ))}
@@ -471,17 +471,17 @@ function DoneCard({
       transition={{ duration: 0.32 }}
       className="mx-auto max-w-2xl"
     >
-      <div className="rounded-3xl border border-ink-200 bg-gradient-to-br from-brand-blue/10 via-white to-brand-magenta/10 p-7 shadow-[0_24px_64px_-24px_rgba(176,114,255,0.5)]">
+      <div className="rounded-3xl border border-ink-200 bg-gradient-to-br from-brand-blue/10 via-white to-brand-magenta/10 p-7 shadow-[0_24px_64px_-24px_rgba(176,114,255,0.5)] dark:border-ink-700 dark:from-brand-blue/15 dark:via-ink-900 dark:to-brand-magenta/15">
         <div className="brand-gradient mx-auto grid size-14 place-items-center rounded-2xl">
           <Trophy className="size-6 text-white" strokeWidth={2.5} />
         </div>
-        <p className="mt-4 text-center text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+        <p className="mt-4 text-center text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
           {label} complete
         </p>
-        <p className="mt-2 text-center text-5xl font-extrabold tabular-nums tracking-tight text-ink-900">
+        <p className="mt-2 text-center text-5xl font-extrabold tabular-nums tracking-tight text-ink-900 dark:text-white">
           {averageComposite}
         </p>
-        <p className="mt-1 text-center text-sm text-ink-500">
+        <p className="mt-1 text-center text-sm text-ink-500 dark:text-ink-400">
           Average composite over {totalReps} of {plannedReps} reps.
         </p>
         {dimAverages.length > 0 && (
@@ -489,9 +489,9 @@ function DoneCard({
             {dimAverages.map(({ dim, avg }) => (
               <div
                 key={dim}
-                className="flex items-center justify-between rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm dark:border-ink-700 dark:bg-ink-900"
               >
-                <span className="font-semibold text-ink-700">
+                <span className="font-semibold text-ink-700 dark:text-ink-200">
                   {DIMENSION_LABELS[dim]}
                 </span>
                 <span className="brand-gradient-text font-extrabold tabular-nums">
