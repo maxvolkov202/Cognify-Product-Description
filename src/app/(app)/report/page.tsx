@@ -25,7 +25,7 @@ export const metadata = {
 
 export default async function ReportPage() {
   const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  if (!user) redirect("/signin");
 
   const [
     trends,

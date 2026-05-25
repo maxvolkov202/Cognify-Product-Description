@@ -53,15 +53,15 @@ export function SubSkillBreakdownCard({
       >
         <div className="flex items-start gap-3">
           <Sparkles
-            className="size-5 shrink-0 text-ink-400"
+            className="size-5 shrink-0 text-ink-400 dark:text-ink-500"
             strokeWidth={2.5}
             aria-hidden="true"
           />
           <div>
-            <p className="text-[13px] font-bold text-ink-800">
+            <p className="text-[13px] font-bold text-ink-800 dark:text-ink-100">
               Sub-skill detail
             </p>
-            <p className="mt-1 text-[12px] leading-relaxed text-ink-500">
+            <p className="mt-1 text-[12px] leading-relaxed text-ink-500 dark:text-ink-400">
               Unlocks after ~5 reps in a dimension. Each rep contributes
               to per-sub-skill averages — Word Choice, Signposting, Claim
               Support, and 12 more.
@@ -80,14 +80,14 @@ export function SubSkillBreakdownCard({
       )}
     >
       <div className="flex items-baseline justify-between gap-3 px-5 pt-5">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
           Sub-skill breakdown · last 30 reps
         </p>
-        <p className="text-[10px] font-medium text-ink-400">
+        <p className="text-[10px] font-medium text-ink-400 dark:text-ink-500">
           Tap a dimension to expand
         </p>
       </div>
-      <div className="mt-3 divide-y divide-ink-100">
+      <div className="mt-3 divide-y divide-ink-100 dark:divide-ink-700">
         {SKILL_DIMENSIONS.map((dim) => (
           <DimensionRow
             key={dim}
@@ -123,10 +123,10 @@ function DimensionRow({
           style={{ backgroundColor: accent }}
           aria-hidden="true"
         />
-        <span className="flex-1 text-[13px] font-bold text-ink-900">
+        <span className="flex-1 text-[13px] font-bold text-ink-900 dark:text-white">
           {DIMENSION_LABELS[dimension]}
         </span>
-        <span className="text-[11px] font-medium tabular-nums text-ink-400">
+        <span className="text-[11px] font-medium tabular-nums text-ink-400 dark:text-ink-500">
           {totalSamples > 0 ? `${totalSamples} obs` : "no data yet"}
         </span>
         {weakest && (
@@ -138,14 +138,14 @@ function DimensionRow({
           </span>
         )}
         <ChevronDown
-          className="size-4 shrink-0 text-ink-400 transition-transform group-open:rotate-180"
+          className="size-4 shrink-0 text-ink-400 transition-transform group-open:rotate-180 dark:text-ink-500"
           strokeWidth={2.5}
           aria-hidden="true"
         />
       </summary>
       <div className="mt-3 space-y-2.5 pl-5">
         {subSkills.length === 0 ? (
-          <p className="text-[12px] text-ink-500">
+          <p className="text-[12px] text-ink-500 dark:text-ink-400">
             No sub-skill data for {DIMENSION_LABELS[dimension]} yet —
             run a few more reps to unlock the breakdown.
           </p>
@@ -196,10 +196,10 @@ function SubSkillRow({
   return (
     <div className="flex items-center gap-3">
       <span className="flex-1 min-w-0">
-        <span className="block truncate text-[12px] font-semibold text-ink-700">
+        <span className="block truncate text-[12px] font-semibold text-ink-700 dark:text-ink-200">
           {SUB_SKILL_LABELS[subSkill]}
         </span>
-        <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-ink-100">
+        <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
           {ready ? (
             <span
               className="block h-full rounded-full transition-[width]"
@@ -210,11 +210,11 @@ function SubSkillRow({
       </span>
       <span className="flex shrink-0 items-center gap-1.5 tabular-nums">
         {ready ? (
-          <span className="text-[13px] font-extrabold text-ink-800">
+          <span className="text-[13px] font-extrabold text-ink-800 dark:text-ink-100">
             {Math.round(stat.avg)}
           </span>
         ) : (
-          <span className="text-[11px] font-medium text-ink-400">
+          <span className="text-[11px] font-medium text-ink-400 dark:text-ink-500">
             {MIN_SAMPLES_PER_SUB_SKILL - stat.sampleSize} more reps
           </span>
         )}
@@ -222,7 +222,7 @@ function SubSkillRow({
         {drillable && ready && (
           <Link
             href={`/skill-lab?focus=${dimension}&subSkill=${subSkill}`}
-            className="rounded-full px-2 py-1 text-[10px] font-bold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
+            className="rounded-full px-2 py-1 text-[10px] font-bold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white"
             aria-label={`Drill ${SUB_SKILL_LABELS[subSkill]}`}
           >
             drill
@@ -238,7 +238,7 @@ function TrendIcon({ trend }: { trend: number | null }) {
   if (trend == null) {
     return (
       <Minus
-        className={`${cls} text-ink-300`}
+        className={`${cls} text-ink-300 dark:text-ink-600`}
         strokeWidth={2.5}
         aria-label="trend unavailable"
       />
@@ -247,7 +247,7 @@ function TrendIcon({ trend }: { trend: number | null }) {
   if (trend >= 2) {
     return (
       <TrendingUp
-        className={`${cls} text-emerald-500`}
+        className={`${cls} text-emerald-500 dark:text-emerald-400`}
         strokeWidth={2.5}
         aria-label={`improving by ${trend.toFixed(1)} points`}
       />
@@ -256,7 +256,7 @@ function TrendIcon({ trend }: { trend: number | null }) {
   if (trend <= -2) {
     return (
       <TrendingDown
-        className={`${cls} text-rose-500`}
+        className={`${cls} text-rose-500 dark:text-rose-400`}
         strokeWidth={2.5}
         aria-label={`regressing by ${Math.abs(trend).toFixed(1)} points`}
       />
@@ -264,7 +264,7 @@ function TrendIcon({ trend }: { trend: number | null }) {
   }
   return (
     <Minus
-      className={`${cls} text-ink-400`}
+      className={`${cls} text-ink-400 dark:text-ink-500`}
       strokeWidth={2.5}
       aria-label="steady"
     />

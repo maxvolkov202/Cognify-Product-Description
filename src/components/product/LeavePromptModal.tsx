@@ -44,7 +44,7 @@ export function LeavePromptModal() {
             exit={{ y: 12, opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-[0_24px_80px_-30px_rgba(20,20,40,0.5)]"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-[0_24px_80px_-30px_rgba(20,20,40,0.5)] dark:border-ink-700 dark:bg-ink-900"
           >
             <div className="relative overflow-hidden">
               <div className="brand-gradient absolute inset-0" aria-hidden="true" />
@@ -72,7 +72,7 @@ export function LeavePromptModal() {
             </div>
 
             <div className="p-5 md:p-6">
-              <p className="text-sm text-ink-600">
+              <p className="text-sm text-ink-600 dark:text-ink-300">
                 You changed some settings but haven&rsquo;t saved them yet.
                 Save now and continue, or discard and walk away.
               </p>
@@ -81,14 +81,14 @@ export function LeavePromptModal() {
                 <button
                   type="button"
                   onClick={() => ctx.resolvePending("stay")}
-                  className="rounded-full border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
+                  className="rounded-full border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:bg-ink-800"
                 >
                   Stay here
                 </button>
                 <button
                   type="button"
                   onClick={() => ctx.resolvePending("discard")}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25"
                 >
                   <Trash2 className="size-3.5" strokeWidth={2.5} />
                   Discard &amp; continue

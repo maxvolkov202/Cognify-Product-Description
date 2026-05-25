@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppNav } from "@/components/shared/AppNav";
 import { InstallPrompt } from "@/components/product/InstallPrompt";
 import TimezoneDetector from "@/components/product/TimezoneDetector";
@@ -58,19 +59,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const skillScores = user ? await getCurrentSkillScores(user.id) : null;
 
   return (
-    <SkillsFocusProvider>
-      <SettingsDirtyProvider>
-        <div className="flex min-h-screen flex-col bg-ink-50/60">
-          <AppNav navItems={navItems} sessionUser={sessionUser} />
-          <main className="flex-1 pb-20">{children}</main>
-          <SixSkillsBar scores={skillScores ?? {}} />
-          <InstallPrompt />
-          <ReportBugButton />
-          <LeavePromptModal />
-          {user ? <TimezoneDetector /> : null}
-          <ServiceWorkerRegister />
-        </div>
-      </SettingsDirtyProvider>
-    </SkillsFocusProvider>
+    <ThemeProvider>
+      <SkillsFocusProvider>
+        <SettingsDirtyProvider>
+          <div className="flex min-h-screen flex-col bg-ink-50/60 dark:bg-ink-950">
+            <AppNav navItems={navItems} sessionUser={sessionUser} />
+            <main className="flex-1 pb-20">{children}</main>
+            <SixSkillsBar scores={skillScores ?? {}} />
+            <InstallPrompt />
+            <ReportBugButton />
+            <LeavePromptModal />
+            {user ? <TimezoneDetector /> : null}
+            <ServiceWorkerRegister />
+          </div>
+        </SettingsDirtyProvider>
+      </SkillsFocusProvider>
+    </ThemeProvider>
   );
 }

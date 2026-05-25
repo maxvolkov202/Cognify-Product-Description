@@ -352,11 +352,11 @@ export function BuildARepFlow({
 
       {/* ——— Header ————————————————————————————— */}
       <div>
-        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
           <Mic className="size-3" strokeWidth={2.5} />
           Training session · {verticalLabel}
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
           {sessionPhase === "review"
             ? "Nice rep. Here's what moved."
             : talkingPoints
@@ -364,7 +364,7 @@ export function BuildARepFlow({
               : "What are we working on today?"}
         </h1>
         {!talkingPoints && (
-          <p className="mt-3 text-base leading-relaxed text-ink-600">
+          <p className="mt-3 text-base leading-relaxed text-ink-600 dark:text-ink-300">
             Tell us the scenario — pick one of the prompts below or describe
             your own. We&rsquo;ll build a thinking scaffold you can speak
             against. Not a script — a structure to hold.
@@ -417,7 +417,7 @@ export function BuildARepFlow({
               <button
                 type="button"
                 onClick={() => setIntakeMode("picker")}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
               >
                 ← Back to launchpad
               </button>
@@ -435,7 +435,7 @@ export function BuildARepFlow({
           )}
 
           {generating && (
-            <div className="relative overflow-hidden rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/5 p-4">
+            <div className="relative overflow-hidden rounded-2xl border border-brand-purple/20 bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/5 p-4 dark:from-brand-blue/15 dark:via-brand-lavender/15 dark:to-brand-magenta/15">
               <div className="flex items-center gap-3">
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -445,10 +445,10 @@ export function BuildARepFlow({
                   <Sparkles className="size-4 text-white" aria-hidden="true" />
                 </motion.div>
                 <div>
-                  <p className="text-sm font-bold text-ink-900">
+                  <p className="text-sm font-bold text-ink-900 dark:text-white">
                     Coach is prepping your structure…
                   </p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-xs text-ink-500 dark:text-ink-400">
                     Building a scaffold tailored to your scenario.
                   </p>
                 </div>
@@ -457,7 +457,7 @@ export function BuildARepFlow({
           )}
 
           {error && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-300">
               {error}
             </p>
           )}
@@ -564,7 +564,7 @@ export function BuildARepFlow({
             <div>
               <div className="flex items-center justify-between">
                 <ModeBadge mode="build_a_rep" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                   Real-moment rep
                 </span>
               </div>
@@ -640,14 +640,14 @@ function ScenarioSummaryBar({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             Your scenario
           </p>
-          <p className="truncate text-sm font-bold text-ink-900">
+          <p className="truncate text-sm font-bold text-ink-900 dark:text-white">
             {summaryText}
           </p>
           {stakeholder && (
-            <p className="truncate text-xs text-ink-500">
+            <p className="truncate text-xs text-ink-500 dark:text-ink-400">
               Speaking to: {stakeholder}
             </p>
           )}
@@ -655,7 +655,7 @@ function ScenarioSummaryBar({
         <button
           type="button"
           onClick={onExpand}
-          className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300"
+          className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
         >
           <ChevronDown className="size-3.5" />
           Edit scenario
@@ -663,7 +663,7 @@ function ScenarioSummaryBar({
         <button
           type="button"
           onClick={onNewScenario}
-          className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300"
+          className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
         >
           New scenario
         </button>
@@ -718,7 +718,7 @@ function LaunchpadIntake({
   return (
     <div className="space-y-5">
       {/* Coach launchpad card */}
-      <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_12px_40px_-20px_rgba(176,114,255,0.35)] md:p-8">
+      <div className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_12px_40px_-20px_rgba(176,114,255,0.35)] md:p-8 dark:border-ink-700 dark:from-ink-900 dark:via-brand-lavender/10 dark:to-brand-magenta/10">
         <div
           className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full opacity-50 blur-3xl"
           aria-hidden="true"
@@ -735,10 +735,10 @@ function LaunchpadIntake({
               <div className="brand-gradient absolute inset-0 rounded-2xl opacity-40 blur-md" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
                 Coach · {verticalLabel}
               </p>
-              <p className="text-sm font-semibold text-ink-700">
+              <p className="text-sm font-semibold text-ink-700 dark:text-ink-200">
                 What are we working on today?
               </p>
             </div>
@@ -747,20 +747,20 @@ function LaunchpadIntake({
           {/* The single input — Enter to launch */}
           <div className="mt-5">
             <div
-              className={`group flex items-center gap-2 rounded-2xl border bg-white px-4 py-3 transition ${
+              className={`group flex items-center gap-2 rounded-2xl border bg-white px-4 py-3 transition dark:bg-ink-900 ${
                 customPrompt
                   ? "border-brand-purple/40 shadow-[0_8px_24px_-12px_rgba(176,114,255,0.4)]"
-                  : "border-ink-200 hover:border-ink-300"
+                  : "border-ink-200 hover:border-ink-300 dark:border-ink-700 dark:hover:border-ink-600"
               }`}
             >
-              <Compass className="size-4 shrink-0 text-ink-400" strokeWidth={2.5} />
+              <Compass className="size-4 shrink-0 text-ink-400 dark:text-ink-500" strokeWidth={2.5} />
               <input
                 type="text"
                 value={customPrompt}
                 onChange={(e) => onCustomPromptChange(e.target.value)}
                 onKeyDown={handleKey}
                 placeholder={placeholder}
-                className="flex-1 bg-transparent text-[15px] font-medium text-ink-900 placeholder:text-ink-400 focus:outline-none"
+                className="flex-1 bg-transparent text-[15px] font-medium text-ink-900 placeholder:text-ink-400 focus:outline-none dark:text-white dark:placeholder:text-ink-500"
                 aria-label="Describe your scenario"
               />
               <motion.button
@@ -774,7 +774,7 @@ function LaunchpadIntake({
                 <ArrowRight className="size-4" strokeWidth={2.5} />
               </motion.button>
             </div>
-            <p className="mt-2 px-1 text-[11px] text-ink-500">
+            <p className="mt-2 px-1 text-[11px] text-ink-500 dark:text-ink-400">
               Type one line — &ldquo;defending Q3 roadmap to a skeptical CFO&rdquo; — and hit enter.
             </p>
           </div>
@@ -784,13 +784,13 @@ function LaunchpadIntake({
       {/* Starter sessions — one tap to pick a pre-baked scenario */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
             Or pick a starter session
           </p>
           <button
             type="button"
             onClick={onRefresh}
-            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-semibold text-ink-500 hover:text-ink-900"
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
           >
             <RefreshCw className="size-3" />
             Shuffle
@@ -811,7 +811,7 @@ function LaunchpadIntake({
                 className={`group flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors ${
                   active
                     ? "brand-gradient border-transparent text-white shadow-[0_10px_30px_-10px_rgba(176,114,255,0.5)]"
-                    : "border-ink-200 bg-white hover:border-brand-purple/40 hover:bg-brand-lavender/5"
+                    : "border-ink-200 bg-white hover:border-brand-purple/40 hover:bg-brand-lavender/5 dark:border-ink-700 dark:bg-ink-900 dark:hover:bg-brand-lavender/10"
                 }`}
               >
                 <div
@@ -822,13 +822,13 @@ function LaunchpadIntake({
                   }`}
                 >
                   <Mic
-                    className={`size-3.5 ${active ? "text-white" : "text-brand-purple"}`}
+                    className={`size-3.5 ${active ? "text-white" : "text-brand-purple dark:text-brand-lavender"}`}
                     strokeWidth={2.5}
                   />
                 </div>
                 <p
                   className={`text-[14px] leading-snug ${
-                    active ? "font-semibold text-white" : "text-ink-800"
+                    active ? "font-semibold text-white" : "text-ink-800 dark:text-ink-100"
                   }`}
                 >
                   {prompt}
@@ -861,7 +861,7 @@ function LaunchpadIntake({
         <button
           type="button"
           onClick={onAdvanced}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-500 hover:text-ink-900"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
         >
           <Compass className="size-3" strokeWidth={2.5} />
           Advanced setup &mdash; full survey, stakeholder, constraints
@@ -921,15 +921,15 @@ function PressurePicker({
   const activeRung = activeIdx >= 0 ? rungs[activeIdx] : rungs[0];
 
   return (
-    <div className="mt-6 rounded-xl border border-ink-200 bg-gradient-to-br from-amber-50/40 to-rose-50/30 p-4">
+    <div className="mt-6 rounded-xl border border-ink-200 bg-gradient-to-br from-amber-50/40 to-rose-50/30 p-4 dark:border-ink-700 dark:from-amber-500/15 dark:to-rose-500/15">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Flame className="size-4 text-amber-600" strokeWidth={2.5} />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-700">
+          <Flame className="size-4 text-amber-600 dark:text-amber-400" strokeWidth={2.5} />
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-700 dark:text-ink-200">
             Difficulty
           </p>
         </div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-600">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-ink-600 dark:text-ink-300">
           {activeRung?.label ?? "Warmup"}
         </p>
       </div>
@@ -947,18 +947,18 @@ function PressurePicker({
               whileTap={{ scale: 0.96 }}
               className={`group relative flex flex-col items-center gap-1.5 rounded-lg border px-2 py-2 transition ${
                 active
-                  ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10"
+                  ? "border-ink-900 bg-white shadow-sm ring-2 ring-ink-900/10 dark:border-white dark:bg-ink-900 dark:ring-white/20"
                   : passed
-                    ? "border-ink-200 bg-white"
-                    : "border-ink-200 bg-white/70 hover:border-ink-300 hover:bg-white"
+                    ? "border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900"
+                    : "border-ink-200 bg-white/70 hover:border-ink-300 hover:bg-white dark:border-ink-700 dark:bg-ink-900/70 dark:hover:border-ink-600 dark:hover:bg-ink-900"
               }`}
             >
               <span
                 className={`size-2 rounded-full ${rung.dotClass} ${
-                  active ? "ring-2 ring-offset-1 ring-ink-900/20" : ""
+                  active ? "ring-2 ring-offset-1 ring-ink-900/20 dark:ring-white/30 dark:ring-offset-ink-900" : ""
                 }`}
               />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-700 dark:text-ink-200">
                 {rung.label}
               </span>
             </motion.button>
@@ -976,7 +976,7 @@ function PressurePicker({
               className={
                 selectedId === a.id
                   ? "rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-bold text-white"
-                  : "rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-ink-600 hover:border-ink-300"
+                  : "rounded-full border border-ink-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-ink-600 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-300 dark:hover:border-ink-600"
               }
             >
               {a.name}
@@ -993,7 +993,7 @@ function PressurePicker({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900"
+            className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200"
           >
             {getPressureArchetype(selectedId).tagline}
           </motion.p>
@@ -1025,15 +1025,15 @@ function SessionProgress({ phase }: { phase: "setup" | "rep" | "review" }) {
             <span
               className={`text-[10px] font-bold uppercase tracking-[0.14em] ${
                 active
-                  ? "text-ink-900"
+                  ? "text-ink-900 dark:text-white"
                   : passed
-                    ? "text-brand-purple"
-                    : "text-ink-400"
+                    ? "text-brand-purple dark:text-brand-lavender"
+                    : "text-ink-400 dark:text-ink-500"
               }`}
             >
               {labels[key]}
             </span>
-            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-ink-100">
+            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-700">
               <motion.div
                 initial={false}
                 animate={{
@@ -1041,7 +1041,7 @@ function SessionProgress({ phase }: { phase: "setup" | "rep" | "review" }) {
                 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className={`h-full rounded-full ${
-                  passed || active ? "brand-gradient" : "bg-ink-200"
+                  passed || active ? "brand-gradient" : "bg-ink-200 dark:bg-ink-700"
                 }`}
               />
               {active && (

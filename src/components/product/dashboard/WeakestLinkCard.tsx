@@ -61,15 +61,15 @@ export function WeakestLinkCard({
         )}
       >
         <AlertCircle
-          className="size-5 shrink-0 text-ink-400"
+          className="size-5 shrink-0 text-ink-400 dark:text-ink-500"
           strokeWidth={2.5}
           aria-hidden="true"
         />
         <div>
-          <p className="text-[13px] font-bold text-ink-800">
+          <p className="text-[13px] font-bold text-ink-800 dark:text-ink-100">
             Training in progress
           </p>
-          <p className="mt-1 text-[12px] leading-relaxed text-ink-500">
+          <p className="mt-1 text-[12px] leading-relaxed text-ink-500 dark:text-ink-400">
             {totalReps === 0
               ? "Run your first rep to start building a per-dimension picture."
               : `Need at least 10 reps in a dimension before we can call out a weakness. You have ${totalReps} total so far — keep going.`}
@@ -106,25 +106,25 @@ export function WeakestLinkCard({
           <Sparkles className="size-4" strokeWidth={2.5} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
             Weakest link · last 30 reps
           </p>
           {weakestSubSkill ? (
-            <p className="mt-1 text-[15px] font-extrabold text-ink-900">
+            <p className="mt-1 text-[15px] font-extrabold text-ink-900 dark:text-white">
               {DIMENSION_LABELS[dimension]}: {SUB_SKILL_LABELS[weakestSubSkill.id]} —{" "}
-              <span className="tabular-nums text-ink-700">
+              <span className="tabular-nums text-ink-700 dark:text-ink-200">
                 {Math.round(weakestSubSkill.avg)}/100 sub-skill avg
               </span>
             </p>
           ) : (
-            <p className="mt-1 text-[15px] font-extrabold text-ink-900">
+            <p className="mt-1 text-[15px] font-extrabold text-ink-900 dark:text-white">
               {DIMENSION_LABELS[dimension]} —{" "}
-              <span className="tabular-nums text-ink-700">
+              <span className="tabular-nums text-ink-700 dark:text-ink-200">
                 {averageScore.toFixed(0)}/100 avg
               </span>
             </p>
           )}
-          <p className="mt-1 text-[12px] leading-relaxed text-ink-600">
+          <p className="mt-1 text-[12px] leading-relaxed text-ink-600 dark:text-ink-300">
             {weakestSubSkill
               ? `${SUB_SKILL_LABELS[weakestSubSkill.id]} is the lowest sub-skill within ${DIMENSION_LABELS[dimension]} (dim avg ${averageScore.toFixed(0)}).`
               : drillable

@@ -46,27 +46,27 @@ export function DnaStatsStrip({
   if (stats.length === 0) return null;
   return (
     <section className={cn("space-y-3", className)}>
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
+      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
         {heading}
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {stats.map((s) => (
           <article
             key={s.id}
-            className="flex flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4"
+            className="flex flex-col gap-2 rounded-2xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900"
           >
             <TrendingUp
               className="size-4 text-brand-purple"
               strokeWidth={2.5}
               aria-hidden="true"
             />
-            <p className="text-[13px] font-bold leading-snug text-ink-900">
+            <p className="text-[13px] font-bold leading-snug text-ink-900 dark:text-white">
               {s.stat}
             </p>
-            <p className="text-[12px] leading-relaxed text-ink-600">
+            <p className="text-[12px] leading-relaxed text-ink-600 dark:text-ink-300">
               {s.implication}
             </p>
-            <p className="mt-auto text-[10px] font-medium text-ink-400">
+            <p className="mt-auto text-[10px] font-medium text-ink-400 dark:text-ink-500">
               {s.source}
             </p>
           </article>

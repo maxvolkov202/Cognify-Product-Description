@@ -31,7 +31,7 @@ export function Logo({
         style={{ width: size, height: size }}
       />
       {variant === "full" && (
-        <span className="text-[21px] font-extrabold tracking-tight text-ink-900">
+        <span className="text-[21px] font-extrabold tracking-tight text-ink-900 dark:text-white">
           Cognify
         </span>
       )}

@@ -24,10 +24,10 @@ const BUCKET_LABELS: Record<Achievement["bucket"], string> = {
 };
 
 const TIER_STYLES: Record<NonNullable<Achievement["tier"]>, string> = {
-  bronze: "border-amber-700/30 bg-amber-50 text-amber-800",
-  silver: "border-ink-300 bg-ink-50 text-ink-700",
-  gold: "border-yellow-500/40 bg-yellow-50 text-yellow-800",
-  platinum: "border-brand-purple/40 bg-brand-purple/10 text-brand-purple",
+  bronze: "border-amber-700/30 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300",
+  silver: "border-ink-300 bg-ink-50 text-ink-700 dark:border-ink-600 dark:bg-ink-800 dark:text-ink-200",
+  gold: "border-yellow-500/40 bg-yellow-50 text-yellow-800 dark:border-yellow-400/40 dark:bg-yellow-500/15 dark:text-yellow-300",
+  platinum: "border-brand-purple/40 bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/15 dark:text-brand-lavender",
 };
 
 export default async function AchievementsPage() {
@@ -53,7 +53,7 @@ export default async function AchievementsPage() {
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-500 hover:text-ink-900"
+        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3.5" strokeWidth={2.5} />
         Dashboard
@@ -61,25 +61,25 @@ export default async function AchievementsPage() {
 
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
             Earnable
           </p>
-          <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+          <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
             Achievements
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-ink-600">
+          <p className="mt-3 max-w-2xl text-base text-ink-600 dark:text-ink-300">
             Permanent earnable milestones across volume, skill, streak, and
             exploration. Some are easy, some take a year. The set is finite —
             collect them all.
           </p>
         </div>
         <div className="hidden text-right md:block">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-ink-400">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             Unlocked
           </p>
-          <p className="mt-1 text-3xl font-extrabold tabular-nums text-ink-900">
+          <p className="mt-1 text-3xl font-extrabold tabular-nums text-ink-900 dark:text-white">
             {totalUnlocked}
-            <span className="ml-2 text-base font-bold text-ink-500">
+            <span className="ml-2 text-base font-bold text-ink-500 dark:text-ink-400">
               / {total}
             </span>
           </p>
@@ -93,10 +93,10 @@ export default async function AchievementsPage() {
         return (
           <section key={bucket} className="mt-10">
             <div className="flex items-baseline justify-between">
-              <h2 className="text-sm font-extrabold uppercase tracking-wider text-ink-500">
+              <h2 className="text-sm font-extrabold uppercase tracking-wider text-ink-500 dark:text-ink-400">
                 {BUCKET_LABELS[bucket]}
               </h2>
-              <p className="text-[11px] tabular-nums text-ink-400">
+              <p className="text-[11px] tabular-nums text-ink-400 dark:text-ink-500">
                 {unlockedHere} / {items.length}
               </p>
             </div>
@@ -110,8 +110,8 @@ export default async function AchievementsPage() {
                     className={cn(
                       "rounded-2xl border p-4 transition",
                       unlocked
-                        ? "border-ink-200 bg-white"
-                        : "border-dashed border-ink-200 bg-ink-50/40 opacity-80",
+                        ? "border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900"
+                        : "border-dashed border-ink-200 bg-ink-50/40 opacity-80 dark:border-ink-700 dark:bg-ink-800/40",
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -121,8 +121,8 @@ export default async function AchievementsPage() {
                           unlocked
                             ? a.tier
                               ? TIER_STYLES[a.tier]
-                              : "bg-brand-purple/10 text-brand-purple border border-brand-purple/30"
-                            : "border border-ink-200 bg-ink-100 text-ink-400",
+                              : "bg-brand-purple/10 text-brand-purple border border-brand-purple/30 dark:bg-brand-purple/15 dark:text-brand-lavender"
+                            : "border border-ink-200 bg-ink-100 text-ink-400 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-500",
                         )}
                       >
                         {unlocked ? (
@@ -143,16 +143,16 @@ export default async function AchievementsPage() {
                         <p
                           className={cn(
                             "text-sm font-extrabold",
-                            unlocked ? "text-ink-900" : "text-ink-600",
+                            unlocked ? "text-ink-900 dark:text-white" : "text-ink-600 dark:text-ink-300",
                           )}
                         >
                           {a.name}
                         </p>
-                        <p className="mt-1 text-[12px] leading-relaxed text-ink-600">
+                        <p className="mt-1 text-[12px] leading-relaxed text-ink-600 dark:text-ink-300">
                           {a.description}
                         </p>
                         {unlocked && earnedAt && (
-                          <p className="mt-1 text-[10px] uppercase tracking-wider text-ink-400">
+                          <p className="mt-1 text-[10px] uppercase tracking-wider text-ink-400 dark:text-ink-500">
                             Earned {formatDate(earnedAt)}
                           </p>
                         )}

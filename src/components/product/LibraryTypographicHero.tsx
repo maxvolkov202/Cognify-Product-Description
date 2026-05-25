@@ -38,11 +38,11 @@ export function LibraryTypographicHero({
       className={`relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br ${gradient}`}
     >
       <div className="absolute inset-0 flex items-end p-5 md:p-6">
-        <p className="line-clamp-3 font-serif text-2xl font-bold leading-tight tracking-tight text-ink-900 md:text-3xl">
+        <p className="line-clamp-3 font-serif text-2xl font-bold leading-tight tracking-tight text-ink-900 md:text-3xl dark:text-white">
           &ldquo;{title}&rdquo;
         </p>
       </div>
-      <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-ink-200/60 bg-white/80 px-2 py-0.5 text-[10px] font-bold text-ink-700 backdrop-blur">
+      <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-ink-200/60 bg-white/80 px-2 py-0.5 text-[10px] font-bold text-ink-700 backdrop-blur dark:border-ink-700 dark:bg-ink-900/80 dark:text-ink-200">
         {faviconUrl && (
           <Image
             src={faviconUrl}

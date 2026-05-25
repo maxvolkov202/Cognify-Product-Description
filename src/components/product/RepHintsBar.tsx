@@ -83,12 +83,12 @@ export function RepHintsBar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
       className={cn(
-        "rounded-xl border border-brand-purple/20 bg-white/70 p-3.5 backdrop-blur-sm",
+        "rounded-xl border border-brand-purple/20 dark:border-brand-purple/40 bg-white/70 dark:bg-ink-900/70 p-3.5 backdrop-blur-sm",
         className,
       )}
       aria-label={`Delivery hints for ${DIMENSION_LABELS[dimension]}`}
     >
-      <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
+      <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
         <Sparkles className="size-3" strokeWidth={2.5} aria-hidden="true" />
         Apply during this rep
       </p>
@@ -96,7 +96,7 @@ export function RepHintsBar({
         {hints.map((h, i) => (
           <li
             key={`${h.text}-${i}`}
-            className="flex gap-2 text-[13px] leading-snug text-ink-700"
+            className="flex gap-2 text-[13px] leading-snug text-ink-700 dark:text-ink-200"
           >
             <span
               className="brand-gradient mt-1.5 size-1.5 shrink-0 rounded-full"

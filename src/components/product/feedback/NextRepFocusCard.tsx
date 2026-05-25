@@ -35,7 +35,7 @@ export function NextRepFocusCard({
           "linear-gradient(110deg, var(--color-brand-blue), var(--color-brand-lavender), var(--color-brand-purple), var(--color-brand-magenta))",
       }}
     >
-      <div className="rounded-[14px] bg-white p-5">
+      <div className="rounded-[14px] bg-white dark:bg-ink-900 p-5">
         <div className="flex items-center gap-3">
           <motion.span
             initial={{ scale: 0.6, opacity: 0 }}
@@ -54,14 +54,14 @@ export function NextRepFocusCard({
               aria-hidden="true"
             />
           </motion.span>
-          <h3 className="flex-1 text-[15px] font-extrabold text-ink-900">
+          <h3 className="flex-1 text-[15px] font-extrabold text-ink-900 dark:text-white">
             Next Rep Focus
           </h3>
           {onSeeExample ? (
             <button
               type="button"
               onClick={onSeeExample}
-              className="text-xs font-semibold text-brand-purple transition-colors hover:opacity-80"
+              className="text-xs font-semibold text-brand-purple dark:text-brand-lavender transition-colors hover:opacity-80"
             >
               See example
             </button>
@@ -70,7 +70,7 @@ export function NextRepFocusCard({
               type="button"
               disabled
               title="Coming soon — exemplar responses ship in v1.1"
-              className="cursor-not-allowed text-xs font-semibold text-ink-300"
+              className="cursor-not-allowed text-xs font-semibold text-ink-300 dark:text-ink-600"
             >
               See example
             </button>
@@ -85,11 +85,11 @@ export function NextRepFocusCard({
                     aria-hidden="true"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] leading-relaxed text-ink-800">
+                    <p className="text-[13px] leading-relaxed text-ink-800 dark:text-ink-100">
                       {item.text}
                     </p>
                     {item.exampleLine && (
-                      <p className="mt-1.5 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-[12px] italic leading-relaxed text-ink-700">
+                      <p className="mt-1.5 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-3 py-1.5 text-[12px] italic leading-relaxed text-ink-700 dark:text-ink-200">
                         Try: &ldquo;{item.exampleLine}&rdquo;
                       </p>
                     )}
@@ -99,7 +99,7 @@ export function NextRepFocusCard({
             : fallbackList.map((b, i) => (
                 <li
                   key={i}
-                  className="flex gap-2.5 text-[13px] leading-relaxed text-ink-800"
+                  className="flex gap-2.5 text-[13px] leading-relaxed text-ink-800 dark:text-ink-100"
                 >
                   <span
                     className="brand-gradient mt-1.5 size-1.5 shrink-0 rounded-full"

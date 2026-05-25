@@ -92,8 +92,8 @@ function SecondaryCard({ mode, index }: { mode: Mode; index: number }) {
   const Icon = mode.iconKey === "lab" ? Beaker : Mic;
   const accent =
     mode.iconKey === "lab"
-      ? "from-brand-blue/10 via-white to-brand-lavender/5"
-      : "from-brand-magenta/10 via-white to-brand-blue/5";
+      ? "from-brand-blue/10 via-white to-brand-lavender/5 dark:from-brand-blue/10 dark:via-ink-900 dark:to-brand-lavender/10"
+      : "from-brand-magenta/10 via-white to-brand-blue/5 dark:from-brand-magenta/10 dark:via-ink-900 dark:to-brand-blue/10";
 
   return (
     <motion.div
@@ -104,24 +104,24 @@ function SecondaryCard({ mode, index }: { mode: Mode; index: number }) {
     >
       <Link
         href={mode.href as never}
-        className={`group relative flex h-full flex-col rounded-3xl border border-ink-200 bg-gradient-to-br ${accent} p-5 transition-all hover:border-brand-purple/40 hover:shadow-[0_14px_40px_-16px_rgba(176,114,255,0.45)]`}
+        className={`group relative flex h-full flex-col rounded-3xl border border-ink-200 bg-gradient-to-br ${accent} p-5 transition-all hover:border-brand-purple/40 hover:shadow-[0_14px_40px_-16px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:hover:border-brand-purple/50`}
       >
         <div className="flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-2xl bg-gradient-to-br from-brand-blue/15 to-brand-magenta/15">
+          <span className="grid size-9 place-items-center rounded-2xl bg-gradient-to-br from-brand-blue/15 to-brand-magenta/15 dark:from-brand-blue/20 dark:to-brand-magenta/20">
             <Icon
-              className="size-4.5 text-brand-purple"
+              className="size-4.5 text-brand-purple dark:text-brand-lavender"
               strokeWidth={2.5}
             />
           </span>
         </div>
-        <h3 className="mt-4 text-xl font-extrabold tracking-tight text-ink-900">
+        <h3 className="mt-4 text-xl font-extrabold tracking-tight text-ink-900 dark:text-white">
           {mode.label}
         </h3>
-        <p className="mt-1 text-xs leading-relaxed text-ink-600">
+        <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
           {mode.tagline}
         </p>
         <div className="mt-auto pt-5">
-          <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-purple/30 bg-white px-4 py-2.5 text-xs font-bold text-brand-purple transition-colors group-hover:border-brand-purple group-hover:bg-brand-purple/5">
+          <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-brand-purple/30 bg-white px-4 py-2.5 text-xs font-bold text-brand-purple transition-colors group-hover:border-brand-purple group-hover:bg-brand-purple/5 dark:border-brand-purple/40 dark:bg-ink-800 dark:text-brand-lavender dark:group-hover:bg-brand-purple/15">
             Open
             <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </span>

@@ -51,10 +51,10 @@ export function ResumeBanner() {
         <Play className="size-4 translate-x-0.5" strokeWidth={2.5} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
           Paused workout · {elapsedLabel}
         </p>
-        <p className="mt-0.5 text-sm font-semibold text-ink-900">
+        <p className="mt-0.5 text-sm font-semibold text-ink-900 dark:text-white">
           You completed {paused.completed} of {paused.repCount} reps. Pick
           up where you left off — your scores carry over.
         </p>
@@ -72,7 +72,7 @@ export function ResumeBanner() {
           setPaused(null);
         }}
         aria-label="Dismiss paused workout"
-        className="grid size-8 shrink-0 place-items-center rounded-full border border-ink-200 bg-white text-ink-500 hover:border-ink-300 hover:text-ink-900"
+        className="grid size-8 shrink-0 place-items-center rounded-full border border-ink-200 bg-white text-ink-500 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400 dark:hover:border-ink-600 dark:hover:text-white"
       >
         <X className="size-3.5" strokeWidth={2.5} />
       </button>

@@ -199,10 +199,10 @@ export function RecordButton({
     <div className="flex flex-col items-center gap-4">
       {phase === "countdown" && (
         <div className="text-center">
-          <div className="brand-gradient-text text-6xl font-extrabold tabular-nums">
+          <div className="text-6xl font-extrabold tabular-nums text-white drop-shadow-md">
             {countdown}
           </div>
-          <p className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-500">
+          <p className="mt-1 text-xs font-medium uppercase tracking-wider text-white/85 drop-shadow-sm">
             Get ready
           </p>
         </div>
@@ -238,10 +238,10 @@ export function RecordButton({
               </span>
             </div>
           )}
-          <div className="brand-gradient-text text-5xl font-extrabold tabular-nums">
+          <div className="text-5xl font-extrabold tabular-nums text-white drop-shadow-md">
             {formatTime(remainingMs)}
           </div>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-white/85">
             {phase === "finalizing"
               ? "Processing"
               : isPaused
@@ -277,10 +277,10 @@ export function RecordButton({
 
       {phase === "idle" && (
         <div className="text-center">
-          <p className="text-sm text-ink-500">
+          <p className="text-sm text-white/95 drop-shadow-sm">
             Tap the mic to start. You&rsquo;ll get a 3-second countdown, then you&rsquo;re live.
           </p>
-          <p className="mt-1.5 text-[11px] font-medium text-ink-400">
+          <p className="mt-1.5 text-[11px] font-medium text-white/85 drop-shadow-sm">
             Stand if you can. Use your hands. Treat this rep like the real moment.
           </p>
         </div>
@@ -320,7 +320,7 @@ export function RecordButton({
         <button
           type="button"
           onClick={stop}
-          className="text-xs font-semibold uppercase tracking-wider text-ink-500 hover:text-ink-900"
+          className="text-xs font-semibold uppercase tracking-wider text-white/95 hover:text-white drop-shadow-sm"
         >
           Stop &amp; submit
         </button>

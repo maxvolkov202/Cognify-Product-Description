@@ -29,7 +29,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-white/95 backdrop-blur-md dark:border-ink-700/70 dark:bg-ink-900/95">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-6">
           <Logo href="/dashboard" />
@@ -41,7 +41,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
               <GuardedLink
                 key={item.href}
                 href={item.href}
-                className="whitespace-nowrap text-[13px] font-semibold text-ink-600 transition-colors hover:text-ink-900"
+                className="whitespace-nowrap text-[13px] font-semibold text-ink-600 transition-colors hover:text-ink-900 dark:text-ink-300 dark:hover:text-white"
               >
                 {item.label}
               </GuardedLink>
@@ -61,7 +61,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
               trigger={
                 <button
                   type="button"
-                  className="rounded-full border border-ink-200 bg-white px-4 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+                  className="rounded-full border border-ink-200 bg-white px-4 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:bg-ink-800"
                 >
                   Sign in
                 </button>
@@ -73,7 +73,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
-            className="grid size-10 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 hover:border-ink-300 md:hidden"
+            className="grid size-10 place-items-center rounded-full border border-ink-200 bg-white text-ink-700 hover:border-ink-300 md:hidden dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
           >
             {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
           </button>
@@ -83,7 +83,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
       {mobileOpen && (
         <nav
           aria-label="Mobile app"
-          className="border-t border-ink-200/60 bg-white md:hidden"
+          className="border-t border-ink-200/60 bg-white md:hidden dark:border-ink-700/60 dark:bg-ink-900"
         >
           <ul className="mx-auto flex w-full max-w-6xl flex-col px-6 py-3">
             {navItems.map((item) => (
@@ -91,7 +91,7 @@ export function AppNav({ navItems, sessionUser }: Props) {
                 <GuardedLink
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50"
+                  className="block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-ink-800"
                 >
                   {item.label}
                 </GuardedLink>

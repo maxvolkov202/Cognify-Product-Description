@@ -84,13 +84,13 @@ export default async function FriendsPage() {
 function Header() {
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
         Training partners
       </p>
-      <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+      <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
         Your gym crew.
       </h1>
-      <p className="mt-1 max-w-2xl text-lg text-ink-600">
+      <p className="mt-1 max-w-2xl text-lg text-ink-600 dark:text-ink-300">
         Train together, challenge each other, climb together. The best
         communicators don&rsquo;t practice alone.
       </p>
@@ -112,10 +112,10 @@ function InviteBanner({ hasRealData }: { hasRealData: boolean }) {
             />
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
               Invite a friend
             </p>
-            <p className="mt-0.5 text-sm font-bold text-ink-900">
+            <p className="mt-0.5 text-sm font-bold text-ink-900 dark:text-white">
               {hasRealData
                 ? "Add another teammate to your gym crew."
                 : "Bring a real teammate in — this section fills out with real data once you do."}
@@ -181,7 +181,7 @@ function RealFriendsView({
       {pending.length > 0 && (
         <div className="mt-8">
           <div className="surface-card border-brand-purple/20 bg-brand-purple/[0.02] p-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple dark:text-brand-lavender">
               <UserPlus className="size-4" />
               {pending.length} friend request{pending.length > 1 ? "s" : ""}
             </div>
@@ -189,14 +189,14 @@ function RealFriendsView({
               {pending.map((req) => (
                 <div
                   key={req.friendshipId}
-                  className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white px-4 py-2.5"
+                  className="flex items-center gap-3 rounded-xl border border-ink-200 bg-white px-4 py-2.5 dark:border-ink-700 dark:bg-ink-900"
                 >
                   <Avatar initials={initials(req.name)} size="sm" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink-900">
+                    <p className="text-sm font-semibold text-ink-900 dark:text-white">
                       {req.name ?? "Someone"}
                     </p>
-                    <p className="text-[11px] text-ink-500">
+                    <p className="text-[11px] text-ink-500 dark:text-ink-400">
                       Sent {relativeTime(req.createdAt)}
                     </p>
                   </div>
@@ -212,7 +212,7 @@ function RealFriendsView({
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
             Your friends
           </h2>
           <div className="mt-4 space-y-3">
@@ -226,7 +226,7 @@ function RealFriendsView({
 
         <div className="space-y-8">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               <Swords className="size-3.5" /> Challenges
             </h2>
             <div className="mt-4 space-y-3">
@@ -239,7 +239,7 @@ function RealFriendsView({
           </div>
 
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               <Activity className="size-3.5" /> Live feed
             </h2>
             <div className="mt-4 space-y-1">
@@ -264,7 +264,7 @@ function RealActivityRow({ row }: { row: ActivityRow }) {
       case "new_high":
         return <Trophy className="size-3.5 text-amber-500" />;
       case "streak_milestone":
-        return <Flame className="size-3.5 text-brand-purple" />;
+        return <Flame className="size-3.5 text-brand-purple dark:text-brand-lavender" />;
       case "challenge_win":
         return <Swords className="size-3.5 text-emerald-500" />;
       case "friend_joined":
@@ -290,18 +290,18 @@ function RealActivityRow({ row }: { row: ActivityRow }) {
   })();
 
   return (
-    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50">
+    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50 dark:hover:bg-ink-800">
       <Avatar initials={initials(row.userName)} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           {icon}
-          <span className="text-xs font-semibold text-ink-800">
+          <span className="text-xs font-semibold text-ink-800 dark:text-ink-100">
             {row.userName ?? "Someone"}
           </span>
         </div>
-        <p className="mt-0.5 text-[11px] text-ink-600">{description}</p>
+        <p className="mt-0.5 text-[11px] text-ink-600 dark:text-ink-300">{description}</p>
       </div>
-      <span className="shrink-0 text-[10px] text-ink-400">
+      <span className="shrink-0 text-[10px] text-ink-400 dark:text-ink-500">
         {relativeTime(row.createdAt)}
       </span>
     </div>
@@ -313,10 +313,10 @@ function RealFriendCard({ friend }: { friend: FriendRow }) {
     <div className="surface-card group flex items-center gap-4 p-4 transition-shadow hover:shadow-[var(--shadow-glow)]">
       <Avatar initials={initials(friend.name)} size="md" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-ink-900">
+        <p className="truncate text-sm font-bold text-ink-900 dark:text-white">
           {friend.name ?? friend.email ?? "Friend"}
         </p>
-        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500">
+        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500 dark:text-ink-400">
           <span>
             Joined {relativeTime(friend.joinedAt)}
           </span>
@@ -327,14 +327,14 @@ function RealFriendCard({ friend }: { friend: FriendRow }) {
         <span className="brand-gradient-text text-xl font-extrabold tabular-nums">
           {friend.composite ?? "—"}
         </span>
-        <span className="text-[10px] text-ink-400">
+        <span className="text-[10px] text-ink-400 dark:text-ink-500">
           {friend.composite != null ? "composite" : "no reps yet"}
         </span>
       </div>
       <div className="flex gap-1.5">
         <Link
           href={`/friends/challenge?to=${friend.userId}`}
-          className="rounded-lg border border-ink-200 p-1.5 text-ink-500 hover:border-brand-purple hover:text-brand-purple"
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-500 hover:border-brand-purple hover:text-brand-purple dark:border-ink-700 dark:text-ink-400 dark:hover:text-brand-lavender"
           title="Challenge"
           aria-label={`Challenge ${friend.name ?? "friend"}`}
         >
@@ -347,9 +347,9 @@ function RealFriendCard({ friend }: { friend: FriendRow }) {
 
 function RealChallengeCard({ c }: { c: ChallengeRow }) {
   const statusColors = {
-    pending: "bg-amber-100 text-amber-700",
-    active: "bg-brand-purple/10 text-brand-purple",
-    completed: "bg-ink-100 text-ink-600",
+    pending: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+    active: "bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/20 dark:text-brand-lavender",
+    completed: "bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300",
   } as const;
 
   return (
@@ -367,22 +367,22 @@ function RealChallengeCard({ c }: { c: ChallengeRow }) {
               ? "In progress"
               : "Completed"}
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-ink-400">
+        <span className="flex items-center gap-1 text-[10px] text-ink-400 dark:text-ink-500">
           <Clock className="size-3" />
           {c.expiresAt ? relativeTime(c.expiresAt) : "—"}
         </span>
       </div>
-      <p className="mt-2 text-xs font-medium text-ink-700">
+      <p className="mt-2 text-xs font-medium text-ink-700 dark:text-ink-200">
         &ldquo;{c.prompt}&rdquo;
       </p>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600">
+      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600 dark:text-ink-300">
         <span>
           {c.challengerName ?? "Challenger"}:{" "}
           <strong className="brand-gradient-text text-sm tabular-nums">
             {c.challengerScore ?? "—"}
           </strong>
         </span>
-        <span className="text-xs font-black text-ink-300">VS</span>
+        <span className="text-xs font-black text-ink-300 dark:text-ink-600">VS</span>
         <span>
           {c.opponentName ?? "Opponent"}:{" "}
           <strong className="brand-gradient-text text-sm tabular-nums">
@@ -396,7 +396,7 @@ function RealChallengeCard({ c }: { c: ChallengeRow }) {
 
 function EmptyCard({ text }: { text: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-ink-200 bg-white/60 px-5 py-6 text-sm text-ink-500">
+    <div className="rounded-2xl border border-dashed border-ink-200 bg-white/60 px-5 py-6 text-sm text-ink-500 dark:border-ink-700 dark:bg-ink-900/60 dark:text-ink-400">
       {text}
     </div>
   );
@@ -443,11 +443,11 @@ function MockFriendsPreview() {
       {MOCK_PENDING_REQUESTS.length > 0 && (
         <div className="mt-8">
           <div className="surface-card border-brand-purple/20 bg-brand-purple/[0.02] p-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brand-purple dark:text-brand-lavender">
               <UserPlus className="size-4" />
               {MOCK_PENDING_REQUESTS.length} friend request
               {MOCK_PENDING_REQUESTS.length > 1 ? "s" : ""}
-              <span className="ml-2 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500">
+              <span className="ml-2 rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold text-ink-500 dark:bg-ink-800 dark:text-ink-400">
                 Demo
               </span>
             </div>
@@ -476,15 +476,15 @@ function MockFriendsPreview() {
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div>
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               Your friends (preview)
             </h2>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-400" />
+              <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-400 dark:text-ink-500" />
               <input
                 type="text"
                 placeholder="Search friends…"
-                className="rounded-lg border border-ink-200 bg-white py-1.5 pl-8 pr-3 text-xs text-ink-700 placeholder:text-ink-400 focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple/30"
+                className="rounded-lg border border-ink-200 bg-white py-1.5 pl-8 pr-3 text-xs text-ink-700 placeholder:text-ink-400 focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple/30 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:placeholder:text-ink-500"
                 disabled
               />
             </div>
@@ -498,7 +498,7 @@ function MockFriendsPreview() {
 
         <div className="space-y-8">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               <Activity className="size-3.5" /> Live feed (preview)
             </h2>
             <div className="mt-4 space-y-1">
@@ -509,7 +509,7 @@ function MockFriendsPreview() {
           </div>
 
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               <Swords className="size-3.5" /> Challenges (preview)
             </h2>
             <div className="mt-4 space-y-3">
@@ -529,11 +529,11 @@ function MockFriendsPreview() {
           {MOCK_SUGGESTED.map((person) => (
             <div key={person.id} className="surface-card p-4 text-center">
               <Avatar initials={person.initials} size="md" className="mx-auto" />
-              <p className="mt-2 text-sm font-bold text-ink-900">{person.name}</p>
-              <p className="text-[11px] text-ink-500">
+              <p className="mt-2 text-sm font-bold text-ink-900 dark:text-white">{person.name}</p>
+              <p className="text-[11px] text-ink-500 dark:text-ink-400">
                 {person.vertical} · {person.composite} composite
               </p>
-              <p className="text-[10px] text-ink-400">
+              <p className="text-[10px] text-ink-400 dark:text-ink-500">
                 {person.mutualFriends} mutual friends
               </p>
             </div>
@@ -562,15 +562,15 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-bold text-ink-900">
+          <p className="truncate text-sm font-bold text-ink-900 dark:text-white">
             {friend.name}
           </p>
           <StatusDot status={friend.status} />
         </div>
-        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500">
+        <div className="mt-0.5 flex items-center gap-3 text-[11px] text-ink-500 dark:text-ink-400">
           <span>{friend.vertical}</span>
           <span className="flex items-center gap-0.5">
-            <Flame className="size-3 text-ink-400" />
+            <Flame className="size-3 text-ink-400 dark:text-ink-500" />
             {friend.streak}d
           </span>
           <span>{friend.totalReps} reps</span>
@@ -588,7 +588,7 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
         <button
           type="button"
           disabled
-          className="rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-300 dark:border-ink-700 dark:text-ink-600"
           title="Challenge (preview)"
           aria-label="Challenge this friend (preview — coming soon)"
         >
@@ -597,7 +597,7 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
         <button
           type="button"
           disabled
-          className="inline-flex rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          className="inline-flex rounded-lg border border-ink-200 p-1.5 text-ink-300 dark:border-ink-700 dark:text-ink-600"
           title="Message (preview)"
           aria-label="Message this friend (preview — coming soon)"
         >
@@ -606,7 +606,7 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
         <button
           type="button"
           disabled
-          className="rounded-lg border border-ink-200 p-1.5 text-ink-300"
+          className="rounded-lg border border-ink-200 p-1.5 text-ink-300 dark:border-ink-700 dark:text-ink-600"
           title="View profile (preview)"
           aria-label="View this friend's profile (preview — coming soon)"
         >
@@ -619,9 +619,9 @@ function MockFriendCard({ friend }: { friend: FriendProfile }) {
 
 function MockChallengeCard({ challenge }: { challenge: Challenge }) {
   const statusColors = {
-    pending: "bg-amber-100 text-amber-700",
-    active: "bg-brand-purple/10 text-brand-purple",
-    completed: "bg-ink-100 text-ink-600",
+    pending: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+    active: "bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/20 dark:text-brand-lavender",
+    completed: "bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300",
   } as const;
 
   return (
@@ -636,22 +636,22 @@ function MockChallengeCard({ challenge }: { challenge: Challenge }) {
               ? "In progress"
               : "Completed"}
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-ink-400">
+        <span className="flex items-center gap-1 text-[10px] text-ink-400 dark:text-ink-500">
           <Clock className="size-3" />
           {challenge.expiresAt}
         </span>
       </div>
-      <p className="mt-2 text-xs font-medium text-ink-700">
+      <p className="mt-2 text-xs font-medium text-ink-700 dark:text-ink-200">
         &ldquo;{challenge.prompt}&rdquo;
       </p>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600">
+      <div className="mt-3 flex items-center justify-between text-[11px] text-ink-600 dark:text-ink-300">
         <span>
           {challenge.challengerName}:{" "}
           <strong className="brand-gradient-text text-sm tabular-nums">
             {challenge.challengerScore ?? "—"}
           </strong>
         </span>
-        <span className="text-xs font-black text-ink-300">VS</span>
+        <span className="text-xs font-black text-ink-300 dark:text-ink-600">VS</span>
         <span>
           {challenge.opponentName}:{" "}
           <strong className="brand-gradient-text text-sm tabular-nums">
@@ -682,11 +682,11 @@ function QuickStat({
         {icon}
       </div>
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
           {label}
         </p>
-        <p className="text-lg font-extrabold text-ink-900">{value}</p>
-        {sub && <p className="text-[10px] text-ink-500">{sub}</p>}
+        <p className="text-lg font-extrabold text-ink-900 dark:text-white">{value}</p>
+        {sub && <p className="text-[10px] text-ink-500 dark:text-ink-400">{sub}</p>}
       </div>
     </div>
   );
@@ -719,7 +719,7 @@ function StatusDot({ status }: { status: FriendProfile["status"] }) {
   const colors = {
     online: "bg-emerald-400",
     training: "bg-amber-400 animate-pulse",
-    offline: "bg-ink-300",
+    offline: "bg-ink-300 dark:bg-ink-600",
   };
   const labels = {
     online: "Online",
@@ -727,7 +727,7 @@ function StatusDot({ status }: { status: FriendProfile["status"] }) {
     offline: "Offline",
   };
   return (
-    <span className="flex items-center gap-1.5 text-[10px] text-ink-500">
+    <span className="flex items-center gap-1.5 text-[10px] text-ink-500 dark:text-ink-400">
       <span className={`inline-block size-2 rounded-full ${colors[status]}`} />
       {labels[status]}
     </span>
@@ -751,7 +751,7 @@ function DeltaBadge({ delta }: { delta: number }) {
     );
   }
   return (
-    <span className="flex items-center gap-0.5 text-[10px] font-semibold text-ink-400">
+    <span className="flex items-center gap-0.5 text-[10px] font-semibold text-ink-400 dark:text-ink-500">
       <Minus className="size-3" />0
     </span>
   );
@@ -760,25 +760,25 @@ function DeltaBadge({ delta }: { delta: number }) {
 function ActivityRow({ activity }: { activity: FriendActivity }) {
   const icons: Record<FriendActivity["type"], React.ReactNode> = {
     workout_complete: <Flame className="size-3.5 text-orange-500" />,
-    streak_milestone: <Flame className="size-3.5 text-brand-purple" />,
+    streak_milestone: <Flame className="size-3.5 text-brand-purple dark:text-brand-lavender" />,
     new_high: <Trophy className="size-3.5 text-amber-500" />,
     challenge_win: <Swords className="size-3.5 text-emerald-500" />,
     joined: <UserPlus className="size-3.5 text-blue-500" />,
   };
 
   return (
-    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50">
+    <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-ink-50 dark:hover:bg-ink-800">
       <Avatar initials={activity.friendInitials} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           {icons[activity.type]}
-          <span className="text-xs font-semibold text-ink-800">
+          <span className="text-xs font-semibold text-ink-800 dark:text-ink-100">
             {activity.friendName}
           </span>
         </div>
-        <p className="mt-0.5 text-[11px] text-ink-600">{activity.description}</p>
+        <p className="mt-0.5 text-[11px] text-ink-600 dark:text-ink-300">{activity.description}</p>
       </div>
-      <span className="shrink-0 text-[10px] text-ink-400">
+      <span className="shrink-0 text-[10px] text-ink-400 dark:text-ink-500">
         {activity.timestamp}
       </span>
     </div>

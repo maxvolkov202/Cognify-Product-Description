@@ -129,7 +129,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
     <div
       aria-label="Six communication skills"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur-sm",
+        "fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur-sm dark:border-ink-700 dark:bg-ink-900/95",
         "shadow-[0_-4px_20px_-8px_rgb(10_10_15_/_0.08)]",
       )}
     >
@@ -139,7 +139,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
           onClick={toggle}
           aria-expanded={!effectiveCollapsed}
           aria-label={effectiveCollapsed ? "Expand skills bar" : "Collapse skills bar"}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 md:size-7"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 md:size-7 dark:text-ink-400 dark:hover:bg-ink-800 dark:hover:text-white"
         >
           {effectiveCollapsed ? (
             <ChevronUp className="size-4" aria-hidden="true" />
@@ -150,7 +150,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
 
         <p
           className={cn(
-            "shrink-0 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500",
+            "shrink-0 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400",
             "hidden md:block",
           )}
         >
@@ -210,13 +210,13 @@ export function SixSkillsBar({ scores = {} }: Props) {
                 className={cn(
                   "group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
                   isPrimary
-                    ? "border-brand-purple bg-white shadow-[var(--shadow-glow)] ring-2 ring-brand-lavender/50"
+                    ? "border-brand-purple bg-white shadow-[var(--shadow-glow)] ring-2 ring-brand-lavender/50 dark:bg-ink-900"
                     : isSecondary
-                      ? "border-brand-lavender/60 bg-white"
-                      : "border-ink-200 bg-white",
+                      ? "border-brand-lavender/60 bg-white dark:bg-ink-900"
+                      : "border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900",
                   hasScore
-                    ? "hover:border-ink-300 hover:shadow-sm"
-                    : "text-ink-400",
+                    ? "hover:border-ink-300 hover:shadow-sm dark:hover:border-ink-600"
+                    : "text-ink-400 dark:text-ink-500",
                   muted && "opacity-50",
                 )}
                 title={`${DIMENSION_LABELS[dim]}${
@@ -232,7 +232,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
                   )}
                   aria-hidden="true"
                 />
-                <span className={cn("text-ink-700", isPrimary && "text-ink-900")}>
+                <span className={cn("text-ink-700 dark:text-ink-200", isPrimary && "text-ink-900 dark:text-white")}>
                   {DIMENSION_LABELS[dim]}
                 </span>
                 {hasScore && (

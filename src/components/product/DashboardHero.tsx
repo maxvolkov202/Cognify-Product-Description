@@ -65,7 +65,7 @@ export function DashboardHero({
           : "flat";
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] md:p-8">
+    <section className="relative overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 shadow-[0_18px_60px_-30px_rgba(176,114,255,0.5)] dark:border-ink-700 dark:from-ink-900 dark:via-ink-800 dark:to-ink-900 md:p-8">
       {/* Ambient brand halos */}
       <div
         className="pointer-events-none absolute -right-24 -top-32 size-80 rounded-full opacity-50 blur-3xl"
@@ -99,16 +99,16 @@ export function DashboardHero({
                 aria-hidden="true"
               />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
               {greeting}
             </p>
           </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 dark:text-white md:text-4xl">
             Hey {firstName}.
             <br />
             <span className="brand-gradient-text">Time to train.</span>
           </h1>
-          <p className="mt-3 text-sm text-ink-600 md:text-base">
+          <p className="mt-3 text-sm text-ink-600 dark:text-ink-300 md:text-base">
             {avgRecent !== null
               ? "Your reps are warm. Keep the streak alive."
               : "Pick up where you left off."}
@@ -123,10 +123,10 @@ export function DashboardHero({
             accent="amber"
             valueNode={
               <span className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold tabular-nums text-ink-900 md:text-4xl">
+                <span className="text-3xl font-extrabold tabular-nums text-ink-900 dark:text-white md:text-4xl">
                   {streakDays}
                 </span>
-                <span className="text-xs font-semibold text-ink-500">d</span>
+                <span className="text-xs font-semibold text-ink-500 dark:text-ink-400">d</span>
               </span>
             }
             iconNode={
@@ -183,7 +183,7 @@ export function DashboardHero({
             href="/skill-lab"
             accent="brand"
             valueNode={
-              <span className="line-clamp-1 text-lg font-extrabold leading-tight text-ink-900 md:text-xl">
+              <span className="line-clamp-1 text-lg font-extrabold leading-tight text-ink-900 dark:text-white md:text-xl">
                 {focusDim ? DIMENSION_LABELS[focusDim] : "Pick one"}
               </span>
             }
@@ -200,7 +200,7 @@ export function DashboardHero({
       </div>
 
       {/* Bottom: primary CTA + secondary link */}
-      <div className="relative mt-6 flex flex-wrap items-center gap-3 border-t border-ink-200/60 pt-5">
+      <div className="relative mt-6 flex flex-wrap items-center gap-3 border-t border-ink-200/60 pt-5 dark:border-ink-700/60">
         <Link
           href="/workout"
           className="brand-gradient inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(151,136,255,0.6)] transition-transform hover:scale-[1.02]"
@@ -213,7 +213,7 @@ export function DashboardHero({
         </Link>
         <Link
           href="/build-a-rep"
-          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-xs font-bold text-ink-700 transition hover:border-brand-purple/40 hover:bg-brand-lavender/5 hover:text-ink-900"
+          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-xs font-bold text-ink-700 transition hover:border-brand-purple/40 hover:bg-brand-lavender/5 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-100 dark:hover:border-brand-purple/50 dark:hover:bg-ink-700 dark:hover:text-white"
         >
           Build a single rep <ArrowRight className="size-3.5" strokeWidth={2.5} />
         </Link>
@@ -241,22 +241,22 @@ function VitalSign({
 }) {
   const accentBg =
     accent === "amber"
-      ? "bg-amber-50/60 group-hover:bg-amber-50"
+      ? "bg-amber-50/60 group-hover:bg-amber-50 dark:bg-amber-500/10 dark:group-hover:bg-amber-500/15"
       : accent === "purple"
-        ? "bg-brand-purple/5 group-hover:bg-brand-purple/10"
-        : "bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/10 group-hover:from-brand-blue/10 group-hover:to-brand-magenta/20";
+        ? "bg-brand-purple/5 group-hover:bg-brand-purple/10 dark:bg-brand-purple/10 dark:group-hover:bg-brand-purple/20"
+        : "bg-gradient-to-br from-brand-blue/5 via-brand-lavender/5 to-brand-magenta/10 group-hover:from-brand-blue/10 group-hover:to-brand-magenta/20 dark:from-brand-blue/10 dark:via-brand-lavender/10 dark:to-brand-magenta/15";
   const tone =
     footnoteTone === "good"
-      ? "text-emerald-600"
+      ? "text-emerald-600 dark:text-emerald-400"
       : footnoteTone === "bad"
-        ? "text-rose-600"
-        : "text-ink-500";
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-ink-500 dark:text-ink-400";
   return (
     <Link
       href={href as never}
-      className={`group flex flex-col gap-1.5 rounded-2xl border border-ink-200/80 p-3 transition hover:-translate-y-0.5 hover:border-ink-300 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.1)] md:p-4 ${accentBg}`}
+      className={`group flex flex-col gap-1.5 rounded-2xl border border-ink-200/80 p-3 transition hover:-translate-y-0.5 hover:border-ink-300 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.1)] dark:border-ink-700/80 dark:hover:border-ink-600 md:p-4 ${accentBg}`}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-500">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
         {iconNode}
         {label}
       </div>

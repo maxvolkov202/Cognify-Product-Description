@@ -49,12 +49,12 @@ export function LevelStreakCard({
       <div className="grid gap-6 p-6 md:grid-cols-[1.1fr_1fr] md:gap-8 md:p-7">
         {/* Level half */}
         <div>
-          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
             <Trophy className="size-3" strokeWidth={2.5} aria-hidden="true" />
             Level
           </p>
           <p className="mt-2 flex items-baseline gap-2">
-            <span className="text-5xl font-extrabold tabular-nums text-ink-900">
+            <span className="text-5xl font-extrabold tabular-nums text-ink-900 dark:text-white">
               {level}
             </span>
             <span className="brand-gradient-text text-base font-extrabold">
@@ -62,7 +62,7 @@ export function LevelStreakCard({
             </span>
           </p>
           <div className="mt-4">
-            <div className="h-2 overflow-hidden rounded-full bg-ink-100">
+            <div className="h-2 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
               <motion.div
                 className="brand-gradient h-full rounded-full"
                 initial={{ width: 0 }}
@@ -70,7 +70,7 @@ export function LevelStreakCard({
                 transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
               />
             </div>
-            <p className="mt-2 flex items-baseline justify-between text-[11px] text-ink-500">
+            <p className="mt-2 flex items-baseline justify-between text-[11px] text-ink-500 dark:text-ink-400">
               <span className="tabular-nums">
                 {xp.toLocaleString()} XP
               </span>
@@ -84,23 +84,23 @@ export function LevelStreakCard({
         </div>
 
         {/* Streak half */}
-        <div className="md:border-l md:border-ink-100 md:pl-8">
-          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-orange-600">
+        <div className="md:border-l md:border-ink-100 md:pl-8 dark:md:border-ink-700">
+          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">
             <Flame className="size-3" strokeWidth={2.5} aria-hidden="true" />
             Streak
           </p>
           <p className="mt-2 flex items-baseline gap-2">
-            <span className="text-5xl font-extrabold tabular-nums text-ink-900">
+            <span className="text-5xl font-extrabold tabular-nums text-ink-900 dark:text-white">
               {currentStreakDays}
             </span>
-            <span className="text-base font-extrabold text-ink-500">
+            <span className="text-base font-extrabold text-ink-500 dark:text-ink-400">
               day{currentStreakDays === 1 ? "" : "s"}
             </span>
           </p>
-          <p className="mt-4 text-[11px] uppercase tracking-wider text-ink-400">
+          <p className="mt-4 text-[11px] uppercase tracking-wider text-ink-400 dark:text-ink-500">
             Longest
           </p>
-          <p className="mt-1 text-sm font-bold tabular-nums text-ink-700">
+          <p className="mt-1 text-sm font-bold tabular-nums text-ink-700 dark:text-ink-200">
             {longestStreakDays} day{longestStreakDays === 1 ? "" : "s"}
           </p>
         </div>

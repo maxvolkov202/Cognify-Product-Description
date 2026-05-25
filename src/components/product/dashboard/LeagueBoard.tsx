@@ -54,18 +54,18 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
             <Trophy className="size-4" strokeWidth={2.5} aria-hidden="true" />
           </span>
           <div className="flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
               League · {cohort.length} competitors
             </p>
-            <p className="mt-0.5 text-[15px] font-extrabold text-ink-900">
+            <p className="mt-0.5 text-[15px] font-extrabold text-ink-900 dark:text-white">
               {tierLabel}
             </p>
           </div>
-          <p className="text-right text-[12px] tabular-nums text-ink-500">
-            <span className="block font-extrabold text-ink-700">
+          <p className="text-right text-[12px] tabular-nums text-ink-500 dark:text-ink-400">
+            <span className="block font-extrabold text-ink-700 dark:text-ink-200">
               {daysLeft}
             </span>
-            <span className="text-[10px] uppercase tracking-wider text-ink-400">
+            <span className="text-[10px] uppercase tracking-wider text-ink-400 dark:text-ink-500">
               day{daysLeft === 1 ? "" : "s"} left
             </span>
           </p>
@@ -82,21 +82,21 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
                 {rank === promoteCount + 1 && (
                   <li
                     key="promote-line"
-                    className="flex items-center gap-2 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600"
+                    className="flex items-center gap-2 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400"
                   >
                     <ChevronUp className="size-3" strokeWidth={3} aria-hidden="true" />
                     Promote line
-                    <span className="ml-1 h-px flex-1 bg-emerald-200" />
+                    <span className="ml-1 h-px flex-1 bg-emerald-200 dark:bg-emerald-700" />
                   </li>
                 )}
                 {rank === relegateThresholdRank + 1 && (
                   <li
                     key="relegate-line"
-                    className="flex items-center gap-2 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-600"
+                    className="flex items-center gap-2 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400"
                   >
                     <ChevronDown className="size-3" strokeWidth={3} aria-hidden="true" />
                     Relegate line
-                    <span className="ml-1 h-px flex-1 bg-rose-200" />
+                    <span className="ml-1 h-px flex-1 bg-rose-200 dark:bg-rose-700" />
                   </li>
                 )}
                 <li
@@ -104,18 +104,18 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2",
                     isSelf
-                      ? "bg-brand-purple/10 ring-1 ring-brand-purple/30"
+                      ? "bg-brand-purple/10 ring-1 ring-brand-purple/30 dark:bg-brand-purple/20"
                       : inPromoteZone
-                        ? "bg-emerald-50/60"
+                        ? "bg-emerald-50/60 dark:bg-emerald-900/20"
                         : inRelegateZone
-                          ? "bg-rose-50/40"
-                          : "bg-ink-50/40",
+                          ? "bg-rose-50/40 dark:bg-rose-900/20"
+                          : "bg-ink-50/40 dark:bg-ink-800/40",
                   )}
                 >
                   <span
                     className={cn(
                       "w-7 shrink-0 text-right text-[12px] font-extrabold tabular-nums",
-                      isSelf ? "text-brand-purple" : "text-ink-500",
+                      isSelf ? "text-brand-purple dark:text-brand-lavender" : "text-ink-500 dark:text-ink-400",
                     )}
                   >
                     {rank}
@@ -123,7 +123,7 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
                   <span
                     className={cn(
                       "flex-1 truncate text-[13px]",
-                      isSelf ? "font-extrabold text-ink-900" : "text-ink-700",
+                      isSelf ? "font-extrabold text-ink-900 dark:text-white" : "text-ink-700 dark:text-ink-200",
                     )}
                   >
                     {isSelf ? `You — ${m.handle}` : m.handle}
@@ -131,7 +131,7 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
                   <span
                     className={cn(
                       "shrink-0 text-[12px] font-extrabold tabular-nums",
-                      isSelf ? "text-brand-purple" : "text-ink-700",
+                      isSelf ? "text-brand-purple dark:text-brand-lavender" : "text-ink-700 dark:text-ink-200",
                     )}
                   >
                     {m.weeklyXp.toLocaleString()} XP
@@ -142,7 +142,7 @@ export function LeagueBoard({ tier, cohort, selfUserId, className }: Props) {
           })}
         </ul>
 
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-500">
+        <p className="mt-3 text-[11px] leading-relaxed text-ink-500 dark:text-ink-400">
           Top {promoteCount} promote to{" "}
           <span className="font-bold">
             {tierLabel === "Diamond" ? "Diamond (max)" : "next tier"}

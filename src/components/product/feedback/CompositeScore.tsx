@@ -36,13 +36,13 @@ export function CompositeScore({ value, durationLabel }: Props) {
     tone === "low"
       ? "text-danger"
       : tone === "high"
-        ? "text-ink-400"
-        : "text-ink-400";
+        ? "text-ink-400 dark:text-ink-500"
+        : "text-ink-400 dark:text-ink-500";
   const underline = tone === "high";
 
   return (
     <div className="flex flex-col items-center justify-center md:items-start">
-      <motion.span className="font-extrabold tabular-nums text-ink-900 leading-none text-7xl md:text-8xl">
+      <motion.span className="font-extrabold tabular-nums text-ink-900 dark:text-white leading-none text-7xl md:text-8xl">
         {rounded}
       </motion.span>
       <p
@@ -54,7 +54,7 @@ export function CompositeScore({ value, durationLabel }: Props) {
         <span className={cn(underline && "brand-gradient-text")}>Out of 100</span>
       </p>
       {durationLabel && (
-        <p className="mt-1 text-xs tabular-nums text-ink-500">{durationLabel}</p>
+        <p className="mt-1 text-xs tabular-nums text-ink-500 dark:text-ink-400">{durationLabel}</p>
       )}
     </div>
   );

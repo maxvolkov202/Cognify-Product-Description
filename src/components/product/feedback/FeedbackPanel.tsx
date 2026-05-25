@@ -237,12 +237,12 @@ export function FeedbackPanel({
           <Section delay={0}>
             <div
               role="status"
-              className="overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 px-5 py-4"
+              className="overflow-hidden rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 dark:from-amber-500/10 dark:via-amber-500/5 dark:to-amber-500/10 px-5 py-4"
             >
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                 You just trained · {pressureContext.archetypeName}
               </p>
-              <p className="mt-1 text-sm font-semibold text-amber-950">
+              <p className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-100">
                 {pressureContext.archetypeTagline} Scoring weighted this rep
                 toward the dimensions the archetype stresses.
               </p>
@@ -346,8 +346,8 @@ export function FeedbackPanel({
 
         {/* ——— Calibration & flywheel (demoted) ———————————————— */}
         <Section delay={7}>
-          <div className="space-y-3 border-t border-ink-200 pt-5">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+          <div className="space-y-3 border-t border-ink-200 dark:border-ink-700 pt-5">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
               Help us improve
             </p>
             <FeedbackRatingTile repId={repId ?? null} />
@@ -361,13 +361,13 @@ export function FeedbackPanel({
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
                       Want human feedback?
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-ink-900">
+                    <p className="mt-1 text-sm font-semibold text-ink-900 dark:text-white">
                       Send this rep to 3 friends for a blind ranking.
                     </p>
-                    <p className="mt-1 text-xs leading-relaxed text-ink-600">
+                    <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
                       No scores, no names. They rank your attempts on which
                       landed best. Pure human signal — the proof the algorithm
                       can&rsquo;t fake.

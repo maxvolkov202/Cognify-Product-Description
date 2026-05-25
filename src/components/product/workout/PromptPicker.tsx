@@ -173,7 +173,7 @@ export default function PromptPicker({
       {isLoading ? (
         <LoadingSkeleton />
       ) : state.shuffleCandidates.length === 0 ? (
-        <EmptyMessage>No prompts available for this exercise.</EmptyMessage>
+        <EmptyError onRetry={handleCycle} onSkip={onSkip} />
       ) : (
         <div
           ref={cardStackRef}
@@ -205,8 +205,8 @@ export default function PromptPicker({
           disabled={isLoading || isCycling}
           className={cn(
             "flex-1 min-h-[44px] rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold",
-            "border-purple-200 bg-white text-purple-700",
-            "hover:bg-purple-50 hover:border-purple-300",
+            "border-purple-200 dark:border-brand-purple/40 bg-white dark:bg-ink-900 text-purple-700 dark:text-brand-lavender",
+            "hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:border-purple-300 dark:hover:border-brand-purple/60",
             "disabled:opacity-50 disabled:cursor-wait",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400",
             "transition-colors",
@@ -223,7 +223,7 @@ export default function PromptPicker({
           <button
             type="button"
             onClick={onSkip}
-            className="px-4 min-h-[44px] text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors"
+            className="px-4 min-h-[44px] text-sm text-slate-500 dark:text-ink-400 hover:text-slate-800 dark:hover:text-ink-100 hover:bg-slate-100 dark:hover:bg-ink-800 rounded-xl transition-colors"
           >
             Skip
           </button>
@@ -238,7 +238,7 @@ export default function PromptPicker({
           <button
             type="button"
             onClick={onCancelWorkout}
-            className="text-xs text-slate-400 hover:text-slate-600 underline-offset-2 hover:underline"
+            className="text-xs text-slate-500 dark:text-ink-400 hover:text-slate-800 dark:hover:text-ink-100 underline-offset-2 hover:underline"
           >
             ← Cancel workout
           </button>
@@ -250,18 +250,46 @@ export default function PromptPicker({
 
 function LoadingSkeleton() {
   return (
-    <div className="flex items-center justify-center min-h-[160px] text-slate-400 gap-2">
+    <div className="flex items-center justify-center min-h-[160px] text-slate-600 dark:text-ink-300 gap-2">
       <Loader2 className="w-4 h-4 animate-spin" />
       Loading prompts…
     </div>
   );
 }
 
-function EmptyMessage({ children }: { children: React.ReactNode }) {
+function EmptyError({
+  onRetry,
+  onSkip,
+}: {
+  onRetry: () => void;
+  onSkip?: () => void;
+}) {
   return (
-    <div className="text-sm text-slate-500 text-center py-6">{children}</div>
+    <div className="rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/15 p-5 text-center">
+      <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+        Couldn&rsquo;t load prompts for this exercise.
+      </p>
+      <p className="mt-1 text-xs text-amber-800 dark:text-amber-300/90 leading-snug">
+        Likely a temporary glitch. Try again, or skip to the next station.
+      </p>
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="min-h-[40px] px-4 rounded-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold"
+        >
+          Try again
+        </button>
+        {onSkip && (
+          <button
+            type="button"
+            onClick={onSkip}
+            className="min-h-[40px] px-4 rounded-full border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-500/20"
+          >
+            Skip station
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
-
-// Type-side compatibility: EmptyMessage signature unchanged.
-// The dark theme is fully replaced; cards + chrome render on light bg.

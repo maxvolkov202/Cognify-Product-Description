@@ -36,9 +36,9 @@ export function WeekCalendar({ activity }: Props) {
   }
 
   return (
-    <section className="rounded-3xl border border-ink-200 bg-white p-5 md:p-6">
+    <section className="rounded-3xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900 md:p-6">
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
           This week
         </p>
         <FullHistoryTrigger variant="calendar" />
@@ -63,7 +63,7 @@ export function WeekCalendar({ activity }: Props) {
                   hasReps ? `, avg score ${Math.round(d.composite)}` : ""
                 }`}
               >
-                <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
                   {DOW[dow]}
                 </span>
                 <span
@@ -71,8 +71,8 @@ export function WeekCalendar({ activity }: Props) {
                     "grid size-11 place-items-center rounded-full text-sm font-extrabold tabular-nums transition-all",
                     hasReps
                       ? "brand-gradient text-white shadow-[0_8px_22px_-8px_rgba(176,114,255,0.5)]"
-                      : "border border-ink-200 bg-ink-50 text-ink-500",
-                    isToday && "ring-2 ring-brand-purple ring-offset-2",
+                      : "border border-ink-200 bg-ink-50 text-ink-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-400",
+                    isToday && "ring-2 ring-brand-purple ring-offset-2 dark:ring-offset-ink-900",
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -86,7 +86,7 @@ export function WeekCalendar({ activity }: Props) {
                 <span
                   className={[
                     "text-[10px] font-semibold tabular-nums",
-                    hasReps ? "text-ink-700" : "text-ink-400",
+                    hasReps ? "text-ink-700 dark:text-ink-200" : "text-ink-400 dark:text-ink-500",
                   ].join(" ")}
                 >
                   {hasReps ? Math.round(d.composite) : "—"}

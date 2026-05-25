@@ -92,10 +92,31 @@ const APPLE_SPLASH = [
   },
 ];
 
+// Pre-hydration theme script. Reads cognify:theme from localStorage and
+// toggles the `dark` class on <html> before React paints, so app routes
+// don't flash light-then-dark. Marketing + public routes are excluded —
+// the prefix list mirrors src/app/(app)/* + onboarding.
+const THEME_SCRIPT = `(function(){try{
+  var path = window.location.pathname;
+  var appPrefixes = ['/dashboard','/workout','/skill-lab','/build-a-rep','/library','/progress','/leaderboard','/friends','/settings','/achievements','/onboarding','/compare','/tutorial','/admin','/dev','/ops','/report','/scenario','/validate'];
+  var inApp = appPrefixes.some(function(p){return path === p || path.indexOf(p + '/') === 0;});
+  if (!inApp) { document.documentElement.classList.remove('dark'); return; }
+  var stored = null;
+  try { stored = localStorage.getItem('cognify:theme'); } catch(e) {}
+  var dark = false;
+  if (stored === 'dark') dark = true;
+  else if (stored === 'system') {
+    dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  if (dark) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
