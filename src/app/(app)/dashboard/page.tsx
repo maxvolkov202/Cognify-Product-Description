@@ -115,10 +115,19 @@ export default async function DashboardPage() {
     0,
   );
 
-  // Fetch cohort separately since it depends on the membership.
-  const cohort = leagueMember
-    ? await getCohortLeaderboard(leagueMember.leagueId)
-    : [];
+  // Parallelize the three independent post-main-Promise.all fetches:
+  // cohort depends on leagueMember.leagueId, but baselineRep and the
+  // muscle-group suggestion don't depend on each other. Wrapped in
+  // Promise.all so they stack instead of serializing.
+  const [cohort, baselineRep, todaysWorkout] = await Promise.all([
+    leagueMember
+      ? getCohortLeaderboard(leagueMember.leagueId)
+      : Promise.resolve([]),
+    profile?.baselineRepId
+      ? getRepById(profile.baselineRepId)
+      : Promise.resolve(null),
+    user ? suggestTodaysMuscleGroup() : Promise.resolve(null),
+  ]);
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -127,9 +136,6 @@ export default async function DashboardPage() {
       )
     : null;
 
-  const baselineRep = profile?.baselineRepId
-    ? await getRepById(profile.baselineRepId)
-    : null;
   const baselineComposite = baselineRep
     ? Math.round(baselineRep.compositeScore)
     : null;
@@ -141,7 +147,6 @@ export default async function DashboardPage() {
   // weakest-trended dim. That visibly disagreed with what /workout actually
   // serves (driven by selectMuscleGroupForToday). Use the same source of
   // truth as the workout so dashboard + workout always match.
-  const todaysWorkout = user ? await suggestTodaysMuscleGroup() : null;
   const focus: { dim: SkillDimension | null; score: number | null } =
     todaysWorkout
       ? {

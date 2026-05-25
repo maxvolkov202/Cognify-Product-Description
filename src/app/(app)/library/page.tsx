@@ -217,13 +217,19 @@ export default async function LibraryPage() {
   const allItems = SECTIONS.flatMap((s) =>
     s.items.map((it) => ({ url: it.url, sectionId: s.id })),
   );
-  const ogResults = await Promise.all(
+  // allSettled so a single failing OG fetch doesn't crash the page render.
+  const ogSettled = await Promise.allSettled(
     allItems.map(async (it) => {
       if (thumbnailFor(it.url)) return [it.url, null] as const;
       return [it.url, await getOgImageUrl(it.url)] as const;
     }),
   );
-  const ogMap = new Map<string, string | null>(ogResults);
+  const ogMap = new Map<string, string | null>();
+  for (const r of ogSettled) {
+    if (r.status === "fulfilled") {
+      ogMap.set(r.value[0], r.value[1]);
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">

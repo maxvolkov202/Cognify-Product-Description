@@ -38,14 +38,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // unavailable, isUserOnboarded returns true so onboarding becomes optional
   // and the gym still works in degraded mode (no personalization, but usable).
   const user = await currentUser();
-  if (user && process.env.NODE_ENV === "production") {
-    const onboarded = await isUserOnboarded(user.id);
-    if (!onboarded) {
-      redirect("/onboarding/vertical");
-    }
+
+  // Parallelize the three independent lookups instead of awaiting them
+  // serially. With React.cache on getUserProfile + getCurrentSkillScores,
+  // child pages reuse these results — so layout pays the cost once.
+  const [onboardingResult, profile, skillScores] = user
+    ? await Promise.all([
+        process.env.NODE_ENV === "production"
+          ? isUserOnboarded(user.id)
+          : Promise.resolve(true),
+        getUserProfile(user.id),
+        getCurrentSkillScores(user.id),
+      ])
+    : [true, null, null];
+
+  if (user && !onboardingResult) {
+    redirect("/onboarding/vertical");
   }
 
-  const profile = user ? await getUserProfile(user.id) : null;
   const sessionUser =
     user?.kind === "authenticated"
       ? {
@@ -55,8 +65,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           isOperator: profile?.isOperator ?? false,
         }
       : null;
-
-  const skillScores = user ? await getCurrentSkillScores(user.id) : null;
 
   return (
     <ThemeProvider>
