@@ -8,6 +8,14 @@
     {
       "path": "/api/cron/calibration-drift",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-callout-drift",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/muscle-group-day-rollover",
+      "schedule": "0 * * * *"
     }
   ]
 }

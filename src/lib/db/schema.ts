@@ -9,6 +9,7 @@ import {
   uuid,
   date,
   index,
+  uniqueIndex,
   primaryKey,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
@@ -721,7 +722,9 @@ export const weeklyReports = cognifyV2Schema.table(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     weekStartIso: text("week_start_iso").notNull(),
-    narrative: jsonb("narrative").notNull(),
+    narrative: jsonb("narrative")
+      .$type<{ paragraph: string; hookStat: string; nextFocus: string }>()
+      .notNull(),
     generatedAt: timestamp("generated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -1114,7 +1117,10 @@ export const muscleGroupDays = cognifyV2Schema.table(
       .defaultNow(),
   },
   (t) => [
-    index("mgd_user_date_uniq_idx").on(t.userId, t.dayDate),
+    // Matches migration 0020 which created this as UNIQUE. The uniqueness is
+    // load-bearing: it's what prevents the read-then-insert race in
+    // startMuscleGroupDay (workout-day.ts) from double-creating a day row.
+    uniqueIndex("mgd_user_date_uniq_idx").on(t.userId, t.dayDate),
     index("mgd_user_dim_date_idx").on(t.userId, t.dimension, t.dayDate),
   ],
 );
