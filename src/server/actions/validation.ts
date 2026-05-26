@@ -45,7 +45,7 @@ export async function createValidation(
         userId,
         token,
         topic: input.topic,
-        repIds: input.repIds as unknown as object,
+        repIds: input.repIds,
       })
       .returning({ id: externalValidations.id });
     return { token, id: row!.id, persisted: true };
@@ -70,7 +70,7 @@ export async function submitRanking(
     if (!validation) throw new Error("Validation not found.");
     await db.insert(externalRankings).values({
       validationId: validation.id,
-      ranking: input.ranking as unknown as object,
+      ranking: input.ranking,
     });
     return { persisted: true };
   }, fallback);

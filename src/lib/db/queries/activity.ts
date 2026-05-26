@@ -55,7 +55,7 @@ export async function emitActivityEvent(
     await db.insert(activityEvents).values({
       userId,
       type: payload.type,
-      payload: payload as unknown as object,
+      payload: payload as unknown as Record<string, unknown>,
     });
     return true;
   }, false);

@@ -156,7 +156,7 @@ export async function POST(req: Request) {
             signals: encodeDimensionSignals(
               d.signals,
               d.subSkillScores,
-            ) as unknown as object,
+            ) as Record<string, unknown>,
           })),
         );
         if (!isMockFallback) {

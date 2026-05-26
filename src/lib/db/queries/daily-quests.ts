@@ -81,8 +81,8 @@ export async function getOrCreateTodayQuests(
         title: q.title,
         description: q.description,
         bonusXp: q.bonusXp,
-      })) as unknown as object,
-      completion: {} as unknown as object,
+      })),
+      completion: {},
     });
     return {
       questDate: date,

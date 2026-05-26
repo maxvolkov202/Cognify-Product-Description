@@ -260,10 +260,15 @@ export const reps = cognifyV2Schema.table(
     frameworkId: uuid("framework_id").references(() => frameworks.id, {
       onDelete: "set null",
     }),
-    frameworkSnapshot: jsonb("framework_snapshot"),
+    // Frozen copy of the rep-type framework the rep was scored against.
+    // Loose-typed here to avoid a circular import with the framework lib;
+    // read sites narrow with zod.
+    frameworkSnapshot: jsonb("framework_snapshot").$type<Record<string, unknown>>(),
     durationMs: integer("duration_ms").notNull(),
     audioUrl: text("audio_url"),
-    transcript: jsonb("transcript"),
+    // Persisted transcript: { text: string; words?: ... }. Words layout
+    // varies by provider (Deepgram). Read sites use the text key only.
+    transcript: jsonb("transcript").$type<{ text: string; words?: unknown[] }>(),
     topic: text("topic"),
     compositeScore: real("composite_score"),
     modelVersion: text("model_version"),
@@ -388,9 +393,10 @@ export const calibrationRuns = cognifyV2Schema.table(
     expectedComposite: integer("expected_composite"),
     actualComposite: integer("actual_composite"),
     deltaComposite: integer("delta_composite"),
-    expectedPerDim: jsonb("expected_per_dim"),
-    actualPerDim: jsonb("actual_per_dim"),
-    deltaPerDim: jsonb("delta_per_dim"),
+    // Per-dimension expected/actual/delta. Records of { skill_dim: score }.
+    expectedPerDim: jsonb("expected_per_dim").$type<Record<string, number>>(),
+    actualPerDim: jsonb("actual_per_dim").$type<Record<string, number>>(),
+    deltaPerDim: jsonb("delta_per_dim").$type<Record<string, number>>(),
     rubricVersion: text("rubric_version"),
     modelVersion: text("model_version"),
     status: text("status"),
@@ -416,8 +422,16 @@ export const dailyQuests = cognifyV2Schema.table(
   {
     userId: uuid("user_id").notNull(),
     questDate: date("quest_date").notNull(),
-    quests: jsonb("quests").notNull(),
-    completion: jsonb("completion").notNull().default({}),
+    // Stored shape of a daily quest — the `check` callback from
+    // src/lib/engagement/quests.ts is intentionally stripped at insert
+    // time because functions don't survive JSON.
+    quests: jsonb("quests")
+      .$type<{ id: string; title: string; description: string; bonusXp: number }[]>()
+      .notNull(),
+    completion: jsonb("completion")
+      .$type<{ completedIds?: string[] }>()
+      .notNull()
+      .default({}),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -490,7 +504,9 @@ export const dimensionScores = cognifyV2Schema.table(
       .references(() => reps.id, { onDelete: "cascade" }),
     dimension: dimensionEnum("dimension").notNull(),
     score: real("score").notNull(),
-    signals: jsonb("signals"),
+    // Provider-specific signal payload (TextSignals + optional prosody).
+    // Loose-typed at the column; consumers (sub-skill mapper) narrow.
+    signals: jsonb("signals").$type<Record<string, unknown>>(),
   },
   (t) => [index("dimension_scores_rep_idx").on(t.repId)],
 );
@@ -541,7 +557,9 @@ export const externalValidations = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
     topic: text("topic").notNull(),
-    repIds: jsonb("rep_ids").notNull(),
+    // Stored as a JSON array of rep UUIDs. Commit 4 migrates this to a
+    // native uuid[] column; until then stay typed at the TS layer.
+    repIds: jsonb("rep_ids").$type<string[]>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     isClosed: boolean("is_closed").notNull().default(false),
@@ -693,7 +711,9 @@ export const activityEvents = cognifyV2Schema.table(
     // Event-shaped payload. For workout_complete: { composite, repsCount,
     // topDimension, score }. For streak_milestone: { days }. For new_high:
     // { dimension, score }. For challenge_win: { opponentName, score }.
-    payload: jsonb("payload").notNull(),
+    // The discriminated ActivityPayload union lives in activity.ts; we keep
+    // the column type loose to avoid a circular import.
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -709,7 +729,9 @@ export const externalRankings = cognifyV2Schema.table(
     validationId: uuid("validation_id")
       .notNull()
       .references(() => externalValidations.id, { onDelete: "cascade" }),
-    ranking: jsonb("ranking").notNull(),
+    // Ordered list of rep UUIDs the ranker chose. Migrated to text[] in
+    // Commit 4; typed at TS layer until then.
+    ranking: jsonb("ranking").$type<string[]>().notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("rankings_validation_idx").on(t.validationId)],
@@ -1026,7 +1048,7 @@ export const scoreCorrections = cognifyV2Schema.table(
     /** confirmed_accurate | should_be_lower | should_be_higher | skipped */
     verdict: text("verdict").notNull(),
     correctedComposite: integer("corrected_composite"),
-    correctedPerDim: jsonb("corrected_per_dim"),
+    correctedPerDim: jsonb("corrected_per_dim").$type<Record<string, number>>(),
     notes: text("notes"),
   },
   (t) => [
@@ -1102,7 +1124,9 @@ export const muscleGroupDays = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     dayDate: date("day_date").notNull(),
     dimension: dimensionEnum("dimension").notNull(),
-    plannedExerciseIds: jsonb("planned_exercise_ids").notNull(),
+    // Stored as JSON array of exercise UUIDs. Commit 4 migrates this to a
+    // native uuid[] column; stay typed at the TS layer in the meantime.
+    plannedExerciseIds: jsonb("planned_exercise_ids").$type<string[]>().notNull(),
     completedReps: integer("completed_reps").notNull().default(0),
     /** planned | in_progress | complete | abandoned | frozen_skip */
     status: text("status").notNull().default("planned"),
@@ -1145,7 +1169,8 @@ export const userNotifications = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     /** freeze_consumed | day_missed | day_complete | day_partial */
     kind: text("kind").notNull(),
-    payload: jsonb("payload").notNull(),
+    // Per-kind payload; narrowed by the consumer in notifications.ts.
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

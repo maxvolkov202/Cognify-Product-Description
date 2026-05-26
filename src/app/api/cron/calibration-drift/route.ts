@@ -107,12 +107,12 @@ export async function GET(req: Request) {
         actualComposite,
         deltaComposite,
         expectedPerDim:
-          (expectedPerDim as unknown as object | null) ?? null,
+          (expectedPerDim as Record<string, number> | null) ?? null,
         actualPerDim:
-          (actualPerDim as unknown as object | null) ?? null,
+          (actualPerDim as Record<string, number> | null) ?? null,
         deltaPerDim:
           Object.keys(deltaPerDim).length > 0
-            ? (deltaPerDim as unknown as object)
+            ? (deltaPerDim as Record<string, number>)
             : null,
         rubricVersion: score.rubricVersion ?? null,
         modelVersion: score.modelVersion ?? null,
@@ -140,7 +140,7 @@ export async function GET(req: Request) {
           actualComposite: null,
           deltaComposite: null,
           expectedPerDim:
-            (rep.expected?.dimensions as unknown as object | null) ?? null,
+            (rep.expected?.dimensions as Record<string, number> | null) ?? null,
           actualPerDim: null,
           deltaPerDim: null,
           rubricVersion: null,

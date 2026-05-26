@@ -167,7 +167,7 @@ export async function insertPendingRep(
         promptText: input.promptText,
         durationMs: input.durationMs,
         audioUrl: input.audioPath,
-        transcript: { text: input.transcript } as unknown as object,
+        transcript: { text: input.transcript },
         topic: input.topic ?? input.promptText,
         status: "pending",
         // Phase 8 — muscle-group context, threaded end-to-end. Nullable
@@ -181,19 +181,19 @@ export async function insertPendingRep(
           ? { isGraduationRep: true }
           : {}),
         frameworkSnapshot: input.framework
-          ? ({
+          ? {
               id: input.framework.id,
               name: input.framework.name,
               description: input.framework.description,
               nodes: input.framework.nodes,
               timeBudgetMs: input.timeBudgetMs,
               words: input.words,
-            } as unknown as object)
+            }
           : input.words || input.timeBudgetMs
-            ? ({
+            ? {
                 timeBudgetMs: input.timeBudgetMs,
                 words: input.words,
-              } as unknown as object)
+              }
             : null,
       })
       .returning({ id: reps.id });
@@ -239,7 +239,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         promptText: input.promptText,
         durationMs: input.durationMs,
         audioUrl: input.audioUrl,
-        transcript: { text: input.transcript } as unknown as object,
+        transcript: { text: input.transcript },
         compositeScore: input.score.composite,
         modelVersion: input.score.modelVersion,
         rubricVersion: input.score.rubricVersion,
@@ -253,11 +253,11 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           ? { isGraduationRep: true }
           : {}),
         frameworkSnapshot: input.framework
-          ? ({
+          ? {
               name: input.framework.name,
               description: input.framework.description,
               nodes: input.framework.nodes,
-            } as unknown as object)
+            }
           : null,
       })
       .returning({ id: reps.id });
@@ -278,7 +278,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           signals: encodeDimensionSignals(
             d.signals,
             d.subSkillScores,
-          ) as unknown as object,
+          ) as Record<string, unknown>,
         })),
       );
       // CTO-scan H8 — when scoring fell into the mock-fallback path
