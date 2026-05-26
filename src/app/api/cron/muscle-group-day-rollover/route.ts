@@ -15,6 +15,7 @@ import { NextResponse } from "next/server";
 import { sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { closeOutDay } from "@/lib/muscle-groups/day-status";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 
@@ -45,9 +46,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
   } else {
-    console.warn(
-      "[cron/muscle-group-day-rollover] CRON_SECRET not set — running without auth (dev only).",
-    );
+    log.warn({
+      event: "cron.muscle_group_day_rollover.no_secret",
+      msg: "CRON_SECRET not set — running without auth (dev only).",
+    });
   }
 
   const url = new URL(req.url);
@@ -141,23 +143,21 @@ export async function GET(req: Request) {
           break;
       }
     } catch (err) {
-      console.error(
-        "[cron/muscle-group-day-rollover] closeOutDay failed",
-        { dayId: row.id, userId: row.user_id },
-        err,
-      );
+      log.error({
+        event: "cron.muscle_group_day_rollover.close_out_failed",
+        dayId: row.id,
+        userId: row.user_id,
+        err: serializeErr(err),
+      });
       stats.errors += 1;
     }
   }
 
-  console.log(
-    JSON.stringify({
-      ts: now.toISOString(),
-      event: "muscle_group_day_rollover.cron",
-      dryRun,
-      ...stats,
-    }),
-  );
+  log.info({
+    event: "cron.muscle_group_day_rollover.done",
+    dryRun,
+    ...stats,
+  });
 
   return NextResponse.json({ ok: true, dryRun, ...stats });
 }

@@ -159,6 +159,12 @@ export const users = cognifyV2Schema.table("users", {
   // or /settings. The daily assignment, streak math, and weakness-day
   // logic all read from this. See src/lib/onboarding/committed-days.ts.
   committedDays: integer("committed_days").notNull().default(31),
+  // Voice is biometric PII under GDPR/CCPA. The audio-retention cron
+  // sweeps reps older than this many days, deletes the blob, and nulls
+  // reps.audio_url + reps.transcript. NULL = user opted out (keep
+  // forever). Default 90 — long enough to revisit recent reps, short
+  // enough to limit storage-leak blast radius.
+  audioRetentionDays: integer("audio_retention_days").default(90),
 });
 
 export const teams = cognifyV2Schema.table("teams", {

@@ -6,6 +6,7 @@ import {
   setUserVertical,
   setUserPersonas,
   setUserImprovementGoals,
+  setUserAudioRetention,
   markUserOnboarded,
 } from "@/lib/db/queries/user";
 import {
@@ -114,6 +115,20 @@ export async function setUserPreferencesAction(input: {
   if (results.some((ok) => !ok)) {
     return { ok: false, error: "db_error" };
   }
+  return { ok: true };
+}
+
+/** Privacy → audio retention. Accepts 30 | 90 | 180 | null (= keep forever). */
+export async function setAudioRetentionAction(
+  days: number | null,
+): Promise<ActionResult> {
+  if (days !== null && !(days === 30 || days === 90 || days === 180)) {
+    return { ok: false, error: "invalid_input" };
+  }
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserAudioRetention(user.id, days);
+  if (!ok) return { ok: false, error: "db_error" };
   return { ok: true };
 }
 

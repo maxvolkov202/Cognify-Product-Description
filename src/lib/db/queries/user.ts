@@ -9,6 +9,14 @@ import type {
   ImprovementGoalId,
 } from "@/lib/onboarding/constants";
 
+export type AudioRetentionDays = 30 | 90 | 180 | null;
+export const AUDIO_RETENTION_OPTIONS: { value: AudioRetentionDays; label: string }[] = [
+  { value: 30, label: "30 days" },
+  { value: 90, label: "90 days" },
+  { value: 180, label: "180 days" },
+  { value: null, label: "Keep forever" },
+];
+
 export type UserProfile = {
   id: string;
   email: string | null;
@@ -36,6 +44,9 @@ export type UserProfile = {
    *  app visit. CTO review B-4 — surfaced here so the dashboard can pass
    *  it to isDateCommitted + todayYmdInTz. */
   tz: string;
+  /** Audio retention window in days; null = keep forever. Default 90.
+   *  Drives the audio-retention cron sweep. */
+  audioRetentionDays: number | null;
 };
 
 // Request-scoped: called by layout, dashboard, workout, settings, and
@@ -67,6 +78,7 @@ export const getUserProfile = cache(async (
       lifetimeReps: row.lifetimeReps ?? 0,
       committedDays: row.committedDays ?? 31,
       tz: row.tz ?? "UTC",
+      audioRetentionDays: row.audioRetentionDays ?? 90,
     };
   }, null);
 });
@@ -99,6 +111,24 @@ export async function setUserImprovementGoals(
     await db
       .update(users)
       .set({ improvementGoals })
+      .where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
+/**
+ * Privacy → audio retention window. NULL means "keep forever" (opt-out).
+ * Positive integer = days. The audio-retention cron reads this column to
+ * decide whose blobs to sweep.
+ */
+export async function setUserAudioRetention(
+  userId: string,
+  days: number | null,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ audioRetentionDays: days })
       .where(eq(users.id, userId));
     return true;
   }, false);

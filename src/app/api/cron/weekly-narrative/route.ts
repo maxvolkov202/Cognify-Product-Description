@@ -6,10 +6,20 @@ import {
   upsertWeeklyReport,
   currentWeekStartIso,
 } from "@/lib/db/queries/weekly-reports";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
+
+// Per-user fanout concurrency. 8 keeps Claude + DB pressure bounded while
+// shrinking wall time roughly 8x vs. the previous serial loop. Audit PR-6
+// flagged this as the next bottleneck past ~150 active users.
+const CONCURRENCY = 8;
+// Per-cron-run cap. The cron has 300s; a single user averages ~2-3s end to
+// end so 400 fits comfortably. Past this we skip and pick up next week —
+// the narrative is informational, not transactional.
+const MAX_USERS_PER_RUN = 400;
 
 /**
  * Weekly narrative cron — GET /api/cron/weekly-narrative
@@ -38,19 +48,26 @@ export async function GET(req: Request) {
   }
 
   const weekStartIso = currentWeekStartIso();
-  const userIds = await getActiveUserIdsForWeeklyReport();
+  const allUserIds = await getActiveUserIdsForWeeklyReport();
+  const userIds = allUserIds.slice(0, MAX_USERS_PER_RUN);
+  const deferred = allUserIds.length - userIds.length;
+
+  log.info({
+    event: "cron.weekly_narrative.start",
+    totalActive: allUserIds.length,
+    processing: userIds.length,
+    deferred,
+    concurrency: CONCURRENCY,
+  });
 
   const results: Array<{ userId: string; status: "ok" | "error"; error?: string }> = [];
-  // Serial iteration keeps Claude + DB pressure low. The cron has a
-  // 300s budget so ~100 users at ~2s each is fine; if the active user
-  // count grows past that we'll batch with p-limit or Queue.
-  for (const userId of userIds) {
+
+  async function processOne(userId: string): Promise<void> {
     try {
       const summary = await getWeeklyRepSummary(userId);
       if (summary.repCount === 0) {
-        // No reps this week — skip to save Claude spend.
         results.push({ userId, status: "ok" });
-        continue;
+        return;
       }
       const narrative = await generateWeeklyNarrative(summary);
       await upsertWeeklyReport({
@@ -61,20 +78,41 @@ export async function GET(req: Request) {
       results.push({ userId, status: "ok" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "unknown";
-      console.error(
-        `[cron/weekly-narrative] user ${userId} failed:`,
-        msg,
-      );
+      log.error({
+        event: "cron.weekly_narrative.user_failed",
+        userId,
+        err: serializeErr(err),
+      });
       results.push({ userId, status: "error", error: msg });
     }
   }
 
+  // Hand-rolled bounded concurrency — N workers pull from a shared cursor.
+  // Avoids a p-limit dep and keeps memory flat regardless of queue size.
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(CONCURRENCY, userIds.length) }, async () => {
+    while (cursor < userIds.length) {
+      const i = cursor++;
+      await processOne(userIds[i]!);
+    }
+  });
+  await Promise.all(workers);
+
   const ok = results.filter((r) => r.status === "ok").length;
   const errors = results.length - ok;
+  log.info({
+    event: "cron.weekly_narrative.done",
+    weekStartIso,
+    totalUsers: results.length,
+    ok,
+    errors,
+    deferred,
+  });
   return NextResponse.json({
     weekStartIso,
     totalUsers: results.length,
     ok,
     errors,
+    deferred,
   });
 }

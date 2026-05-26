@@ -60,6 +60,7 @@ export default async function SettingsPage() {
         initialPersonas={profile?.personas ?? []}
         initialGoals={profile?.improvementGoals ?? []}
         initialCommittedDays={profile?.committedDays ?? undefined}
+        initialAudioRetentionDays={profile?.audioRetentionDays ?? 90}
         userEmail={user.email}
         userKind={user.kind}
       />

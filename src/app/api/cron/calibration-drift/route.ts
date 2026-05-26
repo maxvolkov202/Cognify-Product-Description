@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns } from "@/lib/db/schema";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -126,10 +127,11 @@ export async function GET(req: Request) {
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "unknown";
-      console.error(
-        `[cron/calibration-drift] ref-rep ${rep.id} failed:`,
-        msg,
-      );
+      log.error({
+        event: "cron.calibration_drift.ref_rep_failed",
+        refRepId: rep.id,
+        err: serializeErr(err),
+      });
       try {
         await db.insert(calibrationRuns).values({
           runId,
@@ -147,10 +149,10 @@ export async function GET(req: Request) {
         });
       } catch (writeErr) {
         // Stay quiet — the next nightly run will retry.
-        console.error(
-          `[cron/calibration-drift] failed to record error row:`,
-          writeErr,
-        );
+        log.error({
+          event: "cron.calibration_drift.record_error_row_failed",
+          err: serializeErr(writeErr),
+        });
       }
       results.push({
         refRepId: rep.id,
@@ -194,9 +196,13 @@ export async function GET(req: Request) {
   if (shouldAlert) {
     const webhookUrl = process.env.CALIBRATION_ALERT_WEBHOOK_URL;
     if (!webhookUrl) {
-      console.warn(
-        `[cron/calibration-drift] DRIFT ALERT (no webhook configured): runId=${runId} avg=${avgAbsDelta.toFixed(1)} worst=${worstAbsDelta} fallbacks=${summary.fallbackCount}`,
-      );
+      log.warn({
+        event: "cron.calibration_drift.alert_no_webhook",
+        runId,
+        avgAbsDelta: Number(avgAbsDelta.toFixed(1)),
+        worstAbsDelta,
+        fallbacks: summary.fallbackCount,
+      });
       alertOutcome = "no-webhook";
     } else {
       const top3 = [...results]
@@ -239,16 +245,17 @@ export async function GET(req: Request) {
             .set({ alertSentAt })
             .where(eq(calibrationRuns.runId, runId));
         } else {
-          console.error(
-            `[cron/calibration-drift] alert webhook returned ${alertRes.status}`,
-          );
+          log.error({
+            event: "cron.calibration_drift.alert_http_error",
+            status: alertRes.status,
+          });
           alertOutcome = "failed";
         }
       } catch (err) {
-        console.error(
-          `[cron/calibration-drift] alert webhook error:`,
-          err,
-        );
+        log.error({
+          event: "cron.calibration_drift.alert_webhook_error",
+          err: serializeErr(err),
+        });
         alertOutcome = "failed";
       }
     }

@@ -16,6 +16,10 @@
     {
       "path": "/api/cron/muscle-group-day-rollover",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/audio-retention",
+      "schedule": "30 3 * * *"
     }
   ]
 }

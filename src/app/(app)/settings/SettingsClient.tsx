@@ -21,7 +21,10 @@ import {
   maskToHumanSummary,
   type DayBit,
 } from "@/lib/onboarding/committed-days";
-import { setUserPreferencesAction } from "@/server/actions/onboarding";
+import {
+  setUserPreferencesAction,
+  setAudioRetentionAction,
+} from "@/server/actions/onboarding";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
   sendPasswordResetEmail,
@@ -36,6 +39,7 @@ type Props = {
   initialPersonas: PersonaId[];
   initialGoals: ImprovementGoalId[];
   initialCommittedDays?: number;
+  initialAudioRetentionDays?: number | null;
   userEmail: string | null;
   userKind: "authenticated" | "guest";
 };
@@ -47,6 +51,7 @@ export function SettingsClient({
   initialPersonas,
   initialGoals,
   initialCommittedDays,
+  initialAudioRetentionDays,
   userEmail,
   userKind,
 }: Props) {
@@ -563,6 +568,13 @@ export function SettingsClient({
       {/* ——— Appearance ——————————————————————————— */}
       <ThemeToggle />
 
+      {/* ——— Privacy ————————————————————————————— */}
+      {userKind === "authenticated" && (
+        <PrivacySection
+          initialDays={initialAudioRetentionDays ?? 90}
+        />
+      )}
+
       {/* ——— Notifications ——————————————————————— */}
       <NotificationsSection />
 
@@ -638,6 +650,87 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
   if (a.size !== b.size) return false;
   for (const v of a) if (!b.has(v)) return false;
   return true;
+}
+
+function PrivacySection({ initialDays }: { initialDays: number | null }) {
+  const [days, setDays] = useState<number | null>(initialDays);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  async function onChange(next: number | null) {
+    setDays(next);
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await setAudioRetentionAction(next);
+      if (!res.ok) {
+        setError("Couldn't save. Try again.");
+        return;
+      }
+      setSavedAt(Date.now());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const justSaved = savedAt && Date.now() - savedAt < 4000;
+
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900 dark:text-white">
+              Privacy
+            </h2>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Voice recordings are biometric data. Choose how long we keep
+              your rep audio before it&rsquo;s auto-deleted from our storage.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5">
+          <label
+            htmlFor="audio-retention-select"
+            className="text-xs font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400"
+          >
+            Audio retention
+          </label>
+          <select
+            id="audio-retention-select"
+            value={days === null ? "forever" : String(days)}
+            onChange={(e) => {
+              const v = e.target.value;
+              onChange(v === "forever" ? null : Number(v));
+            }}
+            disabled={saving}
+            className="mt-2 w-full max-w-xs rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-semibold text-ink-900 disabled:opacity-50 dark:border-ink-700 dark:bg-ink-900 dark:text-white"
+          >
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+            <option value="forever">Keep forever</option>
+          </select>
+          <p className="mt-2 text-[11px] text-ink-500 dark:text-ink-400">
+            Transcripts are deleted alongside the audio. Composite scores and
+            framework analyses are kept indefinitely.
+          </p>
+          {error && (
+            <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
+              {error}
+            </p>
+          )}
+          {justSaved && !error && (
+            <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              Saved.
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function NotificationsSection() {

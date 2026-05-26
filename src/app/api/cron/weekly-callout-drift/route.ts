@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calloutDriftReports } from "@/lib/db/schema";
+import { log, serializeErr } from "@/lib/log";
 
 /**
  * Phase 7 — weekly callout-drift detection cron.
@@ -51,9 +52,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
   } else {
-    console.warn(
-      "[cron/weekly-callout-drift] CRON_SECRET not set — running without auth (dev only).",
-    );
+    log.warn({
+      event: "cron.weekly_callout_drift.no_secret",
+      msg: "CRON_SECRET not set — running without auth (dev only).",
+    });
   }
 
   const now = new Date();
@@ -182,7 +184,10 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[cron/weekly-callout-drift] failed:", msg);
+    log.error({
+      event: "cron.weekly_callout_drift.failed",
+      err: serializeErr(err),
+    });
     return NextResponse.json(
       { ok: false, error: msg.slice(0, 500) },
       { status: 500 },
