@@ -322,8 +322,15 @@ export async function getMuscleGroupComparison(
       return out;
     }
 
-    const todayPerDim = await dimAvgsFor(currentDay.id);
-    const lastPerDim = previousDay ? await dimAvgsFor(previousDay.id) : {};
+    // Two independent SELECTs — parallelize (audit IN-2). Previously
+    // serial waits made the day-complete summary's perceived latency
+    // ~2x the underlying SQL cost.
+    const [todayPerDim, lastPerDim] = await Promise.all([
+      dimAvgsFor(currentDay.id),
+      previousDay
+        ? dimAvgsFor(previousDay.id)
+        : Promise.resolve({} as Partial<Record<string, number>>),
+    ]);
     const deltaPerDim: Partial<Record<string, number>> = {};
     for (const d of Object.keys(todayPerDim)) {
       if (lastPerDim[d] != null) {

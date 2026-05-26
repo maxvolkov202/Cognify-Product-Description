@@ -88,17 +88,24 @@ export function RepFrameworkStrip({
     // intentionally only on mount + when key/framework structure changes
   }, [allowNotes, notesKey, framework.sections.length]);
 
-  // Auto-save on change.
+  // Debounced auto-save. Pre-fix every keystroke synchronously
+  // JSON.stringified the notes array + hit localStorage (audit IN-4 /
+  // prior CTO S-6). 300ms is the sweet spot: long enough to coalesce
+  // a typing burst, short enough that a quick close of the screen
+  // doesn't lose the draft.
   useEffect(() => {
     if (!allowNotes || !notesKey || typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(
-        `cognify.rep-notes.${notesKey}`,
-        JSON.stringify(notes),
-      );
-    } catch {
-      /* quota or disabled storage — ignore */
-    }
+    const t = setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          `cognify.rep-notes.${notesKey}`,
+          JSON.stringify(notes),
+        );
+      } catch {
+        /* quota or disabled storage — ignore */
+      }
+    }, 300);
+    return () => clearTimeout(t);
   }, [allowNotes, notesKey, notes]);
 
   if (!expanded) {

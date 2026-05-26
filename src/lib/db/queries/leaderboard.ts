@@ -299,9 +299,13 @@ export async function getLeaderboard(opts: {
       if (selfRow) userIdsForExtras.push(userId);
     }
 
+    // Compute streaks + deltas once over the FULL user set so the
+    // top-N table and the global topStreak/biggestClimb callouts both
+    // reuse the same maps (audit PR-9 — was recomputing each twice).
+    const allUserIds = aggregateRows.map((r) => r.userId);
     const [streaks, deltas, teamLabels] = await Promise.all([
-      computeSimpleStreaks(userIdsForExtras),
-      computeDeltas(userIdsForExtras),
+      computeSimpleStreaks(allUserIds),
+      computeDeltas(allUserIds),
       resolveTeamLabels(userIdsForExtras),
     ]);
 
@@ -339,12 +343,10 @@ export async function getLeaderboard(opts: {
 
     // Longest streak — across all users in scope (not just top N) so the
     // callout accurately reflects who's training most consistently.
-    const streakContenders = await computeSimpleStreaks(
-      aggregateRows.map((r) => r.userId),
-    );
+    // Reuses `streaks` computed above; no second roundtrip.
     let topStreak: LeaderboardBoard["topStreak"] = null;
     for (const r of aggregateRows) {
-      const s = streakContenders.get(r.userId) ?? 0;
+      const s = streaks.get(r.userId) ?? 0;
       if (!topStreak || s > topStreak.streak) {
         if (s <= 0) continue;
         topStreak = {
@@ -357,13 +359,10 @@ export async function getLeaderboard(opts: {
       }
     }
 
-    // Biggest climb — largest positive delta in scope.
-    const climbContenders = await computeDeltas(
-      aggregateRows.map((r) => r.userId),
-    );
+    // Biggest climb — reuses `deltas` for the same reason.
     let biggestClimb: LeaderboardBoard["biggestClimb"] = null;
     for (const r of aggregateRows) {
-      const d = climbContenders.get(r.userId) ?? 0;
+      const d = deltas.get(r.userId) ?? 0;
       if (d <= 0) continue;
       if (!biggestClimb || d > biggestClimb.delta) {
         biggestClimb = {

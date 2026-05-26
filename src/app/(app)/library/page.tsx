@@ -210,26 +210,33 @@ function thumbnailFor(url: string): string | null {
   return null;
 }
 
-export default async function LibraryPage() {
-  // Resolve all OG images in parallel for cards that aren't already a known
-  // video thumbnail. The fetch results are cached at the data layer so this
-  // is fast on subsequent renders.
+// Module-scope memo for the 15-item OG-image fetch. The SECTIONS array
+// is static, so the result is stable for the process lifetime; promise-
+// caching here means /library only pays the 15 fetches on the first
+// render after a deploy (audit PR-12 follow-up).
+let ogMapPromise: Promise<Map<string, string | null>> | null = null;
+function buildOgMap(): Promise<Map<string, string | null>> {
+  if (ogMapPromise) return ogMapPromise;
   const allItems = SECTIONS.flatMap((s) =>
     s.items.map((it) => ({ url: it.url, sectionId: s.id })),
   );
-  // allSettled so a single failing OG fetch doesn't crash the page render.
-  const ogSettled = await Promise.allSettled(
+  ogMapPromise = Promise.allSettled(
     allItems.map(async (it) => {
       if (thumbnailFor(it.url)) return [it.url, null] as const;
       return [it.url, await getOgImageUrl(it.url)] as const;
     }),
-  );
-  const ogMap = new Map<string, string | null>();
-  for (const r of ogSettled) {
-    if (r.status === "fulfilled") {
-      ogMap.set(r.value[0], r.value[1]);
+  ).then((settled) => {
+    const out = new Map<string, string | null>();
+    for (const r of settled) {
+      if (r.status === "fulfilled") out.set(r.value[0], r.value[1]);
     }
-  }
+    return out;
+  });
+  return ogMapPromise;
+}
+
+export default async function LibraryPage() {
+  const ogMap = await buildOgMap();
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
