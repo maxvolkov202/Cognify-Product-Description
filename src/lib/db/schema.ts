@@ -111,6 +111,10 @@ export const users = cognifyV2Schema.table("users", {
   // each Supabase auth user maps to exactly one cognify user (guest promotion
   // flow updates the existing guest row rather than creating a duplicate).
   authUserId: uuid("auth_user_id").unique(),
+  // DB-side this is `citext` (migration 0027) so comparisons are
+  // case-insensitive. drizzle doesn't have first-class citext support;
+  // we keep the column as text in TS — the case-insensitivity is
+  // enforced by the column type itself.
   email: text("email").unique(),
   name: text("name"),
   image: text("image"),
@@ -619,6 +623,7 @@ export const crewInvites = cognifyV2Schema.table(
     inviterId: uuid("inviter_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // DB-side citext (migration 0027) — case-insensitive lookups.
     email: text("email").notNull(),
     token: text("token").notNull().unique(),
     status: text("status").notNull().default("pending"),
