@@ -122,10 +122,12 @@ export const users = cognifyV2Schema.table("users", {
   tutorialSeenAt: timestamp("tutorial_seen_at", { withTimezone: true }),
   isOperator: boolean("is_operator").notNull().default(false),
   /** The user's baseline rep — their first-ever 60-second self-introduction.
-   *  Referenced by dashboard + /progress to show how far they've come. Not a
-   *  foreign key (FK would require rep.id to be stable pre-insert) — stored
-   *  as uuid and joined on read. */
-  baselineRepId: uuid("baseline_rep_id"),
+   *  Referenced by dashboard + /progress to show how far they've come.
+   *  FK with ON DELETE SET NULL added in migration 0026; dashboard
+   *  handles a null baseline cleanly. */
+  baselineRepId: uuid("baseline_rep_id").references((): AnyPgColumn => reps.id, {
+    onDelete: "set null",
+  }),
   // WS-7 habit system — streak freezes earned + spent. Earned after
   // every completed 7-day streak; consumed when a day is missed. Cap at
   // 3 freezes stored.
@@ -355,7 +357,9 @@ export const promptEngagement = cognifyV2Schema.table(
 export const leagueMembership = cognifyV2Schema.table(
   "league_membership",
   {
-    userId: uuid("user_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     weekStart: date("week_start").notNull(),
     tier: text("tier").notNull(),
     leagueId: uuid("league_id").notNull(),
@@ -420,7 +424,9 @@ export const calibrationRuns = cognifyV2Schema.table(
 export const dailyQuests = cognifyV2Schema.table(
   "daily_quests",
   {
-    userId: uuid("user_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     questDate: date("quest_date").notNull(),
     // Stored shape of a daily quest — the `check` callback from
     // src/lib/engagement/quests.ts is intentionally stripped at insert
@@ -490,8 +496,10 @@ export const userPromptHistory = cognifyV2Schema.table(
     seenCount: integer("seen_count").notNull().default(1),
   },
   (t) => [
+    // PK leading column (userId) already covers point-lookup by userId.
+    // The dedicated user_prompt_history_user_idx was redundant; dropped
+    // in migration 0026.
     primaryKey({ columns: [t.userId, t.promptId] }),
-    index("user_prompt_history_user_idx").on(t.userId),
   ],
 );
 
@@ -557,9 +565,8 @@ export const externalValidations = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
     topic: text("topic").notNull(),
-    // Stored as a JSON array of rep UUIDs. Commit 4 migrates this to a
-    // native uuid[] column; until then stay typed at the TS layer.
-    repIds: jsonb("rep_ids").$type<string[]>().notNull(),
+    // Migrated to native uuid[] in migration 0026 (was jsonb).
+    repIds: uuid("rep_ids").array().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     isClosed: boolean("is_closed").notNull().default(false),
@@ -729,9 +736,9 @@ export const externalRankings = cognifyV2Schema.table(
     validationId: uuid("validation_id")
       .notNull()
       .references(() => externalValidations.id, { onDelete: "cascade" }),
-    // Ordered list of rep UUIDs the ranker chose. Migrated to text[] in
-    // Commit 4; typed at TS layer until then.
-    ranking: jsonb("ranking").$type<string[]>().notNull(),
+    // Migrated to native text[] in migration 0026 (was jsonb). Stores
+    // rep UUIDs but kept text[] to allow future shape evolution.
+    ranking: text("ranking").array().notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("rankings_validation_idx").on(t.validationId)],
@@ -777,7 +784,9 @@ export const personalBests = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     dimension: dimensionEnum("dimension").notNull(),
     score: real("score").notNull(),
-    repId: uuid("rep_id").notNull(),
+    repId: uuid("rep_id")
+      .notNull()
+      .references((): AnyPgColumn => reps.id, { onDelete: "cascade" }),
     achievedAt: timestamp("achieved_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -798,7 +807,8 @@ export const bugReports = cognifyV2Schema.table(
       onDelete: "set null",
     }),
     description: text("description").notNull(),
-    imagePaths: jsonb("image_paths").$type<string[]>().notNull().default([]),
+    // Migrated to native text[] in migration 0026 (was jsonb).
+    imagePaths: text("image_paths").array().notNull().default([]),
     userAgent: text("user_agent"),
     route: text("route"),
     status: bugStatusEnum("status").notNull().default("open"),
@@ -914,10 +924,12 @@ export const referenceReps = cognifyV2Schema.table(
   "reference_reps",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** Optional FK-like reference to the originating rep when promoted
-     *  from a real production rep. NULL for hand-crafted seed entries
-     *  from reference-reps.json. */
-    sourceRepId: uuid("source_rep_id"),
+    /** Optional FK to the originating rep when promoted from a real
+     *  production rep. NULL for hand-crafted seed entries from
+     *  reference-reps.json. */
+    sourceRepId: uuid("source_rep_id").references((): AnyPgColumn => reps.id, {
+      onDelete: "set null",
+    }),
     /** Stable identifier from the seed file (e.g. "band-strong-clean-pitch")
      *  OR autogenerated UUID slug for promoted reps. Used for upsert
      *  idempotency. */
@@ -948,7 +960,12 @@ export const referenceReps = cognifyV2Schema.table(
     promotedBy: uuid("promoted_by"),
     notes: text("notes"),
   },
-  (t) => [index("reference_reps_ref_idx").on(t.refId)],
+  (t) => [
+    index("reference_reps_ref_idx").on(t.refId),
+    // Reverse lookup: "which ref-rep was promoted from this rep?" Added
+    // in 0026 alongside the source_rep_id FK.
+    index("reference_reps_source_rep_idx").on(t.sourceRepId),
+  ],
 );
 
 /**
@@ -976,9 +993,14 @@ export const scoringTelemetry = cognifyV2Schema.table(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     // Nullable — /api/score (sync user-facing path) doesn't know repId at
-    // scoring time; only /api/score-internal does.
-    repId: uuid("rep_id"),
-    userId: uuid("user_id"),
+    // scoring time; only /api/score-internal does. ON DELETE SET NULL so
+    // analytics history survives a user purge.
+    repId: uuid("rep_id").references((): AnyPgColumn => reps.id, {
+      onDelete: "set null",
+    }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     // Which endpoint wrote this row.
     source: text("source").notNull(), // 'api_score' | 'api_score_internal'
     // Final model that actually returned content. On fallback this is
@@ -1020,6 +1042,9 @@ export const scoringTelemetry = cognifyV2Schema.table(
     index("scoring_telemetry_model_idx").on(t.modelUsed),
     index("scoring_telemetry_exercise_idx").on(t.exerciseId, t.createdAt),
     index("scoring_telemetry_mgd_idx").on(t.muscleGroupDayId, t.createdAt),
+    // Per-rep drilldown — added in 0026 as a partial index since rep_id
+    // is often NULL on the sync /api/score path.
+    index("scoring_telemetry_rep_idx").on(t.repId),
   ],
 );
 
@@ -1112,6 +1137,12 @@ export const exercisePrompts = cognifyV2Schema.table(
   },
   (t) => [
     index("exercise_prompts_exercise_active_idx").on(t.exerciseId, t.isActive),
+    // Composite index added in 0026 — ops scans filter on dim/active/difficulty.
+    index("exercise_prompts_dim_active_diff_idx").on(
+      t.exerciseId,
+      t.isActive,
+      t.difficulty,
+    ),
   ],
 );
 
@@ -1124,9 +1155,8 @@ export const muscleGroupDays = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     dayDate: date("day_date").notNull(),
     dimension: dimensionEnum("dimension").notNull(),
-    // Stored as JSON array of exercise UUIDs. Commit 4 migrates this to a
-    // native uuid[] column; stay typed at the TS layer in the meantime.
-    plannedExerciseIds: jsonb("planned_exercise_ids").$type<string[]>().notNull(),
+    // Migrated to native uuid[] in migration 0026 (was jsonb).
+    plannedExerciseIds: uuid("planned_exercise_ids").array().notNull(),
     completedReps: integer("completed_reps").notNull().default(0),
     /** planned | in_progress | complete | abandoned | frozen_skip */
     status: text("status").notNull().default("planned"),
