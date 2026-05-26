@@ -15,7 +15,9 @@
         { "text": "Explain to a pre-op patient what general anesthesia actually does.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
         { "text": "Explain to a worried spouse what a stroke code means in plain words.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
         { "text": "Explain to a discharge patient what afib is and why warfarin matters.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
-        { "text": "Explain to a family what brain death means before the apnea test.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] }
+        { "text": "Explain to a family what brain death means before the apnea test.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Tell the story of the last patient whose family really got what was happening — what made the explanation land?", "difficulty": "intro", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk a new resident through how you'd narrate a code blue to the patient's wife after — in a way she'd remember tomorrow.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "storytelling"] }
       ]
     },
     {
@@ -47,7 +49,9 @@
         { "text": "Explain to a patient how immunotherapy is different from chemo.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
         { "text": "Explain to a teen patient how ADHD meds work in their brain.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
         { "text": "Explain to a family how a coma is different from sleep.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
-        { "text": "Explain to a hesitant patient what a port-a-cath is and why it beats daily IVs.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+        { "text": "Explain to a hesitant patient what a port-a-cath is and why it beats daily IVs.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
+        { "text": "A scared parent in the ED interrupts: 'just tell me — is it meningitis?' Bridge the labs into an analogy on the spot.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "thinking_on_the_spot"] },
+        { "text": "Mid-rounds the attending asks: 'How would you explain why we're holding pressors?' Build an analogy without preamble.", "difficulty": "core", "tags": ["healthcare", "peer", "thinking_on_the_spot"] }
       ]
     },
     {
