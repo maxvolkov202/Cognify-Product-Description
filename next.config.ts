@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 
-// CSP — shipping in Report-Only mode first so we get violation telemetry
-// from a preview deploy before flipping to enforcement. If a needed origin
-// is missing here, Report-Only just logs to the browser console; nothing
-// breaks. Once 24h of preview shows no missing origins, swap the header
-// key from Content-Security-Policy-Report-Only → Content-Security-Policy.
+// CSP — now ENFORCING. Shipped initially as -Report-Only to surface
+// any missing-origin violations from a preview deploy without breaking
+// the page; with the allowlist below stable, the header key is the
+// enforcing form. If a new third-party origin gets added, expect a
+// console block + a CSP violation report — extend connect-src/img-src
+// as needed and re-deploy.
 const CSP_DIRECTIVES = [
   "default-src 'self'",
   // 'unsafe-inline' + 'unsafe-eval' on script-src are required for Next's
@@ -56,10 +57,12 @@ const config: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          // Report-Only first. Flip the header key to drop the suffix
-          // once a preview deploy shows no violations.
+          // Enforcing CSP. If a deploy regression introduces a new
+          // third-party origin, the browser console will block it and
+          // log a CSP violation — fix the allowlist in CSP_DIRECTIVES
+          // and ship a patch.
           {
-            key: "Content-Security-Policy-Report-Only",
+            key: "Content-Security-Policy",
             value: CSP_DIRECTIVES,
           },
         ],
