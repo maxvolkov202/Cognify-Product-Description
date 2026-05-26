@@ -85,10 +85,7 @@ export function InstallPrompt({
     // "Add to Home Screen" nudge if the rep gate is passed.
     const ua = window.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !("MSStream" in window);
-    const isStandalone =
-      "standalone" in window.navigator &&
-      (window.navigator as unknown as { standalone?: boolean }).standalone ===
-        true;
+    const isStandalone = window.navigator.standalone === true;
     if (isIOS && !isStandalone && checkGate()) {
       setIosFallback(true);
       setVisible(true);

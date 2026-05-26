@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { LogOut, User, Activity, LifeBuoy } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -94,13 +95,20 @@ function Avatar({
   size?: "sm" | "lg";
 }) {
   const dimension = size === "sm" ? "size-7" : "size-12";
+  const pixels = size === "sm" ? 28 : 48;
   if (image) {
+    // OAuth avatar — Google/etc remote hosts. unoptimized so next/image
+    // doesn't try to proxy through the optimizer (and so we don't have
+    // to whitelist every provider host in next.config.ts).
     return (
-      <img
+      <Image
         src={image}
         alt={name}
-        className={`${dimension} rounded-full object-cover`}
+        width={pixels}
+        height={pixels}
+        unoptimized
         referrerPolicy="no-referrer"
+        className={`${dimension} rounded-full object-cover`}
       />
     );
   }
