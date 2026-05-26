@@ -77,10 +77,16 @@ const config: NextConfig = {
 // Phase D — Serwist PWA service worker. Disabled in dev so HMR isn't
 // fighting a cached bundle. Builds emit public/sw.js on production
 // builds; ServiceWorkerRegister.tsx registers it client-side.
+//
+// cacheOnNavigation: turned OFF (audit PR-23). When true, the SW
+// caches HTML navigations and could serve a signed-in shell to a
+// just-signed-out user for one nav cycle. The PWA still works
+// offline for static assets + already-loaded routes via the
+// runtime cache; only the HTML shell now always re-fetches.
 const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
-  cacheOnNavigation: true,
+  cacheOnNavigation: false,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
 });
