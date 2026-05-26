@@ -13,6 +13,7 @@ import {
 import { count, eq, asc, sql } from "drizzle-orm";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import { log } from "@/lib/log";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
 import { getStreakDays } from "@/lib/db/queries/progress";
 import { recordPersonalBests } from "@/lib/db/queries/personal-bests";
@@ -314,9 +315,11 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           });
         }
       } else {
-        console.warn(
-          `[saveRep] rep ${repId} scored via mock-fallback path; progressSnapshots + personalBests SKIPPED (CTO-scan H8).`,
-        );
+        log.warn({
+          event: "save_rep.mock_fallback",
+          repId,
+          msg: "progressSnapshots + personalBests skipped",
+        });
       }
     }
 

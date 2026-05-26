@@ -21,6 +21,7 @@ import {
   getUserCalibrationProfile,
   renderCalibrationForPrompt,
 } from "@/lib/db/queries/calibration";
+import { log, serializeErr } from "@/lib/log";
 
 /**
  * Pull the current user's id + calibration block in a single shot.
@@ -256,7 +257,11 @@ function buildFallbackScore(
   // Server-side log keeps the full error for debugging; user-visible
   // callout is consumer-neutral — never reference billing/credits/tokens
   // in copy that ships to end users.
-  console.error(`[score] mock fallback triggered (${failureReason}):`, errorMsg);
+  log.error({
+    event: "score.mock_fallback",
+    failureReason,
+    errorMsg,
+  });
   const copy = fallbackCalloutCopy(failureReason, hasWords);
   const callouts: Callout[] = [
     {
@@ -455,10 +460,11 @@ export async function POST(req: Request) {
     // (deterministic). Only the LLM-scored dimensions are mocked.
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     const failureReason = categorizeFailure(error);
-    console.error(
-      `[api/score] scoring failed (${failureReason}), returning fallback mock score:`,
-      errorMsg,
-    );
+    log.error({
+      event: "score.scoring_failed",
+      failureReason,
+      err: serializeErr(error),
+    });
     const fallback = buildFallbackScore(body, errorMsg, failureReason);
 
     // Phase 0 — categorize the failure so /api/score/health/stats can

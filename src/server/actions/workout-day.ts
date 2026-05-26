@@ -25,6 +25,7 @@ import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { todayYmdInTz } from "@/lib/time/user-day";
+import { log } from "@/lib/log";
 import {
   MUSCLE_GROUP_IDS,
   type MuscleGroupId,
@@ -56,15 +57,10 @@ async function todayDateForUser(userId: string): Promise<string> {
 }
 
 function logEvent(event: string, payload: Record<string, unknown>): void {
-  // Lightweight structured log; ops dashboards parse these. Existing
-  // pattern across this codebase (cf. /ops/scoring telemetry queries).
-  console.log(
-    JSON.stringify({
-      ts: new Date().toISOString(),
-      event,
-      ...payload,
-    }),
-  );
+  // Lightweight wrapper around the structured logger so dashboards
+  // can drop the legacy "event":"..." parse pattern in favor of the
+  // central log helper.
+  log.info({ event, ...payload });
 }
 
 // ─── World-state fetchers ────────────────────────────────────────────────

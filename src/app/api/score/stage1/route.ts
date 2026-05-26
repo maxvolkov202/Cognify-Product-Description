@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/queries/calibration";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
+import { log, serializeErr } from "@/lib/log";
 
 /**
  * Phase 5 (progressive UI surface) — Stage 1 of two-stage scoring.
@@ -186,10 +187,11 @@ export async function POST(req: Request) {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     const failureReason = categorizeFailure(error);
-    console.error(
-      `[api/score/stage1] failed (${failureReason}):`,
-      errorMsg,
-    );
+    log.error({
+      event: "score.stage1.failed",
+      failureReason,
+      err: serializeErr(error),
+    });
 
     void writeScoringTelemetry({
       source: "api_score_stage1",

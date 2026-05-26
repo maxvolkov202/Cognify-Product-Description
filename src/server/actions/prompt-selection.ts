@@ -21,6 +21,7 @@ import {
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import { log, serializeErr } from "@/lib/log";
 import { pickPromptCandidates } from "@/server/lib/workout/assignment";
 
 export type PromptCandidate = {
@@ -153,15 +154,12 @@ export async function fetchPromptCandidates(input: {
         // Bias signals are nice-to-have. If the queries fail (rare —
         // network blip, query timeout) the picker still hands the user a
         // fresh shuffle from the bank instead of crashing.
-        console.warn(
-          JSON.stringify({
-            event: "prompt_selection.bias_signal_failed",
-            ts: new Date().toISOString(),
-            userId,
-            exerciseId: input.exerciseId,
-            error: err instanceof Error ? err.message : String(err),
-          }),
-        );
+        log.warn({
+          event: "prompt_selection.bias_signal_failed",
+          userId,
+          exerciseId: input.exerciseId,
+          err: serializeErr(err),
+        });
       }
     }
 
@@ -256,16 +254,13 @@ export async function fetchPromptCandidates(input: {
       try {
         rows = await selectBank(tier.filter);
       } catch (err) {
-        console.warn(
-          JSON.stringify({
-            event: "prompt_selection.tier_query_failed",
-            ts: new Date().toISOString(),
-            userId,
-            exerciseId: input.exerciseId,
-            tier: tier.label,
-            error: err instanceof Error ? err.message : String(err),
-          }),
-        );
+        log.warn({
+          event: "prompt_selection.tier_query_failed",
+          userId,
+          exerciseId: input.exerciseId,
+          tier: tier.label,
+          err: serializeErr(err),
+        });
         continue;
       }
       if (rows.length >= MIN_BANK_SIZE) {
@@ -281,18 +276,15 @@ export async function fetchPromptCandidates(input: {
       }
     }
     if (bankTier !== "vertical+goal" && tiers.length > 1) {
-      console.log(
-        JSON.stringify({
-          event: "prompt_selection.bank_tier",
-          ts: new Date().toISOString(),
-          userId,
-          exerciseId: input.exerciseId,
-          tier: bankTier,
-          size: bankRows.length,
-          vertical: userVertical,
-          goals: userGoals,
-        }),
-      );
+      log.info({
+        event: "prompt_selection.bank_tier",
+        userId,
+        exerciseId: input.exerciseId,
+        tier: bankTier,
+        size: bankRows.length,
+        vertical: userVertical,
+        goals: userGoals,
+      });
     }
 
     const preferEasier =

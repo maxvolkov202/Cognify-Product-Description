@@ -8,6 +8,7 @@ import {
 import { hasAnthropic } from "@/lib/db/safe";
 import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
+import { log, serializeErr } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,10 @@ export async function POST(request: Request) {
     // generateTalkingPoints itself has a try/catch that returns
     // defaultTalkingPoints on failure, so this should be unreachable.
     // Keep as a safety net.
-    console.error("[api/talking-points] unexpected error", err);
+    log.error({
+      event: "talking_points.unexpected",
+      err: serializeErr(err),
+    });
     return NextResponse.json(defaultTalkingPoints());
   }
 }

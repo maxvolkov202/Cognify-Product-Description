@@ -8,6 +8,7 @@ import {
   currentWeekStartIso,
 } from "@/lib/db/queries/weekly-reports";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -68,8 +69,10 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ summary, narrative });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[api/weekly-narrative] generation failed:", message);
+    log.error({
+      event: "weekly_narrative.generation_failed",
+      err: serializeErr(err),
+    });
     return NextResponse.json({
       summary,
       narrative: {

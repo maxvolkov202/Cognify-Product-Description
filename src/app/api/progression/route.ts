@@ -8,6 +8,7 @@ import {
 import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
 import { shouldHardFailOnMissingKey, warnMissingKey } from "@/lib/env";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 25;
@@ -95,9 +96,10 @@ export async function POST(req: Request) {
 
   if (!process.env.ANTHROPIC_API_KEY) {
     if (shouldHardFailOnMissingKey()) {
-      console.error(
-        "[progression] ANTHROPIC_API_KEY missing in production. Progression is a core feature — set the key and redeploy.",
-      );
+      log.error({
+        event: "progression.missing_key",
+        msg: "ANTHROPIC_API_KEY missing in production",
+      });
       return NextResponse.json(
         {
           error: "missing_key",
@@ -115,8 +117,10 @@ export async function POST(req: Request) {
     const result = await analyzeProgression(input);
     return NextResponse.json(result);
   } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    console.error("[progression] Claude call failed, falling back:", detail);
+    log.error({
+      event: "progression.claude_failed",
+      err: serializeErr(err),
+    });
     return NextResponse.json(fallbackProgression(input));
   }
 }

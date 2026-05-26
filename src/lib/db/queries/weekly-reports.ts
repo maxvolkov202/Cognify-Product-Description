@@ -6,6 +6,7 @@ import {
   WeeklyNarrativeSchema,
   type WeeklyNarrative,
 } from "@/lib/ai/weekly-summary";
+import { log } from "@/lib/log";
 
 /**
  * Cross-session cache for the Claude-generated weekly coaching narrative.
@@ -36,14 +37,12 @@ export async function getWeeklyReportForWeek(
     if (!row) return null;
     const parsed = WeeklyNarrativeSchema.safeParse(row.narrative);
     if (!parsed.success) {
-      console.warn(
-        JSON.stringify({
-          event: "weekly_reports.narrative_invalid",
-          userId,
-          weekStartIso,
-          issues: parsed.error.issues.map((i) => i.message),
-        }),
-      );
+      log.warn({
+        event: "weekly_reports.narrative_invalid",
+        userId,
+        weekStartIso,
+        issues: parsed.error.issues.map((i) => i.message),
+      });
       return null;
     }
     return { narrative: parsed.data, generatedAt: row.generatedAt };

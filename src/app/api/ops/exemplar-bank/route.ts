@@ -4,6 +4,7 @@ import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 import { promoteRepToExemplar } from "@/lib/db/queries/exemplar-bank";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -67,7 +68,10 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "promotion_failed";
-    console.error("[api/ops/exemplar-bank] promote failed:", msg);
+    log.error({
+      event: "ops.exemplar_bank.promote_failed",
+      err: serializeErr(err),
+    });
     return NextResponse.json(
       { error: "promotion_failed", message: msg.slice(0, 500) },
       { status: 500 },

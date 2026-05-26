@@ -18,6 +18,7 @@ import {
   resolveFallbackReason,
 } from "@/lib/scoring/telemetry";
 import type { SkillDimension } from "@/types/domain";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -193,9 +194,11 @@ export async function POST(req: Request) {
     });
 
     if (isMockFallback) {
-      console.warn(
-        `[api/score-internal] rep ${body.repId} scored via mock-fallback path; progressSnapshots write SKIPPED to keep running averages clean (CTO-scan H8).`,
-      );
+      log.warn({
+        event: "score_internal.mock_fallback",
+        repId: body.repId,
+        msg: "progressSnapshots write skipped",
+      });
     }
 
     // Phase 0 — happy-path telemetry. score-internal always has repId
@@ -224,7 +227,11 @@ export async function POST(req: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "scoring_failed";
     const failureReason = categorizeFailure(error);
-    console.error(`[api/score-internal] failed (${failureReason}):`, message);
+    log.error({
+      event: "score_internal.failed",
+      failureReason,
+      err: serializeErr(error),
+    });
 
     // Phase 0 — failure-path telemetry. Best-effort attribution: we may
     // or may not have repId in scope depending on which try-block step

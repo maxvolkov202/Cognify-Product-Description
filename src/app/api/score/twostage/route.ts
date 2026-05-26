@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/queries/calibration";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
+import { log, serializeErr } from "@/lib/log";
 
 /**
  * Phase 5 — two-stage scoring endpoint. Same input/output as /api/score
@@ -169,10 +170,11 @@ export async function POST(req: Request) {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     const failureReason = categorizeFailure(error);
-    console.error(
-      `[api/score/twostage] scoring failed (${failureReason}):`,
-      errorMsg,
-    );
+    log.error({
+      event: "score.twostage.failed",
+      failureReason,
+      err: serializeErr(error),
+    });
 
     void writeScoringTelemetry({
       source: "api_score",

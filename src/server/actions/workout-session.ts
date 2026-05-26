@@ -16,6 +16,7 @@ import {
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { SessionPhaseSchema, type SessionPhase } from "@/lib/workout/types";
+import { log, serializeErr } from "@/lib/log";
 
 // ─── Auth/ownership helpers ──────────────────────────────────────────────
 
@@ -112,12 +113,10 @@ export async function updateWorkoutSessionState(
     // The client treats { persisted: false } as a hint to refetch — same
     // shape as a DB outage.
     if (err instanceof OwnershipError || err instanceof z.ZodError) {
-      console.warn(
-        JSON.stringify({
-          event: "workout_session.update_state.rejected",
-          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
-        }),
-      );
+      log.warn({
+        event: "workout_session.update_state.rejected",
+        reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+      });
       return { persisted: false };
     }
     throw err;
@@ -222,12 +221,10 @@ export async function completeWorkoutSession(
     }, { persisted: false });
   } catch (err) {
     if (err instanceof OwnershipError || err instanceof z.ZodError) {
-      console.warn(
-        JSON.stringify({
-          event: "workout_session.complete.rejected",
-          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
-        }),
-      );
+      log.warn({
+        event: "workout_session.complete.rejected",
+        reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+      });
       return { persisted: false };
     }
     throw err;
@@ -271,12 +268,10 @@ export async function recordGraduationRep(
     }, { persisted: false });
   } catch (err) {
     if (err instanceof OwnershipError || err instanceof z.ZodError) {
-      console.warn(
-        JSON.stringify({
-          event: "workout_session.graduation.rejected",
-          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
-        }),
-      );
+      log.warn({
+        event: "workout_session.graduation.rejected",
+        reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+      });
       return { persisted: false };
     }
     throw err;
@@ -362,13 +357,11 @@ export async function tagWorkoutRep(
     ]);
   } catch (err) {
     if (err instanceof OwnershipError || err instanceof z.ZodError) {
-      console.warn(
-        JSON.stringify({
-          event: "tag_workout_rep.rejected",
-          reason: err instanceof OwnershipError ? err.reason : "invalid_input",
-          repId: input.repId,
-        }),
-      );
+      log.warn({
+        event: "tag_workout_rep.rejected",
+        reason: err instanceof OwnershipError ? err.reason : "invalid_input",
+        repId: input.repId,
+      });
       return { persisted: false };
     }
     throw err;
@@ -380,16 +373,13 @@ export async function tagWorkoutRep(
   // by joining muscle_group_days when the caller passes null, (c) log
   // every invocation with inputs so we can grep tag_workout_rep.* in
   // prod and see whether the call site is even firing.
-  console.log(
-    JSON.stringify({
-      event: "tag_workout_rep.invoked",
-      ts: new Date().toISOString(),
-      repId: input.repId,
-      muscleGroupDayId: input.muscleGroupDayId,
-      exerciseId: input.exerciseId,
-      scoreFailure: input.scoreFailure,
-    }),
-  );
+  log.info({
+    event: "tag_workout_rep.invoked",
+    repId: input.repId,
+    muscleGroupDayId: input.muscleGroupDayId,
+    exerciseId: input.exerciseId,
+    scoreFailure: input.scoreFailure,
+  });
 
   try {
     const result = await safeDb<{ persisted: boolean }>(async () => {
@@ -414,15 +404,12 @@ export async function tagWorkoutRep(
             LIMIT 1
           `);
           resolvedExerciseId = healed?.exercise_id ?? null;
-          console.warn(
-            JSON.stringify({
-              event: "tag_workout_rep.self_heal_exercise_id",
-              ts: new Date().toISOString(),
-              repId: input.repId,
-              muscleGroupDayId: input.muscleGroupDayId,
-              healedTo: resolvedExerciseId,
-            }),
-          );
+          log.warn({
+            event: "tag_workout_rep.self_heal_exercise_id",
+            repId: input.repId,
+            muscleGroupDayId: input.muscleGroupDayId,
+            healedTo: resolvedExerciseId,
+          });
         }
 
         await tx
@@ -443,15 +430,12 @@ export async function tagWorkoutRep(
 
         // Skip engagement upsert if we still couldn't resolve an exerciseId.
         if (!resolvedExerciseId) {
-          console.error(
-            JSON.stringify({
-              event: "tag_workout_rep.no_exercise_id",
-              ts: new Date().toISOString(),
-              repId: input.repId,
-              muscleGroupDayId: input.muscleGroupDayId,
-              note: "engagement upsert skipped — could not resolve exercise_id",
-            }),
-          );
+          log.error({
+            event: "tag_workout_rep.no_exercise_id",
+            repId: input.repId,
+            muscleGroupDayId: input.muscleGroupDayId,
+            note: "engagement upsert skipped — could not resolve exercise_id",
+          });
           return { persisted: true };
         }
 
@@ -502,30 +486,23 @@ export async function tagWorkoutRep(
     }, { persisted: false });
 
     if (!result.persisted) {
-      console.warn(
-        JSON.stringify({
-          event: "tag_workout_rep.degraded",
-          ts: new Date().toISOString(),
-          repId: input.repId,
-          muscleGroupDayId: input.muscleGroupDayId,
-          exerciseId: input.exerciseId,
-          note: "safeDb returned fallback — see prior error log for cause",
-        }),
-      );
-    }
-    return result;
-  } catch (err) {
-    console.error(
-      JSON.stringify({
-        event: "tag_workout_rep.threw",
-        ts: new Date().toISOString(),
+      log.warn({
+        event: "tag_workout_rep.degraded",
         repId: input.repId,
         muscleGroupDayId: input.muscleGroupDayId,
         exerciseId: input.exerciseId,
-        error: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : null,
-      }),
-    );
+        note: "safeDb returned fallback — see prior error log for cause",
+      });
+    }
+    return result;
+  } catch (err) {
+    log.error({
+      event: "tag_workout_rep.threw",
+      repId: input.repId,
+      muscleGroupDayId: input.muscleGroupDayId,
+      exerciseId: input.exerciseId,
+      err: serializeErr(err),
+    });
     return { persisted: false };
   }
 }
