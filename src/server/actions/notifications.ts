@@ -12,25 +12,22 @@ import { db } from "@/lib/db/client";
 import { userNotifications } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import type {
+  DayLifecycleKind,
+  NotificationPayload,
+} from "@/types/db-payloads";
 
-const DAY_LIFECYCLE_KINDS = [
+const DAY_LIFECYCLE_KINDS: DayLifecycleKind[] = [
   "day_missed",
   "freeze_consumed",
   "day_partial",
   "day_complete",
-] as const;
-type DayLifecycleKind = (typeof DAY_LIFECYCLE_KINDS)[number];
+];
 
 export type PendingDayNotification = {
   id: string;
   kind: DayLifecycleKind;
-  payload: {
-    dimension?: string;
-    completedReps?: number;
-    status?: string;
-    preservesStreak?: boolean;
-    [k: string]: unknown;
-  };
+  payload: NotificationPayload;
   createdAt: string;
 };
 
@@ -51,10 +48,7 @@ export async function fetchPendingDayNotification(): Promise<PendingDayNotificat
         and(
           eq(userNotifications.userId, user.id),
           isNull(userNotifications.readAt),
-          inArray(
-            userNotifications.kind,
-            DAY_LIFECYCLE_KINDS as unknown as string[],
-          ),
+          inArray(userNotifications.kind, DAY_LIFECYCLE_KINDS),
         ),
       )
       .orderBy(desc(userNotifications.createdAt))
@@ -63,7 +57,7 @@ export async function fetchPendingDayNotification(): Promise<PendingDayNotificat
     return {
       id: row.id,
       kind: row.kind as DayLifecycleKind,
-      payload: (row.payload as PendingDayNotification["payload"]) ?? {},
+      payload: row.payload ?? {},
       createdAt: row.createdAt.toISOString(),
     };
   }, null);

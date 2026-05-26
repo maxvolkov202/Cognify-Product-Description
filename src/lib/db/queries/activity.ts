@@ -7,7 +7,6 @@ import {
   users,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
-import type { SkillDimension } from "@/types/domain";
 
 /**
  * Activity feed — emit + read. Events live in activity_events keyed by
@@ -22,19 +21,14 @@ import type { SkillDimension } from "@/types/domain";
  *   - friend_joined     { name }
  */
 
-export type ActivityEventType =
-  | "workout_complete"
-  | "new_high"
-  | "streak_milestone"
-  | "challenge_win"
-  | "friend_joined";
-
-export type ActivityPayload =
-  | { type: "workout_complete"; composite: number; repsCount: number; topDimension: SkillDimension | null }
-  | { type: "new_high"; dimension: SkillDimension; score: number }
-  | { type: "streak_milestone"; days: number }
-  | { type: "challenge_win"; opponentName: string; score: number }
-  | { type: "friend_joined"; name: string };
+// Canonical definitions live in src/types/db-payloads.ts so schema.ts can
+// reference them without a circular import. Re-export for back-compat
+// with downstream callers.
+export type {
+  ActivityEventType,
+  ActivityPayload,
+} from "@/types/db-payloads";
+import type { ActivityPayload, ActivityEventType } from "@/types/db-payloads";
 
 export type ActivityRow = {
   id: string;
@@ -55,7 +49,7 @@ export async function emitActivityEvent(
     await db.insert(activityEvents).values({
       userId,
       type: payload.type,
-      payload: payload as unknown as Record<string, unknown>,
+      payload,
     });
     return true;
   }, false);

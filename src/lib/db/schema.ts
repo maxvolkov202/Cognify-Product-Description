@@ -14,6 +14,10 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import type {
+  ActivityPayload,
+  NotificationPayload,
+} from "@/types/db-payloads";
 
 // All v2 tables live in the `cognify_v2` Postgres schema so they don't
 // collide with Bob's v1 tables in `public` on the same Supabase project.
@@ -715,12 +719,9 @@ export const activityEvents = cognifyV2Schema.table(
     // Union of event shapes. Kept as text (not enum) so new event types
     // don't require a migration.
     type: text("type").notNull(),
-    // Event-shaped payload. For workout_complete: { composite, repsCount,
-    // topDimension, score }. For streak_milestone: { days }. For new_high:
-    // { dimension, score }. For challenge_win: { opponentName, score }.
-    // The discriminated ActivityPayload union lives in activity.ts; we keep
-    // the column type loose to avoid a circular import.
-    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    // Event-shaped discriminated union — see ActivityPayload in
+    // src/types/db-payloads.ts.
+    payload: jsonb("payload").$type<ActivityPayload>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -1199,8 +1200,9 @@ export const userNotifications = cognifyV2Schema.table(
       .references(() => users.id, { onDelete: "cascade" }),
     /** freeze_consumed | day_missed | day_complete | day_partial */
     kind: text("kind").notNull(),
-    // Per-kind payload; narrowed by the consumer in notifications.ts.
-    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    // Per-kind payload — DayLifecyclePayload + open index sig for future
+    // fields. See NotificationPayload in src/types/db-payloads.ts.
+    payload: jsonb("payload").$type<NotificationPayload>().notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
