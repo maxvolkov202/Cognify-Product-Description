@@ -60,8 +60,14 @@ export default async function FriendsPage() {
         [] as ActivityRow[],
       ];
 
+  // Include challenges in the real-data signal — a challenges-only user
+  // (sent + accepted a challenge but no friend rows yet) was falling
+  // through to the MOCK preview (audit UX-6).
   const hasRealData =
-    friends.length > 0 || pending.length > 0 || activity.length > 0;
+    friends.length > 0 ||
+    pending.length > 0 ||
+    activity.length > 0 ||
+    challenges.length > 0;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">

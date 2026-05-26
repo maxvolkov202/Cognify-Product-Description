@@ -41,6 +41,19 @@
   --shadow-soft: 0 1px 2px 0 rgb(10 10 15 / 0.04), 0 4px 24px -8px rgb(10 10 15 / 0.08);
   --shadow-glow:
     0 0 0 1px rgb(151 136 255 / 0.1), 0 12px 40px -12px rgb(151 136 255 / 0.35);
+
+  /* Brand-glow shadow scale (audit UX-11). Hand-rolled `shadow-[...]`
+     at 6 sites diverged to opacities 0.45–0.95; pulling them through
+     these tokens keeps the brand glow consistent. */
+  --shadow-glow-sm: 0 8px 20px -8px rgb(151 136 255 / 0.45);
+  --shadow-glow-md: 0 12px 32px -10px rgb(151 136 255 / 0.55);
+  --shadow-glow-lg: 0 20px 60px -15px rgb(151 136 255 / 0.55);
+  --shadow-glow-xl: 0 28px 80px -20px rgb(151 136 255 / 0.65);
+
+  /* Hero card radius (audit UX-10). StartCard ships rounded-2xl,
+     DashboardHero/LibraryCallout ship rounded-3xl. Use this token
+     when adding new hero surfaces so the family stays in sync. */
+  --radius-hero: 1.75rem;
 }
 
 :root {
@@ -152,6 +165,12 @@
   --shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 4px 24px -8px rgb(0 0 0 / 0.45);
   --shadow-glow:
     0 0 0 1px rgb(151 136 255 / 0.18), 0 12px 40px -12px rgb(151 136 255 / 0.6);
+  /* Brand-glow scale, dark-tuned. Glow is more saturated on ink-950
+     so the same opacity reads weaker; bump each step. */
+  --shadow-glow-sm: 0 8px 20px -8px rgb(151 136 255 / 0.55);
+  --shadow-glow-md: 0 12px 32px -10px rgb(151 136 255 / 0.65);
+  --shadow-glow-lg: 0 20px 60px -15px rgb(151 136 255 / 0.65);
+  --shadow-glow-xl: 0 28px 80px -20px rgb(151 136 255 / 0.75);
 }
 
 /* Print-friendly rules for /report. The page is rendered for screen by

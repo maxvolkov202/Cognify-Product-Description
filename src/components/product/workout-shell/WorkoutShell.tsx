@@ -469,10 +469,16 @@ function PersonalizeSwitch({
       <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400">
         Prompt mode
       </div>
+      {/*
+        Segmented control. Each pill is `flex-1` so the indicator can
+        size from a percentage instead of a hard-coded width — copy
+        changes ("Personalized" → "Personalised") no longer desync the
+        translateX of the slider (audit UX-12).
+      */}
       <div
         role="radiogroup"
         aria-label="Prompt mode"
-        className="relative inline-flex rounded-full border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm"
+        className="relative inline-flex w-full max-w-[260px] rounded-full border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm"
       >
         <button
           type="button"
@@ -480,7 +486,7 @@ function PersonalizeSwitch({
           aria-checked={!value}
           onClick={() => onChange(false)}
           className={cn(
-            "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
+            "relative z-10 flex-1 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
             !value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
@@ -492,21 +498,22 @@ function PersonalizeSwitch({
           aria-checked={value}
           onClick={() => onChange(true)}
           className={cn(
-            "relative z-10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors min-w-[110px]",
+            "relative z-10 flex-1 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
             value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
           Personalized
         </button>
-        {/* Sliding indicator. Two states: left (General) / right (Personalized). */}
+        {/* Sliding indicator. Half-width so it covers whichever pill is
+            selected; CSS-only positioning means no JS measurement. */}
         <span
           aria-hidden
           className={cn(
-            "absolute top-1 bottom-1 w-[110px] rounded-full brand-gradient transition-transform duration-300 ease-out",
+            "absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full brand-gradient transition-transform duration-300 ease-out",
             "shadow-[0_4px_12px_-4px_rgba(168,85,247,0.6)]",
           )}
           style={{
-            transform: value ? "translateX(110px)" : "translateX(0)",
+            transform: value ? "translateX(100%)" : "translateX(0)",
           }}
         />
       </div>

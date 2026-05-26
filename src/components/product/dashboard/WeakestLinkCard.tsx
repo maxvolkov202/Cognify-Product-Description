@@ -135,7 +135,7 @@ export function WeakestLinkCard({
         {drillable && (
           <Link
             href={drillHref}
-            className="inline-flex shrink-0 items-center gap-1 self-center rounded-full px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-90"
+            className="inline-flex shrink-0 items-center gap-1 self-center rounded-full px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-purple/70 dark:focus-visible:ring-brand-lavender/70"
             style={{ backgroundColor: accent }}
           >
             {drillLabel}
