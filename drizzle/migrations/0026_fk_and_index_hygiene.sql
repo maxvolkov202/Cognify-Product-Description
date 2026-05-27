@@ -11,6 +11,25 @@
 
 BEGIN;
 
+-- ─── 0. Transform helpers (transaction-scoped) ───────────────────────────
+--
+-- Postgres rejects subqueries inside ALTER COLUMN TYPE USING. The jsonb→
+-- native-array conversions below have to go through a function call. Defined
+-- here, dropped after the conversions are done; if the transaction aborts
+-- the function definitions roll back too — no leftovers.
+
+CREATE OR REPLACE FUNCTION cognify_v2._tmp_jsonb_to_uuid_arr(j jsonb)
+RETURNS uuid[] AS $func$
+  SELECT COALESCE(array_agg(value::uuid), ARRAY[]::uuid[])
+  FROM jsonb_array_elements_text(j)
+$func$ LANGUAGE sql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION cognify_v2._tmp_jsonb_to_text_arr(j jsonb)
+RETURNS text[] AS $func$
+  SELECT COALESCE(array_agg(value), ARRAY[]::text[])
+  FROM jsonb_array_elements_text(j)
+$func$ LANGUAGE sql IMMUTABLE;
+
 -- ─── 1. FKs ───────────────────────────────────────────────────────────────
 
 -- league_membership.user_id was declared on the column but never an FK in
@@ -76,41 +95,36 @@ DROP INDEX IF EXISTS cognify_v2.user_prompt_history_user_idx;
 -- ─── 3. JSONB → native array conversions ─────────────────────────────────
 
 -- muscle_group_days.planned_exercise_ids: jsonb → uuid[].
--- Cast via the SQL/JSON path operator. The existing rows are all JSON
--- arrays of UUID strings; bug rows would already have failed reads.
+-- The existing rows are all JSON arrays of UUID strings; bug rows would
+-- already have failed reads.
 ALTER TABLE cognify_v2.muscle_group_days
   ALTER COLUMN planned_exercise_ids TYPE uuid[]
-  USING (
-    SELECT array_agg(elem::uuid)
-    FROM jsonb_array_elements_text(planned_exercise_ids) elem
-  );
+  USING cognify_v2._tmp_jsonb_to_uuid_arr(planned_exercise_ids);
 
--- bug_reports.image_paths: jsonb → text[]. Same pattern.
+-- bug_reports.image_paths: jsonb → text[]. The existing jsonb default
+-- can't be cast to text[] automatically, so drop it before the type
+-- change and re-assert as a text[] literal afterwards.
+ALTER TABLE cognify_v2.bug_reports
+  ALTER COLUMN image_paths DROP DEFAULT;
 ALTER TABLE cognify_v2.bug_reports
   ALTER COLUMN image_paths TYPE text[]
-  USING (
-    SELECT array_agg(elem)
-    FROM jsonb_array_elements_text(image_paths) elem
-  );
--- Default must be re-asserted after the type change.
+  USING cognify_v2._tmp_jsonb_to_text_arr(image_paths);
 ALTER TABLE cognify_v2.bug_reports
   ALTER COLUMN image_paths SET DEFAULT '{}';
 
 -- external_validations.rep_ids: jsonb → uuid[].
 ALTER TABLE cognify_v2.external_validations
   ALTER COLUMN rep_ids TYPE uuid[]
-  USING (
-    SELECT array_agg(elem::uuid)
-    FROM jsonb_array_elements_text(rep_ids) elem
-  );
+  USING cognify_v2._tmp_jsonb_to_uuid_arr(rep_ids);
 
 -- external_rankings.ranking: jsonb → text[]. Note this stores UUIDs as
 -- text but text[] keeps the column type-agnostic for future shape change.
 ALTER TABLE cognify_v2.external_rankings
   ALTER COLUMN ranking TYPE text[]
-  USING (
-    SELECT array_agg(elem)
-    FROM jsonb_array_elements_text(ranking) elem
-  );
+  USING cognify_v2._tmp_jsonb_to_text_arr(ranking);
+
+-- ─── 4. Drop transform helpers ───────────────────────────────────────────
+DROP FUNCTION cognify_v2._tmp_jsonb_to_uuid_arr(jsonb);
+DROP FUNCTION cognify_v2._tmp_jsonb_to_text_arr(jsonb);
 
 COMMIT;
