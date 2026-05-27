@@ -44,7 +44,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ skipped: "no_supabase" });
   }
 
-  log.info({ event: "cron.audio_retention.start" });
+  // Mirrors the muscle-group-day-rollover pattern: callers preview blast
+  // radius via ?dryRun=1 before letting the scheduler do the real work.
+  const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
+
+  log.info({ event: "cron.audio_retention.start", dryRun });
 
   // Single SQL pass over expired reps. Joins users to read each user's
   // configured retention window — users with NULL audio_retention_days
@@ -54,6 +58,8 @@ export async function GET(req: Request) {
       repId: reps.id,
       userId: reps.userId,
       audioUrl: reps.audioUrl,
+      createdAt: reps.createdAt,
+      audioRetentionDays: users.audioRetentionDays,
     })
     .from(reps)
     .innerJoin(users, eq(users.id, reps.userId))
@@ -70,6 +76,28 @@ export async function GET(req: Request) {
       ),
     )
     .limit(MAX_REPS_PER_RUN);
+
+  if (dryRun) {
+    const sample = expired.slice(0, 5).map((r) => ({
+      repId: r.repId,
+      userId: r.userId,
+      ageDays: Math.floor(
+        (Date.now() - new Date(r.createdAt).getTime()) / 86_400_000,
+      ),
+      retentionDays: r.audioRetentionDays,
+    }));
+    log.info({
+      event: "cron.audio_retention.dry_run",
+      expired: expired.length,
+      capped: expired.length === MAX_REPS_PER_RUN,
+    });
+    return NextResponse.json({
+      dryRun: true,
+      expired: expired.length,
+      capped: expired.length === MAX_REPS_PER_RUN,
+      sample,
+    });
+  }
 
   if (expired.length === 0) {
     log.info({ event: "cron.audio_retention.done", deleted: 0 });
