@@ -323,9 +323,14 @@ async function scoreOne(
     durationMs: rep.durationMs,
   };
   if (rep.audioUrl) body.audioUrl = rep.audioUrl;
-  const res = await fetch(`${baseUrl}/api/score`, {
+  // P-4: route through /api/score-internal (timing-safe X-Internal-Secret)
+  // because /api/score now requires currentUser() and this cron has none.
+  const res = await fetch(`${baseUrl}/api/score-internal`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "X-Internal-Secret": process.env.INTERNAL_SCORING_SECRET ?? "",
+    },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
