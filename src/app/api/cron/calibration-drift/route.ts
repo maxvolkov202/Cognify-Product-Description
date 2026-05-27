@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns } from "@/lib/db/schema";
+import { scoreRep } from "@/lib/ai/score";
 import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -42,15 +43,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // Resolve the base URL for the score-API self-call. Vercel runtime
-  // sets VERCEL_URL to the deploy host (no protocol); in dev we hit
-  // localhost. Fall back to a manual override env var.
-  const baseUrl =
-    process.env.CRON_SELF_BASE_URL ??
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://127.0.0.1:3333");
-
   let refReps: ReferenceRep[];
   try {
     refReps = loadReferenceReps();
@@ -68,7 +60,7 @@ export async function GET(req: Request) {
   for (const rep of refReps) {
     const t0 = Date.now();
     try {
-      const score = await scoreOne(baseUrl, rep);
+      const score = await scoreOne(rep);
       const expectedComposite = rep.expected?.composite ?? null;
       const actualComposite = score.composite ?? null;
       const deltaComposite =
@@ -216,7 +208,10 @@ export async function GET(req: Request) {
       const driftLines = top3.map(
         (r) => `• ${r.refRepId}: ${r.deltaComposite! > 0 ? "+" : ""}${r.deltaComposite}`,
       );
-      const opsUrl = baseUrl + "/ops/calibration";
+      const opsUrl =
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "") + "/ops/calibration";
       const payload = {
         text: [
           `*Cognify calibration drift alert* (run ${runId})`,
@@ -313,30 +308,28 @@ type ScoreResponse = {
   dimensions?: { dimension: string; score: number }[];
 };
 
-async function scoreOne(
-  baseUrl: string,
-  rep: ReferenceRep,
-): Promise<ScoreResponse> {
-  const body: Record<string, unknown> = {
+async function scoreOne(rep: ReferenceRep): Promise<ScoreResponse> {
+  // P-4: call the scorer in-process. The cron used to self-fetch
+  // /api/score, but that endpoint now requires currentUser(). The
+  // shared-secret alternative (/api/score-internal) is purpose-built
+  // for the Supabase Edge Function with a different body shape;
+  // calling scoreRep directly avoids the HTTP hop, the secret
+  // handling, and the body-schema mismatch entirely.
+  const score = await scoreRep({
     transcript: rep.transcript,
     promptText: rep.promptText,
     durationMs: rep.durationMs,
-  };
-  if (rep.audioUrl) body.audioUrl = rep.audioUrl;
-  // P-4: route through /api/score-internal (timing-safe X-Internal-Secret)
-  // because /api/score now requires currentUser() and this cron has none.
-  const res = await fetch(`${baseUrl}/api/score-internal`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "X-Internal-Secret": process.env.INTERNAL_SCORING_SECRET ?? "",
-    },
-    body: JSON.stringify(body),
+    ...(rep.audioUrl ? { audioUrl: rep.audioUrl } : {}),
   });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  }
-  return (await res.json()) as ScoreResponse;
+  return {
+    composite: score.composite,
+    rubricVersion: score.rubricVersion,
+    modelVersion: score.modelVersion,
+    dimensions: score.dimensions.map((d) => ({
+      dimension: d.dimension,
+      score: d.score,
+    })),
+  };
 }
 
 type RunOutcome = {
