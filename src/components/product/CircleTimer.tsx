@@ -34,7 +34,7 @@ export function CircleTimer({
   return (
     <div
       className={cn(
-        "relative inline-flex shrink-0 items-center justify-center rounded-2xl border border-ink-200 bg-white p-3",
+        "relative inline-flex shrink-0 items-center justify-center p-3",
         size === "md" ? "min-w-[124px]" : "min-w-[96px]",
       )}
       aria-label={`${seconds} seconds ${label}`}
