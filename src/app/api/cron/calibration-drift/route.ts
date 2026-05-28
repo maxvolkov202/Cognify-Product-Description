@@ -12,6 +12,11 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
+// Per-rep fanout concurrency. 8 workers × ~15s/rep × 4 batches ≈ 60s wall
+// time on the 29-rep band — comfortable headroom under maxDuration=300.
+// Mirrors weekly-narrative/route.ts:92–99.
+const CONCURRENCY = 8;
+
 /**
  * Ch.15b — Nightly calibration drift cron.
  *
@@ -54,10 +59,19 @@ export async function GET(req: Request) {
     );
   }
 
+  const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
   const runId = randomUUID();
   const results: RunOutcome[] = [];
 
-  for (const rep of refReps) {
+  log.info({
+    event: "cron.calibration_drift.start",
+    runId,
+    refRepCount: refReps.length,
+    concurrency: CONCURRENCY,
+    dryRun,
+  });
+
+  async function processOne(rep: ReferenceRep): Promise<void> {
     const t0 = Date.now();
     try {
       const score = await scoreOne(rep);
@@ -92,24 +106,26 @@ export async function GET(req: Request) {
           ? "drift"
           : "ok";
 
-      await db.insert(calibrationRuns).values({
-        runId,
-        refRepId: rep.id,
-        expectedComposite,
-        actualComposite,
-        deltaComposite,
-        expectedPerDim:
-          (expectedPerDim as Record<string, number> | null) ?? null,
-        actualPerDim:
-          (actualPerDim as Record<string, number> | null) ?? null,
-        deltaPerDim:
-          Object.keys(deltaPerDim).length > 0
-            ? (deltaPerDim as Record<string, number>)
-            : null,
-        rubricVersion: score.rubricVersion ?? null,
-        modelVersion: score.modelVersion ?? null,
-        status,
-      });
+      if (!dryRun) {
+        await db.insert(calibrationRuns).values({
+          runId,
+          refRepId: rep.id,
+          expectedComposite,
+          actualComposite,
+          deltaComposite,
+          expectedPerDim:
+            (expectedPerDim as Record<string, number> | null) ?? null,
+          actualPerDim:
+            (actualPerDim as Record<string, number> | null) ?? null,
+          deltaPerDim:
+            Object.keys(deltaPerDim).length > 0
+              ? (deltaPerDim as Record<string, number>)
+              : null,
+          rubricVersion: score.rubricVersion ?? null,
+          modelVersion: score.modelVersion ?? null,
+          status,
+        });
+      }
 
       results.push({
         refRepId: rep.id,
@@ -124,27 +140,29 @@ export async function GET(req: Request) {
         refRepId: rep.id,
         err: serializeErr(err),
       });
-      try {
-        await db.insert(calibrationRuns).values({
-          runId,
-          refRepId: rep.id,
-          expectedComposite: rep.expected?.composite ?? null,
-          actualComposite: null,
-          deltaComposite: null,
-          expectedPerDim:
-            (rep.expected?.dimensions as Record<string, number> | null) ?? null,
-          actualPerDim: null,
-          deltaPerDim: null,
-          rubricVersion: null,
-          modelVersion: null,
-          status: "error",
-        });
-      } catch (writeErr) {
-        // Stay quiet — the next nightly run will retry.
-        log.error({
-          event: "cron.calibration_drift.record_error_row_failed",
-          err: serializeErr(writeErr),
-        });
+      if (!dryRun) {
+        try {
+          await db.insert(calibrationRuns).values({
+            runId,
+            refRepId: rep.id,
+            expectedComposite: rep.expected?.composite ?? null,
+            actualComposite: null,
+            deltaComposite: null,
+            expectedPerDim:
+              (rep.expected?.dimensions as Record<string, number> | null) ?? null,
+            actualPerDim: null,
+            deltaPerDim: null,
+            rubricVersion: null,
+            modelVersion: null,
+            status: "error",
+          });
+        } catch (writeErr) {
+          // Stay quiet — the next nightly run will retry.
+          log.error({
+            event: "cron.calibration_drift.record_error_row_failed",
+            err: serializeErr(writeErr),
+          });
+        }
       }
       results.push({
         refRepId: rep.id,
@@ -154,6 +172,20 @@ export async function GET(req: Request) {
       });
     }
   }
+
+  // Hand-rolled bounded concurrency — N workers pull from a shared cursor.
+  // Mirrors the proven pattern in weekly-narrative/route.ts:92–99.
+  let cursor = 0;
+  const workers = Array.from(
+    { length: Math.min(CONCURRENCY, refReps.length) },
+    async () => {
+      while (cursor < refReps.length) {
+        const i = cursor++;
+        await processOne(refReps[i]!);
+      }
+    },
+  );
+  await Promise.all(workers);
 
   const summary = {
     runId,
@@ -183,9 +215,12 @@ export async function GET(req: Request) {
   const shouldAlert =
     avgAbsDelta > 5 || worstAbsDelta > 15 || summary.fallbackCount > 2;
   let alertSentAt: Date | null = null;
-  let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" = "skipped";
+  let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" | "dry-run" =
+    "skipped";
 
-  if (shouldAlert) {
+  if (shouldAlert && dryRun) {
+    alertOutcome = "dry-run";
+  } else if (shouldAlert) {
     const webhookUrl = process.env.CALIBRATION_ALERT_WEBHOOK_URL;
     if (!webhookUrl) {
       log.warn({
