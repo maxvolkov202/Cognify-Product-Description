@@ -929,7 +929,6 @@ export function RepSurface({
           <RepFrameworkStrip
             framework={repTypeFramework}
             allowNotes
-            notesDefaultOpen
             notesKey={
               muscleGroupDayId && exerciseId
                 ? `${muscleGroupDayId}:${exerciseId}`
@@ -1010,7 +1009,6 @@ export function RepSurface({
           <RepFrameworkStrip
             framework={repTypeFramework!}
             allowNotes
-            notesDefaultOpen
             notesKey={
               muscleGroupDayId && exerciseId
                 ? `${muscleGroupDayId}:${exerciseId}`

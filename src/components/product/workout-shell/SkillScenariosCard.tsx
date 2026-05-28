@@ -14,13 +14,14 @@ import { cn } from "@/lib/utils/cn";
 /**
  * Phase E (#12) — Why-this-skill-matters card.
  *
- * Shown on the workout start screen for the user's first encounter with
- * a given dimension. Opens auto-expanded; user dismisses with X. On
- * subsequent visits to the same dim, collapses into a tiny "Why this
- * skill?" link that re-opens on click.
+ * Shown on the workout start screen as a collapsed link the user can
+ * tap to expand. First-time visitors see "Why {dim} matters — quick
+ * read" as a soft nudge; once they've opened-and-dismissed (or hit X /
+ * "Got it"), the label switches to "Why train {dim}?" so it doesn't
+ * keep asking the same question.
  *
- * Tracked via localStorage (cognify.scenarios-seen.<dim>) so we don't
- * shove it down the user's throat session after session.
+ * Tracked via localStorage (cognify.scenarios-seen.<dim>) for the
+ * label switch only — the card never auto-expands.
  *
  * No-op when the dim has no scenarios authored.
  */
@@ -32,8 +33,9 @@ type Props = {
 export default function SkillScenariosCard({ dim }: Props) {
   const scenarios = SKILL_SCENARIOS[dim] ?? [];
   const dimLabel = MUSCLE_GROUP_LABELS[dim];
-  // Start collapsed during SSR; flip to open if the user hasn't seen
-  // this dim's scenarios yet. Avoids hydration mismatch.
+  // Always start collapsed — the card is opt-in regardless of whether
+  // the user has seen it before. localStorage only controls the label
+  // copy (first-time nudge vs. familiar phrasing).
   const [open, setOpen] = useState(false);
   const [hasSeen, setHasSeen] = useState(true);
 
@@ -41,11 +43,9 @@ export default function SkillScenariosCard({ dim }: Props) {
     if (typeof window === "undefined") return;
     try {
       const seen = window.localStorage.getItem(scenariosSeenKey(dim));
-      const isFirstTime = !seen;
-      setHasSeen(!isFirstTime);
-      if (isFirstTime) setOpen(true);
+      setHasSeen(seen != null);
     } catch {
-      /* storage disabled — keep collapsed */
+      /* storage disabled — assume seen */
     }
   }, [dim]);
 

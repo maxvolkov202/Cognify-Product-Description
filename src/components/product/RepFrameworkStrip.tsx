@@ -18,9 +18,6 @@ type Props = {
   /** Storage key tuple. When provided AND allowNotes=true, notes are
    *  persisted/restored from localStorage at `cognify.rep-notes.<key>`. */
   notesKey?: string;
-  /** When true, notes panel starts open so the layout is symmetric from
-   *  first paint (Max's 2026-05-24 ask — "symmetric until they dismiss"). */
-  notesDefaultOpen?: boolean;
 };
 
 /** localStorage helper — exported so the caller can clear a rep's drafts
@@ -49,7 +46,6 @@ export function RepFrameworkStrip({
   defaultExpanded = true,
   allowNotes = false,
   notesKey,
-  notesDefaultOpen = false,
 }: Props) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -57,11 +53,11 @@ export function RepFrameworkStrip({
   const [notes, setNotes] = useState<string[]>(() =>
     framework.sections.map(() => ""),
   );
-  // Open notes by default when persistence is wired — layout reads as
-  // symmetric from first paint instead of waiting on a tap.
-  const [notesOpen, setNotesOpen] = useState(
-    notesDefaultOpen && allowNotes,
-  );
+  // Notes panel is opt-in: always starts closed so a fresh rep screen
+  // doesn't shove the input at users. If the mount-effect below finds
+  // persisted non-empty notes (user has unsaved drafts from a prior
+  // session), it re-opens the panel so those drafts are visible.
+  const [notesOpen, setNotesOpen] = useState(false);
 
   // Restore persisted notes on mount when a notesKey is provided.
   useEffect(() => {
