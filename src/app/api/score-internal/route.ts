@@ -48,8 +48,14 @@ export async function POST(req: Request) {
   // timingSafeEqual returns in constant time relative to input length.
   // Length mismatch shortcircuits before the constant-time compare so
   // we don't compare different-length buffers (which throws).
-  const secret = req.headers.get("x-internal-secret");
-  const expected = process.env.INTERNAL_SCORING_SECRET;
+  //
+  // Trailing-whitespace tolerance: both the Vercel env var and the
+  // Supabase Edge Function env var were stored with a stray `\n` at
+  // some point. Trimming on both inputs before comparison makes the
+  // comparator robust to either side being cleaned (or not) at any
+  // time — no coordinated env-store flip required.
+  const secret = (req.headers.get("x-internal-secret") ?? "").replace(/\s+$/, "");
+  const expected = (process.env.INTERNAL_SCORING_SECRET ?? "").replace(/\s+$/, "");
   if (!secret || !expected || secret.length !== expected.length) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
