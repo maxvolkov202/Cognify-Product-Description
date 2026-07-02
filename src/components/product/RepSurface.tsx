@@ -137,6 +137,18 @@ type Props = {
   exerciseId?: string | null;
   muscleGroupDayId?: string | null;
   isGraduationRep?: boolean;
+  /** PRD v3 engine — attempt lineage. When this surface records a Retry
+   *  (or "again") attempt, saveRep persists the linkage so the coaching
+   *  ledger can back-fill the first rep's implemented verdict. Undefined
+   *  for legacy callers → 'first'. Sync saveRep path only; the async
+   *  (Edge Function) path picks this up with the Phase 5 long-rep work. */
+  attemptKind?: "first" | "retry" | "again";
+  parentRepId?: string | null;
+  /** PRD v3 engine — hide the internal "Run it again" reset on the done
+   *  screen. The v2 loop's primary CTA is the structured Retry (with
+   *  focus carry-over + lineage); an unlinked re-record next to it would
+   *  be a footgun. */
+  hideRunItAgain?: boolean;
 };
 
 type Phase =
@@ -260,6 +272,9 @@ export function RepSurface({
   exerciseId,
   muscleGroupDayId,
   isGraduationRep,
+  attemptKind,
+  parentRepId,
+  hideRunItAgain = false,
 }: Props) {
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [frameworkVisible, setFrameworkVisible] = useState(
@@ -673,6 +688,10 @@ export function RepSurface({
         ...(exerciseId ? { exerciseId } : {}),
         ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
         ...(isGraduationRep ? { isGraduationRep: true } : {}),
+        // PRD v3 engine — attempt lineage.
+        ...(attemptKind && attemptKind !== "first"
+          ? { attemptKind, parentRepId: parentRepId ?? null }
+          : {}),
       });
       savedRepId = saved.repId;
       savedCalloutIds = saved.calloutIds;
@@ -827,13 +846,15 @@ export function RepSurface({
             {nextLabel}
           </GradientButton>
         )}
-        <button
-          type="button"
-          onClick={handleRetry}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-3 text-sm font-semibold text-ink-700 dark:text-ink-200 transition-colors hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
-        >
-          <RotateCcw className="size-4" /> Run it again
-        </button>
+        {!hideRunItAgain && (
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-3 text-sm font-semibold text-ink-700 dark:text-ink-200 transition-colors hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
+          >
+            <RotateCcw className="size-4" /> Run it again
+          </button>
+        )}
       </div>
     );
     return (

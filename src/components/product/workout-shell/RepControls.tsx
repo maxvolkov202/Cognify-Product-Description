@@ -16,18 +16,29 @@
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import { useEffect, useState, useTransition } from "react";
 import { Loader2, Mic, Sparkles, Trophy, X } from "lucide-react";
-import type { ShellStation, SessionPhase } from "@/lib/workout/types";
+import type {
+  AttemptKind,
+  LoopVariant,
+  ShellStation,
+  SessionPhase,
+} from "@/lib/workout/types";
 import type { PickMode } from "@/lib/workout/session-machine";
-import type { MuscleGroupId } from "@/types/domain";
+import type { Callout, MuscleGroupId, RepScore } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
 import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
+import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
+import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
   fetchDaySummary,
   tagWorkoutRep,
 } from "@/server/actions/workout-session";
 import DayCompleteSummary from "./DayCompleteSummary";
+import InsightScreen from "./InsightScreen";
+import ImprovementReview, { type AttemptPayload } from "./ImprovementReview";
+import QuitSummary from "./QuitSummary";
 
 export type RepControlsProps = {
   phase: SessionPhase;
@@ -41,6 +52,15 @@ export type RepControlsProps = {
   lastScoreFailure: boolean;
   /** Phase HB-3 — personalize-toggle state from the landing screen. */
   personalize?: boolean;
+  /** PRD v3 engine — loop variant + attempt state from the machine. */
+  loop?: LoopVariant;
+  attempt?: AttemptKind;
+  /** PRD v3 engine — full payloads of this station's attempts, stashed by
+   *  WorkoutShell from onRepScored. Drive the retry context + review. */
+  firstAttempt?: AttemptPayload | null;
+  retryAttempt?: AttemptPayload | null;
+  isLastStation?: boolean;
+  repsCompleted?: number;
   onStartWorkout?: () => void;
   onPromptSelected?: (params: {
     promptId: string;
@@ -52,12 +72,21 @@ export type RepControlsProps = {
     composite: number | null;
     repId: string;
     failure: boolean;
+    /** PRD v3 engine — full score + transcript so the shell can stash
+     *  attempt payloads for the retry context / Improvement Review. */
+    score?: RepScore | null;
+    transcript?: string;
   }) => void;
   onAdvanceNow?: () => void;
   onAcceptGraduation?: () => void;
   onSkipGraduation?: () => void;
   /** Phase HB-4 — Cancel workout (returns to landing; preserves day). */
   onCancelWorkout?: () => void;
+  /** PRD v3 engine — new loop events. */
+  onInsightDone?: () => void;
+  onBeginRetry?: () => void;
+  onRetryAgain?: () => void;
+  onQuit?: () => void;
 };
 
 export default function RepControls({
@@ -70,6 +99,12 @@ export default function RepControls({
   lastScore,
   lastScoreFailure,
   personalize = false,
+  loop = "v1",
+  attempt = "first",
+  firstAttempt = null,
+  retryAttempt = null,
+  isLastStation = false,
+  repsCompleted = 0,
   onStartWorkout,
   onPromptSelected,
   onSkipStation,
@@ -78,6 +113,10 @@ export default function RepControls({
   onAcceptGraduation,
   onSkipGraduation,
   onCancelWorkout,
+  onInsightDone,
+  onBeginRetry,
+  onRetryAgain,
+  onQuit,
 }: RepControlsProps) {
   return (
     <div
@@ -119,6 +158,16 @@ export default function RepControls({
           />
         )}
 
+        {phase === "insight" && station && selectedPrompt && (
+          <InsightScreen
+            station={station}
+            promptText={selectedPrompt.text}
+            dimension={dimension}
+            framework={getFrameworkForDimension(dimension)}
+            onReady={() => onInsightDone?.()}
+          />
+        )}
+
         {(phase === "recording" ||
           phase === "transcribing" ||
           phase === "scoring" ||
@@ -129,8 +178,37 @@ export default function RepControls({
             workoutSessionId={workoutSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
+            loop={loop}
+            attempt={attempt}
+            firstAttempt={firstAttempt}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
+            onBeginRetry={onBeginRetry}
+          />
+        )}
+
+        {phase === "improvement-review" && (
+          <ImprovementReview
+            dimension={dimension}
+            first={firstAttempt}
+            retry={retryAttempt}
+            isLastStation={isLastStation}
+            onRetryAgain={() => onRetryAgain?.()}
+            onAdvance={() => onAdvanceNow?.()}
+            onQuit={() => onQuit?.()}
+          />
+        )}
+
+        {phase === "quit-summary" && (
+          <QuitSummary
+            dimension={dimension}
+            bestDelta={
+              firstAttempt?.score.composite != null &&
+              retryAttempt?.score.composite != null
+                ? retryAttempt.score.composite - firstAttempt.score.composite
+                : null
+            }
+            repsCompleted={repsCompleted}
           />
         )}
 
@@ -230,8 +308,12 @@ function ActiveRep({
   muscleGroupDayId,
   dimension,
   graduation,
+  loop = "v1",
+  attempt = "first",
+  firstAttempt = null,
   onRepScored,
   onAdvanceNow,
+  onBeginRetry,
 }: {
   station: ShellStation | null;
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
@@ -239,12 +321,18 @@ function ActiveRep({
   muscleGroupDayId: string | null;
   dimension: MuscleGroupId | null;
   graduation?: boolean;
+  loop?: LoopVariant;
+  attempt?: AttemptKind;
+  firstAttempt?: AttemptPayload | null;
   onRepScored?: (params: {
     composite: number | null;
     repId: string;
     failure: boolean;
+    score?: RepScore | null;
+    transcript?: string;
   }) => void;
   onAdvanceNow?: () => void;
+  onBeginRetry?: () => void;
 }) {
   // Defensive: if we got here without a selected prompt, the picker hand-off
   // didn't fire. Surface a short helper so the user isn't stuck.
@@ -260,9 +348,55 @@ function ActiveRep({
 
   const framework = getFrameworkForDimension(dimension);
 
+  // PRD v3 engine — retry wiring. On retry/again attempts (v2 loop,
+  // never graduation reps) the surface carries the first attempt's
+  // Coach's Focus, the comparison summary, the scoring retryContext,
+  // and the attempt lineage for saveRep.
+  const isEngineRetry =
+    loop === "v2" && !graduation && attempt !== "first" && !!firstAttempt;
+  const coachFocus =
+    isEngineRetry && firstAttempt ? deriveCoachFocus(firstAttempt.score) : null;
+  const retryFocusCallout: Callout | null = coachFocus
+    ? {
+        dimension: coachFocus.dimension,
+        tone: "neutral",
+        title: "Focus for this retry",
+        body: coachFocus.text,
+        quote: null,
+        suggestedRewrite: null,
+        transcriptStart: null,
+        transcriptEnd: null,
+      }
+    : null;
+  const skillDim = dimension ? muscleGroupToSkillDim(dimension) : null;
+  const retryModeContext: ScoreRepModeContext | null =
+    isEngineRetry && firstAttempt && coachFocus && skillDim
+      ? {
+          sessionType: "focus",
+          focusDimension: skillDim,
+          repIndex: station.index,
+          totalReps: 4,
+          retryContext: {
+            attempt: attempt === "again" ? "again" : "retry",
+            firstTranscript: firstAttempt.transcript,
+            firstComposite: firstAttempt.score.composite ?? null,
+            coachFocus: {
+              dimension: coachFocus.dimension,
+              subSkill: coachFocus.subSkill,
+              text: coachFocus.text,
+            },
+          },
+        }
+      : null;
+
+  // v2 first attempts route "next" into the required Retry; retry
+  // attempts never render their own done screen (the machine moves to
+  // improvement-review the moment scoring lands).
+  const isEngineFirst = loop === "v2" && !graduation && attempt === "first";
+
   return (
     <RepSurface
-      key={`${station.exerciseId}:${selectedPrompt.promptId}`}
+      key={`${station.exerciseId}:${selectedPrompt.promptId}:${attempt}`}
       prompt={selectedPrompt.text}
       mode="daily_workout"
       topic={
@@ -274,11 +408,35 @@ function ActiveRep({
       speakingThreshold={{ minRatio: 0.6 }}
       feedbackRepIndex={station.index + 1}
       feedbackTotalReps={4}
-      feedbackModeLabel={graduation ? "GRADUATION" : "WORKOUT"}
+      feedbackModeLabel={
+        graduation ? "GRADUATION" : isEngineRetry ? "RETRY" : "WORKOUT"
+      }
       exerciseId={station.exerciseId}
       muscleGroupDayId={muscleGroupDayId}
       isGraduationRep={!!graduation}
       {...(framework ? { repTypeFramework: framework } : {})}
+      {...(retryFocusCallout ? { retryFocus: retryFocusCallout } : {})}
+      {...(isEngineRetry && firstAttempt
+        ? {
+            previousRepSummary: {
+              composite: firstAttempt.score.composite,
+              dimensions: firstAttempt.score.dimensions.map((d) => ({
+                dimension: d.dimension,
+                score: d.score,
+              })),
+              topWeakness:
+                firstAttempt.score.callouts.find(
+                  (c) => c.tone === "warn" || c.tone === "critical",
+                ) ?? null,
+              transcript: firstAttempt.transcript,
+              promptText: selectedPrompt.text,
+            },
+            attemptKind: attempt,
+            parentRepId: firstAttempt.repId,
+          }
+        : {})}
+      {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
+      {...(isEngineFirst || isEngineRetry ? { hideRunItAgain: true } : {})}
       onComplete={async (payload) => {
         if (muscleGroupDayId) {
           try {
@@ -301,10 +459,21 @@ function ActiveRep({
           composite: payload.score?.composite ?? null,
           repId: payload.repId,
           failure: !payload.score?.composite,
+          score: payload.score ?? null,
+          transcript: payload.transcript,
         });
       }}
-      onNext={() => onAdvanceNow?.()}
-      nextLabel={graduation ? "Finish workout" : "Next station →"}
+      onNext={() => {
+        if (isEngineFirst && onBeginRetry) return onBeginRetry();
+        onAdvanceNow?.();
+      }}
+      nextLabel={
+        graduation
+          ? "Finish workout"
+          : isEngineFirst
+            ? "Start your Retry →"
+            : "Next station →"
+      }
     />
   );
 }

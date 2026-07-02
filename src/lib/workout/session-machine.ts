@@ -37,9 +37,27 @@
 // NETWORK_DROP/RECONNECT are recorded on `state.networkBuffered` but do
 // not change the lifecycle phase; the side-effect layer (Provider) is
 // responsible for replaying the buffered recording.
+//
+// PRD v3 engine (loop === "v2", FF_TRAINING_ENGINE_V2) inserts three
+// phases into the station loop (plans/prd/phase1-engine-design.md):
+//
+//   prompt-selecting ─PICK_PROMPT─▶ insight ─INSIGHT_DONE─▶ recording …
+//   score-reveal (first attempt) ─BEGIN_RETRY─▶ recording (attempt=retry)
+//   scoring (attempt=retry|again) ─SCORE_DONE─▶ improvement-review
+//   improvement-review ─RETRY_AGAIN─▶ recording (attempt=again)
+//                      ─ADVANCE─────▶ walking / day-complete-prompt
+//                      ─QUIT────────▶ quit-summary (terminal, C9 tip)
+//
+// In v2, ADVANCE from score-reveal is only honored when the first
+// attempt's scoring failed (degraded path) — the Retry is required (D2).
 
 import type { MascotState } from "@/lib/animations/mascot-state";
-import type { SessionPhase, ShellStation } from "./types";
+import type {
+  AttemptKind,
+  LoopVariant,
+  SessionPhase,
+  ShellStation,
+} from "./types";
 
 /** Per-station outcome captured at score-reveal time. */
 export type StationOutcome = {
@@ -53,22 +71,38 @@ export type StationOutcome = {
 export type SessionMachineState = {
   /** The live SessionPhase consumed by RepControls + MascotStage. */
   phase: SessionPhase;
+  /** Which learning loop this session runs (v1 legacy / v2 PRD engine).
+   *  Fixed at machine creation; transitions branch on it so the reducer
+   *  stays pure while both loops coexist behind FF_TRAINING_ENGINE_V2. */
+  loop: LoopVariant;
   /** When `paused`, the phase to resume to. NULL otherwise. */
   resumePhase: SessionPhase | null;
   /** 0..3 for normal reps; 4 = day-complete. */
   currentStationIndex: number;
   stations: ShellStation[];
+  /** v2 engine — where the CURRENT rep sits in the exercise loop.
+   *  Always "first" in v1. */
+  attempt: AttemptKind;
+  /** v2 engine — the current station's First Rep outcome, kept so the
+   *  Improvement Review can diff retry vs first even across remounts.
+   *  Reset when the station advances. */
+  firstOutcome: { repId: string | null; composite: number | null } | null;
   /** Most-recent rep composite — drives the mascot's celebrating-rep
    *  intensity. NULL before the first rep completes. */
   lastScore: number | null;
   /** Set true after FAIL_SCORE; cleared on next FINISH_RECORDING. */
   lastScoreFailure: boolean;
-  /** Per-station outcomes accumulated across the day. */
+  /** Per-station FIRST-attempt outcomes accumulated across the day
+   *  (plus the graduation rep). Retries live in `retryOutcomes` so
+   *  existing consumers keep one-entry-per-station semantics. */
   outcomes: StationOutcome[];
+  /** v2 engine — retry/again outcomes, appended per attempt. */
+  retryOutcomes: StationOutcome[];
   /** A buffered recording waiting for network reconnect to replay. */
   networkBuffered: boolean;
   /** Selected prompt for the current rep (text shown to the user +
-   *  sent to scoring). NULL during non-recording phases. */
+   *  sent to scoring). NULL during non-recording phases. Retained across
+   *  the retry (same prompt, per PRD §4.6). */
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
 };
 
@@ -82,6 +116,7 @@ export type SessionMachineEvent =
       text: string;
       mode: PickMode;
     }
+  | { type: "INSIGHT_DONE" } // v2 — Coach's Insight acknowledged → recording
   | { type: "FINISH_RECORDING" }
   | { type: "TRANSCRIBE_DONE" }
   | { type: "SCORE_PROGRESS" } // Stage 1 partial reveal
@@ -91,6 +126,9 @@ export type SessionMachineEvent =
       repId: string;
     }
   | { type: "FAIL_SCORE"; repId: string | null }
+  | { type: "BEGIN_RETRY" } // v2 — feedback acknowledged → required Retry
+  | { type: "RETRY_AGAIN" } // v2 — from improvement-review, optional extra attempt
+  | { type: "QUIT" } // v2 — early exit (C9) → quit-summary
   | { type: "ADVANCE" } // auto 5s OR manual "Next station →" tap
   | { type: "WALK_DONE" }
   | { type: "ACCEPT_GRADUATION" }
@@ -114,15 +152,20 @@ export function initialMachineState(
   stations: ShellStation[],
   startPhase: SessionPhase = "idle",
   startIndex = 0,
+  loop: LoopVariant = "v1",
 ): SessionMachineState {
   return {
     phase: startPhase,
+    loop,
     resumePhase: null,
     currentStationIndex: startIndex,
     stations,
+    attempt: "first",
+    firstOutcome: null,
     lastScore: null,
     lastScoreFailure: false,
     outcomes: [],
+    retryOutcomes: [],
     networkBuffered: false,
     selectedPrompt: null,
   };
@@ -159,12 +202,15 @@ export function mascotStateForPhase(
     case "scoring":
       return "at-station-scoring";
     case "score-reveal":
+    case "improvement-review":
       return "celebrating-rep";
     case "day-complete":
       return "celebrating-day";
     case "idle":
     case "prompt-selecting":
+    case "insight":
     case "day-complete-prompt":
+    case "quit-summary":
     case "paused":
     default:
       return "idle";
@@ -190,7 +236,12 @@ export function reduce(
   }
   // PAUSE wraps almost any state by capturing the current phase.
   if (event.type === "PAUSE") {
-    if (state.phase === "paused" || state.phase === "day-complete") return state;
+    if (
+      state.phase === "paused" ||
+      state.phase === "day-complete" ||
+      state.phase === "quit-summary"
+    )
+      return state;
     return { ...state, phase: "paused", resumePhase: state.phase };
   }
   if (event.type === "RESUME") {
@@ -247,13 +298,24 @@ export function reduce(
       if (event.type === "PICK_PROMPT") {
         return {
           ...state,
-          phase: "recording",
+          // v2 engine surfaces the Coach's Insight (+ constraint, per
+          // C19: topic first, THEN the system's constraint) before the
+          // mic opens. v1 goes straight to recording.
+          phase: state.loop === "v2" ? "insight" : "recording",
+          attempt: "first",
+          firstOutcome: null,
           selectedPrompt: {
             promptId: event.promptId,
             text: event.text,
             mode: event.mode,
           },
         };
+      }
+      break;
+
+    case "insight":
+      if (event.type === "INSIGHT_DONE") {
+        return { ...state, phase: "recording" };
       }
       break;
 
@@ -288,12 +350,59 @@ export function reduce(
       break;
 
     case "score-reveal":
+      // Re-score: RepSurface's error card lets the user re-record after a
+      // scoring failure while the machine already sits at score-reveal.
+      // Accept the fresh result in place — replace this station's last
+      // outcome instead of appending a duplicate. Without this, a v2 user
+      // whose first attempt failed scoring could never clear
+      // lastScoreFailure and BEGIN_RETRY would stay refused (dead button).
+      if (event.type === "SCORE_DONE") {
+        return replaceCurrentStationOutcome(
+          state,
+          event.repId,
+          event.composite,
+          false,
+        );
+      }
+      if (event.type === "FAIL_SCORE") {
+        return replaceCurrentStationOutcome(state, event.repId, null, true);
+      }
+      if (event.type === "BEGIN_RETRY" && state.loop === "v2") {
+        // Required Retry (D2): same prompt, Coach's Focus carried over.
+        // Blocked only when the first attempt's scoring failed — forcing
+        // a retry against a scoring hiccup would punish the user twice
+        // (the UI offers ADVANCE in that degraded case instead).
+        if (state.lastScoreFailure) return state;
+        return { ...state, phase: "recording", attempt: "retry" };
+      }
+      if (event.type === "QUIT" && state.loop === "v2") {
+        return { ...state, phase: "quit-summary" };
+      }
       if (event.type === "ADVANCE") {
-        // Last station completed → bridge to graduation prompt.
-        if (state.currentStationIndex >= state.stations.length - 1) {
-          return { ...state, phase: "day-complete-prompt" };
+        // v2 requires the Retry before advancing — ADVANCE from
+        // score-reveal is only honored on a failed-scoring first attempt
+        // (degraded path) or in the legacy v1 loop.
+        if (
+          state.loop === "v2" &&
+          state.attempt === "first" &&
+          !state.lastScoreFailure
+        ) {
+          return state;
         }
-        return { ...state, phase: "walking" };
+        return advanceStation(state);
+      }
+      break;
+
+    case "improvement-review":
+      if (event.type === "RETRY_AGAIN") {
+        // Optional extra attempt (PRD "Retry Again"; ADR-001 may overload).
+        return { ...state, phase: "recording", attempt: "again" };
+      }
+      if (event.type === "QUIT") {
+        return { ...state, phase: "quit-summary" };
+      }
+      if (event.type === "ADVANCE") {
+        return advanceStation(state);
       }
       break;
 
@@ -306,6 +415,8 @@ export function reduce(
             state.currentStationIndex + 1,
             state.stations.length - 1,
           ),
+          attempt: "first",
+          firstOutcome: null,
           selectedPrompt: null,
           lastScoreFailure: false,
         };
@@ -346,6 +457,7 @@ export function reduce(
       break;
 
     case "day-complete":
+    case "quit-summary":
     case "paused":
     default:
       break;
@@ -354,27 +466,79 @@ export function reduce(
   return state;
 }
 
+/** Re-score at score-reveal: swap the current station's most recent
+ *  outcome for the fresh result (RepSurface error-card re-record). */
+function replaceCurrentStationOutcome(
+  state: SessionMachineState,
+  repId: string | null,
+  composite: number | null,
+  scoreFailure: boolean,
+): SessionMachineState {
+  const outcome: StationOutcome = {
+    stationIndex: state.currentStationIndex,
+    repId,
+    composite,
+    scoreFailure,
+    isGraduationRep: false,
+  };
+  const idx = state.outcomes.findLastIndex(
+    (o) => o.stationIndex === state.currentStationIndex && !o.isGraduationRep,
+  );
+  const outcomes =
+    idx >= 0
+      ? [...state.outcomes.slice(0, idx), outcome, ...state.outcomes.slice(idx + 1)]
+      : [...state.outcomes, outcome];
+  return {
+    ...state,
+    phase: "score-reveal",
+    lastScore: composite,
+    lastScoreFailure: scoreFailure,
+    firstOutcome: { repId, composite },
+    outcomes,
+  };
+}
+
+/** Shared ADVANCE handling: last station bridges to the graduation
+ *  prompt, otherwise walk to the next station. */
+function advanceStation(state: SessionMachineState): SessionMachineState {
+  if (state.currentStationIndex >= state.stations.length - 1) {
+    return { ...state, phase: "day-complete-prompt" };
+  }
+  return { ...state, phase: "walking" };
+}
+
 function finishRepWithScore(
   state: SessionMachineState,
   composite: number,
   repId: string,
   scoreFailure: boolean,
 ): SessionMachineState {
+  const outcome: StationOutcome = {
+    stationIndex: state.currentStationIndex,
+    repId,
+    composite,
+    scoreFailure,
+    isGraduationRep: false,
+  };
+  // v2 retry/again attempts land on the Improvement Review and are
+  // bookkept separately so `outcomes` keeps its one-first-attempt-per-
+  // station shape for existing consumers (DayCompleteSummary et al.).
+  if (state.loop === "v2" && state.attempt !== "first") {
+    return {
+      ...state,
+      phase: "improvement-review",
+      lastScore: composite,
+      lastScoreFailure: scoreFailure,
+      retryOutcomes: [...state.retryOutcomes, outcome],
+    };
+  }
   return {
     ...state,
     phase: "score-reveal",
     lastScore: composite,
     lastScoreFailure: scoreFailure,
-    outcomes: [
-      ...state.outcomes,
-      {
-        stationIndex: state.currentStationIndex,
-        repId,
-        composite,
-        scoreFailure,
-        isGraduationRep: false,
-      },
-    ],
+    firstOutcome: { repId, composite },
+    outcomes: [...state.outcomes, outcome],
   };
 }
 
@@ -385,20 +549,30 @@ function failScore(
   // Surface a degraded score-reveal so the user isn't stranded; flag
   // the rep so ops can re-grade. Composite is null (no signal) — the
   // UI renders a "scoring hiccup" card.
+  const outcome: StationOutcome = {
+    stationIndex: state.currentStationIndex,
+    repId,
+    composite: null,
+    scoreFailure: true,
+    isGraduationRep: false,
+  };
+  // A failed RETRY still reaches the Improvement Review (degraded copy);
+  // the first attempt's data is intact so the review isn't empty.
+  if (state.loop === "v2" && state.attempt !== "first") {
+    return {
+      ...state,
+      phase: "improvement-review",
+      lastScore: null,
+      lastScoreFailure: true,
+      retryOutcomes: [...state.retryOutcomes, outcome],
+    };
+  }
   return {
     ...state,
     phase: "score-reveal",
     lastScore: null,
     lastScoreFailure: true,
-    outcomes: [
-      ...state.outcomes,
-      {
-        stationIndex: state.currentStationIndex,
-        repId,
-        composite: null,
-        scoreFailure: true,
-        isGraduationRep: false,
-      },
-    ],
+    firstOutcome: { repId, composite: null },
+    outcomes: [...state.outcomes, outcome],
   };
 }

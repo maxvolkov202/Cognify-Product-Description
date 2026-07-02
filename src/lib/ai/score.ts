@@ -150,6 +150,18 @@ const scoringResponseSchema = z.object({
   /** Phase 3 scaffold — short tail phrase for the NEXT rep's
    *  LastRepFocusBanner. 3-8 words, no period. */
   nextRepHint: z.string().min(2).max(60),
+  /** PRD v3 engine — implementation review, requested ONLY when the user
+   *  message carries a RETRY EVALUATION block. Optional so first reps,
+   *  legacy calls, and calibration runs validate unchanged; when the
+   *  model omits it on a retry, deriveImplementationVerdict() fills in
+   *  deterministically. */
+  implementationReview: z
+    .object({
+      verdict: z.enum(["nailed", "partial", "missed"]),
+      note: z.string().min(1).max(280),
+    })
+    .nullable()
+    .optional(),
 });
 
 /** Phase 2: per-mode signals plumbed into the scoring prompt so the AI can
@@ -171,6 +183,23 @@ export type ScoreRepModeContext = {
     dimension: SkillDimension;
     headline: string;
     score: number;
+  };
+  /** PRD v3 engine — present when THIS rep is the required Retry (or an
+   *  optional "again" attempt) of a first rep. Switches feedback into
+   *  implementation-review framing and requests the implementationReview
+   *  field. Absent on first reps and all legacy/calibration paths, so
+   *  reference-rep drift runs are unaffected. */
+  retryContext?: {
+    attempt: "retry" | "again";
+    /** Transcript of the FIRST attempt at this prompt. */
+    firstTranscript: string;
+    firstComposite: number | null;
+    /** The single Coach's Focus the user was asked to implement. */
+    coachFocus: {
+      dimension: SkillDimension;
+      subSkill?: string | null;
+      text: string;
+    };
   };
   /** 0-based rep index in the session. */
   repIndex: number;
@@ -684,8 +713,38 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
       `Your headline must address whether ${dimension} improved or stayed flat compared to that — extend, don't restate.`,
     );
   }
+  const retryBlock = renderRetryEvaluationBlock(ctx.retryContext);
+  if (retryBlock) lines.push(retryBlock);
   lines.push(`This is rep ${ctx.repIndex + 1} of ${ctx.totalReps}.`);
   return lines.join("\n");
+}
+
+/** PRD v3 engine — the RETRY EVALUATION block. Shared by the single-call
+ *  path (via renderModeBlock) and the two-stage path (prepareContext),
+ *  which otherwise doesn't render MODE context. Returns null when the rep
+ *  isn't a retry, keeping non-retry prompts byte-identical — calibration
+ *  reference runs never carry retryContext. */
+export function renderRetryEvaluationBlock(
+  rc: ScoreRepModeContext["retryContext"] | undefined,
+): string | null {
+  if (!rc) return null;
+  const focusSkill = rc.coachFocus.subSkill
+    ? ` (hidden skill: ${rc.coachFocus.subSkill})`
+    : "";
+  return [
+    `RETRY EVALUATION: this is the user's ${rc.attempt === "again" ? "third-or-later" : "second"} attempt at the SAME prompt.`,
+    `They were coached to implement ONE change: [${rc.coachFocus.dimension}${focusSkill}] "${rc.coachFocus.text}"`,
+    rc.firstComposite != null
+      ? `First attempt composite: ${Math.round(rc.firstComposite)}.`
+      : `First attempt composite unavailable (scoring hiccup).`,
+    `FIRST ATTEMPT TRANSCRIPT (for comparison only — score ONLY the new transcript below):`,
+    `<first_attempt>${rc.firstTranscript.slice(0, 4000)}</first_attempt>`,
+    `Write feedback as an IMPLEMENTATION REVIEW, not a fresh critique:`,
+    `  - The headline answers: did they implement the coached change?`,
+    `  - Include the "implementationReview" field: verdict "nailed" (clear behavioral change), "partial" (attempted, inconsistent), or "missed" (no behavioral change) + one sentence on how it landed. Judge the BEHAVIOR, not the score delta.`,
+    `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
+    `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
+  ].join("\n");
 }
 
 /** Provider-quirk normalizer. Runs before Zod validation. Today's
@@ -1218,6 +1277,11 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     primaryFocusDimension: validated.primaryFocusDimension,
     headlineTone: validated.headlineTone,
     nextRepHint: validated.nextRepHint,
+    // PRD v3 engine — present only on retry-evaluated reps. Null-coalesced
+    // so first reps / legacy calls keep an absent field.
+    ...(validated.implementationReview
+      ? { implementationReview: validated.implementationReview }
+      : {}),
     feedbackVersion: FEEDBACK_VERSION,
     prosodyAvailable: hasWorkerProsody(prosodyFeatures),
     // Ch.5 — composite ≥ 95 triggers operator review. We do NOT hold

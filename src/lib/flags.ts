@@ -23,3 +23,45 @@ export function isMuscleGroupWorkoutEnabled(): boolean {
   // Unset → default-by-environment.
   return process.env.NODE_ENV !== "production";
 }
+
+// ---------------------------------------------------------------------------
+// PRD v3 rebuild flags (plans/prd-implementation-progress.md).
+//
+// Same contract as FF_MUSCLE_GROUP_WORKOUT: explicit env value wins, unset
+// defaults ON everywhere except real production. Unlike the older flag,
+// these consult VERCEL_ENV first — NODE_ENV is "production" on Vercel
+// *preview* builds too, and previews must behave like dev for phase testing.
+
+function defaultOnOutsideProduction(name: string): boolean {
+  const env = process.env[name];
+  if (env === "true" || env === "1") return true;
+  if (env === "false" || env === "0") return false;
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv) return vercelEnv !== "production";
+  return process.env.NODE_ENV !== "production";
+}
+
+/** Phase 1-2 — Universal Training Engine loop (Insight → Rep → Feedback → Retry → Improvement Review). */
+export function isTrainingEngineV2Enabled(): boolean {
+  return defaultOnOutsideProduction("FF_TRAINING_ENGINE_V2");
+}
+
+/** Phase 4 — Skill Lab application mode (Storytelling / Presenting / Teaching / Interviewing / Persuasion). */
+export function isSkillLabAppsEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_SKILL_LAB_APPS");
+}
+
+/** Phase 5 — Build a Rep event preparation (context uploads, Critical Moments, Full Simulation). */
+export function isBuildARepV2Enabled(): boolean {
+  return defaultOnOutsideProduction("FF_BUILD_A_REP_V2");
+}
+
+/** Phase 6 — permanent Rank ladder (Bronze I-IV → Grandmaster) replacing Level 1-100. */
+export function isRankSystemEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_RANK_SYSTEM");
+}
+
+/** Phase 8 — runtime prompt generation (hybrid bank + AI top-up per decision D3). */
+export function isPromptGenEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_PROMPT_GEN");
+}

@@ -311,6 +311,14 @@ export type RepScore = {
    *  for this rep. Drives DimensionGrid emphasis when not overridden by
    *  mode (focus mode pins to focusDimension, pressure to stressed dims). */
   primaryFocusDimension?: SkillDimension;
+  /** PRD v3 engine — present only on retry-evaluated reps (the scoring
+   *  call carried modeContext.retryContext). Whether the user implemented
+   *  the Coach's Focus from their first attempt; drives the Improvement
+   *  Review verdict chip. Absent → deriveImplementationVerdict() fallback. */
+  implementationReview?: {
+    verdict: "nailed" | "partial" | "missed";
+    note: string;
+  } | null;
   /** Phase 3 calibration scaffold: the AI's self-classification of which
    *  tone band it landed in. Lets us measure tone-vs-score alignment in
    *  the existing `userCalibration` block — if 60% of "blunt" headlines

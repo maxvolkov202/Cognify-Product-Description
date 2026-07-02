@@ -36,17 +36,33 @@ export type ShellStation = z.infer<typeof StationSchema>;
 export const SessionPhaseSchema = z.enum([
   "idle", // pre-workout, "Start workout" button
   "prompt-selecting", // Phase 6 picker (stubbed in shell)
+  "insight", // PRD v3 engine — Coach's Insight + constraint reveal (post-pick)
   "recording", // mic active
   "transcribing", // post-record, awaiting transcript
   "scoring", // Stage 1+2 running
   "score-reveal", // results visible
+  "improvement-review", // PRD v3 engine — retry vs first-rep comparison
   "walking", // mascot moving between stations
   "day-complete-prompt", // "Want a graduation rep?"
   "graduation-rep", // pressure rep
   "day-complete", // all reps done
+  "quit-summary", // PRD v3 engine — early exit w/ real-life tip (C9)
   "paused", // user paused
 ]);
 export type SessionPhase = z.infer<typeof SessionPhaseSchema>;
+
+/** Which learning loop the session machine runs.
+ *  - "v1": legacy muscle-group flow (one rep per station).
+ *  - "v2": PRD Universal Training Engine (Insight → First Rep → Feedback →
+ *    required Retry → Improvement Review). Chosen server-side from
+ *    isTrainingEngineV2Enabled() and passed into the machine so the
+ *    reducer stays pure/flag-agnostic. */
+export const LoopVariantSchema = z.enum(["v1", "v2"]);
+export type LoopVariant = z.infer<typeof LoopVariantSchema>;
+
+/** Attempt position within one exercise's learning loop. */
+export const AttemptKindSchema = z.enum(["first", "retry", "again"]);
+export type AttemptKind = z.infer<typeof AttemptKindSchema>;
 
 /** Snapshot of the active muscle-group day for the shell to render. */
 export const WorkoutShellHydratedPayloadSchema = z.object({
@@ -82,6 +98,9 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   hasPersonalizationProfile: z.boolean().default(false),
   /** Surfaced label for the toggle. e.g. "Law · Partner/GC · Negotiation". */
   personalizationSummary: z.string().nullable().default(null),
+  /** PRD v3 engine — which learning loop the session machine runs.
+   *  Resolved server-side from isTrainingEngineV2Enabled(). */
+  loopVariant: LoopVariantSchema.default("v1"),
 });
 export type WorkoutShellHydratedPayload = z.infer<
   typeof WorkoutShellHydratedPayloadSchema
@@ -106,4 +125,5 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   rationale: null,
   hasPersonalizationProfile: false,
   personalizationSummary: null,
+  loopVariant: "v1",
 };

@@ -68,6 +68,19 @@ const modeContextSchema = z.object({
       score: z.number().min(0).max(100),
     })
     .optional(),
+  // PRD v3 engine — retry-evaluation context (see /api/score for docs).
+  retryContext: z
+    .object({
+      attempt: z.enum(["retry", "again"]),
+      firstTranscript: z.string().min(1).max(10000),
+      firstComposite: z.number().min(0).max(100).nullable(),
+      coachFocus: z.object({
+        dimension: dimensionEnum,
+        subSkill: z.string().max(80).nullable().optional(),
+        text: z.string().min(1).max(320),
+      }),
+    })
+    .optional(),
   repIndex: z.number().int().min(0),
   totalReps: z.number().int().min(1),
 });

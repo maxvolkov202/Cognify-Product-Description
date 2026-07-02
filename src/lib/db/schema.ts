@@ -304,6 +304,25 @@ export const reps = cognifyV2Schema.table(
     ),
     isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
     scoreFailureFlag: boolean("score_failure_flag").notNull().default(false),
+    // PRD v3 Phase 1 (migration 0028) — Universal Training Engine attempt
+    // lineage. Every exercise now produces a First Rep and a required Retry;
+    // "again" covers optional extra attempts after the Improvement Review.
+    // Default 'first' keeps all historical rows valid.
+    attemptKind: text("attempt_kind").notNull().default("first"),
+    // For retry/again reps: the First Rep this attempt is improving on.
+    // SET NULL (not cascade) so a purged first rep doesn't take the retry's
+    // history with it.
+    parentRepId: uuid("parent_rep_id").references((): AnyPgColumn => reps.id, {
+      onDelete: "set null",
+    }),
+    // The Coach's Focus this rep RECEIVED after scoring:
+    // { dimension, subSkill?, text }. Written post-scoring; read by the
+    // retry flow + Phase 3 coaching memory.
+    coachFocus: jsonb("coach_focus").$type<{
+      dimension: string;
+      subSkill?: string | null;
+      text: string;
+    }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -313,6 +332,45 @@ export const reps = cognifyV2Schema.table(
     index("reps_pressure_archetype_idx").on(t.pressureArchetypeId),
     index("reps_exercise_idx").on(t.exerciseId),
     index("reps_mgd_idx").on(t.muscleGroupDayId),
+    index("reps_parent_rep_idx").on(t.parentRepId),
+  ],
+);
+
+/**
+ * PRD v3 Phase 1 — Coaching History (seed of PRD §8.3.9).
+ *
+ * One row per Coach's Focus delivered to a user. The retry's evaluation
+ * back-fills `implemented_verdict` on the FIRST rep's row, giving Phase 3's
+ * coaching memory a queryable ledger of "what was coached, and did the user
+ * implement it" without re-parsing feedback jsonb.
+ */
+export const coachingEvents = cognifyV2Schema.table(
+  "coaching_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    repId: uuid("rep_id")
+      .notNull()
+      .references((): AnyPgColumn => reps.id, { onDelete: "cascade" }),
+    dimension: dimensionEnum("dimension").notNull(),
+    /** Hidden Skill id from src/types/sub-skills.ts. Nullable — early
+     *  focuses may be dimension-level only. Plain text (not an enum) so the
+     *  36-skill taxonomy can grow without migrations. */
+    subSkill: text("sub_skill"),
+    focusText: text("focus_text").notNull(),
+    /** 'nailed' | 'partial' | 'missed' — set by the retry's Improvement
+     *  Review evaluation. NULL until the retry lands (or forever, if the
+     *  user quit before retrying). */
+    implementedVerdict: text("implemented_verdict"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("coaching_events_user_created_idx").on(t.userId, t.createdAt),
+    index("coaching_events_rep_idx").on(t.repId),
   ],
 );
 

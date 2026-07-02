@@ -28,7 +28,10 @@ import {
 } from "@/server/actions/workout-day";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
-import { isMuscleGroupWorkoutEnabled } from "@/lib/flags";
+import {
+  isMuscleGroupWorkoutEnabled,
+  isTrainingEngineV2Enabled,
+} from "@/lib/flags";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { todayYmdInTz } from "@/lib/time/user-day";
 
@@ -279,6 +282,8 @@ async function fetchTodaysDayPayload(
       // Filled in by the parent (WorkoutPage) using fetchPersonalizationContext.
       hasPersonalizationProfile: false,
       personalizationSummary: null,
+      // Filled in by the parent (WorkoutPage) from isTrainingEngineV2Enabled().
+      loopVariant: "v1",
     };
   }, EMPTY_SHELL_PAYLOAD);
 }
@@ -305,6 +310,9 @@ export default async function WorkoutPage() {
   ]);
   payload.hasPersonalizationProfile = personalization.hasPersonalizationProfile;
   payload.personalizationSummary = personalization.personalizationSummary;
+  // PRD v3 engine — resolve the learning-loop variant server-side so the
+  // pure session machine never reads env vars.
+  payload.loopVariant = isTrainingEngineV2Enabled() ? "v2" : "v1";
 
   // Lightweight viewed-telemetry log.
   if (process.env.NODE_ENV !== "production") {

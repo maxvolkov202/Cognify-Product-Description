@@ -27,7 +27,7 @@ import {
   type SessionMachineState,
 } from "./session-machine";
 import { MASCOT_TIMINGS } from "@/lib/animations/mascot-state";
-import type { ShellStation, SessionPhase } from "./types";
+import type { LoopVariant, ShellStation, SessionPhase } from "./types";
 import { updateWorkoutSessionState } from "@/server/actions/workout-session";
 
 type WorkoutSessionContextValue = {
@@ -53,17 +53,27 @@ export type WorkoutSessionProviderProps = {
   /** Active workout_sessions.id — when set, every transition is
    *  persisted to the server via updateWorkoutSessionState(). */
   workoutSessionId: string | null;
+  /** Which learning loop to run — resolved server-side from
+   *  isTrainingEngineV2Enabled() so the pure machine stays flag-free.
+   *  Defaults to the legacy v1 loop. */
+  loop?: LoopVariant;
   children: ReactNode;
 };
 
 export function WorkoutSessionProvider({
   initial,
   workoutSessionId,
+  loop = "v1",
   children,
 }: WorkoutSessionProviderProps) {
   const [state, dispatch] = useReducer(
     reduce,
-    initialMachineState(initial.stations, initial.phase, initial.currentStationIndex),
+    initialMachineState(
+      initial.stations,
+      initial.phase,
+      initial.currentStationIndex,
+      loop,
+    ),
   );
 
   // Timer refs so side-effects can be cancelled cleanly.

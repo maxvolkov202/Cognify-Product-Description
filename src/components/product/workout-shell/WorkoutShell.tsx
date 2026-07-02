@@ -20,6 +20,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import type { ShellStation } from "@/lib/workout/types";
+import type { RepScore } from "@/types/domain";
+import type { AttemptPayload } from "./ImprovementReview";
 import {
   WorkoutSessionProvider,
   useWorkoutSession,
@@ -48,6 +50,7 @@ export default function WorkoutShell({ payload }: WorkoutShellProps) {
         stations: payload.stations,
       }}
       workoutSessionId={payload.workoutSessionId}
+      loop={payload.loopVariant}
     >
       <WorkoutShellInner payload={payload} />
     </WorkoutSessionProvider>
@@ -61,12 +64,22 @@ function WorkoutShellInner({
 }) {
   const { state, send, mascotState } = useWorkoutSession();
 
+  // PRD v3 engine — full attempt payloads for the current station.
+  // The machine keeps repId/composite; the RepScore + transcript needed
+  // by the retry context + Improvement Review live here. Cleared when a
+  // new prompt is picked (next station / next exercise).
+  const [attemptData, setAttemptData] = useState<{
+    first: AttemptPayload | null;
+    retry: AttemptPayload | null;
+  }>({ first: null, retry: null });
+
   const onPromptSelected = useCallback(
     (params: {
       promptId: string;
       promptText: string;
       mode: "shuffle" | "list" | "surprise" | "auto_idle";
     }) => {
+      setAttemptData({ first: null, retry: null });
       send({
         type: "PICK_PROMPT",
         promptId: params.promptId,
@@ -81,6 +94,12 @@ function WorkoutShellInner({
     send({ type: "ADVANCE" });
   }, [send]);
 
+  // PRD v3 engine — loop event handlers.
+  const onInsightDone = useCallback(() => send({ type: "INSIGHT_DONE" }), [send]);
+  const onBeginRetry = useCallback(() => send({ type: "BEGIN_RETRY" }), [send]);
+  const onRetryAgain = useCallback(() => send({ type: "RETRY_AGAIN" }), [send]);
+  const onQuit = useCallback(() => send({ type: "QUIT" }), [send]);
+
   // Phase HB-4 — Cancel workout. UI-only escape hatch: a local override
   // that flips us back to landing-shape rendering even though the
   // muscle_group_day still exists in DB. On Start re-tap, the override
@@ -94,7 +113,29 @@ function WorkoutShellInner({
   // can reference it without hitting TDZ.
 
   const onRepScored = useCallback(
-    (params: { composite: number | null; repId: string; failure: boolean }) => {
+    (params: {
+      composite: number | null;
+      repId: string;
+      failure: boolean;
+      score?: RepScore | null;
+      transcript?: string;
+    }) => {
+      // PRD v3 engine — stash the full attempt payload BEFORE dispatching
+      // so the next render (score-reveal / improvement-review) has it.
+      // The machine's `attempt` still reflects the attempt being scored
+      // at this moment (it only changes on BEGIN_RETRY / RETRY_AGAIN).
+      if (params.score && params.transcript != null) {
+        const attemptPayload: AttemptPayload = {
+          repId: params.repId,
+          score: params.score,
+          transcript: params.transcript,
+        };
+        setAttemptData((prev) =>
+          state.attempt === "first"
+            ? { first: attemptPayload, retry: prev.retry }
+            : { first: prev.first, retry: attemptPayload },
+        );
+      }
       if (params.failure) {
         send({ type: "FAIL_SCORE", repId: params.repId });
       } else {
@@ -105,7 +146,7 @@ function WorkoutShellInner({
         });
       }
     },
-    [send],
+    [send, state.attempt],
   );
 
   const onAdvanceNow = useCallback(() => {
@@ -334,6 +375,14 @@ function WorkoutShellInner({
                 lastScore={state.lastScore}
                 lastScoreFailure={state.lastScoreFailure}
                 personalize={personalize}
+                loop={state.loop}
+                attempt={state.attempt}
+                firstAttempt={attemptData.first}
+                retryAttempt={attemptData.retry}
+                isLastStation={
+                  state.currentStationIndex >= state.stations.length - 1
+                }
+                repsCompleted={state.outcomes.filter((o) => !o.scoreFailure).length}
                 onStartWorkout={onStartWorkout}
                 onPromptSelected={onPromptSelected}
                 onSkipStation={onSkipStation}
@@ -342,6 +391,10 @@ function WorkoutShellInner({
                 onAcceptGraduation={onAcceptGraduation}
                 onSkipGraduation={onSkipGraduation}
                 onCancelWorkout={onCancelWorkout}
+                onInsightDone={onInsightDone}
+                onBeginRetry={onBeginRetry}
+                onRetryAgain={onRetryAgain}
+                onQuit={onQuit}
               />
             </motion.div>
           )}

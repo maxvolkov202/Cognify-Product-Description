@@ -78,6 +78,7 @@ import {
   renderReferenceRepsBlock,
 } from "./rag/reference-reps";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
+import { renderRetryEvaluationBlock } from "./score";
 import {
   getExerciseScoringContext,
   renderExerciseXmlBlock,
@@ -319,6 +320,16 @@ const stage2Schema = z.object({
     .array(bulletSchema.extend({ exampleLine: z.string().max(360).nullable() }))
     .max(2),
   nextRepHint: z.string().min(2).max(60),
+  /** PRD v3 engine — present only when the user prompt carried a
+   *  RETRY EVALUATION block. Optional so non-retry reps validate
+   *  unchanged; deriveImplementationVerdict() covers omission. */
+  implementationReview: z
+    .object({
+      verdict: z.enum(["nailed", "partial", "missed"]),
+      note: z.string().min(1).max(280),
+    })
+    .nullable()
+    .optional(),
 });
 
 // ——— Stage outputs ——————————————————————————————————————————
@@ -428,6 +439,14 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
   const exerciseXml = exerciseCtx ? renderExerciseXmlBlock(exerciseCtx) : null;
 
   const timedTranscript = input.transcript;
+  // PRD v3 engine — retry-evaluation context. Rendered ONLY when the rep
+  // is a retry (modeContext.retryContext set); non-retry prompts stay
+  // byte-identical, so calibration reference runs are unaffected. The
+  // two-stage path deliberately does NOT render the rest of the MODE
+  // block (it never has).
+  const retryBlock = renderRetryEvaluationBlock(
+    input.modeContext?.retryContext,
+  );
   const userPrompt = [
     exerciseXml,
     input.frameworkNodes
@@ -437,6 +456,7 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
       : null,
     `PROMPT: ${input.promptText}`,
     `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
+    retryBlock,
     ragBlock,
     signalsBlock,
     prosodyBlock,
@@ -833,6 +853,10 @@ export function assembleRepScore(
     primaryFocusDimension: stage1.primaryFocusDimension,
     headlineTone: stage1.headlineTone,
     nextRepHint: stage2.nextRepHint,
+    // PRD v3 engine — only present on retry-evaluated reps.
+    ...(stage2.implementationReview
+      ? { implementationReview: stage2.implementationReview }
+      : {}),
     feedbackVersion: FEEDBACK_VERSION,
     prosodyAvailable: opts?.prosodyFeatures
       ? hasWorkerProsody(opts.prosodyFeatures)

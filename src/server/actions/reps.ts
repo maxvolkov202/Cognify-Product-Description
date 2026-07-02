@@ -9,8 +9,13 @@ import {
   progressSnapshots,
   practiceSessions,
   users,
+  coachingEvents,
 } from "@/lib/db/schema";
-import { count, eq, asc, sql } from "drizzle-orm";
+import { count, eq, and, asc, isNull, sql } from "drizzle-orm";
+import {
+  deriveCoachFocus,
+  deriveImplementationVerdict,
+} from "@/lib/ai/coach-focus";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log } from "@/lib/log";
@@ -75,6 +80,11 @@ export type SaveRepInput = {
   muscleGroupDayId?: string | null;
   /** Phase 8 — pressure graduation rep tag. */
   isGraduationRep?: boolean;
+  /** PRD v3 engine — where this rep sits in the exercise learning loop.
+   *  Omitted/"first" for all legacy callers. */
+  attemptKind?: "first" | "retry" | "again";
+  /** PRD v3 engine — the First Rep this retry/again attempt improves on. */
+  parentRepId?: string | null;
 };
 
 export type SaveRepResult = {
@@ -215,6 +225,12 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     calloutIds: [],
   };
 
+  // PRD v3 engine — derive the Coach's Focus this rep carries forward.
+  // Skipped on mock-fallback scores (their focus bullets are canned) so
+  // the coaching-history ledger stays trustworthy.
+  const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
+  const coachFocus = isMockFallback ? null : deriveCoachFocus(input.score);
+
   return safeDb(async () => {
     let sessionId = input.sessionId;
     if (!sessionId) {
@@ -253,6 +269,13 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         ...(input.isGraduationRep
           ? { isGraduationRep: true }
           : {}),
+        // PRD v3 engine — attempt lineage (migration 0028). Legacy
+        // callers omit these; column defaults keep them 'first'/NULL.
+        ...(input.attemptKind && input.attemptKind !== "first"
+          ? { attemptKind: input.attemptKind }
+          : {}),
+        ...(input.parentRepId ? { parentRepId: input.parentRepId } : {}),
+        ...(coachFocus ? { coachFocus } : {}),
         frameworkSnapshot: input.framework
           ? {
               name: input.framework.name,
@@ -265,6 +288,80 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     if (!rep) return fallback;
 
     const repId = rep.id;
+
+    // PRD v3 engine — coaching-history ledger (seed of PRD §8.3.9).
+    // One row per delivered Coach's Focus; retry attempts back-fill the
+    // parent rep's implemented_verdict. Best-effort: a ledger failure
+    // must never lose the rep, so errors are logged and swallowed.
+    if (userId !== "anonymous" && !isGuest) {
+      try {
+        if (coachFocus) {
+          await db.insert(coachingEvents).values({
+            userId,
+            repId,
+            dimension: coachFocus.dimension,
+            subSkill: coachFocus.subSkill,
+            focusText: coachFocus.text,
+          });
+        }
+        if (
+          (input.attemptKind === "retry" || input.attemptKind === "again") &&
+          input.parentRepId &&
+          !isMockFallback
+        ) {
+          let verdict = input.score.implementationReview?.verdict ?? null;
+          if (!verdict) {
+            // Deterministic fallback: score movement on the parent rep's
+            // focus dimension (generous thresholds per Owen C10).
+            const [parent] = await db
+              .select({ coachFocus: reps.coachFocus })
+              .from(reps)
+              .where(eq(reps.id, input.parentRepId))
+              .limit(1);
+            const focusDimension = parent?.coachFocus?.dimension as
+              | SkillDimension
+              | undefined;
+            if (focusDimension) {
+              const parentDims = await db
+                .select({
+                  dimension: dimensionScores.dimension,
+                  score: dimensionScores.score,
+                })
+                .from(dimensionScores)
+                .where(eq(dimensionScores.repId, input.parentRepId));
+              verdict = deriveImplementationVerdict({
+                focusDimension,
+                firstDimensions: parentDims.map((d) => ({
+                  dimension: d.dimension as SkillDimension,
+                  score: d.score,
+                })),
+                retryDimensions: input.score.dimensions.map((d) => ({
+                  dimension: d.dimension as SkillDimension,
+                  score: d.score,
+                })),
+              });
+            }
+          }
+          if (verdict) {
+            await db
+              .update(coachingEvents)
+              .set({ implementedVerdict: verdict })
+              .where(
+                and(
+                  eq(coachingEvents.repId, input.parentRepId),
+                  isNull(coachingEvents.implementedVerdict),
+                ),
+              );
+          }
+        }
+      } catch (err) {
+        log.warn({
+          event: "save_rep.coaching_events_failed",
+          repId,
+          msg: err instanceof Error ? err.message : "unknown",
+        });
+      }
+    }
 
     if (input.score.dimensions.length > 0) {
       await db.insert(dimensionScores).values(
@@ -290,7 +387,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       // historical-record completeness (they carry the mock-fallback
       // tag in the rep's modelVersion) but progress + PB skips so the
       // calibration drift surface stays clean.
-      const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
+      // (isMockFallback hoisted to saveRep scope for the coaching ledger.)
       if (!isMockFallback) {
         await db.insert(progressSnapshots).values(
           input.score.dimensions.map((d) => ({
