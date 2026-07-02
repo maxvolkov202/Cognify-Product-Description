@@ -604,6 +604,11 @@ export async function scoreStage1(input: ScoreRepInput): Promise<Stage1Result> {
         system: [
           { type: "text", text: stage1SystemPrompt, cache_control: { type: "ephemeral" } },
           ...context.cachedSystemBlocks,
+          // PRD v3 Phase 3 — coaching memory, uncached (user-specific).
+          // Absent for reference reps → prompts stay byte-identical.
+          ...(input.coachingMemory
+            ? [{ type: "text" as const, text: input.coachingMemory }]
+            : []),
         ],
         messages: [{ role: "user", content: [{ type: "text", text: context.userPrompt }] }],
       },
@@ -790,6 +795,10 @@ export async function scoreStage2(
         system: [
           { type: "text", text: stage2SystemPrompt, cache_control: { type: "ephemeral" } },
           ...context.cachedSystemBlocks,
+          // PRD v3 Phase 3 — coaching memory, uncached (user-specific).
+          ...(input.coachingMemory
+            ? [{ type: "text" as const, text: input.coachingMemory }]
+            : []),
         ],
         messages: [
           { role: "user", content: [{ type: "text", text: userPromptWithStage1 }] },

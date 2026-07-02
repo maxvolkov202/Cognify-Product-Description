@@ -47,6 +47,8 @@ export type UserProfile = {
   /** Audio retention window in days; null = keep forever. Default 90.
    *  Drives the audio-retention cron sweep. */
   audioRetentionDays: number | null;
+  /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
+  communicationStage: string | null;
 };
 
 // Request-scoped: called by layout, dashboard, workout, settings, and
@@ -79,6 +81,7 @@ export const getUserProfile = cache(async (
       committedDays: row.committedDays ?? 31,
       tz: row.tz ?? "UTC",
       audioRetentionDays: row.audioRetentionDays ?? 90,
+      communicationStage: row.communicationStage ?? null,
     };
   }, null);
 });
@@ -89,6 +92,20 @@ export async function setUserVertical(
 ): Promise<boolean> {
   return safeDb(async () => {
     await db.update(users).set({ vertical }).where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage setter. Null clears. */
+export async function setUserCommunicationStage(
+  userId: string,
+  stage: string | null,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ communicationStage: stage })
+      .where(eq(users.id, userId));
     return true;
   }, false);
 }

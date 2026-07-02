@@ -10,7 +10,13 @@ import {
   practiceSessions,
   users,
   coachingEvents,
+  communicationProfile,
 } from "@/lib/db/schema";
+import {
+  applyRepToProfile,
+  emptyProfile,
+  type CommunicationProfileState,
+} from "@/lib/profile/communication-profile";
 import { count, eq, and, asc, isNull, sql } from "drizzle-orm";
 import {
   deriveCoachFocus,
@@ -417,6 +423,84 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           repId,
           msg: "progressSnapshots + personalBests skipped",
         });
+      }
+
+      // PRD v3 Phase 3 — fold this rep's evidence into the Communication
+      // Profile (slow EMA; see src/lib/profile/communication-profile.ts).
+      // Best-effort: a profile write failure never loses the rep.
+      if (!isMockFallback && userId !== "anonymous" && !isGuest) {
+        try {
+          const [row] = await db
+            .select({
+              coreSkills: communicationProfile.coreSkills,
+              hiddenSkills: communicationProfile.hiddenSkills,
+              overallScore: communicationProfile.overallScore,
+              totalReps: communicationProfile.totalReps,
+            })
+            .from(communicationProfile)
+            .where(eq(communicationProfile.userId, userId))
+            .limit(1);
+          const current: CommunicationProfileState = row
+            ? {
+                coreSkills: row.coreSkills as CommunicationProfileState["coreSkills"],
+                hiddenSkills: row.hiddenSkills as CommunicationProfileState["hiddenSkills"],
+                overallScore: row.overallScore,
+                totalReps: row.totalReps,
+              }
+            : emptyProfile();
+          const subSkillScores: Record<string, number> = {};
+          for (const d of input.score.dimensions) {
+            if (!d.subSkillScores) continue;
+            for (const [id, v] of Object.entries(d.subSkillScores)) {
+              if (typeof v === "number") subSkillScores[id] = v;
+            }
+          }
+          const next = applyRepToProfile(current, {
+            dimensions: input.score.dimensions.map((d) => ({
+              dimension: d.dimension,
+              score: d.score,
+            })),
+            subSkillScores,
+            at: new Date().toISOString(),
+          });
+          await db
+            .insert(communicationProfile)
+            .values({
+              userId,
+              overallScore: next.overallScore,
+              coreSkills: next.coreSkills as Record<
+                string,
+                { score: number; sampleCount: number; updatedAt: string }
+              >,
+              hiddenSkills: next.hiddenSkills as Record<
+                string,
+                { score: number; sampleCount: number }
+              >,
+              totalReps: next.totalReps,
+            })
+            .onConflictDoUpdate({
+              target: communicationProfile.userId,
+              set: {
+                overallScore: next.overallScore,
+                coreSkills: next.coreSkills as Record<
+                  string,
+                  { score: number; sampleCount: number; updatedAt: string }
+                >,
+                hiddenSkills: next.hiddenSkills as Record<
+                  string,
+                  { score: number; sampleCount: number }
+                >,
+                totalReps: next.totalReps,
+                updatedAt: new Date(),
+              },
+            });
+        } catch (err) {
+          log.warn({
+            event: "save_rep.profile_update_failed",
+            repId,
+            msg: err instanceof Error ? err.message : "unknown",
+          });
+        }
       }
     }
 

@@ -35,6 +35,7 @@ import {
 import { getSubSkillRunningAverages } from "@/lib/db/queries/sub-skills";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import { SUB_SKILLS } from "@/types/sub-skills";
+import { detectPlateau } from "@/lib/profile/plateau";
 import {
   selectMuscleGroupForToday,
   sampleExercises,
@@ -55,6 +56,38 @@ const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
  *  legacy 4 single-rep stations (PRD §5.2 prescribes three). */
 function stationsPerDay(): number {
   return isTrainingEngineV2Enabled() ? 3 : 4;
+}
+
+/** PRD v3 Phase 3.5 — dims plateaued per detectPlateau() over the last
+ *  21 days of progress snapshots. Empty when the v2 engine is off. */
+async function fetchPlateauedDims(userId: string): Promise<MuscleGroupId[]> {
+  if (!isTrainingEngineV2Enabled()) return [];
+  if (userId === "anonymous") return [];
+  const rows = await db.execute<{
+    dimension: string;
+    taken_at: Date;
+    score: number;
+  }>(drizzleSql`
+    SELECT dimension::text AS dimension, taken_at, score
+    FROM cognify_v2.progress_snapshots
+    WHERE user_id = ${userId}
+      AND taken_at >= NOW() - INTERVAL '21 days'
+    ORDER BY taken_at ASC
+  `);
+  const byDim = new Map<string, { at: string; score: number }[]>();
+  for (const r of rows) {
+    const list = byDim.get(r.dimension) ?? [];
+    list.push({ at: r.taken_at.toISOString(), score: r.score });
+    byDim.set(r.dimension, list);
+  }
+  const out: MuscleGroupId[] = [];
+  for (const mg of MUSCLE_GROUP_IDS) {
+    const skillDim = muscleGroupToSkillDim(mg);
+    if (!skillDim) continue;
+    const series = byDim.get(skillDim) ?? [];
+    if (detectPlateau(series)) out.push(mg);
+  }
+  return out;
 }
 
 /** PRD v3 Phase 2.3 — the user's Hidden Skill running averages for one
@@ -407,6 +440,7 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       }
     }
 
+    const plateauedDims = inAssessment ? [] : await fetchPlateauedDims(userId);
     const result = selectMuscleGroupForToday({
       today,
       engagement,
@@ -415,6 +449,7 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       seed: `${userId}:${dayDate}`,
       assessmentEnabled,
       weightedRotationEnabled: assessmentEnabled,
+      plateauedDims,
     });
 
     if (result.rationaleCode === "cold_start") {

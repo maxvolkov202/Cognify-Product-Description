@@ -7,12 +7,14 @@ import {
   setUserPersonas,
   setUserImprovementGoals,
   setUserAudioRetention,
+  setUserCommunicationStage,
   markUserOnboarded,
 } from "@/lib/db/queries/user";
 import {
   isVerticalId,
   isPersonaId,
   isImprovementGoalId,
+  isCommunicationStage,
   type PersonaId,
   type ImprovementGoalId,
 } from "@/lib/onboarding/constants";
@@ -115,6 +117,23 @@ export async function setUserPreferencesAction(input: {
   if (results.some((ok) => !ok)) {
     return { ok: false, error: "db_error" };
   }
+  return { ok: true };
+}
+
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage. Career-stage context
+ *  for personalization only; never touches scoring. Stage ids live in
+ *  lib/onboarding/constants.ts ("use server" files may only export
+ *  async functions). */
+export async function setCommunicationStageAction(
+  stage: string | null,
+): Promise<ActionResult> {
+  if (stage !== null && !isCommunicationStage(stage)) {
+    return { ok: false, error: "invalid_input" };
+  }
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserCommunicationStage(user.id, stage);
+  if (!ok) return { ok: false, error: "db_error" };
   return { ok: true };
 }
 

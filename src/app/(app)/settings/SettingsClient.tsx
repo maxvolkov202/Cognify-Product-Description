@@ -24,7 +24,9 @@ import {
 import {
   setUserPreferencesAction,
   setAudioRetentionAction,
+  setCommunicationStageAction,
 } from "@/server/actions/onboarding";
+import { COMMUNICATION_STAGES } from "@/lib/onboarding/constants";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
   sendPasswordResetEmail,
@@ -40,6 +42,8 @@ type Props = {
   initialGoals: ImprovementGoalId[];
   initialCommittedDays?: number;
   initialAudioRetentionDays?: number | null;
+  /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
+  initialCommunicationStage?: string | null;
   userEmail: string | null;
   userKind: "authenticated" | "guest";
 };
@@ -52,6 +56,7 @@ export function SettingsClient({
   initialGoals,
   initialCommittedDays,
   initialAudioRetentionDays,
+  initialCommunicationStage,
   userEmail,
   userKind,
 }: Props) {
@@ -565,6 +570,13 @@ export function SettingsClient({
         </div>
       </section>
 
+      {/* ——— Communication Stage (PRD v3 §8.2) ————————— */}
+      {userKind === "authenticated" && (
+        <CommunicationStageSection
+          initialStage={initialCommunicationStage ?? null}
+        />
+      )}
+
       {/* ——— Appearance ——————————————————————————— */}
       <ThemeToggle />
 
@@ -650,6 +662,93 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
   if (a.size !== b.size) return false;
   for (const v of a) if (!b.has(v)) return false;
   return true;
+}
+
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage picker. Saves
+ *  immediately (independent of the batched preferences save), same
+ *  pattern as PrivacySection. */
+function CommunicationStageSection({
+  initialStage,
+}: {
+  initialStage: string | null;
+}) {
+  const [stage, setStage] = useState<string | null>(initialStage);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  async function onPick(next: string) {
+    const value = next === stage ? null : next; // tap again to clear
+    setStage(value);
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await setCommunicationStageAction(value);
+      if (!res.ok) {
+        setError("Couldn't save. Try again.");
+        return;
+      }
+      setSavedAt(Date.now());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const justSaved = savedAt && Date.now() - savedAt < 4000;
+
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900 dark:text-white">
+              Communication stage
+            </h2>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Where you are in your career. Cognify uses this to pick more
+              relevant prompts and coaching examples — it never affects your
+              scores.
+            </p>
+          </div>
+          {saving && (
+            <span className="text-[11px] font-semibold text-ink-400">
+              Saving…
+            </span>
+          )}
+          {!saving && justSaved && (
+            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              Saved
+            </span>
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {COMMUNICATION_STAGES.map((s) => {
+            const active = stage === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onPick(s.id)}
+                className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+                  active
+                    ? "brand-gradient text-white shadow-sm"
+                    : "border border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:bg-ink-800"
+                }`}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+        {error && (
+          <p className="mt-2 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+            {error}
+          </p>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function PrivacySection({ initialDays }: { initialDays: number | null }) {

@@ -91,6 +91,13 @@ export type SelectInput = {
    *  maintenance cadence. Same caller flag as assessmentEnabled;
    *  default false keeps the uniform SIX_DAY_FLOOR. */
   weightedRotationEnabled?: boolean;
+  /** PRD v3 Phase 3.5 (PRD §8.4.4) — dims currently flagged as plateaued
+   *  (enough evidence, flat trend, headroom left). When today's weakest
+   *  pick is plateaued and a close-scoring non-plateaued alternative is
+   *  eligible, the engine swaps to the alternative — a change of
+   *  stimulus, not more of the same. Computed by the caller from
+   *  progress snapshots via detectPlateau(). */
+  plateauedDims?: MuscleGroupId[];
 };
 
 // ─── Outputs ─────────────────────────────────────────────────────────────
@@ -408,8 +415,30 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
       return a.composite - b.composite;
     });
 
-  const suggested = ranked[0]!.dim;
-  const altCandidates = ranked.slice(1, 3).map((r) => r.dim);
+  // PRD v3 Phase 3.5 — plateau intervention: when the weakest pick is
+  // plateaued and the next-ranked non-plateaued dim is within striking
+  // distance (≤6 pts), train THAT instead. Variety restarts progress
+  // better than repetition (PRD §8.4.4).
+  const PLATEAU_SWAP_MARGIN = 6;
+  const plateaued = new Set(input.plateauedDims ?? []);
+  let pickIdx = 0;
+  if (plateaued.has(ranked[0]!.dim)) {
+    const alt = ranked.findIndex(
+      (r, i) =>
+        i > 0 &&
+        !plateaued.has(r.dim) &&
+        (r.composite == null ||
+          ranked[0]!.composite == null ||
+          r.composite - ranked[0]!.composite <= PLATEAU_SWAP_MARGIN),
+    );
+    if (alt > 0) pickIdx = alt;
+  }
+
+  const suggested = ranked[pickIdx]!.dim;
+  const altCandidates = ranked
+    .filter((_, i) => i !== pickIdx)
+    .slice(0, 2)
+    .map((r) => r.dim);
   // Fill to 2 alternates if needed (small catalogs, early days).
   while (altCandidates.length < 2) {
     const next = MUSCLE_GROUP_IDS.find(
@@ -435,7 +464,7 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
     suggested,
     alternates: altCandidates,
     rationale: buildRationale("weakest_recent", suggested, {
-      composite: ranked[0]!.composite,
+      composite: ranked[pickIdx]!.composite,
     }),
     rationaleCode: "weakest_recent",
   };

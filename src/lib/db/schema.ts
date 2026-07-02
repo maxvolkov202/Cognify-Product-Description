@@ -169,6 +169,10 @@ export const users = cognifyV2Schema.table("users", {
   // or /settings. The daily assignment, streak math, and weakness-day
   // logic all read from this. See src/lib/onboarding/committed-days.ts.
   committedDays: integer("committed_days").notNull().default(31),
+  // PRD v3 Phase 3 (PRD §8.2) — career-stage context for prompt/coaching
+  // personalization. Never affects scoring. student | early_career |
+  // individual_contributor | manager | senior_leader | executive.
+  communicationStage: text("communication_stage"),
   // Voice is biometric PII under GDPR/CCPA. The audio-retention cron
   // sweeps reps older than this many days, deletes the blob, and nulls
   // reps.audio_url + reps.transcript. NULL = user opted out (keep
@@ -334,6 +338,45 @@ export const reps = cognifyV2Schema.table(
     index("reps_mgd_idx").on(t.muscleGroupDayId),
     index("reps_parent_rep_idx").on(t.parentRepId),
   ],
+);
+
+/**
+ * PRD v3 Phase 3 — the Communication Profile (PRD §8.3).
+ *
+ * ONE row per user: Cognify's slowly-evolving estimate of how they
+ * communicate. Rep scores are evidence; this is the estimate (count-
+ * scaled EMA, src/lib/profile/communication-profile.ts). Written by
+ * saveRep on every scored rep; read by the Communication Snapshot,
+ * coaching memory, and (Phase 6) the Overall Communication Score UI.
+ */
+export const communicationProfile = cognifyV2Schema.table(
+  "communication_profile",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** PRD §10.3 Overall Communication Score. Null until ≥3 core skills
+     *  have evidence. */
+    overallScore: real("overall_score"),
+    /** { [dimension]: { score, sampleCount, updatedAt } } — v3 canonical
+     *  dims (delivery, not pacing). */
+    coreSkills: jsonb("core_skills")
+      .$type<Record<string, { score: number; sampleCount: number; updatedAt: string }>>()
+      .notNull()
+      .default({}),
+    /** { [subSkillId]: { score, sampleCount } } — 36 Hidden Skills. */
+    hiddenSkills: jsonb("hidden_skills")
+      .$type<Record<string, { score: number; sampleCount: number }>>()
+      .notNull()
+      .default({}),
+    totalReps: integer("total_reps").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
 );
 
 /**

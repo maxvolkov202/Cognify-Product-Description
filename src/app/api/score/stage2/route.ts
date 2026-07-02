@@ -17,6 +17,11 @@ import {
   getUserCalibrationProfile,
   renderCalibrationForPrompt,
 } from "@/lib/db/queries/calibration";
+import { isTrainingEngineV2Enabled } from "@/lib/flags";
+import {
+  buildCommunicationSnapshot,
+  renderCoachingMemoryBlock,
+} from "@/lib/profile/snapshot";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
 import { log, serializeErr } from "@/lib/log";
@@ -140,11 +145,23 @@ export type Stage2Response = {
 
 async function loadUserContext() {
   const user = await currentUser();
-  if (!user) return { userId: null, calibrationBlock: null };
-  const profile = await getUserCalibrationProfile(user.id);
+  if (!user)
+    return {
+      userId: null,
+      calibrationBlock: null,
+      coachingMemoryBlock: null,
+    };
+  // PRD v3 Phase 3 — coaching memory (PRD §8.6.4), v2 engine only.
+  const [profile, snapshot] = await Promise.all([
+    getUserCalibrationProfile(user.id),
+    isTrainingEngineV2Enabled()
+      ? buildCommunicationSnapshot(user.id)
+      : Promise.resolve(null),
+  ]);
   return {
     userId: user.id,
     calibrationBlock: renderCalibrationForPrompt(profile),
+    coachingMemoryBlock: renderCoachingMemoryBlock(snapshot),
   };
 }
 
@@ -191,7 +208,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { userId, calibrationBlock } = await loadUserContext();
+  const { userId, calibrationBlock, coachingMemoryBlock } = await loadUserContext();
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
@@ -204,6 +221,7 @@ export async function POST(req: Request) {
       {
         ...body,
         userCalibration: calibrationBlock,
+        coachingMemory: coachingMemoryBlock,
         ...(userId ? { userId } : {}),
         ...(mergedWeights ? { weights: mergedWeights } : {}),
         ...(body.modeContext ? { modeContext: body.modeContext } : {}),

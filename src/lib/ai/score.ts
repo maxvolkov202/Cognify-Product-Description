@@ -235,6 +235,12 @@ export type ScoreRepInput = {
    *  Injected into the Claude system prompt so scoring adapts to the user's
    *  history. Null/absent when the user has no ratings yet. */
   userCalibration?: string | null;
+  /** PRD v3 Phase 3 (PRD §8.6.4) — rendered COACHING MEMORY block from
+   *  the user's coaching_events ledger (renderCoachingMemoryBlock in
+   *  lib/profile/snapshot.ts). Injected uncached like userCalibration.
+   *  Null/absent for first-time users + calibration reference reps —
+   *  those prompts stay byte-identical. */
+  coachingMemory?: string | null;
   /** Phase 2: mode/session/carry-over context. Optional — when absent,
    *  the scoring prompt runs in mode-blind mode (Phase 1 behavior). */
   modeContext?: ScoreRepModeContext;
@@ -1014,7 +1020,7 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
   // Compute prompt size in bytes BEFORE the call so the metrics row
   // records what we actually shipped (cache_control blocks count even
   // when they're cache-read). Sums system blocks + user message text.
-  const systemTextBytes = [systemPrompt, rubricBlock, COMPACT_KNOWLEDGE, SUB_SKILL_REFERENCE, input.userCalibration ?? ""]
+  const systemTextBytes = [systemPrompt, rubricBlock, COMPACT_KNOWLEDGE, SUB_SKILL_REFERENCE, input.userCalibration ?? "", input.coachingMemory ?? ""]
     .reduce((acc, s) => acc + Buffer.byteLength(s ?? "", "utf8"), 0);
   const userTextBytes = Buffer.byteLength(userPrompt, "utf8");
   const promptSizeBytes = systemTextBytes + userTextBytes;
@@ -1072,6 +1078,15 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
               type: "text" as const,
               text: input.userCalibration,
               // NOT cache-controlled — user-specific.
+            },
+          ]
+        : []),
+      ...(input.coachingMemory
+        ? [
+            {
+              type: "text" as const,
+              text: input.coachingMemory,
+              // NOT cache-controlled — user-specific (PRD §8.6.4).
             },
           ]
         : []),

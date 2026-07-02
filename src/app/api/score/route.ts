@@ -22,6 +22,11 @@ import {
   renderCalibrationForPrompt,
 } from "@/lib/db/queries/calibration";
 import { log, serializeErr } from "@/lib/log";
+import { isTrainingEngineV2Enabled } from "@/lib/flags";
+import {
+  buildCommunicationSnapshot,
+  renderCoachingMemoryBlock,
+} from "@/lib/profile/snapshot";
 
 /**
  * Pull the current user's id + calibration block in a single shot.
@@ -33,13 +38,24 @@ import { log, serializeErr } from "@/lib/log";
 async function loadUserContext(): Promise<{
   userId: string | null;
   calibrationBlock: string | null;
+  coachingMemoryBlock: string | null;
 }> {
   const user = await currentUser();
-  if (!user) return { userId: null, calibrationBlock: null };
-  const profile = await getUserCalibrationProfile(user.id);
+  if (!user)
+    return { userId: null, calibrationBlock: null, coachingMemoryBlock: null };
+  // PRD v3 Phase 3 — coaching memory (PRD §8.6.4), v2 engine only. Built
+  // from the coaching_events ledger; null for users with no coaching
+  // history, so calibration reference runs stay byte-identical.
+  const [profile, snapshot] = await Promise.all([
+    getUserCalibrationProfile(user.id),
+    isTrainingEngineV2Enabled()
+      ? buildCommunicationSnapshot(user.id)
+      : Promise.resolve(null),
+  ]);
   return {
     userId: user.id,
     calibrationBlock: renderCalibrationForPrompt(profile),
+    coachingMemoryBlock: renderCoachingMemoryBlock(snapshot),
   };
 }
 
@@ -427,7 +443,7 @@ export async function POST(req: Request) {
 
   // Hoist userId out of the try so the catch block's telemetry write
   // can still attribute the failure to the right user.
-  const { userId, calibrationBlock } = await loadUserContext();
+  const { userId, calibrationBlock, coachingMemoryBlock } = await loadUserContext();
 
   try {
     // Apply per-framework dimension weight adjustments so sales frameworks
@@ -449,6 +465,7 @@ export async function POST(req: Request) {
     const { score, metrics } = await scoreRepWithMetrics({
       ...body,
       userCalibration: calibrationBlock,
+      coachingMemory: coachingMemoryBlock,
       ...(userId ? { userId } : {}),
       ...(mergedWeights ? { weights: mergedWeights } : {}),
       ...(body.modeContext ? { modeContext: body.modeContext } : {}),
