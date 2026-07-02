@@ -176,6 +176,9 @@ export type Station = {
   exerciseName: string;
   rule: string; // exercises.description in the DB
   why: string | null; // exercises.instructions in the DB
+  /** PRD v3 Phase 2.2 — Exercise Framework fields (null pre-enrichment). */
+  objective: string | null;
+  responseWindow: { minSec: number; maxSec: number } | null;
 };
 
 /** Fully-hydrated muscle-group day for the Workout shell to render. */

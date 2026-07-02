@@ -88,9 +88,15 @@ export type ExerciseScoringContext = {
   dimension: string;
   /** From exercises.description — surfaced as the rule attribute. */
   rule: string;
-  /** Constraint hint from EXERCISE_RUBRIC_HINTS, or null if no hint
-   *  is registered for the slug. */
+  /** Scoring constraint. PRD v3 Phase 2.2: the DB row's scoring_lens
+   *  (framework-owned) wins; the code-side EXERCISE_RUBRIC_HINTS map is
+   *  the fallback for rows seeded before the enrichment. */
   hint: string | null;
+  /** PRD v3 Phase 2.2 — Hidden Skills this exercise targets. Null for
+   *  pre-enrichment rows. */
+  hiddenSkills: string[] | null;
+  /** ADR-001 response window. Null for pre-enrichment rows. */
+  responseWindow: { minSec: number; maxSec: number } | null;
 };
 
 export async function getExerciseScoringContext(
@@ -104,6 +110,9 @@ export async function getExerciseScoringContext(
         name: exercises.name,
         dimension: exercises.dimension,
         description: exercises.description,
+        scoringLens: exercises.scoringLens,
+        hiddenSkills: exercises.hiddenSkills,
+        responseWindow: exercises.responseWindow,
       })
       .from(exercises)
       .where(eq(exercises.id, exerciseId))
@@ -115,7 +124,9 @@ export async function getExerciseScoringContext(
       name: row.name,
       dimension: row.dimension as string,
       rule: row.description,
-      hint: EXERCISE_RUBRIC_HINTS[row.slug] ?? null,
+      hint: row.scoringLens ?? EXERCISE_RUBRIC_HINTS[row.slug] ?? null,
+      hiddenSkills: row.hiddenSkills ?? null,
+      responseWindow: row.responseWindow ?? null,
     };
   }, null);
 }

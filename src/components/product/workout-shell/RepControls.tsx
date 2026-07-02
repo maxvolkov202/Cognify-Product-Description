@@ -61,6 +61,9 @@ export type RepControlsProps = {
   retryAttempt?: AttemptPayload | null;
   isLastStation?: boolean;
   repsCompleted?: number;
+  /** PRD v3 Phase 2.1 — planned exercise count for the day (3 in v2, 4
+   *  legacy). Drives the rep-progress strip + scoring context. */
+  totalStations?: number;
   onStartWorkout?: () => void;
   onPromptSelected?: (params: {
     promptId: string;
@@ -105,6 +108,7 @@ export default function RepControls({
   retryAttempt = null,
   isLastStation = false,
   repsCompleted = 0,
+  totalStations = 4,
   onStartWorkout,
   onPromptSelected,
   onSkipStation,
@@ -181,6 +185,7 @@ export default function RepControls({
             loop={loop}
             attempt={attempt}
             firstAttempt={firstAttempt}
+            totalStations={totalStations}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
             onBeginRetry={onBeginRetry}
@@ -237,6 +242,7 @@ export default function RepControls({
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
             graduation
+            totalStations={totalStations}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
           />
@@ -276,7 +282,7 @@ function IdleControls({
         Start today&apos;s Workout
       </h2>
       <p className="text-sm text-slate-600 dark:text-ink-300">
-        4 reps. ~8 minutes. Let&apos;s move.
+        Short, focused reps. Let&apos;s move.
       </p>
       <button
         type="button"
@@ -311,6 +317,7 @@ function ActiveRep({
   loop = "v1",
   attempt = "first",
   firstAttempt = null,
+  totalStations = 4,
   onRepScored,
   onAdvanceNow,
   onBeginRetry,
@@ -324,6 +331,7 @@ function ActiveRep({
   loop?: LoopVariant;
   attempt?: AttemptKind;
   firstAttempt?: AttemptPayload | null;
+  totalStations?: number;
   onRepScored?: (params: {
     composite: number | null;
     repId: string;
@@ -375,7 +383,7 @@ function ActiveRep({
           sessionType: "focus",
           focusDimension: skillDim,
           repIndex: station.index,
-          totalReps: 4,
+          totalReps: totalStations,
           retryContext: {
             attempt: attempt === "again" ? "again" : "retry",
             firstTranscript: firstAttempt.transcript,
@@ -407,7 +415,7 @@ function ActiveRep({
       sessionId={workoutSessionId}
       speakingThreshold={{ minRatio: 0.6 }}
       feedbackRepIndex={station.index + 1}
-      feedbackTotalReps={4}
+      feedbackTotalReps={totalStations}
       feedbackModeLabel={
         graduation ? "GRADUATION" : isEngineRetry ? "RETRY" : "WORKOUT"
       }
@@ -450,6 +458,8 @@ function ActiveRep({
               muscleGroupDayId,
               exerciseId: station.exerciseId,
               scoreFailure: compositeMissing,
+              // v2 retries must not double-count the day's completed_reps.
+              attemptKind: graduation ? "first" : attempt,
             });
           } catch {
             // Tagging is best-effort; the rep is already saved.
@@ -596,6 +606,8 @@ function DayCompleteControls({
       dim={dim}
       comparison={summary.comparison}
       reps={summary.reps}
+      lifetimeReps={summary.lifetimeReps}
+      streakDays={summary.streakDays}
     />
   );
 }

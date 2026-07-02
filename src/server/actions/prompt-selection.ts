@@ -74,6 +74,13 @@ export async function fetchPromptCandidates(input: {
    *  through to general only if every personalized tier is too thin.
    *  When false / unset, draws from general-tagged prompts only. */
   personalize?: boolean;
+  /** PRD v3 Phase 2.6 (PRD §9.4.2) — prompt ids already DISPLAYED this
+   *  session (accumulated client-side across refreshes). Excluded from
+   *  the pick so a refresh never re-shows a slate the user already
+   *  rejected. Relaxed automatically when exclusion would starve the
+   *  bank below one full slate; a NEW session starts with an empty list,
+   *  so skipped prompts return to the pool tomorrow. Capped server-side. */
+  sessionSeenPromptIds?: string[];
 }): Promise<FetchCandidatesResult> {
   const user = await currentUser();
   const userId = user?.id ?? "anonymous";
@@ -290,14 +297,36 @@ export async function fetchPromptCandidates(input: {
     const preferEasier =
       input.preferEasier ?? (recentDimComposite != null && recentDimComposite < 60);
 
+    // PRD v3 Phase 2.6 — hard in-session exclusion (distinct from the
+    // soft cross-session recentPromptIds bias). Cap the incoming list
+    // defensively; relax when exclusion would starve a full slate.
+    const sessionSeen = new Set(
+      (input.sessionSeenPromptIds ?? []).slice(0, 500),
+    );
+    let available = bankRows.map((b) => ({
+      id: b.id,
+      promptId: b.promptId,
+      text: b.text,
+      difficulty: b.difficulty,
+      tags: Array.isArray(b.tags) ? (b.tags as string[]) : [],
+    }));
+    if (sessionSeen.size > 0) {
+      const unseen = available.filter((p) => !sessionSeen.has(p.promptId));
+      if (unseen.length >= 5) {
+        available = unseen;
+      } else {
+        log.info({
+          event: "prompt_selection.session_exclusion_relaxed",
+          userId,
+          exerciseId: input.exerciseId,
+          bankSize: available.length,
+          seenSize: sessionSeen.size,
+        });
+      }
+    }
+
     const picked = pickPromptCandidates({
-      available: bankRows.map((b) => ({
-        id: b.id,
-        promptId: b.promptId,
-        text: b.text,
-        difficulty: b.difficulty,
-        tags: Array.isArray(b.tags) ? (b.tags as string[]) : [],
-      })),
+      available,
       recentPromptIds,
       k: 5,
       preferEasier,

@@ -21,6 +21,7 @@ import {
   workoutSessions,
 } from "@/lib/db/schema";
 import { isFinalCycleDay } from "@/lib/onboarding/committed-days";
+import { isTrainingEngineV2Enabled } from "@/lib/flags";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
@@ -31,9 +32,13 @@ import {
   type MuscleGroupId,
   type Station,
 } from "@/types/domain";
+import { getSubSkillRunningAverages } from "@/lib/db/queries/sub-skills";
+import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
+import { SUB_SKILLS } from "@/types/sub-skills";
 import {
   selectMuscleGroupForToday,
   sampleExercises,
+  isAssessmentActive,
   type CatalogExercise,
   type EngagementSnapshot,
   type RecentDaySnapshot,
@@ -44,6 +49,33 @@ import { createWorkoutSession } from "@/server/actions/sessions";
 
 const REP_HISTORY_DAYS = 14;
 const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
+
+/** PRD v3 Phase 2.1 — exercises per day. The v2 engine runs 3 exercises
+ *  × (First Rep + required Retry) ≈ the same session effort as the
+ *  legacy 4 single-rep stations (PRD §5.2 prescribes three). */
+function stationsPerDay(): number {
+  return isTrainingEngineV2Enabled() ? 3 : 4;
+}
+
+/** PRD v3 Phase 2.3 — the user's Hidden Skill running averages for one
+ *  muscle group, shaped for sampleExercises. Returns undefined when the
+ *  v2 engine is off (legacy selection stays byte-identical) or for
+ *  anonymous users. */
+async function fetchSubSkillAveragesForDim(
+  userId: string,
+  dim: MuscleGroupId,
+): Promise<Record<string, number | null> | undefined> {
+  if (!isTrainingEngineV2Enabled()) return undefined;
+  if (userId === "anonymous") return undefined;
+  const skillDim = muscleGroupToSkillDim(dim);
+  if (!skillDim) return undefined;
+  const stats = await getSubSkillRunningAverages(userId);
+  const out: Record<string, number | null> = {};
+  for (const id of SUB_SKILLS[skillDim]) {
+    out[id] = stats[id]?.avg ?? null;
+  }
+  return out;
+}
 
 // Resolve the user's local YYYY-MM-DD for keying `muscle_group_days.day_date`.
 // MUST match the rest-day banner + rollover cron, which both key off user-local
@@ -203,6 +235,9 @@ async function fetchCatalogExercises(
       description: exercises.description,
       instructions: exercises.instructions,
       sortOrder: exercises.sortOrder,
+      objective: exercises.objective,
+      hiddenSkills: exercises.hiddenSkills,
+      responseWindow: exercises.responseWindow,
     })
     .from(exercises)
     .where(and(eq(exercises.dimension, dim), eq(exercises.isActive, true)));
@@ -215,6 +250,9 @@ async function fetchCatalogExercises(
     description: r.description,
     instructions: r.instructions,
     sortOrder: r.sortOrder,
+    objective: r.objective ?? null,
+    hiddenSkills: r.hiddenSkills ?? null,
+    responseWindow: r.responseWindow ?? null,
   }));
 }
 
@@ -241,11 +279,16 @@ export async function previewTodaysWorkoutPlan(input: {
       fetchCatalogExercises(input.dim),
       fetchRecentDays(userId),
     ]);
+    const subSkillAverages = await fetchSubSkillAveragesForDim(
+      userId,
+      input.dim,
+    );
     const sampled = sampleExercises({
       available,
       recentDays,
-      n: 4,
+      n: stationsPerDay(),
       seed: `${userId}:${dayDate}:${input.dim}`,
+      ...(subSkillAverages ? { subSkillAverages } : {}),
     });
     const stations: Station[] = sampled.map((ex, index) => ({
       index,
@@ -254,6 +297,8 @@ export async function previewTodaysWorkoutPlan(input: {
       exerciseName: ex.name,
       rule: ex.description,
       why: ex.instructions,
+      objective: ex.objective,
+      responseWindow: ex.responseWindow,
     }));
     return { stations, persisted: false };
   }, { stations: [], persisted: false });
@@ -330,7 +375,12 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
     // would otherwise be evaluated as Friday on a UTC server.
     const committedDaysMask = userRow[0]?.committedDays ?? 31;
     const userTz = userRow[0]?.tz ?? "UTC";
-    if (isFinalCycleDay(committedDaysMask, today, userTz)) {
+    // PRD v3 Phase 2.4 — during the Assessment Phase the balanced
+    // rotation owns every day; the weekly weakness-day override waits
+    // until a baseline exists (PRD §8.4.2).
+    const assessmentEnabled = isTrainingEngineV2Enabled();
+    const inAssessment = assessmentEnabled && isAssessmentActive(recentDays);
+    if (!inAssessment && isFinalCycleDay(committedDaysMask, today, userTz)) {
       // Pick the weakest dim from reps this week.
       const weeklyDimScores = recentReps
         .filter((r) => (r.count14d ?? 0) > 0 && r.avgComposite7d != null)
@@ -363,6 +413,8 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       recentReps,
       recentDays,
       seed: `${userId}:${dayDate}`,
+      assessmentEnabled,
+      weightedRotationEnabled: assessmentEnabled,
     });
 
     if (result.rationaleCode === "cold_start") {
@@ -448,11 +500,16 @@ export async function startMuscleGroupDay(input: {
             fetchCatalogExercises(existingDim),
             fetchRecentDays(userId),
           ]);
+          const healAverages = await fetchSubSkillAveragesForDim(
+            userId,
+            existingDim,
+          );
           const resampled = sampleExercises({
             available,
             recentDays,
-            n: 4,
+            n: stationsPerDay(),
             seed: `${userId}:${dayDate}:${existingDim}:heal`,
+            ...(healAverages ? { subSkillAverages: healAverages } : {}),
           });
           if (resampled.length > 0) {
             const freshIds = resampled.map((s) => s.id);
@@ -467,6 +524,8 @@ export async function startMuscleGroupDay(input: {
               exerciseName: ex.name,
               rule: ex.description,
               why: ex.instructions,
+              objective: ex.objective,
+              responseWindow: ex.responseWindow,
             }));
             logEvent("workout.day.self_healed", {
               userId,
@@ -508,11 +567,16 @@ export async function startMuscleGroupDay(input: {
       fetchCatalogExercises(chosenDim),
       fetchRecentDays(userId),
     ]);
+    const subSkillAverages = await fetchSubSkillAveragesForDim(
+      userId,
+      chosenDim,
+    );
     const sampled = sampleExercises({
       available,
       recentDays,
-      n: 4,
+      n: stationsPerDay(),
       seed: `${userId}:${dayDate}:${chosenDim}`,
+      ...(subSkillAverages ? { subSkillAverages } : {}),
     });
 
     if (sampled.length === 0) {
@@ -575,6 +639,8 @@ export async function startMuscleGroupDay(input: {
       exerciseName: ex.name,
       rule: ex.description,
       why: ex.instructions,
+      objective: ex.objective,
+      responseWindow: ex.responseWindow,
     }));
 
     // Open the workout_session for the new day so the rest of the
@@ -639,11 +705,16 @@ export async function swapMuscleGroup(input: {
       return { ok: false as const, reason: "no_catalog" };
     }
     const recentDays = await fetchRecentDays(userId);
+    const swapAverages = await fetchSubSkillAveragesForDim(
+      userId,
+      input.newDim,
+    );
     const sampled = sampleExercises({
       available,
       recentDays,
-      n: 4,
+      n: stationsPerDay(),
       seed: `${userId}:${day.dayDate}:${input.newDim}:swap`,
+      ...(swapAverages ? { subSkillAverages: swapAverages } : {}),
     });
 
     const plannedIds = sampled.map((s) => s.id);
@@ -669,6 +740,8 @@ export async function swapMuscleGroup(input: {
       exerciseName: ex.name,
       rule: ex.description,
       why: ex.instructions,
+      objective: ex.objective,
+      responseWindow: ex.responseWindow,
     }));
 
     return {
@@ -691,6 +764,8 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
       name: exercises.name,
       description: exercises.description,
       instructions: exercises.instructions,
+      objective: exercises.objective,
+      responseWindow: exercises.responseWindow,
     })
     .from(exercises)
     .where(inArray(exercises.id, exerciseIds));
@@ -707,6 +782,8 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
         exerciseName: row.name,
         rule: row.description,
         why: row.instructions,
+        objective: row.objective ?? null,
+        responseWindow: row.responseWindow ?? null,
       } satisfies Station;
     })
     .filter((s): s is Station => s !== null);

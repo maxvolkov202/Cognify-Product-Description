@@ -11,12 +11,14 @@ import { db } from "@/lib/db/client";
 import {
   muscleGroupDays,
   reps,
+  users,
   workoutSessions,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { SessionPhaseSchema, type SessionPhase } from "@/lib/workout/types";
 import { log, serializeErr } from "@/lib/log";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 
 // ─── Auth/ownership helpers ──────────────────────────────────────────────
 
@@ -301,10 +303,15 @@ export async function fetchDayRetrospective(input: {
 
 /** HC-4 — end-of-day summary. Returns the prior-day comparison +
  *  the per-rep breakdown so the summary can render mini-bars + a
- *  per-dim trend line across the 4 (or 5 with graduation) reps. */
+ *  per-dim trend line across the 4 (or 5 with graduation) reps.
+ *  PRD v3 Phase 2.7 adds the progression stats the celebratory
+ *  Workout Complete screen shows (C16/C17): all-time reps, streak. */
 export type FetchDaySummaryResult = {
   comparison: MuscleGroupComparison | null;
   reps: DayRepBreakdown[];
+  /** users.lifetime_reps AFTER today's session (C17). Null if lookup failed. */
+  lifetimeReps: number | null;
+  streakDays: number | null;
 } | null;
 
 export async function fetchDaySummary(input: {
@@ -313,11 +320,25 @@ export async function fetchDaySummary(input: {
 }): Promise<FetchDaySummaryResult> {
   const user = await currentUser();
   if (!user?.id) return null;
-  const [comparison, repsBreakdown] = await Promise.all([
+  const [comparison, repsBreakdown, userRow, streak] = await Promise.all([
     getMuscleGroupComparison(user.id, input.dim, input.dayId),
     getDayRepsBreakdown(input.dayId),
+    safeDb(async () => {
+      const [u] = await db
+        .select({ lifetimeReps: users.lifetimeReps })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+      return u ?? null;
+    }, null),
+    getStreakStatus(user.id),
   ]);
-  return { comparison, reps: repsBreakdown };
+  return {
+    comparison,
+    reps: repsBreakdown,
+    lifetimeReps: userRow?.lifetimeReps ?? null,
+    streakDays: streak?.streakDays ?? null,
+  };
 }
 
 // ─── Rep tagging on completion ───────────────────────────────────────────
@@ -333,6 +354,12 @@ export type TagWorkoutRepInput = {
    *  at the rep's station index — so engagement signal still lands. */
   exerciseId: string | null;
   scoreFailure: boolean;
+  /** PRD v3 engine — attempt position in the exercise loop. Retry/again
+   *  attempts are tagged + counted for engagement, but do NOT increment
+   *  the day's completed_reps: the day target counts EXERCISES, and the
+   *  exercise already counted when its First Rep landed. Omitted →
+   *  "first" (legacy callers). */
+  attemptKind?: "first" | "retry" | "again";
 };
 
 const tagWorkoutRepSchema = z.object({
@@ -340,6 +367,7 @@ const tagWorkoutRepSchema = z.object({
   muscleGroupDayId: z.string().uuid(),
   exerciseId: z.string().uuid().nullable(),
   scoreFailure: z.boolean(),
+  attemptKind: z.enum(["first", "retry", "again"]).optional(),
 });
 
 export async function tagWorkoutRep(
@@ -421,12 +449,18 @@ export async function tagWorkoutRep(
           })
           .where(eq(reps.id, input.repId));
 
-        // Increment completedReps on the day.
-        await tx.execute(drizzleSql`
-          UPDATE cognify_v2.muscle_group_days
-          SET completed_reps = completed_reps + 1
-          WHERE id = ${input.muscleGroupDayId}
-        `);
+        // Increment completedReps on the day — FIRST attempts only. The
+        // day target counts exercises; a retry belongs to an exercise
+        // that already counted (PRD v3 engine).
+        const isRetryAttempt =
+          input.attemptKind === "retry" || input.attemptKind === "again";
+        if (!isRetryAttempt) {
+          await tx.execute(drizzleSql`
+            UPDATE cognify_v2.muscle_group_days
+            SET completed_reps = completed_reps + 1
+            WHERE id = ${input.muscleGroupDayId}
+          `);
+        }
 
         // Skip engagement upsert if we still couldn't resolve an exerciseId.
         if (!resolvedExerciseId) {

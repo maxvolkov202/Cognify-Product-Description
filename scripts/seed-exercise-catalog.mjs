@@ -65,6 +65,20 @@ const CANONICAL_DIMS = new Set([
 const DIFFICULTY_MAP = { intro: 1, core: 2, stretch: 3 };
 const VALID_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_MAP));
 
+// PRD v3 Phase 2.2 — Exercise Framework validation constants.
+// Sub-skill lists mirror src/types/sub-skills.ts (the TS module is the
+// source of truth; keep in sync). The `pacing` muscle group maps to the
+// `delivery` scoring dimension's sub-skills.
+const SUB_SKILLS_BY_MUSCLE_GROUP = {
+  clarity: ["word_choice", "concreteness", "audience_awareness", "idea_isolation", "precision", "logical_sequencing"],
+  structure: ["opening_hook", "signposting", "argument_hierarchy", "bottom_line_discipline", "narrative_arc", "coherence"],
+  conciseness: ["filler_elimination", "hedging_awareness", "repetition_control", "response_scoping", "editing_in_real_time"],
+  thinking_quality: ["claim_support", "first_principles_reasoning", "counterargument_awareness", "depth_of_analysis", "intellectual_honesty", "perspective_taking"],
+  pacing: ["rate_awareness", "strategic_pausing", "filler_word_control", "rhythm_variation", "pressure_management"],
+  tone: ["pitch_variation", "volume_control", "downward_inflection", "emotional_authenticity", "vocal_presence", "warmth"],
+};
+const VALID_CONSTRAINT_TYPES = new Set(["time", "structure", "tone", "complexity", "none"]);
+
 const PROMPT_MIN = 15;
 const PROMPT_MAX_CHARS = 200;
 const RULE_MAX_WORDS = 12;
@@ -147,6 +161,61 @@ function validate(exercises) {
       errors.push(`${where}: ordering must be a number`);
     }
 
+    // PRD v3 Phase 2.2 — Exercise Framework fields. All optional (legacy
+    // manifests validate unchanged), but when present they must be sound.
+    if (ex.objective != null && typeof ex.objective !== "string") {
+      errors.push(`${where}: objective must be a string`);
+    }
+    if (ex.hidden_skills != null) {
+      const valid = SUB_SKILLS_BY_MUSCLE_GROUP[ex.dimension] ?? [];
+      if (!Array.isArray(ex.hidden_skills) || ex.hidden_skills.length === 0) {
+        errors.push(`${where}: hidden_skills must be a non-empty array`);
+      } else {
+        for (const s of ex.hidden_skills) {
+          if (!valid.includes(s)) {
+            errors.push(
+              `${where}: hidden_skill "${s}" not in ${ex.dimension}'s canonical set`,
+            );
+          }
+        }
+      }
+    }
+    if (ex.scoring_lens != null && typeof ex.scoring_lens !== "string") {
+      errors.push(`${where}: scoring_lens must be a string`);
+    }
+    if (ex.retry_objective != null && typeof ex.retry_objective !== "string") {
+      errors.push(`${where}: retry_objective must be a string`);
+    }
+    if (ex.prompt_rules != null && typeof ex.prompt_rules !== "string") {
+      errors.push(`${where}: prompt_rules must be a string`);
+    }
+    if (ex.response_window != null) {
+      const w = ex.response_window;
+      if (
+        typeof w !== "object" ||
+        typeof w.min_sec !== "number" ||
+        typeof w.max_sec !== "number" ||
+        w.min_sec < 10 ||
+        w.max_sec > 300 ||
+        w.min_sec >= w.max_sec
+      ) {
+        errors.push(
+          `${where}: response_window must be {min_sec, max_sec} with 10 <= min < max <= 300`,
+        );
+      }
+    }
+    if (ex.constraint_types != null) {
+      if (!Array.isArray(ex.constraint_types)) {
+        errors.push(`${where}: constraint_types must be an array`);
+      } else {
+        for (const c of ex.constraint_types) {
+          if (!VALID_CONSTRAINT_TYPES.has(c)) {
+            errors.push(`${where}: constraint_type "${c}" invalid`);
+          }
+        }
+      }
+    }
+
     // ordering uniqueness within dim
     const ordKey = ex.dimension;
     if (!orderingByDim.has(ordKey)) orderingByDim.set(ordKey, new Set());
@@ -217,13 +286,43 @@ function summarize(exercises) {
   return byDim;
 }
 
+// Framework-field bundle for insert/update/compare. Snake_case JSON
+// manifest fields → camel bundle → DB columns.
+function frameworkFields(ex) {
+  return {
+    objective: ex.objective ?? null,
+    hiddenSkills: Array.isArray(ex.hidden_skills) ? ex.hidden_skills : null,
+    scoringLens: ex.scoring_lens ?? null,
+    retryObjective: ex.retry_objective ?? null,
+    promptRules: ex.prompt_rules ?? null,
+    responseWindow: ex.response_window
+      ? { minSec: ex.response_window.min_sec, maxSec: ex.response_window.max_sec }
+      : null,
+    constraintTypes: Array.isArray(ex.constraint_types)
+      ? ex.constraint_types
+      : null,
+  };
+}
+
+function jsonEq(a, b) {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 function exerciseDiffers(existing, incoming, slug) {
+  const fw = frameworkFields(incoming);
   return (
     existing.slug !== slug ||
     existing.description !== incoming.rule ||
     (existing.instructions ?? null) !== (incoming.why ?? null) ||
     existing.sort_order !== incoming.ordering ||
-    existing.is_active !== true
+    existing.is_active !== true ||
+    (existing.objective ?? null) !== fw.objective ||
+    !jsonEq(existing.hidden_skills, fw.hiddenSkills) ||
+    (existing.scoring_lens ?? null) !== fw.scoringLens ||
+    (existing.retry_objective ?? null) !== fw.retryObjective ||
+    (existing.prompt_rules ?? null) !== fw.promptRules ||
+    !jsonEq(existing.response_window, fw.responseWindow) ||
+    !jsonEq(existing.constraint_types, fw.constraintTypes)
   );
 }
 
@@ -257,7 +356,9 @@ async function applyToDb(exercises) {
     // Prefetch existing exercises (dimension, name) → row
     const exRows = await sql`
       SELECT id, slug, name, dimension::text AS dimension,
-             description, instructions, sort_order, is_active
+             description, instructions, sort_order, is_active,
+             objective, hidden_skills, scoring_lens, retry_objective,
+             prompt_rules, response_window, constraint_types
       FROM cognify_v2.exercises
     `;
     const existingExercises = new Map();
@@ -281,11 +382,14 @@ async function applyToDb(exercises) {
       const key = `${ex.dimension}::${ex.name}`;
       const existing = existingExercises.get(key);
 
+      const fw = frameworkFields(ex);
       let exerciseId;
       if (!existing) {
         const inserted = await sql`
           INSERT INTO cognify_v2.exercises
-            (slug, name, dimension, description, instructions, sort_order, is_active)
+            (slug, name, dimension, description, instructions, sort_order, is_active,
+             objective, hidden_skills, scoring_lens, retry_objective,
+             prompt_rules, response_window, constraint_types)
           VALUES (
             ${slug},
             ${ex.name},
@@ -293,7 +397,14 @@ async function applyToDb(exercises) {
             ${ex.rule},
             ${ex.why},
             ${ex.ordering},
-            true
+            true,
+            ${fw.objective},
+            ${fw.hiddenSkills ? sql.json(fw.hiddenSkills) : null},
+            ${fw.scoringLens},
+            ${fw.retryObjective},
+            ${fw.promptRules},
+            ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
+            ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null}
           )
           RETURNING id
         `;
@@ -302,11 +413,18 @@ async function applyToDb(exercises) {
       } else if (exerciseDiffers(existing, ex, slug)) {
         await sql`
           UPDATE cognify_v2.exercises SET
-            slug         = ${slug},
-            description  = ${ex.rule},
-            instructions = ${ex.why},
-            sort_order   = ${ex.ordering},
-            is_active    = true
+            slug             = ${slug},
+            description      = ${ex.rule},
+            instructions     = ${ex.why},
+            sort_order       = ${ex.ordering},
+            is_active        = true,
+            objective        = ${fw.objective},
+            hidden_skills    = ${fw.hiddenSkills ? sql.json(fw.hiddenSkills) : null},
+            scoring_lens     = ${fw.scoringLens},
+            retry_objective  = ${fw.retryObjective},
+            prompt_rules     = ${fw.promptRules},
+            response_window  = ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
+            constraint_types = ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null}
           WHERE id = ${existing.id}
         `;
         exerciseId = existing.id;

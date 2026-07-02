@@ -21,6 +21,8 @@ import {
   pickPromptCandidates,
   detectSharpRegression,
   effectiveCompositeFor,
+  isAssessmentActive,
+  ASSESSMENT_DAYS,
   type CatalogExercise,
   type CatalogPrompt,
   type EngagementSnapshot,
@@ -393,6 +395,9 @@ section("sampleExercises dedupe");
     description: "rule",
     instructions: null,
     sortOrder: i + 1,
+    objective: null,
+    hiddenSkills: null,
+    responseWindow: null,
   }));
   // Last 2 days used ex-1, ex-2, ex-3, ex-4 (the first 4).
   const recentDays: RecentDaySnapshot[] = [
@@ -440,6 +445,9 @@ section("sampleExercises small catalog");
     description: "rule",
     instructions: null,
     sortOrder: i + 1,
+    objective: null,
+    hiddenSkills: null,
+    responseWindow: null,
   }));
   const recentDays: RecentDaySnapshot[] = [
     {
@@ -510,6 +518,173 @@ section("pickPromptCandidates preferEasier");
       picked[1]!.difficulty === 2 &&
       picked[2]!.difficulty === 3,
     "preferEasier sorts ascending by difficulty",
+  );
+}
+
+// ─── 13. PRD v3 Phase 2.4 — Assessment Phase rotation ────────────────────
+section("assessment phase");
+{
+  const mkDay = (i: number, dim: MuscleGroupId): RecentDaySnapshot => ({
+    dayId: `d${i}`,
+    dimension: dim,
+    dayDate: daysAgo(TODAY, i + 1),
+    plannedExerciseIds: [`e${i}`],
+    compositeAtClose: 70,
+  });
+
+  // Brand-new user: assessment picks clarity (canonical first).
+  const fresh = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: emptyEngagement(),
+    recentReps: emptyRecentReps(),
+    recentDays: [],
+    assessmentEnabled: true,
+  });
+  assert(fresh.rationaleCode === "assessment", "new user → assessment");
+  assert(fresh.suggested === "clarity", "assessment day 1 = clarity");
+
+  // After clarity + structure: next least-covered = conciseness.
+  const twoDays = [mkDay(0, "structure"), mkDay(1, "clarity")];
+  const third = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: emptyEngagement(),
+    recentReps: emptyRecentReps(),
+    recentDays: twoDays,
+    assessmentEnabled: true,
+  });
+  assert(third.suggested === "conciseness", "assessment covers uncovered dims in canonical order");
+
+  // A full first cycle → second cycle starts at clarity again.
+  const oneCycle = MUSCLE_GROUP_IDS.map((d, i) => mkDay(i, d));
+  const seventh = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: emptyEngagement(),
+    recentReps: emptyRecentReps(),
+    recentDays: oneCycle,
+    assessmentEnabled: true,
+  });
+  assert(
+    seventh.rationaleCode === "assessment" && seventh.suggested === "clarity",
+    "cycle 2 restarts at clarity",
+  );
+
+  // After ASSESSMENT_DAYS days, adaptive rotation takes over.
+  const done = Array.from({ length: ASSESSMENT_DAYS }, (_, i) =>
+    mkDay(i, MUSCLE_GROUP_IDS[i % 6]!),
+  );
+  const adaptive = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: emptyEngagement(),
+    recentReps: emptyRecentReps(),
+    recentDays: done,
+    assessmentEnabled: true,
+  });
+  assert(
+    adaptive.rationaleCode !== "assessment",
+    "assessment ends after ASSESSMENT_DAYS attempted days",
+  );
+  assert(!isAssessmentActive(done), "isAssessmentActive false after window");
+  assert(isAssessmentActive(oneCycle), "isAssessmentActive true mid-window");
+
+  // Flag off → legacy cold-start unchanged.
+  const legacy = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: emptyEngagement(),
+    recentReps: emptyRecentReps(),
+    recentDays: [],
+  });
+  assert(legacy.rationaleCode === "cold_start", "flag off keeps cold_start");
+}
+
+// ─── 12. PRD v3 Phase 2.3 — Hidden-Skill-aware sampling ─────────────────
+section("sampleExercises hidden-skill weighting");
+{
+  const dim: MuscleGroupId = "clarity";
+  const mk = (
+    i: number,
+    hiddenSkills: string[] | null,
+  ): CatalogExercise => ({
+    id: `ex-${i}`,
+    slug: `ex-${i}`,
+    name: `Exercise ${i}`,
+    dimension: dim,
+    description: "rule",
+    instructions: null,
+    sortOrder: i,
+    objective: null,
+    hiddenSkills,
+    responseWindow: null,
+  });
+  const available = [
+    mk(1, ["word_choice"]),
+    mk(2, ["word_choice", "precision"]),
+    mk(3, ["concreteness"]),
+    mk(4, ["audience_awareness"]),
+    mk(5, ["idea_isolation"]),
+    mk(6, ["precision"]),
+  ];
+
+  // Weakest skill = audience_awareness (30). Its exercise must be picked.
+  const averages: Record<string, number | null> = {
+    word_choice: 80,
+    precision: 75,
+    concreteness: 70,
+    audience_awareness: 30,
+    idea_isolation: 65,
+    logical_sequencing: null,
+  };
+  const picked = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "s1",
+    subSkillAverages: averages,
+  });
+  assert(picked.length === 3, "returns n exercises");
+  assert(
+    picked.some((e) => e.hiddenSkills?.includes("audience_awareness")),
+    "weakest hidden skill's exercise is selected",
+  );
+  // Diversity: the three picks should not all share one hidden skill.
+  const skillLists = picked.map((e) => e.hiddenSkills ?? []);
+  const allShareWordChoice = skillLists.every((l) => l.includes("word_choice"));
+  assert(!allShareWordChoice, "picks spread across different hidden skills");
+
+  // Determinism: same inputs → same output.
+  const again = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "s1",
+    subSkillAverages: averages,
+  });
+  assert(
+    JSON.stringify(picked.map((e) => e.id)) ===
+      JSON.stringify(again.map((e) => e.id)),
+    "hidden-skill-aware pick is deterministic",
+  );
+
+  // Legacy path: omitting subSkillAverages = pure seeded shuffle.
+  const legacy = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "s1",
+  });
+  assert(legacy.length === 3, "legacy path still returns n");
+
+  // Unmeasured skills (null avg) beat strong measured skills — the
+  // engine explores unmeasured behaviors before re-drilling strengths.
+  const unmeasured = sampleExercises({
+    available: [mk(1, ["word_choice"]), mk(2, ["logical_sequencing"])],
+    recentDays: [],
+    n: 1,
+    seed: "s2",
+    subSkillAverages: { word_choice: 85, logical_sequencing: null },
+  });
+  assert(
+    unmeasured[0]!.hiddenSkills?.includes("logical_sequencing"),
+    "unmeasured hidden skill preferred over a strong one",
   );
 }
 

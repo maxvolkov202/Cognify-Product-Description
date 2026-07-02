@@ -20,16 +20,20 @@ import { consumeStreakFreeze } from "@/lib/db/queries/streak-freeze";
 
 /** End-states for a closed-out muscle-group day. */
 export type DayEndStatus =
-  | "complete" // 4 of 4 reps done → baseline set, streak preserved
-  | "partial" // 1-3 reps done → streak preserved, no baseline
+  | "complete" // all planned exercises done → baseline set, streak preserved
+  | "partial" // some but not all done → streak preserved, no baseline
   | "missed" // 0 reps + no freeze available → streak resets
   | "frozen_skip" // 0 reps + freeze auto-consumed → streak preserved
-  | "complete_graduated"; // 4 reps + graduation rep done → bonus XP awarded
+  | "complete_graduated"; // complete + graduation rep done → bonus XP awarded
 
 export type DecideStatusInput = {
   completedReps: number;
   hasGraduated: boolean;
   freezeAvailable: boolean;
+  /** PRD v3 — day-complete threshold. Derived from the day's planned
+   *  exercise count (3 in the v2 engine, 4 legacy). Defaults to 4 so
+   *  historical call sites/tests keep their behavior. */
+  targetReps?: number;
 };
 
 export type DecideStatusOutput = {
@@ -48,12 +52,22 @@ export type DecideStatusOutput = {
     | "freeze_consumed";
 };
 
+/** PRD v3 — derive a day's completion target from its planned exercise
+ *  list (3 in the v2 engine, 4 legacy). Falls back to 4 for malformed
+ *  rows so legacy days close out unchanged. */
+export function dayTargetReps(plannedExerciseIds: unknown): number {
+  return Array.isArray(plannedExerciseIds) && plannedExerciseIds.length > 0
+    ? plannedExerciseIds.length
+    : 4;
+}
+
 /**
  * Resolve the end-state without touching the DB. Phase 10 DoD asks
  * tests to cover all five end-states + idempotent re-run.
  */
 export function decideStatus(input: DecideStatusInput): DecideStatusOutput {
-  if (input.completedReps >= 4) {
+  const target = input.targetReps ?? 4;
+  if (input.completedReps >= target) {
     if (input.hasGraduated) {
       return {
         status: "complete_graduated",
@@ -149,6 +163,7 @@ export async function closeOutDay(
         completedReps: day.completedReps ?? 0,
         hasGraduated: day.graduatedAt != null,
         freezeAvailable,
+        targetReps: dayTargetReps(day.plannedExerciseIds),
       });
 
       // Apply freeze consume *before* writing the day so retry on
@@ -235,6 +250,7 @@ export async function bumpDayStatusOnRepSave(
       .select({
         completedReps: muscleGroupDays.completedReps,
         status: muscleGroupDays.status,
+        plannedExerciseIds: muscleGroupDays.plannedExerciseIds,
       })
       .from(muscleGroupDays)
       .where(eq(muscleGroupDays.id, dayId))
@@ -242,8 +258,9 @@ export async function bumpDayStatusOnRepSave(
     if (!day) return false;
 
     const reps = day.completedReps ?? 0;
+    const target = dayTargetReps(day.plannedExerciseIds);
     let nextStatus = day.status;
-    if (reps >= 4) nextStatus = "complete";
+    if (reps >= target) nextStatus = "complete";
     else if (reps >= 1) nextStatus = "in_progress";
 
     const patch: Record<string, unknown> = { status: nextStatus };

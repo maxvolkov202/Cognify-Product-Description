@@ -20,9 +20,6 @@ export type InsightScreenProps = {
   promptText: string;
   dimension: MuscleGroupId | null;
   framework?: RepTypeFramework | undefined;
-  /** ADR-001 response window (Phase 1: static 60–90s; Phase 2 makes this
-   *  a per-exercise field). */
-  windowSec?: { min: number; max: number };
   onReady: () => void;
 };
 
@@ -31,9 +28,13 @@ export default function InsightScreen({
   promptText,
   dimension,
   framework,
-  windowSec = { min: 60, max: 90 },
   onReady,
 }: InsightScreenProps) {
+  // ADR-001 response window: per-exercise framework field when the
+  // catalog row is enriched, 60–90s default otherwise.
+  const windowSec = station.responseWindow
+    ? { min: station.responseWindow.minSec, max: station.responseWindow.maxSec }
+    : { min: 60, max: 90 };
   return (
     <div className="flex flex-col gap-4" data-testid="insight-screen">
       <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
@@ -46,14 +47,16 @@ export default function InsightScreen({
         )}
       </div>
 
-      {/* The single-behavior cue: exercise rule, with the why beneath. */}
+      {/* The single-behavior cue: exercise rule, with the why beneath.
+          When the framework carries an objective, it leads — the rule
+          becomes the enforcement line under it. */}
       <div className="rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
         <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
           {station.rule}
         </p>
-        {station.why && (
+        {(station.objective ?? station.why) && (
           <p className="mt-1.5 text-sm text-slate-600 dark:text-ink-300">
-            {station.why}
+            {station.objective ?? station.why}
           </p>
         )}
       </div>

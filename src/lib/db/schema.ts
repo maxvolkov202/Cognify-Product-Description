@@ -1176,6 +1176,29 @@ export const exercises = cognifyV2Schema.table(
     instructions: text("instructions"),
     sortOrder: integer("sort_order").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
+    // PRD v3 Phase 2.2 (migration 0029) — Exercise Framework fields
+    // (PRD §9.2). All nullable so pre-enrichment rows stay valid; the
+    // engine falls back to rule/why when a field is absent.
+    /** The single communication objective this framework trains. */
+    objective: text("objective"),
+    /** Hidden Skill ids (src/types/sub-skills.ts) this exercise targets.
+     *  Drives Hidden-Skill-aware selection (Phase 2.3). */
+    hiddenSkills: jsonb("hidden_skills").$type<string[]>(),
+    /** What the evaluator should key on — absorbed from the code-side
+     *  EXERCISE_RUBRIC_HINTS so the lens lives with the framework. */
+    scoringLens: text("scoring_lens"),
+    /** What the required Retry should target when the rule was broken. */
+    retryObjective: text("retry_objective"),
+    /** Rules for AI prompt generation from this framework (Phase 8). */
+    promptRules: text("prompt_rules"),
+    /** ADR-001 response window in seconds, e.g. {"minSec":60,"maxSec":90}. */
+    responseWindow: jsonb("response_window").$type<{
+      minSec: number;
+      maxSec: number;
+    }>(),
+    /** ADR-001 constraint types this framework may apply
+     *  (time | structure | tone | complexity | none). */
+    constraintTypes: jsonb("constraint_types").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -59,6 +59,10 @@ export type CatalogExercise = {
   description: string; // = rule
   instructions: string | null; // = why
   sortOrder: number;
+  /** PRD v3 Phase 2.2 — Exercise Framework fields (null pre-enrichment). */
+  objective: string | null;
+  hiddenSkills: string[] | null;
+  responseWindow: { minSec: number; maxSec: number } | null;
 };
 
 /** One prompt from the exercise's bank. */
@@ -77,12 +81,23 @@ export type SelectInput = {
   recentDays: RecentDaySnapshot[];
   /** Deterministic shuffle seed (tests). Wall-clock + userId in prod. */
   seed?: string;
+  /** PRD v3 Phase 2.4 — run the Assessment Phase for new users
+   *  (balanced rotation across all 6 Core Skills for ASSESSMENT_CYCLES
+   *  full cycles before adaptive rotation). Set from
+   *  isTrainingEngineV2Enabled() by the caller so this module stays
+   *  pure; default false preserves legacy cold-start behavior. */
+  assessmentEnabled?: boolean;
+  /** PRD v3 Phase 2.5 — weakness-weighted re-entry floors + strong-skill
+   *  maintenance cadence. Same caller flag as assessmentEnabled;
+   *  default false keeps the uniform SIX_DAY_FLOOR. */
+  weightedRotationEnabled?: boolean;
 };
 
 // ─── Outputs ─────────────────────────────────────────────────────────────
 
 export type RationaleCode =
   | "cold_start"
+  | "assessment"
   | "sharp_regression"
   | "six_day_floor"
   | "weakest_recent"
@@ -101,6 +116,16 @@ export type SelectResult = {
 
 /** Rotation floor: same dim rolls around at most every N days. */
 export const SIX_DAY_FLOOR = 6;
+/** PRD v3 Phase 2.4 (PRD §8.4.2) — Assessment Phase length: every new
+ *  user rotates through all six Core Skills this many full cycles
+ *  before adaptive rotation takes over. */
+export const ASSESSMENT_CYCLES = 2;
+export const ASSESSMENT_DAYS = ASSESSMENT_CYCLES * 6;
+/** PRD v3 Phase 2.5 (PRD §5.4) — weighted-rotation floors. Weak skills
+ *  return sooner; strong skills stretch to a weekly maintenance cadence
+ *  but never longer (strong-skill maintenance). */
+export const WEAK_SKILL_FLOOR = 4;
+export const STRONG_SKILL_FLOOR = 7;
 /** Composite drop that surfaces a dim early regardless of floor. */
 export const SHARP_REGRESSION_THRESHOLD = 8;
 /** Recent-engagement row count below which we fall back to recent reps. */
@@ -187,6 +212,10 @@ export function buildRationale(
   switch (code) {
     case "cold_start":
       return "Clarity is the highest-leverage muscle — we'll start here.";
+    case "assessment": {
+      const day = (ctx.daysSince ?? 0) + 1;
+      return `Baseline day ${day} of ${ASSESSMENT_DAYS} — mapping your ${label}.`;
+    }
     case "sharp_regression": {
       const drop = ctx.drop != null ? Math.round(ctx.drop) : 0;
       return `${label} dropped ${drop} pts this week — let's tighten it.`;
@@ -207,8 +236,65 @@ export function buildRationale(
 
 // ─── 1. Muscle-group selector ────────────────────────────────────────────
 
+/** PRD v3 Phase 2.4 — is the user still inside the Assessment Phase?
+ *  True while they have fewer than ASSESSMENT_DAYS muscle-group days
+ *  with at least one rep logged (attempted days count; frozen/missed
+ *  days don't advance the assessment). */
+export function isAssessmentActive(recentDays: RecentDaySnapshot[]): boolean {
+  return countAssessmentDays(recentDays) < ASSESSMENT_DAYS;
+}
+
+function countAssessmentDays(recentDays: RecentDaySnapshot[]): number {
+  // recentDays is capped at a 30-day lookback upstream, which always
+  // covers the 12-day assessment window for active users. Days with a
+  // recorded composite OR planned exercises count as attempted training
+  // days for rotation purposes.
+  return recentDays.length;
+}
+
+/** Assessment rotation: the canonical Core Skill with the FEWEST days
+ *  so far, ties broken by canonical order. Robust to gaps (a skipped
+ *  day doesn't derail the cycle — the least-covered skill always comes
+ *  next). */
+function selectAssessmentDim(recentDays: RecentDaySnapshot[]): {
+  dim: MuscleGroupId;
+  daysSoFar: number;
+} {
+  const counts = new Map<MuscleGroupId, number>();
+  for (const dim of MUSCLE_GROUP_IDS) counts.set(dim, 0);
+  for (const d of recentDays) {
+    counts.set(d.dimension, (counts.get(d.dimension) ?? 0) + 1);
+  }
+  let best: MuscleGroupId = MUSCLE_GROUP_IDS[0]!;
+  let bestCount = Number.POSITIVE_INFINITY;
+  for (const dim of MUSCLE_GROUP_IDS) {
+    const c = counts.get(dim) ?? 0;
+    if (c < bestCount) {
+      best = dim;
+      bestCount = c;
+    }
+  }
+  return { dim: best, daysSoFar: countAssessmentDays(recentDays) };
+}
+
 export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
   const { today, engagement, recentReps, recentDays } = input;
+
+  // 0) PRD v3 Assessment Phase (v2 engine only): balanced rotation
+  //    through all six Core Skills before any adaptive decision. Sharp
+  //    regression, floors, and weakness weighting all wait until the
+  //    baseline exists (PRD §8.4.2: "collect enough evidence before
+  //    heavily personalizing").
+  if (input.assessmentEnabled && isAssessmentActive(recentDays)) {
+    const { dim, daysSoFar } = selectAssessmentDim(recentDays);
+    const alternates = MUSCLE_GROUP_IDS.filter((d) => d !== dim).slice(0, 2);
+    return {
+      suggested: dim,
+      alternates,
+      rationale: buildRationale("assessment", dim, { daysSince: daysSoFar }),
+      rationaleCode: "assessment",
+    };
+  }
 
   // 1) Cold-start: no engagement and no recent reps at all.
   const anyEngagement = engagement.some((e) => e.rowCount > 0);
@@ -253,10 +339,37 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
     if (!cur || dt > cur) lastTrainedByDim.set(day.dimension, dt);
   }
 
+  // PRD v3 Phase 2.5 (PRD §5.4) — weighted rotation. With the v2 engine
+  // on, each dim's re-entry floor scales with relative weakness: the
+  // weakest third comes back in 4 days (≈50% more volume), the middle
+  // keeps the 6-day floor, and the strongest third stretches to 7 —
+  // still cycling weekly, so strengths get maintenance reps and never
+  // disappear (PRD: "no Core Skill permanently ignored"). Flag off →
+  // uniform SIX_DAY_FLOOR, byte-identical to legacy.
+  const floorByDim = new Map<MuscleGroupId, number>();
+  if (input.weightedRotationEnabled) {
+    const byWeakness = [...MUSCLE_GROUP_IDS]
+      .map((dim) => ({
+        dim,
+        composite: effectiveCompositeFor(dim, engagement, recentReps),
+      }))
+      .sort((a, b) => {
+        if (a.composite == null && b.composite == null) return 0;
+        if (a.composite == null) return -1;
+        if (b.composite == null) return 1;
+        return a.composite - b.composite;
+      });
+    byWeakness.forEach((entry, rank) => {
+      const floor = rank < 2 ? WEAK_SKILL_FLOOR : rank < 4 ? SIX_DAY_FLOOR : STRONG_SKILL_FLOOR;
+      floorByDim.set(entry.dim, floor);
+    });
+  }
+
   const eligibleByFloor: MuscleGroupId[] = [];
   for (const dim of MUSCLE_GROUP_IDS) {
     const last = lastTrainedByDim.get(dim);
-    if (!last || daysBetween(today, last) >= SIX_DAY_FLOOR) {
+    const floor = floorByDim.get(dim) ?? SIX_DAY_FLOOR;
+    if (!last || daysBetween(today, last) >= floor) {
       eligibleByFloor.push(dim);
     }
   }
@@ -355,6 +468,14 @@ export type SampleExercisesInput = {
   recentDays: RecentDaySnapshot[]; // dedupe input
   n?: number;
   seed: string;
+  /** PRD v3 Phase 2.3 — the user's Hidden Skill running averages for
+   *  this dimension (sub-skill id → 0-100 avg, null = never measured).
+   *  When provided, selection weights toward exercises targeting weak
+   *  Hidden Skills AND spreads picks across DIFFERENT Hidden Skills
+   *  (PRD §5.5: a workout should cover distinct behaviors, not repeat
+   *  one). When omitted, behavior is byte-identical to the legacy
+   *  seeded shuffle — the v1 loop and tests are unaffected. */
+  subSkillAverages?: Record<string, number | null>;
 };
 
 export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] {
@@ -376,12 +497,67 @@ export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] 
 
   // Try the dedupe-respecting path first.
   const preferred = available.filter((e) => !dedupeSet.has(e.id));
-  if (preferred.length >= n) {
-    return seededShuffle(preferred, seed).slice(0, n);
-  }
+  const pool = preferred.length >= n ? preferred : available;
+  const shuffled = seededShuffle(pool, seed);
 
-  // Catalog too small to dedupe cleanly — relax + use the whole pool.
-  return seededShuffle(available, seed).slice(0, n);
+  // Legacy path — no Hidden Skill signal supplied.
+  if (!input.subSkillAverages) {
+    return shuffled.slice(0, n);
+  }
+  return pickHiddenSkillAware(shuffled, n, input.subSkillAverages);
+}
+
+/** Greedy Hidden-Skill-aware pick over an already-seeded-shuffled pool.
+ *
+ * Each candidate gets a score = the WEAKEST of its targeted Hidden
+ * Skills (never-measured skills count as 45 — slightly weaker than the
+ * scale midpoint, so unmeasured behaviors get explored) + a diversity
+ * penalty per Hidden Skill already covered by earlier picks. Lowest
+ * score wins each round; the shuffle order is the deterministic
+ * tiebreak. Exercises without hiddenSkills (pre-enrichment rows) score
+ * a neutral 60.
+ */
+const UNMEASURED_SUB_SKILL_SCORE = 45;
+const NO_METADATA_SCORE = 60;
+const SKILL_OVERLAP_PENALTY = 15;
+
+function pickHiddenSkillAware(
+  shuffled: CatalogExercise[],
+  n: number,
+  averages: Record<string, number | null>,
+): CatalogExercise[] {
+  const picked: CatalogExercise[] = [];
+  const coveredSkills = new Set<string>();
+  const remaining = [...shuffled];
+
+  while (picked.length < n && remaining.length > 0) {
+    let bestIdx = 0;
+    let bestScore = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < remaining.length; i++) {
+      const ex = remaining[i]!;
+      let base = NO_METADATA_SCORE;
+      if (ex.hiddenSkills && ex.hiddenSkills.length > 0) {
+        base = Math.min(
+          ...ex.hiddenSkills.map((s) =>
+            averages[s] == null ? UNMEASURED_SUB_SKILL_SCORE : averages[s]!,
+          ),
+        );
+      }
+      const overlap = ex.hiddenSkills
+        ? ex.hiddenSkills.filter((s) => coveredSkills.has(s)).length
+        : 0;
+      const score = base + overlap * SKILL_OVERLAP_PENALTY;
+      // Strict < keeps the earliest (shuffle-ordered) candidate on ties.
+      if (score < bestScore) {
+        bestScore = score;
+        bestIdx = i;
+      }
+    }
+    const chosen = remaining.splice(bestIdx, 1)[0]!;
+    picked.push(chosen);
+    for (const s of chosen.hiddenSkills ?? []) coveredSkills.add(s);
+  }
+  return picked;
 }
 
 // ─── 3. Prompt candidate picker ──────────────────────────────────────────

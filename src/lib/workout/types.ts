@@ -29,6 +29,14 @@ export const StationSchema = z.object({
   status: StationStatusSchema,
   /** When complete, the rep's composite score (0-100). */
   compositeScore: z.number().min(0).max(100).nullable(),
+  /** PRD v3 Phase 2.2 — Exercise Framework fields surfaced to the shell.
+   *  Null for pre-enrichment catalog rows; the UI falls back to rule/why
+   *  and the ADR-001 default window. */
+  objective: z.string().nullable().default(null),
+  responseWindow: z
+    .object({ minSec: z.number(), maxSec: z.number() })
+    .nullable()
+    .default(null),
 });
 export type ShellStation = z.infer<typeof StationSchema>;
 

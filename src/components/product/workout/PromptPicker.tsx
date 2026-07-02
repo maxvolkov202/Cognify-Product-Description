@@ -70,6 +70,24 @@ export default function PromptPicker({
   const [isCycling, setIsCycling] = useState(false);
   const cardStackRef = useRef<HTMLDivElement | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  // PRD v3 Phase 2.6 (PRD §9.4.2) — prompt ids already shown during THIS
+  // picker session. Sent with every cycle so a refresh never re-shows a
+  // slate the user rejected. Ref (not state): accumulation must not
+  // re-render or retrigger the bootstrap effect. Resets naturally when
+  // the picker remounts for the next exercise/session.
+  const seenPromptIdsRef = useRef<Set<string>>(new Set());
+  const recordSeen = useCallback(
+    (res: {
+      candidates: { promptId: string }[];
+      surprise: { promptId: string } | null;
+    }) => {
+      for (const c of res.candidates.slice(0, CANDIDATES_PER_CYCLE)) {
+        seenPromptIdsRef.current.add(c.promptId);
+      }
+      if (res.surprise) seenPromptIdsRef.current.add(res.surprise.promptId);
+    },
+    [],
+  );
 
   // Bootstrap: fetch the first cycle of candidates.
   useEffect(() => {
@@ -77,6 +95,7 @@ export default function PromptPicker({
     setIsLoading(true);
     fetchPromptCandidates({ exerciseId, personalize }).then((res) => {
       if (cancelled) return;
+      recordSeen(res);
       dispatch({
         type: "INIT",
         candidates: res.candidates.slice(0, CANDIDATES_PER_CYCLE),
@@ -87,12 +106,17 @@ export default function PromptPicker({
     return () => {
       cancelled = true;
     };
-  }, [exerciseId, personalize]);
+  }, [exerciseId, personalize, recordSeen]);
 
   const handleCycle = useCallback(() => {
     if (isCycling) return;
     setIsCycling(true);
-    fetchPromptCandidates({ exerciseId, personalize }).then((res) => {
+    fetchPromptCandidates({
+      exerciseId,
+      personalize,
+      sessionSeenPromptIds: Array.from(seenPromptIdsRef.current),
+    }).then((res) => {
+      recordSeen(res);
       dispatch({
         type: "RESHUFFLE",
         candidates: res.candidates.slice(0, CANDIDATES_PER_CYCLE),
@@ -100,7 +124,7 @@ export default function PromptPicker({
       });
       setIsCycling(false);
     });
-  }, [exerciseId, personalize, isCycling]);
+  }, [exerciseId, personalize, isCycling, recordSeen]);
 
   // Phase HB-4 — disabled the 15s idle auto-pick. Max's 2026-05-22
   // report: the auto-advance was firing while users were still reading

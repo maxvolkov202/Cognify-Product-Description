@@ -24,6 +24,10 @@ export type DayCompleteSummaryProps = {
   dim: MuscleGroupId;
   comparison: MuscleGroupComparison | null;
   reps: DayRepBreakdown[];
+  /** PRD v3 Phase 2.7 (C17) — progression stats for the celebratory
+   *  completion. Null when unavailable (guest / degraded fetch). */
+  lifetimeReps?: number | null;
+  streakDays?: number | null;
 };
 
 const DIM_LINE_COLORS: Record<SkillDimension, string> = {
@@ -48,6 +52,8 @@ export default function DayCompleteSummary({
   dim,
   comparison,
   reps,
+  lifetimeReps = null,
+  streakDays = null,
 }: DayCompleteSummaryProps) {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -70,13 +76,15 @@ export default function DayCompleteSummary({
   const isRegression = delta != null && delta < 0;
 
   const takeaway = buildTakeaway(comparison, reps);
+  const mostImproved = findMostImprovedDim(reps);
+  const recommendation = buildCoachRecommendation(dim, reps);
 
   return (
     <div className="space-y-5">
-      {/* Hero */}
+      {/* Hero — celebratory framing per PRD §5.7 + Hunter C16. */}
       <div className="text-center">
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
-          {MUSCLE_GROUP_LABELS[dim]} day complete
+          🎉 {MUSCLE_GROUP_LABELS[dim]} day complete
         </div>
         <div className="mt-2 text-6xl sm:text-7xl font-extrabold text-slate-900 dark:text-white leading-none tabular-nums">
           {composite != null ? Math.round(composite) : "—"}
@@ -113,6 +121,29 @@ export default function DayCompleteSummary({
           </div>
         )}
       </div>
+
+      {/* PRD v3 Phase 2.7 — progression stats row (C17: reps earned +
+          all-time reps + streak, together on the completion screen). */}
+      <div className="flex justify-center gap-3 text-center">
+        <StatPill label="Reps today" value={reps.length} />
+        {lifetimeReps != null && (
+          <StatPill label="All-time reps" value={lifetimeReps} />
+        )}
+        {streakDays != null && streakDays > 0 && (
+          <StatPill label="Day streak" value={streakDays} emoji="🔥" />
+        )}
+      </div>
+
+      {/* Most improved Core Skill (PRD §5.7). */}
+      {mostImproved && (
+        <div className="text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
+            Most improved: {DIMENSION_LABELS[mostImproved.dim]} +
+            {Math.round(mostImproved.delta)}
+          </span>
+        </div>
+      )}
 
       {/* Per-rep mini-bars */}
       {reps.length > 0 && (
@@ -167,6 +198,16 @@ export default function DayCompleteSummary({
             </div>
             <p className="text-sm text-slate-800 dark:text-ink-100 leading-snug">{takeaway}</p>
           </div>
+        </div>
+      )}
+
+      {/* Coach recommendation (PRD §5.7) — the next highest-value move. */}
+      {recommendation && (
+        <div className="text-center text-xs text-slate-500 dark:text-ink-400">
+          <span className="font-semibold text-purple-700 dark:text-brand-lavender">
+            Coach&apos;s call:
+          </span>{" "}
+          {recommendation}
         </div>
       )}
 
@@ -354,3 +395,82 @@ function buildTakeaway(
   return `Composite landed at ${avg}. The next session, slow down — most of these reps lost points to rushed delivery and undercooked thinking, not missing skill.`;
 }
 
+
+// ─── PRD v3 Phase 2.7 helpers ─────────────────────────────────────────────
+
+function StatPill({
+  label,
+  value,
+  emoji,
+}: {
+  label: string;
+  value: number;
+  emoji?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 shadow-sm">
+      <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums leading-tight">
+        {emoji ? `${emoji} ` : ""}
+        {value.toLocaleString()}
+      </div>
+      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/** Most improved Core Skill across the day: biggest first-rep → last-rep
+ *  per-dim gain (graduation rep excluded — pressure reps skew dims). */
+function findMostImprovedDim(
+  reps: DayRepBreakdown[],
+): { dim: SkillDimension; delta: number } | null {
+  const normal = reps.filter((r) => !r.isGraduationRep);
+  if (normal.length < 2) return null;
+  const first = normal[0]!;
+  const last = normal[normal.length - 1]!;
+  let best: { dim: SkillDimension; delta: number } | null = null;
+  for (const dim of ALL_DIMS) {
+    const a = first.perDim[dim];
+    const b = last.perDim[dim];
+    if (a == null || b == null) continue;
+    const delta = b - a;
+    if (delta > 0 && (!best || delta > best.delta)) {
+      best = { dim, delta };
+    }
+  }
+  return best && best.delta >= 3 ? best : null;
+}
+
+/** Coach recommendation (PRD §5.7): the next highest-value move, from the
+ *  day's weakest average dimension. Deterministic Phase 2 copy — Phase 3's
+ *  coaching memory replaces this with a personalized recommendation. */
+function buildCoachRecommendation(
+  dim: MuscleGroupId,
+  reps: DayRepBreakdown[],
+): string | null {
+  const normal = reps.filter((r) => !r.isGraduationRep);
+  if (normal.length === 0) return null;
+  const sums = new Map<SkillDimension, { total: number; n: number }>();
+  for (const rep of normal) {
+    for (const d of ALL_DIMS) {
+      const v = rep.perDim[d];
+      if (v == null) continue;
+      const cur = sums.get(d) ?? { total: 0, n: 0 };
+      sums.set(d, { total: cur.total + v, n: cur.n + 1 });
+    }
+  }
+  let weakest: { dim: SkillDimension; avg: number } | null = null;
+  for (const [d, { total, n }] of sums) {
+    if (n === 0) continue;
+    const avg = total / n;
+    if (!weakest || avg < weakest.avg) weakest = { dim: d, avg };
+  }
+  if (!weakest) return null;
+  const label = DIMENSION_LABELS[weakest.dim];
+  const trainedLabel = MUSCLE_GROUP_LABELS[dim];
+  if (Math.round(weakest.avg) >= 80) {
+    return `Solid across the board — keep the ${trainedLabel} streak going next session.`;
+  }
+  return `${label} averaged ${Math.round(weakest.avg)} today — it's the highest-value muscle to hit next.`;
+}

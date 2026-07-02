@@ -140,6 +140,8 @@ async function fetchTodaysDayPayload(
               name: exercises.name,
               description: exercises.description,
               instructions: exercises.instructions,
+              objective: exercises.objective,
+              responseWindow: exercises.responseWindow,
             })
             .from(exercises)
             .where(inArray(exercises.id, exerciseIds))
@@ -206,6 +208,8 @@ async function fetchTodaysDayPayload(
         why: ex.instructions,
         status,
         compositeScore: null,
+        objective: ex.objective ?? null,
+        responseWindow: ex.responseWindow ?? null,
       };
       return [station];
     });
@@ -245,12 +249,16 @@ async function fetchTodaysDayPayload(
     // back into the picker at the current station. This avoids the
     // surprise of "I clicked Workout and the recording UI just appears."
     //   - complete day → day-complete (retrospective)
-    //   - 4 reps logged but not finalized → day-complete-prompt (graduation CTA)
+    //   - all planned exercises logged but not finalized → day-complete-prompt
     //   - otherwise → idle landing (Start resumes)
+    // PRD v3 Phase 2.1 — the target derives from the day's planned
+    // exercise list (3 in the v2 engine, 4 legacy) instead of a
+    // hard-coded 4, so both loop variants close out correctly.
+    const dayTarget = exerciseIds.length > 0 ? exerciseIds.length : 4;
     const phase =
       day.status === "complete"
         ? "day-complete"
-        : day.completedReps >= 4
+        : day.completedReps >= dayTarget
           ? "day-complete-prompt"
           : "idle";
 
@@ -262,7 +270,7 @@ async function fetchTodaysDayPayload(
       stations,
       sessionPhase: phase,
       currentStationIndex:
-        activeSession?.index ?? Math.min(day.completedReps, 3),
+        activeSession?.index ?? Math.min(day.completedReps, dayTarget - 1),
       workoutSessionId: activeSession?.id ?? null,
       previousDayComposite: previousDay?.composite ?? null,
       lastDay: previousDay

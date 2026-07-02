@@ -200,6 +200,8 @@ function WorkoutShellInner({
         why: s.why,
         status: i === 0 ? "current" : "locked",
         compositeScore: null,
+        objective: s.objective ?? null,
+        responseWindow: s.responseWindow ?? null,
       }));
       send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });
       send({ type: "START" });
@@ -223,6 +225,13 @@ function WorkoutShellInner({
     state.stations[0] ??
     null;
 
+  // PRD v3 Phase 2.1 — v2 days run 3 exercises but each is two
+  // recordings (First Rep + required Retry), so the fallback count and
+  // time estimate differ by loop variant.
+  const isV2 = payload.loopVariant === "v2";
+  const stationCount = state.stations.length || (isV2 ? 3 : 4);
+  const estimatedMinutes = Math.round((stationCount * (isV2 ? 110 : 45)) / 60);
+
   // Phase D — lock-screen card while a day is open.
   useMediaSession({
     active:
@@ -231,11 +240,8 @@ function WorkoutShellInner({
       state.phase !== "day-complete-prompt",
     dim: payload.dimension,
     stationIndex: state.currentStationIndex,
-    totalStations: state.stations.length || 4,
+    totalStations: stationCount,
   });
-
-  const stationCount = state.stations.length || 4;
-  const estimatedMinutes = Math.round((stationCount * 45) / 60);
 
   // HB-5 — at-rest vs in-workout split. At-rest = idle phase, day-
   // complete phases, OR the Cancel override. Everything else (prompt
@@ -383,6 +389,7 @@ function WorkoutShellInner({
                   state.currentStationIndex >= state.stations.length - 1
                 }
                 repsCompleted={state.outcomes.filter((o) => !o.scoreFailure).length}
+                totalStations={state.stations.length || stationCount}
                 onStartWorkout={onStartWorkout}
                 onPromptSelected={onPromptSelected}
                 onSkipStation={onSkipStation}

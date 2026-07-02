@@ -12,7 +12,7 @@
  * Plus the streak-preserved / freeze-consume / baseline-set columns.
  */
 
-import { decideStatus } from "@/lib/muscle-groups/day-status";
+import { decideStatus, dayTargetReps } from "@/lib/muscle-groups/day-status";
 
 let pass = 0;
 let fail = 0;
@@ -112,6 +112,56 @@ section("partial-vs-frozen edge: 1 rep doesn't burn a freeze");
   });
   assert(r.status === "partial", "1 rep w/ freeze still partial");
   assert(r.consumesFreeze === false, "freeze NOT consumed for partial");
+}
+
+// PRD v3 Phase 2.1 — day-complete target derives from the planned
+// exercise count (3 in the v2 engine, 4 legacy default).
+section("v2: targetReps=3 day");
+{
+  const complete = decideStatus({
+    completedReps: 3,
+    hasGraduated: false,
+    freezeAvailable: false,
+    targetReps: 3,
+  });
+  assert(complete.status === "complete", "3 of 3 → complete");
+  assert(complete.setsBaseline === true, "3 of 3 sets baseline");
+
+  const partial = decideStatus({
+    completedReps: 2,
+    hasGraduated: false,
+    freezeAvailable: false,
+    targetReps: 3,
+  });
+  assert(partial.status === "partial", "2 of 3 → partial");
+
+  const graduated = decideStatus({
+    completedReps: 3,
+    hasGraduated: true,
+    freezeAvailable: false,
+    targetReps: 3,
+  });
+  assert(
+    graduated.status === "complete_graduated",
+    "3 of 3 + graduation → complete_graduated",
+  );
+
+  // Legacy default: 3 reps is still partial on a 4-target day.
+  const legacy = decideStatus({
+    completedReps: 3,
+    hasGraduated: false,
+    freezeAvailable: false,
+  });
+  assert(legacy.status === "partial", "3 reps w/o targetReps stays partial (default 4)");
+}
+
+section("dayTargetReps derivation");
+{
+  assert(dayTargetReps(["a", "b", "c"]) === 3, "3 planned ids → 3");
+  assert(dayTargetReps(["a", "b", "c", "d"]) === 4, "4 planned ids → 4");
+  assert(dayTargetReps([]) === 4, "empty list → fallback 4");
+  assert(dayTargetReps(null) === 4, "null → fallback 4");
+  assert(dayTargetReps("junk") === 4, "malformed → fallback 4");
 }
 
 console.log(`\n══════════════════════════════════════════════════════════════`);

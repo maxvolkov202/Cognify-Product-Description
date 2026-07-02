@@ -53,6 +53,8 @@ function mkStation(i: number): ShellStation {
     why: null,
     status: i === 0 ? "current" : "locked",
     compositeScore: null,
+    objective: null,
+    responseWindow: null,
   };
 }
 
