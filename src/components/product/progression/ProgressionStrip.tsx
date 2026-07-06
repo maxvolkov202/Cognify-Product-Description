@@ -13,7 +13,8 @@
 // used to be computed and silently dropped; this is the consumer.
 
 import { useEffect, useState } from "react";
-import { Flame, Trophy } from "lucide-react";
+import Link from "next/link";
+import { Flame, Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { DIMENSION_LABELS, type SkillDimension } from "@/types/domain";
 import {
@@ -22,17 +23,37 @@ import {
 } from "@/server/actions/progression";
 import { RankBadge } from "./RankBadge";
 
+/** Phase 11.E1 — client-side rank-crossing detection. Rank is a pure
+ *  function of lifetime XP (no rank column), so the "did I just rank
+ *  up?" moment is detected by comparing against the last rankIndex this
+ *  browser saw. First-ever load just primes storage (no false fanfare). */
+const LAST_RANK_KEY = "cognify:last-rank-index";
+
+function detectRankUp(rankIndex: number): boolean {
+  try {
+    const prev = window.localStorage.getItem(LAST_RANK_KEY);
+    window.localStorage.setItem(LAST_RANK_KEY, String(rankIndex));
+    return prev != null && rankIndex > Number(prev);
+  } catch {
+    return false; // storage unavailable (private mode) — skip the moment
+  }
+}
+
 export default function ProgressionStrip({
   className,
 }: {
   className?: string;
 }) {
   const [summary, setSummary] = useState<ProgressionSummary | null>(null);
+  const [rankUp, setRankUp] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     void getProgressionSummary().then((s) => {
-      if (!cancelled && s) setSummary(s);
+      if (!cancelled && s) {
+        setSummary(s);
+        if (detectRankUp(s.rank.rankIndex)) setRankUp(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -50,6 +71,35 @@ export default function ProgressionStrip({
       )}
       data-testid="progression-strip"
     >
+      {/* Phase 11.E1 — the rank-up moment (PRD §10.5: rank changes are
+          celebrated). Only fires when this browser saw a lower rank. */}
+      {rankUp && (
+        <div
+          data-testid="rank-up-celebration"
+          className="mb-3 flex items-center gap-3 rounded-xl border px-3 py-2.5 animate-in fade-in slide-in-from-top-2 duration-700"
+          style={{
+            borderColor: rank.tierColor,
+            background: `linear-gradient(135deg, ${rank.tierColor}14, transparent)`,
+          }}
+        >
+          <Sparkles
+            className="w-5 h-5 shrink-0"
+            style={{ color: rank.tierColor }}
+          />
+          <div className="min-w-0">
+            <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+              Rank up!
+            </div>
+            <div className="text-xs text-slate-600 dark:text-ink-300">
+              You&apos;ve reached{" "}
+              <span className="font-bold" style={{ color: rank.tierColor }}>
+                {rank.label}
+              </span>
+              {rank.nextLabel ? <> — next stop, {rank.nextLabel}.</> : "."}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-3">
         <RankBadge rank={rank} size={48} />
         <div className="flex-1 min-w-0">
@@ -121,7 +171,7 @@ export default function ProgressionStrip({
       )}
 
       {summary.achievementsToday.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {summary.achievementsToday.map((a) => (
             <span
               key={a.id}
@@ -131,6 +181,14 @@ export default function ProgressionStrip({
               <Trophy className="w-3 h-3" /> {a.name}
             </span>
           ))}
+          {/* Phase 11.E4 — earned chips are the discovery moment; link
+              through to the full trophy case. */}
+          <Link
+            href="/achievements"
+            className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:text-ink-500 dark:hover:text-ink-300"
+          >
+            All achievements →
+          </Link>
         </div>
       )}
 

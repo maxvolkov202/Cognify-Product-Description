@@ -17,6 +17,7 @@ export const PREP_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
 export const PREP_ACCEPTED_EXTENSIONS = [
   ".pdf",
   ".docx",
+  ".pptx",
   ".txt",
   ".md",
 ] as const;
@@ -66,6 +67,16 @@ export async function parseContextFile(
           ? { status: "parsed", text: normalized }
           : { status: "failed", text: null };
       }
+      case "pptx": {
+        // Phase 11.E3 — zero-dependency zip/XML extraction (slides +
+        // speaker notes). Malformed decks throw -> "failed" (best-effort
+        // per PRD §7.4).
+        const { extractPptxText } = await import("./pptx");
+        const normalized = normalize(extractPptxText(buffer));
+        return normalized.length > 0
+          ? { status: "parsed", text: normalized }
+          : { status: "failed", text: null };
+      }
       case "text": {
         const normalized = normalize(buffer.toString("utf-8"));
         return normalized.length > 0
@@ -83,7 +94,7 @@ export async function parseContextFile(
 function detectKind(
   mimeType: string | null,
   lowerName: string,
-): "pdf" | "docx" | "text" | "unsupported" {
+): "pdf" | "docx" | "pptx" | "text" | "unsupported" {
   if (mimeType === "application/pdf" || lowerName.endsWith(".pdf")) {
     return "pdf";
   }
@@ -93,6 +104,13 @@ function detectKind(
     lowerName.endsWith(".docx")
   ) {
     return "docx";
+  }
+  if (
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    lowerName.endsWith(".pptx")
+  ) {
+    return "pptx";
   }
   if (
     mimeType?.startsWith("text/") ||

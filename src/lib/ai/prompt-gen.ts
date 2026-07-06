@@ -41,17 +41,27 @@ export type PromptGenUserContext = {
 export const GENERATED_PROMPT_MAX_CHARS = 200;
 export const GENERATED_PROMPT_MIN_CHARS = 20;
 
+// Shape-only validation. Length/duplicate policing belongs to
+// qaFilterPrompts — a single overlong prompt (or the model returning
+// count+2 extras, which we explicitly ask for) must not void the whole
+// batch. The old strict schema (.max(10) items, per-string length) did
+// exactly that: every 12-prompt expansion batch zod-failed to 0 (11.D4).
 const responseSchema = z.object({
-  prompts: z
-    .array(
-      z
-        .string()
-        .min(GENERATED_PROMPT_MIN_CHARS)
-        .max(GENERATED_PROMPT_MAX_CHARS),
-    )
-    .min(1)
-    .max(10),
+  prompts: z.array(z.string()).min(1).max(30),
 });
+
+/** PRD §5.6 — the topic categories a healthy bank spans. */
+export const TOPIC_CATEGORIES = [
+  "business",
+  "career",
+  "technology",
+  "sports",
+  "current events",
+  "personal development",
+  "relationships",
+  "culture",
+  "everyday life",
+] as const;
 
 const systemPrompt = `You are Cognify's prompt architect. Given ONE exercise framework, generate speaking-prompt options that all train the SAME objective while varying ONLY the topic (PRD: "The surface topic may change. The training objective must stay the same.").
 
@@ -62,6 +72,8 @@ Every prompt must be:
 - Realistic enough to transfer to real communication
 - Directly practicing the exercise's rule — a user following the rule should score well
 - Free of theory names (no "SCQA", "Grice", "STAR" etc.) and free of meta-text ("Here's a prompt…")
+
+TOPIC SPREAD (PRD §5.6): unless the framework prompt rules pin the setting, spread the batch across DIFFERENT topic categories — ${TOPIC_CATEGORIES.join(", ")} — rather than clustering in workplace scenarios. Refreshing changes the topic, never the objective.
 
 Match the register of the exercise's existing prompts when examples are given. Do NOT reuse or lightly paraphrase the examples — produce genuinely fresh topics.
 
@@ -165,7 +177,10 @@ export async function generatePrompts(input: {
   try {
     const response = await anthropic.messages.create({
       model: MODELS.framework,
-      max_tokens: 1200,
+      // Scale with batch size: ~90 output tokens per ≤200-char prompt
+      // plus JSON overhead. The old flat 1200 truncated 12-prompt
+      // batches on GPT-4o → JSON parse failure → 0 generated (11.D4).
+      max_tokens: Math.max(1200, 300 + (count + 2) * 120),
       system: [
         { type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
         ...(knowledgeText
@@ -190,7 +205,14 @@ export async function generatePrompts(input: {
       .replace(/```\s*$/, "");
     const parsed = responseSchema.parse(JSON.parse(cleaned));
     return qaFilterPrompts(parsed.prompts, existingTexts).slice(0, count);
-  } catch {
+  } catch (err) {
+    // Best-effort by contract, but never silent — a systematic failure
+    // here looked like "0 generated" across the whole 11.D4 expansion
+    // run with nothing to diagnose.
+    console.warn(
+      `[prompt-gen] ${ex.slug}: generation failed —`,
+      err instanceof Error ? `${err.name}: ${err.message.slice(0, 300)}` : err,
+    );
     return [];
   }
 }

@@ -28,6 +28,7 @@ import {
   ArrowRight,
   Zap,
   FileDown,
+  Trophy,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
@@ -104,13 +105,24 @@ export default async function ProgressPage() {
             in your transcript. No grades — just signals that show improvement compound.
           </p>
         </div>
-        <Link
-          href="/report"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:text-white"
-        >
-          <FileDown className="size-3.5" />
-          Export report
-        </Link>
+        {/* Phase 11.E4 — Achievements had no entry point outside the
+            post-completion strip; Progress is its natural home. */}
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/achievements"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:text-white"
+          >
+            <Trophy className="size-3.5" />
+            Achievements
+          </Link>
+          <Link
+            href="/report"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:text-white"
+          >
+            <FileDown className="size-3.5" />
+            Export report
+          </Link>
+        </div>
       </div>
 
       {!hasDatabase() && (

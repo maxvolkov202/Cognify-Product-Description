@@ -500,6 +500,17 @@ export default function PrepEventClient({
           setView({ kind: "sim-rep", durationSec });
         }}
         onComplete={onSimulationComplete}
+        // Phase 11.E2 (§7.8) — inline framework edits on the sim setup,
+        // written through to the plan's moments.
+        onMomentTitleChange={(momentId, title) => {
+          setEvent((prev) => ({
+            ...prev,
+            moments: prev.moments.map((m) =>
+              m.id === momentId ? { ...m, title } : m,
+            ),
+          }));
+          void updateCriticalMoment({ momentId, title });
+        }}
       />
     );
   }
@@ -1068,6 +1079,7 @@ function SimulationView({
   onBack,
   onStart,
   onComplete,
+  onMomentTitleChange,
 }: {
   event: PrepEventDetail;
   view: { kind: "sim-setup" } | { kind: "sim-rep"; durationSec: number };
@@ -1079,14 +1091,30 @@ function SimulationView({
     repId: string;
     transcript: string;
   }) => void;
+  /** Phase 11.E2 (§7.8) — commit an inline section edit (write-through). */
+  onMomentTitleChange: (momentId: string, title: string) => void;
 }) {
   const [durationSec, setDurationSec] = useState(
     event.recommendedDurationSec ?? 300,
   );
+  // Drafts keyed by moment id so typing doesn't write through per
+  // keystroke; blur (or Enter) commits via onMomentTitleChange.
+  const [titleDrafts, setTitleDrafts] = useState<Record<string, string>>({});
   const framework = useMemo(
     () => event.moments.map((m) => m.title),
     [event.moments],
   );
+
+  const commitTitle = (momentId: string, current: string) => {
+    const draft = titleDrafts[momentId];
+    const next = draft?.trim();
+    if (next && next !== current) onMomentTitleChange(momentId, next);
+    setTitleDrafts((d) => {
+      const rest = { ...d };
+      delete rest[momentId];
+      return rest;
+    });
+  };
 
   if (view.kind === "sim-setup") {
     const minutes = Math.round((durationSec / 60) * 10) / 10;
@@ -1134,24 +1162,36 @@ function SimulationView({
           </div>
           <div className="mt-4">
             <div className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500">
-              Your framework
+              Your framework (tap a section to edit)
             </div>
-            <ol className="mt-2 space-y-1">
-              {framework.map((t, i) => (
-                <li
-                  key={i}
-                  className="text-sm text-slate-700 dark:text-ink-200"
-                >
-                  <span className="text-slate-400 dark:text-ink-500 tabular-nums mr-2">
+            {/* Phase 11.E2 (§7.8) — sections are editable right here;
+                edits write through to the plan's Critical Moments. */}
+            <ol className="mt-2 space-y-1.5">
+              {event.moments.map((m, i) => (
+                <li key={m.id} className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400 dark:text-ink-500 tabular-nums">
                     {i + 1}.
                   </span>
-                  {t}
+                  <input
+                    type="text"
+                    value={titleDrafts[m.id] ?? m.title}
+                    aria-label={`Framework section ${i + 1}`}
+                    maxLength={120}
+                    onChange={(e) =>
+                      setTitleDrafts((d) => ({ ...d, [m.id]: e.target.value }))
+                    }
+                    onBlur={() => commitTitle(m.id, m.title)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
+                    className="w-full min-h-[40px] rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-ink-700 focus:border-purple-300 dark:focus:border-brand-lavender/50 bg-transparent px-2 py-1.5 text-sm text-slate-700 dark:text-ink-200 focus:outline-none"
+                  />
                 </li>
               ))}
             </ol>
             <p className="mt-2 text-[11px] text-slate-400 dark:text-ink-500">
-              Edit sections back on the plan screen — or ignore the framework
-              entirely and deliver it your way.
+              Edits update your plan too — or ignore the framework entirely
+              and deliver it your way.
             </p>
           </div>
           <button
