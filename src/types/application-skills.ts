@@ -41,9 +41,10 @@ export const APPLICATION_DESCRIPTIONS: Record<ApplicationId, string> = {
     "Influence beliefs, decisions, and actions through communication.",
 };
 
-/** Hidden Application Skills per application (PRD Lab Engine V1 lists,
- *  trimmed to the MVP set the exercise catalogs target). snake_case ids;
- *  labels derived at display time if ever needed (internal-only today). */
+/** Hidden Application Skills per application — the FULL 8-per-app canon
+ *  from the PRD's Lab Engine V1 lists (D11: restored 2026-07-06 after an
+ *  earlier 6-skill MVP trim). snake_case ids; labels derived at display
+ *  time if ever needed (internal-only today). */
 export const APPLICATION_SKILLS: Record<ApplicationId, readonly string[]> = {
   storytelling: [
     "establishing_stakes",
@@ -51,7 +52,9 @@ export const APPLICATION_SKILLS: Record<ApplicationId, readonly string[]> = {
     "concrete_detail",
     "showing_change",
     "clear_takeaway",
+    "balancing_context_action",
     "making_listener_care",
+    "connecting_to_broader_point",
   ],
   presenting: [
     "framing_main_message",
@@ -59,22 +62,28 @@ export const APPLICATION_SKILLS: Record<ApplicationId, readonly string[]> = {
     "memorable_chunks",
     "signposting_transitions",
     "explaining_evidence",
+    "adapting_to_audience",
     "closing_implication",
+    "concretizing_abstraction",
   ],
   teaching: [
     "simplifying_complexity",
     "explaining_with_analogy",
     "known_to_unknown",
     "anticipating_confusion",
+    "defining_terms",
     "examples_and_nonexamples",
     "teaching_for_application",
+    "adjusting_depth",
   ],
   interviewing: [
     "evidence_based_answers",
     "concise_personal_examples",
     "self_awareness",
+    "explaining_motivation",
     "handling_weakness_questions",
     "connecting_to_fit",
+    "judgment_under_pressure",
     "credible_specifics",
   ],
   persuasion: [
@@ -82,7 +91,9 @@ export const APPLICATION_SKILLS: Record<ApplicationId, readonly string[]> = {
     "handling_objections",
     "audience_priorities",
     "building_credibility",
+    "selective_evidence",
     "calibrated_urgency",
+    "warmth_and_conviction",
     "clear_ask",
   ],
 };

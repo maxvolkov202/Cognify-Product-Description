@@ -192,6 +192,70 @@
         { "text": "You're interviewing for a fellowship. Answer: \"Tell me something you tried to improve and are still not good at.\"", "difficulty": "stretch", "tags": ["education", "personal"] },
         { "text": "You're interviewing for a project manager role. Answer: \"When did your weakness last cost your team something?\"", "difficulty": "stretch", "tags": ["leadership"] }
       ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "application": "interviewing",
+      "application_skills": ["explaining_motivation", "self_awareness"],
+      "name": "The Honest Why",
+      "rule": "Give the real reason, then the proof you acted on it.",
+      "why": "Interviewers discount polished motives. The reason that survives follow-up is the real one, backed by something you have already done about it.",
+      "default_difficulty": "core",
+      "ordering": 7,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train the user to explain why they want something or chose something with their real, defensible motive — honestly traced, mixed feelings included — and backed by action already taken, not borrowed platitudes.",
+      "hidden_skills": ["intellectual_honesty", "claim_support"],
+      "scoring_lens": "Constraint: the stated motive must be honest and defensible under follow-up. Borrowed platitudes, suspiciously tidy motives, or reasons unbacked by any prior action MUST drag thinking_quality.",
+      "retry_objective": "Swap any polished or borrowed reason for the truer one, and name one thing you have already done that proves it.",
+      "prompt_rules": "Generate why-questions about motivations and past choices, naming a role and setting where the interviewer will probe the answer for authenticity. Each prompt must invite the user's real reasoning about their own decisions and suit a 75-120 second spoken answer.",
+      "response_window": { "min_sec": 75, "max_sec": 120 },
+      "constraint_types": ["structure"],
+      "prompts": [
+        { "text": "You're interviewing for a marketing internship. Answer: \"Out of everything you could have applied to, why this?\"", "difficulty": "intro", "tags": ["business", "personal"] },
+        { "text": "You're interviewing for your first job out of school. Answer: \"Why did you pick your major?\"", "difficulty": "intro", "tags": ["education", "personal"] },
+        { "text": "You're interviewing at a small nonprofit. Answer: \"Why do you care about this cause?\"", "difficulty": "intro", "tags": ["ethics", "personal"] },
+        { "text": "You're interviewing for a retail management job. Answer: \"Why this industry? Most people just fall into it.\"", "difficulty": "intro", "tags": ["business"] },
+        { "text": "You're in a final round at a fintech startup. Answer: \"You left a stable job for this space. Walk me through why.\"", "difficulty": "core", "tags": ["finance", "personal"] },
+        { "text": "You're interviewing for a graduate program. Answer: \"Plenty of programs cover this. Why ours, really?\"", "difficulty": "core", "tags": ["education"] },
+        { "text": "You're in a promotion panel. Answer: \"Why do you want to manage people instead of staying the expert?\"", "difficulty": "core", "tags": ["leadership", "business"] },
+        { "text": "You're interviewing for a nurse practitioner role. Answer: \"Why did you choose this specialty over the ones that pay more?\"", "difficulty": "core", "tags": ["healthcare", "personal"] },
+        { "text": "You're interviewing with a nonprofit board for an executive director post. Answer: \"Why take this on now, at this point in your career?\"", "difficulty": "core", "tags": ["leadership", "ethics"] },
+        { "text": "You're in a final round for a consulting job. Answer: \"Your resume says finance, your essays say teaching. Which is the real you, and why are you here?\"", "difficulty": "stretch", "tags": ["business", "education"] },
+        { "text": "You're interviewing to rejoin a company you left two years ago. Answer: \"Why come back? And why should we believe it will stick?\"", "difficulty": "stretch", "tags": ["business", "personal"] },
+        { "text": "You're interviewing for a PhD program. Answer: \"Is this a calling or an escape from the job market? Convince me you know the difference.\"", "difficulty": "stretch", "tags": ["education", "science"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "application": "interviewing",
+      "application_skills": ["judgment_under_pressure", "evidence_based_answers"],
+      "name": "The Composed Curveball",
+      "rule": "Pause, name your approach, then reason aloud at a steady pace.",
+      "why": "Curveball questions test composure before content. A beat of silence and a steady, step-by-step answer reads as judgment; a rushed scramble reads as panic.",
+      "default_difficulty": "stretch",
+      "ordering": 8,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train the user to meet curveball, hypothetical, and trade-off questions with a deliberate pause, a named approach, and steady structured reasoning aloud toward a defensible call.",
+      "hidden_skills": ["pressure_management", "strategic_pausing", "filler_word_control"],
+      "scoring_lens": "Constraint: the answer must open with a deliberate pause and hold a steady rate while reasoning aloud. A rushed start, a filler-flooded scramble, or an accelerating panic MUST drag pacing.",
+      "retry_objective": "Take a full two-second pause before speaking, and hold one steady pace from your first reasoning step to your final call.",
+      "prompt_rules": "Generate curveball, hypothetical, and trade-off interview questions naming a role and setting where no rehearsed answer exists. Each prompt must force live reasoning toward a defensible choice and suit a 75-120 second spoken answer delivered at a composed pace.",
+      "response_window": { "min_sec": 75, "max_sec": 120 },
+      "constraint_types": ["time"],
+      "prompts": [
+        { "text": "You're interviewing for a campus tour guide job. Answer: \"A parent asks you something you don't know. What do you do, and what makes that the right call?\"", "difficulty": "intro", "tags": ["education", "personal"] },
+        { "text": "You're interviewing for an operations job. Answer: \"Would you rather ship a day late or ship with one known small bug? Pick one.\"", "difficulty": "intro", "tags": ["business", "tech"] },
+        { "text": "You're interviewing for a retail lead role. Answer: \"Two customers need you at once and you're alone on the floor. Who gets you first?\"", "difficulty": "intro", "tags": ["business", "personal"] },
+        { "text": "You're interviewing for a junior analyst job. Answer: \"Rough guess: how many coffee shops does this city need? Reason it out for me.\"", "difficulty": "intro", "tags": ["finance", "business"] },
+        { "text": "You're interviewing for a product manager role. Answer: \"You can fix churn or grow signups this quarter, not both. Which one, and why?\"", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "You're in a promotion panel for engineering manager. Answer: \"Your best engineer wants to quit the day before a launch. What's your first move?\"", "difficulty": "core", "tags": ["tech", "leadership"] },
+        { "text": "You're interviewing for a hospital administrator role. Answer: \"Budget forces a cut: staff training or new equipment. Choose.\"", "difficulty": "core", "tags": ["healthcare", "leadership"] },
+        { "text": "You're interviewing for an MBA program. Answer: \"Your team's startup idea is failing mid-semester. Pivot or push on? How would you decide?\"", "difficulty": "core", "tags": ["education", "business"] },
+        { "text": "You're interviewing for a chief of staff job. Answer: \"Your CEO is about to announce a number you think is wrong. You have sixty seconds with her. Go.\"", "difficulty": "core", "tags": ["leadership", "business"] },
+        { "text": "You're in a board interview for a director seat. Answer: \"The CEO is beloved but underperforming. What does the board do, and when?\"", "difficulty": "stretch", "tags": ["leadership", "finance"] },
+        { "text": "You're in a final round for a strategy role. Answer: \"Our biggest client, 40% of revenue, demands a discount that erases the margin. Walk me through your call.\"", "difficulty": "stretch", "tags": ["business", "finance"] },
+        { "text": "You're interviewing for a research director post. Answer: \"Halfway through, the data contradicts the hypothesis your funding depends on. What now?\"", "difficulty": "stretch", "tags": ["science", "ethics"] }
+      ]
     }
   ]
 }

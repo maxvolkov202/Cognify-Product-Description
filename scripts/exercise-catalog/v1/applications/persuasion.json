@@ -197,6 +197,70 @@
         { "text": "Make the case to a results-driven sales chief that ride-alongs beat call scripts for training. Lead with what moves them.", "difficulty": "core", "tags": ["sales", "people"] },
         { "text": "Make the case to your mentor, who values honesty, that you should turn down a promotion this cycle. Strongest reason first.", "difficulty": "stretch", "tags": ["personal", "leadership"] }
       ]
+    },
+    {
+      "dimension": "conciseness",
+      "application": "persuasion",
+      "application_skills": ["selective_evidence", "audience_priorities"],
+      "name": "Evidence on a Budget",
+      "rule": "Make your case with your two strongest proofs. Cut the rest.",
+      "why": "Two proofs chosen for this listener outpersuade ten dumped on them — every extra point hands the skeptic your weakest one to attack.",
+      "default_difficulty": "core",
+      "ordering": 7,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train persuading with deliberately selected evidence — picking the one or two proof points this audience finds most credible, making the case on those alone, and leaving the rest of the pile unspoken.",
+      "hidden_skills": ["response_scoping", "editing_in_real_time"],
+      "scoring_lens": "The evaluator should primarily look for a case that rests on at most two proof points, each clearly chosen for what this audience finds credible, delivered without the rest of the available evidence. Constraint: piling on proof points beyond the two strongest, or choosing evidence the stated audience would not weigh, MUST drag the conciseness score.",
+      "retry_objective": "On the second attempt, keep only the single proof this audience trusts most, add one backup at most, and cut everything else.",
+      "prompt_rules": "Every prompt names the audience, states what kind of evidence that audience trusts, and supplies a surplus of available proof points — always more than should be used — so selection is a real choice. The two-proof limit is the exercise rule and never appears in the prompt text. Vary contexts across work, community, and personal life. Never require the user to claim credentials they do not have.",
+      "response_window": { "min_sec": 60, "max_sec": 90 },
+      "constraint_types": ["complexity"],
+      "prompts": [
+        { "text": "Convince your budget-minded roommate to split a streaming bundle. You could cite price math, shows they love, cancel-anytime terms, and what friends pay. They trust numbers.", "difficulty": "intro", "tags": ["personal", "finance"] },
+        { "text": "Persuade a friend to try a personal trainer. You have transformation stories, injury stats, price-per-session math, and your own results. They trust stories from people like them.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "Pitch your book club on a nonfiction pick. You could cite reviews, awards, the author's talks, and a member's rave. The club trusts firsthand takes from its own people.", "difficulty": "intro", "tags": ["personal", "creative"] },
+        { "text": "Convince a neighbor to join the block's solar group buy. You have payback math, tax credits, three vendor quotes, and two houses already signed up. They trust what neighbors did.", "difficulty": "intro", "tags": ["community"] },
+        { "text": "Persuade your CFO to renew the analytics tool. You have usage dashboards, three team testimonials, a competitor comparison, and cost-per-seat math. She trusts hard numbers.", "difficulty": "core", "tags": ["finance", "business"] },
+        { "text": "Pitch a skeptical client on a site redesign. You have conversion data, heatmaps, design awards, user quotes, and competitor screenshots. This client trusts their own customers' words.", "difficulty": "core", "tags": ["sales", "product"] },
+        { "text": "Convince your engineering director to fund test automation. You have bug-escape counts, on-call hours, exit-interview notes, and an industry report. He trusts internal data.", "difficulty": "core", "tags": ["tech", "ops"] },
+        { "text": "Persuade the school board to keep the arts budget. You have attendance figures, an admissions study, parent letters, and a student showcase video. The board trusts local outcomes.", "difficulty": "core", "tags": ["education", "community"] },
+        { "text": "Pitch a boutique owner on stocking your product line. You have margin math, sell-through rates at similar shops, press clippings, and material certifications. She trusts what sold nearby.", "difficulty": "core", "tags": ["sales", "business"] },
+        { "text": "Persuade a hospital committee to pilot your scheduling software. You have trial results, uptime stats, peer-hospital references, security audits, and pricing tiers. They trust peers.", "difficulty": "stretch", "tags": ["healthcare", "tech"] },
+        { "text": "Convince the exec team to enter a new market. You have market sizing, discovery calls, a rival's earnings note, churn projections, and one signed pilot. They trust committed customers.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "Make the case to a flooded-inbox investor for a second meeting. You have growth curves, a customer quote, press hits, retention cohorts, and advisor names. She trusts retention.", "difficulty": "stretch", "tags": ["business", "finance"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "application": "persuasion",
+      "application_skills": ["warmth_and_conviction", "handling_objections"],
+      "name": "Warm Steel",
+      "rule": "Hold your position without hardening toward the person.",
+      "why": "Persuasion's rarest register holds firm and warm at once — soften the position and you lose the point, cool toward the person and you lose them.",
+      "default_difficulty": "core",
+      "ordering": 8,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train holding a recommendation under pushback from someone who matters — keeping the position intact and stated with conviction while the care for the person stays audible, genuine, and specific to them.",
+      "hidden_skills": ["warmth", "emotional_authenticity", "downward_inflection"],
+      "scoring_lens": "The evaluator should primarily look for firmness and warmth held simultaneously: the recommendation survives the exchange stated with settled conviction, while care for the person stays audible and genuine rather than performed. Constraint: capitulating on the position, or going cold, clipped, or lecturing toward the person, MUST drag the tone score.",
+      "retry_objective": "On the second attempt, restate the position without softening it a notch, and make the care for the person explicit in your first sentence.",
+      "prompt_rules": "Every prompt names a person who genuinely deserves care, gives them a sympathetic reason to push, and hands the user a position worth holding. The tension between the relationship and the recommendation must be real enough that neither steamrolling nor caving feels comfortable. Holding firm while staying warm is the exercise rule and never appears in the prompt text. Never require the user to claim credentials they do not have.",
+      "response_window": { "min_sec": 75, "max_sec": 120 },
+      "constraint_types": ["tone"],
+      "prompts": [
+        { "text": "Your younger brother, having a rough month, asks to borrow your car the same week you need it for work. You've decided the answer is no, and he sounds hurt.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "A close friend keeps inviting you to invest in her new café. You love her, you've run the numbers, and it's a no for you. She's asking one more time over dinner.", "difficulty": "intro", "tags": ["personal", "finance"] },
+        { "text": "Your mom wants to host the family holiday again this year. You and your partner already committed to hosting it yourselves. She's disappointed. Give her your decision.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "A teammate you mentor asks you to back a third deadline extension. He's stretched thin at home, but the client date can't move. Respond to his request.", "difficulty": "intro", "tags": ["people", "leadership"] },
+        { "text": "Your best engineer, burned out and open about it, asks to skip on-call this quarter. Coverage collapses without her. She's waiting for your answer.", "difficulty": "core", "tags": ["tech", "leadership"] },
+        { "text": "A longtime client you genuinely like wants to cut the testing phase to hit a launch date. You believe shipping untested will hurt them. They ask you to reconsider one last time.", "difficulty": "core", "tags": ["sales", "business"] },
+        { "text": "Your co-founder, your closest friend for a decade, wants to hire his sister for the ops role. You've interviewed her and she isn't the strongest candidate. He asks where you stand.", "difficulty": "core", "tags": ["business", "leadership"] },
+        { "text": "A volunteer who gives the shelter every weekend wants to adopt a dog the vet flagged as wrong for her small apartment. She's in love with him. Give her the shelter's decision.", "difficulty": "core", "tags": ["community"] },
+        { "text": "Your dad, proud and independent at 78, wants to keep driving at night after two near-misses. The family agreed the keys stay home after dark. It's your turn to talk with him.", "difficulty": "core", "tags": ["personal"] },
+        { "text": "Your VP, who championed your promotion, asks you to publicly back her reorg plan tomorrow. You think it buries the customer team. She asks for your support directly.", "difficulty": "stretch", "tags": ["leadership", "business"] },
+        { "text": "A grieving colleague back from leave insists he's ready to lead the biggest account. You're his manager and believe he needs one more quarter. He's sitting across from you.", "difficulty": "stretch", "tags": ["people", "leadership"] },
+        { "text": "Your business partner of five years wants to accept a buyout you're convinced undervalues the company. Retirement is calling her. She asks you to say yes with her.", "difficulty": "stretch", "tags": ["business", "finance"] }
+      ]
     }
   ]
 }

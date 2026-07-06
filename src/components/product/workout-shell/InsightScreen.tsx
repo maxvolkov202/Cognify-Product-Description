@@ -57,15 +57,30 @@ export default function InsightScreen({
 
       {/* The single-behavior cue: exercise rule, with the why beneath.
           When the framework carries an objective, it leads — the rule
-          becomes the enforcement line under it. */}
+          becomes the enforcement line under it. Phase 11.D2: when the
+          catalog carries a Coach's Insight, IT leads and the rule stays
+          as the enforcement line. */}
       <div className="rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
-        <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
-          {station.rule}
-        </p>
-        {(station.objective ?? station.why) && (
-          <p className="mt-1.5 text-sm text-slate-600 dark:text-ink-300">
-            {station.objective ?? station.why}
-          </p>
+        {station.coachInsight ? (
+          <>
+            <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
+              {station.coachInsight}
+            </p>
+            <p className="mt-1.5 text-sm text-slate-600 dark:text-ink-300">
+              {station.rule}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
+              {station.rule}
+            </p>
+            {(station.objective ?? station.why) && (
+              <p className="mt-1.5 text-sm text-slate-600 dark:text-ink-300">
+                {station.objective ?? station.why}
+              </p>
+            )}
+          </>
         )}
       </div>
 

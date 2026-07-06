@@ -65,6 +65,8 @@ export type CatalogExercise = {
   responseWindow: { minSec: number; maxSec: number } | null;
   /** ADR-001 Decision 2 — constraint types (time|structure|tone|complexity). */
   constraintTypes: string[] | null;
+  /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
+  coachInsight: string | null;
 };
 
 /** One prompt from the exercise's bank. */

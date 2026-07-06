@@ -22,13 +22,14 @@ async function main() {
   if (!user) throw new Error("demo user missing — run seed-demo-user.ts first");
   const uid = user.id;
 
-  const count = async (t: { userId: unknown }) =>
-    (
-      await db
-        .select({ n: sql<number>`count(*)` })
-        .from(t as never)
-        .where(eq(t.userId as never, uid))
-    )[0]!.n;
+  const count = async (t: unknown) => {
+    const table = t as typeof schema.reps; // only .userId is touched
+    const rows = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(table)
+      .where(eq(table.userId, uid));
+    return Number(rows[0]!.n);
+  };
 
   const counts = {
     reps: await count(schema.reps),

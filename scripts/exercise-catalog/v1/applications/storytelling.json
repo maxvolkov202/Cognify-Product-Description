@@ -192,6 +192,70 @@
         { "text": "In a mediation training, share a real conflict where you misjudged the other side. Rebuild their position in concrete detail before telling how it ended.", "difficulty": "stretch", "tags": ["people", "education"] },
         { "text": "In a leadership program, tell the story of a conflict where both sides were right about different things. Make each truth specific before the resolution.", "difficulty": "stretch", "tags": ["leadership"] }
       ]
+    },
+    {
+      "dimension": "conciseness",
+      "application": "storytelling",
+      "application_skills": ["balancing_context_action", "making_listener_care"],
+      "name": "The Two-Sentence Runway",
+      "rule": "Two sentences of setup, then the story must move.",
+      "why": "A story loses its listener in the backstory it didn't need.",
+      "default_difficulty": "core",
+      "ordering": 7,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train opening a story with only the context the listener actually needs — two sentences of orientation, then events — instead of drowning the start in history or beginning so abruptly the listener can't follow.",
+      "hidden_skills": ["response_scoping", "editing_in_real_time"],
+      "scoring_lens": "Constraint: if setup runs past two sentences before the first event, or the listener lacks the context to follow that event, conciseness score MUST reflect the imbalance.",
+      "retry_objective": "Pick the two facts the listener cannot follow the story without, say them, and let the first event arrive by sentence three.",
+      "prompt_rules": "Every prompt must ask for a true first-person story with a named listener and a rich, tempting backstory — long histories, tangled context — told in 60-90 seconds. Scenarios vary across work, school, and life; every prompt must carry more background than the story needs so selection is required. The prompt never says to trim the setup — knowing what to cut is the exercise.",
+      "response_window": { "min_sec": 60, "max_sec": 90 },
+      "constraint_types": ["structure"],
+      "prompts": [
+        { "text": "Your new coworker asks about the legendary outage from before they joined. The full history goes back two years — tell them the story.", "difficulty": "intro", "tags": ["people", "tech"] },
+        { "text": "A friend asks why you and your old roommate stopped speaking. Years of history sit behind it. Tell the story.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "Your cousin asks how you ended up with your pet. There's a whole saga before the day it actually happened. Tell it.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "A date asks about the worst travel day of your life. The trip took months to plan. Tell the story.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "In an interview, you're asked about a project that got cancelled. The politics behind it were tangled. Tell the story of what happened.", "difficulty": "core", "tags": ["business", "people"] },
+        { "text": "At a retro, recount the incident that took the site down last month. The system's quirks have a long history.", "difficulty": "core", "tags": ["ops", "tech"] },
+        { "text": "A mentee asks how you landed your first promotion. The office context was complicated. Tell them the story.", "difficulty": "core", "tags": ["education", "people"] },
+        { "text": "Tell your team the story of how the flagship feature nearly shipped broken. The dependency chain behind it was a mess.", "difficulty": "core", "tags": ["product", "tech"] },
+        { "text": "At a dinner party, someone asks about the wedding where everything went sideways. Half the drama started months earlier.", "difficulty": "core", "tags": ["personal"] },
+        { "text": "You have two minutes at an all-hands to tell the story of last quarter's client save. The account history spans three years.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "On a podcast, the host asks for your company's near-death story. A decade of pivots and investors sits behind it.", "difficulty": "stretch", "tags": ["business", "finance"] },
+        { "text": "You're briefing new leadership on the vendor dispute. The contract history is long, and they need the story of what went wrong.", "difficulty": "stretch", "tags": ["business", "ops"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "application": "storytelling",
+      "application_skills": ["connecting_to_broader_point", "clear_takeaway"],
+      "name": "Make It Theirs",
+      "rule": "End on an insight the listener can use without your story.",
+      "why": "A personal story matters to a listener only when it becomes about them.",
+      "default_difficulty": "core",
+      "ordering": 8,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train landing a personal anecdote on a transferable insight — one the listener could apply to their own situation — so the story earns its telling instead of staying a private memory.",
+      "hidden_skills": ["claim_support", "perspective_taking"],
+      "scoring_lens": "Constraint: if the story ends without a transferable insight the listener could apply to their own situation, or the insight doesn't follow from the story told, thinking_quality score MUST reflect the missing bridge.",
+      "retry_objective": "Ask what your story proves for someone who wasn't there, and end on that — stated for their life, not yours.",
+      "prompt_rules": "Every prompt must ask for a true personal story told to a named listener whose situation differs from the speaker's, in 60-120 seconds. Listeners vary across mentees, teams, friends, and audiences; every prompt must give the listener a live concern so a bridge from the speaker's experience to the listener's world is available. The prompt never asks for the broader point — building that bridge is the exercise.",
+      "response_window": { "min_sec": 60, "max_sec": 120 },
+      "constraint_types": ["complexity"],
+      "prompts": [
+        { "text": "Your younger sibling is dreading their first day at a new job. Tell them a story from your own first weeks somewhere.", "difficulty": "intro", "tags": ["personal", "people"] },
+        { "text": "A friend's project just got rejected. Tell them about a time something you made got turned down.", "difficulty": "intro", "tags": ["personal", "creative"] },
+        { "text": "A new grad asks if it's normal to feel lost at work. Tell a story about a stretch when you had no idea what you were doing.", "difficulty": "intro", "tags": ["education", "personal"] },
+        { "text": "Your mentee bombed a presentation this morning. Tell them the story of one of yours.", "difficulty": "intro", "tags": ["education", "people"] },
+        { "text": "At a team offsite icebreaker, share a story from outside work that shaped how you work.", "difficulty": "core", "tags": ["people", "personal"] },
+        { "text": "An interviewer asks what your hobby has to do with the role. Tell a story from that hobby.", "difficulty": "core", "tags": ["personal", "business"] },
+        { "text": "You're mentoring a founder who's afraid to raise prices. Tell a story from your own life about asking for more than felt comfortable.", "difficulty": "core", "tags": ["business"] },
+        { "text": "A student asks why you kept volunteering at the shelter for years. Tell them one story from a single shift.", "difficulty": "core", "tags": ["personal", "education"] },
+        { "text": "Your team is flat after losing a big deal. Open Monday's meeting with a story from your own career.", "difficulty": "core", "tags": ["leadership", "business"] },
+        { "text": "You're giving a five-minute talk at a conference far outside your field. All you have is one personal story the audience didn't come to hear.", "difficulty": "stretch", "tags": ["creative", "leadership"] },
+        { "text": "You're closing an all-hands during a rough quarter. Your material: one story about a summer job you had at nineteen.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "On a leadership panel, you're asked what shaped your management style. The honest answer is a story from your childhood.", "difficulty": "stretch", "tags": ["leadership", "personal"] }
+      ]
     }
   ]
 }

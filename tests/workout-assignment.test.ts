@@ -398,7 +398,8 @@ section("sampleExercises dedupe");
     objective: null,
     hiddenSkills: null,
     responseWindow: null,
-  constraintTypes: null,
+    constraintTypes: null,
+    coachInsight: null,
   }));
   // Last 2 days used ex-1, ex-2, ex-3, ex-4 (the first 4).
   const recentDays: RecentDaySnapshot[] = [
@@ -449,7 +450,8 @@ section("sampleExercises small catalog");
     objective: null,
     hiddenSkills: null,
     responseWindow: null,
-  constraintTypes: null,
+    constraintTypes: null,
+    coachInsight: null,
   }));
   const recentDays: RecentDaySnapshot[] = [
     {
@@ -616,7 +618,8 @@ section("sampleExercises hidden-skill weighting");
     objective: null,
     hiddenSkills,
     responseWindow: null,
-  constraintTypes: null,
+    constraintTypes: null,
+    coachInsight: null,
   });
   const available = [
     mk(1, ["word_choice"]),

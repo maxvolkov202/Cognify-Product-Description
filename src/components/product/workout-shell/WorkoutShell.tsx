@@ -203,6 +203,7 @@ function WorkoutShellInner({
         objective: s.objective ?? null,
         constraintTypes: s.constraintTypes ?? null,
         responseWindow: s.responseWindow ?? null,
+        coachInsight: s.coachInsight ?? null,
       }));
       send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });
       send({ type: "START" });

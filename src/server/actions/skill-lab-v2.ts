@@ -38,6 +38,8 @@ export type AppExercise = {
   objective: string | null;
   responseWindow: { minSec: number; maxSec: number } | null;
   applicationSkills: string[] | null;
+  /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
+  coachInsight: string | null;
   /** The hidden Application Skill this slot intends to train (weakest
    *  estimated skill the exercise targets) — internal, PRD §8.4.5. */
   targetSkill: string | null;
@@ -81,6 +83,7 @@ export async function startSkillLabSessionV2(input: {
         objective: exercises.objective,
         responseWindow: exercises.responseWindow,
         applicationSkills: exercises.applicationSkills,
+        coachInsight: exercises.coachInsight,
       })
       .from(exercises)
       .where(
@@ -174,6 +177,7 @@ export async function startSkillLabSessionV2(input: {
         objective: r.objective ?? null,
         responseWindow: r.responseWindow ?? null,
         applicationSkills: r.applicationSkills ?? null,
+        coachInsight: r.coachInsight ?? null,
         targetSkill,
       })),
     };

@@ -144,6 +144,7 @@ async function fetchTodaysDayPayload(
               objective: exercises.objective,
               responseWindow: exercises.responseWindow,
               constraintTypes: exercises.constraintTypes,
+              coachInsight: exercises.coachInsight,
             })
             .from(exercises)
             .where(inArray(exercises.id, exerciseIds))
@@ -213,6 +214,7 @@ async function fetchTodaysDayPayload(
         objective: ex.objective ?? null,
         constraintTypes: ex.constraintTypes ?? null,
         responseWindow: ex.responseWindow ?? null,
+        coachInsight: ex.coachInsight ?? null,
       };
       return [station];
     });

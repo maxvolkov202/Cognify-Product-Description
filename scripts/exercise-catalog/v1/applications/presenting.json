@@ -192,6 +192,70 @@
         { "text": "Wrap your study group's last session before the exam: end with what the group should review tonight and what to let go.", "difficulty": "intro", "tags": ["education", "personal"] },
         { "text": "End the budget presentation to the finance committee. After twenty minutes of tables, close with the ask, the deadline, and the cost of waiting.", "difficulty": "core", "tags": ["finance"] }
       ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Audience Translation",
+      "rule": "Lead with what this audience cares about. Cut the rest.",
+      "why": "Content that impresses one room bores the next. Trains you to re-cut the same material for whoever is actually listening.",
+      "default_difficulty": "core",
+      "ordering": 7,
+      "tags": ["skill-lab-v1"],
+      "application": "presenting",
+      "application_skills": ["adapting_to_audience", "framing_main_message"],
+      "objective": "Train presenting material built for one audience to a different one by leading with what the new audience cares about, keeping only the details that matter to them, and framing implications in their terms.",
+      "hidden_skills": ["audience_awareness", "word_choice", "idea_isolation"],
+      "scoring_lens": "Constraint: if the response is a generic replay that ignores the named audience's priorities, vocabulary, or stakes, clarity score MUST reflect the breach.",
+      "retry_objective": "On the retry, name what this audience stands to gain or lose in your first sentence, and cut any detail that does not serve it.",
+      "prompt_rules": "Every prompt names a specific audience with obvious, distinct priorities and material the user already knows from another context or room. Situations must make the original, generic version tempting so re-cutting for the listener is the tested behavior. Prompts never tell the user to adapt — the audience's stakes make it necessary.",
+      "response_window": { "min_sec": 75, "max_sec": 120 },
+      "constraint_types": ["complexity", "none"],
+      "prompts": [
+        { "text": "You just explained the app redesign to your dev team. Now the customer support team wants to hear about it — they take the calls when anything changes.", "difficulty": "intro", "tags": ["tech", "people"] },
+        { "text": "Present your science fair project to your grandmother's retirement community. The version you built was for the judges this morning.", "difficulty": "intro", "tags": ["education", "personal"] },
+        { "text": "You pitched the new menu to your head chef yesterday. Today the restaurant's investors are at the table, and margins are tight.", "difficulty": "intro", "tags": ["business"] },
+        { "text": "Tell the parents' association about the new school schedule you already presented to teachers. Pickup times and childcare fill their inboxes.", "difficulty": "intro", "tags": ["education"] },
+        { "text": "Present the security audit findings to the engineering managers. Yesterday you gave the same findings to the board, who mostly asked about liability.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "Walk the warehouse night shift through the new safety protocol you wrote for corporate compliance. They care whether it slows the line.", "difficulty": "core", "tags": ["ops", "people"] },
+        { "text": "Explain the hospital's new records system to the nurses who will chart in it twelve hours a day. The demo you have was built for administrators.", "difficulty": "core", "tags": ["healthcare", "tech"] },
+        { "text": "Present the quarterly marketing results to the sales team. Impressions and brand lift mean nothing to them; their pipeline is what pays their rent.", "difficulty": "core", "tags": ["sales", "business"] },
+        { "text": "Describe the merger integration plan to the acquired company's employees at their first all-hands. Leadership already heard the synergy version.", "difficulty": "core", "tags": ["business", "people"] },
+        { "text": "Present the city's flood-mitigation plan to homeowners in the affected neighborhood. The engineering firm's technical version is the only material you have.", "difficulty": "stretch", "tags": ["government"] },
+        { "text": "Pitch your dissertation research to a venture fund partner. This morning you presented the same work at an academic conference.", "difficulty": "stretch", "tags": ["science", "finance"] },
+        { "text": "Brief the union stewards on the automation roadmap the executive team approved. The deck celebrates efficiency; the room is worried about jobs.", "difficulty": "stretch", "tags": ["ops", "people"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Concept Grounding",
+      "rule": "Turn every abstraction into something the listener can picture.",
+      "why": "Nobody acts on an abstraction. Trains you to give strategy and metrics a shape people can see, weigh, and repeat.",
+      "default_difficulty": "core",
+      "ordering": 8,
+      "tags": ["skill-lab-v1"],
+      "application": "presenting",
+      "application_skills": ["concretizing_abstraction", "memorable_chunks"],
+      "objective": "Train presenting abstract concepts, metrics, or strategy by translating each one into a concrete image, comparison, or day-in-the-life scenario the listener can picture and act on.",
+      "hidden_skills": ["concreteness", "word_choice", "precision"],
+      "scoring_lens": "Constraint: if abstractions are restated or defined with more abstractions instead of translated into concrete, picturable terms, clarity score MUST reflect the breach.",
+      "retry_objective": "On the retry, attach a concrete image, comparison, or scenario to every abstract term within a breath of saying it.",
+      "prompt_rules": "Every prompt hands the user something abstract — a strategy phrase, metric, value, or concept — plus a specific listener who needs to grasp what it means for them. Situations must resist mere restatement so translation into tangible terms is forced. Prompts never ask for analogies or examples explicitly — supplying them is the exercise.",
+      "response_window": { "min_sec": 60, "max_sec": 90 },
+      "constraint_types": ["complexity"],
+      "prompts": [
+        { "text": "Your company's new value is 'radical ownership.' Explain to a new hire on their first day what it means here.", "difficulty": "intro", "tags": ["business", "people"] },
+        { "text": "Explain to your 15-year-old cousin what inflation running at 4 percent actually means for the family this year.", "difficulty": "intro", "tags": ["finance", "personal"] },
+        { "text": "The gym's program is built on 'progressive overload.' A new member asks you, the trainer, what that means for their Tuesday workout.", "difficulty": "intro", "tags": ["personal", "education"] },
+        { "text": "Tell the new volunteers what 'food insecurity affects one in eight households here' means for the delivery routes they drive Saturday.", "difficulty": "intro", "tags": ["nonprofit"] },
+        { "text": "The strategy deck says the company is 'moving up-market.' Explain to the support team what changes about the customers they'll talk to.", "difficulty": "core", "tags": ["business", "people"] },
+        { "text": "Leadership announced a 'zero-trust security model.' Explain to the sales team what it means for the demo laptops they carry into client offices.", "difficulty": "core", "tags": ["tech", "sales"] },
+        { "text": "Tell the school board what a 0.4 drop in average GPA looks like inside an actual classroom, before they vote on the tutoring budget.", "difficulty": "core", "tags": ["education"] },
+        { "text": "Your nonprofit's impact report says 'capacity building.' Explain to a first-time donor at the gala what her five-thousand-dollar gift actually does.", "difficulty": "core", "tags": ["nonprofit", "finance"] },
+        { "text": "The clinic is adopting 'patient-centered care.' Explain to the front-desk staff what changes when the phone rings Monday morning.", "difficulty": "core", "tags": ["healthcare"] },
+        { "text": "The earnings script says 'headwinds compressed margins.' Explain to the all-hands what actually happened, and why bonuses are affected.", "difficulty": "stretch", "tags": ["finance", "business"] },
+        { "text": "Your fraud model has a false-positive rate of 3 percent. Explain to the review team what their queue looks like at a million transactions a day.", "difficulty": "stretch", "tags": ["tech", "ops"] },
+        { "text": "The city plan promises 'walkability improvements.' Explain to skeptical shop owners on the affected street what their block looks like in a year.", "difficulty": "stretch", "tags": ["government", "business"] }
+      ]
     }
   ]
 }

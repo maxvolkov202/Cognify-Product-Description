@@ -180,6 +180,7 @@ export default function AppSessionClient({
       objective: exercise.objective,
       constraintTypes: null,
       responseWindow: exercise.responseWindow,
+      coachInsight: exercise.coachInsight ?? null,
     };
   }, [exercise, idx]);
 

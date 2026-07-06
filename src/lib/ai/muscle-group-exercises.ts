@@ -97,6 +97,11 @@ export type ExerciseScoringContext = {
   hiddenSkills: string[] | null;
   /** ADR-001 response window. Null for pre-enrichment rows. */
   responseWindow: { minSec: number; maxSec: number } | null;
+  /** Phase 11.D3 — Lab Engine V1 pack fields. Null pre-enrichment; when
+   *  null the rendered prompt stays byte-identical to pre-D3 output. */
+  secondaryCoreSkills: string[] | null;
+  commonFailureModes: string[] | null;
+  scoringEmphasis: string | null;
 };
 
 export async function getExerciseScoringContext(
@@ -113,6 +118,9 @@ export async function getExerciseScoringContext(
         scoringLens: exercises.scoringLens,
         hiddenSkills: exercises.hiddenSkills,
         responseWindow: exercises.responseWindow,
+        secondaryCoreSkills: exercises.secondaryCoreSkills,
+        commonFailureModes: exercises.commonFailureModes,
+        scoringEmphasis: exercises.scoringEmphasis,
       })
       .from(exercises)
       .where(eq(exercises.id, exerciseId))
@@ -127,6 +135,9 @@ export async function getExerciseScoringContext(
       hint: row.scoringLens ?? EXERCISE_RUBRIC_HINTS[row.slug] ?? null,
       hiddenSkills: row.hiddenSkills ?? null,
       responseWindow: row.responseWindow ?? null,
+      secondaryCoreSkills: row.secondaryCoreSkills ?? null,
+      commonFailureModes: row.commonFailureModes ?? null,
+      scoringEmphasis: row.scoringEmphasis ?? null,
     };
   }, null);
 }
@@ -135,7 +146,22 @@ export async function getExerciseScoringContext(
  *  scoring prompt. Attribute values are XML-escaped because the rule
  *  text can contain quotes / ampersands. */
 export function renderExerciseXmlBlock(ctx: ExerciseScoringContext): string {
-  return `<exercise name="${xmlAttr(ctx.name)}" dimension="${xmlAttr(ctx.dimension)}" rule="${xmlAttr(ctx.rule)}" />`;
+  const el = `<exercise name="${xmlAttr(ctx.name)}" dimension="${xmlAttr(ctx.dimension)}" rule="${xmlAttr(ctx.rule)}" />`;
+  // Phase 11.D3 — Lab Engine pack fields, appended ONLY when authored so
+  // pre-enrichment rows keep producing byte-identical prompts (protects
+  // the calibration baseline).
+  const extras: string[] = [];
+  if (ctx.secondaryCoreSkills && ctx.secondaryCoreSkills.length > 0) {
+    extras.push(
+      `SECONDARY DIMENSIONS this exercise also trains (weigh them just below ${ctx.dimension}): ${ctx.secondaryCoreSkills.join(", ")}`,
+    );
+  }
+  if (ctx.commonFailureModes && ctx.commonFailureModes.length > 0) {
+    extras.push(
+      `COMMON FAILURE MODES for this exercise — if the rep exhibits one, name that specific failure in feedback; do NOT invent one that is not present:\n${ctx.commonFailureModes.map((m) => `- ${m}`).join("\n")}`,
+    );
+  }
+  return extras.length > 0 ? [el, ...extras].join("\n") : el;
 }
 
 function xmlAttr(s: string): string {

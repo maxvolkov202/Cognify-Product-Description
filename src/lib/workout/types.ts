@@ -41,6 +41,9 @@ export const StationSchema = z.object({
    *  structure | tone | complexity | none), revealed on the insight
    *  screen so the rep's "one primary constraint" is explicit. */
   constraintTypes: z.array(z.string()).nullable().default(null),
+  /** Phase 11.D2 — Lab Engine V1 Coach's Insight. When set, it leads on
+   *  the Insight screen; rule/objective become the enforcement lines. */
+  coachInsight: z.string().nullable().default(null),
 });
 export type ShellStation = z.infer<typeof StationSchema>;
 

@@ -244,12 +244,13 @@ async function main() {
             ),
           ),
         }));
-        const [rep] = await db
+        // Annotated: parentRepId inside .values() reads parentId, which
+        // is assigned from rep.id below — tsc flags the cycle otherwise.
+        const [rep]: { id: string }[] = await db
           .insert(schema.reps)
           .values({
             userId,
             sessionId: session!.id,
-            mode: "daily_workout",
             promptText: PROMPTS[Math.floor(rand() * PROMPTS.length)]!,
             topic: exercise?.name ?? "Daily rep",
             durationMs: 45_000 + Math.round(rand() * 30_000),
@@ -283,7 +284,6 @@ async function main() {
             repId: rep!.id,
             dimension: d.dimension as never,
             score: d.score,
-            feedback: "Seeded demo feedback.",
             signals:
               d.dimension === skillDim
                 ? (encodeDimensionSignals([], subSkillScores) as never)
@@ -346,7 +346,6 @@ async function main() {
       await db.insert(schema.reps).values({
         userId,
         sessionId: session!.id,
-        mode: "skill_lab",
         promptText: "Tell the story of a project that changed direction midway.",
         topic: exercise.name,
         durationMs: 70_000,

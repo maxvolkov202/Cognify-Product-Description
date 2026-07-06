@@ -184,6 +184,8 @@ export type Station = {
   responseWindow: { minSec: number; maxSec: number } | null;
   /** ADR-001 Decision 2 — constraint types this framework may apply. */
   constraintTypes: string[] | null;
+  /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
+  coachInsight: string | null;
 };
 
 /** Fully-hydrated muscle-group day for the Workout shell to render. */

@@ -192,6 +192,71 @@
         { "text": "Explain to a weekend hiker why sharing your route matters when he has finished fifty solo hikes without a hitch.", "difficulty": "intro", "tags": ["personal/relationships", "healthcare"] },
         { "text": "Explain to a startup founder why accessibility matters now when he wants to 'add it later' after product-market fit.", "difficulty": "stretch", "tags": ["tech", "business"] }
       ]
+    },
+    {
+      "dimension": "clarity",
+      "application": "teaching",
+      "application_skills": ["defining_terms", "simplifying_complexity"],
+      "name": "Earn Your Jargon",
+      "rule": "Give every new term a crisp definition before building on it.",
+      "why": "One undefined term quietly locks the learner out of everything after it.",
+      "default_difficulty": "core",
+      "ordering": 7,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train the user to introduce necessary jargon deliberately — pausing at each new term to give a crisp, usable definition before the explanation builds on it.",
+      "hidden_skills": ["precision", "word_choice", "concreteness"],
+      "scoring_lens": "Constraint: every term of art must receive a crisp, usable definition at first mention, before the explanation depends on it. Terms left undefined or defined with more jargon MUST drag the clarity score.",
+      "retry_objective": "If a term slipped by undefined, retry by pausing at each new term and giving it one plain sentence a newcomer could repeat back.",
+      "prompt_rules": "Every prompt drops the user into a topic whose vocabulary is unavoidable and names a learner who has never met that vocabulary. Topics vary across domains; the constant objective is introducing each necessary term with a crisp definition before building on it.",
+      "response_window": { "min_sec": 60, "max_sec": 100 },
+      "constraint_types": ["complexity"],
+      "prompts": [
+        { "text": "Explain to your neighbor what the 401(k) match in his new job offer means — he has never had a retirement account.", "difficulty": "intro", "tags": ["finance"] },
+        { "text": "Explain to a new gym member why her trainer keeps changing her program every few weeks and calls it 'progressive overload.'", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
+        { "text": "Tell your parents what you actually do all day as a DevOps engineer — right now they tell friends you 'fix computers.'", "difficulty": "core", "tags": ["tech", "personal/relationships"] },
+        { "text": "Explain to a first-time homebuyer what happens between her accepted offer and getting the keys.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
+        { "text": "Explain to a friend just diagnosed with prediabetes what his A1C number measures and what his doctor will watch next.", "difficulty": "core", "tags": ["healthcare"] },
+        { "text": "Explain to your book club how mRNA vaccines work — the last biology class anyone took was decades ago.", "difficulty": "core", "tags": ["science", "healthcare"] },
+        { "text": "Explain to a new barista why the café's monthly meeting keeps coming back to 'shrinkage' and 'cost of goods.'", "difficulty": "intro", "tags": ["business"] },
+        { "text": "Explain to a poetry-major intern what the marketing dashboard is showing her — impressions, reach, engagement rate.", "difficulty": "core", "tags": ["business", "creative"] },
+        { "text": "Explain to a high schooler shadowing you what a pull request is and why your team argues inside them.", "difficulty": "intro", "tags": ["tech", "education"] },
+        { "text": "Explain the offside rule to a friend at his first soccer match — he keeps asking why perfectly good goals get cancelled.", "difficulty": "core", "tags": ["personal/relationships"] },
+        { "text": "Explain to a client with no legal background the liability and indemnification clauses in the contract she signs tomorrow.", "difficulty": "stretch", "tags": ["business"] },
+        { "text": "Explain to your aunt what her oncologist meant by 'stage two' and 'clean margins' — she left the appointment too rattled to ask.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] },
+        { "text": "Explain to a city council member why the water utility's report flags 'non-revenue water' — she votes on the budget Thursday.", "difficulty": "stretch", "tags": ["current events", "science"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "application": "teaching",
+      "application_skills": ["adjusting_depth", "anticipating_confusion"],
+      "name": "Dial the Depth",
+      "rule": "Match your depth to what this listener can actually use.",
+      "why": "One-size explanations bore experts and bury beginners.",
+      "default_difficulty": "core",
+      "ordering": 8,
+      "tags": ["skill-lab-v1"],
+      "objective": "Train the user to calibrate how deep an explanation goes based on who is listening — fundamentals for novices, real detail for experts, and a judgment call for everyone in between.",
+      "hidden_skills": ["perspective_taking", "depth_of_analysis"],
+      "scoring_lens": "Constraint: the depth of the explanation must be calibrated to the named listener — real detail for experts, fundamentals for novices, nothing the listener cannot use. Depth mismatched to the audience MUST drag the thinking-quality score.",
+      "retry_objective": "If the depth missed the listener — too shallow for an expert or too deep for a novice — retry by first judging what this person can already handle, then pitching one notch inside it.",
+      "prompt_rules": "Every prompt names a listener whose knowledge level is unmistakable — a domain expert, a total novice, or a mixed room — sometimes with a live reaction to read. Topics vary across domains; the constant objective is pitching the explanation at exactly the depth that listener can use.",
+      "response_window": { "min_sec": 60, "max_sec": 100 },
+      "constraint_types": ["complexity"],
+      "prompts": [
+        { "text": "Your seven-year-old asks why the moon looks different every night.", "difficulty": "intro", "tags": ["science", "personal/relationships"] },
+        { "text": "Your mother read that your company got acquired and is worried about your job. Explain what the acquisition actually means for you.", "difficulty": "intro", "tags": ["finance", "personal/relationships"] },
+        { "text": "A first-year design intern asks why the app feels slow — she has never heard the word 'server.'", "difficulty": "intro", "tags": ["tech"] },
+        { "text": "Your gym buddy, a licensed physical therapist, asks why you switched to your new training program.", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
+        { "text": "Explain why the release slipped to your CTO — a former kernel engineer who reads the commit log for fun.", "difficulty": "core", "tags": ["tech", "leadership"] },
+        { "text": "Now explain the same slipped release to the customer success team, none of whom have ever seen the codebase.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "A retired cardiologist at the family reunion asks what your health-tracking startup actually measures.", "difficulty": "core", "tags": ["healthcare", "business"] },
+        { "text": "Your grandfather, a retired electrician, asks how the solar panels on your roof sell power back to the grid.", "difficulty": "core", "tags": ["science", "personal/relationships"] },
+        { "text": "The head of sales — who builds hobby apps on weekends — asks why the CRM integration keeps breaking.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "Your new client, a math PhD who has never worked in finance, asks how your firm's risk model works.", "difficulty": "stretch", "tags": ["finance", "science"] },
+        { "text": "Explain the quarter's miss to the board — half are finance veterans, half are first-time founders who skim the deck.", "difficulty": "stretch", "tags": ["finance", "leadership"] },
+        { "text": "Midway through your benefits-plan overview, the new hire's eyes glaze and she starts nodding too fast. Keep going.", "difficulty": "stretch", "tags": ["business", "personal/relationships"] }
+      ]
     }
   ]
 }

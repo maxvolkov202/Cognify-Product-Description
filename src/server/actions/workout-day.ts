@@ -286,6 +286,7 @@ async function fetchCatalogExercises(
       hiddenSkills: exercises.hiddenSkills,
       responseWindow: exercises.responseWindow,
       constraintTypes: exercises.constraintTypes,
+      coachInsight: exercises.coachInsight,
     })
     .from(exercises)
     .where(
@@ -310,6 +311,7 @@ async function fetchCatalogExercises(
     hiddenSkills: r.hiddenSkills ?? null,
     responseWindow: r.responseWindow ?? null,
     constraintTypes: r.constraintTypes ?? null,
+    coachInsight: r.coachInsight ?? null,
   }));
 }
 
@@ -357,6 +359,7 @@ export async function previewTodaysWorkoutPlan(input: {
       objective: ex.objective,
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
+      coachInsight: ex.coachInsight ?? null,
     }));
     return { stations, persisted: false };
   }, { stations: [], persisted: false });
@@ -616,6 +619,7 @@ export async function startMuscleGroupDay(input: {
               objective: ex.objective,
               responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
+      coachInsight: ex.coachInsight ?? null,
             }));
             logEvent("workout.day.self_healed", {
               userId,
@@ -732,6 +736,7 @@ export async function startMuscleGroupDay(input: {
       objective: ex.objective,
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
+      coachInsight: ex.coachInsight ?? null,
     }));
 
     // Open the workout_session for the new day so the rest of the
@@ -834,6 +839,7 @@ export async function swapMuscleGroup(input: {
       objective: ex.objective,
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
+      coachInsight: ex.coachInsight ?? null,
     }));
 
     return {
@@ -859,6 +865,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
       objective: exercises.objective,
       responseWindow: exercises.responseWindow,
       constraintTypes: exercises.constraintTypes,
+      coachInsight: exercises.coachInsight,
     })
     .from(exercises)
     .where(inArray(exercises.id, exerciseIds));
@@ -878,6 +885,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
         objective: row.objective ?? null,
         responseWindow: row.responseWindow ?? null,
         constraintTypes: row.constraintTypes ?? null,
+        coachInsight: row.coachInsight ?? null,
       } satisfies Station;
     })
     .filter((s): s is Station => s !== null);

@@ -765,9 +765,18 @@ export async function scoreStage2(
   // constraint sentence appended ONLY when a registered hint exists
   // for the exercise. Phrased as a rubric instruction so the LLM
   // treats it as a scoring rule, not feedback to render verbatim.
+  // Phase 11.D3 — the Lab Engine scoring_emphasis rides with the hint;
+  // both are null for pre-enrichment rows so those prompts stay
+  // byte-identical.
+  const hintLines = [
+    context.exerciseCtx?.hint ?? null,
+    context.exerciseCtx?.scoringEmphasis
+      ? `SCORING EMPHASIS: ${context.exerciseCtx.scoringEmphasis}`
+      : null,
+  ].filter(Boolean);
   const exerciseHintBlock =
-    context.exerciseCtx?.hint
-      ? `EXERCISE CONSTRAINT (augments rubric — operator-facing, do NOT render to user verbatim):\n${context.exerciseCtx.hint}`
+    hintLines.length > 0
+      ? `EXERCISE CONSTRAINT (augments rubric — operator-facing, do NOT render to user verbatim):\n${hintLines.join("\n")}`
       : null;
 
   // Compose the user prompt. Exemplars come BEFORE stage 1 + the rest

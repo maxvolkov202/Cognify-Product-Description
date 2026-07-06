@@ -82,11 +82,11 @@ const VALID_CONSTRAINT_TYPES = new Set(["time", "structure", "tone", "complexity
 // PRD v3 Phase 4 — Skill Lab applications. Mirrors
 // src/types/application-skills.ts (TS module is source of truth).
 const APPLICATION_SKILLS = {
-  storytelling: ["establishing_stakes", "narrative_tension", "concrete_detail", "showing_change", "clear_takeaway", "making_listener_care"],
-  presenting: ["framing_main_message", "through_line", "memorable_chunks", "signposting_transitions", "explaining_evidence", "closing_implication"],
-  teaching: ["simplifying_complexity", "explaining_with_analogy", "known_to_unknown", "anticipating_confusion", "examples_and_nonexamples", "teaching_for_application"],
-  interviewing: ["evidence_based_answers", "concise_personal_examples", "self_awareness", "handling_weakness_questions", "connecting_to_fit", "credible_specifics"],
-  persuasion: ["framing_recommendation", "handling_objections", "audience_priorities", "building_credibility", "calibrated_urgency", "clear_ask"],
+  storytelling: ["establishing_stakes", "narrative_tension", "concrete_detail", "showing_change", "clear_takeaway", "balancing_context_action", "making_listener_care", "connecting_to_broader_point"],
+  presenting: ["framing_main_message", "through_line", "memorable_chunks", "signposting_transitions", "explaining_evidence", "adapting_to_audience", "closing_implication", "concretizing_abstraction"],
+  teaching: ["simplifying_complexity", "explaining_with_analogy", "known_to_unknown", "anticipating_confusion", "defining_terms", "examples_and_nonexamples", "teaching_for_application", "adjusting_depth"],
+  interviewing: ["evidence_based_answers", "concise_personal_examples", "self_awareness", "explaining_motivation", "handling_weakness_questions", "connecting_to_fit", "judgment_under_pressure", "credible_specifics"],
+  persuasion: ["framing_recommendation", "handling_objections", "audience_priorities", "building_credibility", "selective_evidence", "calibrated_urgency", "warmth_and_conviction", "clear_ask"],
 };
 /** Application prompt banks may start slimmer than the core catalogs. */
 const APP_PROMPT_MIN = 12;
@@ -222,6 +222,39 @@ function validate(exercises) {
     }
     if (ex.prompt_rules != null && typeof ex.prompt_rules !== "string") {
       errors.push(`${where}: prompt_rules must be a string`);
+    }
+    // Phase 11.D2/D3 — Lab Engine V1 pack fields (all optional).
+    if (ex.coach_insight != null && typeof ex.coach_insight !== "string") {
+      errors.push(`${where}: coach_insight must be a string`);
+    }
+    if (ex.secondary_core_skills != null) {
+      if (!Array.isArray(ex.secondary_core_skills)) {
+        errors.push(`${where}: secondary_core_skills must be an array`);
+      } else {
+        for (const d of ex.secondary_core_skills) {
+          if (!CANONICAL_DIMS.has(d) && d !== "delivery") {
+            errors.push(
+              `${where}: secondary_core_skill "${d}" is not a Core Skill dimension`,
+            );
+          }
+          if (d === ex.dimension) {
+            errors.push(
+              `${where}: secondary_core_skill "${d}" duplicates the primary dimension`,
+            );
+          }
+        }
+      }
+    }
+    if (ex.common_failure_modes != null) {
+      if (
+        !Array.isArray(ex.common_failure_modes) ||
+        ex.common_failure_modes.some((m) => typeof m !== "string")
+      ) {
+        errors.push(`${where}: common_failure_modes must be a string array`);
+      }
+    }
+    if (ex.scoring_emphasis != null && typeof ex.scoring_emphasis !== "string") {
+      errors.push(`${where}: scoring_emphasis must be a string`);
     }
     if (ex.response_window != null) {
       const w = ex.response_window;
@@ -365,6 +398,14 @@ function frameworkFields(ex) {
     applicationSkills: Array.isArray(ex.application_skills)
       ? ex.application_skills
       : null,
+    coachInsight: ex.coach_insight ?? null,
+    secondaryCoreSkills: Array.isArray(ex.secondary_core_skills)
+      ? ex.secondary_core_skills
+      : null,
+    commonFailureModes: Array.isArray(ex.common_failure_modes)
+      ? ex.common_failure_modes
+      : null,
+    scoringEmphasis: ex.scoring_emphasis ?? null,
   };
 }
 
@@ -401,7 +442,11 @@ function exerciseDiffers(existing, incoming, slug) {
     !jsonEq(existing.response_window, fw.responseWindow) ||
     !jsonEq(existing.constraint_types, fw.constraintTypes) ||
     (existing.application ?? null) !== fw.application ||
-    !jsonEq(existing.application_skills, fw.applicationSkills)
+    !jsonEq(existing.application_skills, fw.applicationSkills) ||
+    (existing.coach_insight ?? null) !== fw.coachInsight ||
+    !jsonEq(existing.secondary_core_skills, fw.secondaryCoreSkills) ||
+    !jsonEq(existing.common_failure_modes, fw.commonFailureModes) ||
+    (existing.scoring_emphasis ?? null) !== fw.scoringEmphasis
   );
 }
 
@@ -438,7 +483,9 @@ async function applyToDb(exercises) {
              description, instructions, sort_order, is_active,
              objective, hidden_skills, scoring_lens, retry_objective,
              prompt_rules, response_window, constraint_types,
-             application, application_skills
+             application, application_skills,
+             coach_insight, secondary_core_skills, common_failure_modes,
+             scoring_emphasis
       FROM cognify_v2.exercises
     `;
     const existingExercises = new Map();
@@ -470,7 +517,9 @@ async function applyToDb(exercises) {
             (slug, name, dimension, description, instructions, sort_order, is_active,
              objective, hidden_skills, scoring_lens, retry_objective,
              prompt_rules, response_window, constraint_types,
-             application, application_skills)
+             application, application_skills,
+             coach_insight, secondary_core_skills, common_failure_modes,
+             scoring_emphasis)
           VALUES (
             ${slug},
             ${ex.name},
@@ -487,7 +536,11 @@ async function applyToDb(exercises) {
             ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
             ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null},
             ${fw.application},
-            ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null}
+            ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null},
+            ${fw.coachInsight},
+            ${fw.secondaryCoreSkills ? sql.json(fw.secondaryCoreSkills) : null},
+            ${fw.commonFailureModes ? sql.json(fw.commonFailureModes) : null},
+            ${fw.scoringEmphasis}
           )
           RETURNING id
         `;
@@ -509,7 +562,11 @@ async function applyToDb(exercises) {
             response_window  = ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
             constraint_types = ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null},
             application      = ${fw.application},
-            application_skills = ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null}
+            application_skills = ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null},
+            coach_insight    = ${fw.coachInsight},
+            secondary_core_skills = ${fw.secondaryCoreSkills ? sql.json(fw.secondaryCoreSkills) : null},
+            common_failure_modes  = ${fw.commonFailureModes ? sql.json(fw.commonFailureModes) : null},
+            scoring_emphasis = ${fw.scoringEmphasis}
           WHERE id = ${existing.id}
         `;
         exerciseId = existing.id;

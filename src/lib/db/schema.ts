@@ -1470,6 +1470,17 @@ export const exercises = cognifyV2Schema.table(
     /** Hidden Application Skill ids this exercise targets (per-app
      *  taxonomy in APPLICATION_SKILLS). NULL for core-skill exercises. */
     applicationSkills: jsonb("application_skills").$type<string[]>(),
+    // Phase 11.D2/D3 (migration 0035) — Lab Engine V1 pack fields. All
+    // nullable; the engine falls back to rule/why + the generic lens.
+    /** Exercise-specific Coach's Insight for the pre-rep Insight screen. */
+    coachInsight: text("coach_insight"),
+    /** Core Skill dimensions trained beyond the primary `dimension`. */
+    secondaryCoreSkills: jsonb("secondary_core_skills").$type<string[]>(),
+    /** Typical failure patterns — injected into the scoring context so
+     *  feedback names the failure it actually saw. */
+    commonFailureModes: jsonb("common_failure_modes").$type<string[]>(),
+    /** One-line evaluator emphasis for this exercise. */
+    scoringEmphasis: text("scoring_emphasis"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

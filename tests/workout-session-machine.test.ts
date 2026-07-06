@@ -55,7 +55,8 @@ function mkStation(i: number): ShellStation {
     compositeScore: null,
     objective: null,
     responseWindow: null,
-  constraintTypes: null,
+    constraintTypes: null,
+    coachInsight: null,
   };
 }
 
