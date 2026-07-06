@@ -23,6 +23,8 @@ import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log, serializeErr } from "@/lib/log";
 import { pickPromptCandidates } from "@/server/lib/workout/assignment";
+import { isPromptGenEnabled } from "@/lib/flags";
+import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
 
 export type PromptCandidate = {
   id: string;
@@ -314,6 +316,32 @@ export async function fetchPromptCandidates(input: {
       const unseen = available.filter((p) => !sessionSeen.has(p.promptId));
       if (unseen.length >= 5) {
         available = unseen;
+      } else if (isPromptGenEnabled()) {
+        // PRD v3 Phase 8.1 (D3 hybrid) — the curated bank ran dry for
+        // this session (heavy refreshing). Generate fresh prompts,
+        // cache them into the bank permanently, and serve them now.
+        const generated = await generateAndCachePrompts({
+          exerciseId: input.exerciseId,
+          userContext: { vertical: userVertical },
+          count: 5 - unseen.length,
+        });
+        if (generated.length > 0) {
+          available = [...unseen, ...generated];
+          log.info({
+            event: "prompt_selection.generated_topup",
+            userId,
+            exerciseId: input.exerciseId,
+            generated: generated.length,
+          });
+        } else {
+          log.info({
+            event: "prompt_selection.session_exclusion_relaxed",
+            userId,
+            exerciseId: input.exerciseId,
+            bankSize: available.length,
+            seenSize: sessionSeen.size,
+          });
+        }
       } else {
         log.info({
           event: "prompt_selection.session_exclusion_relaxed",
