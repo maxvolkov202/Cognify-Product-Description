@@ -28,7 +28,9 @@ export const metadata: Metadata = {
  * generation is correct here — no DB / runtime deps to gate on.
  */
 export function generateStaticParams() {
-  return SKILL_DIMENSIONS.map((dimension) => ({ dimension }));
+  // Segment is [slug] (shared with the Skill Lab application session
+  // route); for exemplars the slug is a Core Skill dimension.
+  return SKILL_DIMENSIONS.map((dimension) => ({ slug: dimension }));
 }
 
 export const dynamicParams = false;
@@ -49,9 +51,9 @@ export const dynamicParams = false;
 export default async function ExemplarsPage({
   params,
 }: {
-  params: Promise<{ dimension: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { dimension: rawDim } = await params;
+  const { slug: rawDim } = await params;
   if (!(SKILL_DIMENSIONS as readonly string[]).includes(rawDim)) {
     notFound();
   }

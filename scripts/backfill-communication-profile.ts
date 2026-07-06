@@ -47,14 +47,19 @@ async function main() {
         user_id: string;
         rep_id: string;
         created_at: Date;
+        composite_score: number | null;
+        application: string | null;
+        application_skills: string[] | null;
         dimension: string;
         score: number;
         signals: unknown;
       }[]
     >`
       SELECT r.user_id, r.id AS rep_id, r.created_at,
+             r.composite_score, e.application, e.application_skills,
              ds.dimension::text AS dimension, ds.score, ds.signals
       FROM cognify_v2.reps r
+      LEFT JOIN cognify_v2.exercises e ON e.id = r.exercise_id
       JOIN cognify_v2.dimension_scores ds ON ds.rep_id = r.id
       WHERE COALESCE(r.model_version, '') <> 'mock-fallback-v1'
         AND r.composite_score IS NOT NULL
@@ -66,6 +71,9 @@ async function main() {
       at: string;
       dimensions: { dimension: string; score: number }[];
       subSkillScores: Record<string, number>;
+      applicationId: string | null;
+      applicationSkills: string[] | null;
+      composite: number | null;
     };
     const byUser = new Map<string, Map<string, Evidence>>();
     for (const row of rows) {
@@ -80,6 +88,9 @@ async function main() {
           at: row.created_at.toISOString(),
           dimensions: [],
           subSkillScores: {},
+          applicationId: row.application ?? null,
+          applicationSkills: row.application_skills ?? null,
+          composite: row.composite_score,
         };
         userReps.set(row.rep_id, ev);
       }
@@ -111,12 +122,13 @@ async function main() {
       }
       await sql`
         INSERT INTO cognify_v2.communication_profile
-          (user_id, overall_score, core_skills, hidden_skills, total_reps, updated_at)
+          (user_id, overall_score, core_skills, hidden_skills, applications, total_reps, updated_at)
         VALUES (
           ${userId},
           ${profile.overallScore},
           ${sql.json(profile.coreSkills)},
           ${sql.json(profile.hiddenSkills)},
+          ${sql.json(profile.applications)},
           ${profile.totalReps},
           now()
         )
@@ -124,6 +136,7 @@ async function main() {
           overall_score = EXCLUDED.overall_score,
           core_skills   = EXCLUDED.core_skills,
           hidden_skills = EXCLUDED.hidden_skills,
+          applications  = EXCLUDED.applications,
           total_reps    = EXCLUDED.total_reps,
           updated_at    = now()
       `;

@@ -369,6 +369,25 @@ export const communicationProfile = cognifyV2Schema.table(
       .$type<Record<string, { score: number; sampleCount: number }>>()
       .notNull()
       .default({}),
+    /** PRD v3 Phase 4 (PRD §8.3.6 + §8.4.5) — per-application performance
+     *  plus nested hidden Application Skill estimates:
+     *  { [applicationId]: { score, sampleCount, updatedAt,
+     *    skills?: { [skillId]: { score, sampleCount } } } }.
+     *  Derived from composites of that application's reps (same EMA rule). */
+    applications: jsonb("applications")
+      .$type<
+        Record<
+          string,
+          {
+            score: number;
+            sampleCount: number;
+            updatedAt: string;
+            skills?: Record<string, { score: number; sampleCount: number }>;
+          }
+        >
+      >()
+      .notNull()
+      .default({}),
     totalReps: integer("total_reps").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -1242,11 +1261,23 @@ export const exercises = cognifyV2Schema.table(
     /** ADR-001 constraint types this framework may apply
      *  (time | structure | tone | complexity | none). */
     constraintTypes: jsonb("constraint_types").$type<string[]>(),
+    // PRD v3 Phase 4 (migration 0031) — Skill Lab applications. NULL for
+    // Daily Workout core-skill exercises; set to an ApplicationId
+    // (src/types/application-skills.ts) for application exercises, whose
+    // `dimension` column holds the PRIMARY Core Skill. Daily-workout
+    // catalog queries filter `application IS NULL`.
+    application: text("application"),
+    /** Hidden Application Skill ids this exercise targets (per-app
+     *  taxonomy in APPLICATION_SKILLS). NULL for core-skill exercises. */
+    applicationSkills: jsonb("application_skills").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("exercises_dim_active_idx").on(t.dimension, t.isActive)],
+  (t) => [
+    index("exercises_dim_active_idx").on(t.dimension, t.isActive),
+    index("exercises_application_idx").on(t.application, t.isActive),
+  ],
 );
 
 export const exercisePrompts = cognifyV2Schema.table(

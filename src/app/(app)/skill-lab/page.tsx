@@ -1,4 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  ArrowRight,
+  BookOpen,
+  FlaskConical,
+  GraduationCap,
+  MessagesSquare,
+  Presentation,
+  Scale,
+} from "lucide-react";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db/client";
+import { communicationProfile } from "@/lib/db/schema";
+import { safeDb } from "@/lib/db/safe";
+import { isSkillLabAppsEnabled } from "@/lib/flags";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { getCurrentSkillScores } from "@/lib/db/queries/progress";
@@ -12,46 +28,66 @@ import {
   SUB_SKILL_TO_DIMENSION,
   type SubSkillId,
 } from "@/types/sub-skills";
+import {
+  APPLICATION_DESCRIPTIONS,
+  APPLICATION_IDS,
+  APPLICATION_LABELS,
+  type ApplicationId,
+} from "@/types/application-skills";
 
 export const metadata: Metadata = {
   title: "Skill Lab · Cognify",
   description:
-    "Drill one communication skill in isolation. Pick a dimension and run unlimited reps focused on that muscle.",
+    "Train real-world communication applications — Storytelling, Presenting, Teaching, Interviewing, Persuasion — with focused reps and coaching.",
 };
 
 export const dynamic = "force-dynamic";
 
+const APPLICATION_ICONS: Record<
+  ApplicationId,
+  React.ComponentType<{ className?: string; strokeWidth?: number }>
+> = {
+  storytelling: BookOpen,
+  presenting: Presentation,
+  teaching: GraduationCap,
+  interviewing: MessagesSquare,
+  persuasion: Scale,
+};
+
 /**
- * Skill Lab (Direction.md Mode 2).
+ * Skill Lab (PRD v3 §6, D9).
  *
- * "User chooses one skill, runs repeated reps focused on improving that
- * one dimension." Distinct from Daily Workout (which covers multiple
- * dims in a fixed ~10 min session) — Skill Lab is "I need to get
- * better at this one thing" and has no session cap.
+ * Flag ON: the PRD's application training environment — the user picks
+ * WHAT to improve (Storytelling / Presenting / Teaching / Interviewing /
+ * Persuasion); Cognify decides everything else. Dimension drills moved
+ * to /drills (Daily Workout extras); old ?focus= deep-links redirect so
+ * dashboard cards keep working unchanged.
  *
- * Flow: dim picker → record a rep → full FeedbackPanel → "Run another"
- * or "Switch skill". Each rep uses the goal-weighted rep type pool
- * filtered to the chosen dim.
- *
- * Ch.12 — supports `?focus=<dim>&subSkill=<id>` deep-links from the
- * dashboard's WeakestLinkCard / SubSkillBreakdownCard. When `focus` is
- * a valid dimension, the client opens directly into the rep-count step
- * for that dim (skipping the lobby + picker). When `subSkill` is also
- * present and belongs to the focused dim, it's surfaced in the step's
- * subtitle copy. Slate-bias on subSkill is a follow-up.
+ * Flag OFF: the legacy dimension-drill Skill Lab, byte-identical.
  */
 export default async function SkillLabPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await currentUser();
-  const profile = user ? await getUserProfile(user.id) : null;
-  const scores = user ? await getCurrentSkillScores(user.id) : null;
-
   const params = await searchParams;
   const initialFocus = parseFocusParam(params.focus);
   const initialSubSkill = parseSubSkillParam(params.subSkill, initialFocus);
+
+  if (isSkillLabAppsEnabled()) {
+    // Legacy deep-links (WeakestLinkCard, SubSkillBreakdown, hero) drill
+    // a Core Skill — that now lives at /drills.
+    if (initialFocus) {
+      redirect(
+        `/drills?focus=${initialFocus}${initialSubSkill ? `&subSkill=${initialSubSkill}` : ""}`,
+      );
+    }
+    return <ApplicationsHub />;
+  }
+
+  const user = await currentUser();
+  const profile = user ? await getUserProfile(user.id) : null;
+  const scores = user ? await getCurrentSkillScores(user.id) : null;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900">
@@ -62,6 +98,92 @@ export default async function SkillLabPage({
           {...(initialFocus ? { initialFocus } : {})}
           {...(initialSubSkill ? { initialSubSkill } : {})}
         />
+      </div>
+    </div>
+  );
+}
+
+async function ApplicationsHub() {
+  const user = await currentUser();
+  const appScores = user
+    ? await safeDb(async () => {
+        const [row] = await db
+          .select({ applications: communicationProfile.applications })
+          .from(communicationProfile)
+          .where(eq(communicationProfile.userId, user.id))
+          .limit(1);
+        return row?.applications ?? {};
+      }, {})
+    : {};
+
+  return (
+    <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900">
+      <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
+        <header className="mb-8">
+          <p className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
+            <FlaskConical className="size-3.5" strokeWidth={2.5} />
+            Skill Lab
+          </p>
+          <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Master the moments that matter
+          </h1>
+          <p className="mt-3 max-w-2xl text-base text-slate-600 dark:text-ink-300">
+            Pick the communication application you want to improve. Cognify
+            picks the exercises, coaching, and difficulty — and every session
+            gets more personal as it learns how you perform.
+          </p>
+        </header>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {APPLICATION_IDS.map((appId) => {
+            const Icon = APPLICATION_ICONS[appId];
+            const est = appScores[appId];
+            return (
+              <Link
+                key={appId}
+                href={`/skill-lab/${appId}`}
+                className="group flex flex-col rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 shadow-sm transition hover:border-purple-300 dark:hover:border-brand-lavender/50 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between">
+                  <span className="inline-flex size-10 items-center justify-center rounded-xl bg-purple-50 dark:bg-ink-800 text-purple-600 dark:text-brand-lavender">
+                    <Icon className="size-5" strokeWidth={2.25} />
+                  </span>
+                  {est ? (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-ink-800 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-700 dark:text-ink-200">
+                      {Math.round(est.score)}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                      New
+                    </span>
+                  )}
+                </div>
+                <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
+                  {APPLICATION_LABELS[appId]}
+                </h2>
+                <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-500 dark:text-ink-400">
+                  {APPLICATION_DESCRIPTIONS[appId]}
+                </p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-brand-lavender">
+                  Start training
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+
+        <p className="mt-8 text-xs text-slate-400 dark:text-ink-500">
+          Every rep is scored on the six Core Skills — Skill Lab trains how
+          you apply them. Fundamentals live in your{" "}
+          <Link
+            href="/workout"
+            className="inline-block py-3.5 -my-3.5 font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+          >
+            Daily Workout
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

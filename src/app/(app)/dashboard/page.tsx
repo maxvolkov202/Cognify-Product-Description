@@ -10,6 +10,7 @@ import {
   Mic,
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
+import { isSkillLabAppsEnabled } from "@/lib/flags";
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
@@ -278,8 +279,9 @@ export default async function DashboardPage() {
           {
             href: "/skill-lab",
             label: "Skill Lab",
-            tagline:
-              "Pick one of the six core skills and drill it with focused exercises until it clicks.",
+            tagline: isSkillLabAppsEnabled()
+              ? "Master real-world applications — storytelling, presenting, teaching, interviewing, persuasion."
+              : "Pick one of the six core skills and drill it with focused exercises until it clicks.",
             repsThisWeek: 0,
             iconKey: "lab",
           },

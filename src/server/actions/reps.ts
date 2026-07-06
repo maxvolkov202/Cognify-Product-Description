@@ -11,6 +11,7 @@ import {
   users,
   coachingEvents,
   communicationProfile,
+  exercises,
 } from "@/lib/db/schema";
 import {
   applyRepToProfile,
@@ -55,6 +56,18 @@ import {
  *  replaces the "Next rep" CTA with a signup paywall. */
 const GUEST_REP_LIMIT = 3;
 
+/** Shape of communication_profile.applications (matches the schema $type,
+ *  incl. nested Application Skill estimates — PRD §8.3.6/§8.4.5). */
+type ApplicationsColumn = Record<
+  string,
+  {
+    score: number;
+    sampleCount: number;
+    updatedAt: string;
+    skills?: Record<string, { score: number; sampleCount: number }>;
+  }
+>;
+
 /** Read users.lifetime_reps post-awardXp. Awarded inside awardXp; we
  *  need the post-increment value for achievement evaluation. Wrapped in
  *  safeDb so DB hiccups return null and achievements gracefully skip. */
@@ -86,6 +99,10 @@ export type SaveRepInput = {
   muscleGroupDayId?: string | null;
   /** Phase 8 — pressure graduation rep tag. */
   isGraduationRep?: boolean;
+  /** PRD v3 Phase 4 — Skill Lab application this rep belongs to
+   *  (exercises.application). Folds the composite into the profile's
+   *  per-application estimate. Null for Daily Workout / legacy reps. */
+  applicationId?: string | null;
   /** PRD v3 engine — where this rep sits in the exercise learning loop.
    *  Omitted/"first" for all legacy callers. */
   attemptKind?: "first" | "retry" | "again";
@@ -434,6 +451,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             .select({
               coreSkills: communicationProfile.coreSkills,
               hiddenSkills: communicationProfile.hiddenSkills,
+              applications: communicationProfile.applications,
               overallScore: communicationProfile.overallScore,
               totalReps: communicationProfile.totalReps,
             })
@@ -444,6 +462,8 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             ? {
                 coreSkills: row.coreSkills as CommunicationProfileState["coreSkills"],
                 hiddenSkills: row.hiddenSkills as CommunicationProfileState["hiddenSkills"],
+                applications:
+                  (row.applications as CommunicationProfileState["applications"]) ?? {},
                 overallScore: row.overallScore,
                 totalReps: row.totalReps,
               }
@@ -455,12 +475,32 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
               if (typeof v === "number") subSkillScores[id] = v;
             }
           }
+          // PRD v3 Phase 4 — application fold data comes from the exercise
+          // row, not the client: the client's applicationId is only the
+          // signal to look. Keeps skill tags authoritative.
+          let applicationId: string | null = null;
+          let applicationSkills: string[] | null = null;
+          if (input.applicationId && input.exerciseId) {
+            const [ex] = await db
+              .select({
+                application: exercises.application,
+                applicationSkills: exercises.applicationSkills,
+              })
+              .from(exercises)
+              .where(eq(exercises.id, input.exerciseId))
+              .limit(1);
+            applicationId = ex?.application ?? null;
+            applicationSkills = ex?.applicationSkills ?? null;
+          }
           const next = applyRepToProfile(current, {
             dimensions: input.score.dimensions.map((d) => ({
               dimension: d.dimension,
               score: d.score,
             })),
             subSkillScores,
+            applicationId,
+            applicationSkills,
+            composite: input.score.composite,
             at: new Date().toISOString(),
           });
           await db
@@ -476,6 +516,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
                 string,
                 { score: number; sampleCount: number }
               >,
+              applications: next.applications as ApplicationsColumn,
               totalReps: next.totalReps,
             })
             .onConflictDoUpdate({
@@ -490,6 +531,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
                   string,
                   { score: number; sampleCount: number }
                 >,
+                applications: next.applications as ApplicationsColumn,
                 totalReps: next.totalReps,
                 updatedAt: new Date(),
               },

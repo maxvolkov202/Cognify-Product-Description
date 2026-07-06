@@ -273,7 +273,15 @@ async function fetchCatalogExercises(
       responseWindow: exercises.responseWindow,
     })
     .from(exercises)
-    .where(and(eq(exercises.dimension, dim), eq(exercises.isActive, true)));
+    .where(
+      and(
+        eq(exercises.dimension, dim),
+        eq(exercises.isActive, true),
+        // PRD v3 Phase 4 — application exercises live in the same table;
+        // Daily Workout only samples core-skill (application-less) rows.
+        isNull(exercises.application),
+      ),
+    );
 
   return rows.map((r) => ({
     id: r.id,

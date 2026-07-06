@@ -78,6 +78,7 @@ export default function DayCompleteSummary({
   const takeaway = buildTakeaway(comparison, reps);
   const mostImproved = findMostImprovedDim(reps);
   const recommendation = buildCoachRecommendation(dim, reps);
+  const weakestToday = findWeakestDim(reps);
 
   return (
     <div className="space-y-5">
@@ -219,6 +220,17 @@ export default function DayCompleteSummary({
         >
           See {MUSCLE_GROUP_LABELS[dim]} timeline →
         </Link>
+        {/* D9 (2026-07-06) — Focus Drills live here as a Daily Workout
+            extra. /drills bounces to the legacy Skill Lab when the apps
+            flag is off, so this link is safe in every flag state. */}
+        {weakestToday && (
+          <Link
+            href={`/drills?focus=${weakestToday}`}
+            className="inline-flex items-center justify-center min-h-[44px] px-5 py-2 rounded-xl text-sm font-semibold border border-purple-200 dark:border-brand-purple/40 bg-white dark:bg-ink-900 text-purple-700 dark:text-brand-lavender hover:bg-purple-50 dark:hover:bg-ink-800 transition-colors"
+          >
+            Extra reps: drill {DIMENSION_LABELS[weakestToday]}
+          </Link>
+        )}
         <Link
           href="/dashboard"
           className="inline-flex items-center justify-center min-h-[44px] px-5 py-2 rounded-xl text-sm font-semibold border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 transition-colors"
@@ -440,6 +452,23 @@ function findMostImprovedDim(
     }
   }
   return best && best.delta >= 3 ? best : null;
+}
+
+/** The day's weakest average dimension (graduation rep excluded) — drives
+ *  the "extra reps" Focus Drill CTA. */
+function findWeakestDim(reps: DayRepBreakdown[]): SkillDimension | null {
+  const normal = reps.filter((r) => !r.isGraduationRep);
+  if (normal.length === 0) return null;
+  let weakest: { dim: SkillDimension; avg: number } | null = null;
+  for (const d of ALL_DIMS) {
+    const vals = normal
+      .map((r) => r.perDim[d])
+      .filter((v): v is number => v != null);
+    if (vals.length === 0) continue;
+    const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+    if (!weakest || avg < weakest.avg) weakest = { dim: d, avg };
+  }
+  return weakest?.dim ?? null;
 }
 
 /** Coach recommendation (PRD §5.7): the next highest-value move, from the

@@ -144,6 +144,9 @@ type Props = {
    *  (Edge Function) path picks this up with the Phase 5 long-rep work. */
   attemptKind?: "first" | "retry" | "again";
   parentRepId?: string | null;
+  /** PRD v3 Phase 4 — Skill Lab application id, folded into the profile's
+   *  per-application estimate by saveRep. */
+  applicationId?: string | null;
   /** PRD v3 engine — hide the internal "Run it again" reset on the done
    *  screen. The v2 loop's primary CTA is the structured Retry (with
    *  focus carry-over + lineage); an unlinked re-record next to it would
@@ -274,6 +277,7 @@ export function RepSurface({
   isGraduationRep,
   attemptKind,
   parentRepId,
+  applicationId,
   hideRunItAgain = false,
 }: Props) {
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -692,6 +696,8 @@ export function RepSurface({
         ...(attemptKind && attemptKind !== "first"
           ? { attemptKind, parentRepId: parentRepId ?? null }
           : {}),
+        // PRD v3 Phase 4 — Skill Lab application fold.
+        ...(applicationId ? { applicationId } : {}),
       });
       savedRepId = saved.repId;
       savedCalloutIds = saved.calloutIds;

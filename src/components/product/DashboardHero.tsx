@@ -180,7 +180,9 @@ export function DashboardHero({
 
           <VitalSign
             label="Today's focus"
-            href="/skill-lab"
+            // ?focus= keeps this deep-linking into the dimension drill —
+            // /skill-lab redirects to /drills under FF_SKILL_LAB_APPS (D9).
+            href={focusDim ? `/skill-lab?focus=${focusDim}` : "/skill-lab"}
             accent="brand"
             valueNode={
               <span className="line-clamp-1 text-lg font-extrabold leading-tight text-ink-900 dark:text-white md:text-xl">

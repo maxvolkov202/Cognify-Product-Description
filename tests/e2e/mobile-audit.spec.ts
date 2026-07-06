@@ -26,7 +26,13 @@
 import { test, expect, type Locator } from "@playwright/test";
 
 const MIN_TAP_TARGET = 44;
-const ROUTES = ["/workout", "/progress/muscle-groups"];
+const ROUTES = [
+  "/workout",
+  "/progress/muscle-groups",
+  // PRD v3 Phase 4 — Skill Lab applications hub + relocated drills.
+  "/skill-lab",
+  "/drills",
+];
 
 async function collectViolations(locator: Locator): Promise<
   { html: string; width: number; height: number }[]

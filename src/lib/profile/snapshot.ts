@@ -49,6 +49,7 @@ export async function buildCommunicationSnapshot(
           overallScore: communicationProfile.overallScore,
           coreSkills: communicationProfile.coreSkills,
           hiddenSkills: communicationProfile.hiddenSkills,
+          applications: communicationProfile.applications,
           totalReps: communicationProfile.totalReps,
         })
         .from(communicationProfile)
@@ -75,10 +76,18 @@ export async function buildCommunicationSnapshot(
             profileRow.coreSkills as CommunicationProfileState["coreSkills"],
           hiddenSkills:
             profileRow.hiddenSkills as CommunicationProfileState["hiddenSkills"],
+          applications:
+            (profileRow.applications as CommunicationProfileState["applications"]) ?? {},
           overallScore: profileRow.overallScore,
           totalReps: profileRow.totalReps,
         }
-      : { coreSkills: {}, hiddenSkills: {}, overallScore: null, totalReps: 0 };
+      : {
+          coreSkills: {},
+          hiddenSkills: {},
+          applications: {},
+          overallScore: null,
+          totalReps: 0,
+        };
 
     let weakest: { dimension: SkillDimension; score: number } | null = null;
     let strongest: { dimension: SkillDimension; score: number } | null = null;

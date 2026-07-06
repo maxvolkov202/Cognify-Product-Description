@@ -79,6 +79,18 @@ const SUB_SKILLS_BY_MUSCLE_GROUP = {
 };
 const VALID_CONSTRAINT_TYPES = new Set(["time", "structure", "tone", "complexity", "none"]);
 
+// PRD v3 Phase 4 — Skill Lab applications. Mirrors
+// src/types/application-skills.ts (TS module is source of truth).
+const APPLICATION_SKILLS = {
+  storytelling: ["establishing_stakes", "narrative_tension", "concrete_detail", "showing_change", "clear_takeaway", "making_listener_care"],
+  presenting: ["framing_main_message", "through_line", "memorable_chunks", "signposting_transitions", "explaining_evidence", "closing_implication"],
+  teaching: ["simplifying_complexity", "explaining_with_analogy", "known_to_unknown", "anticipating_confusion", "examples_and_nonexamples", "teaching_for_application"],
+  interviewing: ["evidence_based_answers", "concise_personal_examples", "self_awareness", "handling_weakness_questions", "connecting_to_fit", "credible_specifics"],
+  persuasion: ["framing_recommendation", "handling_objections", "audience_priorities", "building_credibility", "calibrated_urgency", "clear_ask"],
+};
+/** Application prompt banks may start slimmer than the core catalogs. */
+const APP_PROMPT_MIN = 12;
+
 const PROMPT_MIN = 15;
 const PROMPT_MAX_CHARS = 200;
 const RULE_MAX_WORDS = 12;
@@ -118,6 +130,28 @@ function loadManifest() {
     }
     for (const ex of raw.exercises) {
       exercises.push({ ...ex, __source: file });
+    }
+  }
+  // PRD v3 Phase 4 — Skill Lab application catalogs live in
+  // applications/{applicationId}.json. Each exercise carries
+  // `application` + `application_skills` + `dimension` (its PRIMARY
+  // core skill). --dim also filters by application id.
+  const appsDir = resolve(CATALOG_DIR, "applications");
+  let appFiles = [];
+  try {
+    appFiles = readdirSync(appsDir).filter((f) => f.endsWith(".json"));
+  } catch {
+    appFiles = []; // no applications dir yet — fine
+  }
+  for (const file of appFiles) {
+    const appId = file.replace(/\.json$/, "");
+    if (DIM_FILTER && appId !== DIM_FILTER) continue;
+    const raw = JSON.parse(readFileSync(resolve(appsDir, file), "utf-8"));
+    if (!Array.isArray(raw.exercises)) {
+      throw new Error(`applications/${file}: missing "exercises" array`);
+    }
+    for (const ex of raw.exercises) {
+      exercises.push({ ...ex, __source: `applications/${file}` });
     }
   }
   return exercises;
@@ -216,8 +250,33 @@ function validate(exercises) {
       }
     }
 
-    // ordering uniqueness within dim
-    const ordKey = ex.dimension;
+    // PRD v3 Phase 4 — application-exercise validation.
+    if (ex.application != null) {
+      const validSkills = APPLICATION_SKILLS[ex.application];
+      if (!validSkills) {
+        errors.push(`${where}: unknown application "${ex.application}"`);
+      } else {
+        if (
+          !Array.isArray(ex.application_skills) ||
+          ex.application_skills.length === 0
+        ) {
+          errors.push(`${where}: application_skills must be a non-empty array`);
+        } else {
+          for (const s of ex.application_skills) {
+            if (!validSkills.includes(s)) {
+              errors.push(
+                `${where}: application_skill "${s}" not in ${ex.application}'s canonical set`,
+              );
+            }
+          }
+        }
+      }
+    } else if (ex.application_skills != null) {
+      errors.push(`${where}: application_skills set without application`);
+    }
+
+    // ordering uniqueness within dim (core) / application (Skill Lab)
+    const ordKey = ex.application ?? ex.dimension;
     if (!orderingByDim.has(ordKey)) orderingByDim.set(ordKey, new Set());
     const ordSet = orderingByDim.get(ordKey);
     if (ordSet.has(ex.ordering)) {
@@ -239,9 +298,10 @@ function validate(exercises) {
       errors.push(`${where}: prompts array missing`);
       continue;
     }
-    if (ex.prompts.length < PROMPT_MIN) {
+    const promptMin = ex.application != null ? APP_PROMPT_MIN : PROMPT_MIN;
+    if (ex.prompts.length < promptMin) {
       errors.push(
-        `${where}: ${ex.prompts.length} prompts (min ${PROMPT_MIN})`,
+        `${where}: ${ex.prompts.length} prompts (min ${promptMin})`,
       );
     }
     if (!promptsByDim.has(ex.dimension)) {
@@ -301,11 +361,28 @@ function frameworkFields(ex) {
     constraintTypes: Array.isArray(ex.constraint_types)
       ? ex.constraint_types
       : null,
+    application: ex.application ?? null,
+    applicationSkills: Array.isArray(ex.application_skills)
+      ? ex.application_skills
+      : null,
   };
 }
 
+// Key-stable deep equality: Postgres jsonb returns object keys in its
+// own storage order (length, then bytewise), so a naive JSON.stringify
+// comparison flags every row as changed and breaks idempotency.
+function stableStringify(v) {
+  if (v === null || v === undefined) return "null";
+  if (Array.isArray(v)) return `[${v.map(stableStringify).join(",")}]`;
+  if (typeof v === "object") {
+    const keys = Object.keys(v).sort();
+    return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(v[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(v);
+}
+
 function jsonEq(a, b) {
-  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  return stableStringify(a ?? null) === stableStringify(b ?? null);
 }
 
 function exerciseDiffers(existing, incoming, slug) {
@@ -322,7 +399,9 @@ function exerciseDiffers(existing, incoming, slug) {
     (existing.retry_objective ?? null) !== fw.retryObjective ||
     (existing.prompt_rules ?? null) !== fw.promptRules ||
     !jsonEq(existing.response_window, fw.responseWindow) ||
-    !jsonEq(existing.constraint_types, fw.constraintTypes)
+    !jsonEq(existing.constraint_types, fw.constraintTypes) ||
+    (existing.application ?? null) !== fw.application ||
+    !jsonEq(existing.application_skills, fw.applicationSkills)
   );
 }
 
@@ -358,7 +437,8 @@ async function applyToDb(exercises) {
       SELECT id, slug, name, dimension::text AS dimension,
              description, instructions, sort_order, is_active,
              objective, hidden_skills, scoring_lens, retry_objective,
-             prompt_rules, response_window, constraint_types
+             prompt_rules, response_window, constraint_types,
+             application, application_skills
       FROM cognify_v2.exercises
     `;
     const existingExercises = new Map();
@@ -389,7 +469,8 @@ async function applyToDb(exercises) {
           INSERT INTO cognify_v2.exercises
             (slug, name, dimension, description, instructions, sort_order, is_active,
              objective, hidden_skills, scoring_lens, retry_objective,
-             prompt_rules, response_window, constraint_types)
+             prompt_rules, response_window, constraint_types,
+             application, application_skills)
           VALUES (
             ${slug},
             ${ex.name},
@@ -404,7 +485,9 @@ async function applyToDb(exercises) {
             ${fw.retryObjective},
             ${fw.promptRules},
             ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
-            ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null}
+            ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null},
+            ${fw.application},
+            ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null}
           )
           RETURNING id
         `;
@@ -424,7 +507,9 @@ async function applyToDb(exercises) {
             retry_objective  = ${fw.retryObjective},
             prompt_rules     = ${fw.promptRules},
             response_window  = ${fw.responseWindow ? sql.json(fw.responseWindow) : null},
-            constraint_types = ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null}
+            constraint_types = ${fw.constraintTypes ? sql.json(fw.constraintTypes) : null},
+            application      = ${fw.application},
+            application_skills = ${fw.applicationSkills ? sql.json(fw.applicationSkills) : null}
           WHERE id = ${existing.id}
         `;
         exerciseId = existing.id;

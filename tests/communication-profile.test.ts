@@ -127,6 +127,88 @@ section("hidden skills");
   assert(p.hiddenSkills.word_choice?.score === 75, "hidden skill EMA (k=0.5)");
 }
 
+section("application performance (PRD §8.3.6)");
+{
+  let p = emptyProfile();
+  p = applyRepToProfile(p, {
+    dimensions: dims(70),
+    applicationId: "storytelling",
+    composite: 72,
+    at: AT,
+  });
+  assert(
+    p.applications.storytelling?.score === 72,
+    "first app rep adopts composite",
+  );
+  p = applyRepToProfile(p, {
+    dimensions: dims(70),
+    applicationId: "storytelling",
+    composite: 80,
+    at: AT,
+  });
+  assert(
+    p.applications.storytelling?.score === 76,
+    "app estimate EMAs (k=0.5)",
+  );
+  // Daily Workout reps (no applicationId) leave applications untouched.
+  p = applyRepToProfile(p, { dimensions: dims(60), at: AT });
+  assert(
+    p.applications.storytelling?.sampleCount === 2,
+    "non-app reps don't touch application estimates",
+  );
+}
+
+section("application skills (PRD §8.4.5)");
+{
+  let p = emptyProfile();
+  p = applyRepToProfile(p, {
+    dimensions: dims(70),
+    applicationId: "storytelling",
+    applicationSkills: ["establishing_stakes", "narrative_tension"],
+    composite: 72,
+    at: AT,
+  });
+  assert(
+    p.applications.storytelling?.skills?.establishing_stakes?.score === 72,
+    "first app rep seeds each tagged skill with the composite",
+  );
+  assert(
+    p.applications.storytelling?.skills?.narrative_tension?.sampleCount === 1,
+    "all tagged skills tracked",
+  );
+  p = applyRepToProfile(p, {
+    dimensions: dims(70),
+    applicationId: "storytelling",
+    applicationSkills: ["establishing_stakes"],
+    composite: 80,
+    at: AT,
+  });
+  assert(
+    p.applications.storytelling?.skills?.establishing_stakes?.score === 76,
+    "tagged skill EMAs (k=0.5)",
+  );
+  assert(
+    p.applications.storytelling?.skills?.narrative_tension?.score === 72,
+    "untagged skill untouched by later reps",
+  );
+  // Skills outside the app's canonical set are skipped.
+  p = applyRepToProfile(p, {
+    dimensions: dims(70),
+    applicationId: "storytelling",
+    applicationSkills: ["clear_ask", "concrete_detail"],
+    composite: 90,
+    at: AT,
+  });
+  assert(
+    p.applications.storytelling?.skills?.clear_ask === undefined,
+    "skills from other applications are rejected",
+  );
+  assert(
+    p.applications.storytelling?.skills?.concrete_detail?.score === 90,
+    "valid skill in the same rep still folds",
+  );
+}
+
 section("plateau detection");
 {
   const now = new Date("2026-07-02T12:00:00Z");
