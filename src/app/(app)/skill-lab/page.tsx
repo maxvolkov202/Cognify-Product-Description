@@ -178,7 +178,7 @@ async function ApplicationsHub() {
           you apply them. Fundamentals live in your{" "}
           <Link
             href="/workout"
-            className="inline-block py-3.5 -my-3.5 font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+            className="inline-flex min-h-[44px] items-center -my-3 align-middle font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
           >
             Daily Workout
           </Link>

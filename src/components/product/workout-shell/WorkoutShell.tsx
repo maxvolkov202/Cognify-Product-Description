@@ -546,7 +546,7 @@ function PersonalizeSwitch({
           aria-checked={!value}
           onClick={() => onChange(false)}
           className={cn(
-            "relative z-10 flex-1 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+            "relative z-10 flex-1 min-h-[44px] px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
             !value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >
@@ -558,7 +558,7 @@ function PersonalizeSwitch({
           aria-checked={value}
           onClick={() => onChange(true)}
           className={cn(
-            "relative z-10 flex-1 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+            "relative z-10 flex-1 min-h-[44px] px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
             value ? "text-white" : "text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-white",
           )}
         >

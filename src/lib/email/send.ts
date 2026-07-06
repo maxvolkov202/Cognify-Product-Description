@@ -250,9 +250,9 @@ function buildWelcomeHtml(firstName: string): string {
       </p>
       <p style="margin:0 0 16px;color:#4a4458;font-size:14px;line-height:1.7;">
         You just joined the gym where communication is the skill and reps are the method.
-        Every rep is scored by Claude across six dimensions — three for <strong>what you say</strong>
-        (clarity, structure, relevance) and three for <strong>how you say it</strong>
-        (confidence, pacing, tone).
+        Every rep is scored by AI across six Core Skills — four for <strong>what you say</strong>
+        (clarity, structure, conciseness, thinking quality) and two for <strong>how you say it</strong>
+        (pacing, tone).
       </p>
       <p style="margin:0 0 24px;color:#4a4458;font-size:14px;line-height:1.7;">
         Here's how to start:

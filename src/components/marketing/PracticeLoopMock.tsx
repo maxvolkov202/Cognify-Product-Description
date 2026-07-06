@@ -43,7 +43,7 @@ const DIMENSIONS = [
   { name: "Clarity", value: 84 },
   { name: "Conciseness", value: 81 },
   { name: "Thinking", value: 72 },
-  { name: "Delivery", value: 68 },
+  { name: "Pacing", value: 68 },
   { name: "Tone", value: 79 },
 ] as const;
 
@@ -400,7 +400,7 @@ export function PracticeLoopMock() {
             </span>
           </div>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-            Tomorrow&rsquo;s focus · Delivery
+            Tomorrow&rsquo;s focus · Pacing
           </p>
         </div>
       </div>

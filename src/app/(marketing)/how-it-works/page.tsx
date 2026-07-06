@@ -67,7 +67,7 @@ const dimensions = [
   },
   {
     group: "Delivery",
-    name: "Delivery",
+    name: "Pacing",
     def: "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions.",
     low: "Rushing the close, high filler rate, going over time, no purposeful pausing.",
   },

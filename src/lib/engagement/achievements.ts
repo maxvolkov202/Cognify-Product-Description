@@ -39,7 +39,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: "skill_80_structure", bucket: "skill", name: "Architect — Structure", description: "Score 80+ on Structure.", tier: "silver" },
   { id: "skill_80_conciseness", bucket: "skill", name: "Tight — Conciseness", description: "Score 80+ on Conciseness.", tier: "silver" },
   { id: "skill_80_thinking_quality", bucket: "skill", name: "Sharp — Thinking", description: "Score 80+ on Thinking Quality.", tier: "silver" },
-  { id: "skill_80_delivery", bucket: "skill", name: "Tempo — Delivery", description: "Score 80+ on Delivery.", tier: "silver" },
+  { id: "skill_80_delivery", bucket: "skill", name: "Tempo — Pacing", description: "Score 80+ on Pacing.", tier: "silver" },
   { id: "skill_80_tone", bucket: "skill", name: "Voice — Tone", description: "Score 80+ on Tone.", tier: "silver" },
   // ——— Skill — first 90+ on composite ——
   { id: "skill_90_composite", bucket: "skill", name: "Excellent Rep", description: "Hit a composite of 90+.", tier: "gold" },

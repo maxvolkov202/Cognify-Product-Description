@@ -66,7 +66,9 @@ for (const route of ROUTES) {
     await page.waitForTimeout(200);
 
     const interactive = page.locator(
-      'button:not([aria-hidden="true"]), a:not([aria-hidden="true"]), [role="button"]:not([aria-hidden="true"]), input:not([type="hidden"])',
+      // Next.js dev-tools launcher is dev-only chrome we don't control —
+      // excluded so the audit measures the product, not the toolchain.
+      'button:not([aria-hidden="true"]):not([data-nextjs-dev-tools-button]), a:not([aria-hidden="true"]), [role="button"]:not([aria-hidden="true"]), input:not([type="hidden"])',
     );
 
     const violations = await collectViolations(interactive);

@@ -80,7 +80,7 @@ export default function SkillScenariosCard({ dim }: Props) {
         type="button"
         onClick={toggle}
         className={cn(
-          "flex w-full items-center gap-2 rounded-2xl border px-4 py-2.5 text-left transition-colors",
+          "flex w-full min-h-[44px] items-center gap-2 rounded-2xl border px-4 py-2.5 text-left transition-colors",
           open
             ? "border-brand-purple/40 bg-brand-purple/5 dark:border-brand-purple/50 dark:bg-brand-purple/15"
             : "border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:hover:border-ink-600",

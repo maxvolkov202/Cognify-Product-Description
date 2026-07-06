@@ -3,7 +3,7 @@ const skills = [
   { name: "Clarity", score: 78 },
   { name: "Conciseness", score: 81 },
   { name: "Thinking Quality", score: 72 },
-  { name: "Delivery", score: 68 },
+  { name: "Pacing", score: 68 },
   { name: "Tone", score: 79 },
 ] as const;
 

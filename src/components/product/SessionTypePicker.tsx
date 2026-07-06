@@ -99,7 +99,7 @@ export function SessionTypePicker({
                     onChange({ sessionType: "focus", focusDimension: dim })
                   }
                   className={cn(
-                    "rounded-full border px-4 py-1.5 text-xs font-semibold transition",
+                    "min-h-[44px] rounded-full border px-4 py-1.5 text-xs font-semibold transition",
                     active
                       ? "border-brand-purple bg-brand-purple text-white shadow-sm"
                       : "border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-white",

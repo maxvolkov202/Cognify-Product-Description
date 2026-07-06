@@ -19,7 +19,7 @@ export default function ExemplarsNotFound() {
       </h1>
       <p className="mt-3 max-w-md text-base text-ink-600">
         Cognify scores six dimensions: Clarity, Structure, Conciseness,
-        Thinking Quality, Delivery, and Tone. Pick one to see exemplars.
+        Thinking Quality, Pacing, and Tone. Pick one to see exemplars.
       </p>
       <Link
         href="/skill-lab"

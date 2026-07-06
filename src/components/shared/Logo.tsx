@@ -38,7 +38,7 @@ export function Logo({
 
   if (!href) return content;
   return (
-    <Link href={href} aria-label="Cognify home" className="inline-flex">
+    <Link href={href} aria-label="Cognify home" className="inline-flex min-h-[44px] items-center">
       {content}
     </Link>
   );

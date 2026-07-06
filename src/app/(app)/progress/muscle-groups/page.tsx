@@ -129,7 +129,7 @@ export default async function MuscleGroupProgressPage({
           </p>
           <Link
             href="/workout"
-            className="inline-block mt-4 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
+            className="inline-flex min-h-[44px] items-center mt-4 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
           >
             Go to today&apos;s workout
           </Link>
@@ -176,8 +176,8 @@ function FilterChip({
       href={href}
       className={
         active
-          ? "min-h-[44px] px-3 inline-flex items-center rounded-full text-xs font-medium bg-pink-500/20 text-pink-100 border border-pink-400/50 whitespace-nowrap"
-          : "min-h-[44px] px-3 inline-flex items-center rounded-full text-xs text-slate-300 border border-slate-700 hover:bg-slate-800 whitespace-nowrap"
+          ? "min-h-[44px] min-w-[44px] justify-center px-3 inline-flex items-center rounded-full text-xs font-medium bg-pink-500/20 text-pink-100 border border-pink-400/50 whitespace-nowrap"
+          : "min-h-[44px] min-w-[44px] justify-center px-3 inline-flex items-center rounded-full text-xs text-slate-300 border border-slate-700 hover:bg-slate-800 whitespace-nowrap"
       }
     >
       {children}

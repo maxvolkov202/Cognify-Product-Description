@@ -28,7 +28,10 @@ export const DIMENSION_LABELS: Record<SkillDimension, string> = {
   structure: "Structure",
   conciseness: "Conciseness",
   thinking_quality: "Thinking Quality",
-  delivery: "Delivery",
+  // D6 / PRD v3 §9.6 — user-facing name is "Pacing"; the enum value
+  // stays `delivery` (DB enums are append-only, bridged by
+  // dimension-aliases.ts).
+  delivery: "Pacing",
   tone: "Tone",
 };
 

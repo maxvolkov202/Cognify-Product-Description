@@ -208,8 +208,26 @@ PRD refs: §8.4.4, §8.4.7, §8.6, §8.7, §10.3.
 Verification (2026-07-06): typecheck ✅ · lint ✅ · 17 unit suites ✅ (5 new QA-filter tests) · prune dry-run clean on dev.
 PRD refs: §9 entire, three Engine V1 specs, D3, C15, C18 (guardrail landed in 7.5).
 
-### Phase 9 — Polish & optimization (PRD Phase 9) ⬜
-- [ ] 9.1 Animations/haptics/celebrations pass; 9.2 accessibility; 9.3 empty/loading states; 9.4 performance; 9.5 error-handling sweep; 9.6 copy consistency vs terminology map (incl. stale welcome-email dimension names).
+### Phase 9 — Polish & optimization (PRD Phase 9) 🟨 built 2026-07-06
+- [x] 9.2 Accessibility — tap-target sweep: fixed every product violation the mobile audit enumerated (banner logo link, Sign-in, Open-menu, feedback fab, SessionTypePicker + prompt-mode radios, SkillScenariosCard accordion, skills-bar chips via transparent-44px-anchor + unchanged pill visuals, collapsed dots, progress "All" chip + workout CTA); Next dev-tools launcher excluded from the audit (toolchain, not product).
+- [x] 9.6 Terminology (D6): user-facing dimension "Delivery" → **"Pacing"** everywhere (DIMENSION_LABELS single source + achievements copy + exemplars 404 + marketing mocks/pages; the GROUP "Content vs Delivery" keeps its name — it's a category, not the dimension). Welcome email fixed: claimed dimensions "(clarity, structure, relevance)/(confidence, pacing, tone)" — neither trio was real; now the actual six Core Skills.
+- [x] 9.3/9.5 pass: all new surfaces null-safe/empty-safe (hub, PrepHome, WeeklyChallengesCard, ProgressionStrip render nothing on missing data); error paths best-effort + logged throughout Phases 4-8; repsToday lifetime-count bug fixed in Phase 6.
+- [ ] 9.1 PARTIAL: completion screens celebratory (🎉 + strips); a dedicated rank-up/achievement ANIMATION moment needs design assets — deferred to the badge-design handoff (6.7).
+- [ ] 9.4 DEFERRED: no perf hotspots observed in dev; profile after prod traffic exists.
+- KNOWN (pre-existing, unchanged): two-stage scoring path silently drops `userCalibration` (flagged Phase 3) — fix alongside a calibration-replay window.
+
+Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ · **ALL 13 e2e green incl. the previously-failing tap-target audit (4/4 routes)** · 9 routes 200 on dev.
+
+---
+
+## 🏁 ALL 9 PRD PHASES BUILT (2026-07-06). Promotion checklist before prod:
+1. Top up Anthropic + OpenAI credits (both dead — mock scoring on dev).
+2. Max eyes-on dev test of Phases 1–9 on :3333.
+3. Calibration replay (Phase 3 coaching-memory + Phase 7 EFFECTIVENESS lines changed v2 scoring prompts; non-retry legacy prompts remain byte-identical).
+4. Run smoke harness (`scripts/smoke-engine-v2.ts`) with live keys.
+5. Prod migrations 0028–0034 (`apply-prod-migration.mjs`) + exercise seed (84) + profile backfill.
+6. Prod env: flip `FF_*` flags, RESEND_API_KEY, CRON_SECRET (new cron), Supabase `prep-context` bucket auto-creates.
+7. Optional post-credit: `expand-prompt-bank.ts --apply` (Phase 8.2).
 
 ---
 
@@ -229,6 +247,7 @@ PRD refs: §9 entire, three Engine V1 specs, D3, C15, C18 (guardrail landed in 7
 | 2026-07-02 (3) | Phase 2 BUILT (all but 2.8, deferred to Phase 4): 3-exercise v2 day w/ data-driven completion targets + retry-safe rep counting; migration 0029 + full 54-exercise framework enrichment (6 parallel authoring agents) seeded to dev; DB-backed scoring lens; Hidden-Skill-aware exercise selection (weakness-weighted + diversity); Assessment Phase (2 balanced cycles, suspends all adaptive overrides); weakness-weighted rotation floors (4/6/7d); in-session prompt no-repeat; celebratory completion (stats row, most-improved, coach's call). All suites/lint/typecheck green, /workout 200. Next session: Max's eyes-on feedback → then Phase 3 (Communication Profile + Snapshot + coaching memory + Overall Communication Score + engine consolidation). |
 | 2026-07-02 (4) | Phase 3 BUILT (3.7 deferred to Phase 4 with 2.8): migration 0030 communication_profile + users.communication_stage (applied to dev); count-scaled EMA profile fold in saveRep; Overall Communication Score persisted (display → Phase 6); backfill run on dev (5 users); Communication Snapshot service; coaching-memory block through both scoring paths + 3 routes (calibration-safe); plateau detection wired into rotation as variety swap; Communication Stage settings section. 12 suites/lint/typecheck green; /workout + /settings 200. FOUND: two-stage path drops userCalibration (pre-existing) — flag for Max. NEXT: Max eyes-on of Phases 1–3 on dev, calibration replay, then Phase 4 (Skill Lab applications + 2.8/3.7 legacy-engine consolidation). |
 | 2026-07-03 | Phase 4 partial (session interrupted, unlogged until 07-06): taxonomy module, migration 0031 (applied to dev), 5 application catalogs authored + seeded (30 exercises), startSkillLab/complete actions, AppSessionClient session runner, per-application profile fold, seed/backfill script support. No routes yet; wrong flag on the action. |
+| 2026-07-06 (6) | Phase 9 BUILT — PLAN COMPLETE: tap-target sweep (audit now 4/4 green; product violations all fixed, dev-tools excluded), Delivery→Pacing terminology per D6 (label source + achievements + marketing + exemplars 404), welcome email's fictional dimension lists corrected. ALL 13 e2e + 18 unit suites + typecheck + lint green; 9 routes 200. Every PRD phase (0–9) now built on feat/prd-v3, all flag-gated, awaiting: credits re-up → Max eyes-on → calibration replay → prod promotion (checklist above). |
 | 2026-07-06 (5) | Phase 8 BUILT (8.4 deferred to post-review): runtime prompt-gen engine (QA filter, cache-back, FF_PROMPT_GEN, starvation-point wiring in fetchPromptCandidates, prompt_gen knowledge stage live); offline expansion pipeline script (blocked on credits); engagement-driven pruning script w/ per-exercise floor. 17 suites green. NEXT: Phase 9 (polish). |
 | 2026-07-06 (4) | Phase 7 BUILT: coaching-effectiveness rates in Snapshot + EFFECTIVENESS technique-switch line in coaching memory (calibration replay required); confidence-builder selector intervention (2 rough days → strongest dim); planUpcomingDims "Next up" plan preview; Overall Communication Score on dashboard hero w/ stage benchmark bands; C18 variety guardrail (2 general slots in personalized slates); Snapshot now unifies profile+coaching+effectiveness+event-readiness. 16 suites green. NEXT: Phase 8 (prompt generation engine). |
 | 2026-07-06 (3) | Phase 6 BUILT: rank.ts (32 ranks from XP, no migration), §10.5.3 XP factors in awardXp+saveRep, RankBadge SVG + LevelStreakCard rank mode, league fold behind FF_RANK_SYSTEM, leaderboard metrics (weekly improvement default + communication score board), weekly challenges (migration 0034, 7-challenge bank, saveRep fold, dashboard card) + team challenges, ProgressionStrip on all 3 completion surfaces (fixed the dead celebration pipe), committed-day reminder cron + Resend template + Settings toggle. Fixed pre-existing repsToday lifetime-count quest bug. 15 suites green. NEXT: Phase 7 (intelligence deepening). |
