@@ -266,18 +266,18 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ (+3 s
 - [x] A4 Calibration re-baseline on OpenAI: 29-rep in-process replay (drift cron dryRun) — **avg |Δ| ≈ 7.8 vs the Haiku-tuned expectations, worst ≈ 22-27; GPT-4o compresses the top band** (exceptional reps score lower) and mildly inflates some low/mid reps. Baseline persisted: `plans/calibration-baseline-openai-2026-07-06.json`. Interpretation rule for Phase 12: judge coaching QUALITY, not absolute numbers; the Anthropic baseline re-applies at re-up. (The stale HTTP-based `calibrate-scoring.mjs` 401s since the May auth gates — the in-process cron replay is the working harness.)
 - [x] A5 Smoke harness 11/11 green on OpenAI. FOUND+FIXED in the process: GPT-4o omitted `implementationReview` (hardened the retry-evaluation block to REQUIRED + exact JSON shape) and omits `note` sometimes (schema + RepScore type now optional; deterministic verdict copy covers absence).
 
-**11.B Authed E2E loop harness**
-- [ ] B1 Dev-only test-login endpoint (non-production + secret) → Playwright storage-state fixture.
-- [ ] B2 Spoken-audio fixture via OpenAI TTS (checked into tests/fixtures).
-- [ ] B3 Chromium desktop Playwright project with fake-mic flags (WebKit/iPhone can't fake audio capture).
-- [ ] B4 Machine-verified full loops: Daily Workout (insight→rep→retry→review), Skill Lab session, Build a Rep guided moment → readiness. Live transcription + scoring.
+**11.B Authed E2E loop harness** ✅ 2026-07-06 — ALL THREE LOOPS PASS LIVE
+- [x] B1 Setup project provisions the test user via Supabase admin (idempotent, refuses prod) + logs in through the REAL signin UI → storageState (`tests/e2e/authed/auth.setup.ts`, `.auth/` gitignored).
+- [x] B2 `tests/fixtures/spoken-rep.wav` — ~45s coherent spoken answer via OpenAI TTS (`scripts/generate-audio-fixture.ts`); Chromium loops it as the fake mic.
+- [x] B3 `authed-chromium` Playwright project (opt-in `AUTHED=1` — costs credits), fake-media flags, 420s test budget; unauthed suites untouched.
+- [x] B4 LIVE loops green: **Daily Workout** (start day → prompt → insight → rep → v2 feedback w/ ONE Coach's Focus + no legacy split asserted → required retry → Improvement Review verdict + breakdown → next exercise, 1.2m), **Skill Lab** (Storytelling ×3 → loop → quit banks → §6.8 Session Complete, 1.2m), **Build a Rep** (intake → generated plan → guided moment w/ editable time asserted → readiness review, 48s). Harness learnings: prompt cards got a `data-testid`, animated CTAs need force-clicks, threshold gate clicked through deliberately.
 
 **11.C Demo-user seeding**
 - [ ] C1 `scripts/seed-demo-user.ts`: deterministic ~3-week history (reps+signals across modes, days, sessions, coaching ledger w/ verdicts, profile fold, achievements, weekly challenges, XP/rank, streak, one prep event w/ readiness). Idempotent --reset.
 - [ ] C2 Cold-start test account documented.
 
 **11.D Coach content pass** (D10 revert + D11 restore + deferred audit content)
-- [ ] D0 D10: slate 4→5 everywhere; variety slots → 2.
+- [x] D0 D10: slate 4→5 everywhere; variety slots → 2. ✅
 - [ ] D1 D11: restore 8 Application Skills per app (Lab Engine V1 canon) + expand each app catalog ~2 exercises targeting the added skills (agents author; seed).
 - [ ] D2 `coach_insight` per exercise: migration 0035 column + catalog field + seed support + InsightScreen/MomentInsight consumption + author cues for all exercises (agents).
 - [ ] D3 Lab Engine pack fields: `secondary_core_skills`, `common_failure_modes`, `scoring_emphasis` — columns + catalogs + consumed in the exercise scoring context.

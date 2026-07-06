@@ -696,10 +696,10 @@ export type PickPromptsInput = {
   challengeBias?: "easier" | "neutral" | "harder";
 };
 
-// D10 (2026-07-06) — prompt slate is FOUR options. Three of the four PRD
-// references (both Engine V1 specs + §8.4/§8.5) say four; §5.6/§6.5 say
-// six; five matched nothing. Adjudicated per the tracker Decision Log.
-export const PROMPT_SLATE_SIZE = 4;
+// D10 (final, Max 2026-07-06) — prompt slate is FIVE options: a
+// deliberate deviation from both PRD numbers (Engine specs say 4,
+// §5.6/§6.5 say 6). Logged in the tracker Decision Log.
+export const PROMPT_SLATE_SIZE = 5;
 
 export function pickPromptCandidates(
   input: PickPromptsInput,

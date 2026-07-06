@@ -81,3 +81,6 @@ Build_mobile_apps_*.txt
 # Playwright artifacts
 /test-results/
 /playwright-report/
+
+# Playwright auth storage state (contains session tokens)
+tests/e2e/authed/.auth/

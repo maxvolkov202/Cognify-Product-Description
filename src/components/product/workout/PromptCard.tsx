@@ -26,6 +26,7 @@ export default function PromptCard({
   return (
     <button
       type="button"
+      data-testid="prompt-card"
       onClick={() => onPick(prompt.id)}
       aria-pressed={selected}
       className={cn(

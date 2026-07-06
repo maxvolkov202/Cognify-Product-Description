@@ -44,7 +44,7 @@ const PROMPT_BIAS_WINDOW = 30;
 /** Slide to the next-wider filter tier if the current tier returns fewer
  *  than this many prompts. Matches the Shuffle candidate count (k=5) so we
  *  never lock onto a too-thin bank when a wider one would give real rotation. */
-const MIN_BANK_SIZE = 4; // tracks the D10 slate size
+const MIN_BANK_SIZE = 5; // tracks the D10 slate size
 
 /**
  * Legacy tag map — the original 864 vertical-flavored prompts (Phase 2 seed)
@@ -325,7 +325,7 @@ export async function fetchPromptCandidates(input: {
     }));
     if (sessionSeen.size > 0) {
       const unseen = available.filter((p) => !sessionSeen.has(p.promptId));
-      if (unseen.length >= 4) {
+      if (unseen.length >= 5) {
         available = unseen;
       } else if (isPromptGenEnabled()) {
         // PRD v3 Phase 8.1 (D3 hybrid) — the curated bank ran dry for
@@ -334,7 +334,7 @@ export async function fetchPromptCandidates(input: {
         const generated = await generateAndCachePrompts({
           exerciseId: input.exerciseId,
           userContext: { vertical: userVertical },
-          count: 4 - unseen.length,
+          count: 5 - unseen.length,
         });
         if (generated.length > 0) {
           available = [...unseen, ...generated];
@@ -367,7 +367,7 @@ export async function fetchPromptCandidates(input: {
     const picked = pickPromptCandidates({
       available,
       recentPromptIds,
-      k: 4, // D10 — four prompt options per slate
+      k: 5, // D10 — five prompt options per slate
       preferEasier,
       challengeBias,
       seed: `${userId}:${input.exerciseId}:${Date.now()}`,
@@ -377,10 +377,10 @@ export async function fetchPromptCandidates(input: {
     // the whole slate came from a PERSONALIZED bank, swap the last two
     // slots for general-bank prompts: relevance sells the rep, variety
     // prevents the profile from overfitting the user into a bubble.
-    const VARIETY_SLOTS = 1;
+    const VARIETY_SLOTS = 2;
     if (
       (bankTier === "vertical+goal" || bankTier === "vertical") &&
-      picked.length === 4
+      picked.length === 5
     ) {
       try {
         const generalRows = await selectBank(generalFilter);
@@ -405,7 +405,7 @@ export async function fetchPromptCandidates(input: {
             challengeBias,
             seed: `${userId}:${input.exerciseId}:${Date.now()}:variety`,
           });
-          picked.splice(4 - VARIETY_SLOTS, VARIETY_SLOTS, ...varietyPicks);
+          picked.splice(5 - VARIETY_SLOTS, VARIETY_SLOTS, ...varietyPicks);
         }
       } catch {
         // Guardrail is best-effort — a fully personalized slate is the
