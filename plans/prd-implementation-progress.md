@@ -276,18 +276,18 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ (+3 s
 - [x] C1 `scripts/seed-demo-user.ts`: deterministic (mulberry32 seed 20260706) 21-day history — 90 reps w/ dimension scores + hidden-skill signals, 14 workout days, 16 lab sessions (incl. storytelling application folds), 42 coaching events w/ mixed verdicts, 1 prep event + readiness review, 5 achievements, weekly challenge, xp=3400, profile replayed through the REAL `applyRepToProfile` fold (overall 72.6). `--reset` wipes + reseeds; refuses prod-looking DATABASE_URL. Login: `demo@cognify.test` / `cognify-demo-7h2p9w!D`.
 - [x] C2 `scripts/verify-demo-user.ts` green — verifies via production reads (`buildCommunicationSnapshot`): trends all improving, coachingEffectiveness populated per dim, strongestApplication=storytelling 67.5. **Cold-start account = `e2e-harness@cognify.test`** (11.B setup user, near-zero history) — use it for empty-state passes; demo user for populated passes.
 
-**11.D Coach content pass** (D10 revert + D11 restore + deferred audit content)
+**11.D Coach content pass** ✅ 2026-07-06 (D10 revert + D11 restore + deferred audit content)
 - [x] D0 D10: slate 4→5 everywhere; variety slots → 2. ✅
-- [ ] D1 D11: restore 8 Application Skills per app (Lab Engine V1 canon) + expand each app catalog ~2 exercises targeting the added skills (agents author; seed).
-- [ ] D2 `coach_insight` per exercise: migration 0035 column + catalog field + seed support + InsightScreen/MomentInsight consumption + author cues for all exercises (agents).
-- [ ] D3 Lab Engine pack fields: `secondary_core_skills`, `common_failure_modes`, `scoring_emphasis` — columns + catalogs + consumed in the exercise scoring context.
-- [ ] D4 Topic diversity (§5.6): expansion pipeline gains category-spread instructions; run bank expansion with QA (OpenAI).
+- [x] D1 D11: APPLICATION_SKILLS restored to the full Lab Engine V1 canon (8/app; 10 new ids) in types + seed mirror; 10 new exercises authored (2/app targeting the restored skills, 121 prompts) → catalog now 94 exercises; seeded. Selection tests still green (new skills are additive).
+- [x] D2 `coach_insight`: migration 0035 + schema + seed support; threads through Station/ShellStation/AppExercise → InsightScreen (insight LEADS when authored, rule becomes the enforcement line). BaR MomentInsight already carries its own generated insight — catalog consumption n/a there by design. All 94 exercises authored (11 parallel agents, one per catalog file).
+- [x] D3 Pack fields `secondary_core_skills` / `common_failure_modes` / `scoring_emphasis` (same migration): seed-validated (secondary ≠ primary dim), consumed in `getExerciseScoringContext` → exercise block gains SECONDARY DIMENSIONS + COMMON FAILURE MODES lines and stage-2 hint gains SCORING EMPHASIS — all rendered ONLY when authored, so pre-enrichment prompts stay byte-identical (calibration-safe). All 94 authored + seeded.
+- [x] D4 Topic diversity (§5.6): TOPIC_CATEGORIES (9) + spread instruction in the generation system prompt. FOUND+FIXED while running: response schema's `.max(10)` rejected every 12-prompt batch (we ask for count+2) → shape-only schema (QA filter owns policing), max_tokens scales with count, failures now log. Expansion run on OpenAI: core 540/540 + 80/app cached, ZERO failures (~880 total). NOTE for Phase 12 quality review: GPT-4o generations lean toward bare one-line questions — register thinner than the curated banks.
 
-**11.E Remaining doc items**
-- [ ] E1 Rank-up celebration moment (client-side rank-crossing detection in ProgressionStrip).
-- [ ] E2 Inline framework editing on the simulation setup (§7.8).
-- [ ] E3 `.pptx` context parsing (zip/XML text extraction, no new deps).
-- [ ] E4 Achievements discoverability (nav/progress entry).
+**11.E Remaining doc items** ✅ 2026-07-06
+- [x] E1 Rank-up celebration in ProgressionStrip: localStorage `cognify:last-rank-index` crossing → tier-colored "Rank up!" banner (`data-testid="rank-up-celebration"`); first sight primes silently; storage failure = no fanfare.
+- [x] E2 Inline framework editing on sim setup (§7.8): section titles are inputs; blur/Enter commits → `updateCriticalMoment` write-through + parent event state sync (plan reflects edits).
+- [x] E3 `.pptx` parsing: `src/lib/prep/pptx.ts` — zero-dep zip central-directory reader + `<a:t>` run extraction (slides ordered, paragraphs line-broken, entities decoded, speaker notes appended); wired into parse dispatch/mime/extension + upload accept. Smoke-tested against a generated fixture.
+- [x] E4 Achievements discoverability: Progress header button + "All achievements →" link on the completion strip's earned chips.
 
 ### Phase 12 — End-to-end live testing (per Max 2026-07-06) ⬜
 *After Phase 11: exercise EVERYTHING with live credits — machine loops (11.B) + scripted walkthroughs of every mode/surface/flag state + generation quality review (plans, readiness reviews, coaching memory, generated prompts) + cron dry-runs + calibration drift check. Every finding documented in a findings ledger (severity + repro + suspected cause).*
