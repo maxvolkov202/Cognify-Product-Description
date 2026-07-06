@@ -272,9 +272,9 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ (+3 s
 - [x] B3 `authed-chromium` Playwright project (opt-in `AUTHED=1` — costs credits), fake-media flags, 420s test budget; unauthed suites untouched.
 - [x] B4 LIVE loops green: **Daily Workout** (start day → prompt → insight → rep → v2 feedback w/ ONE Coach's Focus + no legacy split asserted → required retry → Improvement Review verdict + breakdown → next exercise, 1.2m), **Skill Lab** (Storytelling ×3 → loop → quit banks → §6.8 Session Complete, 1.2m), **Build a Rep** (intake → generated plan → guided moment w/ editable time asserted → readiness review, 48s). Harness learnings: prompt cards got a `data-testid`, animated CTAs need force-clicks, threshold gate clicked through deliberately.
 
-**11.C Demo-user seeding**
-- [ ] C1 `scripts/seed-demo-user.ts`: deterministic ~3-week history (reps+signals across modes, days, sessions, coaching ledger w/ verdicts, profile fold, achievements, weekly challenges, XP/rank, streak, one prep event w/ readiness). Idempotent --reset.
-- [ ] C2 Cold-start test account documented.
+**11.C Demo-user seeding** ✅ 2026-07-06
+- [x] C1 `scripts/seed-demo-user.ts`: deterministic (mulberry32 seed 20260706) 21-day history — 90 reps w/ dimension scores + hidden-skill signals, 14 workout days, 16 lab sessions (incl. storytelling application folds), 42 coaching events w/ mixed verdicts, 1 prep event + readiness review, 5 achievements, weekly challenge, xp=3400, profile replayed through the REAL `applyRepToProfile` fold (overall 72.6). `--reset` wipes + reseeds; refuses prod-looking DATABASE_URL. Login: `demo@cognify.test` / `cognify-demo-7h2p9w!D`.
+- [x] C2 `scripts/verify-demo-user.ts` green — verifies via production reads (`buildCommunicationSnapshot`): trends all improving, coachingEffectiveness populated per dim, strongestApplication=storytelling 67.5. **Cold-start account = `e2e-harness@cognify.test`** (11.B setup user, near-zero history) — use it for empty-state passes; demo user for populated passes.
 
 **11.D Coach content pass** (D10 revert + D11 restore + deferred audit content)
 - [x] D0 D10: slate 4→5 everywhere; variety slots → 2. ✅
