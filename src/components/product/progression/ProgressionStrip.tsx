@@ -15,6 +15,7 @@
 import { useEffect, useState } from "react";
 import { Flame, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { DIMENSION_LABELS, type SkillDimension } from "@/types/domain";
 import {
   getProgressionSummary,
   type ProgressionSummary,
@@ -86,6 +87,38 @@ export default function ProgressionStrip({
           </div>
         </div>
       </div>
+
+      {/* PRD §10.8 — Updated Communication Score + current Core Skills. */}
+      {summary.overallScore != null && (
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-slate-100 dark:border-ink-800 px-3 py-2">
+          <div>
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">
+              Communication Score
+            </div>
+            <div className="text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white leading-tight">
+              {Math.round(summary.overallScore)}
+            </div>
+          </div>
+          {summary.coreSkills.length > 0 && (
+            <div className="flex-1 grid grid-cols-3 gap-x-3 gap-y-0.5">
+              {summary.coreSkills.map((cs) => (
+                <div
+                  key={cs.dimension}
+                  className="flex items-center justify-between gap-1 text-[11px]"
+                >
+                  <span className="text-slate-500 dark:text-ink-400 truncate">
+                    {DIMENSION_LABELS[cs.dimension as SkillDimension] ??
+                      cs.dimension}
+                  </span>
+                  <span className="font-bold tabular-nums text-slate-700 dark:text-ink-200">
+                    {cs.score}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {summary.achievementsToday.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">

@@ -22,6 +22,9 @@ Decisions that shape everything downstream. D1–D4 confirmed by Max 2026-07-02 
 | D7 | Dev→prod workflow | ✅ per Max | Big-batch promotion: build a whole phase on a feature branch + dev server (localhost:3333) / Vercel preview, Max tests it there, only then promote to production. No drip-feeding small changes to prod. Everything flag-gated (`FF_*` pattern). |
 | D8 | Terminology: "Hidden Skills" | ✅ from PRD | Subskills = Hidden Behaviors = Underlying Behaviors = **Hidden Skills** (PRD terminology clarification). Internal-only, power personalization. |
 | D9 | Legacy dimension-drill Skill Lab | ✅ MAX 2026-07-06 | **Skill Lab = applications-only per PRD; dimension drills move to Daily Workout extras.** Drills relocated to `/drills` ("Focus Drills"); entry points = workout-completion "Extra reps" CTA + dashboard deep-links (`/skill-lab?focus=` redirects to `/drills` under `FF_SKILL_LAB_APPS`). Flag off → `/drills` bounces back to legacy `/skill-lab`; prod URLs unchanged. |
+| D10 | Prompt slate size | ⚠️ PROVISIONAL 2026-07-06 (Max asked, no response — best judgment) | **FOUR prompt options per slate.** PRD conflicts: both Engine V1 specs + §8.4/§8.5 say four; §5.6/§6.5 say six; code had five (matched nothing). Applied everywhere (`PROMPT_SLATE_SIZE`, picker, top-up, C18 variety guardrail = 1 general slot of 4). One-constant change if Max prefers 5/6. |
+| D11 | Application Skills per app | ✅ logged 2026-07-06 (retroactive) | Lab Engine V1 lists 8 hidden Application Skills per application; the shipped taxonomy trims to **6** per app (MVP set the catalogs target). Restore to 8 alongside the 8.4 content expansion if desired. |
+| D12 | Insight ordering | ✅ from C19 | Owen C19 (topic first, then constraint/insight) **supersedes** §6.4/Lab-Engine's "Coach's Insight → Prompt Selection" ordering. Code order prompt→insight→rep is intentional; future audits shouldn't re-flag. |
 
 **Owen/Hunter comment constraints to honor everywhere** (see comments file for full text):
 - C3/C4: Timing is only ONE constraint type; also Structure (STAR), Tone, Complexity (ELI5). Consider count-up clock + overage penalty instead of hard-stop countdown. **Needs a design decision in Phase 1.**
@@ -220,7 +223,40 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ · **
 
 ---
 
-## 🏁 ALL 9 PRD PHASES BUILT (2026-07-06). Promotion checklist before prod:
+### Phase 10 — Spec-fidelity hardening (6-auditor PRD re-read, 2026-07-06) 🟨 built — awaiting Max's eyes-on
+*Max asked for a full PRD re-read + gap audit. Six parallel auditors produced 31 deviations (3 MUST-FIX); all code-side items closed same session.*
+
+**Engine (§4 + ADR-001) — the 3 MUST-FIXes:**
+- [x] 10.1 ADR-001 timer implemented at last: `RecordButton` count-up mode with target band (band bar, "Past your window — bring it home" cue, no hard stop at the window); `responseWindow` threaded RepControls/AppSession/PrepEvent → RepSurface → RecordButton; infra ceiling ≥ max(2×window, 3min); graduation pressure rep + legacy callers keep the countdown. **Overage now scores**: `timeBudgetMs` = window max (not the ceiling) so the existing deterministic time signal reads the window.
+- [x] 10.2 v2 FeedbackPanel (`engineV2`): §4.5 exact order **Score → ONE Coach's Focus → Core Skill Breakdown**; the prohibited "What you did well"/"What didn't land" split and the multi-bullet Next-Rep-Focus list removed from v2 (v1 untouched); new `CoachFocusCard` (deriveCoachFocus + Stronger-Version exemplar link).
+- [x] 10.3 ImprovementReview gains the Core Skill Breakdown (§4.7.1 "same breakdown in both feedback screens") + per-skill first→retry delta chips (C10-softened); retry overlay gains "Stronger version" + "what one change" framing (§4.6); InsightScreen shows the ADR-001 constraint-type chip.
+
+**Selection & difficulty:**
+- [x] 10.4 D10: slate = 4 everywhere; C18 variety guardrail = 1 general slot.
+- [x] 10.5 Difficulty adaptation live: `challengeBias` easier/<60 · neutral · harder/≥80 (stretch-first for strong users, v2-gated) — the dead `preferEasier` no-op is gone.
+- [x] 10.6 Lab: strong-skill maintenance slot (last slot of 3+ sessions targets the strongest measured skill when uncovered — §6.6 "not weakness-only"); prompt-selection telemetry fixed (sessionId now logged); Lab selection reads the **Communication Snapshot** (§8.3.11 "every system begins here") instead of a direct profile query.
+
+**Profile & intelligence:**
+- [x] 10.7 §8.3.10 Improvement Trends implemented: per-dim 21-day least-squares slope (improving/flat/declining/insufficient) + mostImproved/mostConsistent + strongestApplication in the Snapshot.
+- [x] 10.8 §8.2 Communication Stage captured in ONBOARDING (new 5-step flow: vertical → personas → goals → **stage** → days; skippable; Settings editor unchanged).
+- [x] 10.9 §8.4.6 Adaptive Preparation live: plan generation + regeneration consume a profile hint (weakest core skill + prior readiness + weakest practiced moments); Readiness Review receives the previous session's score/focus and speaks to trajectory.
+
+**Completion surfaces (§10.8/§5.7):**
+- [x] 10.10 ProgressionStrip now shows **Updated Communication Score + all six Core Skill estimates** (all three modes); DayCompleteSummary gains the §5.7 "This workout" first→last delta chips and moves Reps-Earned to the final slot; Lab Session Complete always renders the improvement row (neutral copy when flat).
+
+**Build a Rep loop (§7.7):**
+- [x] 10.11 "Continue to Next Critical Moment" branches at BOTH decision points (post-feedback skip-retry link + Improvement Review advance); recommended time **editable on the rep screen** (write-through); context uploads **auto-regenerate** the plan on successful parse (§7.5); "prepared remarks" inference keyword.
+
+**Misc:**
+- [x] 10.12 Nav "Practice" → "Skill Lab" (D6); achievements: added `vol_100_reps` ("100 Communication Reps Completed", §10.6) + renamed First Daily Workout / First Skill Lab Completed; per-mode weekly rep counts on dashboard tiles are now real (were fabricated: total on workout, 0 on others); stale "Practice (formerly Skill Lab)" copy fixed; `scripts/mvp-metrics.mjs` measures every A.6 criterion.
+
+DEFERRED from the audit (content/design side, tracked): per-exercise `coach_insight` authoring + Lab Engine pack fields (secondary core skills, failure modes, 3-part scoring emphasis — batch with 8.4 content expansion), §5.6 topic-category catalog diversity (batch with 8.2 generation run), inline framework editing on the sim surface (plan-screen editing covers it), .pptx parsing (PDF export works), Readiness/coaching-history profile silos (functional, documented).
+
+Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ (+3 selection tests) · ALL 13 e2e ✅ (incl. tap-target audit) · 7 routes 200 · mvp-metrics runs. ⚠️ Calibration replay still required (coaching-memory unchanged this phase, but timeBudgetMs semantics changed for v2 window reps).
+
+---
+
+## 🏁 ALL 9 PRD PHASES BUILT (2026-07-06) + Phase 10 spec-fidelity hardening. Promotion checklist before prod:
 1. Top up Anthropic + OpenAI credits (both dead — mock scoring on dev).
 2. Max eyes-on dev test of Phases 1–9 on :3333.
 3. Calibration replay (Phase 3 coaching-memory + Phase 7 EFFECTIVENESS lines changed v2 scoring prompts; non-retry legacy prompts remain byte-identical).
@@ -247,6 +283,7 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ · **
 | 2026-07-02 (3) | Phase 2 BUILT (all but 2.8, deferred to Phase 4): 3-exercise v2 day w/ data-driven completion targets + retry-safe rep counting; migration 0029 + full 54-exercise framework enrichment (6 parallel authoring agents) seeded to dev; DB-backed scoring lens; Hidden-Skill-aware exercise selection (weakness-weighted + diversity); Assessment Phase (2 balanced cycles, suspends all adaptive overrides); weakness-weighted rotation floors (4/6/7d); in-session prompt no-repeat; celebratory completion (stats row, most-improved, coach's call). All suites/lint/typecheck green, /workout 200. Next session: Max's eyes-on feedback → then Phase 3 (Communication Profile + Snapshot + coaching memory + Overall Communication Score + engine consolidation). |
 | 2026-07-02 (4) | Phase 3 BUILT (3.7 deferred to Phase 4 with 2.8): migration 0030 communication_profile + users.communication_stage (applied to dev); count-scaled EMA profile fold in saveRep; Overall Communication Score persisted (display → Phase 6); backfill run on dev (5 users); Communication Snapshot service; coaching-memory block through both scoring paths + 3 routes (calibration-safe); plateau detection wired into rotation as variety swap; Communication Stage settings section. 12 suites/lint/typecheck green; /workout + /settings 200. FOUND: two-stage path drops userCalibration (pre-existing) — flag for Max. NEXT: Max eyes-on of Phases 1–3 on dev, calibration replay, then Phase 4 (Skill Lab applications + 2.8/3.7 legacy-engine consolidation). |
 | 2026-07-03 | Phase 4 partial (session interrupted, unlogged until 07-06): taxonomy module, migration 0031 (applied to dev), 5 application catalogs authored + seeded (30 exercises), startSkillLab/complete actions, AppSessionClient session runner, per-application profile fold, seed/backfill script support. No routes yet; wrong flag on the action. |
+| 2026-07-06 (7) | Phase 10 BUILT (full PRD re-read via 6 parallel auditors → 31 deviations, 3 MUST-FIX; all code-side closed): ADR-001 count-up/target-band timer + overage-as-signal; v2 feedback = Score → ONE Coach's Focus → Breakdown (prohibited did-well/didn't-land split removed); ImprovementReview breakdown + per-skill deltas; D10 slate=4; difficulty bias live; Lab maintenance slot + snapshot routing + telemetry; §8.3.10 Improvement Trends; onboarding stage step (5-step flow); BaR adaptive prep + next-moment branches + editable rep-screen time + auto-regen on upload; ProgressionStrip shows Communication Score + six skills; nav/achievements/per-mode counts; mvp-metrics.mjs. D10 PROVISIONAL (Max unresponsive to the ask — one-constant override). All suites/e2e green. |
 | 2026-07-06 (6) | Phase 9 BUILT — PLAN COMPLETE: tap-target sweep (audit now 4/4 green; product violations all fixed, dev-tools excluded), Delivery→Pacing terminology per D6 (label source + achievements + marketing + exemplars 404), welcome email's fictional dimension lists corrected. ALL 13 e2e + 18 unit suites + typecheck + lint green; 9 routes 200. Every PRD phase (0–9) now built on feat/prd-v3, all flag-gated, awaiting: credits re-up → Max eyes-on → calibration replay → prod promotion (checklist above). |
 | 2026-07-06 (5) | Phase 8 BUILT (8.4 deferred to post-review): runtime prompt-gen engine (QA filter, cache-back, FF_PROMPT_GEN, starvation-point wiring in fetchPromptCandidates, prompt_gen knowledge stage live); offline expansion pipeline script (blocked on credits); engagement-driven pruning script w/ per-exercise floor. 17 suites green. NEXT: Phase 9 (polish). |
 | 2026-07-06 (4) | Phase 7 BUILT: coaching-effectiveness rates in Snapshot + EFFECTIVENESS technique-switch line in coaching memory (calibration replay required); confidence-builder selector intervention (2 rough days → strongest dim); planUpcomingDims "Next up" plan preview; Overall Communication Score on dashboard hero w/ stage benchmark bands; C18 variety guardrail (2 general slots in personalized slates); Snapshot now unifies profile+coaching+effectiveness+event-readiness. 16 suites green. NEXT: Phase 8 (prompt generation engine). |

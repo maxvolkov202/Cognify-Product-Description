@@ -23,7 +23,8 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/workout", label: "Workout" },
-  { href: "/skill-lab", label: "Practice" },
+  // D6 — PRD terminology: the mode is "Skill Lab", not "Practice".
+  { href: "/skill-lab", label: "Skill Lab" },
   { href: "/build-a-rep", label: "Build a Rep" },
   { href: "/library", label: "Library" },
   { href: "/progress", label: "Progress" },

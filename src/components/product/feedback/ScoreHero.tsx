@@ -18,6 +18,10 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
+  /** PRD v3 §4.5 — the v2 loop renders the Core Skill Breakdown as its
+   *  own stage AFTER the Coach's Focus, so the hero hides its embedded
+   *  grid. Default false keeps the v1 layout byte-identical. */
+  hideBreakdown?: boolean;
 };
 
 export const ScoreHero = forwardRef<DimensionGridHandle, Props>(function ScoreHero(
@@ -29,6 +33,7 @@ export const ScoreHero = forwardRef<DimensionGridHandle, Props>(function ScoreHe
     durationLabel,
     primaryFocusDimension,
     modeSignals,
+    hideBreakdown = false,
   },
   gridRef,
 ) {
@@ -56,13 +61,15 @@ export const ScoreHero = forwardRef<DimensionGridHandle, Props>(function ScoreHe
             </p>
           </div>
         </div>
-        <DimensionGrid
-          ref={gridRef}
-          dimensions={dimensions}
-          callouts={callouts}
-          primaryFocusDimension={primaryFocusDimension}
-          modeSignals={modeSignals}
-        />
+        {!hideBreakdown && (
+          <DimensionGrid
+            ref={gridRef}
+            dimensions={dimensions}
+            callouts={callouts}
+            primaryFocusDimension={primaryFocusDimension}
+            modeSignals={modeSignals}
+          />
+        )}
       </div>
     </div>
   );

@@ -23,6 +23,14 @@ export type InsightScreenProps = {
   onReady: () => void;
 };
 
+/** ADR-001 constraint taxonomy display labels. */
+const CONSTRAINT_LABELS: Record<string, string> = {
+  time: "Time",
+  structure: "Structure",
+  tone: "Tone",
+  complexity: "Complexity",
+};
+
 export default function InsightScreen({
   station,
   promptText,
@@ -77,10 +85,25 @@ export default function InsightScreen({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-ink-400">
-          <Timer className="w-3.5 h-3.5" />
-          {windowSec.min}–{windowSec.max}s response window
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="inline-flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-ink-400">
+          <span className="inline-flex items-center gap-1.5">
+            <Timer className="w-3.5 h-3.5" />
+            {windowSec.min}–{windowSec.max}s response window
+          </span>
+          {/* ADR-001 Decision 2 — reveal the rep's primary constraint
+              type after the topic is chosen (C19). */}
+          {station.constraintTypes
+            ?.filter((c) => c !== "none")
+            .slice(0, 1)
+            .map((c) => (
+              <span
+                key={c}
+                className="inline-flex items-center rounded-full bg-purple-50 dark:bg-ink-800 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-brand-lavender"
+              >
+                {CONSTRAINT_LABELS[c] ?? c} constraint
+              </span>
+            ))}
         </span>
         <button
           type="button"

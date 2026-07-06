@@ -37,6 +37,10 @@ export const StationSchema = z.object({
     .object({ minSec: z.number(), maxSec: z.number() })
     .nullable()
     .default(null),
+  /** ADR-001 Decision 2 — the framework's constraint types (time |
+   *  structure | tone | complexity | none), revealed on the insight
+   *  screen so the rep's "one primary constraint" is explicit. */
+  constraintTypes: z.array(z.string()).nullable().default(null),
 });
 export type ShellStation = z.infer<typeof StationSchema>;
 

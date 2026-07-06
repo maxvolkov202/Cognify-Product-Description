@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
-  step: 1 | 2 | 3 | 4;
-  total?: 3 | 4;
+  step: 1 | 2 | 3 | 4 | 5;
+  total?: 3 | 4 | 5;
 };
 
 /**

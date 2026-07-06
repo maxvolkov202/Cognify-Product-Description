@@ -70,13 +70,13 @@ export default function OnboardingDaysPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12 md:py-16">
       <Link
-        href="/onboarding/goals"
+        href="/onboarding/stage"
         className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3.5" />
         Back
       </Link>
-      <OnboardingProgress step={4} total={4} />
+      <OnboardingProgress step={5} total={5} />
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 dark:text-white md:text-5xl">
           When do you want to train?

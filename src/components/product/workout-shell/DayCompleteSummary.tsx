@@ -80,6 +80,7 @@ export default function DayCompleteSummary({
   const mostImproved = findMostImprovedDim(reps);
   const recommendation = buildCoachRecommendation(dim, reps);
   const weakestToday = findWeakestDim(reps);
+  const workoutMovement = computeWorkoutMovement(reps);
 
   return (
     <div className="space-y-5">
@@ -124,21 +125,33 @@ export default function DayCompleteSummary({
         )}
       </div>
 
-      {/* PRD v3 Phase 2.7 — progression stats row (C17: reps earned +
-          all-time reps + streak, together on the completion screen). */}
-      <div className="flex justify-center gap-3 text-center">
-        <StatPill label="Reps today" value={reps.length} />
-        {lifetimeReps != null && (
-          <StatPill label="All-time reps" value={lifetimeReps} />
-        )}
-        {streakDays != null && streakDays > 0 && (
-          <StatPill label="Day streak" value={streakDays} emoji="🔥" />
-        )}
-      </div>
-
       {/* PRD v3 Phase 6 (§10.8) — unified progression celebration:
           rank + progress + streak + achievements + weekly challenges. */}
       <ProgressionStrip />
+
+      {/* §5.7 Workout Improvement — beginning-to-end of THIS workout. */}
+      {workoutMovement.length > 0 && (
+        <div className="text-center">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500 mb-1.5">
+            This workout
+          </div>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {workoutMovement.map((m) => (
+              <span
+                key={m.label}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold tabular-nums",
+                  m.delta > 0
+                    ? "border-emerald-200 dark:border-emerald-900 bg-emerald-50/70 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+                    : "border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-500 dark:text-ink-400",
+                )}
+              >
+                {m.label} {m.delta > 0 ? `+${m.delta}` : m.delta}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Most improved Core Skill (PRD §5.7). */}
       {mostImproved && (
@@ -216,6 +229,18 @@ export default function DayCompleteSummary({
           {recommendation}
         </div>
       )}
+
+      {/* §5.7 — Reps Earned is the completion structure's FINAL element
+          (C17: with all-time reps + streak). */}
+      <div className="flex justify-center gap-3 text-center">
+        <StatPill label="Reps today" value={reps.length} />
+        {lifetimeReps != null && (
+          <StatPill label="All-time reps" value={lifetimeReps} />
+        )}
+        {streakDays != null && streakDays > 0 && (
+          <StatPill label="Day streak" value={streakDays} emoji="🔥" />
+        )}
+      </div>
 
       {/* CTA */}
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -457,6 +482,36 @@ function findMostImprovedDim(
     }
   }
   return best && best.delta >= 3 ? best : null;
+}
+
+/** §5.7 Workout Improvement — first→last rep deltas (composite + the
+ *  dims that moved most), graduation rep excluded. Big negatives stay
+ *  quiet per C10. */
+function computeWorkoutMovement(
+  reps: DayRepBreakdown[],
+): { label: string; delta: number }[] {
+  const normal = reps.filter((r) => !r.isGraduationRep);
+  if (normal.length < 2) return [];
+  const first = normal[0]!;
+  const last = normal[normal.length - 1]!;
+  const out: { label: string; delta: number }[] = [];
+  const compositeDelta = Math.round(last.composite - first.composite);
+  if (compositeDelta >= -3) {
+    out.push({ label: "Composite", delta: compositeDelta });
+  }
+  const dimDeltas = ALL_DIMS.map((d) => {
+    const a = first.perDim[d];
+    const b = last.perDim[d];
+    return a != null && b != null
+      ? { label: DIMENSION_LABELS[d], delta: Math.round(b - a) }
+      : null;
+  })
+    .filter(
+      (x): x is { label: string; delta: number } => x != null && x.delta > 0,
+    )
+    .sort((a, b) => b.delta - a.delta)
+    .slice(0, 3);
+  return [...out, ...dimDeltas];
 }
 
 /** The day's weakest average dimension (graduation rep excluded) — drives

@@ -13,7 +13,7 @@ import { currentUser } from "@/lib/session/current-user";
 import { isRankSystemEnabled, isSkillLabAppsEnabled } from "@/lib/flags";
 import { db } from "@/lib/db/client";
 import { communicationProfile } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql as drizzleSql } from "drizzle-orm";
 import { safeDb } from "@/lib/db/safe";
 import { benchmarkNote } from "@/lib/profile/stage-benchmarks";
 import { WeeklyChallengesCard } from "@/components/product/dashboard/WeeklyChallengesCard";
@@ -183,16 +183,30 @@ export default async function DashboardPage() {
         }
       : { dim: null, score: null };
 
-  // ——— This-week rep counts per mode ——————————————————
-  // We don't track mode per rep here; instead derive a single "reps this
-  // week" total from activity, then split heuristically across the three
-  // tiles. For now, surface the total on Daily Workout and show 0/0 on the
-  // other two — they'll get wired up when per-mode rep history lands.
+  // ——— This-week rep counts per mode (Phase 10 — honest numbers) ————
+  // practice_sessions.mode is on every rep's session; count the last 7
+  // days per mode instead of assigning one total to the workout tile.
+  const modeCounts = user
+    ? await safeDb(async () => {
+        const rows = await db.execute<{ mode: string; c: number }>(drizzleSql`
+          SELECT ps.mode::text AS mode, COUNT(r.id)::int AS c
+          FROM cognify_v2.reps r
+          JOIN cognify_v2.practice_sessions ps ON ps.id = r.session_id
+          WHERE r.user_id = ${user.id}
+            AND r.created_at >= NOW() - INTERVAL '7 days'
+          GROUP BY ps.mode
+        `);
+        const m = new Map<string, number>();
+        for (const r of rows) m.set(r.mode, Number(r.c));
+        return m;
+      }, new Map<string, number>())
+    : new Map<string, number>();
   const sevenDayActivity = activity.slice(-7);
-  const totalRepsThisWeek = sevenDayActivity.reduce(
-    (s, d) => s + d.count,
-    0,
-  );
+  const totalRepsThisWeek = modeCounts.get("daily_workout") ?? 0;
+  const labRepsThisWeek = modeCounts.get("skill_lab") ?? 0;
+  const buildARepsThisWeek =
+    (modeCounts.get("build_a_rep") ?? 0) +
+    (modeCounts.get("scenario_training") ?? 0);
 
   // ——— Empty state: brand-new user, no reps yet ————————
   if (!hasAnyReps) {
@@ -315,7 +329,7 @@ export default async function DashboardPage() {
             tagline: isSkillLabAppsEnabled()
               ? "Master real-world applications — storytelling, presenting, teaching, interviewing, persuasion."
               : "Pick one of the six core skills and drill it with focused exercises until it clicks.",
-            repsThisWeek: 0,
+            repsThisWeek: labRepsThisWeek,
             iconKey: "lab",
           },
           {
@@ -323,7 +337,7 @@ export default async function DashboardPage() {
             label: "Build a Rep",
             tagline:
               "Describe a real moment you need to prepare for. Get a structure for your thinking and run the rep.",
-            repsThisWeek: 0,
+            repsThisWeek: buildARepsThisWeek,
             iconKey: "build",
           },
         ]}

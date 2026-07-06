@@ -110,6 +110,48 @@ export function selectLabExercises(
     });
   }
 
+  // PRD §6.6 — "The objective is not weakness-only training. Strong
+  // Application Skills continue receiving maintenance reps." Once real
+  // estimates exist, the LAST slot of a 3+ session becomes a maintenance
+  // rep on the strongest measured skill (if the greedy pass didn't
+  // already cover it).
+  if (basePicks.length >= 3) {
+    let strongest: string | null = null;
+    let strongestScore = -1;
+    let measured = 0;
+    for (const [skillId, est] of Object.entries(skillEstimates)) {
+      if (!est || est.sampleCount < 2) continue;
+      measured++;
+      if (est.score > strongestScore) {
+        strongestScore = est.score;
+        strongest = skillId;
+      }
+    }
+    const alreadyCovered =
+      strongest != null &&
+      basePicks.some((p) => {
+        const ex = candidates.find((c) => c.id === p.id);
+        return ex?.applicationSkills?.includes(strongest!) ?? false;
+      });
+    if (strongest && measured >= 3 && !alreadyCovered) {
+      const pickedIds = new Set(basePicks.map((p) => p.id));
+      const maintenance = seededShuffle(
+        candidates.filter(
+          (c) =>
+            !pickedIds.has(c.id) &&
+            (c.applicationSkills?.includes(strongest!) ?? false),
+        ),
+        seed + ":maint",
+      )[0];
+      if (maintenance) {
+        basePicks[basePicks.length - 1] = {
+          id: maintenance.id,
+          targetSkill: strongest,
+        };
+      }
+    }
+  }
+
   // Sessions longer than the catalog: cycle the weakness-priority order.
   const picks = basePicks.slice();
   while (picks.length < count) {

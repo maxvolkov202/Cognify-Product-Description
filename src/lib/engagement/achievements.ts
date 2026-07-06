@@ -31,6 +31,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: "vol_first_rep", bucket: "volume", name: "First Rep", description: "Run your first rep.", tier: "bronze" },
   { id: "vol_10_reps", bucket: "volume", name: "Warm-up", description: "Complete 10 reps.", tier: "bronze" },
   { id: "vol_50_reps", bucket: "volume", name: "Showing Up", description: "Complete 50 reps.", tier: "silver" },
+  { id: "vol_100_reps", bucket: "volume", name: "Century", description: "100 Communication Reps Completed.", tier: "silver" },
   { id: "vol_250_reps", bucket: "volume", name: "Practice Habit", description: "Complete 250 reps.", tier: "gold" },
   { id: "vol_1000_reps", bucket: "volume", name: "Four Figures", description: "Complete 1,000 reps.", tier: "platinum" },
 
@@ -55,12 +56,12 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   // ——— Exploration ————————————————————————————————————
   { id: "explore_all_dims", bucket: "exploration", name: "All Six", description: "Score every dimension at least once.", tier: "silver" },
   { id: "explore_pressure", bucket: "exploration", name: "Under Pressure", description: "Complete a pressure-mode rep.", tier: "bronze" },
-  { id: "explore_focus_drill", bucket: "exploration", name: "Focused", description: "Complete a Skill Lab focus drill.", tier: "bronze" },
+  { id: "explore_focus_drill", bucket: "exploration", name: "First Skill Lab Completed", description: "Complete your first Skill Lab session.", tier: "bronze" },
   { id: "explore_build_a_rep", bucket: "exploration", name: "Tailored", description: "Use Build-a-Rep for a real moment.", tier: "bronze" },
   { id: "explore_first_perfect", bucket: "exploration", name: "No Notes", description: "Hit 95+ on every dimension in a single rep.", tier: "platinum" },
 
   // ——— Muscle-group (Phase 10) ————————————————————————
-  { id: "mg_day_complete_first", bucket: "exploration", name: "Day One", description: "Complete your first muscle-group day (4 reps).", tier: "bronze" },
+  { id: "mg_day_complete_first", bucket: "exploration", name: "First Daily Workout", description: "Complete your first Daily Workout.", tier: "bronze" },
   { id: "mg_day_complete_streak_7", bucket: "streak", name: "Seven Strong", description: "Complete 7 muscle-group days in a row.", tier: "silver" },
   { id: "mg_graduated_first", bucket: "exploration", name: "Graduation", description: "Finish your first graduation rep.", tier: "silver" },
 ];

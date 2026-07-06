@@ -7,12 +7,13 @@
 // Phases 4-5; recommendations in Phase 7) starts here instead of
 // re-aggregating ad-hoc SQL.
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   coachingEvents,
   communicationProfile,
   prepEvents,
+  progressSnapshots,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";
@@ -57,6 +58,19 @@ export type CommunicationSnapshot = {
   /** Phase 7.6 (PRD §8.3.8) — active Build a Rep events + latest
    *  readiness, so every engine knows what the user is preparing for. */
   eventReadiness: { title: string; readinessScore: number | null }[];
+  /** PRD §8.3.10 Improvement Trends — per-dim direction over the last
+   *  21 days of progress snapshots. "insufficient" = <5 samples. */
+  improvementTrends: {
+    dimension: SkillDimension;
+    direction: "improving" | "flat" | "declining" | "insufficient";
+    slopePerDay: number | null;
+  }[];
+  /** §8.3.10 — the most-improved / most-consistent core skills, when
+   *  measurable. */
+  mostImprovedCoreSkill: SkillDimension | null;
+  mostConsistentCoreSkill: SkillDimension | null;
+  /** §8.3.11 example field — strongest application by profile estimate. */
+  strongestApplication: { id: string; score: number } | null;
 };
 
 const COACHING_LOOKBACK = 10;
@@ -70,7 +84,7 @@ export async function buildCommunicationSnapshot(
 ): Promise<CommunicationSnapshot | null> {
   if (!userId || userId === "anonymous") return null;
   return safeDb<CommunicationSnapshot | null>(async () => {
-    const [profileRow, coachingRows, effectivenessRows, eventRows] =
+    const [profileRow, coachingRows, effectivenessRows, eventRows, trendRows] =
       await Promise.all([
         db
           .select({
@@ -116,6 +130,24 @@ export async function buildCommunicationSnapshot(
           )
           .orderBy(desc(prepEvents.updatedAt))
           .limit(3),
+        db
+          .select({
+            dimension: progressSnapshots.dimension,
+            score: progressSnapshots.score,
+            takenAt: progressSnapshots.takenAt,
+          })
+          .from(progressSnapshots)
+          .where(
+            and(
+              eq(progressSnapshots.userId, userId),
+              gte(
+                progressSnapshots.takenAt,
+                new Date(Date.now() - 21 * 86_400_000),
+              ),
+            ),
+          )
+          .orderBy(desc(progressSnapshots.takenAt))
+          .limit(600),
       ]);
 
     const profile: CommunicationProfileState = profileRow
@@ -199,6 +231,69 @@ export async function buildCommunicationSnapshot(
       rate: a.retried > 0 ? a.implemented / a.retried : null,
     }));
 
+    // PRD §8.3.10 — Improvement Trends: least-squares slope per dim over
+    // the 21-day snapshot window. "Improving" needs a real slope, not
+    // noise; thresholds mirror plateau.ts (±0.15 pts/day).
+    const byDim = new Map<SkillDimension, { t: number; score: number }[]>();
+    for (const r of trendRows) {
+      const dim = r.dimension as SkillDimension;
+      if (!SKILL_DIMENSIONS.includes(dim)) continue;
+      const list = byDim.get(dim) ?? [];
+      list.push({ t: r.takenAt.getTime() / 86_400_000, score: r.score });
+      byDim.set(dim, list);
+    }
+    const improvementTrends: CommunicationSnapshot["improvementTrends"] = [];
+    let mostImprovedCoreSkill: SkillDimension | null = null;
+    let bestSlope = 0.15; // must beat the "improving" threshold
+    let mostConsistentCoreSkill: SkillDimension | null = null;
+    let lowestSpread = Number.POSITIVE_INFINITY;
+    for (const dim of SKILL_DIMENSIONS) {
+      const pts = byDim.get(dim) ?? [];
+      if (pts.length < 5) {
+        improvementTrends.push({
+          dimension: dim,
+          direction: "insufficient",
+          slopePerDay: null,
+        });
+        continue;
+      }
+      const n = pts.length;
+      const meanT = pts.reduce((a, p) => a + p.t, 0) / n;
+      const meanS = pts.reduce((a, p) => a + p.score, 0) / n;
+      let num = 0;
+      let den = 0;
+      for (const p of pts) {
+        num += (p.t - meanT) * (p.score - meanS);
+        den += (p.t - meanT) * (p.t - meanT);
+      }
+      const slope = den > 0 ? num / den : 0;
+      const direction =
+        slope >= 0.15 ? "improving" : slope <= -0.15 ? "declining" : "flat";
+      improvementTrends.push({
+        dimension: dim,
+        direction,
+        slopePerDay: Math.round(slope * 100) / 100,
+      });
+      if (slope > bestSlope) {
+        bestSlope = slope;
+        mostImprovedCoreSkill = dim;
+      }
+      const spread =
+        pts.reduce((a, p) => a + Math.abs(p.score - meanS), 0) / n;
+      if (spread < lowestSpread) {
+        lowestSpread = spread;
+        mostConsistentCoreSkill = dim;
+      }
+    }
+
+    let strongestApplication: { id: string; score: number } | null = null;
+    for (const [id, est] of Object.entries(profile.applications)) {
+      if (!est) continue;
+      if (!strongestApplication || est.score > strongestApplication.score) {
+        strongestApplication = { id, score: est.score };
+      }
+    }
+
     return {
       profile,
       weakestCoreSkill: weakest,
@@ -210,6 +305,10 @@ export async function buildCommunicationSnapshot(
         title: e.title,
         readinessScore: e.readinessScore,
       })),
+      improvementTrends,
+      mostImprovedCoreSkill,
+      mostConsistentCoreSkill,
+      strongestApplication,
     };
   }, null);
 }

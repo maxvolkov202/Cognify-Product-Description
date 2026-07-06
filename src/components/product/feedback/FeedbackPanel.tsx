@@ -12,6 +12,9 @@ import { LastRepFocusBanner } from "./LastRepFocusBanner";
 import { ScoreHero } from "./ScoreHero";
 import { OutcomeCard } from "./OutcomeCard";
 import { NextRepFocusCard } from "./NextRepFocusCard";
+import { CoachFocusCard } from "./CoachFocusCard";
+import { DimensionGrid } from "./DimensionGrid";
+import { deriveCoachFocus } from "@/lib/ai/coach-focus";
 import { RepAudioScrubber } from "./RepAudioScrubber";
 import { ExemplarModal } from "./ExemplarModal";
 import type { DimensionGridHandle } from "./DimensionGrid";
@@ -80,6 +83,12 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
+  /** PRD v3 §4.5 — the Universal Training Engine's feedback layout:
+   *  Score → ONE Coach's Focus → Core Skill Breakdown. Removes the
+   *  legacy did-well/didn't-land split (§4.5.3: those sections "do not
+   *  exist") and the multi-bullet Next Rep Focus list (§4.5.2: never
+   *  multiple primary objectives). Default false = v1, byte-identical. */
+  engineV2?: boolean;
 };
 
 const STAGGER_SEC = 0.06;
@@ -97,6 +106,7 @@ export function FeedbackPanel({
   lastRepFocus,
   onSaveExit,
   modeSignals,
+  engineV2 = false,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -273,7 +283,7 @@ export function FeedbackPanel({
         <Section delay={2}>
           <div ref={heroRef}>
             <ScoreHero
-              ref={gridRef}
+              ref={engineV2 ? undefined : gridRef}
               composite={score.composite}
               headline={headline}
               dimensions={score.dimensions}
@@ -281,53 +291,90 @@ export function FeedbackPanel({
               durationLabel={formattedDuration}
               primaryFocusDimension={score.primaryFocusDimension}
               modeSignals={modeSignals}
+              hideBreakdown={engineV2}
             />
           </div>
         </Section>
 
-        <Section delay={3}>
-          <OutcomeCard
-            variant="positive"
-            title="What you did well"
-            bullets={usePhase2DidWell ? score.didWell : undefined}
-            fallbackBullets={usePhase2DidWell ? undefined : didWellFallback}
-            linkLabel={positiveDrillTarget ? "See examples" : undefined}
-            onLinkClick={
-              positiveDrillTarget
-                ? () => expandDimension(positiveDrillTarget)
-                : undefined
-            }
-          />
-        </Section>
+        {/* PRD v3 §4.5 (v2): Score → ONE Coach's Focus → Breakdown. */}
+        {engineV2 && (
+          <>
+            {(() => {
+              const focus = deriveCoachFocus(score);
+              return focus ? (
+                <Section delay={3}>
+                  <CoachFocusCard
+                    focus={focus}
+                    onSeeExample={
+                      exemplar ? () => setExemplarOpen(true) : undefined
+                    }
+                  />
+                </Section>
+              ) : null;
+            })()}
+            <Section delay={4}>
+              <div className="surface-card relative overflow-hidden">
+                <div className="p-5 md:p-6">
+                  <DimensionGrid
+                    ref={gridRef}
+                    dimensions={score.dimensions}
+                    callouts={score.callouts}
+                    primaryFocusDimension={score.primaryFocusDimension}
+                    modeSignals={modeSignals}
+                  />
+                </div>
+              </div>
+            </Section>
+          </>
+        )}
 
-        <Section delay={4}>
-          <OutcomeCard
-            variant="negative"
-            title="What didn't land"
-            bullets={usePhase2DidntLand ? score.didntLand : undefined}
-            fallbackBullets={
-              usePhase2DidntLand ? undefined : didntLandFallback
-            }
-            linkLabel={improvementDrillTarget ? "See breakdown" : undefined}
-            onLinkClick={
-              improvementDrillTarget
-                ? () => expandDimension(improvementDrillTarget)
-                : undefined
-            }
-          />
-        </Section>
+        {!engineV2 && (
+          <>
+            <Section delay={3}>
+              <OutcomeCard
+                variant="positive"
+                title="What you did well"
+                bullets={usePhase2DidWell ? score.didWell : undefined}
+                fallbackBullets={usePhase2DidWell ? undefined : didWellFallback}
+                linkLabel={positiveDrillTarget ? "See examples" : undefined}
+                onLinkClick={
+                  positiveDrillTarget
+                    ? () => expandDimension(positiveDrillTarget)
+                    : undefined
+                }
+              />
+            </Section>
 
-        <Section delay={5}>
-          <NextRepFocusCard
-            items={usePhase2NextRep ? score.nextRepFocus : undefined}
-            fallbackBullets={
-              usePhase2NextRep ? undefined : nextRepFocusFallback
-            }
-            onSeeExample={
-              exemplar ? () => setExemplarOpen(true) : undefined
-            }
-          />
-        </Section>
+            <Section delay={4}>
+              <OutcomeCard
+                variant="negative"
+                title="What didn't land"
+                bullets={usePhase2DidntLand ? score.didntLand : undefined}
+                fallbackBullets={
+                  usePhase2DidntLand ? undefined : didntLandFallback
+                }
+                linkLabel={improvementDrillTarget ? "See breakdown" : undefined}
+                onLinkClick={
+                  improvementDrillTarget
+                    ? () => expandDimension(improvementDrillTarget)
+                    : undefined
+                }
+              />
+            </Section>
+
+            <Section delay={5}>
+              <NextRepFocusCard
+                items={usePhase2NextRep ? score.nextRepFocus : undefined}
+                fallbackBullets={
+                  usePhase2NextRep ? undefined : nextRepFocusFallback
+                }
+                onSeeExample={
+                  exemplar ? () => setExemplarOpen(true) : undefined
+                }
+              />
+            </Section>
+          </>
+        )}
         <ExemplarModal
           open={exemplarOpen}
           exemplar={exemplar}

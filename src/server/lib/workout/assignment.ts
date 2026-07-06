@@ -63,6 +63,8 @@ export type CatalogExercise = {
   objective: string | null;
   hiddenSkills: string[] | null;
   responseWindow: { minSec: number; maxSec: number } | null;
+  /** ADR-001 Decision 2 — constraint types (time|structure|tone|complexity). */
+  constraintTypes: string[] | null;
 };
 
 /** One prompt from the exercise's bank. */
@@ -685,36 +687,44 @@ export type PickPromptsInput = {
   seed: string;
   /** When set, bias toward the easier end (composite < 60 case). */
   preferEasier?: boolean;
+  /** PRD v3 Phase 10 (§8.4.3 "the difficulty and challenge level of the
+   *  workout") — three-way difficulty bias. "easier" = intro-first
+   *  (legacy behavior, and the preferEasier case); "neutral" = same
+   *  intro-first ordering (byte-identical legacy default); "harder" =
+   *  stretch-first for users performing ≥80 in the dim, so strong users
+   *  finally see stretch prompts inside the slate. */
+  challengeBias?: "easier" | "neutral" | "harder";
 };
+
+// D10 (2026-07-06) — prompt slate is FOUR options. Three of the four PRD
+// references (both Engine V1 specs + §8.4/§8.5) say four; §5.6/§6.5 say
+// six; five matched nothing. Adjudicated per the tracker Decision Log.
+export const PROMPT_SLATE_SIZE = 4;
 
 export function pickPromptCandidates(
   input: PickPromptsInput,
 ): CatalogPrompt[] {
   const { available, recentPromptIds, seed } = input;
-  const k = input.k ?? 5;
+  const k = input.k ?? PROMPT_SLATE_SIZE;
+  const bias =
+    input.challengeBias ?? (input.preferEasier ? "easier" : "neutral");
   const recent = new Set(recentPromptIds.slice(0, PROMPT_BIAS_WINDOW));
 
   // 1) Split bank into "fresh" (not in recent) vs "used".
   const fresh = available.filter((p) => !recent.has(p.promptId));
   const used = available.filter((p) => recent.has(p.promptId));
 
-  // 2) Shuffle each pool independently.
-  //   Difficulty bias intro→core→stretch (CTO review Phase F2) is applied
+  // 2) Shuffle each pool independently, then apply the difficulty bias
   //   WITHIN each pool, BEFORE concatenation — otherwise a low-difficulty
   //   "used" prompt would jump above a higher-difficulty "fresh" one and
   //   defeat the anti-repetition guard. Stable sort preserves the
   //   seeded shuffle order within each difficulty tier.
-  const sortedFresh = seededShuffle(fresh, seed).sort(
-    (a, b) => a.difficulty - b.difficulty,
-  );
-  const sortedUsed = seededShuffle(used, seed + ":u").sort(
-    (a, b) => a.difficulty - b.difficulty,
-  );
+  const byBias = (a: CatalogPrompt, b: CatalogPrompt) =>
+    bias === "harder" ? b.difficulty - a.difficulty : a.difficulty - b.difficulty;
+  const sortedFresh = seededShuffle(fresh, seed).sort(byBias);
+  const sortedUsed = seededShuffle(used, seed + ":u").sort(byBias);
 
-  // 3) Prefer fresh, fill from used if needed. `preferEasier` (composite
-  //   < 60) is preserved as an explicit signal for callers, but the
-  //   sort key is identical in both paths because the canon never
-  //   wants stretch-first ordering.
+  // 3) Prefer fresh, fill from used if needed.
   const pool = [...sortedFresh, ...sortedUsed];
 
   return pool.slice(0, k);

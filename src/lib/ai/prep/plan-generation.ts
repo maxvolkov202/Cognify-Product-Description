@@ -199,7 +199,8 @@ export function inferEventType(description: string): PrepEventType {
   if (/demo\b|product walkthrough|poc\b/.test(text)) return "demo";
   if (/standup|status|sync|1:1|qbr|quarterly|meeting|update/.test(text))
     return "meeting";
-  if (/keynote|speech|talk\b|toastmaster|commencement/.test(text)) return "speech";
+  if (/keynote|speech|talk\b|toastmaster|commencement|prepared remarks|\bremarks\b/.test(text))
+    return "speech";
   if (/present|deck|slides|review board|proposal/.test(text))
     return "presentation";
   return "other";

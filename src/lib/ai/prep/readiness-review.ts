@@ -29,6 +29,12 @@ export type ReadinessEvidence = {
     contextSummary?: string | null;
   };
   mode: "guided" | "simulation";
+  /** §8.4.6 Adaptive Preparation — the previous readiness review on the
+   *  SAME event, so the coach speaks to trajectory. */
+  previous?: {
+    overallScore: number | null;
+    coachFeedback: string | null;
+  } | null;
   /** Per-dimension averages across the session's reps (post-alias). */
   dimensionAverages: Partial<Record<SkillDimension, number>>;
   /** Guided mode: per-moment outcomes for specificity. */
@@ -120,6 +126,13 @@ export async function generateReadinessReview(
       ? `EVENT CONTEXT: ${evidence.event.contextSummary.slice(0, 4000)}`
       : null,
     `PREPARATION MODE: ${evidence.mode === "guided" ? "Guided Practice (moment by moment)" : "Full Simulation (uninterrupted run-through)"}`,
+    evidence.previous
+      ? `PREVIOUS SESSION ON THIS EVENT: readiness ${
+          evidence.previous.overallScore != null
+            ? Math.round(evidence.previous.overallScore)
+            : "n/a"
+        }; prior focus: "${evidence.previous.coachFeedback ?? ""}". Speak to the trajectory — acknowledge movement since last time and whether the prior focus landed.`
+      : null,
     `OVERALL SCORE (computed): ${overallScore ?? "n/a"}`,
     `CORE SKILL SCORES:\n${measuredDims
       .map((d) => `- ${d}: ${Math.round(evidence.dimensionAverages[d]!)}`)

@@ -178,6 +178,7 @@ export default function AppSessionClient({
       status: "current",
       compositeScore: null,
       objective: exercise.objective,
+      constraintTypes: null,
       responseWindow: exercise.responseWindow,
     };
   }, [exercise, idx]);
@@ -284,7 +285,7 @@ export default function AppSessionClient({
             exerciseName={exercise.name}
             rule={exercise.rule}
             why={exercise.why}
-            workoutSessionId={null}
+            workoutSessionId={sessionId}
             personalize
             onSelect={(params) => {
               setSelectedPrompt({
@@ -309,6 +310,8 @@ export default function AppSessionClient({
           <RepSurface
             key={`${exercise.exerciseId}:${selectedPrompt.promptId}:${phase.attempt}`}
             prompt={selectedPrompt.text}
+            responseWindow={exercise.responseWindow}
+            feedbackVariant="v2"
             mode="skill_lab"
             topic={exercise.name}
             sessionId={sessionId}
@@ -550,9 +553,19 @@ function SessionComplete({
         </div>
       </div>
 
-      {delta != null && delta > 0 && (
-        <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-          +{delta} average improvement between first takes and retries.
+      {/* §6.8 item 2 — always present; neutral copy when flat/negative. */}
+      {delta != null && (
+        <p
+          className={cn(
+            "text-sm font-semibold",
+            delta > 0
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-slate-500 dark:text-ink-400",
+          )}
+        >
+          {delta > 0
+            ? `+${delta} average improvement between first takes and retries.`
+            : "You held steady between first takes and retries — changing a habit mid-rep is the hard part."}
         </p>
       )}
 

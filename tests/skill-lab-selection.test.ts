@@ -158,6 +158,44 @@ section("recent-use deprioritization");
   );
 }
 
+section("strong-skill maintenance (§6.6)");
+{
+  // All skills measured; narrative_tension weak, clear_takeaway strong.
+  const estimates = {
+    establishing_stakes: { score: 60, sampleCount: 4 },
+    narrative_tension: { score: 30, sampleCount: 4 },
+    concrete_detail: { score: 62, sampleCount: 4 },
+    showing_change: { score: 58, sampleCount: 4 },
+    clear_takeaway: { score: 88, sampleCount: 4 },
+    making_listener_care: { score: 61, sampleCount: 4 },
+  };
+  const picks = selectLabExercises({
+    candidates: CATALOG,
+    skillEstimates: estimates,
+    recentExerciseIds: new Set(),
+    count: 3,
+    seed: "maint-1",
+  });
+  const last = picks[picks.length - 1]!;
+  const coversStrongest = picks.some((p) => {
+    const ex = CATALOG.find((c) => c.id === p.id)!;
+    return ex.applicationSkills!.includes("clear_takeaway");
+  });
+  assert(coversStrongest, "3-session includes a strongest-skill maintenance rep");
+  assert(
+    last.targetSkill === "clear_takeaway" ||
+      CATALOG.find((c) => c.id === picks[0]!.id)!.applicationSkills!.includes(
+        "clear_takeaway",
+      ),
+    "maintenance slot targets the strongest measured skill",
+  );
+  // Weakness still leads the session.
+  assert(
+    picks[0]!.targetSkill === "narrative_tension",
+    "weakest skill still opens the session",
+  );
+}
+
 section("cycling + determinism");
 {
   const input = {

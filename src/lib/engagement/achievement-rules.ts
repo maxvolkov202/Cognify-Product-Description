@@ -75,6 +75,7 @@ function collectCandidates(input: EvaluateAchievementsInput): string[] {
   if (input.lifetimeReps >= 1) out.push("vol_first_rep");
   if (input.lifetimeReps >= 10) out.push("vol_10_reps");
   if (input.lifetimeReps >= 50) out.push("vol_50_reps");
+  if (input.lifetimeReps >= 100) out.push("vol_100_reps");
   if (input.lifetimeReps >= 250) out.push("vol_250_reps");
   if (input.lifetimeReps >= 1000) out.push("vol_1000_reps");
 

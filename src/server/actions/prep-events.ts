@@ -31,7 +31,12 @@ import {
   type ReadinessEvidence,
   type ReadinessReviewContent,
 } from "@/lib/ai/prep/readiness-review";
-import { SKILL_DIMENSIONS, type SkillDimension } from "@/types/domain";
+import {
+  DIMENSION_LABELS,
+  SKILL_DIMENSIONS,
+  type SkillDimension,
+} from "@/types/domain";
+import { buildCommunicationSnapshot } from "@/lib/profile/snapshot";
 
 const DESCRIPTION_MAX = 2000;
 const MOMENT_TITLE_MAX = 60;
@@ -88,6 +93,66 @@ async function gate(): Promise<Gate> {
   const ent = getBuildARepEntitlement(user.id);
   if (!ent.allowed) return { ok: false, reason: ent.reason };
   return { ok: true, userId: user.id };
+}
+
+/** PRD §8.4.6 Adaptive Preparation — the generation hint that makes
+ *  repeat preparation smarter: the user's weakest Core Skill (from the
+ *  Communication Snapshot) plus the event's prior readiness + weakest
+ *  practiced moments. Null when there's nothing to say yet. */
+async function buildPrepProfileHint(
+  userId: string,
+  eventId: string | null,
+): Promise<string | null> {
+  const parts: string[] = [];
+  const snapshot = await buildCommunicationSnapshot(userId);
+  if (snapshot?.weakestCoreSkill) {
+    parts.push(
+      `The user's weakest Core Skill is ${
+        DIMENSION_LABELS[snapshot.weakestCoreSkill.dimension] ??
+        snapshot.weakestCoreSkill.dimension
+      } (${Math.round(snapshot.weakestCoreSkill.score)}) — moments that exercise it deserve extra practice time.`,
+    );
+  }
+  if (eventId) {
+    const [lastReview] = await db
+      .select({
+        overallScore: readinessReviews.overallScore,
+        coachFeedback: readinessReviews.coachFeedback,
+      })
+      .from(readinessReviews)
+      .where(eq(readinessReviews.eventId, eventId))
+      .orderBy(desc(readinessReviews.createdAt))
+      .limit(1);
+    if (lastReview) {
+      parts.push(
+        `PREVIOUS SESSION on this event: readiness ${
+          lastReview.overallScore != null
+            ? Math.round(lastReview.overallScore)
+            : "n/a"
+        }; prior coach feedback: "${lastReview.coachFeedback ?? ""}". Build on it — don't restart from scratch.`,
+      );
+    }
+    const weakMoments = await db
+      .select({
+        title: criticalMoments.title,
+        bestComposite: criticalMoments.bestComposite,
+      })
+      .from(criticalMoments)
+      .where(eq(criticalMoments.eventId, eventId))
+      .orderBy(asc(criticalMoments.bestComposite))
+      .limit(2);
+    const weak = weakMoments.filter(
+      (m) => m.bestComposite != null && m.bestComposite < 70,
+    );
+    if (weak.length > 0) {
+      parts.push(
+        `Weakest practiced moments so far: ${weak
+          .map((m) => `"${m.title}" (best ${Math.round(m.bestComposite!)})`)
+          .join(", ")}.`,
+      );
+    }
+  }
+  return parts.length > 0 ? parts.join(" ") : null;
 }
 
 /** Combined parsed context for an event (capped), for generation calls. */
@@ -173,7 +238,11 @@ export async function createPrepEvent(input: {
 
   return safeDb(
     async () => {
-      const { plan, source } = await generatePreparationPlan({ description });
+      const profileHint = await buildPrepProfileHint(g.userId, null);
+      const { plan, source } = await generatePreparationPlan({
+        description,
+        profileHint,
+      });
       const [event] = await db
         .insert(prepEvents)
         .values({
@@ -219,9 +288,11 @@ export async function regeneratePreparationPlan(input: {
         .limit(1);
       if (!event) return { ok: false };
       const contextText = await gatherContextText(event.id);
+      const profileHint = await buildPrepProfileHint(g.userId, event.id);
       const { plan, source } = await generatePreparationPlan({
         description: event.description,
         contextText,
+        profileHint,
       });
       await applyPlanMoments(g.userId, event.id, plan, {
         keepUserMoments: true,
@@ -615,6 +686,18 @@ export async function finishPrepSession(
         .where(eq(criticalMoments.eventId, input.eventId))
         .orderBy(asc(criticalMoments.sortOrder));
 
+      // §8.4.6 — feed the previous review so the coach can speak to
+      // trajectory ("up from 62 last session") instead of starting over.
+      const [previousReview] = await db
+        .select({
+          overallScore: readinessReviews.overallScore,
+          coachFeedback: readinessReviews.coachFeedback,
+        })
+        .from(readinessReviews)
+        .where(eq(readinessReviews.eventId, event.id))
+        .orderBy(desc(readinessReviews.createdAt))
+        .limit(1);
+
       const evidence: ReadinessEvidence = {
         event: {
           title: event.title,
@@ -622,6 +705,12 @@ export async function finishPrepSession(
           description: event.description,
           contextSummary: event.contextSummary,
         },
+        previous: previousReview
+          ? {
+              overallScore: previousReview.overallScore,
+              coachFeedback: previousReview.coachFeedback,
+            }
+          : null,
         mode: input.mode,
         dimensionAverages,
         moments:

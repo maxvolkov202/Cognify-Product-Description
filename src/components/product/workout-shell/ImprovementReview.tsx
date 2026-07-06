@@ -22,6 +22,7 @@ import {
   type ImplementationVerdict,
 } from "@/lib/ai/coach-focus";
 import { cn } from "@/lib/utils/cn";
+import { DimensionGrid } from "@/components/product/feedback/DimensionGrid";
 
 export type AttemptPayload = {
   repId: string;
@@ -200,6 +201,57 @@ export default function ImprovementReview({
           {verdictNote ?? verdictCopy.blurb}
         </p>
       </div>
+
+      {/* PRD §4.7.1 — "The same Core Skill Breakdown appears in both
+          feedback screens." Per-skill first→retry movement on top
+          (§4.7.2 examples show multi-skill deltas), C10-softened: big
+          negatives render as the score alone, no scary number. */}
+      {retry && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500 mb-2">
+            Core Skill breakdown
+          </div>
+          {first && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {retry.score.dimensions.map((d) => {
+                const before = first.score.dimensions.find(
+                  (f) => f.dimension === d.dimension,
+                );
+                const delta =
+                  before != null ? Math.round(d.score - before.score) : null;
+                const showDelta = delta != null && delta >= -3 && delta !== 0;
+                return (
+                  <span
+                    key={d.dimension}
+                    className="inline-flex items-center gap-1 rounded-full bg-slate-50 dark:bg-ink-800 border border-slate-100 dark:border-ink-700 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:text-ink-300 tabular-nums"
+                  >
+                    {DIMENSION_LABELS[d.dimension as SkillDimension] ??
+                      d.dimension}{" "}
+                    {Math.round(d.score)}
+                    {showDelta && (
+                      <span
+                        className={cn(
+                          "font-bold",
+                          delta! > 0
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-slate-400 dark:text-ink-500",
+                        )}
+                      >
+                        {delta! > 0 ? `+${delta}` : delta}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          <DimensionGrid
+            dimensions={retry.score.dimensions}
+            callouts={retry.score.callouts}
+            primaryFocusDimension={retry.score.primaryFocusDimension}
+          />
+        </div>
+      )}
 
       {/* Next development opportunity. */}
       {nextFocus && (

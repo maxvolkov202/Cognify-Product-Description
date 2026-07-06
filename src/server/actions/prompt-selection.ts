@@ -23,7 +23,7 @@ import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log, serializeErr } from "@/lib/log";
 import { pickPromptCandidates } from "@/server/lib/workout/assignment";
-import { isPromptGenEnabled } from "@/lib/flags";
+import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
 import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
 
 export type PromptCandidate = {
@@ -44,7 +44,7 @@ const PROMPT_BIAS_WINDOW = 30;
 /** Slide to the next-wider filter tier if the current tier returns fewer
  *  than this many prompts. Matches the Shuffle candidate count (k=5) so we
  *  never lock onto a too-thin bank when a wider one would give real rotation. */
-const MIN_BANK_SIZE = 5;
+const MIN_BANK_SIZE = 4; // tracks the D10 slate size
 
 /**
  * Legacy tag map — the original 864 vertical-flavored prompts (Phase 2 seed)
@@ -298,6 +298,17 @@ export async function fetchPromptCandidates(input: {
 
     const preferEasier =
       input.preferEasier ?? (recentDimComposite != null && recentDimComposite < 60);
+    // PRD v3 Phase 10 (§8.4.3) — strong performers get stretch-first
+    // slates; strugglers get intro-first; the middle keeps the legacy
+    // ordering. Harder bias is v2-engine only so legacy behavior is
+    // untouched until promotion.
+    const challengeBias: "easier" | "neutral" | "harder" = preferEasier
+      ? "easier"
+      : isTrainingEngineV2Enabled() &&
+          recentDimComposite != null &&
+          recentDimComposite >= 80
+        ? "harder"
+        : "neutral";
 
     // PRD v3 Phase 2.6 — hard in-session exclusion (distinct from the
     // soft cross-session recentPromptIds bias). Cap the incoming list
@@ -314,7 +325,7 @@ export async function fetchPromptCandidates(input: {
     }));
     if (sessionSeen.size > 0) {
       const unseen = available.filter((p) => !sessionSeen.has(p.promptId));
-      if (unseen.length >= 5) {
+      if (unseen.length >= 4) {
         available = unseen;
       } else if (isPromptGenEnabled()) {
         // PRD v3 Phase 8.1 (D3 hybrid) — the curated bank ran dry for
@@ -323,7 +334,7 @@ export async function fetchPromptCandidates(input: {
         const generated = await generateAndCachePrompts({
           exerciseId: input.exerciseId,
           userContext: { vertical: userVertical },
-          count: 5 - unseen.length,
+          count: 4 - unseen.length,
         });
         if (generated.length > 0) {
           available = [...unseen, ...generated];
@@ -356,8 +367,9 @@ export async function fetchPromptCandidates(input: {
     const picked = pickPromptCandidates({
       available,
       recentPromptIds,
-      k: 5,
+      k: 4, // D10 — four prompt options per slate
       preferEasier,
+      challengeBias,
       seed: `${userId}:${input.exerciseId}:${Date.now()}`,
     });
 
@@ -365,10 +377,10 @@ export async function fetchPromptCandidates(input: {
     // the whole slate came from a PERSONALIZED bank, swap the last two
     // slots for general-bank prompts: relevance sells the rep, variety
     // prevents the profile from overfitting the user into a bubble.
-    const VARIETY_SLOTS = 2;
+    const VARIETY_SLOTS = 1;
     if (
       (bankTier === "vertical+goal" || bankTier === "vertical") &&
-      picked.length === 5
+      picked.length === 4
     ) {
       try {
         const generalRows = await selectBank(generalFilter);
@@ -390,9 +402,10 @@ export async function fetchPromptCandidates(input: {
             recentPromptIds,
             k: VARIETY_SLOTS,
             preferEasier,
+            challengeBias,
             seed: `${userId}:${input.exerciseId}:${Date.now()}:variety`,
           });
-          picked.splice(5 - VARIETY_SLOTS, VARIETY_SLOTS, ...varietyPicks);
+          picked.splice(4 - VARIETY_SLOTS, VARIETY_SLOTS, ...varietyPicks);
         }
       } catch {
         // Guardrail is best-effort — a fully personalized slate is the

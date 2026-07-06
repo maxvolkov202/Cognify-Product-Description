@@ -406,6 +406,11 @@ function ActiveRep({
     <RepSurface
       key={`${station.exerciseId}:${selectedPrompt.promptId}:${attempt}`}
       prompt={selectedPrompt.text}
+      // ADR-001 — count-up timer with the exercise's target band; the
+      // graduation pressure rep keeps the legacy countdown (explicit
+      // time-pressure is its whole point).
+      responseWindow={graduation ? null : (station.responseWindow ?? null)}
+      feedbackVariant={loop === "v2" ? "v2" : "v1"}
       mode="daily_workout"
       topic={
         graduation

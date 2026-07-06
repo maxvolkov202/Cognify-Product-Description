@@ -16,6 +16,13 @@ type Props = {
   maxDurationMs?: number;
   minDurationMs?: number;
   countdownSeconds?: number;
+  /** ADR-001 Decision 1 — when set, the timer COUNTS UP against a
+   *  target window ("Target 60–90s") instead of counting down, and the
+   *  recording never hard-stops at the window (maxDurationMs stays as a
+   *  generous invisible infra ceiling). Passing nothing preserves the
+   *  legacy countdown exactly — explicit `time` constraints and legacy
+   *  callers keep the hard countdown. */
+  responseWindow?: { minSec: number; maxSec: number } | null;
   onComplete: (result: RecordingResult) => void;
   disabled?: boolean;
   /** When provided, enables the 3-tile Redo/Pause/Submit action row
@@ -30,6 +37,7 @@ export function RecordButton({
   maxDurationMs = 90_000,
   minDurationMs = 3_000,
   countdownSeconds = 3,
+  responseWindow = null,
   onComplete,
   disabled,
   onPause,
@@ -52,6 +60,11 @@ export function RecordButton({
   const maxStopAnchorRef = useRef<number | null>(null);
 
   const remainingMs = Math.max(0, maxDurationMs - elapsedMs);
+  // ADR-001 window mode: the clock counts up; the band is the target.
+  const windowMode = responseWindow != null;
+  const windowMinMs = (responseWindow?.minSec ?? 0) * 1000;
+  const windowMaxMs = (responseWindow?.maxSec ?? 0) * 1000;
+  const pastWindow = windowMode && elapsedMs > windowMaxMs;
 
   const cleanup = useCallback(() => {
     if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
@@ -239,16 +252,20 @@ export function RecordButton({
             </div>
           )}
           <div className="text-5xl font-extrabold tabular-nums text-white drop-shadow-md">
-            {formatTime(remainingMs)}
+            {formatTime(windowMode ? elapsedMs : remainingMs)}
           </div>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-white">
             {phase === "finalizing"
               ? "Processing"
               : isPaused
                 ? "Paused — tap Resume"
-                : "Recording"}
+                : windowMode
+                  ? pastWindow
+                    ? "Past your window — bring it home"
+                    : `Target ${responseWindow!.minSec}–${responseWindow!.maxSec}s`
+                  : "Recording"}
           </p>
-          {isRecording && (
+          {isRecording && !windowMode && (
             <div
               className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-ink-100"
               role="progressbar"
@@ -268,6 +285,42 @@ export function RecordButton({
                 )}
                 style={{
                   width: `${Math.min(100, (elapsedMs / maxDurationMs) * 100)}%`,
+                }}
+              />
+            </div>
+          )}
+          {isRecording && windowMode && (
+            <div
+              className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-ink-100/60"
+              role="progressbar"
+              aria-valuenow={Math.min(
+                100,
+                Math.round((elapsedMs / windowMaxMs) * 100),
+              )}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Elapsed vs target window of ${responseWindow!.minSec} to ${responseWindow!.maxSec} seconds`}
+            >
+              {/* Target band: the min→max stretch reads as "the zone". */}
+              <div
+                className="absolute inset-y-0 bg-white/35"
+                aria-hidden="true"
+                style={{
+                  left: `${Math.min(95, (windowMinMs / windowMaxMs) * 100)}%`,
+                  right: 0,
+                }}
+              />
+              <div
+                className={cn(
+                  "relative h-full transition-[width,background-color] duration-100 ease-linear",
+                  elapsedMs < windowMinMs
+                    ? "bg-sky-400"
+                    : pastWindow
+                      ? "bg-amber-400"
+                      : "bg-emerald-400",
+                )}
+                style={{
+                  width: `${Math.min(100, (elapsedMs / windowMaxMs) * 100)}%`,
                 }}
               />
             </div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { and, desc, eq, inArray, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
@@ -142,6 +143,7 @@ async function fetchTodaysDayPayload(
               instructions: exercises.instructions,
               objective: exercises.objective,
               responseWindow: exercises.responseWindow,
+              constraintTypes: exercises.constraintTypes,
             })
             .from(exercises)
             .where(inArray(exercises.id, exerciseIds))
@@ -209,6 +211,7 @@ async function fetchTodaysDayPayload(
         status,
         compositeScore: null,
         objective: ex.objective ?? null,
+        constraintTypes: ex.constraintTypes ?? null,
         responseWindow: ex.responseWindow ?? null,
       };
       return [station];
@@ -354,15 +357,15 @@ function BetaSoon() {
           soon.
         </p>
         <p className="text-xs text-slate-500">
-          In the meantime, Practice (formerly Skill Lab) is still up for
-          targeted drills and custom reps.
+          In the meantime, Skill Lab is still up for targeted training
+          and custom reps.
         </p>
-        <a
+        <Link
           href="/skill-lab"
-          className="inline-block mt-2 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
+          className="inline-flex min-h-[44px] items-center mt-2 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
         >
-          Go to Practice
-        </a>
+          Go to Skill Lab
+        </Link>
       </div>
     </div>
   );

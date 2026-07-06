@@ -38,7 +38,7 @@ export default function OnboardingVerticalPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-12 md:py-16">
-      <OnboardingProgress step={1} total={4} />
+      <OnboardingProgress step={1} total={5} />
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           What do you do?

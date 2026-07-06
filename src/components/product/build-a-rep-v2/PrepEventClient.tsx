@@ -122,6 +122,9 @@ export default function PrepEventClient({
   );
   const [practicedThisSession, setPracticedThisSession] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  // §7.7 — "Users may edit the recommended time before beginning";
+  // per-moment override edited on the rep screen (MomentInsight).
+  const [momentSeconds, setMomentSeconds] = useState<number | null>(null);
 
   const refreshEvent = useCallback(async () => {
     const fresh = await getPrepEvent(event.id);
@@ -172,6 +175,7 @@ export default function PrepEventClient({
 
   const startMoment = useCallback((moment: PrepMoment) => {
     setAttempts({ first: null, retry: null });
+    setMomentSeconds(null);
     setView({ kind: "moment", moment, stage: "insight", attempt: "first" });
   }, []);
 
@@ -206,6 +210,16 @@ export default function PrepEventClient({
     setView({ kind: "plan" });
     void refreshEvent();
   }, [refreshEvent]);
+
+  /** §7.7 — "Continue to Next Critical Moment" branch target. */
+  const nextMomentAfter = useCallback(
+    (moment: PrepMoment): PrepMoment | null => {
+      const idx = event.moments.findIndex((m) => m.id === moment.id);
+      if (idx === -1) return null;
+      return event.moments[idx + 1] ?? null;
+    },
+    [event.moments],
+  );
 
   // ── Readiness ────────────────────────────────────────────────────────
 
@@ -334,6 +348,15 @@ export default function PrepEventClient({
         {view.kind === "moment" && view.stage === "insight" && (
           <MomentInsight
             moment={moment}
+            seconds={momentSeconds ?? moment.recommendedSeconds}
+            onSecondsChange={(sec) => {
+              setMomentSeconds(sec);
+              // Write-through so the plan remembers the real-world time.
+              void updateCriticalMoment({
+                momentId: moment.id,
+                recommendedSeconds: sec,
+              });
+            }}
             onReady={() =>
               setView({ kind: "moment", moment, stage: "rep", attempt: "first" })
             }
@@ -344,11 +367,25 @@ export default function PrepEventClient({
           <RepSurface
             key={`${moment.id}:${view.attempt}`}
             prompt={momentPrompt(event, moment)}
+            feedbackVariant="v2"
             mode="build_a_rep"
             topic={moment.title}
             sessionId={sessionId}
+            // ADR-001 — the visible pressure is the recommended time
+            // (count-up band, §7.7-editable via MomentInsight); the hard
+            // stop stays a generous ceiling.
+            responseWindow={{
+              minSec: Math.max(
+                15,
+                Math.round((momentSeconds ?? moment.recommendedSeconds) * 0.6),
+              ),
+              maxSec: momentSeconds ?? moment.recommendedSeconds,
+            }}
             maxDurationMs={Math.min(
-              Math.max(moment.recommendedSeconds * 1500, 60_000),
+              Math.max(
+                (momentSeconds ?? moment.recommendedSeconds) * 1500,
+                60_000,
+              ),
               600_000,
             )}
             feedbackRepIndex={1}
@@ -399,21 +436,54 @@ export default function PrepEventClient({
           />
         )}
 
-        {view.kind === "moment-review" && (
-          <ImprovementReview
-            dimension={(coachFocus?.dimension as MuscleGroupId) ?? null}
-            first={attempts.first}
-            retry={attempts.retry}
-            isLastStation={false}
-            advanceLabel="Back to plan →"
-            quitLabel="Return to plan"
-            onRetryAgain={() =>
-              setView({ kind: "moment", moment, stage: "rep", attempt: "again" })
-            }
-            onAdvance={backToPlan}
-            onQuit={backToPlan}
-          />
-        )}
+        {/* §7.7 — the first-feedback screen's "Continue to Next Critical
+            Moment" branch (retry stays the primary CTA; it's optional
+            here, unlike Daily Workout). */}
+        {view.kind === "moment" &&
+          view.stage === "rep" &&
+          view.attempt === "first" &&
+          attempts.first != null &&
+          (() => {
+            const next = nextMomentAfter(moment);
+            return next ? (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => startMoment(next)}
+                  className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+                >
+                  Skip the retry — continue to “{next.title}” →
+                </button>
+              </div>
+            ) : null;
+          })()}
+
+        {view.kind === "moment-review" &&
+          (() => {
+            const next = nextMomentAfter(moment);
+            return (
+              <ImprovementReview
+                dimension={(coachFocus?.dimension as MuscleGroupId) ?? null}
+                first={attempts.first}
+                retry={attempts.retry}
+                isLastStation={next == null}
+                advanceLabel={
+                  next ? `Next moment: ${next.title} →` : "Back to plan →"
+                }
+                quitLabel="Return to plan"
+                onRetryAgain={() =>
+                  setView({
+                    kind: "moment",
+                    moment,
+                    stage: "rep",
+                    attempt: "again",
+                  })
+                }
+                onAdvance={() => (next ? startMoment(next) : backToPlan())}
+                onQuit={backToPlan}
+              />
+            );
+          })()}
       </div>
     );
   }
@@ -527,6 +597,14 @@ function PlanScreen({
         setUploadNote(
           "Uploaded, but we couldn't read text from that file (PDF, DOCX, TXT and MD work best).",
         );
+      } else {
+        // §7.5 — "As additional context is provided, the preparation
+        // experience should become increasingly specific." Regenerate
+        // automatically instead of waiting for a manual click; the
+        // user's own moments survive (regenerate keeps source=user).
+        setUploadNote("Context read — updating your plan with it…");
+        await regeneratePreparationPlan({ eventId: event.id });
+        setUploadNote(null);
       }
       await onRefresh();
     } finally {
@@ -927,9 +1005,13 @@ function PlanScreen({
 
 function MomentInsight({
   moment,
+  seconds,
+  onSecondsChange,
   onReady,
 }: {
   moment: PrepMoment;
+  seconds: number;
+  onSecondsChange: (sec: number) => void;
   onReady: () => void;
 }) {
   return (
@@ -945,10 +1027,24 @@ function MomentInsight({
           {moment.objective}
         </p>
       )}
-      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-ink-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-ink-300 tabular-nums">
+      {/* §7.7 — recommended time on the REP SCREEN, editable before
+          beginning; the timer recreates pressure, it doesn't grade. */}
+      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-ink-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-ink-300 tabular-nums">
         <Clock className="w-3.5 h-3.5" />
-        Aim for ~{moment.recommendedSeconds} seconds — the timer recreates real
-        pressure, it doesn&apos;t grade you.
+        Target
+        <input
+          type="number"
+          min={15}
+          max={1800}
+          value={seconds}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            if (Number.isFinite(v) && v >= 15 && v <= 1800) onSecondsChange(v);
+          }}
+          aria-label="Recommended speaking time in seconds"
+          className="w-16 min-h-[36px] rounded-md border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-1.5 text-center text-xs font-bold text-slate-800 dark:text-white"
+        />
+        seconds — match your real moment
       </div>
       <div className="mt-5">
         <button
@@ -1076,9 +1172,14 @@ function SimulationView({
         <RepSurface
           key={`sim:${event.id}`}
           prompt={simulationPrompt(event)}
+          feedbackVariant="v2"
           mode="build_a_rep"
           topic={event.title}
           sessionId={sessionId}
+          responseWindow={{
+            minSec: Math.max(30, Math.round(view.durationSec * 0.6)),
+            maxSec: view.durationSec,
+          }}
           maxDurationMs={Math.min(view.durationSec * 1300, 1_200_000)}
           feedbackRepIndex={1}
           feedbackTotalReps={1}

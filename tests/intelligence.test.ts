@@ -188,6 +188,10 @@ section("coaching effectiveness line (7.1)");
       },
     ],
     recurringWeaknesses: [],
+    improvementTrends: [],
+    mostImprovedCoreSkill: null,
+    mostConsistentCoreSkill: null,
+    strongestApplication: null,
     coachingEffectiveness: [
       { dimension: "structure", coached: 6, implemented: 1, rate: 1 / 6 },
       { dimension: "clarity", coached: 5, implemented: 4, rate: 4 / 5 },

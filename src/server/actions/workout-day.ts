@@ -285,6 +285,7 @@ async function fetchCatalogExercises(
       objective: exercises.objective,
       hiddenSkills: exercises.hiddenSkills,
       responseWindow: exercises.responseWindow,
+      constraintTypes: exercises.constraintTypes,
     })
     .from(exercises)
     .where(
@@ -308,6 +309,7 @@ async function fetchCatalogExercises(
     objective: r.objective ?? null,
     hiddenSkills: r.hiddenSkills ?? null,
     responseWindow: r.responseWindow ?? null,
+    constraintTypes: r.constraintTypes ?? null,
   }));
 }
 
@@ -354,6 +356,7 @@ export async function previewTodaysWorkoutPlan(input: {
       why: ex.instructions,
       objective: ex.objective,
       responseWindow: ex.responseWindow,
+      constraintTypes: ex.constraintTypes ?? null,
     }));
     return { stations, persisted: false };
   }, { stations: [], persisted: false });
@@ -612,6 +615,7 @@ export async function startMuscleGroupDay(input: {
               why: ex.instructions,
               objective: ex.objective,
               responseWindow: ex.responseWindow,
+      constraintTypes: ex.constraintTypes ?? null,
             }));
             logEvent("workout.day.self_healed", {
               userId,
@@ -727,6 +731,7 @@ export async function startMuscleGroupDay(input: {
       why: ex.instructions,
       objective: ex.objective,
       responseWindow: ex.responseWindow,
+      constraintTypes: ex.constraintTypes ?? null,
     }));
 
     // Open the workout_session for the new day so the rest of the
@@ -828,6 +833,7 @@ export async function swapMuscleGroup(input: {
       why: ex.instructions,
       objective: ex.objective,
       responseWindow: ex.responseWindow,
+      constraintTypes: ex.constraintTypes ?? null,
     }));
 
     return {
@@ -852,6 +858,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
       instructions: exercises.instructions,
       objective: exercises.objective,
       responseWindow: exercises.responseWindow,
+      constraintTypes: exercises.constraintTypes,
     })
     .from(exercises)
     .where(inArray(exercises.id, exerciseIds));
@@ -870,6 +877,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
         why: row.instructions,
         objective: row.objective ?? null,
         responseWindow: row.responseWindow ?? null,
+        constraintTypes: row.constraintTypes ?? null,
       } satisfies Station;
     })
     .filter((s): s is Station => s !== null);

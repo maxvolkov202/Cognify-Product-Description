@@ -44,6 +44,14 @@ type Props = {
   mode?: ModeId;
   topic?: string;
   maxDurationMs?: number;
+  /** PRD v3 §4.5 — feedback layout. "v2" = Score → ONE Coach's Focus →
+   *  Core Skill Breakdown (Universal Training Engine); "v1" = legacy. */
+  feedbackVariant?: "v1" | "v2";
+  /** ADR-001 — target response window. When set, the recorder counts UP
+   *  against the band (never hard-stops at it), the infra ceiling is
+   *  raised well past the window, and the window max (not the ceiling)
+   *  becomes the scoring time budget so overage is a signal, not a gate. */
+  responseWindow?: { minSec: number; maxSec: number } | null;
   sessionId?: string | null;
   revealFrameworkAfterMs?: number;
   /** Shown as a focus overlay on idle state — used for retries. */
@@ -246,6 +254,8 @@ export function RepSurface({
   mode = "scenario_training",
   topic,
   maxDurationMs = 90_000,
+  responseWindow = null,
+  feedbackVariant = "v1",
   sessionId,
   revealFrameworkAfterMs = 0,
   retryFocus,
@@ -280,6 +290,15 @@ export function RepSurface({
   applicationId,
   hideRunItAgain = false,
 }: Props) {
+  // ADR-001: with a window, the hard stop is only an infra ceiling —
+  // at least 2× the window and never under 3 minutes.
+  const effectiveMaxDurationMs = responseWindow
+    ? Math.max(maxDurationMs, responseWindow.maxSec * 2000, 180_000)
+    : maxDurationMs;
+  const scoringTimeBudgetMs = responseWindow
+    ? responseWindow.maxSec * 1000
+    : maxDurationMs;
+
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [frameworkVisible, setFrameworkVisible] = useState(
     revealFrameworkAfterMs === 0,
@@ -396,7 +415,7 @@ export function RepSurface({
         transcript,
         wordCount: words.length > 0 ? words.length : undefined,
         durationMs: result.durationMs,
-        timeBudgetMs: maxDurationMs,
+        timeBudgetMs: scoringTimeBudgetMs,
       });
       if (!gateCheck.passed) {
         setPhase({
@@ -435,7 +454,7 @@ export function RepSurface({
         words,
         transcript,
         durationMs: result.durationMs,
-        timeBudgetMs: maxDurationMs,
+        timeBudgetMs: scoringTimeBudgetMs,
       }) ?? undefined;
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
@@ -476,7 +495,7 @@ export function RepSurface({
         framework: framework ?? null,
         topic: topic ?? null,
         sessionId: sessionId ?? null,
-        timeBudgetMs: maxDurationMs,
+        timeBudgetMs: scoringTimeBudgetMs,
         words,
         // Phase 8 — muscle-group threading.
         ...(exerciseId ? { exerciseId } : {}),
@@ -870,6 +889,7 @@ export function RepSurface({
          *  a copy at the bottom for users who scrolled to the end. */}
         {navButtons}
         <FeedbackPanel
+          engineV2={feedbackVariant === "v2"}
           score={phase.score}
           audioUrl={phase.recording.url}
           durationMs={phase.recording.durationMs}
@@ -1056,7 +1076,8 @@ export function RepSurface({
             </p>
             <div className="relative">
               <RecordButton
-                maxDurationMs={maxDurationMs}
+                maxDurationMs={effectiveMaxDurationMs}
+                responseWindow={responseWindow}
                 onComplete={handleRecordingComplete}
                 disabled={isWorking || !frameworkVisible}
                 {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
@@ -1070,7 +1091,8 @@ export function RepSurface({
       ) : (
         <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 dark:border-ink-700 p-10">
           <RecordButton
-            maxDurationMs={maxDurationMs}
+            maxDurationMs={effectiveMaxDurationMs}
+                responseWindow={responseWindow}
             onComplete={handleRecordingComplete}
             disabled={isWorking || !frameworkVisible}
             {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
@@ -1247,13 +1269,24 @@ function FocusOverlay({
           <p className="mt-0.5 text-sm font-bold text-ink-900 dark:text-white">
             {callout.title}
           </p>
-          {callout.suggestedRewrite && (
-            <p className="mt-1 text-xs italic leading-relaxed text-ink-700 dark:text-ink-200">
-              &ldquo;{callout.suggestedRewrite}&rdquo;
-            </p>
-          )}
+          {/* PRD §4.6 retry structure: "What change could create the
+              biggest improvement?" framing + a Stronger Version line. */}
           <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
             {callout.body}
+          </p>
+          {callout.suggestedRewrite && (
+            <div className="mt-2 rounded-lg bg-ink-50 dark:bg-ink-800 px-3 py-2">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
+                Stronger version
+              </p>
+              <p className="mt-0.5 text-xs italic leading-relaxed text-ink-700 dark:text-ink-200">
+                &ldquo;{callout.suggestedRewrite}&rdquo;
+              </p>
+            </div>
+          )}
+          <p className="mt-1.5 text-[11px] text-ink-500 dark:text-ink-400">
+            What one change creates the biggest improvement? Make THAT the
+            rep.
           </p>
         </div>
       </div>

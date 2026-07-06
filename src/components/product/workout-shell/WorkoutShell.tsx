@@ -201,6 +201,7 @@ function WorkoutShellInner({
         status: i === 0 ? "current" : "locked",
         compositeScore: null,
         objective: s.objective ?? null,
+        constraintTypes: s.constraintTypes ?? null,
         responseWindow: s.responseWindow ?? null,
       }));
       send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });

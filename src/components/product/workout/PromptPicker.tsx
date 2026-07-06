@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils/cn";
 import PromptCard from "./PromptCard";
 import RuleReminder from "./RuleReminder";
 
-const CANDIDATES_PER_CYCLE = 5;
+const CANDIDATES_PER_CYCLE = 4; // D10 — four prompt options per slate
 
 export type PromptPickerProps = {
   exerciseId: string;

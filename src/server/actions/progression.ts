@@ -9,7 +9,12 @@
 
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { userAchievements, users } from "@/lib/db/schema";
+import {
+  communicationProfile,
+  userAchievements,
+  users,
+} from "@/lib/db/schema";
+import { SKILL_DIMENSIONS } from "@/types/domain";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { isRankSystemEnabled } from "@/lib/flags";
@@ -22,6 +27,11 @@ export type ProgressionSummary = {
   rank: RankInfo;
   streakDays: number;
   lifetimeReps: number;
+  /** PRD §10.8 — "Updated Communication Score" + current Core Skill
+   *  estimates, shown on every completion surface. Null until ≥3 skills
+   *  measured / no profile yet. */
+  overallScore: number | null;
+  coreSkills: { dimension: string; score: number }[];
   /** Achievements earned today (UTC), name + description for chips. */
   achievementsToday: { id: string; name: string; description: string }[];
   weeklyChallenges: {
@@ -64,10 +74,30 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
     const streakDays = await getStreakDays(user.id);
     const week = await getOrCreateThisWeekChallenges(user.id);
 
+    const [profileRow] = await db
+      .select({
+        overallScore: communicationProfile.overallScore,
+        coreSkills: communicationProfile.coreSkills,
+      })
+      .from(communicationProfile)
+      .where(eq(communicationProfile.userId, user.id))
+      .limit(1);
+    const coreSkills: { dimension: string; score: number }[] = [];
+    for (const dim of SKILL_DIMENSIONS) {
+      const est = (
+        profileRow?.coreSkills as
+          | Record<string, { score: number } | undefined>
+          | undefined
+      )?.[dim];
+      if (est) coreSkills.push({ dimension: dim, score: Math.round(est.score) });
+    }
+
     return {
       rank: rankFromXp(row.xp),
       streakDays,
       lifetimeReps: row.lifetimeReps,
+      overallScore: profileRow?.overallScore ?? null,
+      coreSkills,
       achievementsToday: earnedToday
         .map((e) => ACHIEVEMENT_BY_ID.get(e.achievementId))
         .filter((a): a is NonNullable<typeof a> => a != null)

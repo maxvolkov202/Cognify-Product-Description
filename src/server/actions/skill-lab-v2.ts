@@ -16,6 +16,7 @@ import {
   practiceSessions,
   reps,
 } from "@/lib/db/schema";
+import { buildCommunicationSnapshot } from "@/lib/profile/snapshot";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log } from "@/lib/log";
@@ -114,14 +115,13 @@ export async function startSkillLabSessionV2(input: {
 
     // Lab Personalization Engine (PRD §8.4.5): the profile's hidden
     // Application Skill estimates drive which exercises this session
-    // trains. No profile row / no estimates yet → balanced baseline mix.
-    const [profileRow] = await db
-      .select({ applications: communicationProfile.applications })
-      .from(communicationProfile)
-      .where(eq(communicationProfile.userId, user.id))
-      .limit(1);
+    // trains. Read through the Communication Snapshot (§8.3.11: "Every
+    // intelligent system within Cognify begins here") rather than a
+    // direct profile query. No snapshot / no estimates yet → balanced
+    // baseline mix.
+    const snapshot = await buildCommunicationSnapshot(user.id);
     const skillEstimates =
-      profileRow?.applications?.[applicationId]?.skills ?? {};
+      snapshot?.profile.applications?.[applicationId]?.skills ?? {};
 
     const seed = `${user.id}:${applicationId}:${new Date().toISOString().slice(0, 10)}`;
     const byId = new Map(rows.map((r) => [r.id, r]));

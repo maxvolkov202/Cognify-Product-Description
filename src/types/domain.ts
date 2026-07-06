@@ -182,6 +182,8 @@ export type Station = {
   /** PRD v3 Phase 2.2 — Exercise Framework fields (null pre-enrichment). */
   objective: string | null;
   responseWindow: { minSec: number; maxSec: number } | null;
+  /** ADR-001 Decision 2 — constraint types this framework may apply. */
+  constraintTypes: string[] | null;
 };
 
 /** Fully-hydrated muscle-group day for the Workout shell to render. */
