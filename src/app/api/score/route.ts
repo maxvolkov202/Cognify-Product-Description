@@ -60,7 +60,7 @@ async function loadUserContext(): Promise<{
 }
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const wordSchema = z.object({
   word: z.string(),
@@ -115,9 +115,10 @@ const modeContextSchema = z.object({
 });
 
 const bodySchema = z.object({
-  transcript: z.string().min(1).max(10000),
+  // PRD v3 Phase 5 — cap covers Full Simulation long reps (~20 min speech).
+  transcript: z.string().min(1).max(48000),
   promptText: z.string().min(1).max(500),
-  durationMs: z.number().int().min(1000).max(300000),
+  durationMs: z.number().int().min(1000).max(1500000),
   timeBudgetMs: z.number().int().optional(),
   frameworkId: z.string().optional(),
   frameworkNodes: z

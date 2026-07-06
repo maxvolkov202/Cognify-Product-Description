@@ -131,7 +131,7 @@ export function getDimensionGroup(dim: SkillDimension): SkillDimensionGroup {
   return "delivery";
 }
 
-export const MODE_IDS = ["daily_workout", "skill_lab", "scenario_training"] as const;
+export const MODE_IDS = ["daily_workout", "skill_lab", "scenario_training", "build_a_rep"] as const;
 export type ModeId = (typeof MODE_IDS)[number];
 
 // ——— Muscle groups (muscle-group adventure-path pivot — Phase 3 ————————

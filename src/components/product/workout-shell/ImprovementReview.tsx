@@ -37,6 +37,11 @@ export type ImprovementReviewProps = {
   onRetryAgain: () => void;
   onAdvance: () => void;
   onQuit: () => void;
+  /** PRD v3 Phase 5 — label overrides so non-workout hosts (Build a Rep
+   *  guided practice) don't say "Next exercise". Defaults preserve the
+   *  Daily Workout copy exactly. */
+  advanceLabel?: string;
+  quitLabel?: string;
 };
 
 const VERDICT_COPY: Record<
@@ -68,6 +73,8 @@ export default function ImprovementReview({
   onRetryAgain,
   onAdvance,
   onQuit,
+  advanceLabel,
+  quitLabel,
 }: ImprovementReviewProps) {
   const firstComposite = first?.score.composite ?? null;
   const retryComposite = retry?.score.composite ?? null;
@@ -218,7 +225,7 @@ export default function ImprovementReview({
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
           )}
         >
-          {isLastStation ? "Finish workout →" : "Next exercise →"}
+          {advanceLabel ?? (isLastStation ? "Finish workout →" : "Next exercise →")}
         </button>
         <button
           type="button"
@@ -239,7 +246,7 @@ export default function ImprovementReview({
           data-testid="review-quit"
           className="ml-auto text-xs text-slate-400 dark:text-ink-500 hover:text-slate-600 dark:hover:text-ink-300 font-semibold"
         >
-          End session here
+          {quitLabel ?? "End session here"}
         </button>
       </div>
     </div>

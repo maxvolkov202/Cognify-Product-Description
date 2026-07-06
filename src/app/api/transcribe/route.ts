@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 // Allowed mime prefixes. Deepgram accepts any audio/* but we want to reject
 // non-audio uploads (e.g. a renamed .exe). Loose-prefix check — keep in sync

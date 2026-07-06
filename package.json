@@ -10,7 +10,7 @@
     "start": "next start -p 3333",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts && tsx tests/workout-assignment.test.ts && tsx tests/workout-session-machine.test.ts && tsx tests/muscle-group-day-status.test.ts && tsx tests/mascot-voice.test.ts && tsx tests/timezones-iana.test.ts && tsx tests/rag-rerank.test.ts && tsx tests/coach-focus.test.ts && tsx tests/communication-profile.test.ts && tsx tests/skill-lab-selection.test.ts",
+    "test": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts && tsx tests/session-types.test.ts && tsx tests/pressure-orchestrator.test.ts && tsx tests/workout-assignment.test.ts && tsx tests/workout-session-machine.test.ts && tsx tests/muscle-group-day-status.test.ts && tsx tests/mascot-voice.test.ts && tsx tests/timezones-iana.test.ts && tsx tests/rag-rerank.test.ts && tsx tests/coach-focus.test.ts && tsx tests/communication-profile.test.ts && tsx tests/skill-lab-selection.test.ts && tsx tests/prep-plan.test.ts",
     "test:dna": "tsx tests/dna-signals.test.ts && tsx tests/dna-pure-helpers.test.ts",
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
@@ -37,6 +37,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.38.3",
     "lucide-react": "^0.469.0",
+    "mammoth": "^1.12.0",
     "motion": "^12.38.0",
     "next": "^15.5.15",
     "openai": "^6.35.0",
@@ -45,6 +46,7 @@
     "react-dom": "19.0.0",
     "resend": "^6.10.0",
     "tailwind-merge": "^2.6.0",
+    "unpdf": "^1.6.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {

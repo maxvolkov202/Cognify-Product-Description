@@ -681,7 +681,8 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         // plumbs pressureArchetypeId; for now explore_pressure achievement
         // unlocks via the Skill Lab pressure-mode entry point only.
         isPressureRep: false,
-        isBuildARep: input.mode === "scenario_training",
+        isBuildARep:
+          input.mode === "scenario_training" || input.mode === "build_a_rep",
         lifetimeReps,
         streakDays: streak,
         dimensionsEverScored: dimsEverScored,

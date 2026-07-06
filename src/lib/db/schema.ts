@@ -28,6 +28,8 @@ export const modeEnum = cognifyV2Schema.enum("mode", [
   "skill_lab",
   "scenario_training",
   "baseline",
+  // PRD v3 Phase 5 (migration 0033) — Build a Rep v2 event preparation.
+  "build_a_rep",
 ]);
 
 // v3.0.0 rubric (DNA reconciliation 2026-05-01). The enum is append-only
@@ -434,6 +436,135 @@ export const coachingEvents = cognifyV2Schema.table(
     index("coaching_events_user_created_idx").on(t.userId, t.createdAt),
     index("coaching_events_rep_idx").on(t.repId),
   ],
+);
+
+/**
+ * PRD v3 Phase 5 — Build a Rep: event preparation (PRD §7, §8.4.6).
+ * Migration 0032. One prep_events row per real-world communication event;
+ * critical_moments = the editable Preparation Plan; prep_context_uploads =
+ * optional docs (raw file in Supabase Storage, parsed text inline);
+ * readiness_reviews = PRD §7.9 output per guided session / simulation.
+ */
+export const prepEvents = cognifyV2Schema.table(
+  "prep_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    /** interview | presentation | pitch | toast | demo | meeting | speech | other */
+    eventType: text("event_type").notNull().default("other"),
+    /** guided | simulation (PRD §7.6 — Cognify recommends, user chooses). */
+    recommendedMode: text("recommended_mode").notNull().default("guided"),
+    /** Full Simulation recommended duration (PRD §7.8), editable pre-rep. */
+    recommendedDurationSec: integer("recommended_duration_sec"),
+    /** Distilled summary of all parsed uploads, injected into generation. */
+    contextSummary: text("context_summary"),
+    /** Latest readiness estimate (PRD §8.3.8) — denormalized from the
+     *  newest readiness_reviews row. */
+    readinessScore: real("readiness_score"),
+    /** active | archived */
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("prep_events_user_idx").on(t.userId, t.status, t.createdAt)],
+);
+
+export const criticalMoments = cognifyV2Schema.table(
+  "critical_moments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => prepEvents.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    /** What a strong answer/section accomplishes — feeds the moment's
+     *  Coach's Insight and scoring context. */
+    objective: text("objective"),
+    recommendedSeconds: integer("recommended_seconds").notNull().default(90),
+    sortOrder: integer("sort_order").notNull().default(0),
+    /** generated | user (PRD §7.7 — plan is fully editable). */
+    source: text("source").notNull().default("generated"),
+    bestComposite: real("best_composite"),
+    attempts: integer("attempts").notNull().default(0),
+    lastPracticedAt: timestamp("last_practiced_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("critical_moments_event_idx").on(t.eventId, t.sortOrder)],
+);
+
+export const prepContextUploads = cognifyV2Schema.table(
+  "prep_context_uploads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => prepEvents.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    fileName: text("file_name").notNull(),
+    mimeType: text("mime_type"),
+    sizeBytes: integer("size_bytes"),
+    storagePath: text("storage_path"),
+    /** pending | parsed | failed | unsupported */
+    parseStatus: text("parse_status").notNull().default("pending"),
+    parsedChars: integer("parsed_chars"),
+    /** Capped at PREP_PARSED_TEXT_CAP chars (src/lib/prep/parse.ts). */
+    parsedText: text("parsed_text"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("prep_context_uploads_event_idx").on(t.eventId)],
+);
+
+export const readinessReviews = cognifyV2Schema.table(
+  "readiness_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => prepEvents.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** guided | simulation */
+    mode: text("mode").notNull(),
+    overallScore: real("overall_score"),
+    /** { [dim]: { score, why, well, improve } } (PRD §7.9 expandable). */
+    coreSkills: jsonb("core_skills")
+      .$type<
+        Record<
+          string,
+          { score: number; why: string; well: string; improve: string }
+        >
+      >()
+      .notNull()
+      .default({}),
+    /** The single highest-impact focus before the real event. */
+    coachFeedback: text("coach_feedback"),
+    readinessSummary: text("readiness_summary"),
+    repId: uuid("rep_id").references((): AnyPgColumn => reps.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("readiness_reviews_event_idx").on(t.eventId, t.createdAt)],
 );
 
 /**
