@@ -158,7 +158,10 @@ const scoringResponseSchema = z.object({
   implementationReview: z
     .object({
       verdict: z.enum(["nailed", "partial", "missed"]),
-      note: z.string().min(1).max(280),
+      // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
+      // the note where Haiku always wrote one; the verdict is the
+      // load-bearing field, so the note is optional.
+      note: z.string().max(280).optional(),
     })
     .nullable()
     .optional(),
@@ -747,7 +750,7 @@ export function renderRetryEvaluationBlock(
     `<first_attempt>${rc.firstTranscript.slice(0, 4000)}</first_attempt>`,
     `Write feedback as an IMPLEMENTATION REVIEW, not a fresh critique:`,
     `  - The headline answers: did they implement the coached change?`,
-    `  - Include the "implementationReview" field: verdict "nailed" (clear behavioral change), "partial" (attempted, inconsistent), or "missed" (no behavioral change) + one sentence on how it landed. Judge the BEHAVIOR, not the score delta.`,
+    `  - REQUIRED: your JSON MUST contain a top-level "implementationReview" object — {"implementationReview": {"verdict": "nailed" | "partial" | "missed", "note": "<one sentence on how it landed>"}}. "nailed" = clear behavioral change, "partial" = attempted but inconsistent, "missed" = no behavioral change. Judge the BEHAVIOR, not the score delta. A response without this field is INVALID.`,
     `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
     `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
   ].join("\n");

@@ -58,7 +58,10 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!hasAnthropic()) {
+  // Phase 11.A2 — the generation shim falls back to OpenAI, so gate on
+  // ANY provider being configured, not Anthropic specifically (this
+  // silently served defaults while running OpenAI-only).
+  if (!hasAnthropic() && !process.env.OPENAI_API_KEY) {
     return NextResponse.json(defaultTalkingPoints());
   }
 

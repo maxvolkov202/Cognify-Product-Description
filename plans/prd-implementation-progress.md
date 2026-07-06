@@ -22,8 +22,8 @@ Decisions that shape everything downstream. D1–D4 confirmed by Max 2026-07-02 
 | D7 | Dev→prod workflow | ✅ per Max | Big-batch promotion: build a whole phase on a feature branch + dev server (localhost:3333) / Vercel preview, Max tests it there, only then promote to production. No drip-feeding small changes to prod. Everything flag-gated (`FF_*` pattern). |
 | D8 | Terminology: "Hidden Skills" | ✅ from PRD | Subskills = Hidden Behaviors = Underlying Behaviors = **Hidden Skills** (PRD terminology clarification). Internal-only, power personalization. |
 | D9 | Legacy dimension-drill Skill Lab | ✅ MAX 2026-07-06 | **Skill Lab = applications-only per PRD; dimension drills move to Daily Workout extras.** Drills relocated to `/drills` ("Focus Drills"); entry points = workout-completion "Extra reps" CTA + dashboard deep-links (`/skill-lab?focus=` redirects to `/drills` under `FF_SKILL_LAB_APPS`). Flag off → `/drills` bounces back to legacy `/skill-lab`; prod URLs unchanged. |
-| D10 | Prompt slate size | ⚠️ PROVISIONAL 2026-07-06 (Max asked, no response — best judgment) | **FOUR prompt options per slate.** PRD conflicts: both Engine V1 specs + §8.4/§8.5 say four; §5.6/§6.5 say six; code had five (matched nothing). Applied everywhere (`PROMPT_SLATE_SIZE`, picker, top-up, C18 variety guardrail = 1 general slot of 4). One-constant change if Max prefers 5/6. |
-| D11 | Application Skills per app | ✅ logged 2026-07-06 (retroactive) | Lab Engine V1 lists 8 hidden Application Skills per application; the shipped taxonomy trims to **6** per app (MVP set the catalogs target). Restore to 8 alongside the 8.4 content expansion if desired. |
+| D10 | Prompt slate size | ✅ MAX 2026-07-06 | **FIVE prompt options per slate** — a deliberate deviation from both PRD numbers (Engine specs say 4, §5.6/§6.5 say 6), chosen by Max after the provisional 4. C18 variety guardrail = 2 general slots of 5 (≤60% personalized). |
+| D11 | Application Skills per app | ✅ MAX 2026-07-06 | **Restore the full 8 hidden Application Skills per application** (Lab Engine V1 lists), expanding each app's exercise catalog so the added skills actually get trained. Executed in Phase 11.D. |
 | D12 | Insight ordering | ✅ from C19 | Owen C19 (topic first, then constraint/insight) **supersedes** §6.4/Lab-Engine's "Coach's Insight → Prompt Selection" ordering. Code order prompt→insight→rep is intentional; future audits shouldn't re-flag. |
 
 **Owen/Hunter comment constraints to honor everywhere** (see comments file for full text):
@@ -253,6 +253,47 @@ Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ · **
 DEFERRED from the audit (content/design side, tracked): per-exercise `coach_insight` authoring + Lab Engine pack fields (secondary core skills, failure modes, 3-part scoring emphasis — batch with 8.4 content expansion), §5.6 topic-category catalog diversity (batch with 8.2 generation run), inline framework editing on the sim surface (plan-screen editing covers it), .pptx parsing (PDF export works), Readiness/coaching-history profile silos (functional, documented).
 
 Verification (2026-07-06): typecheck ✅ · lint ✅ · 18 unit suites ✅ (+3 selection tests) · ALL 13 e2e ✅ (incl. tap-target audit) · 7 routes 200 · mvp-metrics runs. ⚠️ Calibration replay still required (coaching-memory unchanged this phase, but timeBudgetMs semantics changed for v2 window reps).
+
+---
+
+### Phase 11 — Pre-testing readiness (confirmed by Max 2026-07-06: A+B+C+D + remaining doc items; OpenAI credits live, Anthropic still dead) 🟨 in progress
+*Goal: everything needed so live-credit testing is meaningful — provider prep, machine-verified loop, populated demo data, complete coach content.*
+
+**11.A Scoring pipeline prep** ✅ 2026-07-06
+- [x] A1 `SCORING_PROVIDER=openai` set (.env.local; REVERT when Anthropic re-ups). Live calls confirmed provider=openai, fallback=false.
+- [x] A2 `/api/talking-points` gate fixed (was Anthropic-only → silently served defaults on OpenAI).
+- [x] A3 Two-stage `userCalibration` drop FIXED (now injected as an uncached system block in both stages, mirroring coaching memory; reference reps unaffected).
+- [x] A4 Calibration re-baseline on OpenAI: 29-rep in-process replay (drift cron dryRun) — **avg |Δ| ≈ 7.8 vs the Haiku-tuned expectations, worst ≈ 22-27; GPT-4o compresses the top band** (exceptional reps score lower) and mildly inflates some low/mid reps. Baseline persisted: `plans/calibration-baseline-openai-2026-07-06.json`. Interpretation rule for Phase 12: judge coaching QUALITY, not absolute numbers; the Anthropic baseline re-applies at re-up. (The stale HTTP-based `calibrate-scoring.mjs` 401s since the May auth gates — the in-process cron replay is the working harness.)
+- [x] A5 Smoke harness 11/11 green on OpenAI. FOUND+FIXED in the process: GPT-4o omitted `implementationReview` (hardened the retry-evaluation block to REQUIRED + exact JSON shape) and omits `note` sometimes (schema + RepScore type now optional; deterministic verdict copy covers absence).
+
+**11.B Authed E2E loop harness**
+- [ ] B1 Dev-only test-login endpoint (non-production + secret) → Playwright storage-state fixture.
+- [ ] B2 Spoken-audio fixture via OpenAI TTS (checked into tests/fixtures).
+- [ ] B3 Chromium desktop Playwright project with fake-mic flags (WebKit/iPhone can't fake audio capture).
+- [ ] B4 Machine-verified full loops: Daily Workout (insight→rep→retry→review), Skill Lab session, Build a Rep guided moment → readiness. Live transcription + scoring.
+
+**11.C Demo-user seeding**
+- [ ] C1 `scripts/seed-demo-user.ts`: deterministic ~3-week history (reps+signals across modes, days, sessions, coaching ledger w/ verdicts, profile fold, achievements, weekly challenges, XP/rank, streak, one prep event w/ readiness). Idempotent --reset.
+- [ ] C2 Cold-start test account documented.
+
+**11.D Coach content pass** (D10 revert + D11 restore + deferred audit content)
+- [ ] D0 D10: slate 4→5 everywhere; variety slots → 2.
+- [ ] D1 D11: restore 8 Application Skills per app (Lab Engine V1 canon) + expand each app catalog ~2 exercises targeting the added skills (agents author; seed).
+- [ ] D2 `coach_insight` per exercise: migration 0035 column + catalog field + seed support + InsightScreen/MomentInsight consumption + author cues for all exercises (agents).
+- [ ] D3 Lab Engine pack fields: `secondary_core_skills`, `common_failure_modes`, `scoring_emphasis` — columns + catalogs + consumed in the exercise scoring context.
+- [ ] D4 Topic diversity (§5.6): expansion pipeline gains category-spread instructions; run bank expansion with QA (OpenAI).
+
+**11.E Remaining doc items**
+- [ ] E1 Rank-up celebration moment (client-side rank-crossing detection in ProgressionStrip).
+- [ ] E2 Inline framework editing on the simulation setup (§7.8).
+- [ ] E3 `.pptx` context parsing (zip/XML text extraction, no new deps).
+- [ ] E4 Achievements discoverability (nav/progress entry).
+
+### Phase 12 — End-to-end live testing (per Max 2026-07-06) ⬜
+*After Phase 11: exercise EVERYTHING with live credits — machine loops (11.B) + scripted walkthroughs of every mode/surface/flag state + generation quality review (plans, readiness reviews, coaching memory, generated prompts) + cron dry-runs + calibration drift check. Every finding documented in a findings ledger (severity + repro + suspected cause).*
+
+### Phase 13 — Fix what testing finds ⬜
+*Build every Phase 12 finding; re-run the affected tests; loop until the ledger is empty.*
 
 ---
 

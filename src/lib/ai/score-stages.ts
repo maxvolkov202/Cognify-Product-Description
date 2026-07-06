@@ -326,7 +326,10 @@ const stage2Schema = z.object({
   implementationReview: z
     .object({
       verdict: z.enum(["nailed", "partial", "missed"]),
-      note: z.string().min(1).max(280),
+      // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
+      // the note where Haiku always wrote one; the verdict is the
+      // load-bearing field, so the note is optional.
+      note: z.string().max(280).optional(),
     })
     .nullable()
     .optional(),
@@ -604,6 +607,13 @@ export async function scoreStage1(input: ScoreRepInput): Promise<Stage1Result> {
         system: [
           { type: "text", text: stage1SystemPrompt, cache_control: { type: "ephemeral" } },
           ...context.cachedSystemBlocks,
+          // Phase 11.A3 — per-user calibration profile, uncached. Was
+          // silently dropped on the two-stage path since Phase 3 (routes
+          // passed it; stages never rendered it). Absent for reference
+          // reps → calibration prompts stay byte-identical.
+          ...(input.userCalibration
+            ? [{ type: "text" as const, text: input.userCalibration }]
+            : []),
           // PRD v3 Phase 3 — coaching memory, uncached (user-specific).
           // Absent for reference reps → prompts stay byte-identical.
           ...(input.coachingMemory
@@ -795,6 +805,10 @@ export async function scoreStage2(
         system: [
           { type: "text", text: stage2SystemPrompt, cache_control: { type: "ephemeral" } },
           ...context.cachedSystemBlocks,
+          // Phase 11.A3 — per-user calibration, uncached (see stage 1).
+          ...(input.userCalibration
+            ? [{ type: "text" as const, text: input.userCalibration }]
+            : []),
           // PRD v3 Phase 3 — coaching memory, uncached (user-specific).
           ...(input.coachingMemory
             ? [{ type: "text" as const, text: input.coachingMemory }]

@@ -134,9 +134,10 @@ async function main() {
     ),
     "verdict is a valid enum value",
   );
-  check(
-    (retry.implementationReview?.note ?? "").length > 0,
-    `verdict note non-empty ("${retry.implementationReview?.note?.slice(0, 70)}...")`,
+  // Note is OPTIONAL since Phase 11.A (GPT-4o omits it sometimes);
+  // log it when present, never fail on absence.
+  console.log(
+    `  (note: ${retry.implementationReview?.note ? `"${retry.implementationReview.note.slice(0, 70)}"` : "omitted — deterministic copy will render"})`,
   );
   console.log(`  headline: "${retry.headline}"`);
 
@@ -178,6 +179,16 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("smoke fatal:", err);
+  // Print primitives only — Node 25's inspect chokes on some exotic
+  // error objects (proxied DB errors), which would mask the real cause.
+  const e = err as { message?: string; stack?: string; code?: string };
+  console.error(
+    "smoke fatal:",
+    e?.message ?? String(err),
+    e?.code ? `(code=${e.code})` : "",
+  );
+  if (e?.stack) {
+    console.error(String(e.stack).split("\n").slice(0, 6).join("\n"));
+  }
   process.exit(1);
 });

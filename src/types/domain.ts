@@ -325,7 +325,9 @@ export type RepScore = {
    *  Review verdict chip. Absent → deriveImplementationVerdict() fallback. */
   implementationReview?: {
     verdict: "nailed" | "partial" | "missed";
-    note: string;
+    /** Optional — GPT-4o sometimes omits it (Phase 11.A); consumers fall
+     *  back to the deterministic verdict copy. */
+    note?: string;
   } | null;
   /** Phase 3 calibration scaffold: the AI's self-classification of which
    *  tone band it landed in. Lets us measure tone-vs-score alignment in
