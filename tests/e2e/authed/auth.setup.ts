@@ -13,11 +13,15 @@ import { resolve } from "node:path";
 
 config({ path: resolve(__dirname, "../../../.env.local") });
 
+import { DEMO_STORAGE_STATE } from "./helpers";
+
 export const STORAGE_STATE = resolve(__dirname, ".auth/user.json");
 
 const TEST_EMAIL = process.env.E2E_TEST_EMAIL ?? "e2e-harness@cognify.test";
 const TEST_PASSWORD =
   process.env.E2E_TEST_PASSWORD ?? "cognify-e2e-9f3k2m8x!A";
+const DEMO_EMAIL = "demo@cognify.test";
+const DEMO_PASSWORD = "cognify-demo-7h2p9w!D";
 
 setup("authenticate as the e2e test user", async ({ page, baseURL }) => {
   if (baseURL?.includes("cognifygym.com")) {
@@ -53,4 +57,27 @@ setup("authenticate as the e2e test user", async ({ page, baseURL }) => {
   await expect(page).not.toHaveURL(/\/signin/, { timeout: 30_000 });
 
   await page.context().storageState({ path: STORAGE_STATE });
+});
+
+setup("authenticate as the demo user (when seeded)", async ({ browser, baseURL }) => {
+  if (baseURL?.includes("cognifygym.com")) {
+    throw new Error("Refusing to run the auth setup against production.");
+  }
+  // No provisioning here — the demo account is created by
+  // scripts/seed-demo-user.ts. Skip (don't fail) when it's absent so the
+  // authed loops still run on machines that never seeded it.
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto("/signin", { waitUntil: "networkidle" });
+  await page.locator("#email").fill(DEMO_EMAIL);
+  await page.locator("#password").fill(DEMO_PASSWORD);
+  await page.getByRole("button", { name: /sign in with email/i }).click();
+  try {
+    await expect(page).not.toHaveURL(/\/signin/, { timeout: 30_000 });
+  } catch {
+    setup.skip(true, "demo@cognify.test not seeded — run seed-demo-user.ts");
+    return;
+  }
+  await ctx.storageState({ path: DEMO_STORAGE_STATE });
+  await ctx.close();
 });

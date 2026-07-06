@@ -7,6 +7,13 @@
  */
 
 import { expect, type Page } from "@playwright/test";
+import { resolve } from "node:path";
+
+/** Phase 12 — storageState for the populated demo account (written by
+ *  auth.setup when demo@cognify.test exists; seed via seed-demo-user.ts).
+ *  Lives here, not in auth.setup.ts — Playwright forbids test files
+ *  importing other test files. */
+export const DEMO_STORAGE_STATE = resolve(__dirname, ".auth/demo.json");
 
 /** Record one rep: start → countdown → capture → submit, clicking
  *  through the too-short gate when it appears (test reps are shorter
