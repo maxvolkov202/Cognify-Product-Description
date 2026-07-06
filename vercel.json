@@ -20,6 +20,10 @@
     {
       "path": "/api/cron/audio-retention",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/committed-day-reminder",
+      "schedule": "0 * * * *"
     }
   ]
 }

@@ -10,7 +10,8 @@ import {
   Mic,
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
-import { isSkillLabAppsEnabled } from "@/lib/flags";
+import { isRankSystemEnabled, isSkillLabAppsEnabled } from "@/lib/flags";
+import { WeeklyChallengesCard } from "@/components/product/dashboard/WeeklyChallengesCard";
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getUserProfile } from "@/lib/db/queries/user";
 import {
@@ -61,7 +62,11 @@ export default async function DashboardPage() {
   const userId = user?.id ?? "anonymous";
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
-  const leaguesEnabled = process.env.FF_LEAGUES === "true";
+  // D4/Phase 6.2 — the weekly league folds into the leaderboards when the
+  // Rank system is on: its Bronze→Diamond tier names collide with the
+  // permanent Rank ladder, so the cohort board retires behind the flag.
+  const leaguesEnabled =
+    process.env.FF_LEAGUES === "true" && !isRankSystemEnabled();
   // Ch.12 — sub-skill UI gate. When off, dashboard renders identically
   // to pre-Ch.12. When on, the SubSkillBreakdownCard mounts and the
   // WeakestLinkCard upgrades to "weakest sub-skill within the weakest
@@ -308,6 +313,7 @@ export default async function DashboardPage() {
           xp={profile.xp}
           currentStreakDays={streakStatus.streakDays}
           longestStreakDays={streakStatus.streakDays}
+          showRank={isRankSystemEnabled()}
         />
       )}
 
@@ -329,6 +335,9 @@ export default async function DashboardPage() {
           }))}
         />
       )}
+
+      {/* PRD v3 Phase 6 (§10.10/§10.11) — weekly + team challenges. */}
+      {user && isRankSystemEnabled() && <WeeklyChallengesCard />}
 
       {/* Skill progress + diagnosis */}
       {profile && (

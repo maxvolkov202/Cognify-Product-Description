@@ -38,6 +38,7 @@ import {
   type Callout,
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
+import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import ImprovementReview, {
   type AttemptPayload,
 } from "@/components/product/workout-shell/ImprovementReview";
@@ -1203,6 +1204,9 @@ function ReadinessReviewScreen({
           {review.readinessSummary}
         </p>
       </div>
+
+      {/* PRD v3 Phase 6 (§10.8) — rank + streak + achievements strip. */}
+      <ProgressionStrip />
 
       <div className="flex flex-wrap gap-2 justify-center">
         <button

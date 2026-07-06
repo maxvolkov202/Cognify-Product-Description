@@ -18,7 +18,7 @@ import {
   emptyProfile,
   type CommunicationProfileState,
 } from "@/lib/profile/communication-profile";
-import { count, eq, and, asc, isNull, sql } from "drizzle-orm";
+import { count, eq, and, asc, gte, isNull, sql } from "drizzle-orm";
 import {
   deriveCoachFocus,
   deriveImplementationVerdict,
@@ -44,6 +44,10 @@ import {
   markQuestsCompleted,
   ymdUtc,
 } from "@/lib/db/queries/daily-quests";
+import {
+  incrementTeamChallenges,
+  recordWeeklyChallengeEvent,
+} from "@/lib/db/queries/weekly-challenges";
 import { tickWeeklyXp } from "@/lib/db/queries/leagues";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 import {
@@ -132,6 +136,8 @@ export type SaveRepResult = {
   /** DNA Ch.9c — achievements newly unlocked by this rep. Empty when none.
    *  Client iterates and fires earn-time toasts. */
   unlockedAchievements?: AchievementId[];
+  /** PRD v3 Phase 6 (§10.10) — weekly challenges completed by this rep. */
+  completedWeeklyChallenges?: { ids: string[]; bonusXp: number };
   /** DNA Ch.9d — daily quest ids completed by this rep + bonus XP. UI
    *  surfaces as a small "+X XP — quest complete" toast. */
   completedQuests?: { ids: string[]; bonusXp: number };
@@ -650,12 +656,37 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       } catch {
         // Best-effort; default to no bonus on read failure.
       }
+      // PRD v3 Phase 6 (§10.5.3) — retries that implement coaching (and
+      // improve the score) progress rank faster than participation alone.
+      let implementationVerdict: "nailed" | "partial" | "missed" | null = null;
+      let scoreImprovement: number | null = null;
+      if (
+        (input.attemptKind === "retry" || input.attemptKind === "again") &&
+        input.parentRepId
+      ) {
+        implementationVerdict =
+          input.score.implementationReview?.verdict ?? null;
+        try {
+          const [parentRep] = await db
+            .select({ composite: reps.compositeScore })
+            .from(reps)
+            .where(eq(reps.id, input.parentRepId))
+            .limit(1);
+          if (parentRep?.composite != null) {
+            scoreImprovement = input.score.composite - parentRep.composite;
+          }
+        } catch {
+          // Best-effort — bonus simply doesn't apply.
+        }
+      }
       xp = await awardXp({
         userId,
         composite: input.score.composite,
         streakDays: streak,
         comebackBonus,
         restDayBonus,
+        implementationVerdict,
+        scoreImprovement,
       });
       // DNA Ch.9b — leagues weekly_xp accrual. Behind FF_LEAGUES so the
       // shadow-mode rollout per the master plan can run cohort math
@@ -695,14 +726,23 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     // directly to users.xp rather than going through awardXp's curve so
     // quest XP is additive (band/streak multipliers don't apply to it).
     let completedQuests: { ids: string[]; bonusXp: number } | undefined;
+    let completedWeeklyChallenges:
+      | { ids: string[]; bonusXp: number }
+      | undefined;
     if (userId !== "anonymous" && !isGuest) {
       const today = ymdUtc();
       const todays = await getOrCreateTodayQuests(userId, new Date());
+      // Phase 6 bug fix: this previously counted LIFETIME reps (no date
+      // filter), so "N reps today" quests completed instantly. Count
+      // only today's (UTC) reps — includes the row just inserted.
+      const todayStartUtc = new Date(`${today}T00:00:00.000Z`);
       const repsToday = (
         await db
           .select({ c: count() })
           .from(reps)
-          .where(eq(reps.userId, userId))
+          .where(
+            and(eq(reps.userId, userId), gte(reps.createdAt, todayStartUtc)),
+          )
       )[0]?.c ?? 0;
       const evalResult = evaluateQuestProgress({
         todaysQuests: todays.quests,
@@ -739,6 +779,33 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           bonusXp: evalResult.bonusXp,
         };
       }
+
+      // PRD v3 Phase 6 — Weekly Challenges (§10.10) + Team Challenges
+      // (§10.11). Counter-based, week-keyed; bonus XP additive like
+      // quests. Best-effort: failures never lose the rep.
+      try {
+        const challengeResult = await recordWeeklyChallengeEvent(userId, {
+          mode: input.mode,
+          composite: input.score.composite,
+          implementedRetry:
+            (input.attemptKind === "retry" || input.attemptKind === "again") &&
+            input.score.implementationReview?.verdict === "nailed",
+          newTrainingDay: Number(repsToday) === 1,
+        });
+        if (challengeResult && challengeResult.newlyCompletedIds.length > 0) {
+          completedWeeklyChallenges = {
+            ids: challengeResult.newlyCompletedIds,
+            bonusXp: challengeResult.bonusXp,
+          };
+        }
+        await incrementTeamChallenges(userId);
+      } catch (err) {
+        log.warn({
+          event: "save_rep.weekly_challenges_failed",
+          repId,
+          msg: err instanceof Error ? err.message : "unknown",
+        });
+      }
     }
 
     return {
@@ -751,6 +818,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       xp,
       unlockedAchievements,
       completedQuests,
+      completedWeeklyChallenges,
     };
   }, fallback);
 }

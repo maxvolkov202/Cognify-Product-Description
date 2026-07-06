@@ -52,6 +52,27 @@ export function streakMultiplier(streakDays: number): number {
   return 1.0;
 }
 
+/** PRD v3 Phase 6 (§10.5.3) — implementing coaching during a Retry earns
+ *  extra progression "because it demonstrates behavioral improvement
+ *  rather than simple participation". Configurable in one place. */
+export function implementationMultiplier(
+  verdict: "nailed" | "partial" | "missed" | null | undefined,
+): number {
+  if (verdict === "nailed") return 1.5;
+  if (verdict === "partial") return 1.25;
+  return 1.0;
+}
+
+/** PRD v3 Phase 6 (§10.5.3) — score improvement between the first attempt
+ *  and its retry adds progression. Small, capped: +1% XP per point of
+ *  composite improvement, max +30%. */
+export function improvementMultiplier(
+  scoreImprovement: number | null | undefined,
+): number {
+  if (scoreImprovement == null || scoreImprovement <= 0) return 1.0;
+  return 1 + Math.min(0.3, scoreImprovement * 0.01);
+}
+
 export type AwardXpInput = {
   userId: string;
   composite: number;
@@ -68,6 +89,12 @@ export type AwardXpInput = {
    *  rest-day comeback rep gets ×3 vs base. Caller computes by checking
    *  `isDateCommitted(committedDays, today) === false`. */
   restDayBonus?: boolean;
+  /** PRD v3 Phase 6 (§10.5.3) — retry implementation verdict from the
+   *  Improvement Review; only set on retry/again attempts. */
+  implementationVerdict?: "nailed" | "partial" | "missed" | null;
+  /** PRD v3 Phase 6 (§10.5.3) — composite delta vs the first attempt;
+   *  only set on retry/again attempts. */
+  scoreImprovement?: number | null;
   /** Override the "now" timestamp for tests / backfill replays. Defaults
    *  to new Date(). */
   now?: Date;
@@ -98,16 +125,19 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
     streakDays,
     comebackBonus = false,
     restDayBonus = false,
+    implementationVerdict = null,
+    scoreImprovement = null,
     now = new Date(),
   } = input;
 
-  const grant = Math.round(
-    BASE_XP *
-      bandMultiplier(composite) *
-      streakMultiplier(streakDays) *
-      (comebackBonus ? 2 : 1) *
-      (restDayBonus ? 1.5 : 1),
-  );
+  const grant = computeXpGrant({
+    composite,
+    streakDays,
+    comebackBonus,
+    restDayBonus,
+    implementationVerdict,
+    scoreImprovement,
+  });
 
   const fallback: AwardXpResult = {
     xpDelta: grant,
@@ -177,13 +207,17 @@ export function computeXpGrant(opts: {
   streakDays: number;
   comebackBonus?: boolean;
   restDayBonus?: boolean;
+  implementationVerdict?: "nailed" | "partial" | "missed" | null;
+  scoreImprovement?: number | null;
 }): number {
   return Math.round(
     BASE_XP *
       bandMultiplier(opts.composite) *
       streakMultiplier(opts.streakDays) *
       (opts.comebackBonus ? 2 : 1) *
-      (opts.restDayBonus ? 1.5 : 1),
+      (opts.restDayBonus ? 1.5 : 1) *
+      implementationMultiplier(opts.implementationVerdict) *
+      improvementMultiplier(opts.scoreImprovement),
   );
 }
 

@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
+import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { cn } from "@/lib/utils/cn";
 import {
   DIMENSION_LABELS,
@@ -134,6 +135,10 @@ export default function DayCompleteSummary({
           <StatPill label="Day streak" value={streakDays} emoji="🔥" />
         )}
       </div>
+
+      {/* PRD v3 Phase 6 (§10.8) — unified progression celebration:
+          rank + progress + streak + achievements + weekly challenges. */}
+      <ProgressionStrip />
 
       {/* Most improved Core Skill (PRD §5.7). */}
       {mostImproved && (

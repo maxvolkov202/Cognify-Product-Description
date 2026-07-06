@@ -181,6 +181,12 @@ export const users = cognifyV2Schema.table("users", {
   // forever). Default 90 — long enough to revisit recent reps, short
   // enough to limit storage-leak blast radius.
   audioRetentionDays: integer("audio_retention_days").default(90),
+  // PRD v3 Phase 6.8 (migration 0034) — committed-day reminder emails.
+  reminderEmailsEnabled: boolean("reminder_emails_enabled")
+    .notNull()
+    .default(true),
+  /** Dedupe: at most one reminder per user-local day (YYYY-MM-DD). */
+  lastReminderSentAt: date("last_reminder_sent_at"),
 });
 
 export const teams = cognifyV2Schema.table("teams", {
@@ -708,6 +714,69 @@ export const dailyQuests = cognifyV2Schema.table(
     primaryKey({ columns: [t.userId, t.questDate] }),
     index("daily_quests_user_date_idx").on(t.userId, t.questDate),
   ],
+);
+
+/**
+ * PRD v3 Phase 6 (§10.10, migration 0034) — Weekly Challenges.
+ * Week-keyed (Sunday UTC, same week math as leagues) and counter-based:
+ * targets span many reps, so progress is a running count per challenge.
+ */
+export const weeklyChallenges = cognifyV2Schema.table(
+  "weekly_challenges",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStart: date("week_start").notNull(),
+    challenges: jsonb("challenges")
+      .$type<
+        { id: string; title: string; description: string; target: number; bonusXp: number }[]
+      >()
+      .notNull()
+      .default([]),
+    /** { [challengeId]: count } */
+    progress: jsonb("progress")
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
+    completion: jsonb("completion")
+      .$type<{ completedIds?: string[]; xpEarned?: number }>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.weekStart] })],
+);
+
+/**
+ * PRD v3 Phase 6 (§10.11, migration 0034) — Team Challenges: one shared
+ * goal per team per week; progress increments on any member's activity.
+ */
+export const teamWeeklyChallenges = cognifyV2Schema.table(
+  "team_weekly_challenges",
+  {
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    weekStart: date("week_start").notNull(),
+    challenge: jsonb("challenge")
+      .$type<{ id: string; title: string; target: number }>()
+      .notNull(),
+    progress: integer("progress").notNull().default(0),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.weekStart] })],
 );
 
 /**

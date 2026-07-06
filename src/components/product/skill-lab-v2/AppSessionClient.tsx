@@ -40,6 +40,7 @@ import ImprovementReview, {
   type AttemptPayload,
 } from "@/components/product/workout-shell/ImprovementReview";
 import { RepSurface } from "@/components/product/RepSurface";
+import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { deriveCoachFocus } from "@/lib/ai/coach-focus";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ShellStation } from "@/lib/workout/types";
@@ -598,6 +599,9 @@ function SessionComplete({
         {outcomes.length === 1 ? "exercise" : "exercises"}
         {summary != null ? ` — ${summary.lifetimeReps} all-time` : ""}.
       </p>
+
+      {/* PRD v3 Phase 6 (§10.8) — rank + streak + achievements strip. */}
+      <ProgressionStrip className="w-full max-w-md text-left" />
 
       <div className="flex gap-2 mt-2">
         <Link

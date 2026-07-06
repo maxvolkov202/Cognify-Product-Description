@@ -1,6 +1,12 @@
 import { and, desc, eq, gte, sql, inArray, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { reps, users, memberships, teams } from "@/lib/db/schema";
+import {
+  communicationProfile,
+  reps,
+  users,
+  memberships,
+  teams,
+} from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 
 /**
@@ -43,6 +49,16 @@ export type LeaderboardBoard = {
 };
 
 export type LeaderboardScope = "global" | "this_week" | "team";
+
+/** PRD v3 Phase 6 (§10.9) — ranking metric.
+ *  - "composite": avg composite in window (legacy default)
+ *  - "improvement": weekly improvement (delta vs last week) — the PRD's
+ *    default, "rewards communication growth rather than natural ability"
+ *  - "communication_score": Overall Communication Score (profile EMA) */
+export type LeaderboardMetric =
+  | "composite"
+  | "improvement"
+  | "communication_score";
 
 /** Limit — deliberately ~match the mock leaderboard the page previously
  *  rendered so the UI doesn't shrink when the real query lands. */
@@ -239,9 +255,11 @@ export async function getLeaderboard(opts: {
   scope: LeaderboardScope;
   userId: string | null;
   limit?: number;
+  metric?: LeaderboardMetric;
 }): Promise<LeaderboardBoard> {
   const { scope, userId } = opts;
   const limit = opts.limit ?? DEFAULT_LIMIT;
+  const metric = opts.metric ?? "composite";
 
   return safeDb(async () => {
     // 1. Scope → time window + optional team filter.
@@ -288,14 +306,52 @@ export async function getLeaderboard(opts: {
 
     if (aggregateRows.length === 0) return emptyBoard();
 
-    const topSlice = aggregateRows.slice(0, limit);
+    // PRD v3 Phase 6 — metric re-ranking. The base aggregation (avg
+    // composite + rep counts) is shared; the metric only changes the
+    // sort key (and, for communication_score, the displayed number).
+    let rankedRows = aggregateRows;
+    let overallScores: Map<string, number> | null = null;
+    if (metric === "improvement") {
+      const deltaMap = await computeDeltas(aggregateRows.map((r) => r.userId));
+      rankedRows = [...aggregateRows].sort(
+        (a, b) => (deltaMap.get(b.userId) ?? 0) - (deltaMap.get(a.userId) ?? 0),
+      );
+    } else if (metric === "communication_score") {
+      overallScores = await safeDb(async () => {
+        const rows = await db
+          .select({
+            userId: communicationProfile.userId,
+            overall: communicationProfile.overallScore,
+          })
+          .from(communicationProfile)
+          .where(
+            inArray(
+              communicationProfile.userId,
+              aggregateRows.map((r) => r.userId),
+            ),
+          );
+        const m = new Map<string, number>();
+        for (const r of rows) if (r.overall != null) m.set(r.userId, r.overall);
+        return m;
+      }, new Map<string, number>());
+      rankedRows = [...aggregateRows]
+        .filter((r) => overallScores!.has(r.userId))
+        .sort(
+          (a, b) =>
+            (overallScores!.get(b.userId) ?? 0) -
+            (overallScores!.get(a.userId) ?? 0),
+        );
+      if (rankedRows.length === 0) return emptyBoard();
+    }
+
+    const topSlice = rankedRows.slice(0, limit);
     const topUserIds = topSlice.map((r) => r.userId);
 
     // Ensure self appears even when outside top N — needed for the
     // "your rank" row at the bottom of the board.
     const userIdsForExtras = [...topUserIds];
     if (userId && !topUserIds.includes(userId)) {
-      const selfRow = aggregateRows.find((r) => r.userId === userId);
+      const selfRow = rankedRows.find((r) => r.userId === userId);
       if (selfRow) userIdsForExtras.push(userId);
     }
 
@@ -320,7 +376,9 @@ export async function getLeaderboard(opts: {
           ? row.name
           : row.email?.split("@")[0] ?? "Trainee",
       team: teamLabels.get(row.userId) ?? "Solo",
-      composite: Math.round(row.composite ?? 0),
+      composite: Math.round(
+        overallScores?.get(row.userId) ?? row.composite ?? 0,
+      ),
       reps: row.reps,
       streak: streaks.get(row.userId) ?? 0,
       delta: deltas.get(row.userId) ?? 0,
@@ -334,9 +392,9 @@ export async function getLeaderboard(opts: {
       if (inTop) {
         selfEntry = inTop;
       } else {
-        const selfIdx = aggregateRows.findIndex((r) => r.userId === userId);
+        const selfIdx = rankedRows.findIndex((r) => r.userId === userId);
         if (selfIdx !== -1) {
-          selfEntry = toEntry(aggregateRows[selfIdx]!, selfIdx + 1);
+          selfEntry = toEntry(rankedRows[selfIdx]!, selfIdx + 1);
         }
       }
     }

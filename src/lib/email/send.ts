@@ -94,6 +94,79 @@ export async function sendCrewInviteEmail(opts: CrewInviteEmail): Promise<void> 
   }
 }
 
+// PRD v3 Phase 6.8 — committed-day reminder ("streak at risk"). Sent by
+// /api/cron/committed-day-reminder in the user's local early evening
+// when a committed training day has no session yet. Opt-out via
+// users.reminder_emails_enabled (Settings).
+export type CommittedDayReminderEmail = {
+  to: string;
+  name: string | null;
+  streakDays: number;
+};
+
+export async function sendCommittedDayReminderEmail(
+  opts: CommittedDayReminderEmail,
+): Promise<void> {
+  if (!resend) {
+    console.log(
+      "[email] RESEND_API_KEY not set, skipping day reminder to",
+      opts.to,
+    );
+    return;
+  }
+  const firstName = opts.name?.split(" ")[0] ?? "there";
+  const subject =
+    opts.streakDays >= 3
+      ? `${firstName}, your ${opts.streakDays}-day streak is on the line`
+      : `${firstName}, today's a training day`;
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: opts.to,
+      subject,
+      html: buildDayReminderHtml(firstName, opts.streakDays),
+    });
+  } catch (err) {
+    console.error("[email] failed to send day reminder:", err);
+  }
+}
+
+function buildDayReminderHtml(firstName: string, streakDays: number): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://cognifygym.com";
+  const streakLine =
+    streakDays >= 3
+      ? `Your <strong style="color:#9788ff;">${streakDays}-day streak</strong> ends at midnight if today stays empty. One short session keeps it alive.`
+      : `Today's one of your committed training days — and it's still open. Ten minutes is all a session takes.`;
+  return `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f8f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e5f0;">
+    <div style="background:linear-gradient(135deg,#9788ff,#d946ef);padding:28px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+        ${streakDays >= 3 ? "🔥 Streak check" : "Time to train"}
+      </h1>
+    </div>
+    <div style="padding:28px;">
+      <p style="margin:0 0 16px;color:#1a1625;font-size:15px;line-height:1.6;">
+        Hey ${escapeHtml(firstName)} — ${streakLine}
+      </p>
+      <div style="text-align:center;margin:24px 0 8px;">
+        <a href="${appUrl}/workout"
+           style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
+          Start today's workout →
+        </a>
+      </div>
+      <p style="margin:20px 0 0;color:#9893a8;font-size:12px;text-align:center;line-height:1.6;">
+        You chose your training days — this is just the nudge you asked for.<br/>
+        Turn reminders off any time in <a href="${appUrl}/settings" style="color:#9788ff;">Settings</a>.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+}
+
 function buildCrewInviteHtml(inviter: string, inviteUrl: string): string {
   return `
 <!DOCTYPE html>

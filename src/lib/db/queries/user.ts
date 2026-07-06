@@ -49,6 +49,8 @@ export type UserProfile = {
   audioRetentionDays: number | null;
   /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
   communicationStage: string | null;
+  /** PRD v3 Phase 6.8 — committed-day reminder emails (default on). */
+  reminderEmailsEnabled: boolean;
 };
 
 // Request-scoped: called by layout, dashboard, workout, settings, and
@@ -82,6 +84,7 @@ export const getUserProfile = cache(async (
       tz: row.tz ?? "UTC",
       audioRetentionDays: row.audioRetentionDays ?? 90,
       communicationStage: row.communicationStage ?? null,
+      reminderEmailsEnabled: row.reminderEmailsEnabled ?? true,
     };
   }, null);
 });
@@ -138,6 +141,20 @@ export async function setUserImprovementGoals(
  * Positive integer = days. The audio-retention cron reads this column to
  * decide whose blobs to sweep.
  */
+/** PRD v3 Phase 6.8 — reminder-email opt-in/out. */
+export async function setUserReminderEmails(
+  userId: string,
+  enabled: boolean,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ reminderEmailsEnabled: enabled })
+      .where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
 export async function setUserAudioRetention(
   userId: string,
   days: number | null,

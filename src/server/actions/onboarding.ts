@@ -9,6 +9,7 @@ import {
   setUserAudioRetention,
   setUserCommunicationStage,
   markUserOnboarded,
+  setUserReminderEmails,
 } from "@/lib/db/queries/user";
 import {
   isVerticalId,
@@ -133,6 +134,18 @@ export async function setCommunicationStageAction(
   const user = await currentUser();
   if (!user) return { ok: false, error: "no_user" };
   const ok = await setUserCommunicationStage(user.id, stage);
+  if (!ok) return { ok: false, error: "db_error" };
+  return { ok: true };
+}
+
+/** PRD v3 Phase 6.8 — committed-day reminder emails toggle. */
+export async function setReminderEmailsAction(
+  enabled: boolean,
+): Promise<ActionResult> {
+  if (typeof enabled !== "boolean") return { ok: false, error: "invalid_input" };
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserReminderEmails(user.id, enabled);
   if (!ok) return { ok: false, error: "db_error" };
   return { ok: true };
 }

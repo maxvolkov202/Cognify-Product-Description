@@ -62,6 +62,7 @@ export default async function SettingsPage() {
         initialCommittedDays={profile?.committedDays ?? undefined}
         initialAudioRetentionDays={profile?.audioRetentionDays ?? 90}
         initialCommunicationStage={profile?.communicationStage ?? null}
+        initialReminderEmails={profile?.reminderEmailsEnabled ?? true}
         userEmail={user.email}
         userKind={user.kind}
       />

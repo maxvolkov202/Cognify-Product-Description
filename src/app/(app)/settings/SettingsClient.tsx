@@ -25,6 +25,7 @@ import {
   setUserPreferencesAction,
   setAudioRetentionAction,
   setCommunicationStageAction,
+  setReminderEmailsAction,
 } from "@/server/actions/onboarding";
 import { COMMUNICATION_STAGES } from "@/lib/onboarding/constants";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -44,6 +45,8 @@ type Props = {
   initialAudioRetentionDays?: number | null;
   /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
   initialCommunicationStage?: string | null;
+  /** PRD v3 Phase 6.8 — committed-day reminder emails. */
+  initialReminderEmails?: boolean;
   userEmail: string | null;
   userKind: "authenticated" | "guest";
 };
@@ -57,6 +60,7 @@ export function SettingsClient({
   initialCommittedDays,
   initialAudioRetentionDays,
   initialCommunicationStage,
+  initialReminderEmails = true,
   userEmail,
   userKind,
 }: Props) {
@@ -588,7 +592,7 @@ export function SettingsClient({
       )}
 
       {/* ——— Notifications ——————————————————————— */}
-      <NotificationsSection />
+      <NotificationsSection initialReminderEmails={initialReminderEmails} />
 
       {/* ——— Sticky save bar ——————————————————————— */}
       <AnimatePresence>
@@ -832,7 +836,14 @@ function PrivacySection({ initialDays }: { initialDays: number | null }) {
   );
 }
 
-function NotificationsSection() {
+function NotificationsSection({
+  initialReminderEmails = true,
+}: {
+  initialReminderEmails?: boolean;
+}) {
+  // PRD v3 Phase 6.8 — the committed-day reminder EMAIL is live; push
+  // notification toggles below remain coming-soon.
+  const [reminderEmails, setReminderEmails] = useState(initialReminderEmails);
   return (
     <section className="surface-card overflow-hidden">
       <div className="brand-gradient h-1" aria-hidden="true" />
@@ -849,6 +860,15 @@ function NotificationsSection() {
           </div>
         </div>
         <ul className="mt-5 space-y-3">
+          <NotificationToggle
+            title="Committed-day reminder email"
+            body="An email at 5pm your time on committed training days you haven't trained yet."
+            checked={reminderEmails}
+            onChange={(next) => {
+              setReminderEmails(next);
+              void setReminderEmailsAction(next);
+            }}
+          />
           <NotificationToggle
             title="Daily rep reminder"
             body="One push per day at the time you train — coming soon."
@@ -879,11 +899,17 @@ function NotificationToggle({
   title,
   body,
   comingSoon,
+  checked = false,
+  onChange,
 }: {
   title: string;
   body: string;
   comingSoon?: boolean;
+  /** PRD v3 Phase 6.8 — live toggles. Ignored when comingSoon. */
+  checked?: boolean;
+  onChange?: (next: boolean) => void;
 }) {
+  const live = !comingSoon && onChange != null;
   return (
     <li className="flex items-start gap-3 rounded-xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900">
       <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink-100 dark:bg-ink-800">
@@ -902,12 +928,23 @@ function NotificationToggle({
       </div>
       <button
         type="button"
-        disabled
-        aria-pressed={false}
-        aria-label={`${title} — coming soon`}
-        className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-ink-200 opacity-60 transition-colors disabled:cursor-not-allowed dark:bg-ink-700"
+        disabled={!live}
+        aria-pressed={live ? checked : false}
+        aria-label={live ? title : `${title} — coming soon`}
+        onClick={live ? () => onChange!(!checked) : undefined}
+        className={
+          live
+            ? `relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                checked ? "bg-brand-purple" : "bg-ink-200 dark:bg-ink-700"
+              }`
+            : "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-ink-200 opacity-60 transition-colors disabled:cursor-not-allowed dark:bg-ink-700"
+        }
       >
-        <span className="inline-block size-5 translate-x-0.5 rounded-full bg-white shadow dark:bg-ink-300" />
+        <span
+          className={`inline-block size-5 rounded-full bg-white shadow transition-transform dark:bg-ink-300 ${
+            live && checked ? "translate-x-[22px]" : "translate-x-0.5"
+          }`}
+        />
       </button>
     </li>
   );
