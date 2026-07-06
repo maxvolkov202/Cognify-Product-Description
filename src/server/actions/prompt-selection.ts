@@ -333,6 +333,45 @@ export async function fetchPromptCandidates(input: {
       seed: `${userId}:${input.exerciseId}:${Date.now()}`,
     });
 
+    // PRD v3 Phase 7.5 (Hunter C18) — fitness vs variety guardrail. When
+    // the whole slate came from a PERSONALIZED bank, swap the last two
+    // slots for general-bank prompts: relevance sells the rep, variety
+    // prevents the profile from overfitting the user into a bubble.
+    const VARIETY_SLOTS = 2;
+    if (
+      (bankTier === "vertical+goal" || bankTier === "vertical") &&
+      picked.length === 5
+    ) {
+      try {
+        const generalRows = await selectBank(generalFilter);
+        const pickedIds = new Set(picked.map((p) => p.promptId));
+        const generalAvailable = generalRows
+          .map((b) => ({
+            id: b.id,
+            promptId: b.promptId,
+            text: b.text,
+            difficulty: b.difficulty,
+            tags: Array.isArray(b.tags) ? (b.tags as string[]) : [],
+          }))
+          .filter(
+            (p) => !pickedIds.has(p.promptId) && !sessionSeen.has(p.promptId),
+          );
+        if (generalAvailable.length >= VARIETY_SLOTS) {
+          const varietyPicks = pickPromptCandidates({
+            available: generalAvailable,
+            recentPromptIds,
+            k: VARIETY_SLOTS,
+            preferEasier,
+            seed: `${userId}:${input.exerciseId}:${Date.now()}:variety`,
+          });
+          picked.splice(5 - VARIETY_SLOTS, VARIETY_SLOTS, ...varietyPicks);
+        }
+      } catch {
+        // Guardrail is best-effort — a fully personalized slate is the
+        // graceful degradation, not an error.
+      }
+    }
+
     return {
       candidates: picked,
       surprise: picked[0] ?? null,

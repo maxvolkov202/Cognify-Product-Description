@@ -38,6 +38,7 @@ import { SUB_SKILLS } from "@/types/sub-skills";
 import { detectPlateau } from "@/lib/profile/plateau";
 import {
   selectMuscleGroupForToday,
+  planUpcomingDims,
   sampleExercises,
   isAssessmentActive,
   type CatalogExercise,
@@ -119,6 +120,19 @@ async function fetchSubSkillAveragesForDim(
 async function todayDateForUser(userId: string): Promise<string> {
   const profile = await getUserProfile(userId);
   return todayYmdInTz(profile?.tz ?? "UTC");
+}
+
+/** Short display label for the Phase 7.3 "Next up" rationale tail. */
+function dimShortLabel(dim: MuscleGroupId): string {
+  const labels: Record<MuscleGroupId, string> = {
+    clarity: "Clarity",
+    structure: "Structure",
+    conciseness: "Conciseness",
+    thinking_quality: "Thinking",
+    pacing: "Pacing",
+    tone: "Tone",
+  };
+  return labels[dim];
 }
 
 function logEvent(event: string, payload: Record<string, unknown>): void {
@@ -348,6 +362,8 @@ export async function previewTodaysWorkoutPlan(input: {
 export type SuggestResult = SelectResult & {
   /** Latest matching muscle_group_day if one already exists for today. */
   existingDayId: string | null;
+  /** PRD v3 Phase 7.3 — the next 2 planned focus dims (simulated). */
+  upcoming?: MuscleGroupId[];
 };
 
 // "use server" requires exports to be raw async functions, so we wrap an
@@ -458,7 +474,34 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       assessmentEnabled,
       weightedRotationEnabled: assessmentEnabled,
       plateauedDims,
+      // PRD v3 Phase 7.2 — confidence management, same v2-engine gate.
+      confidenceBoostEnabled: assessmentEnabled,
     });
+
+    // PRD v3 Phase 7.3 — project the next two focus days so the user
+    // sees where the week is headed ("Trust the Coach" needs a visible
+    // plan, not day-by-day surprise). Ride the rationale line — no new
+    // UI surface required.
+    let upcoming: MuscleGroupId[] | undefined;
+    if (assessmentEnabled) {
+      upcoming = planUpcomingDims(
+        {
+          today,
+          engagement,
+          recentReps,
+          recentDays,
+          seed: `${userId}:${dayDate}`,
+          assessmentEnabled,
+          weightedRotationEnabled: assessmentEnabled,
+          plateauedDims,
+        },
+        result.suggested,
+        2,
+      );
+      if (upcoming.length === 2) {
+        result.rationale = `${result.rationale} Next up: ${dimShortLabel(upcoming[0]!)}, then ${dimShortLabel(upcoming[1]!)}.`;
+      }
+    }
 
     if (result.rationaleCode === "cold_start") {
       logEvent("assignment.fallback.cold_start", { userId });

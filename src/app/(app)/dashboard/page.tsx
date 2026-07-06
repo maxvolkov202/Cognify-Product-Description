@@ -11,6 +11,11 @@ import {
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import { isRankSystemEnabled, isSkillLabAppsEnabled } from "@/lib/flags";
+import { db } from "@/lib/db/client";
+import { communicationProfile } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { safeDb } from "@/lib/db/safe";
+import { benchmarkNote } from "@/lib/profile/stage-benchmarks";
 import { WeeklyChallengesCard } from "@/components/product/dashboard/WeeklyChallengesCard";
 import { suggestTodaysMuscleGroup } from "@/server/actions/workout-day";
 import { getUserProfile } from "@/lib/db/queries/user";
@@ -134,6 +139,20 @@ export default async function DashboardPage() {
       : Promise.resolve(null),
     user ? suggestTodaysMuscleGroup() : Promise.resolve(null),
   ]);
+
+  // PRD v3 Phase 7.4 — Overall Communication Score display (was deferred
+  // from Phase 3.2). Profile EMA, null until ≥3 core skills measured.
+  const overallCommunicationScore =
+    user && isRankSystemEnabled()
+      ? await safeDb(async () => {
+          const [row] = await db
+            .select({ overall: communicationProfile.overallScore })
+            .from(communicationProfile)
+            .where(eq(communicationProfile.userId, user.id))
+            .limit(1);
+          return row?.overall ?? null;
+        }, null)
+      : null;
 
   const hasAnyReps = recent.length > 0;
   const avgRecent = hasAnyReps
@@ -268,6 +287,15 @@ export default async function DashboardPage() {
         baselineComposite={baselineComposite}
         focusDim={focus.dim}
         focusDimScore={focus.score}
+        communicationScore={overallCommunicationScore}
+        communicationScoreNote={
+          overallCommunicationScore != null
+            ? benchmarkNote(
+                overallCommunicationScore,
+                profile?.communicationStage ?? null,
+              )
+            : null
+        }
       />
 
       {/* Modes — Workout / Skill Lab / Build a Rep. */}

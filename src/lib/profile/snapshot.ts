@@ -7,9 +7,13 @@
 // Phases 4-5; recommendations in Phase 7) starts here instead of
 // re-aggregating ad-hoc SQL.
 
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { coachingEvents, communicationProfile } from "@/lib/db/schema";
+import {
+  coachingEvents,
+  communicationProfile,
+  prepEvents,
+} from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";
 import { SKILL_DIMENSIONS } from "@/types/domain";
@@ -24,6 +28,19 @@ export type CoachingMemoryEntry = {
   at: string;
 };
 
+/** PRD v3 Phase 7.1 — per-dimension coaching effectiveness: over the
+ *  wider ledger window, how often does coaching on this dim get
+ *  implemented? Drives technique selection (change the angle where
+ *  coaching isn't landing). */
+export type CoachingEffectiveness = {
+  dimension: SkillDimension;
+  coached: number;
+  implemented: number;
+  /** implemented / retried (nailed+partial+missed); null when the user
+   *  never retried coaching on this dim. */
+  rate: number | null;
+};
+
 export type CommunicationSnapshot = {
   profile: CommunicationProfileState;
   /** Weakest / strongest measured core skill (null with no evidence). */
@@ -34,41 +51,72 @@ export type CommunicationSnapshot = {
   /** Dimensions coached ≥3 times in the recent window whose focuses keep
    *  missing — the model should change its coaching angle, not repeat. */
   recurringWeaknesses: SkillDimension[];
+  /** Phase 7.1 — implementation rates per coached dimension (wider
+   *  window than recentCoaching). */
+  coachingEffectiveness: CoachingEffectiveness[];
+  /** Phase 7.6 (PRD §8.3.8) — active Build a Rep events + latest
+   *  readiness, so every engine knows what the user is preparing for. */
+  eventReadiness: { title: string; readinessScore: number | null }[];
 };
 
 const COACHING_LOOKBACK = 10;
+/** Phase 7.1 — wider window for effectiveness aggregation. */
+const EFFECTIVENESS_LOOKBACK = 40;
+/** Coached ≥ this many RETRIED times with rate ≤ 1/3 = "resistant". */
+export const EFFECTIVENESS_MIN_SAMPLES = 3;
 
 export async function buildCommunicationSnapshot(
   userId: string,
 ): Promise<CommunicationSnapshot | null> {
   if (!userId || userId === "anonymous") return null;
   return safeDb<CommunicationSnapshot | null>(async () => {
-    const [profileRow, coachingRows] = await Promise.all([
-      db
-        .select({
-          overallScore: communicationProfile.overallScore,
-          coreSkills: communicationProfile.coreSkills,
-          hiddenSkills: communicationProfile.hiddenSkills,
-          applications: communicationProfile.applications,
-          totalReps: communicationProfile.totalReps,
-        })
-        .from(communicationProfile)
-        .where(eq(communicationProfile.userId, userId))
-        .limit(1)
-        .then((rows) => rows[0] ?? null),
-      db
-        .select({
-          dimension: coachingEvents.dimension,
-          subSkill: coachingEvents.subSkill,
-          focusText: coachingEvents.focusText,
-          implementedVerdict: coachingEvents.implementedVerdict,
-          createdAt: coachingEvents.createdAt,
-        })
-        .from(coachingEvents)
-        .where(eq(coachingEvents.userId, userId))
-        .orderBy(desc(coachingEvents.createdAt))
-        .limit(COACHING_LOOKBACK),
-    ]);
+    const [profileRow, coachingRows, effectivenessRows, eventRows] =
+      await Promise.all([
+        db
+          .select({
+            overallScore: communicationProfile.overallScore,
+            coreSkills: communicationProfile.coreSkills,
+            hiddenSkills: communicationProfile.hiddenSkills,
+            applications: communicationProfile.applications,
+            totalReps: communicationProfile.totalReps,
+          })
+          .from(communicationProfile)
+          .where(eq(communicationProfile.userId, userId))
+          .limit(1)
+          .then((rows) => rows[0] ?? null),
+        db
+          .select({
+            dimension: coachingEvents.dimension,
+            subSkill: coachingEvents.subSkill,
+            focusText: coachingEvents.focusText,
+            implementedVerdict: coachingEvents.implementedVerdict,
+            createdAt: coachingEvents.createdAt,
+          })
+          .from(coachingEvents)
+          .where(eq(coachingEvents.userId, userId))
+          .orderBy(desc(coachingEvents.createdAt))
+          .limit(COACHING_LOOKBACK),
+        db
+          .select({
+            dimension: coachingEvents.dimension,
+            implementedVerdict: coachingEvents.implementedVerdict,
+          })
+          .from(coachingEvents)
+          .where(eq(coachingEvents.userId, userId))
+          .orderBy(desc(coachingEvents.createdAt))
+          .limit(EFFECTIVENESS_LOOKBACK),
+        db
+          .select({
+            title: prepEvents.title,
+            readinessScore: prepEvents.readinessScore,
+          })
+          .from(prepEvents)
+          .where(
+            and(eq(prepEvents.userId, userId), eq(prepEvents.status, "active")),
+          )
+          .orderBy(desc(prepEvents.updatedAt))
+          .limit(3),
+      ]);
 
     const profile: CommunicationProfileState = profileRow
       ? {
@@ -120,12 +168,48 @@ export async function buildCommunicationSnapshot(
       .filter(([, n]) => n >= 3)
       .map(([dim]) => dim);
 
+    // Phase 7.1 — per-dim implementation rates over the wider window.
+    // Only RETRIED focuses count toward the rate (null verdict = never
+    // retried, which measures engagement, not coaching quality).
+    const effAgg = new Map<
+      SkillDimension,
+      { coached: number; retried: number; implemented: number }
+    >();
+    for (const r of effectivenessRows) {
+      const dim = r.dimension as SkillDimension;
+      const cur = effAgg.get(dim) ?? { coached: 0, retried: 0, implemented: 0 };
+      cur.coached += 1;
+      if (r.implementedVerdict != null) {
+        cur.retried += 1;
+        if (
+          r.implementedVerdict === "nailed" ||
+          r.implementedVerdict === "partial"
+        ) {
+          cur.implemented += 1;
+        }
+      }
+      effAgg.set(dim, cur);
+    }
+    const coachingEffectiveness: CoachingEffectiveness[] = [
+      ...effAgg.entries(),
+    ].map(([dimension, a]) => ({
+      dimension,
+      coached: a.coached,
+      implemented: a.implemented,
+      rate: a.retried > 0 ? a.implemented / a.retried : null,
+    }));
+
     return {
       profile,
       weakestCoreSkill: weakest,
       strongestCoreSkill: strongest,
       recentCoaching,
       recurringWeaknesses,
+      coachingEffectiveness,
+      eventReadiness: eventRows.map((e) => ({
+        title: e.title,
+        readinessScore: e.readinessScore,
+      })),
     };
   }, null);
 }
@@ -154,6 +238,21 @@ export function renderCoachingMemoryBlock(
   if (snapshot.recurringWeaknesses.length > 0) {
     lines.push(
       `RECURRING: ${snapshot.recurringWeaknesses.join(", ")} coaching keeps not landing — change the ANGLE (different hidden skill, different framing, or a smaller step), do not repeat prior focus text.`,
+    );
+  }
+  // Phase 7.1 — technique selection: where coaching demonstrably isn't
+  // landing across the wider ledger, tell the model to switch technique.
+  const resistant = snapshot.coachingEffectiveness.filter(
+    (e) =>
+      e.rate != null &&
+      e.rate <= 1 / 3 &&
+      e.coached >= EFFECTIVENESS_MIN_SAMPLES,
+  );
+  if (resistant.length > 0) {
+    lines.push(
+      `EFFECTIVENESS: ${resistant
+        .map((e) => `${e.dimension} coaching implemented ${e.implemented}/${e.coached}`)
+        .join("; ")} — for these, use a DIFFERENT coaching technique: smaller single step, a concrete before/after example from THIS transcript, or coach via a related hidden skill instead.`,
     );
   }
   lines.push(

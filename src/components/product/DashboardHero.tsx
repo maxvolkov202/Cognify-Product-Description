@@ -25,6 +25,11 @@ type Props = {
   baselineComposite: number | null;
   focusDim: SkillDimension | null;
   focusDimScore: number | null;
+  /** PRD v3 Phase 7.4 — Overall Communication Score (profile EMA, null
+   *  until ≥3 core skills measured) + stage-benchmark footnote. Renders
+   *  a fourth vital sign when present (FF_RANK_SYSTEM server-gated). */
+  communicationScore?: number | null;
+  communicationScoreNote?: string | null;
 };
 
 /**
@@ -42,6 +47,8 @@ export function DashboardHero({
   baselineComposite,
   focusDim,
   focusDimScore,
+  communicationScore = null,
+  communicationScoreNote = null,
 }: Props) {
   // Compute greeting on the client after mount to avoid SSR/CSR mismatch
   // when the server's TZ != the user's. Server renders the neutral
@@ -177,6 +184,23 @@ export function DashboardHero({
                   : "neutral"
             }
           />
+
+          {communicationScore != null && (
+            <VitalSign
+              label="Communication Score"
+              href="/progress"
+              accent="purple"
+              valueNode={
+                <span className="brand-gradient-text text-3xl font-extrabold tabular-nums md:text-4xl">
+                  {Math.round(communicationScore)}
+                </span>
+              }
+              iconNode={
+                <Sparkles className="size-4 text-brand-purple" strokeWidth={2.5} />
+              }
+              footnote={communicationScoreNote ?? "All six Core Skills, long-run"}
+            />
+          )}
 
           <VitalSign
             label="Today's focus"

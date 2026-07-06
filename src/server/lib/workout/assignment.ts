@@ -98,6 +98,11 @@ export type SelectInput = {
    *  stimulus, not more of the same. Computed by the caller from
    *  progress snapshots via detectPlateau(). */
   plateauedDims?: MuscleGroupId[];
+  /** PRD v3 Phase 7.2 (PRD §8.4.4 confidence management) — after two
+   *  consecutive rough days, deliberately serve the STRONGEST dim so the
+   *  user banks a win before returning to weakness work. Caller flag
+   *  (v2 engine); default false = legacy behavior. */
+  confidenceBoostEnabled?: boolean;
 };
 
 // ─── Outputs ─────────────────────────────────────────────────────────────
@@ -108,7 +113,8 @@ export type RationaleCode =
   | "sharp_regression"
   | "six_day_floor"
   | "weakest_recent"
-  | "oldest_fallback";
+  | "oldest_fallback"
+  | "confidence_builder";
 
 export type SelectResult = {
   suggested: MuscleGroupId;
@@ -135,6 +141,9 @@ export const WEAK_SKILL_FLOOR = 4;
 export const STRONG_SKILL_FLOOR = 7;
 /** Composite drop that surfaces a dim early regardless of floor. */
 export const SHARP_REGRESSION_THRESHOLD = 8;
+/** Phase 7.2 — two consecutive attempted days closing below this
+ *  composite trigger a confidence-builder day on the strongest dim. */
+export const CONFIDENCE_LOW_THRESHOLD = 55;
 /** Recent-engagement row count below which we fall back to recent reps. */
 export const SPARSE_ENGAGEMENT_THRESHOLD = 3;
 /** A user's last N muscle-group days that exercise sampling dedupes against. */
@@ -238,7 +247,47 @@ export function buildRationale(
     }
     case "oldest_fallback":
       return `${label}'s overdue. Let's bring it back into rotation.`;
+    case "confidence_builder":
+      return `Rough couple of days — bank a win with ${label} today.`;
   }
+}
+
+/** PRD v3 Phase 7.3 — multi-session planning (v1): simulate the next N
+ *  selections so today's suggestion can say where the week is headed.
+ *  Pure: replays selectMuscleGroupForToday against hypothetical closed
+ *  days. Confidence-builder is disabled inside the simulation (it needs
+ *  real composites); assessment/floors/weakness all project forward. */
+export function planUpcomingDims(
+  input: SelectInput,
+  todayPick: MuscleGroupId,
+  count = 2,
+): MuscleGroupId[] {
+  const picks: MuscleGroupId[] = [];
+  let days = [...input.recentDays];
+  let cursor = new Date(input.today);
+  let lastPick = todayPick;
+  for (let i = 0; i < count; i++) {
+    days = [
+      ...days,
+      {
+        dayId: `sim-${i}`,
+        dimension: lastPick,
+        dayDate: cursor.toISOString().slice(0, 10),
+        plannedExerciseIds: [],
+        compositeAtClose: null,
+      },
+    ];
+    cursor = new Date(cursor.getTime() + 86_400_000);
+    const res = selectMuscleGroupForToday({
+      ...input,
+      today: cursor,
+      recentDays: days,
+      confidenceBoostEnabled: false,
+    });
+    picks.push(res.suggested);
+    lastPick = res.suggested;
+  }
+  return picks;
 }
 
 // ─── 1. Muscle-group selector ────────────────────────────────────────────
@@ -313,6 +362,44 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
       rationale: buildRationale("cold_start", "clarity"),
       rationaleCode: "cold_start",
     };
+  }
+
+  // 1.5) PRD v3 Phase 7.2 — confidence management (PRD §8.4.4: balance
+  //      challenge with reinforcement). Two consecutive attempted days
+  //      closing under CONFIDENCE_LOW_THRESHOLD → serve the STRONGEST
+  //      dim instead of piling onto a weakness. Deliberately checked
+  //      BEFORE sharp regression: "you dropped 8 points, now drill your
+  //      worst skill" is exactly the demoralizing pile-on to avoid.
+  if (input.confidenceBoostEnabled) {
+    const closedDays = [...recentDays]
+      .filter((d) => d.compositeAtClose != null)
+      .sort((a, b) => (a.dayDate < b.dayDate ? 1 : -1));
+    if (
+      closedDays.length >= 2 &&
+      closedDays[0]!.compositeAtClose! < CONFIDENCE_LOW_THRESHOLD &&
+      closedDays[1]!.compositeAtClose! < CONFIDENCE_LOW_THRESHOLD
+    ) {
+      let strongest: MuscleGroupId | null = null;
+      let strongestComposite = -1;
+      for (const dim of MUSCLE_GROUP_IDS) {
+        const c = effectiveCompositeFor(dim, engagement, recentReps);
+        if (c != null && c > strongestComposite) {
+          strongestComposite = c;
+          strongest = dim;
+        }
+      }
+      // Don't fire when the "strongest" skill is itself weak — a
+      // confidence day needs something to actually lean on.
+      if (strongest && strongestComposite >= CONFIDENCE_LOW_THRESHOLD + 5) {
+        const alternates = pickAlternates(strongest, engagement, recentReps);
+        return {
+          suggested: strongest,
+          alternates,
+          rationale: buildRationale("confidence_builder", strongest),
+          rationaleCode: "confidence_builder",
+        };
+      }
+    }
   }
 
   // 2) Sharp-regression override: surface the dim with the largest 7d drop.
