@@ -284,6 +284,38 @@ section("v2: insight phase between pick and recording");
   assert(s.phase === "recording", "INSIGHT_DONE → recording");
 }
 
+section("v2: early BEGIN_RETRY buffers until the score lands (F-6)");
+{
+  // RepSurface renders the feedback CTA from its own local state, so a
+  // fast tap (or the async rep path) can dispatch BEGIN_RETRY while this
+  // machine is still in "recording". It must buffer, not drop.
+  let s = startV2();
+  s = reduce(s, { type: "START" });
+  s = reduce(s, { type: "PICK_PROMPT", promptId: "p1", text: "Explain X", mode: "shuffle" });
+  s = reduce(s, { type: "INSIGHT_DONE" });
+  assert(s.phase === "recording", "setup: recording");
+  s = reduce(s, { type: "BEGIN_RETRY" });
+  assert(s.phase === "recording", "early BEGIN_RETRY stays in recording");
+  assert(s.pendingBeginRetry === true, "early BEGIN_RETRY is buffered");
+  s = reduce(s, { type: "SCORE_DONE", composite: 70, repId: "r1" });
+  assert(s.phase === "recording", "buffered retry starts when score lands");
+  assert(s.attempt === "retry", "attempt=retry after buffered start");
+  assert(s.pendingBeginRetry === false, "buffer consumed");
+  assert(s.firstOutcome?.repId === "r1", "first outcome still captured");
+  assert(s.outcomes.length === 1, "first attempt still appended");
+
+  // A buffered retry must NOT fire against a failed score.
+  let f = startV2();
+  f = reduce(f, { type: "START" });
+  f = reduce(f, { type: "PICK_PROMPT", promptId: "p1", text: "Explain X", mode: "shuffle" });
+  f = reduce(f, { type: "INSIGHT_DONE" });
+  f = reduce(f, { type: "BEGIN_RETRY" });
+  f = reduce(f, { type: "FAIL_SCORE", repId: "r1" });
+  assert(f.phase === "score-reveal", "failed score → degraded score-reveal");
+  assert(f.pendingBeginRetry === false, "buffer dropped on scoring failure");
+  assert(f.attempt === "first", "no auto-retry against a scoring hiccup");
+}
+
 section("v2: required retry loop + improvement review");
 {
   let s = startV2();

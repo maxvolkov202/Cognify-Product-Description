@@ -377,6 +377,7 @@ function WorkoutShellInner({
                 phase={state.phase}
                 station={station}
                 workoutSessionId={payload.workoutSessionId}
+                practiceSessionId={payload.practiceSessionId}
                 muscleGroupDayId={payload.dayId}
                 dimension={payload.dimension}
                 selectedPrompt={state.selectedPrompt}

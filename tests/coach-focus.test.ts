@@ -94,11 +94,43 @@ section("deriveCoachFocus");
   const f4 = deriveCoachFocus(mkScore({}));
   assert(f4 === null, "null when no focus data");
 
-  // structural_adherence never becomes a focus.
+  // structural_adherence never becomes a focus — but it must not VOID
+  // the focus either (Phase 12 F-5: framework-heavy reps where the model
+  // picked it as primary silently lost the card/retry/ledger).
   const f5 = deriveCoachFocus(
     mkScore({ primaryFocusDimension: "structural_adherence" as never }),
   );
-  assert(f5 === null, "structural_adherence excluded");
+  assert(f5 === null, "structural_adherence with no other signal → null");
+
+  // …redirects to the first non-structural bullet when one exists.
+  const f6 = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "structural_adherence" as never,
+      nextRepFocus: [
+        { ...bullet("conciseness", "Cut the preamble."), exampleLine: null },
+      ],
+    }),
+  );
+  assert(
+    f6?.dimension === "conciseness" && f6.text === "Cut the preamble.",
+    "structural_adherence primary redirects to first core bullet",
+  );
+
+  // …or to the weakest scored core dimension when there are no bullets.
+  const f7 = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "structural_adherence" as never,
+      dimensions: [
+        { dimension: "clarity", score: 71, feedback: "" },
+        { dimension: "tone", score: 48, feedback: "" },
+        { dimension: "structural_adherence", score: 20, feedback: "" },
+      ] as never,
+    }),
+  );
+  assert(
+    f7?.dimension === "tone",
+    "structural_adherence primary falls back to weakest core dimension",
+  );
 }
 
 section("deriveImplementationVerdict");

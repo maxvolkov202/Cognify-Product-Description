@@ -44,6 +44,9 @@ export type RepControlsProps = {
   phase: SessionPhase;
   station: ShellStation | null;
   workoutSessionId: string | null;
+  /** practice_sessions.id — the ONLY id reps.session_id may reference
+   *  (Phase 12 F-4: the workout id FK-failed every resumed-day save). */
+  practiceSessionId: string | null;
   muscleGroupDayId: string | null;
   /** Phase 9 — dim of today's workout, used to fetch the retrospective. */
   dimension: MuscleGroupId | null;
@@ -96,6 +99,7 @@ export default function RepControls({
   phase,
   station,
   workoutSessionId,
+  practiceSessionId,
   muscleGroupDayId,
   dimension,
   selectedPrompt,
@@ -180,6 +184,7 @@ export default function RepControls({
             station={station}
             selectedPrompt={selectedPrompt}
             workoutSessionId={workoutSessionId}
+            practiceSessionId={practiceSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
             loop={loop}
@@ -239,6 +244,7 @@ export default function RepControls({
             station={station}
             selectedPrompt={selectedPrompt}
             workoutSessionId={workoutSessionId}
+            practiceSessionId={practiceSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
             graduation
@@ -311,6 +317,7 @@ function ActiveRep({
   station,
   selectedPrompt,
   workoutSessionId,
+  practiceSessionId,
   muscleGroupDayId,
   dimension,
   graduation,
@@ -325,6 +332,7 @@ function ActiveRep({
   station: ShellStation | null;
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
   workoutSessionId: string | null;
+  practiceSessionId: string | null;
   muscleGroupDayId: string | null;
   dimension: MuscleGroupId | null;
   graduation?: boolean;
@@ -417,7 +425,10 @@ function ActiveRep({
           ? `Pressure · Graduation rep`
           : `${station.exerciseName}`
       }
-      sessionId={workoutSessionId}
+      // reps.session_id FKs practice_sessions — the workout id here
+      // FK-failed EVERY resumed-day rep save silently (Phase 12 F-4).
+      // null is fine: saveRep/insertPendingRep self-create a session.
+      sessionId={practiceSessionId}
       speakingThreshold={{ minRatio: 0.6 }}
       feedbackRepIndex={station.index + 1}
       feedbackTotalReps={totalStations}

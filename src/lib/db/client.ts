@@ -4,7 +4,14 @@ import * as schema from "./schema";
 
 type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
 
-let cached: DrizzleDb | null = null;
+// Phase 13 (F-2): survive Next.js dev HMR. Every recompile replaces this
+// module; a module-scoped pool leaks its sockets on each swap (they stay
+// open until GC), and a day of editing walks the Supabase pooler into
+// its 200-client EMAXCONN ceiling — at which point auth silently
+// degrades to guest. globalThis persists across HMR module instances.
+const globalCache = globalThis as unknown as {
+  __cognifyDb?: DrizzleDb;
+};
 
 function createDb(): DrizzleDb {
   const url = process.env.DATABASE_URL;
@@ -15,15 +22,19 @@ function createDb(): DrizzleDb {
   }
   // `prepare: false` is required for Supabase's Transaction pooler (pgBouncer
   // in transaction mode doesn't support prepared statements).
-  const sql = postgres(url, { prepare: false });
+  // `max` stays modest: the pooler multiplexes to real backends anyway,
+  // and every dev-server worker + script process gets its own pool.
+  const sql = postgres(url, { prepare: false, max: 6 });
   return drizzle(sql, { schema });
 }
 
 export const db = new Proxy({} as DrizzleDb, {
   get(_target, prop, receiver) {
-    if (!cached) cached = createDb();
-    const value = Reflect.get(cached as object, prop, receiver);
-    return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(cached) : value;
+    if (!globalCache.__cognifyDb) globalCache.__cognifyDb = createDb();
+    const value = Reflect.get(globalCache.__cognifyDb as object, prop, receiver);
+    return typeof value === "function"
+      ? (value as (...args: unknown[]) => unknown).bind(globalCache.__cognifyDb)
+      : value;
   },
 }) as DrizzleDb;
 

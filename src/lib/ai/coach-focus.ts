@@ -35,13 +35,27 @@ export type ImplementationReview = {
  * Derive the Coach's Focus a rep should carry forward from its score.
  * Prefers the nextRepFocus bullet matching primaryFocusDimension, then the
  * first nextRepFocus bullet, then a bare-dimension fallback. Null only
- * when the score has neither a focus dimension nor focus bullets
- * (mock-fallback reps).
+ * when the score has neither a focus dimension, focus bullets, nor
+ * dimension scores (mock-fallback reps).
+ *
+ * structural_adherence is a framework grade, not a Core Skill — it can't
+ * be the ledger's focus dimension. It used to hard-null the whole focus,
+ * which SILENTLY dropped the Coach's Focus card, the retry overlay, the
+ * retryContext, and the coaching-ledger row on every framework-heavy rep
+ * where the model picked it as primary (Phase 12 F-5). Now it redirects
+ * to the best core carrier instead: first non-structural bullet, else
+ * the weakest core dimension.
  */
 export function deriveCoachFocus(score: RepScore): CoachFocus | null {
-  const bullets = score.nextRepFocus ?? [];
-  const primary = score.primaryFocusDimension ?? bullets[0]?.dimension ?? null;
-  if (!primary || primary === "structural_adherence") return null;
+  const bullets = (score.nextRepFocus ?? []).filter(
+    (b) => b.dimension !== "structural_adherence",
+  );
+  let primary: string | null =
+    score.primaryFocusDimension ?? bullets[0]?.dimension ?? null;
+  if (primary === "structural_adherence") {
+    primary = bullets[0]?.dimension ?? weakestCoreDimension(score);
+  }
+  if (!primary) return null;
 
   const matching =
     bullets.find((b) => b.dimension === primary) ?? bullets[0] ?? null;
@@ -53,10 +67,23 @@ export function deriveCoachFocus(score: RepScore): CoachFocus | null {
     };
   }
   return {
-    dimension: primary,
+    dimension: primary as SkillDimension,
     subSkill: null,
     text: `Improve ${primary.replace(/_/g, " ")} on your next attempt.`,
   };
+}
+
+/** Weakest scored dimension that is a real Core Skill (framework grades
+ *  excluded). Null when the score carries no core dimensions at all. */
+function weakestCoreDimension(score: RepScore): SkillDimension | null {
+  const core = (score.dimensions ?? []).filter(
+    // The domain type narrows dimensions to core skills, but live scores
+    // carry structural_adherence rows when a framework was graded.
+    (d) => (d.dimension as string) !== "structural_adherence",
+  );
+  if (core.length === 0) return null;
+  return core.reduce((weakest, d) => (d.score < weakest.score ? d : weakest))
+    .dimension as SkillDimension;
 }
 
 /**

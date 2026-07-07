@@ -63,14 +63,19 @@ export async function getStreakStatus(userId: string): Promise<StreakStatus> {
     // users stay on UTC (no behavior change).
     const tz = user?.tz ?? "UTC";
 
+    // GROUP/ORDER BY select position, NOT a repeated expression: each
+    // `${tz}` interpolation binds as its OWN parameter ($1, $2, $3), and
+    // Postgres can't prove `AT TIME ZONE $2` equals the selected
+    // `AT TIME ZONE $1` — the query 42803-failed on EVERY call and
+    // safeDb quietly returned the zero-streak fallback (Phase 12 F-3).
     const rows = await db
       .select({
         date: sql<string>`to_char(${reps.createdAt} AT TIME ZONE ${tz}, 'YYYY-MM-DD')`,
       })
       .from(reps)
       .where(eq(reps.userId, userId))
-      .groupBy(sql`to_char(${reps.createdAt} AT TIME ZONE ${tz}, 'YYYY-MM-DD')`)
-      .orderBy(sql`to_char(${reps.createdAt} AT TIME ZONE ${tz}, 'YYYY-MM-DD') DESC`);
+      .groupBy(sql`1`)
+      .orderBy(sql`1 DESC`);
 
     if (rows.length === 0) {
       return {

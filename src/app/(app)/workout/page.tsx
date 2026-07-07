@@ -241,6 +241,7 @@ async function fetchTodaysDayPayload(
       .select({
         id: workoutSessions.id,
         index: workoutSessions.currentStationIndex,
+        practiceSessionId: workoutSessions.practiceSessionId,
       })
       .from(workoutSessions)
       .where(eq(workoutSessions.muscleGroupDayId, day.id))
@@ -277,6 +278,7 @@ async function fetchTodaysDayPayload(
       currentStationIndex:
         activeSession?.index ?? Math.min(day.completedReps, dayTarget - 1),
       workoutSessionId: activeSession?.id ?? null,
+      practiceSessionId: activeSession?.practiceSessionId ?? null,
       previousDayComposite: previousDay?.composite ?? null,
       lastDay: previousDay
         ? {

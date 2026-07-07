@@ -90,6 +90,10 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   currentStationIndex: z.number().int().min(0).max(3),
   /** Active workout_sessions.id. Required for prompt_selection_events FK. */
   workoutSessionId: z.string().uuid().nullable(),
+  /** Active practice_sessions.id — what reps.session_id actually FKs.
+   *  Phase 12 F-4: passing workoutSessionId into saveRep FK-failed EVERY
+   *  resumed-day rep save silently. */
+  practiceSessionId: z.string().uuid().nullable(),
   /** From the prior same-dim day; drives Phase 9's banner. */
   previousDayComposite: z.number().nullable(),
   /** Phase 9 — full prior-day comparison context. Supersedes
@@ -132,6 +136,7 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   sessionPhase: "idle",
   currentStationIndex: 0,
   workoutSessionId: null,
+  practiceSessionId: null,
   previousDayComposite: null,
   lastDay: null,
   streakDays: null,

@@ -100,6 +100,12 @@ export type SessionMachineState = {
   retryOutcomes: StationOutcome[];
   /** A buffered recording waiting for network reconnect to replay. */
   networkBuffered: boolean;
+  /** Phase 12 F-6 — a BEGIN_RETRY that arrived while the rep was still
+   *  transcribing/scoring (RepSurface renders the CTA from its own local
+   *  state before SCORE_DONE reaches this machine). Consumed by
+   *  finishRepWithScore: the retry starts the moment the score lands
+   *  instead of the tap being silently dropped. */
+  pendingBeginRetry: boolean;
   /** Selected prompt for the current rep (text shown to the user +
    *  sent to scoring). NULL during non-recording phases. Retained across
    *  the retry (same prompt, per PRD §4.6). */
@@ -167,6 +173,7 @@ export function initialMachineState(
     outcomes: [],
     retryOutcomes: [],
     networkBuffered: false,
+    pendingBeginRetry: false,
     selectedPrompt: null,
   };
 }
@@ -285,6 +292,32 @@ export function reduce(
         ? finishRepWithScore(state, event.composite, event.repId, false)
         : failScore(state, event.repId);
     }
+  }
+
+  // Phase 12 F-6 — the mirror image of the hoist above: BEGIN_RETRY can
+  // arrive BEFORE this machine sees SCORE_DONE (RepSurface shows the v2
+  // feedback + "Start your Retry" from its own local state; the async
+  // rep path delays onComplete until the pending rep resolves). Without
+  // this, the tap lands in "recording"/"scoring" and is silently
+  // dropped — the user (or the e2e spec) is left on a dead screen.
+  if (
+    event.type === "BEGIN_RETRY" &&
+    state.loop === "v2" &&
+    state.attempt === "first" &&
+    (state.phase === "recording" ||
+      state.phase === "transcribing" ||
+      state.phase === "scoring")
+  ) {
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        JSON.stringify({
+          event: "session_machine.begin_retry_buffered",
+          ts: new Date().toISOString(),
+          fromPhase: state.phase,
+        }),
+      );
+    }
+    return { ...state, pendingBeginRetry: true };
   }
 
   switch (state.phase) {
@@ -532,12 +565,28 @@ function finishRepWithScore(
       retryOutcomes: [...state.retryOutcomes, outcome],
     };
   }
+  // A buffered early BEGIN_RETRY starts the retry the moment the score
+  // lands — unless scoring failed (the degraded path offers ADVANCE, and
+  // forcing a retry against a scoring hiccup punishes the user twice).
+  if (state.pendingBeginRetry && !scoreFailure) {
+    return {
+      ...state,
+      phase: "recording",
+      attempt: "retry",
+      pendingBeginRetry: false,
+      lastScore: composite,
+      lastScoreFailure: scoreFailure,
+      firstOutcome: { repId, composite },
+      outcomes: [...state.outcomes, outcome],
+    };
+  }
   return {
     ...state,
     phase: "score-reveal",
     lastScore: composite,
     lastScoreFailure: scoreFailure,
     firstOutcome: { repId, composite },
+    ...(state.pendingBeginRetry ? { pendingBeginRetry: false } : {}),
     outcomes: [...state.outcomes, outcome],
   };
 }
@@ -561,6 +610,7 @@ function failScore(
   if (state.loop === "v2" && state.attempt !== "first") {
     return {
       ...state,
+      pendingBeginRetry: false,
       phase: "improvement-review",
       lastScore: null,
       lastScoreFailure: true,
@@ -569,6 +619,9 @@ function failScore(
   }
   return {
     ...state,
+    // A buffered early BEGIN_RETRY must NOT fire against a failed score
+    // (the degraded card offers ADVANCE instead) — drop it here.
+    pendingBeginRetry: false,
     phase: "score-reveal",
     lastScore: null,
     lastScoreFailure: true,

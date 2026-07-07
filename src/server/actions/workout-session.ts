@@ -449,17 +449,39 @@ export async function tagWorkoutRep(
           })
           .where(eq(reps.id, input.repId));
 
-        // Increment completedReps on the day — FIRST attempts only. The
-        // day target counts exercises; a retry belongs to an exercise
-        // that already counted (PRD v3 engine).
+        // Recount completedReps on the day — FIRST attempts only, one per
+        // DISTINCT exercise. The old `+= 1` double-counted whenever a
+        // station's first rep was re-recorded (leave mid-loop → resume →
+        // fresh first attempt), so interrupted days "completed" with
+        // exercises skipped (Phase 12 F-7). Recounting inside the same
+        // tx (the rep row above already carries day+exercise ids) is
+        // idempotent under resumes and replays. Graduation reps are
+        // bonus reps — they never advance the day target.
         const isRetryAttempt =
           input.attemptKind === "retry" || input.attemptKind === "again";
         if (!isRetryAttempt) {
-          await tx.execute(drizzleSql`
-            UPDATE cognify_v2.muscle_group_days
-            SET completed_reps = completed_reps + 1
-            WHERE id = ${input.muscleGroupDayId}
-          `);
+          if (resolvedExerciseId) {
+            await tx.execute(drizzleSql`
+              UPDATE cognify_v2.muscle_group_days
+              SET completed_reps = (
+                SELECT COUNT(DISTINCT r.exercise_id)::int
+                FROM cognify_v2.reps r
+                WHERE r.muscle_group_day_id = ${input.muscleGroupDayId}
+                  AND r.attempt_kind = 'first'
+                  AND r.is_graduation_rep = false
+                  AND r.exercise_id IS NOT NULL
+              )
+              WHERE id = ${input.muscleGroupDayId}
+            `);
+          } else {
+            // Degraded path (exercise unresolved): keep the legacy
+            // increment rather than dropping the rep from the count.
+            await tx.execute(drizzleSql`
+              UPDATE cognify_v2.muscle_group_days
+              SET completed_reps = completed_reps + 1
+              WHERE id = ${input.muscleGroupDayId}
+            `);
+          }
         }
 
         // Skip engagement upsert if we still couldn't resolve an exerciseId.

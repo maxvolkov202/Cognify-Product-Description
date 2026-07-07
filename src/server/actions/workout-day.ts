@@ -543,6 +543,9 @@ export type StartMuscleGroupDayResult = {
   /** workout_sessions.id for the active session. Used by Phase 6 to FK
    *  prompt_selection_events. NULL when the action falls back. */
   workoutSessionId: string | null;
+  /** practice_sessions.id backing that session — the ONLY id that may be
+   *  passed to saveRep/insertPendingRep (reps.session_id FK). */
+  practiceSessionId: string | null;
   alreadyExisted: boolean;
   persisted: boolean;
 };
@@ -559,6 +562,7 @@ export async function startMuscleGroupDay(input: {
     dimension: input.dim ?? "clarity",
     stations: [],
     workoutSessionId: null,
+    practiceSessionId: null,
     alreadyExisted: false,
     persisted: false,
   };
@@ -636,19 +640,27 @@ export async function startMuscleGroupDay(input: {
       // exists; otherwise open a fresh one (handles resume on a new
       // device or after the session was abandoned mid-day).
       const [activeSession] = await db
-        .select({ id: workoutSessions.id })
+        .select({
+          id: workoutSessions.id,
+          practiceSessionId: workoutSessions.practiceSessionId,
+        })
         .from(workoutSessions)
         .where(eq(workoutSessions.muscleGroupDayId, existing.id))
         .orderBy(desc(workoutSessions.createdAt))
         .limit(1);
-      const sessionId =
-        activeSession?.id ?? (await createWorkoutSession(existing.id))
-          .workoutSessionId;
+      let workoutSessionId = activeSession?.id ?? null;
+      let practiceSessionId = activeSession?.practiceSessionId ?? null;
+      if (!workoutSessionId) {
+        const created = await createWorkoutSession(existing.id);
+        workoutSessionId = created.workoutSessionId;
+        practiceSessionId = created.persisted ? created.sessionId : null;
+      }
       return {
         dayId: existing.id,
         dimension: existing.dimension as MuscleGroupId,
         stations,
-        workoutSessionId: sessionId,
+        workoutSessionId,
+        practiceSessionId,
         alreadyExisted: true,
         persisted: true,
       };
@@ -757,6 +769,7 @@ export async function startMuscleGroupDay(input: {
       dimension: chosenDim,
       stations,
       workoutSessionId: sessionResult.workoutSessionId,
+      practiceSessionId: sessionResult.persisted ? sessionResult.sessionId : null,
       alreadyExisted: false,
       persisted: true,
     };
