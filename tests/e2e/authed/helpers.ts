@@ -49,15 +49,26 @@ export async function recordRep(page: Page, seconds = 12): Promise<void> {
   }
 }
 
-/** Wait out live transcription + scoring until the feedback CTA shows. */
+/** Wait out live transcription + scoring until the feedback CTA shows.
+ *  Slow transcription can surface the speaking-threshold gate AFTER
+ *  recordRep's own 8s proceed-window — so this also clicks through a
+ *  late "Proceed anyway" instead of dying on a gate nobody dismissed. */
 export async function awaitFeedback(
   page: Page,
   ctaPattern: RegExp,
   timeout = 240_000,
 ): Promise<void> {
-  // RepSurface renders the nav CTA at both the top and bottom of the
-  // feedback panel — first() avoids the strict-mode duplicate.
-  await expect(
-    page.getByRole("button", { name: ctaPattern }).first(),
-  ).toBeVisible({ timeout });
+  const deadline = Date.now() + timeout;
+  const cta = page.getByRole("button", { name: ctaPattern }).first();
+  const proceed = page.getByRole("button", { name: /Proceed anyway/i });
+  for (;;) {
+    if (await cta.isVisible().catch(() => false)) return;
+    if (await proceed.isVisible().catch(() => false)) {
+      await proceed.click().catch(() => {});
+    }
+    if (Date.now() > deadline) break;
+    await page.waitForTimeout(500);
+  }
+  // Final assertion for a proper error message on true timeout.
+  await expect(cta).toBeVisible({ timeout: 1_000 });
 }

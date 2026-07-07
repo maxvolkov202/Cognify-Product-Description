@@ -247,15 +247,14 @@ function WorkoutShellInner({
     totalStations: stationCount,
   });
 
-  // HB-5 — at-rest vs in-workout split. At-rest = idle phase, day-
-  // complete phases, OR the Cancel override. Everything else (prompt
-  // picker, recording, scoring, walking, etc.) collapses into the
-  // compact progress bar.
-  const showLanding =
-    state.phase === "idle" ||
-    state.phase === "day-complete" ||
-    state.phase === "day-complete-prompt" ||
-    cancelledLocally;
+  // HB-5 — at-rest vs in-workout split. At-rest = idle phase OR the
+  // Cancel override. Phase 16 fix: the day-complete phases were wrongly
+  // classified "at-rest" here, so finishing the last exercise rendered
+  // the GENERIC LANDING ("Ready to train?" + a Start button on an
+  // already-complete day) instead of RepControls' graduation prompt and
+  // the §5.7 Workout Complete summary — the celebration was unreachable
+  // in the live flow. Caught by the first end-to-end full-day run.
+  const showLanding = state.phase === "idle" || cancelledLocally;
 
   // Personalize toggle. Always defaults from the server payload:
   // ON when the user has completed onboarding (vertical set), OFF
