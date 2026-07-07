@@ -120,3 +120,15 @@ re-up), flags default-ON outside production. Accounts: `demo@cognify.test`
 - **Fix**: recount `COUNT(DISTINCT exercise_id)` of non-graduation first
   attempts inside the tagging tx (idempotent under resume/replay); legacy
   `+1` kept only for the exercise-unresolved degraded path.
+- **Verified on a resumed day**: second consecutive live loop green; a
+  duplicate first attempt on the same station left completed_reps at 1.
+
+### F-8 🟡 OPEN (accepted) — resume position can lag one station on abrupt exit
+- **Observed**: after completing exercise 1 and advancing to station 2's
+  picker, killing the browser before the fire-and-forget
+  `updateWorkoutSessionStation` write lands means the next resume starts
+  back at station 1. The user redoes an exercise; F-7's recount keeps the
+  day target honest, so no corruption — just repetition.
+- **Disposition**: accept. Normal navigation persists the pointer; only
+  an instant kill in the ~1s window loses it. Revisit only if eyes-on
+  testing surfaces it as annoying.
