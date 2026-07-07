@@ -889,6 +889,232 @@ section("plateau stimulus inversion (I4)");
   );
 }
 
+// ─── 16. I6 — Assessment Phase prefers never-seen exercises ──────────────
+section("assessment prefers unseen exercises (I6)");
+{
+  const dim: MuscleGroupId = "clarity";
+  const mk = (i: number): CatalogExercise => ({
+    id: `ex-${i}`,
+    slug: `ex-${i}`,
+    name: `Exercise ${i}`,
+    dimension: dim,
+    description: "rule",
+    instructions: null,
+    sortOrder: i,
+    objective: null,
+    hiddenSkills: null,
+    responseWindow: null,
+    constraintTypes: null,
+    coachInsight: null,
+  });
+  const available = Array.from({ length: 9 }, (_, i) => mk(i + 1));
+  // 6 of 9 completed → ex-7, ex-8, ex-9 are the only unseen ones.
+  const completed = new Set([
+    "ex-1",
+    "ex-2",
+    "ex-3",
+    "ex-4",
+    "ex-5",
+    "ex-6",
+  ]);
+
+  const sampled = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "assessment-seed",
+    assessmentActive: true,
+    completedExerciseIds: completed,
+  });
+  const ids = new Set(sampled.map((e) => e.id));
+  assert(sampled.length === 3, "assessment sample returns n");
+  assert(
+    ids.has("ex-7") && ids.has("ex-8") && ids.has("ex-9"),
+    `assessment samples ALL unseen exercises first (got ${[...ids].join(",")})`,
+  );
+
+  // Fewer unseen than n → unseen first, then fill from seen.
+  const bigger = sampleExercises({
+    available,
+    recentDays: [],
+    n: 4,
+    seed: "assessment-seed",
+    assessmentActive: true,
+    completedExerciseIds: completed,
+  });
+  assert(bigger.length === 4, "assessment fill returns n");
+  const unseenFirst3 = bigger
+    .slice(0, 3)
+    .every((e) => !completed.has(e.id));
+  assert(
+    unseenFirst3 && completed.has(bigger[3]!.id),
+    "unseen fill first, then seen tops up the sample",
+  );
+
+  // Deterministic under the same seed.
+  const again = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "assessment-seed",
+    assessmentActive: true,
+    completedExerciseIds: completed,
+  });
+  assert(
+    JSON.stringify(sampled.map((e) => e.id)) ===
+      JSON.stringify(again.map((e) => e.id)),
+    "assessment-preferred sample is deterministic",
+  );
+
+  // assessmentActive absent → legacy behavior (completed set ignored).
+  const legacy = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "assessment-seed",
+  });
+  const withSetButInactive = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "assessment-seed",
+    completedExerciseIds: completed,
+  });
+  assert(
+    JSON.stringify(legacy.map((e) => e.id)) ===
+      JSON.stringify(withSetButInactive.map((e) => e.id)),
+    "completedExerciseIds without assessmentActive is byte-identical to legacy",
+  );
+
+  // Hidden-skill weighting still applies WITHIN the unseen partition.
+  const skillAvailable = [
+    { ...mk(1), hiddenSkills: ["word_choice"] },
+    { ...mk(2), hiddenSkills: ["precision"] },
+    { ...mk(3), hiddenSkills: ["audience_awareness"] }, // weakest, unseen
+    { ...mk(4), hiddenSkills: ["concreteness"] }, // unseen
+  ];
+  const skillPick = sampleExercises({
+    available: skillAvailable,
+    recentDays: [],
+    n: 1,
+    seed: "assessment-skill-seed",
+    assessmentActive: true,
+    completedExerciseIds: new Set(["ex-1", "ex-2"]),
+    subSkillAverages: {
+      word_choice: 20, // weakest overall — but SEEN, so excluded first
+      precision: 30,
+      audience_awareness: 40,
+      concreteness: 90,
+    },
+  });
+  assert(
+    skillPick[0]!.id === "ex-3",
+    `hidden-skill weighting applies within the unseen partition (got ${skillPick[0]!.id})`,
+  );
+}
+
+// ─── 17. G5 — slate-time topic diversity ─────────────────────────────────
+section("prompt slate tag diversity (G5)");
+{
+  // Bank of 10: 5 share one tag, 5 varied. Same difficulty so the
+  // diversity pass can always swap without touching the difficulty
+  // profile of the slate.
+  const bank: CatalogPrompt[] = [
+    ...Array.from({ length: 5 }, (_, i) => ({
+      id: `shared-${i + 1}`,
+      promptId: `shared-${i + 1}`,
+      text: `shared ${i + 1}`,
+      difficulty: 2 as const,
+      tags: ["career"],
+    })),
+    ...Array.from({ length: 5 }, (_, i) => ({
+      id: `varied-${i + 1}`,
+      promptId: `varied-${i + 1}`,
+      text: `varied ${i + 1}`,
+      difficulty: 2 as const,
+      tags: [`topic-${i + 1}`],
+    })),
+  ];
+
+  // Across several seeds, every slate must land ≥3 distinct tags.
+  for (const seed of ["g5-a", "g5-b", "g5-c", "g5-d"]) {
+    const slate = pickPromptCandidates({
+      available: bank,
+      recentPromptIds: [],
+      k: 5,
+      seed,
+    });
+    const tags = new Set(slate.flatMap((p) => p.tags));
+    assert(slate.length === 5, `G5 slate size 5 (seed ${seed})`);
+    assert(
+      tags.size >= 3,
+      `G5 slate carries ≥3 distinct tags (seed ${seed}, got ${tags.size}: ${[...tags].join(",")})`,
+    );
+  }
+
+  // Deterministic under the same seed.
+  const a = pickPromptCandidates({
+    available: bank,
+    recentPromptIds: [],
+    k: 5,
+    seed: "g5-det",
+  });
+  const b = pickPromptCandidates({
+    available: bank,
+    recentPromptIds: [],
+    k: 5,
+    seed: "g5-det",
+  });
+  assert(
+    JSON.stringify(a.map((p) => p.promptId)) ===
+      JSON.stringify(b.map((p) => p.promptId)),
+    "G5 diversity pass is deterministic under the same seed",
+  );
+
+  // Ordering contract preserved: fresh prompts are never displaced by
+  // used ones. 5 fresh varied + 5 used shared → slate stays all-fresh.
+  const slateFreshGuard = pickPromptCandidates({
+    available: bank,
+    recentPromptIds: [
+      "shared-1",
+      "shared-2",
+      "shared-3",
+      "shared-4",
+      "shared-5",
+    ],
+    k: 5,
+    seed: "g5-fresh",
+  });
+  assert(
+    slateFreshGuard.every((p) => p.promptId.startsWith("varied-")),
+    "G5 never swaps a used prompt over a fresh one",
+  );
+
+  // Difficulty profile preserved under preferEasier: mixed-difficulty
+  // bank keeps ascending order after the diversity pass.
+  const mixedBank: CatalogPrompt[] = [
+    { id: "e1", promptId: "e1", text: "e1", difficulty: 1, tags: ["t1"] },
+    { id: "e2", promptId: "e2", text: "e2", difficulty: 1, tags: ["t1"] },
+    { id: "e3", promptId: "e3", text: "e3", difficulty: 1, tags: ["t9"] },
+    { id: "m1", promptId: "m1", text: "m1", difficulty: 2, tags: ["t1"] },
+    { id: "m2", promptId: "m2", text: "m2", difficulty: 2, tags: ["t2"] },
+    { id: "h1", promptId: "h1", text: "h1", difficulty: 3, tags: ["t3"] },
+  ];
+  const easier = pickPromptCandidates({
+    available: mixedBank,
+    recentPromptIds: [],
+    k: 5,
+    seed: "g5-mixed",
+    preferEasier: true,
+  });
+  const difficulties = easier.map((p) => p.difficulty);
+  const sortedAsc = [...difficulties].sort((x, y) => x - y);
+  assert(
+    JSON.stringify(difficulties) === JSON.stringify(sortedAsc),
+    `G5 preserves the preferEasier ascending difficulty profile (got ${difficulties.join(",")})`,
+  );
+}
+
 // ─── Report ──────────────────────────────────────────────────────────────
 console.log(`\n══════════════════════════════════════════════════════════════`);
 console.log(`  pass: ${pass}   fail: ${fail}`);

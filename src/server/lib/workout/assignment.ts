@@ -656,6 +656,14 @@ export type SampleExercisesInput = {
    *  close-scoring alternative dim exists for a swap. Default false =
    *  weakness-first weighting, byte-identical to before. */
   plateaued?: boolean;
+  /** I6 (PRD §8.5.3 step 2) — exercise ids the user has EVER logged a
+   *  rep against. Only consulted when assessmentActive; omitted =
+   *  legacy behavior. */
+  completedExerciseIds?: Set<string>;
+  /** I6 — the user is inside the Assessment Phase: hard-prefer exercises
+   *  NOT in completedExerciseIds (fill from unseen first, then seen) so
+   *  the baseline maps breadth instead of re-measuring the same drills. */
+  assessmentActive?: boolean;
 };
 
 export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] {
@@ -680,16 +688,34 @@ export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] 
   const pool = preferred.length >= n ? preferred : available;
   const shuffled = seededShuffle(pool, seed);
 
-  // Legacy path — no Hidden Skill signal supplied and no plateau to break.
-  if (!input.subSkillAverages && !input.plateaued) {
-    return shuffled.slice(0, n);
+  const useHiddenSkillAware =
+    input.subSkillAverages != null || input.plateaued === true;
+  const pickFrom = (candidates: CatalogExercise[], count: number) =>
+    useHiddenSkillAware
+      ? pickHiddenSkillAware(
+          candidates,
+          count,
+          input.subSkillAverages ?? {},
+          input.plateaued === true,
+        )
+      : candidates.slice(0, count);
+
+  // I6 (PRD §8.5.3 step 2) — Assessment Phase hard-prefers never-seen
+  // exercises: partition the (already seeded-shuffled, dedupe-respecting)
+  // pool into unseen/seen, fill from unseen first, top up from seen.
+  // Selection WITHIN each partition keeps the existing logic (seeded
+  // order or Hidden-Skill-aware greedy), so it stays deterministic.
+  if (input.assessmentActive && input.completedExerciseIds) {
+    const completed = input.completedExerciseIds;
+    const unseen = shuffled.filter((e) => !completed.has(e.id));
+    const seen = shuffled.filter((e) => completed.has(e.id));
+    const first = pickFrom(unseen, Math.min(n, unseen.length));
+    const rest = pickFrom(seen, n - first.length);
+    return [...first, ...rest];
   }
-  return pickHiddenSkillAware(
-    shuffled,
-    n,
-    input.subSkillAverages ?? {},
-    input.plateaued === true,
-  );
+
+  // Legacy path — no Hidden Skill signal supplied and no plateau to break.
+  return pickFrom(shuffled, n);
 }
 
 /** Greedy Hidden-Skill-aware pick over an already-seeded-shuffled pool.
@@ -808,5 +834,55 @@ export function pickPromptCandidates(
   // 3) Prefer fresh, fill from used if needed.
   const pool = [...sortedFresh, ...sortedUsed];
 
-  return pool.slice(0, k);
+  // 4) G5 (PRD §9.4.1) — final greedy tag-diversity pass over the slate.
+  const freshIds = new Set(fresh.map((p) => p.promptId));
+  return diversifySlateTags(pool.slice(0, k), pool.slice(k), freshIds);
+}
+
+/** G5 (PRD §9.4.1) — slate-time topic diversity. Greedy pass over the
+ * chosen slate: walking from the LAST slate position up (lowest-priority
+ * slots change first), any prompt whose tags are all redundant (covered
+ * by another slate member, or tagless) is swapped for the first
+ * remainder candidate that adds an unseen tag — but ONLY when the
+ * candidate shares the outgoing prompt's freshness class AND difficulty,
+ * so the anti-repetition ordering (fresh before used) and the
+ * challenge-bias difficulty profile of the slate are preserved exactly.
+ * Purely positional + seed-derived inputs ⇒ deterministic under the
+ * same seed. Empty-tag banks (and empty remainders) short-circuit to
+ * the original slate. */
+function diversifySlateTags(
+  slate: CatalogPrompt[],
+  remainder: CatalogPrompt[],
+  freshIds: Set<string>,
+): CatalogPrompt[] {
+  if (slate.length === 0 || remainder.length === 0) return slate;
+  const out = [...slate];
+  const rem = [...remainder];
+  const tagCount = new Map<string, number>();
+  for (const p of out) {
+    for (const t of p.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+  }
+
+  for (let i = out.length - 1; i >= 0; i--) {
+    const cur = out[i]!;
+    // Redundant = removing it loses no tag coverage (every tag it
+    // carries is also carried by another slate member, or it has none).
+    const redundant =
+      cur.tags.length === 0 ||
+      cur.tags.every((t) => (tagCount.get(t) ?? 0) >= 2);
+    if (!redundant) continue;
+    const curFresh = freshIds.has(cur.promptId);
+    const swapIdx = rem.findIndex(
+      (c) =>
+        c.difficulty === cur.difficulty &&
+        freshIds.has(c.promptId) === curFresh &&
+        c.tags.some((t) => (tagCount.get(t) ?? 0) === 0),
+    );
+    if (swapIdx === -1) continue;
+    const incoming = rem.splice(swapIdx, 1)[0]!;
+    for (const t of cur.tags) tagCount.set(t, (tagCount.get(t) ?? 0) - 1);
+    for (const t of incoming.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+    out[i] = incoming;
+  }
+  return out;
 }

@@ -478,6 +478,7 @@ async function main() {
       composite: 78,
       implementedRetry: i % 2 === 0,
       newTrainingDay: i < 2,
+      trainedOnCommittedDay: i < 2,
     });
   }
 

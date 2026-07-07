@@ -39,6 +39,10 @@ export type EvaluateAchievementsInput = {
   streakDays: number;
   /** Set of dimensions the user has scored at least once across history. */
   dimensionsEverScored?: ReadonlySet<SkillDimension>;
+  /** PRD §10.12 — lifetime count of coaching_events rows with
+   *  implemented_verdict='nailed' (Coach's Focus implemented on a retry).
+   *  Caller supplies via one COUNT query; omitted → implement_* skipped. */
+  implementedNailedCount?: number;
 };
 
 export async function evaluateAchievements(
@@ -89,6 +93,12 @@ function collectCandidates(input: EvaluateAchievementsInput): string[] {
   // ——— Skill — composite milestones
   if (composite >= 90) out.push("skill_90_composite");
   if (composite >= 95) out.push("skill_95_composite");
+
+  // ——— Skill — implementation milestones (PRD §10.12)
+  const nailed = input.implementedNailedCount ?? 0;
+  if (nailed >= 5) out.push("implement_5");
+  if (nailed >= 25) out.push("implement_25");
+  if (nailed >= 100) out.push("implement_100");
 
   // ——— Streak
   if (input.streakDays >= 3) out.push("streak_3");

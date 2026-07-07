@@ -58,6 +58,7 @@ import {
   updateCriticalMoment,
   type PrepEventDetail,
   type PrepMoment,
+  type PrepWeakMoment,
 } from "@/server/actions/prep-events";
 import type { ReadinessReviewContent } from "@/lib/ai/prep/readiness-review";
 
@@ -73,7 +74,12 @@ type View =
   | { kind: "sim-setup" }
   | { kind: "sim-rep"; durationSec: number }
   | { kind: "finishing" }
-  | { kind: "readiness"; review: ReadinessReviewContent };
+  | {
+      kind: "readiness";
+      review: ReadinessReviewContent;
+      /** L5 (§8.3.8) — server-computed "Sharpen next" targets. */
+      weakestMoments: PrepWeakMoment[];
+    };
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   interview: "Interview",
@@ -242,6 +248,17 @@ export default function PrepEventClient({
 
   // ── Readiness ────────────────────────────────────────────────────────
 
+  /** The finished session is closed server-side (endedAt set); reset the
+   *  client session state so a follow-up practice (e.g. L5's "Sharpen
+   *  next") opens a FRESH prep session instead of appending to a closed
+   *  one. */
+  const resetSessionState = useCallback(() => {
+    setSessionId(null);
+    dimAcc.current = new Map();
+    calloutAcc.current = [];
+    setPracticedThisSession(false);
+  }, []);
+
   const finishGuided = useCallback(async () => {
     setView({ kind: "finishing" });
     const res = await finishPrepSession({
@@ -252,12 +269,17 @@ export default function PrepEventClient({
       callouts: calloutAcc.current,
     });
     if (res.ok) {
-      setView({ kind: "readiness", review: res.review });
+      resetSessionState();
+      setView({
+        kind: "readiness",
+        review: res.review,
+        weakestMoments: res.weakestMoments,
+      });
       void refreshEvent();
     } else {
       setView({ kind: "plan" });
     }
-  }, [event.id, sessionId, dimensionAverages, refreshEvent]);
+  }, [event.id, sessionId, dimensionAverages, refreshEvent, resetSessionState]);
 
   const onSimulationComplete = useCallback(
     async (payload: { score: RepScore; repId: string; transcript: string }) => {
@@ -278,13 +300,18 @@ export default function PrepEventClient({
           .map((c) => ({ dimension: c.dimension, title: c.title, body: c.body })),
       });
       if (res.ok) {
-        setView({ kind: "readiness", review: res.review });
+        resetSessionState();
+        setView({
+          kind: "readiness",
+          review: res.review,
+          weakestMoments: res.weakestMoments,
+        });
         void refreshEvent();
       } else {
         setView({ kind: "plan" });
       }
     },
-    [event.id, sessionId, accumulateScore, refreshEvent],
+    [event.id, sessionId, accumulateScore, refreshEvent, resetSessionState],
   );
 
   // ── Retry wiring (mirrors the engine loop hosts) ─────────────────────
@@ -314,7 +341,14 @@ export default function PrepEventClient({
       <ReadinessReviewScreen
         event={event}
         review={view.review}
+        weakestMoments={view.weakestMoments}
         onBackToPlan={backToPlan}
+        // L5 — "Sharpen next" re-enters the existing startMoment flow for
+        // that moment (fresh session, same as PlanScreen's Practice).
+        onPracticeMoment={async (m) => {
+          await ensureSession();
+          startMoment(m);
+        }}
       />
     );
   }
@@ -341,7 +375,15 @@ export default function PrepEventClient({
       sessionType: "focus",
       repIndex: 0,
       totalReps: 1,
-      eventContext: eventScoringContext(event),
+      // L4 — the moment's scoring lens rides INSIDE the same eventContext
+      // block (only-when-present ⇒ calibration-safe; simulations and
+      // hint-less moments send the block unchanged).
+      eventContext: {
+        ...eventScoringContext(event),
+        ...(moment.scoringHint
+          ? { momentHint: moment.scoringHint.slice(0, 300) }
+          : {}),
+      },
       ...(isRetryAttempt && attempts.first && coachFocus && skillDim
         ? {
             focusDimension: skillDim,
@@ -1073,6 +1115,13 @@ function MomentInsight({
       <h2 className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
         {moment.title}
       </h2>
+      {/* L4 — the generated Coach's Insight leads; the objective becomes
+          the supporting line beneath it. */}
+      {moment.coachCue && (
+        <p className="mt-3 mx-auto max-w-lg rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-3.5 text-base font-semibold leading-snug text-slate-900 dark:text-white">
+          {moment.coachCue}
+        </p>
+      )}
       {moment.objective && (
         <p className="mt-2 text-sm text-slate-600 dark:text-ink-300 max-w-lg mx-auto">
           {moment.objective}
@@ -1315,13 +1364,23 @@ function SimulationView({
 function ReadinessReviewScreen({
   event,
   review,
+  weakestMoments,
   onBackToPlan,
+  onPracticeMoment,
 }: {
   event: PrepEventDetail;
   review: ReadinessReviewContent;
+  weakestMoments: PrepWeakMoment[];
   onBackToPlan: () => void;
+  onPracticeMoment: (m: PrepMoment) => void | Promise<void>;
 }) {
   const dims = SKILL_DIMENSIONS.filter((d) => review.coreSkills[d] != null);
+  // L5 — resolve the server's weakest-moment ids against the live plan
+  // (a moment deleted mid-session simply drops off the list).
+  const sharpenTargets = weakestMoments.flatMap((w) => {
+    const moment = event.moments.find((m) => m.id === w.momentId);
+    return moment ? [{ ...w, moment }] : [];
+  });
   return (
     <div className="space-y-5">
       <div className="text-center">
@@ -1402,6 +1461,36 @@ function ReadinessReviewScreen({
           {review.readinessSummary}
         </p>
       </div>
+
+      {/* L5 (§8.3.8) — the review recommends the next concrete action:
+          re-practice the weakest practiced moments, weakest first. */}
+      {sharpenTargets.length > 0 && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500 mb-2">
+            Sharpen next
+          </div>
+          <div className="space-y-2">
+            {sharpenTargets.map((t) => (
+              <button
+                key={t.momentId}
+                type="button"
+                onClick={() => void onPracticeMoment(t.moment)}
+                className="min-h-[44px] w-full flex items-center justify-between gap-3 rounded-xl border border-purple-200 dark:border-brand-purple/40 px-4 py-2.5 text-left text-sm font-semibold text-purple-700 dark:text-brand-lavender hover:bg-purple-50 dark:hover:bg-ink-800"
+              >
+                <span className="min-w-0 truncate">
+                  {t.title}
+                  {t.bestComposite != null && (
+                    <span className="ml-2 font-normal text-slate-400 dark:text-ink-500 tabular-nums">
+                      best {Math.round(t.bestComposite)}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0">Practice again →</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* PRD v3 Phase 6 (§10.8) — rank + streak + achievements strip. */}
       <ProgressionStrip />

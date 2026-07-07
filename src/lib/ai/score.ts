@@ -785,6 +785,13 @@ export function renderEventContextBlock(
     ec.contextSummary
       ? `From their uploaded materials:\n${ec.contextSummary.slice(0, 1500)}`
       : null,
+    // L4 (§7.7/§8.4.6) — the practiced Critical Moment's scoring lens.
+    // One extra line inside this SAME only-when-present block: non-prep
+    // prompts and hint-less prep prompts stay byte-identical, so the
+    // calibration guardrail above still holds.
+    ec.momentHint
+      ? `Scoring lens for this moment (operator note): ${ec.momentHint.slice(0, 300)}`
+      : null,
   ]
     .filter(Boolean)
     .join("\n");

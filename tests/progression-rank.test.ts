@@ -164,6 +164,7 @@ section("challenge counters");
       composite: 80,
       implementedRetry: true,
       newTrainingDay: true,
+      trainedOnCommittedDay: true,
     },
     });
   assert(first.progress.wc_reps_20 === 1, "rep counted");
@@ -180,6 +181,7 @@ section("challenge counters");
       composite: 60,
       implementedRetry: true,
       newTrainingDay: false,
+      trainedOnCommittedDay: true,
     },
   });
   assert(
@@ -201,11 +203,65 @@ section("challenge counters");
       composite: 60,
       implementedRetry: true,
       newTrainingDay: false,
+      trainedOnCommittedDay: true,
     },
   });
   assert(
     already.newlyCompletedIds.length === 0 && already.bonusXp === 0,
     "completed challenges never re-award",
+  );
+}
+
+section("wc_committed_week — maintain committed schedule (G6)");
+{
+  // Target is personalized at assignment time (persistence layer); the
+  // pure counter just consumes whatever target the row carries.
+  const challenges = [{ id: "wc_committed_week", target: 2, bonusXp: 150 }];
+  const base = {
+    mode: "daily_workout",
+    composite: 70,
+    implementedRetry: false,
+  };
+  const committedFirstRep = applyChallengeEvent({
+    challenges,
+    progress: {},
+    alreadyCompletedIds: new Set(),
+    event: { ...base, newTrainingDay: true, trainedOnCommittedDay: true },
+  });
+  assert(
+    committedFirstRep.progress.wc_committed_week === 1,
+    "first rep on a committed day counts",
+  );
+  const secondRepSameDay = applyChallengeEvent({
+    challenges,
+    progress: { wc_committed_week: 1 },
+    alreadyCompletedIds: new Set(),
+    event: { ...base, newTrainingDay: false, trainedOnCommittedDay: true },
+  });
+  assert(
+    secondRepSameDay.progress.wc_committed_week === 1,
+    "second rep on the same day does NOT double-count",
+  );
+  const restDayRep = applyChallengeEvent({
+    challenges,
+    progress: { wc_committed_week: 1 },
+    alreadyCompletedIds: new Set(),
+    event: { ...base, newTrainingDay: true, trainedOnCommittedDay: false },
+  });
+  assert(
+    restDayRep.progress.wc_committed_week === 1,
+    "training on a REST day does not advance the committed-schedule challenge",
+  );
+  const completes = applyChallengeEvent({
+    challenges,
+    progress: { wc_committed_week: 1 },
+    alreadyCompletedIds: new Set(),
+    event: { ...base, newTrainingDay: true, trainedOnCommittedDay: true },
+  });
+  assert(
+    completes.newlyCompletedIds.includes("wc_committed_week") &&
+      completes.bonusXp === 150,
+    "hitting the committed-day count completes the challenge",
   );
 }
 

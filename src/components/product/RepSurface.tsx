@@ -715,6 +715,10 @@ export function RepSurface({
         ...(exerciseId ? { exerciseId } : {}),
         ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
         ...(isGraduationRep ? { isGraduationRep: true } : {}),
+        // Pressure archetype → server-side isPressureRep detection
+        // (explore_pressure achievement). Same id already sent to
+        // /api/score in scoreBody for weight-profile scoring.
+        ...(pressureArchetypeId ? { pressureArchetypeId } : {}),
         // PRD v3 engine — attempt lineage.
         ...(attemptKind && attemptKind !== "first"
           ? { attemptKind, parentRepId: parentRepId ?? null }
@@ -975,6 +979,34 @@ export function RepSurface({
           callout={(retryFocus ?? carryoverFocus) as Callout}
           label={retryFocus ? "Focus for this retry" : "From your last rep"}
         />
+      )}
+
+      {/* ——— W5 (§4.6): "Users should always know what they are trying to
+          improve." The full FocusOverlay only renders in idle, so once the
+          retry attempt is in flight (transcribing/scoring/scoring-copy/
+          saving/processing-async — the isWorking phases) the focus text
+          used to vanish. Pin a compact one-line reminder chip above the
+          prompt/record area for those phases. Not rendered in idle (the
+          overlay covers it) or done. Note: during RecordButton's own
+          countdown/recording the phase is still "idle", so the full
+          overlay stays visible there. */}
+      {retryFocus && isWorking && (
+        <div
+          data-testid="retry-focus-chip"
+          className="flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/5 dark:bg-brand-purple/15 px-3.5 py-2"
+        >
+          <Target
+            className="size-3.5 shrink-0 text-brand-purple dark:text-brand-lavender"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          />
+          <p className="line-clamp-1 min-w-0 text-xs font-semibold text-brand-purple dark:text-brand-lavender">
+            Focus:{" "}
+            {retryFocus.body.length > 90
+              ? `${retryFocus.body.slice(0, 90).trimEnd()}…`
+              : retryFocus.body}
+          </p>
+        </div>
       )}
 
       {/* ——— Ch.6a delivery hints — only when focus mode supplies a

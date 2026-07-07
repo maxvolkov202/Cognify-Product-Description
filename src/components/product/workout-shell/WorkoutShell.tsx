@@ -204,6 +204,8 @@ function WorkoutShellInner({
         constraintTypes: s.constraintTypes ?? null,
         responseWindow: s.responseWindow ?? null,
         coachInsight: s.coachInsight ?? null,
+        // I5 — "last time on this dim" line for the Insight screen.
+        recentFocus: s.recentFocus ?? null,
       }));
       send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });
       send({ type: "START" });

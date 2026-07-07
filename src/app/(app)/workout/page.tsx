@@ -26,6 +26,7 @@ import {
 import {
   suggestTodaysMuscleGroup,
   previewTodaysWorkoutPlan,
+  getStationRecentFocus,
 } from "@/server/actions/workout-day";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
@@ -193,6 +194,12 @@ async function fetchTodaysDayPayload(
 
     const exById = new Map(exerciseRows.map((r) => [r.id, r]));
 
+    // I5 (PRD §8.6.4) — the coach's most recent focus on this day's dim,
+    // shown as one quiet "last time" line on the Insight screen. Scoped
+    // to the current user server-side; {} when the v2 engine is off.
+    const recentFocusByDim = await getStationRecentFocus();
+    const dimRecentFocus = recentFocusByDim[dim] ?? null;
+
     const stations: ShellStation[] = exerciseIds.flatMap((id, index) => {
       const ex = exById.get(id);
       if (!ex) return [];
@@ -215,6 +222,7 @@ async function fetchTodaysDayPayload(
         constraintTypes: ex.constraintTypes ?? null,
         responseWindow: ex.responseWindow ?? null,
         coachInsight: ex.coachInsight ?? null,
+        recentFocus: dimRecentFocus,
       };
       return [station];
     });

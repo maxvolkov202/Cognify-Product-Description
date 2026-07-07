@@ -2,7 +2,7 @@
  * Phase C — custom weekly training schedule.
  *
  * Bitmask helpers for `users.committed_days`. Bit 0 = Monday, bit 6 = Sunday.
- * Trainer-voice defaults: 5 days a week (Mon..Fri). Min 3, max 7.
+ * Trainer-voice defaults: 5 days a week (Mon..Fri). Min 2, max 7.
  *
  * Used by:
  *   - onboarding "When do you want to train?" step
@@ -31,8 +31,10 @@ export type DayBit = (typeof DAYS_OF_WEEK)[number]["bit"];
 /** Default schedule: Mon..Fri (bits 0..4 set). Trainer recommendation. */
 export const DEFAULT_COMMITTED_DAYS = 0b0011111; // = 31
 
-/** Minimum number of committed days we allow (trainer rec: 3+ days). */
-export const MIN_COMMITTED_DAYS = 3;
+/** Minimum number of committed days we allow. PRD treats a 2-day schedule
+ *  ("Tuesday and Thursday") as first-class; the trainer still RECOMMENDS
+ *  3+ in onboarding copy, but 2 is valid. */
+export const MIN_COMMITTED_DAYS = 2;
 
 /** Convert a JS Date.getDay() value (0=Sun..6=Sat) to our bit (0=Mon..6=Sun).
  *  Legacy helper — prefer dayBitMonStart() from @/lib/time/user-day, which
@@ -142,6 +144,11 @@ export function isFinalCycleDay(
   tz?: string,
 ): boolean {
   const { position, cycleLength } = cyclePositionForDate(mask, date, tz);
+  // Cycle-length guard (CTO review 2026-05-24): with a 1-day mask, the
+  // sole committed day is ALWAYS the "final" cycle day — every workout
+  // would become a weakness day. Valid masks have ≥ MIN_COMMITTED_DAYS
+  // (2) days, but legacy/hand-edited rows shouldn't silently degrade.
+  if (cycleLength < 2) return false;
   return position !== null && position === cycleLength;
 }
 

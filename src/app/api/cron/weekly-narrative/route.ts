@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db/client";
+import { cronRuns } from "@/lib/db/schema";
 import { generateWeeklyNarrative } from "@/lib/ai/weekly-summary";
 import { getWeeklyRepSummary } from "@/lib/db/queries/progress";
 import {
@@ -33,7 +35,7 @@ const MAX_USERS_PER_RUN = 400;
  * the secret in prod — bypass it in dev so manual triggering from
  * `curl localhost:3333/api/cron/weekly-narrative` works.
  */
-export async function GET(req: Request) {
+async function handleCron(req: Request) {
   // Fail closed. Either the request carries a matching Bearer secret,
   // or it carries Vercel's own cron header (set only on real cron runs).
   // In development we relax so `curl localhost:3333/...` still triggers
@@ -115,4 +117,50 @@ export async function GET(req: Request) {
     errors,
     deferred,
   });
+}
+
+// ── P8 — cron run ledger ────────────────────────────────────────────────
+// Wraps the handler so every authorized invocation records one
+// cognify_v2.cron_runs row (name, ok, duration_ms, error). Best-effort:
+// a down DB never turns the cron response into a 500. Unauthorized
+// probes (401/403) are not recorded so they don't spam the ledger.
+const CRON_NAME = "weekly-narrative";
+
+async function recordCronRun(
+  ok: boolean,
+  durationMs: number,
+  error: string | null,
+): Promise<void> {
+  try {
+    await db
+      .insert(cronRuns)
+      .values({ name: CRON_NAME, ok, durationMs, error });
+  } catch {
+    // Ledger write is best-effort — never fail the cron over it.
+  }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const startedAt = Date.now();
+  let res: Response;
+  try {
+    res = await handleCron(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await recordCronRun(false, Date.now() - startedAt, message.slice(0, 300));
+    throw err;
+  }
+  if (res.status !== 401 && res.status !== 403) {
+    const ok = res.status >= 200 && res.status < 300;
+    let error: string | null = null;
+    if (!ok) {
+      try {
+        error = (await res.clone().text()).slice(0, 300);
+      } catch {
+        error = `HTTP ${res.status}`;
+      }
+    }
+    await recordCronRun(ok, Date.now() - startedAt, error);
+  }
+  return res;
 }

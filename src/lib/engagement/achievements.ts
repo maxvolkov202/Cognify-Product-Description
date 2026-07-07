@@ -45,6 +45,12 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   // ——— Skill — first 90+ on composite ——
   { id: "skill_90_composite", bucket: "skill", name: "Excellent Rep", description: "Hit a composite of 90+.", tier: "gold" },
   { id: "skill_95_composite", bucket: "skill", name: "Exceptional", description: "Hit a composite of 95+.", tier: "platinum" },
+  // ——— Skill — implementation (PRD §10.12: "Reward implementation, not
+  // just participation"). Fed from the coaching_events ledger: count of
+  // rows with implemented_verdict='nailed' for the user.
+  { id: "implement_5", bucket: "skill", name: "Quick Study", description: "Nailed the Coach's Focus 5 times.", tier: "bronze" },
+  { id: "implement_25", bucket: "skill", name: "Student of the Game", description: "Nailed the Coach's Focus 25 times.", tier: "silver" },
+  { id: "implement_100", bucket: "skill", name: "Coach's Dream", description: "Nailed the Coach's Focus 100 times.", tier: "gold" },
 
   // ——— Streak ————————————————————————————————————————
   { id: "streak_3", bucket: "streak", name: "Two Days In", description: "Maintain a 3-day streak.", tier: "bronze" },
@@ -57,7 +63,8 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: "explore_all_dims", bucket: "exploration", name: "All Six", description: "Score every dimension at least once.", tier: "silver" },
   { id: "explore_pressure", bucket: "exploration", name: "Under Pressure", description: "Complete a pressure-mode rep.", tier: "bronze" },
   { id: "explore_focus_drill", bucket: "exploration", name: "First Skill Lab Completed", description: "Complete your first Skill Lab session.", tier: "bronze" },
-  { id: "explore_build_a_rep", bucket: "exploration", name: "Tailored", description: "Use Build-a-Rep for a real moment.", tier: "bronze" },
+  // PRD framing — id stays stable (DB rows reference it); copy renamed.
+  { id: "explore_build_a_rep", bucket: "exploration", name: "First Build a Rep Completed", description: "Complete your first Build a Rep for a real moment.", tier: "bronze" },
   { id: "explore_first_perfect", bucket: "exploration", name: "No Notes", description: "Hit 95+ on every dimension in a single rep.", tier: "platinum" },
 
   // ——— Muscle-group (Phase 10) ————————————————————————

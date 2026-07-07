@@ -8,6 +8,7 @@ import {
   teams,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { rankFromXp, type RankInfo } from "@/lib/progression/rank";
 
 /**
  * Leaderboard domain — real data sourced from the reps / users / teams
@@ -36,6 +37,16 @@ export type LeaderboardEntry = {
   reps: number;
   streak: number;
   delta: number;
+  /** PRD §10.5.1 — the user's permanent Cognify Rank, derived from
+   *  lifetime XP. Named `rankBadge` because `rank` above is the board
+   *  POSITION. Rendered as a small shield/chip next to the name when
+   *  FF_RANK_SYSTEM is on. */
+  rankBadge: {
+    label: string;
+    tierColor: string;
+    rankIndex: number;
+    divisionRoman: RankInfo["divisionRoman"];
+  };
 };
 
 export type LeaderboardBoard = {
@@ -294,13 +305,15 @@ export async function getLeaderboard(opts: {
         userId: reps.userId,
         name: users.name,
         email: users.email,
+        // §10.5.1 — lifetime XP feeds the permanent Rank badge per row.
+        xp: users.xp,
         composite: sql<number>`avg(${reps.compositeScore})::float`,
         reps: sql<number>`count(*)::int`,
       })
       .from(reps)
       .innerJoin(users, eq(users.id, reps.userId))
       .where(and(...whereClauses))
-      .groupBy(reps.userId, users.name, users.email)
+      .groupBy(reps.userId, users.name, users.email, users.xp)
       .having(sql`count(*) >= 1`)
       .orderBy(desc(sql`avg(${reps.compositeScore})`));
 
@@ -368,21 +381,30 @@ export async function getLeaderboard(opts: {
     const toEntry = (
       row: (typeof aggregateRows)[number],
       rank: number,
-    ): LeaderboardEntry => ({
-      rank,
-      userId: row.userId,
-      name:
-        row.name && row.name.trim()
-          ? row.name
-          : row.email?.split("@")[0] ?? "Trainee",
-      team: teamLabels.get(row.userId) ?? "Solo",
-      composite: Math.round(
-        overallScores?.get(row.userId) ?? row.composite ?? 0,
-      ),
-      reps: row.reps,
-      streak: streaks.get(row.userId) ?? 0,
-      delta: deltas.get(row.userId) ?? 0,
-    });
+    ): LeaderboardEntry => {
+      const rankInfo = rankFromXp(row.xp ?? 0);
+      return {
+        rank,
+        userId: row.userId,
+        name:
+          row.name && row.name.trim()
+            ? row.name
+            : row.email?.split("@")[0] ?? "Trainee",
+        team: teamLabels.get(row.userId) ?? "Solo",
+        composite: Math.round(
+          overallScores?.get(row.userId) ?? row.composite ?? 0,
+        ),
+        reps: row.reps,
+        streak: streaks.get(row.userId) ?? 0,
+        delta: deltas.get(row.userId) ?? 0,
+        rankBadge: {
+          label: rankInfo.label,
+          tierColor: rankInfo.tierColor,
+          rankIndex: rankInfo.rankIndex,
+          divisionRoman: rankInfo.divisionRoman,
+        },
+      };
+    };
 
     const entries = topSlice.map((r, i) => toEntry(r, i + 1));
 

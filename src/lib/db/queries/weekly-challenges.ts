@@ -21,6 +21,10 @@ import {
   TEAM_CHALLENGE,
   type WeeklyChallengeEvent,
 } from "@/lib/engagement/weekly-challenges";
+import {
+  DEFAULT_COMMITTED_DAYS,
+  committedDayCount,
+} from "@/lib/onboarding/committed-days";
 
 export type WeeklyChallengesRow = {
   weekStart: string;
@@ -68,6 +72,20 @@ export async function getOrCreateThisWeekChallenges(
       target: c.target,
       bonusXp: c.bonusXp,
     }));
+    // PRD §10.10 — "Maintain your committed training schedule" has a
+    // PER-USER target: their committed-day count, resolved once at
+    // assignment time and persisted with the row (so a mid-week schedule
+    // edit doesn't move this week's goalposts).
+    const committedChallenge = picked.find((c) => c.id === "wc_committed_week");
+    if (committedChallenge) {
+      const [u] = await db
+        .select({ committedDays: users.committedDays })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      const n = committedDayCount(u?.committedDays ?? DEFAULT_COMMITTED_DAYS);
+      if (n > 0) committedChallenge.target = n;
+    }
     await db
       .insert(weeklyChallenges)
       .values({ userId, weekStart, challenges: picked })

@@ -91,6 +91,37 @@ async function main() {
     assert(longDesc.title.length <= 80, "long description → truncated title");
   }
 
+  section("L4 — fallback moments carry coachCue + scoringHint");
+  {
+    const descriptions = [
+      "SDR interview at Salesforce",
+      "board presentation with slides",
+      "10 minute investor pitch, seed round",
+      "wedding toast",
+      "product demo for a POC",
+      "quarterly business review meeting",
+      "keynote speech",
+      "catching up with an old friend", // → other
+    ];
+    for (const d of descriptions) {
+      const plan = fallbackPlan(d);
+      for (const m of plan.moments) {
+        assert(
+          typeof m.coachCue === "string" &&
+            m.coachCue.length > 0 &&
+            m.coachCue.length <= 320,
+          `${plan.eventType}/"${m.title}" has a coachCue within bounds`,
+        );
+        assert(
+          typeof m.scoringHint === "string" &&
+            m.scoringHint.length > 0 &&
+            m.scoringHint.length <= 300,
+          `${plan.eventType}/"${m.title}" has a scoringHint within bounds`,
+        );
+      }
+    }
+  }
+
   section("readiness score");
   {
     assert(computeReadinessScore({}) === null, "no dims → null");
@@ -223,6 +254,52 @@ async function main() {
         !long.includes("d".repeat(2001)) &&
         !long.includes("c".repeat(1501)),
       "description capped at 2000, contextSummary at 1500",
+    );
+  }
+
+  section("L4 — momentHint scoring lens (same block, only-when-present)");
+  {
+    const base = {
+      title: "SDR Interview",
+      eventType: "interview",
+      description: "Final-round SDR interview at Salesforce",
+      contextSummary: null,
+    };
+    const withoutHint = renderEventContextBlock(base);
+    const withHint = renderEventContextBlock({
+      ...base,
+      momentHint:
+        "Weigh whether the answer ends on a concrete, quantified result.",
+    });
+    assert(
+      withoutHint != null && !withoutHint.includes("Scoring lens"),
+      "hint-less prep block carries NO scoring-lens line (byte-identical to pre-L4)",
+    );
+    assert(
+      withHint != null &&
+        withHint.includes(
+          "Scoring lens for this moment (operator note): Weigh whether the answer ends on a concrete, quantified result.",
+        ),
+      "momentHint renders as one operator-facing line inside the block",
+    );
+    assert(
+      withHint != null &&
+        withoutHint != null &&
+        withHint.startsWith(withoutHint),
+      "the hint is strictly additive — the rest of the block is unchanged",
+    );
+    const longHint = renderEventContextBlock({
+      ...base,
+      momentHint: "h".repeat(1000),
+    });
+    assert(
+      longHint != null && !longHint.includes("h".repeat(301)),
+      "momentHint capped at 300 chars",
+    );
+    // Calibration guardrail unchanged: no eventContext → no block at all.
+    assert(
+      renderEventContextBlock(undefined) === null,
+      "non-prep prompts still render no event block",
     );
   }
 

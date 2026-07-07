@@ -139,6 +139,17 @@ export default function ProgressionStrip({
         </div>
       </div>
 
+      {/* §10.7.1 — a freeze is quietly holding the streak together.
+          Subtle: surfaces the spend + remaining bank, no fanfare. */}
+      {summary.streakDays > 0 && summary.freezeJustUsed && (
+        <div
+          data-testid="freeze-chip"
+          className="mt-2 inline-flex items-center gap-1 rounded-full border border-sky-200 dark:border-sky-900 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300"
+        >
+          🧊 Streak Freeze used — {summary.freezesAvailable} left
+        </div>
+      )}
+
       {/* PRD §10.8 — Updated Communication Score + current Core Skills. */}
       {summary.overallScore != null && (
         <div className="mt-3 flex items-center gap-3 rounded-xl border border-slate-100 dark:border-ink-800 px-3 py-2">

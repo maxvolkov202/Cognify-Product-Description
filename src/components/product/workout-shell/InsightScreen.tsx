@@ -84,6 +84,22 @@ export default function InsightScreen({
         )}
       </div>
 
+      {/* I5 (PRD §8.6.4) — the coach KNOWS you: the most recent Coach's
+          Focus on this dimension, with where it landed last time. One
+          quiet line; absent for new users / v2-off. */}
+      {station.recentFocus && (
+        <p className="text-xs text-slate-500 dark:text-ink-400 leading-snug">
+          Last time on {dimension ? MUSCLE_GROUP_LABELS[dimension] : "this skill"}:{" "}
+          <span className="italic">&ldquo;{station.recentFocus.text}&rdquo;</span>{" "}
+          —{" "}
+          {station.recentFocus.verdict === "nailed"
+            ? "you nailed it; keep it in play"
+            : station.recentFocus.verdict === "partial"
+              ? "you partially landed it — finish the job today"
+              : "still open — make it today's win"}
+        </p>
+      )}
+
       {/* The prompt they picked, restated so they walk in primed. */}
       <div className="rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500 mb-1">

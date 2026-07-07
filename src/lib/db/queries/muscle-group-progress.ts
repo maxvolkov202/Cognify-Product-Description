@@ -213,6 +213,13 @@ export type DayRepBreakdown = {
   composite: number;
   perDim: Partial<Record<string, number>>;
   isGraduationRep: boolean;
+  /** PRD v3 §5.2 attempt lineage — lets the summary group First → Retry
+   *  pairs instead of flattening the loop into "Rep 1…Rep N". */
+  attemptKind: "first" | "retry" | "again";
+  /** Exercise linkage (NULL for legacy/pre-pivot reps — the summary
+   *  falls back to flat per-rep bars for those). */
+  exerciseId: string | null;
+  exerciseName: string | null;
 };
 
 export async function getDayRepsBreakdown(
@@ -225,11 +232,27 @@ export async function getDayRepsBreakdown(
         composite: reps.compositeScore,
         createdAt: reps.createdAt,
         isGraduationRep: reps.isGraduationRep,
+        attemptKind: reps.attemptKind,
+        exerciseId: reps.exerciseId,
       })
       .from(reps)
       .where(eq(reps.muscleGroupDayId, dayId))
       .orderBy(reps.createdAt);
     if (repRows.length === 0) return [];
+
+    // Exercise names in one batch (same pattern as getMuscleGroupTimeline).
+    const exerciseIds = Array.from(
+      new Set(
+        repRows.map((r) => r.exerciseId).filter((id): id is string => !!id),
+      ),
+    );
+    const exerciseRows = exerciseIds.length
+      ? await db
+          .select({ id: exercises.id, name: exercises.name })
+          .from(exercises)
+          .where(inArray(exercises.id, exerciseIds))
+      : [];
+    const exNameById = new Map(exerciseRows.map((r) => [r.id, r.name]));
 
     const repIds = repRows.map((r) => r.id);
     const dimRows = await db
@@ -253,6 +276,16 @@ export async function getDayRepsBreakdown(
       composite: Math.round(r.composite ?? 0),
       perDim: dimsByRep.get(r.id) ?? {},
       isGraduationRep: r.isGraduationRep ?? false,
+      // Column is unconstrained text (default 'first'); anything
+      // unexpected degrades to 'first' rather than widening the type.
+      attemptKind:
+        r.attemptKind === "retry" || r.attemptKind === "again"
+          ? r.attemptKind
+          : "first",
+      exerciseId: r.exerciseId ?? null,
+      exerciseName: r.exerciseId
+        ? (exNameById.get(r.exerciseId) ?? null)
+        : null,
     }));
   }, []);
 }

@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 import { sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { cronRuns } from "@/lib/db/schema";
 import { log, serializeErr } from "@/lib/log";
 import { isDateCommitted } from "@/lib/onboarding/committed-days";
 import { sendCommittedDayReminderEmail } from "@/lib/email/send";
@@ -49,7 +50,7 @@ function localParts(tz: string, now: Date): { ymd: string; hour: number } {
   }
 }
 
-export async function GET(req: Request) {
+async function handleCron(req: Request) {
   const expected = process.env.CRON_SECRET;
   if (expected) {
     const auth = req.headers.get("authorization") ?? "";
@@ -135,4 +136,50 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
+}
+
+// ── P8 — cron run ledger ────────────────────────────────────────────────
+// Wraps the handler so every authorized invocation records one
+// cognify_v2.cron_runs row (name, ok, duration_ms, error). Best-effort:
+// a down DB never turns the cron response into a 500. Unauthorized
+// probes (401/403) are not recorded so they don't spam the ledger.
+const CRON_NAME = "committed-day-reminder";
+
+async function recordCronRun(
+  ok: boolean,
+  durationMs: number,
+  error: string | null,
+): Promise<void> {
+  try {
+    await db
+      .insert(cronRuns)
+      .values({ name: CRON_NAME, ok, durationMs, error });
+  } catch {
+    // Ledger write is best-effort — never fail the cron over it.
+  }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const startedAt = Date.now();
+  let res: Response;
+  try {
+    res = await handleCron(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await recordCronRun(false, Date.now() - startedAt, message.slice(0, 300));
+    throw err;
+  }
+  if (res.status !== 401 && res.status !== 403) {
+    const ok = res.status >= 200 && res.status < 300;
+    let error: string | null = null;
+    if (!ok) {
+      try {
+        error = (await res.clone().text()).slice(0, 300);
+      } catch {
+        error = `HTTP ${res.status}`;
+      }
+    }
+    await recordCronRun(ok, Date.now() - startedAt, error);
+  }
+  return res;
 }

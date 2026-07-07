@@ -147,7 +147,8 @@ export function LeaderboardTabs({
               Full rankings
             </h2>
             <div className="mt-4">
-              <LeaderboardTable entries={activeBoard.entries} />
+              {/* Rank badge column is v2-only (FF_RANK_SYSTEM). */}
+              <LeaderboardTable entries={activeBoard.entries} showRank={v2} />
             </div>
 
             {activeBoard.selfEntry &&

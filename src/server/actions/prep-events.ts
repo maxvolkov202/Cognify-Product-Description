@@ -8,7 +8,7 @@
 // the authenticated owner; generation failures fall back to strong
 // generic plans so the flow never dead-ends.
 
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   callouts,
@@ -28,6 +28,7 @@ import { isBuildARepV2Enabled } from "@/lib/flags";
 import { getBuildARepEntitlement } from "@/lib/entitlements";
 import {
   generatePreparationPlan,
+  inferEventType,
   type PreparationPlan,
 } from "@/lib/ai/prep/plan-generation";
 import {
@@ -51,6 +52,12 @@ export type PrepMoment = {
   id: string;
   title: string;
   objective: string | null;
+  /** L4 — the moment's Coach's Insight (behavioral cue + trap). Null for
+   *  user-authored moments and pre-L4 rows. */
+  coachCue: string | null;
+  /** L4 — operator-facing scoring lens, injected into the rep's scoring
+   *  eventContext.momentHint. Null for user-authored / pre-L4 rows. */
+  scoringHint: string | null;
   recommendedSeconds: number;
   sortOrder: number;
   source: string;
@@ -105,10 +112,18 @@ async function gate(): Promise<Gate> {
 /** PRD §8.4.6 Adaptive Preparation — the generation hint that makes
  *  repeat preparation smarter: the user's weakest Core Skill (from the
  *  Communication Snapshot) plus the event's prior readiness + weakest
- *  practiced moments. Null when there's nothing to say yet. */
+ *  practiced moments, plus (L9) the newest readiness review across the
+ *  user's OTHER events of the same type. Null when there's nothing to
+ *  say yet.
+ *
+ *  `eventType`: at create time the model hasn't inferred a type yet, so
+ *  the caller passes the intake's inferred type (inferEventType — the
+ *  same inference the fallback plan picker uses); regeneration passes
+ *  the event row's stored type. */
 async function buildPrepProfileHint(
   userId: string,
   eventId: string | null,
+  eventType: string,
 ): Promise<string | null> {
   const parts: string[] = [];
   const snapshot = await buildCommunicationSnapshot(userId);
@@ -159,6 +174,53 @@ async function buildPrepProfileHint(
       );
     }
   }
+
+  // L9 (§8.4.6) — similar-event history: the newest readiness review
+  // across the user's OTHER events of the same type, so a second
+  // interview prep starts where the first one ended. One query; only
+  // appended when a prior review exists.
+  const [similar] = await db
+    .select({
+      overallScore: readinessReviews.overallScore,
+      coreSkills: readinessReviews.coreSkills,
+    })
+    .from(readinessReviews)
+    .innerJoin(prepEvents, eq(readinessReviews.eventId, prepEvents.id))
+    .where(
+      and(
+        eq(readinessReviews.userId, userId),
+        eq(prepEvents.eventType, eventType),
+        ...(eventId ? [ne(prepEvents.id, eventId)] : []),
+      ),
+    )
+    .orderBy(desc(readinessReviews.createdAt))
+    .limit(1);
+  if (similar) {
+    const coreSkills = (similar.coreSkills ?? {}) as Record<
+      string,
+      { score: number }
+    >;
+    let weakestSkill: { dim: string; score: number } | null = null;
+    for (const [dim, entry] of Object.entries(coreSkills)) {
+      if (entry == null || !Number.isFinite(entry.score)) continue;
+      if (!weakestSkill || entry.score < weakestSkill.score) {
+        weakestSkill = { dim, score: entry.score };
+      }
+    }
+    parts.push(
+      `Previous ${eventType} preps: readiness ${
+        similar.overallScore != null ? Math.round(similar.overallScore) : "n/a"
+      }${
+        weakestSkill
+          ? `; focus then: ${
+              DIMENSION_LABELS[weakestSkill.dim as SkillDimension] ??
+              weakestSkill.dim
+            } (${Math.round(weakestSkill.score)})`
+          : ""
+      }.`,
+    );
+  }
+
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
@@ -207,6 +269,10 @@ async function applyPlanMoments(
       userId,
       title: m.title,
       objective: m.objective,
+      // L4 — Coach's Insight + scoring lens; null when the model omitted
+      // them (fallback plans always carry both).
+      coachCue: m.coachCue ?? null,
+      scoringHint: m.scoringHint ?? null,
       recommendedSeconds: m.recommendedSeconds,
       sortOrder: i,
       source: "generated" as const,
@@ -245,7 +311,14 @@ export async function createPrepEvent(input: {
 
   return safeDb(
     async () => {
-      const profileHint = await buildPrepProfileHint(g.userId, null);
+      // L9 — the model hasn't typed the event yet at create time, so the
+      // similar-event lookup uses the intake's inferred type (the same
+      // inference the fallback plan picker applies to the description).
+      const profileHint = await buildPrepProfileHint(
+        g.userId,
+        null,
+        inferEventType(description),
+      );
       const { plan, source } = await generatePreparationPlan({
         description,
         profileHint,
@@ -295,7 +368,11 @@ export async function regeneratePreparationPlan(input: {
         .limit(1);
       if (!event) return { ok: false };
       const contextText = await gatherContextText(event.id);
-      const profileHint = await buildPrepProfileHint(g.userId, event.id);
+      const profileHint = await buildPrepProfileHint(
+        g.userId,
+        event.id,
+        event.eventType,
+      );
       const { plan, source } = await generatePreparationPlan({
         description: event.description,
         contextText,
@@ -413,6 +490,8 @@ export async function getPrepEvent(
         id: m.id,
         title: m.title,
         objective: m.objective,
+        coachCue: m.coachCue,
+        scoringHint: m.scoringHint,
         recommendedSeconds: m.recommendedSeconds,
         sortOrder: m.sortOrder,
         source: m.source,
@@ -775,15 +854,29 @@ export type FinishPrepInput = {
   callouts?: { dimension: string; title: string; body: string }[];
 };
 
+/** L5 (§8.3.8) — the Readiness Review's "Sharpen next" targets: the
+ *  event's weakest PRACTICED moments, weakest first. */
+export type PrepWeakMoment = {
+  momentId: string;
+  title: string;
+  bestComposite: number | null;
+};
+
+type FinishPrepResult =
+  | {
+      ok: true;
+      review: ReadinessReviewContent;
+      /** ≤2, weakest first, practiced moments only. */
+      weakestMoments: PrepWeakMoment[];
+    }
+  | { ok: false };
+
 export async function finishPrepSession(
   input: FinishPrepInput,
-): Promise<
-  | { ok: true; review: ReadinessReviewContent }
-  | { ok: false }
-> {
+): Promise<FinishPrepResult> {
   const g = await gate();
   if (!g.ok) return { ok: false };
-  return safeDb<{ ok: true; review: ReadinessReviewContent } | { ok: false }>(
+  return safeDb<FinishPrepResult>(
     async () => {
       const [event] = await db
         .select()
@@ -828,6 +921,7 @@ export async function finishPrepSession(
 
       const moments = await db
         .select({
+          id: criticalMoments.id,
           title: criticalMoments.title,
           attempts: criticalMoments.attempts,
           bestComposite: criticalMoments.bestComposite,
@@ -835,6 +929,25 @@ export async function finishPrepSession(
         .from(criticalMoments)
         .where(eq(criticalMoments.eventId, input.eventId))
         .orderBy(asc(criticalMoments.sortOrder));
+
+      // L5 (§8.3.8) — the review's concrete next action: the weakest
+      // practiced moments (scored ones first, ascending; a practiced-but-
+      // unscored moment can't claim "weakest" so it ranks after any
+      // measured one). ≤2.
+      const weakestMoments: PrepWeakMoment[] = moments
+        .filter((m) => m.attempts > 0)
+        .sort((a, b) => {
+          if (a.bestComposite == null && b.bestComposite == null) return 0;
+          if (a.bestComposite == null) return 1;
+          if (b.bestComposite == null) return -1;
+          return a.bestComposite - b.bestComposite;
+        })
+        .slice(0, 2)
+        .map((m) => ({
+          momentId: m.id,
+          title: m.title,
+          bestComposite: m.bestComposite,
+        }));
 
       // §8.4.6 — feed the previous review so the coach can speak to
       // trajectory ("up from 62 last session") instead of starting over.
@@ -926,7 +1039,7 @@ export async function finishPrepSession(
         evidenceSource: serverEvidence ? "server" : "client_fallback",
         evidenceReps: serverEvidence?.repCount ?? 0,
       });
-      return { ok: true, review };
+      return { ok: true, review, weakestMoments };
     },
     { ok: false },
   );

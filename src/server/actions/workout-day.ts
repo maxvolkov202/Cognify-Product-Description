@@ -83,7 +83,11 @@ const fetchPlateauedDims = cache(async (
   const byDim = new Map<string, { at: string; score: number }[]>();
   for (const r of rows) {
     const list = byDim.get(r.dimension) ?? [];
-    list.push({ at: r.taken_at.toISOString(), score: r.score });
+    // db.execute returns timestamptz as a STRING (postgres-js raw path —
+    // no drizzle column mapping). .toISOString() on it threw on every
+    // call and safeDb ate it: plateau detection has never fired. Same
+    // class as F-3/F-4 ("the fallback is the lie").
+    list.push({ at: new Date(r.taken_at as unknown as string).toISOString(), score: r.score });
     byDim.set(r.dimension, list);
   }
   const out: MuscleGroupId[] = [];
@@ -146,6 +150,91 @@ const fetchProfileSignals = cache(async (
  *  profile's long-memory estimate. Mirrors SUB_SKILL_MIN_SAMPLES in
  *  src/lib/db/queries/sub-skills.ts. */
 const SUB_SKILL_PROFILE_MIN_SAMPLES = 5;
+
+/** I5 (PRD §8.6.4) — per-dimension "the coach remembers last time"
+ *  signal for the Insight screen. */
+export type StationRecentFocus = { text: string; verdict: string | null };
+
+/** I5 — the user's most recent coaching_events row per dimension, keyed
+ *  by muscle group (coaching_events stores skill dims — "delivery" maps
+ *  back to the "pacing" muscle group). ONE DISTINCT ON query for the
+ *  whole day, React.cache'd per request. Empty when the v2 engine is
+ *  off, for anonymous users, or before any Coach's Focus was delivered. */
+const fetchRecentFocusByDim = cache(async (
+  userId: string,
+): Promise<Partial<Record<MuscleGroupId, StationRecentFocus>>> => {
+  if (!isTrainingEngineV2Enabled()) return {};
+  if (userId === "anonymous") return {};
+  const rows = await db.execute<{
+    dimension: string;
+    focus_text: string;
+    implemented_verdict: string | null;
+  }>(drizzleSql`
+    SELECT DISTINCT ON (dimension)
+      dimension::text AS dimension,
+      focus_text,
+      implemented_verdict
+    FROM cognify_v2.coaching_events
+    WHERE user_id = ${userId}
+    ORDER BY dimension, created_at DESC
+  `);
+  const bySkillDim = new Map(rows.map((r) => [r.dimension, r]));
+  const out: Partial<Record<MuscleGroupId, StationRecentFocus>> = {};
+  for (const mg of MUSCLE_GROUP_IDS) {
+    const skillDim = muscleGroupToSkillDim(mg);
+    if (!skillDim) continue;
+    const row = bySkillDim.get(skillDim);
+    if (row) {
+      out[mg] = { text: row.focus_text, verdict: row.implemented_verdict };
+    }
+  }
+  return out;
+});
+
+/** I5 — page.tsx entry point (server component hydration path). Scoped
+ *  to the CURRENT user server-side, so the exported action carries no
+ *  forgeable userId parameter. */
+export async function getStationRecentFocus(): Promise<
+  Partial<Record<MuscleGroupId, StationRecentFocus>>
+> {
+  const user = await currentUser();
+  if (!user) return {};
+  return safeDb(() => fetchRecentFocusByDim(user.id), {});
+}
+
+/** I6 (PRD §8.5.3 step 2) — every exercise id the user has logged a rep
+ *  against, ever. Only queried while the Assessment Phase is active (a
+ *  bounded window), so the DISTINCT stays cheap. React.cache'd. */
+const fetchCompletedExerciseIds = cache(async (
+  userId: string,
+): Promise<Set<string>> => {
+  if (userId === "anonymous") return new Set<string>();
+  const rows = await db.execute<{ exercise_id: string }>(drizzleSql`
+    SELECT DISTINCT exercise_id
+    FROM cognify_v2.reps
+    WHERE user_id = ${userId} AND exercise_id IS NOT NULL
+  `);
+  return new Set(rows.map((r) => r.exercise_id));
+});
+
+/** I6 — sampleExercises extras for the Assessment Phase: when the v2
+ *  engine is on AND the user is still inside the assessment window,
+ *  sampling hard-prefers never-seen exercises. Spread into the
+ *  sampleExercises input ({} otherwise = legacy behavior). */
+async function assessmentSampleExtras(
+  userId: string,
+  recentDays: RecentDaySnapshot[],
+): Promise<
+  | { assessmentActive: true; completedExerciseIds: Set<string> }
+  | Record<string, never>
+> {
+  if (!isTrainingEngineV2Enabled()) return {};
+  if (!isAssessmentActive(recentDays)) return {};
+  return {
+    assessmentActive: true,
+    completedExerciseIds: await fetchCompletedExerciseIds(userId),
+  };
+}
 
 /** PRD v3 Phase 2.3 — the user's Hidden Skill running averages for one
  *  muscle group, shaped for sampleExercises. Returns undefined when the
@@ -241,7 +330,9 @@ async function fetchEngagement(userId: string): Promise<EngagementSnapshot[]> {
     byDim.set(r.dimension, {
       dimension: r.dimension,
       recentComposite: r.avg_recent,
-      lastTrainedAt: r.last_trained ? r.last_trained.toISOString() : null,
+      lastTrainedAt: r.last_trained
+        ? new Date(r.last_trained as unknown as string).toISOString()
+        : null,
       rowCount: r.row_count,
     });
   }
@@ -408,10 +499,17 @@ export async function previewTodaysWorkoutPlan(input: {
       fetchCatalogExercises(input.dim),
       fetchRecentDays(userId),
     ]);
-    const [subSkillAverages, plateauedDims] = await Promise.all([
-      fetchSubSkillAveragesForDim(userId, input.dim),
-      fetchPlateauedDims(userId),
-    ]);
+    const [subSkillAverages, plateauedDims, assessmentExtras, recentFocusByDim] =
+      await Promise.all([
+        fetchSubSkillAveragesForDim(userId, input.dim),
+        fetchPlateauedDims(userId),
+        // I6 — assessment days hard-prefer never-seen exercises. Same
+        // extras as startMuscleGroupDay (identical seed) so Start lands
+        // on the exercises the preview showed.
+        assessmentSampleExtras(userId, recentDays),
+        // I5 — "last time on this dim" coaching memory per station.
+        fetchRecentFocusByDim(userId),
+      ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -420,6 +518,7 @@ export async function previewTodaysWorkoutPlan(input: {
       ...(subSkillAverages ? { subSkillAverages } : {}),
       // I4 — plateaued dim: invert sub-skill weighting (stimulus change).
       ...(plateauedDims.includes(input.dim) ? { plateaued: true } : {}),
+      ...assessmentExtras,
     });
     const stations: Station[] = sampled.map((ex, index) => ({
       index,
@@ -432,6 +531,7 @@ export async function previewTodaysWorkoutPlan(input: {
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
       coachInsight: ex.coachInsight ?? null,
+      recentFocus: recentFocusByDim[input.dim] ?? null,
     }));
     return { stations, persisted: false };
   }, { stations: [], persisted: false });
@@ -665,6 +765,14 @@ export async function startMuscleGroupDay(input: {
       const plannedIds = (existing.plannedExerciseIds as string[]) ?? [];
       let stations = await hydrateStations(plannedIds);
 
+      // I5 — decorate the hydrated stations with the day-dim's most
+      // recent Coach's Focus (hydrateStations only sees exercise ids).
+      const existingFocusByDim = await fetchRecentFocusByDim(userId);
+      const existingDimFocus = isMuscleGroupId(existing.dimension as string)
+        ? (existingFocusByDim[existing.dimension as MuscleGroupId] ?? null)
+        : null;
+      stations = stations.map((s) => ({ ...s, recentFocus: existingDimFocus }));
+
       // Orphan-day self-heal: planned IDs point at exercises that no
       // longer exist (catalog re-seeded with fresh UUIDs while this
       // day was open). Re-sample 4 exercises in the same dim, update
@@ -677,10 +785,12 @@ export async function startMuscleGroupDay(input: {
             fetchCatalogExercises(existingDim),
             fetchRecentDays(userId),
           ]);
-          const [healAverages, healPlateaued] = await Promise.all([
-            fetchSubSkillAveragesForDim(userId, existingDim),
-            fetchPlateauedDims(userId),
-          ]);
+          const [healAverages, healPlateaued, healAssessment] =
+            await Promise.all([
+              fetchSubSkillAveragesForDim(userId, existingDim),
+              fetchPlateauedDims(userId),
+              assessmentSampleExtras(userId, recentDays),
+            ]);
           const resampled = sampleExercises({
             available,
             recentDays,
@@ -690,6 +800,7 @@ export async function startMuscleGroupDay(input: {
             ...(healPlateaued.includes(existingDim)
               ? { plateaued: true }
               : {}),
+            ...healAssessment,
           });
           if (resampled.length > 0) {
             const freshIds = resampled.map((s) => s.id);
@@ -706,8 +817,9 @@ export async function startMuscleGroupDay(input: {
               why: ex.instructions,
               objective: ex.objective,
               responseWindow: ex.responseWindow,
-      constraintTypes: ex.constraintTypes ?? null,
-      coachInsight: ex.coachInsight ?? null,
+              constraintTypes: ex.constraintTypes ?? null,
+              coachInsight: ex.coachInsight ?? null,
+              recentFocus: existingDimFocus,
             }));
             logEvent("workout.day.self_healed", {
               userId,
@@ -757,10 +869,13 @@ export async function startMuscleGroupDay(input: {
       fetchCatalogExercises(chosenDim),
       fetchRecentDays(userId),
     ]);
-    const [subSkillAverages, plateauedDims] = await Promise.all([
-      fetchSubSkillAveragesForDim(userId, chosenDim),
-      fetchPlateauedDims(userId),
-    ]);
+    const [subSkillAverages, plateauedDims, startAssessment, startFocusByDim] =
+      await Promise.all([
+        fetchSubSkillAveragesForDim(userId, chosenDim),
+        fetchPlateauedDims(userId),
+        assessmentSampleExtras(userId, recentDays),
+        fetchRecentFocusByDim(userId),
+      ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -771,6 +886,8 @@ export async function startMuscleGroupDay(input: {
       // Same inputs as previewTodaysWorkoutPlan (identical seed) so Start
       // lands on the exercises the preview showed.
       ...(plateauedDims.includes(chosenDim) ? { plateaued: true } : {}),
+      // I6 — assessment days hard-prefer never-seen exercises.
+      ...startAssessment,
     });
 
     if (sampled.length === 0) {
@@ -837,6 +954,7 @@ export async function startMuscleGroupDay(input: {
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
       coachInsight: ex.coachInsight ?? null,
+      recentFocus: startFocusByDim[chosenDim] ?? null,
     }));
 
     // Open the workout_session for the new day so the rest of the
@@ -902,10 +1020,13 @@ export async function swapMuscleGroup(input: {
       return { ok: false as const, reason: "no_catalog" };
     }
     const recentDays = await fetchRecentDays(userId);
-    const [swapAverages, swapPlateaued] = await Promise.all([
-      fetchSubSkillAveragesForDim(userId, input.newDim),
-      fetchPlateauedDims(userId),
-    ]);
+    const [swapAverages, swapPlateaued, swapAssessment, swapFocusByDim] =
+      await Promise.all([
+        fetchSubSkillAveragesForDim(userId, input.newDim),
+        fetchPlateauedDims(userId),
+        assessmentSampleExtras(userId, recentDays),
+        fetchRecentFocusByDim(userId),
+      ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -913,6 +1034,7 @@ export async function swapMuscleGroup(input: {
       seed: `${userId}:${day.dayDate}:${input.newDim}:swap`,
       ...(swapAverages ? { subSkillAverages: swapAverages } : {}),
       ...(swapPlateaued.includes(input.newDim) ? { plateaued: true } : {}),
+      ...swapAssessment,
     });
 
     const plannedIds = sampled.map((s) => s.id);
@@ -942,6 +1064,7 @@ export async function swapMuscleGroup(input: {
       responseWindow: ex.responseWindow,
       constraintTypes: ex.constraintTypes ?? null,
       coachInsight: ex.coachInsight ?? null,
+      recentFocus: swapFocusByDim[input.newDim] ?? null,
     }));
 
     return {

@@ -121,6 +121,9 @@ const modeContextSchema = z.object({
       eventType: z.string().min(1).max(40),
       description: z.string().max(4000),
       contextSummary: z.string().max(2000).nullable(),
+      // L4 — the practiced Critical Moment's scoring lens; one extra
+      // line inside the same only-when-present block (calibration-safe).
+      momentHint: z.string().max(300).optional(),
     })
     .optional(),
   repIndex: z.number().int().min(0),

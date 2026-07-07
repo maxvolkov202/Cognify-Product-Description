@@ -9,6 +9,11 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
+import { softenScoreDelta } from "@/lib/ai/coach-focus";
+import {
+  APPLICATION_LABELS,
+  type ApplicationId,
+} from "@/types/application-skills";
 import { cn } from "@/lib/utils/cn";
 import {
   DIMENSION_LABELS,
@@ -78,9 +83,15 @@ export default function DayCompleteSummary({
 
   const takeaway = buildTakeaway(comparison, reps);
   const mostImproved = findMostImprovedDim(reps);
-  const recommendation = buildCoachRecommendation(dim, reps);
+  const recommendation = buildCoachRecommendation(reps);
   const weakestToday = findWeakestDim(reps);
   const workoutMovement = computeWorkoutMovement(reps);
+
+  // W6 — group the day's reps into per-exercise First → Retry loops.
+  // Legacy reps (no exercise linkage) keep the flat mini-bar rendering.
+  const exercisePairs = groupRepsByExercise(reps);
+  const gradReps = reps.filter((r) => r.isGraduationRep);
+  const legacyReps = reps.filter((r) => !r.exerciseId && !r.isGraduationRep);
 
   return (
     <div className="space-y-5">
@@ -164,17 +175,52 @@ export default function DayCompleteSummary({
         </div>
       )}
 
-      {/* Per-rep mini-bars */}
+      {/* Per-rep breakdown — W6 (§5.2): the day is a set of improvement
+          LOOPS (First → Retry per exercise), not a flat run of reps.
+          Exercise-linked reps render as one First → Retry row per
+          exercise; reps with no exercise (legacy data) keep the flat
+          mini-bars. */}
       {reps.length > 0 && (
         <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-3">
             Today&apos;s reps
           </div>
-          <div className="flex items-end justify-around gap-3 h-32">
-            {reps.map((rep) => (
-              <RepMiniBar key={rep.repId} rep={rep} />
-            ))}
-          </div>
+          {exercisePairs.length > 0 ? (
+            <div className="space-y-2.5">
+              {exercisePairs.map((pair) => (
+                <ExercisePairRow key={pair.exerciseId} pair={pair} />
+              ))}
+              {gradReps.map((rep) => (
+                <div
+                  key={rep.repId}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-ink-800 bg-slate-50/60 dark:bg-ink-800/40 px-3 py-2"
+                >
+                  <span className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-ink-200">
+                    {rep.exerciseName ?? "Graduation rep"}
+                    <span className="ml-1.5 rounded-full bg-purple-100 dark:bg-brand-purple/30 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-purple-700 dark:text-brand-lavender">
+                      Grad
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-slate-900 dark:text-white">
+                    {rep.composite}
+                  </span>
+                </div>
+              ))}
+              {legacyReps.length > 0 && (
+                <div className="flex items-end justify-around gap-3 h-32 pt-1">
+                  {legacyReps.map((rep) => (
+                    <RepMiniBar key={rep.repId} rep={rep} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-end justify-around gap-3 h-32">
+              {reps.map((rep) => (
+                <RepMiniBar key={rep.repId} rep={rep} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -220,13 +266,23 @@ export default function DayCompleteSummary({
         </div>
       )}
 
-      {/* Coach recommendation (PRD §5.7) — the next highest-value move. */}
+      {/* Coach recommendation (PRD §5.7) — the next highest-value move:
+          either a targeted drill or (W7) a related Skill Lab application. */}
       {recommendation && (
         <div className="text-center text-xs text-slate-500 dark:text-ink-400">
           <span className="font-semibold text-purple-700 dark:text-brand-lavender">
             Coach&apos;s call:
           </span>{" "}
-          {recommendation}
+          {recommendation.kind === "lab" ? (
+            <Link
+              href={`/skill-lab/${recommendation.applicationId}`}
+              className="font-semibold text-purple-700 dark:text-brand-lavender underline decoration-purple-300 dark:decoration-brand-purple/60 underline-offset-2 hover:text-purple-900 dark:hover:text-white"
+            >
+              Train {recommendation.label} in the Skill Lab →
+            </Link>
+          ) : (
+            recommendation.text
+          )}
         </div>
       )}
 
@@ -301,6 +357,96 @@ function RepMiniBar({ rep }: { rep: DayRepBreakdown }) {
   );
 }
 
+// ─── W6 (§5.2) — per-exercise First → Retry loop rows ─────────────────────
+
+type ExercisePair = {
+  exerciseId: string;
+  exerciseName: string;
+  /** Earliest first attempt on this exercise (reps arrive chronological). */
+  first: DayRepBreakdown | null;
+  /** Best-scoring retry/again attempt on this exercise. */
+  bestFollowUp: DayRepBreakdown | null;
+};
+
+function groupRepsByExercise(reps: DayRepBreakdown[]): ExercisePair[] {
+  const byExercise = new Map<string, ExercisePair>();
+  for (const rep of reps) {
+    if (!rep.exerciseId || rep.isGraduationRep) continue;
+    let pair = byExercise.get(rep.exerciseId);
+    if (!pair) {
+      pair = {
+        exerciseId: rep.exerciseId,
+        exerciseName: rep.exerciseName ?? "Exercise",
+        first: null,
+        bestFollowUp: null,
+      };
+      byExercise.set(rep.exerciseId, pair);
+    }
+    if (rep.attemptKind === "first") {
+      if (!pair.first) pair.first = rep;
+    } else if (
+      !pair.bestFollowUp ||
+      rep.composite > pair.bestFollowUp.composite
+    ) {
+      pair.bestFollowUp = rep;
+    }
+  }
+  return [...byExercise.values()];
+}
+
+function ExercisePairRow({ pair }: { pair: ExercisePair }) {
+  const { first, bestFollowUp } = pair;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-ink-800 bg-slate-50/60 dark:bg-ink-800/40 px-3 py-2">
+      <span className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-ink-200">
+        {pair.exerciseName}
+      </span>
+      <span className="flex shrink-0 items-center gap-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white">
+        {first && bestFollowUp ? (
+          <>
+            <span>
+              First {first.composite}{" "}
+              <span aria-hidden className="text-slate-400 dark:text-ink-500">
+                →
+              </span>{" "}
+              Retry {bestFollowUp.composite}
+            </span>
+            <PairDeltaChip
+              delta={bestFollowUp.composite - first.composite}
+            />
+          </>
+        ) : first ? (
+          <span>First {first.composite}</span>
+        ) : bestFollowUp ? (
+          <span>Retry {bestFollowUp.composite}</span>
+        ) : null}
+      </span>
+    </div>
+  );
+}
+
+/** Delta chip for a First → Retry pair. softenScoreDelta (Owen C10)
+ *  governs the tone: celebrate positives, show small negatives plainly,
+ *  and hide big negatives behind soft copy. */
+function PairDeltaChip({ delta }: { delta: number }) {
+  const soft = softenScoreDelta(Math.round(delta));
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold tabular-nums",
+        soft.tone === "celebrate" &&
+          "border-emerald-200 dark:border-emerald-900 bg-emerald-50/70 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300",
+        soft.tone !== "celebrate" &&
+          "border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-500 dark:text-ink-400",
+      )}
+    >
+      {soft.showNumeric
+        ? `${Math.round(delta) > 0 ? "+" : ""}${Math.round(delta)}`
+        : "still settling"}
+    </span>
+  );
+}
+
 function DimTrendChart({ reps }: { reps: DayRepBreakdown[] }) {
   const width = 320;
   const height = 140;
@@ -317,7 +463,9 @@ function DimTrendChart({ reps }: { reps: DayRepBreakdown[] }) {
     <svg
       viewBox={`0 0 ${width} ${height}`}
       className="w-full h-auto"
-      aria-label="Per-dimension scores across the 4 reps"
+      aria-label={`Per-dimension scores across the ${reps.length} rep${
+        reps.length === 1 ? "" : "s"
+      }`}
     >
       {/* Gridlines at 25, 50, 75 */}
       {[25, 50, 75].map((g) => (
@@ -463,11 +611,16 @@ function StatPill({
 }
 
 /** Most improved Core Skill across the day: biggest first-rep → last-rep
- *  per-dim gain (graduation rep excluded — pressure reps skew dims). */
+ *  per-dim gain. Graduation rep excluded (pressure reps skew dims) AND
+ *  W6: FIRST attempts only — retries improve on a rep the user just got
+ *  coached on, so mixing them in double-counts the loop instead of
+ *  measuring apples-to-apples movement across the day's exercises. */
 function findMostImprovedDim(
   reps: DayRepBreakdown[],
 ): { dim: SkillDimension; delta: number } | null {
-  const normal = reps.filter((r) => !r.isGraduationRep);
+  const normal = reps.filter(
+    (r) => !r.isGraduationRep && r.attemptKind === "first",
+  );
   if (normal.length < 2) return null;
   const first = normal[0]!;
   const last = normal[normal.length - 1]!;
@@ -486,11 +639,15 @@ function findMostImprovedDim(
 
 /** §5.7 Workout Improvement — first→last rep deltas (composite + the
  *  dims that moved most), graduation rep excluded. Big negatives stay
- *  quiet per C10. */
+ *  quiet per C10. W6: FIRST attempts only, so the beginning-to-end
+ *  movement compares fresh takes on each exercise rather than crediting
+ *  a coached retry against a cold first rep. */
 function computeWorkoutMovement(
   reps: DayRepBreakdown[],
 ): { label: string; delta: number }[] {
-  const normal = reps.filter((r) => !r.isGraduationRep);
+  const normal = reps.filter(
+    (r) => !r.isGraduationRep && r.attemptKind === "first",
+  );
   if (normal.length < 2) return [];
   const first = normal[0]!;
   const last = normal[normal.length - 1]!;
@@ -531,13 +688,41 @@ function findWeakestDim(reps: DayRepBreakdown[]): SkillDimension | null {
   return weakest?.dim ?? null;
 }
 
+// W7 (PRD §5.7 lists "Train a related Application in the Skill Lab" as a
+// legitimate Coach Recommendation) — weakest Core Skill → the Skill Lab
+// application that most directly trains it:
+//   structure         → storytelling  (a narrative arc IS structure applied)
+//   clarity           → teaching      (explaining to a novice forces clarity)
+//   thinking_quality  → persuasion    (argument construction under scrutiny)
+//   conciseness       → presenting    (tight, audience-first delivery)
+//   delivery          → presenting    (pacing/delivery is presenting's core)
+//   tone              → interviewing  (calibrated warmth + credibility)
+const DIM_TO_APPLICATION: Record<SkillDimension, ApplicationId> = {
+  structure: "storytelling",
+  clarity: "teaching",
+  thinking_quality: "persuasion",
+  conciseness: "presenting",
+  delivery: "presenting",
+  tone: "interviewing",
+};
+
+type CoachRecommendation =
+  | { kind: "drill"; text: string }
+  | { kind: "lab"; applicationId: ApplicationId; label: string };
+
 /** Coach recommendation (PRD §5.7): the next highest-value move, from the
  *  day's weakest average dimension. Deterministic Phase 2 copy — Phase 3's
- *  coaching memory replaces this with a personalized recommendation. */
+ *  coaching memory replaces this with a personalized recommendation.
+ *
+ *  W7 branch rule (deterministic, documented): recommend the Skill Lab
+ *  when the weakest dim averaged >= 70 (the fundamentals aren't broken,
+ *  so the next gain comes from applying them in a real-world context) OR
+ *  on even UTC days-of-month (a simple alternating-day cadence so the
+ *  Lab still surfaces regularly for users grinding below 70). Otherwise
+ *  keep the targeted drill recommendation. */
 function buildCoachRecommendation(
-  dim: MuscleGroupId,
   reps: DayRepBreakdown[],
-): string | null {
+): CoachRecommendation | null {
   const normal = reps.filter((r) => !r.isGraduationRep);
   if (normal.length === 0) return null;
   const sums = new Map<SkillDimension, { total: number; n: number }>();
@@ -557,9 +742,18 @@ function buildCoachRecommendation(
   }
   if (!weakest) return null;
   const label = DIMENSION_LABELS[weakest.dim];
-  const trainedLabel = MUSCLE_GROUP_LABELS[dim];
-  if (Math.round(weakest.avg) >= 80) {
-    return `Solid across the board — keep the ${trainedLabel} streak going next session.`;
+  const roundedAvg = Math.round(weakest.avg);
+  const isEvenUtcDay = new Date().getUTCDate() % 2 === 0;
+  if (roundedAvg >= 70 || isEvenUtcDay) {
+    const applicationId = DIM_TO_APPLICATION[weakest.dim];
+    return {
+      kind: "lab",
+      applicationId,
+      label: APPLICATION_LABELS[applicationId],
+    };
   }
-  return `${label} averaged ${Math.round(weakest.avg)} today — it's the highest-value muscle to hit next.`;
+  return {
+    kind: "drill",
+    text: `${label} averaged ${roundedAvg} today — it's the highest-value muscle to hit next.`,
+  };
 }

@@ -103,6 +103,11 @@ export type SaveRepInput = {
   muscleGroupDayId?: string | null;
   /** Phase 8 — pressure graduation rep tag. */
   isGraduationRep?: boolean;
+  /** Pressure archetype id when this rep ran under a pressure archetype
+   *  (Skill Lab pressure slots, Build-a-Rep pressure mode). Only used to
+   *  flag `isPressureRep` for achievements/quests — the scoring pipeline
+   *  receives it separately via the /api/score body. */
+  pressureArchetypeId?: string | null;
   /** PRD v3 Phase 4 — Skill Lab application this rep belongs to
    *  (exercises.application). Folds the composite into the profile's
    *  per-application estimate. Null for Daily Workout / legacy reps. */
@@ -619,8 +624,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           days: streak,
         });
         // Every 7-day streak earns +1 freeze (capped at 3 in-function).
-        // The freeze persists in the users table; consumed automatically
-        // by getStreakStatus when a single-day gap appears.
+        // The freeze persists in the users table; applied automatically
+        // by getStreakStatus when missed committed days appear (up to
+        // the banked count — §10.7.1; consecutive misses still break).
         await awardStreakFreeze(userId);
       }
     }
@@ -644,6 +650,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     // this single round-trip.
     let xp: AwardXpResult | undefined;
     let unlockedAchievements: AchievementId[] | undefined;
+    // Shared with the weekly-challenge block below (G6 — "Maintain your
+    // committed training schedule"): did THIS rep land on a committed day?
+    let trainedOnCommittedDay = false;
     if (userId !== "anonymous" && !isGuest) {
       const streak = await getStreakDays(userId);
       // DNA Ch.9a comeback bonus — fires once when a user returns after a
@@ -668,7 +677,8 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           const { isDateCommitted } = await import(
             "@/lib/onboarding/committed-days"
           );
-          restDayBonus = !isDateCommitted(u.committedDays, new Date());
+          trainedOnCommittedDay = isDateCommitted(u.committedDays, new Date());
+          restDayBonus = !trainedOnCommittedDay;
         }
       } catch {
         // Best-effort; default to no bonus on read failure.
@@ -722,21 +732,38 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       // achievements (priorLifetime is pre-grant).
       const lifetimeReps = (await readLifetimeReps(userId)) ?? priorLifetime + 1;
       const dimsEverScored = await getDimensionsEverScored(userId);
+      // PRD §10.12 — implementation milestones read the coaching_events
+      // ledger (rows back-filled with implemented_verdict='nailed' by the
+      // retry evaluation above, so THIS retry's verdict is included).
+      // safeDb-wrapped like readLifetimeReps: a hiccup returns 0 and the
+      // implement_* achievements simply don't fire this rep.
+      const implementedNailedCount = await safeDb<number>(async () => {
+        const [row] = await db
+          .select({ c: count() })
+          .from(coachingEvents)
+          .where(
+            and(
+              eq(coachingEvents.userId, userId),
+              eq(coachingEvents.implementedVerdict, "nailed"),
+            ),
+          );
+        return Number(row?.c ?? 0);
+      }, 0);
       unlockedAchievements = await evaluateAchievements({
         userId,
         score: input.score,
         mode: input.mode,
         isFocusDrill: input.mode === "skill_lab",
-        // Pressure detection requires the archetype id which doesn't
-        // currently flow into SaveRepInput. Defer to a follow-up that
-        // plumbs pressureArchetypeId; for now explore_pressure achievement
-        // unlocks via the Skill Lab pressure-mode entry point only.
-        isPressureRep: false,
+        // Pressure reps carry their archetype id end-to-end (Skill Lab
+        // pressure slots + Build-a-Rep pressure mode → RepSurface →
+        // SaveRepInput.pressureArchetypeId).
+        isPressureRep: !!input.pressureArchetypeId,
         isBuildARep:
           input.mode === "scenario_training" || input.mode === "build_a_rep",
         lifetimeReps,
         streakDays: streak,
         dimensionsEverScored: dimsEverScored,
+        implementedNailedCount,
       });
     }
 
@@ -774,7 +801,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             score: d.score,
           })),
           isFocusDrill: input.mode === "skill_lab",
-          isPressureRep: false,
+          isPressureRep: !!input.pressureArchetypeId,
           repsToday: Number(repsToday),
         },
       });
@@ -811,6 +838,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             (input.attemptKind === "retry" || input.attemptKind === "again") &&
             input.score.implementationReview?.verdict === "nailed",
           newTrainingDay: Number(repsToday) === 1,
+          // G6 — computed alongside restDayBonus above (same committed-
+          // days read); false for guests/anonymous (block never runs).
+          trainedOnCommittedDay,
         });
         if (challengeResult && challengeResult.newlyCompletedIds.length > 0) {
           completedWeeklyChallenges = {

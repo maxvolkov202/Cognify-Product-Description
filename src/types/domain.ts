@@ -186,6 +186,11 @@ export type Station = {
   constraintTypes: string[] | null;
   /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
   coachInsight: string | null;
+  /** I5 (PRD §8.6.4) — the user's most recent Coach's Focus on this
+   *  station's dimension (coaching_events ledger), so the Insight screen
+   *  can show the coach remembers last time. Optional/null when the v2
+   *  engine is off, the user is anonymous, or nothing was coached yet. */
+  recentFocus?: { text: string; verdict: string | null } | null;
 };
 
 /** Fully-hydrated muscle-group day for the Workout shell to render. */
@@ -301,6 +306,12 @@ export type ScoreRepEventContext = {
   description: string;
   /** Capped excerpt (~1500 chars) of the event's parsed context uploads. */
   contextSummary: string | null;
+  /** L4 (§7.7/§8.4.6) — the practiced Critical Moment's scoring lens:
+   *  one operator-facing line (critical_moments.scoring_hint), rendered
+   *  as ONE extra line inside the same EVENT CONTEXT block. Optional and
+   *  only-when-present, so non-prep prompts AND existing hint-less prep
+   *  prompts stay byte-identical (calibration guardrail). ≤300 chars. */
+  momentHint?: string;
 };
 
 export type RepScore = {

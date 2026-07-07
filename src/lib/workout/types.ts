@@ -44,6 +44,14 @@ export const StationSchema = z.object({
   /** Phase 11.D2 — Lab Engine V1 Coach's Insight. When set, it leads on
    *  the Insight screen; rule/objective become the enforcement lines. */
   coachInsight: z.string().nullable().default(null),
+  /** I5 (PRD §8.6.4) — the user's most recent Coach's Focus on this
+   *  station's dimension (coaching_events), rendered as one quiet
+   *  "last time" line on the Insight screen. Optional (not defaulted)
+   *  so existing ShellStation literal constructors stay valid. */
+  recentFocus: z
+    .object({ text: z.string(), verdict: z.string().nullable() })
+    .nullable()
+    .optional(),
 });
 export type ShellStation = z.infer<typeof StationSchema>;
 

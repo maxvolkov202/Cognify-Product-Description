@@ -506,6 +506,14 @@ export const criticalMoments = cognifyV2Schema.table(
     /** What a strong answer/section accomplishes — feeds the moment's
      *  Coach's Insight and scoring context. */
     objective: text("objective"),
+    /** L4 (PRD §7.7/§8.4.6) — the moment's Coach's Insight: 1-2 sentences,
+     *  practical behavioral cue ("what great looks like + the trap").
+     *  Generated with the plan; null for user-authored moments. */
+    coachCue: text("coach_cue"),
+    /** L4 — one operator-facing line injected into the rep's scoring
+     *  eventContext (momentHint) so the evaluator scores this moment
+     *  against what it's actually for. Null for user-authored moments. */
+    scoringHint: text("scoring_hint"),
     recommendedSeconds: integer("recommended_seconds").notNull().default(90),
     sortOrder: integer("sort_order").notNull().default(0),
     /** generated | user (PRD §7.7 — plan is fully editable). */
@@ -1197,6 +1205,29 @@ export const repsRelations = relations(reps, ({ many, one }) => ({
   }),
 }));
 
+// Phase 15 (contract-harness find) — drizzle's relational query builder
+// needs the BACK-references with fields/references to infer the join;
+// `many(dimensionScores)` alone made every db.query.reps.findFirst({
+// with: { dimensionScores } }) THROW ("not enough information to infer
+// relation"), which safeDb swallowed → /progress/rep/[repId] rendered
+// notFound() for every rep. scripts/contract-queries.ts pins this.
+export const dimensionScoresRelations = relations(
+  dimensionScores,
+  ({ one }) => ({
+    rep: one(reps, {
+      fields: [dimensionScores.repId],
+      references: [reps.id],
+    }),
+  }),
+);
+
+export const calloutsRelations = relations(callouts, ({ one }) => ({
+  rep: one(reps, {
+    fields: [callouts.repId],
+    references: [reps.id],
+  }),
+}));
+
 /**
  * Phase 7 — weekly drift report. One row per (week_start, dimension,
  * sub_skill, verdict). The cron writes a fresh batch every week from
@@ -1789,4 +1820,29 @@ export const promptSelectionEventsRelations = relations(
       references: [exercisePrompts.id],
     }),
   }),
+);
+
+/**
+ * P8 — cron run ledger (migration 0038). One row per cron invocation so
+ * failures surface as queryable rows instead of unread log lines. Written
+ * best-effort by the wrappers in src/app/api/cron/<name>/route.ts — a down
+ * DB never turns a cron response into a 500. Unauthorized probes
+ * (401/403) are not recorded.
+ */
+export const cronRuns = cognifyV2Schema.table(
+  "cron_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Cron route name, e.g. "weekly-narrative". */
+    name: text("name").notNull(),
+    /** True when the handler returned a 2xx result; false on throw/error. */
+    ok: boolean("ok").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    /** Error message (≤300 chars). NULL on success. */
+    error: text("error"),
+    ranAt: timestamp("ran_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("cron_runs_name_ran_at_idx").on(t.name, t.ranAt.desc())],
 );

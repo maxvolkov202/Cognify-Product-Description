@@ -21,6 +21,10 @@ export type WeeklyChallengeEvent = {
   implementedRetry: boolean;
   /** First rep of a new user-local training day this week. */
   newTrainingDay: boolean;
+  /** This rep landed on one of the user's committed training days
+   *  (computed in saveRep from the same committed-days read that powers
+   *  the rest-day XP bonus). Drives wc_committed_week. */
+  trainedOnCommittedDay: boolean;
 };
 
 export type WeeklyChallenge = {
@@ -89,6 +93,20 @@ export const WEEKLY_CHALLENGE_BANK: readonly WeeklyChallenge[] = [
     target: 4,
     bonusXp: 130,
     increment: (e) => (e.newTrainingDay ? 1 : 0),
+  },
+  {
+    // PRD §10.10 — "Maintain your committed training schedule". The
+    // target here is a BANK DEFAULT: persistence personalizes it to the
+    // user's committed-day count at assignment time (see
+    // src/lib/db/queries/weekly-challenges.ts).
+    id: "wc_committed_week",
+    title: "Keep the schedule",
+    description: "Maintain your committed training schedule — train on every day you committed to this week.",
+    target: 3,
+    bonusXp: 150,
+    // Counts each committed day once: first rep of the day, on a
+    // committed day.
+    increment: (e) => (e.newTrainingDay && e.trainedOnCommittedDay ? 1 : 0),
   },
 ];
 

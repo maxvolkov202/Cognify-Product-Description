@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { calibrationRuns } from "@/lib/db/schema";
+import { calibrationRuns, cronRuns } from "@/lib/db/schema";
 import { scoreRep } from "@/lib/ai/score";
 import { log, serializeErr } from "@/lib/log";
 
@@ -51,7 +51,7 @@ const CONCURRENCY = 8;
  * `status = "fallback"` so the /ops page can show a clear "credits
  * lapsed" warning instead of a silently-broken run.
  */
-export async function GET(req: Request) {
+async function handleCron(req: Request) {
   const expected = process.env.CRON_SECRET;
   const isVercelCron = req.headers.get("x-vercel-cron") === "1";
   const authOk = expected
@@ -311,6 +311,52 @@ export async function GET(req: Request) {
     alertSentAt: alertSentAt?.toISOString() ?? null,
     alertOutcome,
   });
+}
+
+// ── P8 — cron run ledger ────────────────────────────────────────────────
+// Wraps the handler so every authorized invocation records one
+// cognify_v2.cron_runs row (name, ok, duration_ms, error). Best-effort:
+// a down DB never turns the cron response into a 500. Unauthorized
+// probes (401/403) are not recorded so they don't spam the ledger.
+const CRON_NAME = "calibration-drift";
+
+async function recordCronRun(
+  ok: boolean,
+  durationMs: number,
+  error: string | null,
+): Promise<void> {
+  try {
+    await db
+      .insert(cronRuns)
+      .values({ name: CRON_NAME, ok, durationMs, error });
+  } catch {
+    // Ledger write is best-effort — never fail the cron over it.
+  }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const startedAt = Date.now();
+  let res: Response;
+  try {
+    res = await handleCron(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await recordCronRun(false, Date.now() - startedAt, message.slice(0, 300));
+    throw err;
+  }
+  if (res.status !== 401 && res.status !== 403) {
+    const ok = res.status >= 200 && res.status < 300;
+    let error: string | null = null;
+    if (!ok) {
+      try {
+        error = (await res.clone().text()).slice(0, 300);
+      } catch {
+        error = `HTTP ${res.status}`;
+      }
+    }
+    await recordCronRun(ok, Date.now() - startedAt, error);
+  }
+  return res;
 }
 
 // ——— Reference-rep loading ————————————————————————————————

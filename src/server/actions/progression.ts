@@ -20,7 +20,7 @@ import { currentUser } from "@/lib/session/current-user";
 import { isRankSystemEnabled } from "@/lib/flags";
 import { rankFromXp, type RankInfo } from "@/lib/progression/rank";
 import { ACHIEVEMENTS } from "@/lib/engagement/achievements";
-import { getStreakDays } from "@/lib/db/queries/progress";
+import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { getOrCreateThisWeekChallenges } from "@/lib/db/queries/weekly-challenges";
 
 export type ProgressionSummary = {
@@ -29,6 +29,13 @@ export type ProgressionSummary = {
    *  user hasn't been celebrated for yet (marker already advanced). */
   rankUp: boolean;
   streakDays: number;
+  /** §10.7.1 — banked Streak Freezes remaining (after any the current
+   *  streak is virtually spending). */
+  freezesAvailable: number;
+  /** True when a freeze is holding the streak together right now (the
+   *  most recent covered date falls within the last 2 days) — drives the
+   *  "🧊 Streak Freeze used" chip on completion surfaces. */
+  freezeJustUsed: boolean;
   lifetimeReps: number;
   /** PRD §10.8 — "Updated Communication Score" + current Core Skill
    *  estimates, shown on every completion surface. Null until ≥3 skills
@@ -99,7 +106,23 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
         ),
       );
 
-    const streakDays = await getStreakDays(user.id);
+    // One call gets streak + freeze state (getStreakDays is a thin
+    // delegate over the same computation — Phase 15 R-1).
+    const streakStatus = await getStreakStatus(user.id);
+    const streakDays = streakStatus.streakDays;
+    // "Just used" = the most recent freeze-covered date is within the
+    // last 2 days (user-local YMD vs today's UTC YMD — day-grain, so TZ
+    // skew is at most the ±1 day the 2-day window already absorbs).
+    let freezeJustUsed = false;
+    if (streakDays > 0 && streakStatus.appliedFreezeDate) {
+      const todayYmd = new Date().toISOString().slice(0, 10);
+      const diffDays = Math.round(
+        (Date.parse(`${todayYmd}T00:00:00Z`) -
+          Date.parse(`${streakStatus.appliedFreezeDate}T00:00:00Z`)) /
+          86_400_000,
+      );
+      freezeJustUsed = diffDays >= 0 && diffDays <= 2;
+    }
     const week = await getOrCreateThisWeekChallenges(user.id);
 
     const [profileRow] = await db
@@ -124,6 +147,8 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
       rank,
       rankUp,
       streakDays,
+      freezesAvailable: streakStatus.freezesAvailable,
+      freezeJustUsed,
       lifetimeReps: row.lifetimeReps,
       overallScore: profileRow?.overallScore ?? null,
       coreSkills,
