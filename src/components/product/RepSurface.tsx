@@ -501,6 +501,7 @@ export function RepSurface({
         sessionId: sessionId ?? null,
         timeBudgetMs: scoringTimeBudgetMs,
         words,
+        ...(pressureArchetypeId ? { pressureArchetypeId } : {}),
         // Phase 8 — muscle-group threading.
         ...(exerciseId ? { exerciseId } : {}),
         ...(muscleGroupDayId ? { muscleGroupDayId } : {}),

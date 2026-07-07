@@ -22,6 +22,7 @@ import { rankFromXp, type RankInfo } from "@/lib/progression/rank";
 import { ACHIEVEMENTS } from "@/lib/engagement/achievements";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { getOrCreateThisWeekChallenges } from "@/lib/db/queries/weekly-challenges";
+import { todayYmdInTz } from "@/lib/time/user-day";
 
 export type ProgressionSummary = {
   rank: RankInfo;
@@ -66,6 +67,7 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
         xp: users.xp,
         lifetimeReps: users.lifetimeReps,
         lastCelebratedRankIndex: users.lastCelebratedRankIndex,
+        tz: users.tz,
       })
       .from(users)
       .where(eq(users.id, user.id))
@@ -93,9 +95,12 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
         .where(eq(users.id, user.id));
     }
 
-    const todayStart = new Date(
-      `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
-    );
+    // Phase 15 S-4 — "today" in the USER's day, not UTC: late-evening
+    // users west of UTC were seeing yesterday's chips (or missing
+    // today's). Day-grain approximation: user-local YMD anchored to UTC
+    // midnight matches how reps/achievements bucket elsewhere.
+    const tz = row.tz ?? "UTC";
+    const todayStart = new Date(`${todayYmdInTz(tz)}T00:00:00.000Z`);
     const earnedToday = await db
       .select({ achievementId: userAchievements.achievementId })
       .from(userAchievements)
@@ -115,7 +120,7 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
     // skew is at most the ±1 day the 2-day window already absorbs).
     let freezeJustUsed = false;
     if (streakDays > 0 && streakStatus.appliedFreezeDate) {
-      const todayYmd = new Date().toISOString().slice(0, 10);
+      const todayYmd = todayYmdInTz(tz);
       const diffDays = Math.round(
         (Date.parse(`${todayYmd}T00:00:00Z`) -
           Date.parse(`${streakStatus.appliedFreezeDate}T00:00:00Z`)) /

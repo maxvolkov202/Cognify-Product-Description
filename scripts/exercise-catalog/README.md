@@ -68,6 +68,44 @@ files, validates them as a single manifest, and upserts into
 | `prompts[*].tags`      | `exercise_prompts.tags` (jsonb)             | Free-form array.                                               |
 | derived                | `exercise_prompts.prompt_id`                | `${exerciseSlug}-${sha8(normalizedText)}` — stable id.         |
 
+### Exercise Framework fields (PRD v3 Phase 2.2, migration 0029) — all optional
+
+| Manifest field      | DB column                     | Notes |
+|---------------------|-------------------------------|-------|
+| `objective`         | `exercises.objective`         | The single communication objective this framework trains. Leads on the Insight screen when no `coach_insight`. |
+| `hidden_skills`     | `exercises.hidden_skills`     | 2-3 sub-skill ids from the exercise's dimension (`src/types/sub-skills.ts`). Drives Hidden-Skill-aware selection. |
+| `scoring_lens`      | `exercises.scoring_lens`      | Operator-facing rubric constraint ("Constraint: …"). Wins over code-side EXERCISE_RUBRIC_HINTS. |
+| `retry_objective`   | `exercises.retry_objective`   | What the required Retry targets when the rule was broken. |
+| `prompt_rules`      | `exercises.prompt_rules`      | Rules for AI prompt generation from this framework (Phase 8). |
+| `response_window`   | `exercises.response_window`   | `{"min_sec": N, "max_sec": N}`, 10 ≤ min < max ≤ 300 (ADR-001 count-up band). |
+| `constraint_types`  | `exercises.constraint_types`  | Subset of time \| structure \| tone \| complexity \| none. First non-none renders as the Insight screen's constraint chip. |
+
+### Lab Engine V1 pack fields (Phase 11.D2/D3, migration 0035) — all optional
+
+| Manifest field          | DB column                          | Notes |
+|-------------------------|------------------------------------|-------|
+| `coach_insight`         | `exercises.coach_insight`          | 1-2 sentence pre-rep cue ("what great looks like + the trap"); LEADS on the Insight screen, rule becomes the enforcement line. ≤240 chars, no theory names. |
+| `secondary_core_skills` | `exercises.secondary_core_skills`  | 1-2 Core Skill dims ≠ the primary `dimension` (validator rejects the primary). Rendered as SECONDARY DIMENSIONS in the scoring block. |
+| `common_failure_modes`  | `exercises.common_failure_modes`   | 3-4 short transcript-observable failures; the scorer names the one it saw (never invents). |
+| `scoring_emphasis`      | `exercises.scoring_emphasis`       | One evaluator-attention line; rides the stage-2 hint block. Complements, never repeats, `scoring_lens`. |
+
+All framework/pack fields render into scoring prompts ONLY when authored,
+so pre-enrichment rows keep byte-identical prompts (calibration guardrail).
+
+### Application exercises — `applications/*.json` (PRD v3 Phase 4, migration 0031)
+
+One file per Skill Lab application (`storytelling`, `presenting`,
+`teaching`, `interviewing`, `persuasion`), same shape as the core files
+plus two required fields:
+
+| Manifest field       | DB column                     | Notes |
+|----------------------|-------------------------------|-------|
+| `application`        | `exercises.application`       | The ApplicationId; `dimension` holds the exercise's PRIMARY Core Skill so the scoring pipeline is unchanged. Daily-workout queries filter `application IS NULL`. |
+| `application_skills` | `exercises.application_skills`| Non-empty subset of that app's canonical 8 (D11) in `src/types/application-skills.ts` (seed script mirrors it — keep in sync). |
+
+Application banks may start slimmer: ≥12 prompts per exercise
+(`APP_PROMPT_MIN`) vs ≥15 for core.
+
 ## Voice rules
 
 ### Exercise `rule`

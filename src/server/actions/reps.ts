@@ -165,6 +165,8 @@ export type InsertPendingRepInput = {
   exerciseId?: string | null;
   muscleGroupDayId?: string | null;
   isGraduationRep?: boolean;
+  /** WS-3 pressure tagging — persists to reps.pressure_archetype_id. */
+  pressureArchetypeId?: string | null;
 };
 
 export type InsertPendingRepResult = {
@@ -224,6 +226,9 @@ export async function insertPendingRep(
           : {}),
         ...(input.isGraduationRep
           ? { isGraduationRep: true }
+          : {}),
+        ...(input.pressureArchetypeId
+          ? { pressureArchetypeId: input.pressureArchetypeId as never }
           : {}),
         frameworkSnapshot: input.framework
           ? {
@@ -309,6 +314,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           : {}),
         ...(input.isGraduationRep
           ? { isGraduationRep: true }
+          : {}),
+        ...(input.pressureArchetypeId
+          ? { pressureArchetypeId: input.pressureArchetypeId as never }
           : {}),
         // PRD v3 engine — attempt lineage (migration 0028). Legacy
         // callers omit these; column defaults keep them 'first'/NULL.
