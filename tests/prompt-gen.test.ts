@@ -6,7 +6,9 @@
 
 import {
   qaFilterPrompts,
+  buildGenUserPrompt,
   GENERATED_PROMPT_MAX_CHARS,
+  type PromptGenExercise,
 } from "@/lib/ai/prompt-gen";
 
 let pass = 0;
@@ -75,6 +77,73 @@ section("whitespace normalization");
   assert(
     out[0] === "Convince a hesitant friend to finally take the trip they keep postponing.",
     "runs of whitespace collapse and trim",
+  );
+}
+
+section("user-context threading (I1)");
+{
+  const exercise: PromptGenExercise = {
+    slug: "answer-first",
+    name: "Answer First",
+    dimension: "structure",
+    rule: "Open with the answer, then support it.",
+    why: null,
+    objective: null,
+    promptRules: null,
+    hiddenSkills: null,
+    application: null,
+    responseWindow: null,
+  };
+
+  const full = buildGenUserPrompt({
+    exercise,
+    userContext: {
+      vertical: "sales",
+      communicationStage: "manager",
+      goals: ["storytelling", "executive presence"],
+    },
+    existingTexts: [],
+    count: 5,
+  });
+  assert(
+    full.includes("USER VERTICAL (bias topics toward, don't force): sales"),
+    "vertical line renders",
+  );
+  assert(
+    full.includes("USER CAREER STAGE: manager"),
+    "communication stage line renders",
+  );
+  assert(
+    full.includes(
+      "USER GOALS (bias scenarios toward, don't force): storytelling, executive presence",
+    ),
+    "goals line renders with all goals",
+  );
+
+  const bare = buildGenUserPrompt({ exercise, existingTexts: [], count: 5 });
+  assert(
+    !bare.includes("USER VERTICAL") &&
+      !bare.includes("USER CAREER STAGE") &&
+      !bare.includes("USER GOALS"),
+    "no user context → no context lines",
+  );
+
+  const emptyGoals = buildGenUserPrompt({
+    exercise,
+    userContext: { vertical: null, communicationStage: null, goals: [] },
+    existingTexts: [],
+    count: 5,
+  });
+  assert(
+    !emptyGoals.includes("USER GOALS") &&
+      !emptyGoals.includes("USER CAREER STAGE") &&
+      !emptyGoals.includes("USER VERTICAL"),
+    "null/empty context values render nothing",
+  );
+
+  assert(
+    full.includes("Generate 7 prompt options"),
+    "count+2 extras preserved in the closing instruction",
   );
 }
 

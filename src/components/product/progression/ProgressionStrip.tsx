@@ -23,19 +23,20 @@ import {
 } from "@/server/actions/progression";
 import { RankBadge } from "./RankBadge";
 
-/** Phase 11.E1 — client-side rank-crossing detection. Rank is a pure
- *  function of lifetime XP (no rank column), so the "did I just rank
- *  up?" moment is detected by comparing against the last rankIndex this
- *  browser saw. First-ever load just primes storage (no false fanfare). */
+/** Phase 15 R-3 — the rank-up moment is SERVER truth (§10.8.1):
+ *  getProgressionSummary compares rankFromXp against the persisted
+ *  last-celebrated index and advances it, so promotions celebrate once
+ *  across devices. localStorage remains only a same-browser dedupe for
+ *  the case where two completion surfaces mount in quick succession. */
 const LAST_RANK_KEY = "cognify:last-rank-index";
 
-function detectRankUp(rankIndex: number): boolean {
+function dedupeRankUp(rankIndex: number): boolean {
   try {
     const prev = window.localStorage.getItem(LAST_RANK_KEY);
     window.localStorage.setItem(LAST_RANK_KEY, String(rankIndex));
-    return prev != null && rankIndex > Number(prev);
+    return prev == null || rankIndex > Number(prev);
   } catch {
-    return false; // storage unavailable (private mode) — skip the moment
+    return true; // storage unavailable — trust the server signal alone
   }
 }
 
@@ -52,7 +53,7 @@ export default function ProgressionStrip({
     void getProgressionSummary().then((s) => {
       if (!cancelled && s) {
         setSummary(s);
-        if (detectRankUp(s.rank.rankIndex)) setRankUp(true);
+        if (s.rankUp && dedupeRankUp(s.rank.rankIndex)) setRankUp(true);
       }
     });
     return () => {

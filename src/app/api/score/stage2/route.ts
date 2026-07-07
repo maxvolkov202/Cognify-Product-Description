@@ -19,7 +19,7 @@ import {
 } from "@/lib/db/queries/calibration";
 import { isTrainingEngineV2Enabled } from "@/lib/flags";
 import {
-  buildCommunicationSnapshot,
+  buildCoachingMemorySnapshot,
   renderCoachingMemoryBlock,
 } from "@/lib/profile/snapshot";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
@@ -92,6 +92,17 @@ const modeContextSchema = z.object({
       }),
     })
     .optional(),
+  // Phase 15 L-2 (§7.5) — Build a Rep event grounding. Rendered as an
+  // uncached block ONLY when present (renderEventContextBlock), so all
+  // non-prep prompts stay byte-identical — calibration guardrail.
+  eventContext: z
+    .object({
+      title: z.string().min(1).max(200),
+      eventType: z.string().min(1).max(40),
+      description: z.string().max(4000),
+      contextSummary: z.string().max(2000).nullable(),
+    })
+    .optional(),
   repIndex: z.number().int().min(0),
   totalReps: z.number().int().min(1),
 });
@@ -153,10 +164,11 @@ async function loadUserContext() {
       coachingMemoryBlock: null,
     };
   // PRD v3 Phase 3 — coaching memory (PRD §8.6.4), v2 engine only.
+  // I2 — memory-only snapshot (skips the unused 21-day trends scan).
   const [profile, snapshot] = await Promise.all([
     getUserCalibrationProfile(user.id),
     isTrainingEngineV2Enabled()
-      ? buildCommunicationSnapshot(user.id)
+      ? buildCoachingMemorySnapshot(user.id)
       : Promise.resolve(null),
   ]);
   return {

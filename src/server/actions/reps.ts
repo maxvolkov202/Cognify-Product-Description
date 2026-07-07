@@ -240,7 +240,7 @@ export async function insertPendingRep(
     if (!rep) return null;
 
     return { repId: rep.id, sessionId };
-  }, null);
+  }, null, { write: "rep_pending" });
 }
 
 export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
@@ -261,9 +261,16 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
   const coachFocus = isMockFallback ? null : deriveCoachFocus(input.score);
 
   return safeDb(async () => {
+    // Phase 15 P-2 — the CORE persistence is atomic. Pre-tx, a late
+    // failure (e.g. dimension_scores) left the rep row committed while
+    // the caller received persisted:false + a random repId — the retry
+    // then chained onto a phantom parent (the F-4 replay, one write
+    // deeper). Best-effort layers (ledger, personal bests, profile fold,
+    // XP, quests) stay OUTSIDE the tx: they must never roll back a rep.
+    const core = await db.transaction(async (tx) => {
     let sessionId = input.sessionId;
     if (!sessionId) {
-      const [session] = await db
+      const [session] = await tx
         .insert(practiceSessions)
         .values({
           userId,
@@ -273,11 +280,11 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           compositeScore: input.score.composite,
         })
         .returning({ id: practiceSessions.id });
-      if (!session) return fallback;
+      if (!session) throw new Error("practice session insert returned no row");
       sessionId = session.id;
     }
 
-    const [rep] = await db
+    const [rep] = await tx
       .insert(reps)
       .values({
         sessionId,
@@ -314,9 +321,59 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           : null,
       })
       .returning({ id: reps.id });
-    if (!rep) return fallback;
-
+    if (!rep) throw new Error("rep insert returned no row");
     const repId = rep.id;
+
+    if (input.score.dimensions.length > 0) {
+      await tx.insert(dimensionScores).values(
+        input.score.dimensions.map((d) => ({
+          repId,
+          dimension: d.dimension,
+          score: d.score,
+          signals: encodeDimensionSignals(
+            d.signals,
+            d.subSkillScores,
+          ) as Record<string, unknown>,
+        })),
+      );
+      if (!isMockFallback) {
+        await tx.insert(progressSnapshots).values(
+          input.score.dimensions.map((d) => ({
+            userId,
+            dimension: d.dimension,
+            score: d.score,
+            takenAt: new Date(),
+          })),
+        );
+      }
+    }
+
+    let txCalloutIds: string[] = [];
+    if (input.score.callouts.length > 0) {
+      const inserted = await tx
+        .insert(calloutsTable)
+        .values(
+          input.score.callouts.map((c) => ({
+            repId,
+            dimension: c.dimension,
+            tone: c.tone,
+            title: c.title,
+            body: c.body,
+            quote: c.quote ?? null,
+            suggestedRewrite: c.suggestedRewrite ?? null,
+            transcriptStartMs: c.transcriptStart,
+            transcriptEndMs: c.transcriptEnd,
+          })),
+        )
+        .returning({ id: calloutsTable.id });
+      txCalloutIds = inserted.map((r) => r.id);
+    }
+
+    return { repId, sessionId, calloutIds: txCalloutIds };
+    });
+
+    const repId = core.repId;
+    const sessionId = core.sessionId;
 
     // PRD v3 engine — coaching-history ledger (seed of PRD §8.3.9).
     // One row per delivered Coach's Focus; retry attempts back-fill the
@@ -393,52 +450,30 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     }
 
     if (input.score.dimensions.length > 0) {
-      await db.insert(dimensionScores).values(
-        input.score.dimensions.map((d) => ({
-          repId,
-          dimension: d.dimension,
-          score: d.score,
-          // Ch.11c — encode narratives + optional subSkillScores into a
-          // single jsonb. Falls back to the legacy string[] shape when
-          // subSkillScores is absent (FF-off path) so back-compat is
-          // preserved on disk.
-          signals: encodeDimensionSignals(
-            d.signals,
-            d.subSkillScores,
-          ) as Record<string, unknown>,
-        })),
-      );
-      // CTO-scan H8 — when scoring fell into the mock-fallback path
-      // (api/score returned modelVersion="mock-fallback-v1" because
-      // both Anthropic AND OpenAI failed), do NOT pollute the user's
-      // running averages or personal-bests with the mock 70-across-the-
-      // board scores. The dim_scores rows still get written for
-      // historical-record completeness (they carry the mock-fallback
-      // tag in the rep's modelVersion) but progress + PB skips so the
-      // calibration drift surface stays clean.
-      // (isMockFallback hoisted to saveRep scope for the coaching ledger.)
+      // dims + progress snapshots persisted atomically in the core tx
+      // above (P-2). Mock-fallback scores skip snapshots there (CTO-scan
+      // H8: mock 70s must not pollute averages); dims still land for the
+      // historical record.
       if (!isMockFallback) {
-        await db.insert(progressSnapshots).values(
-          input.score.dimensions.map((d) => ({
-            userId,
-            dimension: d.dimension,
-            score: d.score,
-            takenAt: new Date(),
-          })),
-        );
-        // Record any per-dimension personal bests this rep set. Durable
-        // across sessions; in-session UI keeps using WorkoutSession's
-        // local detection for instant-feedback toast, but the DB row is
-        // the source of truth for /progress and /report.
+        // Personal bests are best-effort — a PB hiccup must never turn a
+        // COMMITTED rep into persisted:false (the reverse lie).
         if (userId !== "anonymous") {
-          await recordPersonalBests({
-            userId,
-            repId,
-            dimensionScores: input.score.dimensions.map((d) => ({
-              dimension: d.dimension,
-              score: d.score,
-            })),
-          });
+          try {
+            await recordPersonalBests({
+              userId,
+              repId,
+              dimensionScores: input.score.dimensions.map((d) => ({
+                dimension: d.dimension,
+                score: d.score,
+              })),
+            });
+          } catch (err) {
+            log.warn({
+              event: "save_rep.personal_bests_failed",
+              repId,
+              msg: err instanceof Error ? err.message : "unknown",
+            });
+          }
         }
       } else {
         log.warn({
@@ -552,26 +587,8 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       }
     }
 
-    let calloutIds: string[] = [];
-    if (input.score.callouts.length > 0) {
-      const inserted = await db
-        .insert(calloutsTable)
-        .values(
-          input.score.callouts.map((c) => ({
-            repId,
-            dimension: c.dimension,
-            tone: c.tone,
-            title: c.title,
-            body: c.body,
-            quote: c.quote ?? null,
-            suggestedRewrite: c.suggestedRewrite ?? null,
-            transcriptStartMs: c.transcriptStart,
-            transcriptEndMs: c.transcriptEnd,
-          })),
-        )
-        .returning({ id: calloutsTable.id });
-      calloutIds = inserted.map((r) => r.id);
-    }
+    // Callouts persisted in the core tx (P-2).
+    const calloutIds: string[] = core.calloutIds;
 
     // Fire-and-forget activity events. Emits live only when DB + user are
     // available; safeDb swallows failures so the rep save itself is never
@@ -687,6 +704,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         restDayBonus,
         implementationVerdict,
         scoreImprovement,
+        // Phase 15 R-2 (§10.5.3) — Daily Workout is the primary
+        // progression driver; other modes carry configurable weights.
+        mode: input.mode,
       });
       // DNA Ch.9b — leagues weekly_xp accrual. Behind FF_LEAGUES so the
       // shadow-mode rollout per the master plan can run cohort math
@@ -820,7 +840,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       completedQuests,
       completedWeeklyChallenges,
     };
-  }, fallback);
+  }, fallback, { write: "rep_persist" });
 }
 
 export type GetRepResultOutput = {

@@ -328,6 +328,13 @@ export function reduce(
       break;
 
     case "prompt-selecting":
+      // "Skip station" (PromptPicker) — including the empty-bank recovery
+      // path where skipping is the ONLY way forward. Same semantics as
+      // advancing after a rep: walk to the next station, or bridge to the
+      // graduation prompt on the last one.
+      if (event.type === "ADVANCE") {
+        return advanceStation(state);
+      }
       if (event.type === "PICK_PROMPT") {
         return {
           ...state,

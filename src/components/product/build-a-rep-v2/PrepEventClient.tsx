@@ -102,6 +102,25 @@ function simulationPrompt(event: PrepEventDetail): string {
   );
 }
 
+/** L2 (§7.5) — the event context attached to EVERY prep rep's scoring
+ *  call (guided moments and the Full Simulation) so per-moment coaching
+ *  is grounded in the real event, not just the moment's one-line prompt.
+ *  The scoring paths render it as an uncached block only when present,
+ *  keeping all non-prep prompts byte-identical (calibration guardrail —
+ *  see renderEventContextBlock in lib/ai/score.ts). */
+function eventScoringContext(
+  event: PrepEventDetail,
+): NonNullable<ScoreRepModeContext["eventContext"]> {
+  return {
+    title: event.title,
+    eventType: event.eventType,
+    description: event.description,
+    // Cap ~1500 chars — keeps the uncached prompt block small; the full
+    // summary still feeds plan generation + the Readiness Review.
+    contextSummary: event.contextSummary?.slice(0, 1500) ?? null,
+  };
+}
+
 export default function PrepEventClient({
   initialEvent,
 }: {
@@ -315,15 +334,19 @@ export default function PrepEventClient({
     const moment = view.moment;
     const skillDim = coachFocus ? muscleGroupToSkillDim(coachFocus.dimension) : null;
     const isRetryAttempt = view.kind === "moment" && view.attempt !== "first";
-    const retryModeContext: ScoreRepModeContext | null =
-      isRetryAttempt && attempts.first && coachFocus && skillDim
+    // L2 (§7.5) — every moment rep (first attempts included) carries the
+    // event context; retry attempts additionally carry the retry-
+    // evaluation context.
+    const momentModeContext: ScoreRepModeContext = {
+      sessionType: "focus",
+      repIndex: 0,
+      totalReps: 1,
+      eventContext: eventScoringContext(event),
+      ...(isRetryAttempt && attempts.first && coachFocus && skillDim
         ? {
-            sessionType: "focus",
             focusDimension: skillDim,
-            repIndex: 0,
-            totalReps: 1,
             retryContext: {
-              attempt: view.attempt === "again" ? "again" : "retry",
+              attempt: view.attempt === "again" ? ("again" as const) : ("retry" as const),
               firstTranscript: attempts.first.transcript,
               firstComposite: attempts.first.score.composite ?? null,
               coachFocus: {
@@ -333,7 +356,8 @@ export default function PrepEventClient({
               },
             },
           }
-        : null;
+        : {}),
+    };
 
     return (
       <div className="space-y-4">
@@ -414,7 +438,7 @@ export default function PrepEventClient({
                   parentRepId: attempts.first.repId,
                 }
               : {})}
-            {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
+            scoreModeContext={momentModeContext}
             onComplete={(payload) => {
               void ensureSession();
               onMomentRepComplete(moment, view.attempt, {
@@ -523,8 +547,18 @@ export default function PrepEventClient({
       anyPracticed={anyPracticed}
       canFinishGuided={practicedThisSession}
       onRefresh={refreshEvent}
-      onPractice={(m) => {
-        void ensureSession();
+      onPractice={async (m) => {
+        // L6 — AWAIT session creation before entering the moment: a fast
+        // user could otherwise finish recording before startPrepSession
+        // returned, and the rep would save with sessionId=null (orphaned
+        // from the prep session). The Practice button shows a brief
+        // pending state meanwhile.
+        setBusy("practice");
+        try {
+          await ensureSession();
+        } finally {
+          setBusy(null);
+        }
         startMoment(m);
       }}
       onSimulate={() => setView({ kind: "sim-setup" })}
@@ -557,7 +591,7 @@ function PlanScreen({
   anyPracticed: boolean;
   canFinishGuided: boolean;
   onRefresh: () => Promise<void>;
-  onPractice: (m: PrepMoment) => void;
+  onPractice: (m: PrepMoment) => void | Promise<void>;
   onSimulate: () => void;
   onFinishGuided: () => void;
   onArchive: () => Promise<void>;
@@ -891,10 +925,16 @@ function PlanScreen({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onPractice(m)}
-                      className="ml-1 min-h-[44px] rounded-xl bg-pink-500 hover:bg-pink-400 px-4 text-sm font-semibold text-white"
+                      disabled={busy != null}
+                      onClick={() => void onPractice(m)}
+                      className="ml-1 min-h-[44px] rounded-xl bg-pink-500 hover:bg-pink-400 px-4 text-sm font-semibold text-white disabled:opacity-60"
                     >
-                      Practice
+                      {/* L6 — pending state while the prep session is created. */}
+                      {busy === "practice" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Practice"
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1094,8 +1134,14 @@ function SimulationView({
   /** Phase 11.E2 (§7.8) — commit an inline section edit (write-through). */
   onMomentTitleChange: (momentId: string, title: string) => void;
 }) {
+  // L10 — the binding constraint on simulation length is the score
+  // routes' durationMs ceiling (1_500_000ms = 25 min in /api/score +
+  // /api/score/twostage bodySchema), NOT the plan schema's 30-min
+  // recommendedDurationSec cap. Clamp everything to 25 min so a long
+  // recommendation can't silently truncate mid-rep or fail scoring.
+  const SIM_MAX_SEC = 1500; // 25 min — score-route durationMs ceiling
   const [durationSec, setDurationSec] = useState(
-    event.recommendedDurationSec ?? 300,
+    Math.min(event.recommendedDurationSec ?? 300, SIM_MAX_SEC),
   );
   // Drafts keyed by moment id so typing doesn't write through per
   // keystroke; blur (or Enter) commits via onMomentTitleChange.
@@ -1143,13 +1189,13 @@ function SimulationView({
               <input
                 type="number"
                 min={1}
-                max={20}
+                max={25}
                 step={0.5}
                 value={minutes}
                 onChange={(e) =>
                   setDurationSec(
                     Math.round(
-                      Math.min(20, Math.max(1, Number(e.target.value))) * 60,
+                      Math.min(25, Math.max(1, Number(e.target.value))) * 60,
                     ),
                   )
                 }
@@ -1220,11 +1266,22 @@ function SimulationView({
             minSec: Math.max(30, Math.round(view.durationSec * 0.6)),
             maxSec: view.durationSec,
           }}
-          maxDurationMs={Math.min(view.durationSec * 1300, 1_200_000)}
+          // L10 — hard-stop ceiling aligned to the score routes'
+          // durationMs cap (1_500_000ms = 25 min), the binding
+          // constraint; was 1_200_000 which silently truncated 21-25min
+          // simulations the setup otherwise allowed.
+          maxDurationMs={Math.min(view.durationSec * 1300, 1_500_000)}
           feedbackRepIndex={1}
           feedbackTotalReps={1}
           feedbackModeLabel="FULL SIMULATION"
           hideRunItAgain
+          // L2 (§7.5) — ground the simulation's coaching in the event.
+          scoreModeContext={{
+            sessionType: "focus",
+            repIndex: 0,
+            totalReps: 1,
+            eventContext: eventScoringContext(event),
+          }}
           onComplete={(payload) =>
             onComplete({
               score: payload.score,

@@ -14,6 +14,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, gte, inArray, isNull, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  communicationProfile,
   exercises,
   muscleGroupDays,
   reps,
@@ -60,8 +61,12 @@ function stationsPerDay(): number {
 }
 
 /** PRD v3 Phase 3.5 — dims plateaued per detectPlateau() over the last
- *  21 days of progress snapshots. Empty when the v2 engine is off. */
-async function fetchPlateauedDims(userId: string): Promise<MuscleGroupId[]> {
+ *  21 days of progress snapshots. Empty when the v2 engine is off.
+ *  React.cache'd (I4): the suggest path AND every exercise-sampling path
+ *  now read it, so dedupe within a request. */
+const fetchPlateauedDims = cache(async (
+  userId: string,
+): Promise<MuscleGroupId[]> => {
   if (!isTrainingEngineV2Enabled()) return [];
   if (userId === "anonymous") return [];
   const rows = await db.execute<{
@@ -89,12 +94,66 @@ async function fetchPlateauedDims(userId: string): Promise<MuscleGroupId[]> {
     if (detectPlateau(series)) out.push(mg);
   }
   return out;
-}
+});
+
+/** I3 — the user's Communication Profile signals, shaped for the
+ *  assignment engine: core-skill estimates keyed by muscle group (the
+ *  profile stores v3 skill dims — "delivery" maps back to the "pacing"
+ *  muscle group) plus the Hidden Skill estimates. The profile is the
+ *  LONG-memory estimate that survives training breaks, unlike the
+ *  14d/30-rep windows every other fetcher here reads. React.cache'd so
+ *  the row loads once per request. Null when the v2 engine is off
+ *  (legacy behavior byte-identical), for anonymous users, or when the
+ *  user has no profile row yet. */
+const fetchProfileSignals = cache(async (
+  userId: string,
+): Promise<{
+  coreByMg: Partial<Record<MuscleGroupId, number>>;
+  hiddenSkills: Record<string, { score: number; sampleCount: number }>;
+} | null> => {
+  if (!isTrainingEngineV2Enabled()) return null;
+  if (userId === "anonymous") return null;
+  const [row] = await db
+    .select({
+      coreSkills: communicationProfile.coreSkills,
+      hiddenSkills: communicationProfile.hiddenSkills,
+    })
+    .from(communicationProfile)
+    .where(eq(communicationProfile.userId, userId))
+    .limit(1);
+  if (!row) return null;
+  const core = (row.coreSkills ?? {}) as Record<
+    string,
+    { score: number; sampleCount: number; updatedAt: string }
+  >;
+  const coreByMg: Partial<Record<MuscleGroupId, number>> = {};
+  for (const mg of MUSCLE_GROUP_IDS) {
+    const skillDim = muscleGroupToSkillDim(mg);
+    if (!skillDim) continue;
+    const est = core[skillDim];
+    if (est && Number.isFinite(est.score)) coreByMg[mg] = est.score;
+  }
+  return {
+    coreByMg,
+    hiddenSkills: (row.hiddenSkills ?? {}) as Record<
+      string,
+      { score: number; sampleCount: number }
+    >,
+  };
+});
+
+/** I3 — read-time sub-skill stats below this sample count defer to the
+ *  profile's long-memory estimate. Mirrors SUB_SKILL_MIN_SAMPLES in
+ *  src/lib/db/queries/sub-skills.ts. */
+const SUB_SKILL_PROFILE_MIN_SAMPLES = 5;
 
 /** PRD v3 Phase 2.3 — the user's Hidden Skill running averages for one
  *  muscle group, shaped for sampleExercises. Returns undefined when the
  *  v2 engine is off (legacy selection stays byte-identical) or for
- *  anonymous users. */
+ *  anonymous users.
+ *  I3 — sub-skills with <5 samples in the 30-rep read-time window fall
+ *  back to the Communication Profile's Hidden Skill estimate, so a
+ *  break doesn't make every sub-skill look unmeasured. */
 async function fetchSubSkillAveragesForDim(
   userId: string,
   dim: MuscleGroupId,
@@ -103,10 +162,21 @@ async function fetchSubSkillAveragesForDim(
   if (userId === "anonymous") return undefined;
   const skillDim = muscleGroupToSkillDim(dim);
   if (!skillDim) return undefined;
-  const stats = await getSubSkillRunningAverages(userId);
+  const [stats, profileSignals] = await Promise.all([
+    getSubSkillRunningAverages(userId),
+    fetchProfileSignals(userId),
+  ]);
+  const profileHidden = profileSignals?.hiddenSkills ?? {};
   const out: Record<string, number | null> = {};
   for (const id of SUB_SKILLS[skillDim]) {
-    out[id] = stats[id]?.avg ?? null;
+    const stat = stats[id];
+    if (stat && stat.sampleSize >= SUB_SKILL_PROFILE_MIN_SAMPLES) {
+      out[id] = stat.avg;
+    } else {
+      // Profile first (long memory), then whatever thin window signal
+      // exists, then null = genuinely never measured anywhere.
+      out[id] = profileHidden[id]?.score ?? stat?.avg ?? null;
+    }
   }
   return out;
 }
@@ -338,16 +408,18 @@ export async function previewTodaysWorkoutPlan(input: {
       fetchCatalogExercises(input.dim),
       fetchRecentDays(userId),
     ]);
-    const subSkillAverages = await fetchSubSkillAveragesForDim(
-      userId,
-      input.dim,
-    );
+    const [subSkillAverages, plateauedDims] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, input.dim),
+      fetchPlateauedDims(userId),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
       n: stationsPerDay(),
       seed: `${userId}:${dayDate}:${input.dim}`,
       ...(subSkillAverages ? { subSkillAverages } : {}),
+      // I4 — plateaued dim: invert sub-skill weighting (stimulus change).
+      ...(plateauedDims.includes(input.dim) ? { plateaued: true } : {}),
     });
     const stations: Station[] = sampled.map((ex, index) => ({
       index,
@@ -416,16 +488,20 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       };
     }
 
-    const [engagement, recentReps, recentDays, userRow] = await Promise.all([
-      fetchEngagement(userId),
-      fetchRecentRepsAggregates(userId),
-      fetchRecentDays(userId),
-      db
-        .select({ committedDays: users.committedDays, tz: users.tz })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1),
-    ]);
+    const [engagement, recentReps, recentDays, userRow, profileSignals] =
+      await Promise.all([
+        fetchEngagement(userId),
+        fetchRecentRepsAggregates(userId),
+        fetchRecentDays(userId),
+        db
+          .select({ committedDays: users.committedDays, tz: users.tz })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1),
+        // I3 — long-memory Communication Profile estimates (null = v2
+        // engine off / anon / no profile row → legacy behavior).
+        fetchProfileSignals(userId),
+      ]);
 
     // Phase D — weakness day. If today is the user's final committed day
     // of the week (their weekly "cap" day), override the normal selector
@@ -482,6 +558,8 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
       plateauedDims,
       // PRD v3 Phase 7.2 — confidence management, same v2-engine gate.
       confidenceBoostEnabled: assessmentEnabled,
+      // I3 — profile fallback: the dim ranking survives training breaks.
+      ...(profileSignals ? { profileFallback: profileSignals.coreByMg } : {}),
     });
 
     // PRD v3 Phase 7.3 — project the next two focus days so the user
@@ -500,6 +578,9 @@ const _suggestTodaysMuscleGroupImpl = cache(async (): Promise<SuggestResult> => 
           assessmentEnabled,
           weightedRotationEnabled: assessmentEnabled,
           plateauedDims,
+          ...(profileSignals
+            ? { profileFallback: profileSignals.coreByMg }
+            : {}),
         },
         result.suggested,
         2,
@@ -596,16 +677,19 @@ export async function startMuscleGroupDay(input: {
             fetchCatalogExercises(existingDim),
             fetchRecentDays(userId),
           ]);
-          const healAverages = await fetchSubSkillAveragesForDim(
-            userId,
-            existingDim,
-          );
+          const [healAverages, healPlateaued] = await Promise.all([
+            fetchSubSkillAveragesForDim(userId, existingDim),
+            fetchPlateauedDims(userId),
+          ]);
           const resampled = sampleExercises({
             available,
             recentDays,
             n: stationsPerDay(),
             seed: `${userId}:${dayDate}:${existingDim}:heal`,
             ...(healAverages ? { subSkillAverages: healAverages } : {}),
+            ...(healPlateaued.includes(existingDim)
+              ? { plateaued: true }
+              : {}),
           });
           if (resampled.length > 0) {
             const freshIds = resampled.map((s) => s.id);
@@ -673,16 +757,20 @@ export async function startMuscleGroupDay(input: {
       fetchCatalogExercises(chosenDim),
       fetchRecentDays(userId),
     ]);
-    const subSkillAverages = await fetchSubSkillAveragesForDim(
-      userId,
-      chosenDim,
-    );
+    const [subSkillAverages, plateauedDims] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, chosenDim),
+      fetchPlateauedDims(userId),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
       n: stationsPerDay(),
       seed: `${userId}:${dayDate}:${chosenDim}`,
       ...(subSkillAverages ? { subSkillAverages } : {}),
+      // I4 — plateaued dim: invert sub-skill weighting (stimulus change).
+      // Same inputs as previewTodaysWorkoutPlan (identical seed) so Start
+      // lands on the exercises the preview showed.
+      ...(plateauedDims.includes(chosenDim) ? { plateaued: true } : {}),
     });
 
     if (sampled.length === 0) {
@@ -814,16 +902,17 @@ export async function swapMuscleGroup(input: {
       return { ok: false as const, reason: "no_catalog" };
     }
     const recentDays = await fetchRecentDays(userId);
-    const swapAverages = await fetchSubSkillAveragesForDim(
-      userId,
-      input.newDim,
-    );
+    const [swapAverages, swapPlateaued] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, input.newDim),
+      fetchPlateauedDims(userId),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
       n: stationsPerDay(),
       seed: `${userId}:${day.dayDate}:${input.newDim}:swap`,
       ...(swapAverages ? { subSkillAverages: swapAverages } : {}),
+      ...(swapPlateaued.includes(input.newDim) ? { plateaued: true } : {}),
     });
 
     const plannedIds = sampled.map((s) => s.id);

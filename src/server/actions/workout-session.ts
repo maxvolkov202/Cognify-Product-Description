@@ -19,6 +19,7 @@ import { currentUser } from "@/lib/session/current-user";
 import { SessionPhaseSchema, type SessionPhase } from "@/lib/workout/types";
 import { log, serializeErr } from "@/lib/log";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
+import { awardSessionCompletionXp } from "@/lib/progression/xp";
 
 // ─── Auth/ownership helpers ──────────────────────────────────────────────
 
@@ -376,8 +377,10 @@ export async function tagWorkoutRep(
   // Auth + ownership: the rep must belong to the caller. Without this
   // any logged-in user could tag another user's rep with a different
   // exercise + day, polluting their engagement signal.
+  let callerId: string;
   try {
     const user = await assertUser();
+    callerId = user.id;
     tagWorkoutRepSchema.parse(input);
     await Promise.all([
       assertOwnsRep(input.repId, user.id),
@@ -409,6 +412,7 @@ export async function tagWorkoutRep(
     scoreFailure: input.scoreFailure,
   });
 
+  let dayJustClosed = false;
   try {
     const result = await safeDb<{ persisted: boolean }>(async () => {
       // Wrap the three writes in a transaction so a mid-flight failure
@@ -482,6 +486,35 @@ export async function tagWorkoutRep(
               WHERE id = ${input.muscleGroupDayId}
             `);
           }
+
+          // Phase 15 W-1 — §5.7 Final Communication Score. This is the
+          // ONLY writer that fires in the real flow: completeWorkout-
+          // Session had zero callers, so composite_at_close stayed NULL
+          // for every real day — the Workout Complete hero showed "—",
+          // the vs-last-day delta never rendered, and the §8.4.4
+          // confidence-builder selector could never fire. When the
+          // recount reaches the day target, close the day with the
+          // average of its scored reps (retries included — the day's
+          // score is the whole day's work).
+          const closed = await tx.execute<{ id: string }>(drizzleSql`
+            UPDATE cognify_v2.muscle_group_days d
+            SET composite_at_close = sub.avg_composite,
+                status = 'complete',
+                completed_at = COALESCE(d.completed_at, NOW())
+            FROM (
+              SELECT AVG(r.composite_score)::real AS avg_composite
+              FROM cognify_v2.reps r
+              WHERE r.muscle_group_day_id = ${input.muscleGroupDayId}
+                AND r.composite_score IS NOT NULL
+                AND r.is_graduation_rep = false
+            ) sub
+            WHERE d.id = ${input.muscleGroupDayId}
+              AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)
+              AND d.status <> 'complete'
+              AND sub.avg_composite IS NOT NULL
+            RETURNING d.id
+          `);
+          dayJustClosed = closed.length > 0;
         }
 
         // Skip engagement upsert if we still couldn't resolve an exerciseId.
@@ -539,7 +572,19 @@ export async function tagWorkoutRep(
 
         return { persisted: true };
       });
-    }, { persisted: false });
+    }, { persisted: false }, { write: "rep_tag" });
+
+    // Phase 15 R-2 (§10.5.3) — completing the day is a progression
+    // signal beyond its reps. Flat additive bonus, awarded exactly once
+    // (the close UPDATE fires only on the planned→complete transition).
+    if (result.persisted && dayJustClosed) {
+      const bonus = await awardSessionCompletionXp(callerId, "daily_workout");
+      log.info({
+        event: "workout_day.completion_bonus",
+        muscleGroupDayId: input.muscleGroupDayId,
+        granted: bonus.granted,
+      });
+    }
 
     if (!result.persisted) {
       log.warn({

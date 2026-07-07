@@ -78,7 +78,7 @@ import {
   renderReferenceRepsBlock,
 } from "./rag/reference-reps";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
-import { renderRetryEvaluationBlock } from "./score";
+import { renderEventContextBlock, renderRetryEvaluationBlock } from "./score";
 import {
   getExerciseScoringContext,
   renderExerciseXmlBlock,
@@ -450,6 +450,13 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
   const retryBlock = renderRetryEvaluationBlock(
     input.modeContext?.retryContext,
   );
+  // PRD v3 §7.5 — Build a Rep event context. Same calibration guardrail
+  // as retryBlock: rendered UNCACHED, ONLY when modeContext.eventContext
+  // is set (prep-event reps), so all non-prep prompts stay byte-identical
+  // and calibration reference runs are unaffected.
+  const eventContextBlock = renderEventContextBlock(
+    input.modeContext?.eventContext,
+  );
   const userPrompt = [
     exerciseXml,
     input.frameworkNodes
@@ -460,6 +467,7 @@ async function prepareContext(input: ScoreRepInput): Promise<ScoringContext> {
     `PROMPT: ${input.promptText}`,
     `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
     retryBlock,
+    eventContextBlock,
     ragBlock,
     signalsBlock,
     prosodyBlock,

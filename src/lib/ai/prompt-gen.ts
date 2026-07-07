@@ -35,6 +35,9 @@ export type PromptGenExercise = {
 export type PromptGenUserContext = {
   vertical?: string | null;
   communicationStage?: string | null;
+  /** users.improvement_goals — biases scenario TOPICS toward what the
+   *  user is working on; never changes the training objective. */
+  goals?: string[] | null;
 };
 
 /** Bank convention (seed script PROMPT_MAX_CHARS). */
@@ -131,21 +134,17 @@ function inferDomainHint(ex: PromptGenExercise): string | undefined {
   return undefined;
 }
 
-export async function generatePrompts(input: {
+/** Assemble the generation user prompt. Exported (pure) so tests can
+ *  assert the user-context lines actually render — the I1 audit found
+ *  communicationStage/goals silently dropped at the only call site. */
+export function buildGenUserPrompt(input: {
   exercise: PromptGenExercise;
   userContext?: PromptGenUserContext;
-  /** Existing bank texts — few-shot register examples + dedupe corpus. */
   existingTexts: string[];
   count: number;
-}): Promise<string[]> {
-  const { exercise: ex, existingTexts } = input;
-  const count = Math.min(10, Math.max(1, input.count));
-
-  const knowledgeText = renderBlocks(
-    resolveKnowledge({ stage: "prompt_gen", domainHint: inferDomainHint(ex) }),
-  );
-
-  const userPrompt = [
+}): string {
+  const { exercise: ex, existingTexts, count } = input;
+  return [
     `EXERCISE: ${ex.name} (core skill: ${ex.dimension}${ex.application ? `, application: ${ex.application}` : ""})`,
     `RULE THE USER PRACTICES: ${ex.rule}`,
     ex.why ? `WHY IT MATTERS: ${ex.why}` : null,
@@ -163,6 +162,9 @@ export async function generatePrompts(input: {
     input.userContext?.communicationStage
       ? `USER CAREER STAGE: ${input.userContext.communicationStage}`
       : null,
+    input.userContext?.goals?.length
+      ? `USER GOALS (bias scenarios toward, don't force): ${input.userContext.goals.join(", ")}`
+      : null,
     existingTexts.length > 0
       ? `EXISTING BANK EXAMPLES (match register, do NOT reuse topics):\n${existingTexts
           .slice(0, 8)
@@ -173,6 +175,28 @@ export async function generatePrompts(input: {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+export async function generatePrompts(input: {
+  exercise: PromptGenExercise;
+  userContext?: PromptGenUserContext;
+  /** Existing bank texts — few-shot register examples + dedupe corpus. */
+  existingTexts: string[];
+  count: number;
+}): Promise<string[]> {
+  const { exercise: ex, existingTexts } = input;
+  const count = Math.min(10, Math.max(1, input.count));
+
+  const knowledgeText = renderBlocks(
+    resolveKnowledge({ stage: "prompt_gen", domainHint: inferDomainHint(ex) }),
+  );
+
+  const userPrompt = buildGenUserPrompt({
+    exercise: ex,
+    ...(input.userContext ? { userContext: input.userContext } : {}),
+    existingTexts,
+    count,
+  });
 
   try {
     const response = await anthropic.messages.create({

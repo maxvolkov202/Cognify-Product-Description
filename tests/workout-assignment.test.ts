@@ -23,6 +23,7 @@ import {
   effectiveCompositeFor,
   isAssessmentActive,
   ASSESSMENT_DAYS,
+  PROFILE_FALLBACK_WEIGHT,
   type CatalogExercise,
   type CatalogPrompt,
   type EngagementSnapshot,
@@ -691,6 +692,200 @@ section("sampleExercises hidden-skill weighting");
   assert(
     unmeasured[0]!.hiddenSkills?.includes("logical_sequencing"),
     "unmeasured hidden skill preferred over a strong one",
+  );
+}
+
+// ─── 14. I3 — Communication Profile fallback ─────────────────────────────
+section("profile fallback (I3)");
+{
+  const noEng = emptyEngagement();
+  const noReps = emptyRecentReps();
+  const profile: Partial<Record<MuscleGroupId, number>> = {
+    pacing: 40,
+    tone: 80,
+  };
+
+  // Zero window signal → plain profile estimate.
+  const plain = effectiveCompositeFor("pacing", noEng, noReps, profile);
+  assert(plain === 40, `empty windows → profile score (got ${plain})`);
+
+  // Thin window (count < sparse threshold, but avg exists) → 0.7/0.3 blend.
+  const thinReps = repsSnap(
+    "pacing",
+    { avgComposite14d: 60, avgComposite7d: 60, count14d: 2 },
+    noReps,
+  );
+  const blended = effectiveCompositeFor("pacing", noEng, thinReps, profile);
+  const expected =
+    PROFILE_FALLBACK_WEIGHT * 40 + (1 - PROFILE_FALLBACK_WEIGHT) * 60;
+  assert(
+    blended != null && Math.abs(blended - expected) < 1e-9,
+    `sparse window blends 0.7 profile / 0.3 window (got ${blended}, want ${expected})`,
+  );
+
+  // Ample engagement (rowCount ≥ 3) still wins outright — profile ignored.
+  const engFull = engSnap(
+    "pacing",
+    { recentComposite: 90, rowCount: 5 },
+    noEng,
+  );
+  assert(
+    effectiveCompositeFor("pacing", engFull, noReps, profile) === 90,
+    "ample engagement ignores the profile",
+  );
+
+  // Dim absent from the profile → legacy null (nothing invented).
+  assert(
+    effectiveCompositeFor("clarity", noEng, noReps, profile) === null,
+    "no profile entry for dim → null",
+  );
+
+  // Omitting the fallback entirely → byte-identical legacy behavior.
+  assert(
+    effectiveCompositeFor("pacing", noEng, thinReps) === 60,
+    "no profileFallback arg → legacy window value",
+  );
+
+  // Integration: user back from a 2-week break. Engagement rows persist
+  // (rowCount 1 = sparse), 14d rep windows are empty, all dims past the
+  // floor. Without the profile every dim looks untrained (null) and the
+  // ranking is arbitrary; with it, the profile's weakest dim wins.
+  const postBreakEngagement: EngagementSnapshot[] = MUSCLE_GROUP_IDS.map(
+    (dim) => ({
+      dimension: dim,
+      recentComposite: null,
+      lastTrainedAt: null,
+      rowCount: 1,
+    }),
+  );
+  const postBreakDays: RecentDaySnapshot[] = MUSCLE_GROUP_IDS.map(
+    (dim, i) => ({
+      dayId: `day-${dim}`,
+      dimension: dim,
+      dayDate: daysAgo(TODAY, 15 + i),
+      plannedExerciseIds: [],
+      compositeAtClose: 65,
+    }),
+  );
+  const fullProfile: Partial<Record<MuscleGroupId, number>> = {
+    clarity: 70,
+    structure: 65,
+    conciseness: 75,
+    thinking_quality: 72,
+    pacing: 40,
+    tone: 80,
+  };
+  const postBreak = selectMuscleGroupForToday({
+    today: TODAY,
+    engagement: postBreakEngagement,
+    recentReps: emptyRecentReps(),
+    recentDays: postBreakDays,
+    profileFallback: fullProfile,
+  });
+  assert(
+    postBreak.suggested === "pacing",
+    `post-break: profile's weakest dim suggested (got ${postBreak.suggested})`,
+  );
+}
+
+// ─── 15. I4 — plateau inverts hidden-skill weighting ─────────────────────
+section("plateau stimulus inversion (I4)");
+{
+  const dim: MuscleGroupId = "clarity";
+  const mk = (i: number, hiddenSkills: string[] | null): CatalogExercise => ({
+    id: `ex-${i}`,
+    slug: `ex-${i}`,
+    name: `Exercise ${i}`,
+    dimension: dim,
+    description: "rule",
+    instructions: null,
+    sortOrder: i,
+    objective: null,
+    hiddenSkills,
+    responseWindow: null,
+    constraintTypes: null,
+    coachInsight: null,
+  });
+  const available = [
+    mk(1, ["word_choice"]), // weak measured (30) — normal mode's pick
+    mk(2, ["precision"]), // strong measured (85) — least-drilled
+    mk(3, ["logical_sequencing"]), // never measured
+  ];
+  const averages: Record<string, number | null> = {
+    word_choice: 30,
+    precision: 85,
+    logical_sequencing: null,
+  };
+
+  // Normal weighting drills the weakest measured skill.
+  const normal = sampleExercises({
+    available,
+    recentDays: [],
+    n: 1,
+    seed: "plateau-seed",
+    subSkillAverages: averages,
+  });
+  assert(
+    normal[0]!.hiddenSkills?.includes("word_choice") === true,
+    `normal mode picks the weakest skill (got ${normal[0]!.id})`,
+  );
+
+  // Plateaued: inversion — unmeasured first, then the least-trained
+  // (strongest measured), and the already-drilled weak skill LAST.
+  const inverted = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "plateau-seed",
+    subSkillAverages: averages,
+    plateaued: true,
+  });
+  assert(
+    inverted[0]!.hiddenSkills?.includes("logical_sequencing") === true,
+    `plateau prefers the unmeasured sub-skill first (got ${inverted[0]!.id})`,
+  );
+  assert(
+    inverted[1]!.hiddenSkills?.includes("precision") === true,
+    `plateau then prefers the least-drilled measured skill (got ${inverted[1]!.id})`,
+  );
+  assert(
+    inverted[2]!.hiddenSkills?.includes("word_choice") === true,
+    "the over-drilled weak skill drops to last — the stimulus changed",
+  );
+
+  // The plateau pick genuinely differs from the normal pick.
+  assert(
+    inverted[0]!.id !== normal[0]!.id,
+    "plateaued day is not byte-identical to a normal day",
+  );
+
+  // Deterministic under the same seed.
+  const again = sampleExercises({
+    available,
+    recentDays: [],
+    n: 3,
+    seed: "plateau-seed",
+    subSkillAverages: averages,
+    plateaued: true,
+  });
+  assert(
+    JSON.stringify(inverted.map((e) => e.id)) ===
+      JSON.stringify(again.map((e) => e.id)),
+    "inverted pick is deterministic",
+  );
+
+  // plateaued: false (or omitted) keeps the weakness-first ordering.
+  const explicitFalse = sampleExercises({
+    available,
+    recentDays: [],
+    n: 1,
+    seed: "plateau-seed",
+    subSkillAverages: averages,
+    plateaued: false,
+  });
+  assert(
+    explicitFalse[0]!.id === normal[0]!.id,
+    "plateaued=false is byte-identical to the legacy weighting",
   );
 }
 

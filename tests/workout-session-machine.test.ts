@@ -447,6 +447,33 @@ section("v2: v1 loop untouched");
   assert(s.phase === "walking", "v1 ADVANCE from score-reveal still works");
 }
 
+// ─── 12. Skip station from the prompt picker (W2) ────────────────────────
+section("skip station: ADVANCE from prompt-selecting");
+{
+  // Mid-day skip → walking → next station.
+  let s = initialMachineState(STATIONS, "prompt-selecting", 1);
+  s = reduce(s, { type: "ADVANCE" });
+  assert(s.phase === "walking", "ADVANCE from prompt-selecting → walking");
+  s = reduce(s, { type: "WALK_DONE" });
+  assert(
+    s.phase === "prompt-selecting" && s.currentStationIndex === 2,
+    "skip lands on the next station's picker",
+  );
+
+  // Last station skip → day-complete-prompt.
+  let last = initialMachineState(STATIONS, "prompt-selecting", 3);
+  last = reduce(last, { type: "ADVANCE" });
+  assert(
+    last.phase === "day-complete-prompt",
+    "ADVANCE from last station's picker → day-complete-prompt",
+  );
+
+  // v2 loop: skip works too (empty-bank recovery path has no other exit).
+  let v2 = initialMachineState(STATIONS, "prompt-selecting", 0, "v2");
+  v2 = reduce(v2, { type: "ADVANCE" });
+  assert(v2.phase === "walking", "v2 ADVANCE from prompt-selecting → walking");
+}
+
 // ─── Report ──────────────────────────────────────────────────────────────
 console.log(`\n══════════════════════════════════════════════════════════════`);
 console.log(`  pass: ${pass}   fail: ${fail}`);

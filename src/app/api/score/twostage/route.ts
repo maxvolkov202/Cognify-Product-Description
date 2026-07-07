@@ -68,6 +68,16 @@ const modeContextSchema = z.object({
       score: z.number().min(0).max(100),
     })
     .optional(),
+  // Phase 15 L-2 (§7.5) — Build a Rep event grounding; rendered only
+  // when present (calibration guardrail).
+  eventContext: z
+    .object({
+      title: z.string().min(1).max(200),
+      eventType: z.string().min(1).max(40),
+      description: z.string().max(4000),
+      contextSummary: z.string().max(2000).nullable(),
+    })
+    .optional(),
   repIndex: z.number().int().min(0),
   totalReps: z.number().int().min(1),
 });

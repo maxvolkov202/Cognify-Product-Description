@@ -183,7 +183,6 @@ export default function RepControls({
           <ActiveRep
             station={station}
             selectedPrompt={selectedPrompt}
-            workoutSessionId={workoutSessionId}
             practiceSessionId={practiceSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
@@ -243,7 +242,6 @@ export default function RepControls({
           <ActiveRep
             station={station}
             selectedPrompt={selectedPrompt}
-            workoutSessionId={workoutSessionId}
             practiceSessionId={practiceSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
@@ -316,7 +314,6 @@ function IdleControls({
 function ActiveRep({
   station,
   selectedPrompt,
-  workoutSessionId,
   practiceSessionId,
   muscleGroupDayId,
   dimension,
@@ -331,7 +328,6 @@ function ActiveRep({
 }: {
   station: ShellStation | null;
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
-  workoutSessionId: string | null;
   practiceSessionId: string | null;
   muscleGroupDayId: string | null;
   dimension: MuscleGroupId | null;
@@ -372,18 +368,29 @@ function ActiveRep({
     loop === "v2" && !graduation && attempt !== "first" && !!firstAttempt;
   const coachFocus =
     isEngineRetry && firstAttempt ? deriveCoachFocus(firstAttempt.score) : null;
-  const retryFocusCallout: Callout | null = coachFocus
-    ? {
-        dimension: coachFocus.dimension,
-        tone: "neutral",
-        title: "Focus for this retry",
-        body: coachFocus.text,
-        quote: null,
-        suggestedRewrite: null,
-        transcriptStart: null,
-        transcriptEnd: null,
-      }
-    : null;
+  const retryFocusCallout: Callout | null =
+    coachFocus && firstAttempt
+      ? {
+          dimension: coachFocus.dimension,
+          tone: "neutral",
+          title: "Focus for this retry",
+          body: coachFocus.text,
+          quote: null,
+          // §4.6 Stronger Version — carry the first attempt's suggested
+          // rewrite into the retry overlay. Prefer a rewrite on the focus
+          // dimension itself, else any rewrite the scorer produced.
+          suggestedRewrite:
+            firstAttempt.score.callouts.find(
+              (c) =>
+                c.dimension === coachFocus.dimension && c.suggestedRewrite,
+            )?.suggestedRewrite ??
+            firstAttempt.score.callouts.find((c) => c.suggestedRewrite)
+              ?.suggestedRewrite ??
+            null,
+          transcriptStart: null,
+          transcriptEnd: null,
+        }
+      : null;
   const skillDim = dimension ? muscleGroupToSkillDim(dimension) : null;
   const retryModeContext: ScoreRepModeContext | null =
     isEngineRetry && firstAttempt && coachFocus && skillDim

@@ -25,6 +25,9 @@ import { getOrCreateThisWeekChallenges } from "@/lib/db/queries/weekly-challenge
 
 export type ProgressionSummary = {
   rank: RankInfo;
+  /** Phase 15 R-3 — server-truth: this read crossed a rank boundary the
+   *  user hasn't been celebrated for yet (marker already advanced). */
+  rankUp: boolean;
   streakDays: number;
   lifetimeReps: number;
   /** PRD §10.8 — "Updated Communication Score" + current Core Skill
@@ -52,11 +55,36 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
 
   return safeDb<ProgressionSummary | null>(async () => {
     const [row] = await db
-      .select({ xp: users.xp, lifetimeReps: users.lifetimeReps })
+      .select({
+        xp: users.xp,
+        lifetimeReps: users.lifetimeReps,
+        lastCelebratedRankIndex: users.lastCelebratedRankIndex,
+      })
       .from(users)
       .where(eq(users.id, user.id))
       .limit(1);
     if (!row) return null;
+
+    // Phase 15 R-3 — server-truth rank-up detection (§10.8.1). Rank is a
+    // pure function of lifetime XP; the celebration fires when the
+    // current rank index exceeds the last CELEBRATED index, then the
+    // marker advances. NULL primes silently (no retroactive fanfare) —
+    // the old localStorage-only detection missed cross-device rank-ups
+    // and always swallowed the first one per browser.
+    const rank = rankFromXp(row.xp);
+    let rankUp = false;
+    if (row.lastCelebratedRankIndex == null) {
+      await db
+        .update(users)
+        .set({ lastCelebratedRankIndex: rank.rankIndex })
+        .where(eq(users.id, user.id));
+    } else if (rank.rankIndex > row.lastCelebratedRankIndex) {
+      rankUp = true;
+      await db
+        .update(users)
+        .set({ lastCelebratedRankIndex: rank.rankIndex })
+        .where(eq(users.id, user.id));
+    }
 
     const todayStart = new Date(
       `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`,
@@ -93,7 +121,8 @@ export async function getProgressionSummary(): Promise<ProgressionSummary | null
     }
 
     return {
-      rank: rankFromXp(row.xp),
+      rank,
+      rankUp,
       streakDays,
       lifetimeReps: row.lifetimeReps,
       overallScore: profileRow?.overallScore ?? null,

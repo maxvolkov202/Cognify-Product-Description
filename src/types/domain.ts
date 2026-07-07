@@ -289,6 +289,20 @@ export type RepFocusContext = {
   previousHeadline?: string;
 };
 
+/** PRD v3 §7.5 — Build a Rep event-preparation context, threaded into
+ *  ScoreRepModeContext (src/lib/ai/score.ts) so per-moment coaching and
+ *  the Full Simulation are grounded in the real event ("Context should
+ *  influence: … Coaching"). Rendered as an UNCACHED user-prompt block
+ *  ONLY when set — all non-prep scoring prompts stay byte-identical
+ *  (calibration guardrail; see renderEventContextBlock). */
+export type ScoreRepEventContext = {
+  title: string;
+  eventType: string;
+  description: string;
+  /** Capped excerpt (~1500 chars) of the event's parsed context uploads. */
+  contextSummary: string | null;
+};
+
 export type RepScore = {
   composite: number;
   dimensions: DimensionScore[];

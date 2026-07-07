@@ -79,78 +79,97 @@ const EFFECTIVENESS_LOOKBACK = 40;
 /** Coached ≥ this many RETRIED times with rate ≤ 1/3 = "resistant". */
 export const EFFECTIVENESS_MIN_SAMPLES = 3;
 
-export async function buildCommunicationSnapshot(
-  userId: string,
-): Promise<CommunicationSnapshot | null> {
-  if (!userId || userId === "anonymous") return null;
-  return safeDb<CommunicationSnapshot | null>(async () => {
-    const [profileRow, coachingRows, effectivenessRows, eventRows, trendRows] =
-      await Promise.all([
-        db
-          .select({
-            overallScore: communicationProfile.overallScore,
-            coreSkills: communicationProfile.coreSkills,
-            hiddenSkills: communicationProfile.hiddenSkills,
-            applications: communicationProfile.applications,
-            totalReps: communicationProfile.totalReps,
-          })
-          .from(communicationProfile)
-          .where(eq(communicationProfile.userId, userId))
-          .limit(1)
-          .then((rows) => rows[0] ?? null),
-        db
-          .select({
-            dimension: coachingEvents.dimension,
-            subSkill: coachingEvents.subSkill,
-            focusText: coachingEvents.focusText,
-            implementedVerdict: coachingEvents.implementedVerdict,
-            createdAt: coachingEvents.createdAt,
-          })
-          .from(coachingEvents)
-          .where(eq(coachingEvents.userId, userId))
-          .orderBy(desc(coachingEvents.createdAt))
-          .limit(COACHING_LOOKBACK),
-        db
-          .select({
-            dimension: coachingEvents.dimension,
-            implementedVerdict: coachingEvents.implementedVerdict,
-          })
-          .from(coachingEvents)
-          .where(eq(coachingEvents.userId, userId))
-          .orderBy(desc(coachingEvents.createdAt))
-          .limit(EFFECTIVENESS_LOOKBACK),
-        db
-          .select({
-            title: prepEvents.title,
-            readinessScore: prepEvents.readinessScore,
-          })
-          .from(prepEvents)
-          .where(
-            and(eq(prepEvents.userId, userId), eq(prepEvents.status, "active")),
-          )
-          .orderBy(desc(prepEvents.updatedAt))
-          .limit(3),
-        db
-          .select({
-            dimension: progressSnapshots.dimension,
-            score: progressSnapshots.score,
-            takenAt: progressSnapshots.takenAt,
-          })
-          .from(progressSnapshots)
-          .where(
-            and(
-              eq(progressSnapshots.userId, userId),
-              gte(
-                progressSnapshots.takenAt,
-                new Date(Date.now() - 21 * 86_400_000),
-              ),
-            ),
-          )
-          .orderBy(desc(progressSnapshots.takenAt))
-          .limit(600),
-      ]);
+/** I2 — the subset of the snapshot the scoring hot path actually
+ *  consumes (renderCoachingMemoryBlock). Everything EXCEPT the
+ *  improvement-trends aggregation (a 21-day progress_snapshots scan
+ *  that was computed per scoring call and read by nobody). A full
+ *  CommunicationSnapshot is structurally assignable to this. */
+export type CoachingMemorySnapshot = Pick<
+  CommunicationSnapshot,
+  | "profile"
+  | "weakestCoreSkill"
+  | "strongestCoreSkill"
+  | "recentCoaching"
+  | "recurringWeaknesses"
+  | "coachingEffectiveness"
+  | "eventReadiness"
+>;
 
-    const profile: CommunicationProfileState = profileRow
+type MemoryReads = [
+  {
+    overallScore: number | null;
+    coreSkills: unknown;
+    hiddenSkills: unknown;
+    applications: unknown;
+    totalReps: number;
+  } | null,
+  {
+    dimension: string;
+    subSkill: string | null;
+    focusText: string;
+    implementedVerdict: string | null;
+    createdAt: Date;
+  }[],
+  { dimension: string; implementedVerdict: string | null }[],
+  { title: string; readinessScore: number | null }[],
+];
+
+/** The four cheap reads shared by both snapshot builders — everything
+ *  except the progress_snapshots trends scan. */
+function fetchCoachingMemoryReads(userId: string): Promise<MemoryReads> {
+  return Promise.all([
+    db
+      .select({
+        overallScore: communicationProfile.overallScore,
+        coreSkills: communicationProfile.coreSkills,
+        hiddenSkills: communicationProfile.hiddenSkills,
+        applications: communicationProfile.applications,
+        totalReps: communicationProfile.totalReps,
+      })
+      .from(communicationProfile)
+      .where(eq(communicationProfile.userId, userId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null),
+    db
+      .select({
+        dimension: coachingEvents.dimension,
+        subSkill: coachingEvents.subSkill,
+        focusText: coachingEvents.focusText,
+        implementedVerdict: coachingEvents.implementedVerdict,
+        createdAt: coachingEvents.createdAt,
+      })
+      .from(coachingEvents)
+      .where(eq(coachingEvents.userId, userId))
+      .orderBy(desc(coachingEvents.createdAt))
+      .limit(COACHING_LOOKBACK),
+    db
+      .select({
+        dimension: coachingEvents.dimension,
+        implementedVerdict: coachingEvents.implementedVerdict,
+      })
+      .from(coachingEvents)
+      .where(eq(coachingEvents.userId, userId))
+      .orderBy(desc(coachingEvents.createdAt))
+      .limit(EFFECTIVENESS_LOOKBACK),
+    db
+      .select({
+        title: prepEvents.title,
+        readinessScore: prepEvents.readinessScore,
+      })
+      .from(prepEvents)
+      .where(
+        and(eq(prepEvents.userId, userId), eq(prepEvents.status, "active")),
+      )
+      .orderBy(desc(prepEvents.updatedAt))
+      .limit(3),
+  ]);
+}
+
+/** Assemble the memory-only fields from the shared reads. */
+function assembleCoachingMemory(reads: MemoryReads): CoachingMemorySnapshot {
+  const [profileRow, coachingRows, effectivenessRows, eventRows] = reads;
+
+  const profile: CommunicationProfileState = profileRow
       ? {
           coreSkills:
             profileRow.coreSkills as CommunicationProfileState["coreSkills"],
@@ -231,6 +250,63 @@ export async function buildCommunicationSnapshot(
       rate: a.retried > 0 ? a.implemented / a.retried : null,
     }));
 
+    return {
+      profile,
+      weakestCoreSkill: weakest,
+      strongestCoreSkill: strongest,
+      recentCoaching,
+      recurringWeaknesses,
+      coachingEffectiveness,
+      eventReadiness: eventRows.map((e) => ({
+        title: e.title,
+        readinessScore: e.readinessScore,
+      })),
+    };
+}
+
+/** I2 — the scoring hot path's snapshot: identical reads MINUS the
+ *  21-day progress_snapshots trends scan, whose output the coaching
+ *  memory block never consumed. Engines/UI that need trends keep using
+ *  buildCommunicationSnapshot (unchanged signature). */
+export async function buildCoachingMemorySnapshot(
+  userId: string,
+): Promise<CoachingMemorySnapshot | null> {
+  if (!userId || userId === "anonymous") return null;
+  return safeDb<CoachingMemorySnapshot | null>(async () => {
+    const reads = await fetchCoachingMemoryReads(userId);
+    return assembleCoachingMemory(reads);
+  }, null);
+}
+
+export async function buildCommunicationSnapshot(
+  userId: string,
+): Promise<CommunicationSnapshot | null> {
+  if (!userId || userId === "anonymous") return null;
+  return safeDb<CommunicationSnapshot | null>(async () => {
+    const [reads, trendRows] = await Promise.all([
+      fetchCoachingMemoryReads(userId),
+      db
+        .select({
+          dimension: progressSnapshots.dimension,
+          score: progressSnapshots.score,
+          takenAt: progressSnapshots.takenAt,
+        })
+        .from(progressSnapshots)
+        .where(
+          and(
+            eq(progressSnapshots.userId, userId),
+            gte(
+              progressSnapshots.takenAt,
+              new Date(Date.now() - 21 * 86_400_000),
+            ),
+          ),
+        )
+        .orderBy(desc(progressSnapshots.takenAt))
+        .limit(600),
+    ]);
+    const memory = assembleCoachingMemory(reads);
+    const { profile } = memory;
+
     // PRD §8.3.10 — Improvement Trends: least-squares slope per dim over
     // the 21-day snapshot window. "Improving" needs a real slope, not
     // noise; thresholds mirror plateau.ts (±0.15 pts/day).
@@ -295,16 +371,7 @@ export async function buildCommunicationSnapshot(
     }
 
     return {
-      profile,
-      weakestCoreSkill: weakest,
-      strongestCoreSkill: strongest,
-      recentCoaching,
-      recurringWeaknesses,
-      coachingEffectiveness,
-      eventReadiness: eventRows.map((e) => ({
-        title: e.title,
-        readinessScore: e.readinessScore,
-      })),
+      ...memory,
       improvementTrends,
       mostImprovedCoreSkill,
       mostConsistentCoreSkill,
@@ -315,9 +382,10 @@ export async function buildCommunicationSnapshot(
 
 /** Render the COACHING MEMORY block for the scoring prompt (PRD §8.6.4).
  *  Returns null when there's nothing to remember — first-time users and
- *  calibration reference reps produce byte-identical prompts. */
+ *  calibration reference reps produce byte-identical prompts.
+ *  Accepts the memory subset; a full CommunicationSnapshot still works. */
 export function renderCoachingMemoryBlock(
-  snapshot: CommunicationSnapshot | null,
+  snapshot: CoachingMemorySnapshot | null,
 ): string | null {
   if (!snapshot || snapshot.recentCoaching.length === 0) return null;
   const lines: string[] = [
@@ -352,6 +420,18 @@ export function renderCoachingMemoryBlock(
       `EFFECTIVENESS: ${resistant
         .map((e) => `${e.dimension} coaching implemented ${e.implemented}/${e.coached}`)
         .join("; ")} — for these, use a DIFFERENT coaching technique: smaller single step, a concrete before/after example from THIS transcript, or coach via a related hidden skill instead.`,
+    );
+  }
+  // I2 / PRD §8.3.8 — the snapshot always knew what the user is preparing
+  // for; now the scorer does too. ONE line, most-recent active event only.
+  // Calibration guardrail: this line renders ONLY inside a block already
+  // gated on recentCoaching.length > 0, and only for users with an active
+  // prep event — calibration reference reps and non-prep users keep
+  // byte-identical prompts.
+  const upcomingEvent = snapshot.eventReadiness[0];
+  if (upcomingEvent) {
+    lines.push(
+      `UPCOMING EVENT: the user is preparing for "${upcomingEvent.title}" — when natural, angle one example toward it.`,
     );
   }
   lines.push(

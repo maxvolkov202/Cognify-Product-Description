@@ -256,6 +256,28 @@ function recordProviderOutcome(provider: Provider, err: unknown | null): void {
   }
 }
 
+/** Phase 15 P-4 — ops snapshot for /api/health: which provider is
+ *  primary, whether either breaker is open, and why. */
+export function getAiHealthSnapshot(): {
+  provider: Provider;
+  keys: { anthropic: boolean; openai: boolean };
+  breaker: Record<
+    Provider,
+    { open: boolean; consecutiveHardFailures: number; lastReason: string | null }
+  >;
+} {
+  const snap = (p: Provider) => ({
+    open: breakerOpen(p),
+    consecutiveHardFailures: breaker[p].consecutiveHardFailures,
+    lastReason: breaker[p].lastReason,
+  });
+  return {
+    provider: PRIMARY_PROVIDER,
+    keys: { anthropic: !!apiKey, openai: !!openaiKey },
+    breaker: { anthropic: snap("anthropic"), openai: snap("openai") },
+  };
+}
+
 /** Test-only introspection/reset (pure in-memory state). */
 export const __breakerForTests = {
   state: breaker,

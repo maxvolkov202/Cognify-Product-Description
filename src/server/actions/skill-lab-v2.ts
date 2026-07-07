@@ -8,7 +8,8 @@
 // `application` set; the whole scoring pipeline (exercise XML, scoring
 // lens, prompt banks, picker) works on them unchanged.
 
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/lib/db/client";
 import {
   communicationProfile,
@@ -26,6 +27,7 @@ import {
   type ApplicationId,
 } from "@/types/application-skills";
 import { isSkillLabAppsEnabled } from "@/lib/flags";
+import { awardSessionCompletionXp } from "@/lib/progression/xp";
 
 export type AppExercise = {
   exerciseId: string;
@@ -184,6 +186,152 @@ export async function startSkillLabSessionV2(input: {
   }, { ok: false as const, reason: "db_error" as const });
 }
 
+// ── Session resume (audit L3) ──────────────────────────────────────────
+//
+// The client snapshots its session state (exercise plan + progress) into
+// practice_sessions.session_state after every save point; a refreshed
+// client can then resume instead of orphaning the row. Full RepScore
+// objects deliberately do NOT survive — outcomes are persisted "lite"
+// (exercise id + first/retry composites) and a resumed session lands on
+// the next exercise's prompt screen.
+
+/** Mirrors AppExercise above — the z.ZodType annotation keeps the two in
+ *  lockstep at compile time. */
+const appExerciseSchema: z.ZodType<AppExercise> = z.object({
+  exerciseId: z.string(),
+  slug: z.string(),
+  name: z.string(),
+  dimension: z.string(),
+  rule: z.string(),
+  why: z.string().nullable(),
+  objective: z.string().nullable(),
+  responseWindow: z
+    .object({ minSec: z.number(), maxSec: z.number() })
+    .nullable(),
+  applicationSkills: z.array(z.string()).nullable(),
+  coachInsight: z.string().nullable(),
+  targetSkill: z.string().nullable(),
+});
+
+const sessionStateOutcomeSchema = z.object({
+  exerciseId: z.string(),
+  firstComposite: z.number().nullable(),
+  retryComposite: z.number().nullable(),
+});
+
+const sessionStateSchema = z.object({
+  applicationId: z.string(),
+  exercises: z.array(appExerciseSchema).min(1).max(10),
+  /** Index of the NEXT exercise to run (== completed-exercise count). */
+  idx: z.number().int().min(0),
+  outcomes: z.array(sessionStateOutcomeSchema).max(10),
+});
+
+export type SkillLabSessionState = z.infer<typeof sessionStateSchema>;
+
+/** How far back an open session is still offered for resume. */
+const RESUME_WINDOW_HOURS = 6;
+
+/** Best-effort persistence of the client's in-flight session snapshot.
+ *  Only ever touches the caller's own OPEN skill_lab session row. */
+export async function saveSkillLabSessionState(input: {
+  sessionId: string;
+  state: unknown;
+}): Promise<{ ok: boolean }> {
+  if (!isSkillLabAppsEnabled()) return { ok: false };
+  const user = await currentUser();
+  if (!user) return { ok: false };
+  if (!z.string().uuid().safeParse(input.sessionId).success) {
+    return { ok: false };
+  }
+  const parsed = sessionStateSchema.safeParse(input.state);
+  if (!parsed.success || !isApplicationId(parsed.data.applicationId)) {
+    return { ok: false };
+  }
+  return safeDb<{ ok: boolean }>(async () => {
+    await db
+      .update(practiceSessions)
+      .set({ sessionState: parsed.data })
+      .where(
+        and(
+          eq(practiceSessions.id, input.sessionId),
+          eq(practiceSessions.userId, user.id),
+          eq(practiceSessions.mode, "skill_lab"),
+          // Never resurrect state on a session complete already closed.
+          isNull(practiceSessions.endedAt),
+        ),
+      );
+    return { ok: true };
+  }, { ok: false });
+}
+
+export type ResumeSkillLabSessionResult = {
+  sessionId: string;
+  state: SkillLabSessionState;
+} | null;
+
+/** Newest open skill_lab session for this user + application started in
+ *  the last RESUME_WINDOW_HOURS whose persisted state validates. Fully
+ *  finished snapshots (idx past the plan) are closed instead of offered. */
+export async function resumeSkillLabSession(
+  applicationId: string,
+): Promise<ResumeSkillLabSessionResult> {
+  if (!isSkillLabAppsEnabled()) return null;
+  if (!isApplicationId(applicationId)) return null;
+  const user = await currentUser();
+  if (!user) return null;
+  return safeDb<ResumeSkillLabSessionResult>(async () => {
+    const cutoff = new Date(Date.now() - RESUME_WINDOW_HOURS * 3_600_000);
+    const rows = await db
+      .select({
+        id: practiceSessions.id,
+        sessionState: practiceSessions.sessionState,
+      })
+      .from(practiceSessions)
+      .where(
+        and(
+          eq(practiceSessions.userId, user.id),
+          eq(practiceSessions.mode, "skill_lab"),
+          isNull(practiceSessions.endedAt),
+          isNotNull(practiceSessions.sessionState),
+          gte(practiceSessions.startedAt, cutoff),
+        ),
+      )
+      .orderBy(desc(practiceSessions.startedAt))
+      .limit(10);
+    for (const row of rows) {
+      const parsed = sessionStateSchema.safeParse(row.sessionState);
+      if (!parsed.success) continue;
+      if (parsed.data.applicationId !== applicationId) continue;
+      if (parsed.data.idx >= parsed.data.exercises.length) {
+        // Snapshot says every exercise finished — the tab died between
+        // the last retry and Session Complete. Close it out so it stops
+        // dangling (reps were already banked per-rep by saveRep).
+        await db
+          .update(practiceSessions)
+          .set({ endedAt: new Date(), sessionState: null })
+          .where(
+            and(
+              eq(practiceSessions.id, row.id),
+              eq(practiceSessions.userId, user.id),
+            ),
+          );
+        continue;
+      }
+      log.info({
+        event: "skill_lab_v2.session_resume_offered",
+        userId: user.id,
+        applicationId,
+        sessionId: row.id,
+        idx: parsed.data.idx,
+        total: parsed.data.exercises.length,
+      });
+      return { sessionId: row.id, state: parsed.data };
+    }
+    return null;
+  }, null);
+}
+
 /** PRD §6.8 Session Complete ingredients, read from the Communication
  *  Profile AFTER this session's reps folded in (saveRep folds per rep). */
 export type SkillLabSessionSummary = {
@@ -213,10 +361,12 @@ export async function completeSkillLabSessionV2(input: {
   const applicationId = input.applicationId;
   return safeDb<{ ok: boolean; summary: SkillLabSessionSummary | null }>(
     async () => {
-      await db
+      const banked = await db
         .update(practiceSessions)
         .set({
           endedAt: new Date(),
+          // Audit L3 — a banked session is no longer resumable.
+          sessionState: null,
           ...(input.compositeScore != null
             ? { compositeScore: input.compositeScore }
             : {}),
@@ -225,8 +375,19 @@ export async function completeSkillLabSessionV2(input: {
           and(
             eq(practiceSessions.id, input.sessionId),
             eq(practiceSessions.userId, user.id),
+            // First bank wins — a re-call (or start-fresh banking an old
+            // session) must not re-award the completion bonus below.
+            isNull(practiceSessions.endedAt),
           ),
-        );
+        )
+        .returning({ id: practiceSessions.id });
+
+      // Phase 15 R-2 (§10.5.3) — completing a Lab session is a
+      // progression signal beyond its reps. Only on the open→banked
+      // transition, and only when the session actually scored something.
+      if (banked.length > 0 && input.compositeScore != null) {
+        await awardSessionCompletionXp(user.id, "skill_lab");
+      }
 
       const [profileRow] = await db
         .select({

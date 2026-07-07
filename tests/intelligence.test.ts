@@ -213,6 +213,81 @@ section("coaching effectiveness line (7.1)");
   );
 }
 
+section("upcoming event line (I2)");
+{
+  const base: CommunicationSnapshot = {
+    profile: {
+      coreSkills: {},
+      hiddenSkills: {},
+      applications: {},
+      overallScore: null,
+      totalReps: 20,
+    },
+    weakestCoreSkill: null,
+    strongestCoreSkill: null,
+    recentCoaching: [
+      {
+        dimension: "structure",
+        subSkill: null,
+        focusText: "Lead with the answer",
+        implementedVerdict: "missed",
+        at: "2026-07-05T00:00:00Z",
+      },
+    ],
+    recurringWeaknesses: [],
+    improvementTrends: [],
+    mostImprovedCoreSkill: null,
+    mostConsistentCoreSkill: null,
+    strongestApplication: null,
+    coachingEffectiveness: [],
+    eventReadiness: [],
+  };
+
+  const noEvent = renderCoachingMemoryBlock(base)!;
+  assert(
+    !noEvent.includes("UPCOMING EVENT"),
+    "no active prep event → no event line",
+  );
+
+  const withEvent = renderCoachingMemoryBlock({
+    ...base,
+    eventReadiness: [
+      { title: "Board pitch", readinessScore: 62 },
+      { title: "Team offsite talk", readinessScore: null },
+    ],
+  })!;
+  assert(
+    withEvent.includes(
+      'UPCOMING EVENT: the user is preparing for "Board pitch" — when natural, angle one example toward it.',
+    ),
+    "event line renders the exact operator copy for the most recent event",
+  );
+  assert(
+    (withEvent.match(/UPCOMING EVENT/g) ?? []).length === 1,
+    "exactly ONE event line even with multiple active events",
+  );
+  // Calibration guardrail: aside from that single line, the prompt is
+  // byte-identical to the non-prep user's prompt.
+  const stripped = withEvent
+    .split("\n")
+    .filter((l) => !l.startsWith("UPCOMING EVENT"))
+    .join("\n");
+  assert(
+    stripped === noEvent,
+    "non-event prompt is byte-identical apart from the one line",
+  );
+  // No coaching history → block stays null even with an active event
+  // (calibration reference reps never gain a block from prep events).
+  assert(
+    renderCoachingMemoryBlock({
+      ...base,
+      recentCoaching: [],
+      eventReadiness: [{ title: "Board pitch", readinessScore: 62 }],
+    }) === null,
+    "no coaching history → block null even with an event",
+  );
+}
+
 section("stage benchmarks (7.4)");
 {
   assert(benchmarkNote(72, "manager") === "Typical manager band: 60–75", "in-band note");

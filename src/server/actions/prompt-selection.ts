@@ -111,11 +111,13 @@ export async function fetchPromptCandidates(input: {
     // is the strongest signal; goals refine within it.
     let userVertical: string | null = null;
     let userGoals: string[] = [];
+    let userStage: string | null = null;
     if (input.personalize && user) {
       const [userRow] = await db
         .select({
           vertical: users.vertical,
           improvementGoals: users.improvementGoals,
+          communicationStage: users.communicationStage,
         })
         .from(users)
         .where(eq(users.id, user.id))
@@ -124,6 +126,7 @@ export async function fetchPromptCandidates(input: {
       userGoals = Array.isArray(userRow?.improvementGoals)
         ? (userRow.improvementGoals as string[])
         : [];
+      userStage = userRow?.communicationStage ?? null;
     }
 
     // Recent dim composite drives the difficulty bias hint.
@@ -331,9 +334,16 @@ export async function fetchPromptCandidates(input: {
         // PRD v3 Phase 8.1 (D3 hybrid) — the curated bank ran dry for
         // this session (heavy refreshing). Generate fresh prompts,
         // cache them into the bank permanently, and serve them now.
+        // I1 — thread the FULL user context (stage + goals were loaded
+        // above for bank tiering but previously dropped here, so
+        // generated prompts ignored who the user is).
         const generated = await generateAndCachePrompts({
           exerciseId: input.exerciseId,
-          userContext: { vertical: userVertical },
+          userContext: {
+            vertical: userVertical,
+            communicationStage: userStage,
+            goals: userGoals,
+          },
           count: 5 - unseen.length,
         });
         if (generated.length > 0) {

@@ -113,16 +113,15 @@ export function FeedbackPanel({
   const gridRef = useRef<DimensionGridHandle>(null);
   const [exemplarOpen, setExemplarOpen] = useState(false);
 
-  // Compute the matching exemplar once per render. Picks by primary
-  // focus dimension first, falling back to the first nextRepFocus item's
-  // dimension when primaryFocusDimension isn't set. Archetype-specific
-  // variants win when this is a pressure rep.
+  // Compute the matching exemplar once per render. Uses deriveCoachFocus
+  // so the exemplar dimension matches what the Coach's Focus card actually
+  // shows — including the F-5 structural_adherence → core-dimension
+  // redirect (raw primaryFocusDimension would bail on framework-heavy
+  // reps and leave them without a "Hear a stronger version" exemplar).
+  // Archetype-specific variants win when this is a pressure rep.
   const exemplar = useMemo(() => {
-    const primaryDim =
-      score.primaryFocusDimension ??
-      score.nextRepFocus?.[0]?.dimension ??
-      null;
-    if (!primaryDim || primaryDim === "structural_adherence") return null;
+    const primaryDim = deriveCoachFocus(score)?.dimension ?? null;
+    if (!primaryDim) return null;
     const rawArchetype = modeSignals?.pressureArchetypeId;
     const archetypeId =
       rawArchetype && isPressureArchetypeId(rawArchetype)
@@ -132,7 +131,7 @@ export function FeedbackPanel({
       dimension: primaryDim,
       archetypeId,
     });
-  }, [score.primaryFocusDimension, score.nextRepFocus, modeSignals]);
+  }, [score, modeSignals]);
 
   const formattedDuration = useMemo(() => {
     const total = Math.floor(durationMs / 1000);

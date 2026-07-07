@@ -6,6 +6,8 @@
  *   • readiness score math (weighted, null-safe)
  *   • deterministic fallback Readiness Review targets the weakest dim
  *   • context parsing: text passthrough, cap, unsupported types
+ *   • L2 event-context scoring block: rendered ONLY for prep reps
+ *     (calibration guardrail — non-prep prompts stay byte-identical)
  *
  * Run: npx tsx tests/prep-plan.test.ts
  */
@@ -19,6 +21,7 @@ import {
   fallbackReview,
 } from "@/lib/ai/prep/readiness-review";
 import { parseContextFile, PREP_PARSED_TEXT_CAP } from "@/lib/prep/parse";
+import { renderEventContextBlock } from "@/lib/ai/score";
 
 let pass = 0;
 let fail = 0;
@@ -173,6 +176,54 @@ async function main() {
       "empty.txt",
     );
     assert(emptyDoc.status === "failed", "whitespace-only → failed");
+  }
+
+  section("event-context scoring block (L2 calibration guardrail)");
+  {
+    assert(
+      renderEventContextBlock(undefined) === null,
+      "absent eventContext → null (non-prep prompts stay byte-identical)",
+    );
+    const block = renderEventContextBlock({
+      title: "SDR Interview",
+      eventType: "interview",
+      description: "Final-round SDR interview at Salesforce",
+      contextSummary: "=== resume.pdf ===\n5 years of outbound sales",
+    });
+    assert(
+      block != null && block.startsWith("EVENT CONTEXT ("),
+      "block opens with the operator-facing EVENT CONTEXT framing",
+    );
+    assert(
+      block != null &&
+        block.includes("SDR Interview") &&
+        block.includes("interview") &&
+        block.includes("Final-round SDR interview at Salesforce") &&
+        block.includes("5 years of outbound sales"),
+      "block carries title, type, description, uploaded context",
+    );
+    const noSummary = renderEventContextBlock({
+      title: "Best Man Toast",
+      eventType: "toast",
+      description: "toast for my brother",
+      contextSummary: null,
+    });
+    assert(
+      noSummary != null && !noSummary.includes("uploaded materials"),
+      "null contextSummary omits the materials line",
+    );
+    const long = renderEventContextBlock({
+      title: "T",
+      eventType: "other",
+      description: "d".repeat(5000),
+      contextSummary: "c".repeat(5000),
+    });
+    assert(
+      long != null &&
+        !long.includes("d".repeat(2001)) &&
+        !long.includes("c".repeat(1501)),
+      "description capped at 2000, contextSummary at 1500",
+    );
   }
 
   console.log(`\n══════════════════════════════════════════════════════════════`);

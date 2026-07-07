@@ -12,8 +12,9 @@
 // local phase state instead of the muscle-group day machine — there is
 // no day/station/graduation lifecycle here, just N engine loops.
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, FlaskConical, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -26,7 +27,10 @@ import {
 import {
   startSkillLabSessionV2,
   completeSkillLabSessionV2,
+  saveSkillLabSessionState,
+  resumeSkillLabSession,
   type AppExercise,
+  type SkillLabSessionState,
   type SkillLabSessionSummary,
 } from "@/server/actions/skill-lab-v2";
 import {
@@ -62,6 +66,18 @@ type ExerciseOutcome = {
   retry: AttemptPayload | null;
 };
 
+type LiteOutcome = SkillLabSessionState["outcomes"][number];
+
+/** Resume snapshots persist outcomes "lite" — exercise id + composites
+ *  only. Full RepScore objects deliberately do not survive a refresh. */
+function toLiteOutcome(o: ExerciseOutcome): LiteOutcome {
+  return {
+    exerciseId: o.exercise.exerciseId,
+    firstComposite: o.first?.score.composite ?? null,
+    retryComposite: o.retry?.score.composite ?? null,
+  };
+}
+
 export default function AppSessionClient({
   applicationId,
 }: {
@@ -82,14 +98,62 @@ export default function AppSessionClient({
   const [outcomes, setOutcomes] = useState<ExerciseOutcome[]>([]);
   const [startError, setStartError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SkillLabSessionSummary | null>(null);
+  // Audit L3 — session resume. `resumeOffer` holds an open session found
+  // on mount; `resumedOutcomes` carries the lite outcomes of exercises
+  // completed BEFORE the refresh (folded into the banked composite, not
+  // re-hydrated into full ExerciseOutcome records).
+  const [resumeOffer, setResumeOffer] = useState<{
+    sessionId: string;
+    state: SkillLabSessionState;
+  } | null>(null);
+  const [resumedOutcomes, setResumedOutcomes] = useState<LiteOutcome[]>([]);
+  const router = useRouter();
 
   const exercise = exercises[idx] ?? null;
   const label = APPLICATION_LABELS[applicationId];
+
+  // Before any start: is there an open session to resume? The offer only
+  // renders while still on the length-pick screen, so a late response
+  // after the user already started a fresh session is inert.
+  useEffect(() => {
+    let cancelled = false;
+    resumeSkillLabSession(applicationId)
+      .then((res) => {
+        if (!cancelled && res) setResumeOffer(res);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [applicationId]);
+
+  /** Fire-and-forget resume-snapshot save (audit L3). `idx` is the NEXT
+   *  exercise to run — a resumed session lands on its prompt screen. */
+  const persistState = useCallback(
+    (args: {
+      sessionId: string;
+      exercises: AppExercise[];
+      idx: number;
+      outcomes: LiteOutcome[];
+    }) => {
+      void saveSkillLabSessionState({
+        sessionId: args.sessionId,
+        state: {
+          applicationId,
+          exercises: args.exercises,
+          idx: args.idx,
+          outcomes: args.outcomes,
+        } satisfies SkillLabSessionState,
+      }).catch(() => {});
+    },
+    [applicationId],
+  );
 
   const start = useCallback(
     async (count: number) => {
       setPhase({ kind: "starting" });
       setStartError(null);
+      setResumeOffer(null);
       const res = await startSkillLabSessionV2({ applicationId, count });
       if (!res.ok) {
         setStartError(
@@ -104,11 +168,45 @@ export default function AppSessionClient({
       setExercises(res.exercises);
       setIdx(0);
       setOutcomes([]);
+      setResumedOutcomes([]);
       setAttempts({ first: null, retry: null });
       setPhase({ kind: "prompt" });
+      persistState({
+        sessionId: res.sessionId,
+        exercises: res.exercises,
+        idx: 0,
+        outcomes: [],
+      });
     },
-    [applicationId],
+    [applicationId, persistState],
   );
+
+  const resumeSession = useCallback(() => {
+    if (!resumeOffer) return;
+    const { sessionId: sid, state } = resumeOffer;
+    setResumeOffer(null);
+    setSessionId(sid);
+    setExercises(state.exercises);
+    setIdx(Math.min(state.idx, state.exercises.length - 1));
+    setResumedOutcomes(state.outcomes);
+    setOutcomes([]);
+    setAttempts({ first: null, retry: null });
+    setSelectedPrompt(null);
+    setPhase({ kind: "prompt" });
+  }, [resumeOffer]);
+
+  const startFresh = useCallback(() => {
+    if (!resumeOffer) return;
+    const staleId = resumeOffer.sessionId;
+    setResumeOffer(null);
+    // Bank the abandoned session (sets ended_at + clears its snapshot);
+    // its reps were already saved individually by saveRep.
+    void completeSkillLabSessionV2({
+      sessionId: staleId,
+      applicationId,
+      compositeScore: null,
+    }).catch(() => {});
+  }, [resumeOffer, applicationId]);
 
   const advanceExercise = useCallback(() => {
     if (!exercise) return;
@@ -126,15 +224,33 @@ export default function AppSessionClient({
     } else {
       setIdx(idx + 1);
       setPhase({ kind: "prompt" });
+      if (sessionId) {
+        persistState({
+          sessionId,
+          exercises,
+          idx: idx + 1,
+          outcomes: [...resumedOutcomes, ...nextOutcomes.map(toLiteOutcome)],
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exercise, attempts, outcomes, idx, exercises.length]);
+  }, [exercise, attempts, outcomes, idx, exercises, sessionId, resumedOutcomes, persistState]);
 
   const finishSession = useCallback(
     (finalOutcomes: ExerciseOutcome[], quitEarly: boolean) => {
-      const composites = finalOutcomes
-        .flatMap((o) => [o.retry?.score.composite ?? o.first?.score.composite])
-        .filter((c): c is number => c != null);
+      // Audit L7 — nothing was attempted this visit: no empty summary
+      // screen, no banking an empty session. (An open session's resume
+      // snapshot stays intact, so it can still be resumed later.)
+      if (finalOutcomes.length === 0) {
+        router.push("/skill-lab");
+        return;
+      }
+      const composites = [
+        ...resumedOutcomes.map((o) => o.retryComposite ?? o.firstComposite),
+        ...finalOutcomes.map(
+          (o) => o.retry?.score.composite ?? o.first?.score.composite,
+        ),
+      ].filter((c): c is number => c != null);
       const avg =
         composites.length > 0
           ? composites.reduce((s, c) => s + c, 0) / composites.length
@@ -152,17 +268,21 @@ export default function AppSessionClient({
       }
       setPhase({ kind: "complete", quitEarly });
     },
-    [sessionId, applicationId],
+    [sessionId, applicationId, resumedOutcomes, router],
   );
 
   const quit = useCallback(() => {
-    if (!exercise) return;
-    const record: ExerciseOutcome = {
-      exercise,
-      first: attempts.first,
-      retry: attempts.retry,
-    };
-    finishSession([...outcomes, record], true);
+    // Audit L7 — only record the in-flight exercise when it actually has
+    // a first attempt; quitting from the prompt/insight screen must not
+    // append an empty outcome.
+    const finalOutcomes =
+      exercise && attempts.first != null
+        ? [
+            ...outcomes,
+            { exercise, first: attempts.first, retry: attempts.retry },
+          ]
+        : outcomes;
+    finishSession(finalOutcomes, true);
   }, [exercise, attempts, outcomes, finishSession]);
 
   // ── Synthetic station + retry wiring (mirrors RepControls.ActiveRep) ──
@@ -240,9 +360,38 @@ export default function AppSessionClient({
       } else {
         setAttempts((prev) => ({ ...prev, retry: attemptPayload }));
         setPhase({ kind: "review" });
+        // Resume save point (audit L3): this exercise's required retry is
+        // done. idx+1 → a resumed session lands on the NEXT exercise's
+        // prompt (the review screen can't be rebuilt from lite outcomes).
+        if (sessionId && exercise) {
+          persistState({
+            sessionId,
+            exercises,
+            idx: idx + 1,
+            outcomes: [
+              ...resumedOutcomes,
+              ...outcomes.map(toLiteOutcome),
+              {
+                exerciseId: exercise.exerciseId,
+                firstComposite: attempts.first?.score.composite ?? null,
+                retryComposite: attemptPayload.score.composite ?? null,
+              },
+            ],
+          });
+        }
       }
     },
-    [phase],
+    [
+      phase,
+      sessionId,
+      exercise,
+      exercises,
+      idx,
+      outcomes,
+      resumedOutcomes,
+      attempts.first,
+      persistState,
+    ],
   );
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -262,7 +411,20 @@ export default function AppSessionClient({
       </header>
 
       <div className="bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 rounded-2xl p-5 sm:p-6 shadow-sm">
-        {phase.kind === "length-pick" && (
+        {phase.kind === "length-pick" && resumeOffer && (
+          <ResumeOffer
+            label={label}
+            doneCount={Math.min(
+              resumeOffer.state.idx,
+              resumeOffer.state.exercises.length,
+            )}
+            total={resumeOffer.state.exercises.length}
+            onResume={resumeSession}
+            onStartFresh={startFresh}
+          />
+        )}
+
+        {phase.kind === "length-pick" && !resumeOffer && (
           <LengthPick
             label={label}
             description={APPLICATION_DESCRIPTIONS[applicationId]}
@@ -383,6 +545,50 @@ export default function AppSessionClient({
             summary={summary}
           />
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Audit L3 — an open session from the last few hours was found on
+ *  mount: offer to pick it back up or bank it and start over. */
+function ResumeOffer({
+  label,
+  doneCount,
+  total,
+  onResume,
+  onStartFresh,
+}: {
+  label: string;
+  doneCount: number;
+  total: number;
+  onResume: () => void;
+  onStartFresh: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center gap-3 py-4">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+        Pick up where you left off?
+      </h2>
+      <p className="text-sm text-slate-500 dark:text-ink-400 max-w-md">
+        You have a {label} session in progress. Resume it to keep your
+        exercise plan, or start fresh with a new one.
+      </p>
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          onClick={onResume}
+          className="min-h-[48px] px-5 py-3 rounded-xl font-semibold bg-pink-500 hover:bg-pink-400 text-white"
+        >
+          Resume your session ({doneCount} of {total} done)
+        </button>
+        <button
+          type="button"
+          onClick={onStartFresh}
+          className="min-h-[48px] px-5 py-3 rounded-xl font-semibold border border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800"
+        >
+          Start fresh
+        </button>
       </div>
     </div>
   );
@@ -554,8 +760,10 @@ function SessionComplete({
         </div>
       </div>
 
-      {/* §6.8 item 2 — always present; neutral copy when flat/negative. */}
-      {delta != null && (
+      {/* §6.8 item 2 — always present when any rep landed; neutral copy
+          when flat/negative, and (audit L8) an explainer when no
+          first→retry pair exists (e.g. quit before the first retry). */}
+      {delta != null ? (
         <p
           className={cn(
             "text-sm font-semibold",
@@ -568,7 +776,12 @@ function SessionComplete({
             ? `+${delta} average improvement between first takes and retries.`
             : "You held steady between first takes and retries — changing a habit mid-rep is the hard part."}
         </p>
-      )}
+      ) : repsDone > 0 ? (
+        <p className="text-sm font-semibold text-slate-500 dark:text-ink-400">
+          Improvement shows up here once you complete a full First Rep →
+          Retry cycle — finish one next session to see your delta.
+        </p>
+      ) : null}
 
       {mostImproved && (
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-xs font-semibold text-emerald-700 dark:text-emerald-300">

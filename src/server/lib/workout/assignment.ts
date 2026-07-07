@@ -107,6 +107,14 @@ export type SelectInput = {
    *  user banks a win before returning to weakness work. Caller flag
    *  (v2 engine); default false = legacy behavior. */
   confidenceBoostEnabled?: boolean;
+  /** I3 — Communication Profile core-skill estimates (0-100), keyed by
+   *  muscle group (caller maps skill dims → muscle groups). The profile
+   *  is the LONG-memory skill estimate; the 14d windows are short-memory.
+   *  When a dim's 14d window is sparse (post-break users), the effective
+   *  composite blends 0.7 profile / 0.3 window signal, or uses the
+   *  profile outright when the window is empty — so two weeks away no
+   *  longer makes every dim look untrained. Omitted = legacy behavior. */
+  profileFallback?: Partial<Record<MuscleGroupId, number>>;
 };
 
 // ─── Outputs ─────────────────────────────────────────────────────────────
@@ -184,18 +192,33 @@ export function seededShuffle<T>(arr: readonly T[], seed: string): T[] {
   return copy;
 }
 
-/** Resolve the recentComposite for a dim, falling back to recent reps when engagement is sparse. */
+/** I3 — profile weight when blending the long-memory profile estimate
+ *  with a thin 14d window signal (sparse-window case only). */
+export const PROFILE_FALLBACK_WEIGHT = 0.7;
+
+/** Resolve the recentComposite for a dim, falling back to recent reps when
+ *  engagement is sparse. I3: when even the rep window is thin, the
+ *  Communication Profile estimate takes over (blended with whatever
+ *  window signal exists) so a training break doesn't erase the user. */
 export function effectiveCompositeFor(
   dim: MuscleGroupId,
   engagement: EngagementSnapshot[],
   recentReps: RecentRepsSnapshot[],
+  profileFallback?: Partial<Record<MuscleGroupId, number>>,
 ): number | null {
   const eng = engagement.find((e) => e.dimension === dim);
   if (eng && eng.rowCount >= SPARSE_ENGAGEMENT_THRESHOLD) {
     return eng.recentComposite;
   }
   const reps = recentReps.find((r) => r.dimension === dim);
-  return reps?.avgComposite14d ?? null;
+  const windowSignal = reps?.avgComposite14d ?? null;
+  const profileEstimate = profileFallback?.[dim];
+  if (profileEstimate == null) return windowSignal;
+  if (windowSignal == null) return profileEstimate;
+  return (
+    PROFILE_FALLBACK_WEIGHT * profileEstimate +
+    (1 - PROFILE_FALLBACK_WEIGHT) * windowSignal
+  );
 }
 
 /** Detect a sharp regression in this dim's 7d composite vs prior 14-7d baseline. */
@@ -386,7 +409,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
       let strongest: MuscleGroupId | null = null;
       let strongestComposite = -1;
       for (const dim of MUSCLE_GROUP_IDS) {
-        const c = effectiveCompositeFor(dim, engagement, recentReps);
+        const c = effectiveCompositeFor(
+          dim,
+          engagement,
+          recentReps,
+          input.profileFallback,
+        );
         if (c != null && c > strongestComposite) {
           strongestComposite = c;
           strongest = dim;
@@ -395,7 +423,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
       // Don't fire when the "strongest" skill is itself weak — a
       // confidence day needs something to actually lean on.
       if (strongest && strongestComposite >= CONFIDENCE_LOW_THRESHOLD + 5) {
-        const alternates = pickAlternates(strongest, engagement, recentReps);
+        const alternates = pickAlternates(
+          strongest,
+          engagement,
+          recentReps,
+          input.profileFallback,
+        );
         return {
           suggested: strongest,
           alternates,
@@ -416,7 +449,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
 
   if (regressions.length > 0) {
     const top = regressions[0]!;
-    const alternates = pickAlternates(top.dim, engagement, recentReps);
+    const alternates = pickAlternates(
+      top.dim,
+      engagement,
+      recentReps,
+      input.profileFallback,
+    );
     return {
       suggested: top.dim,
       alternates,
@@ -449,7 +487,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
     const byWeakness = [...MUSCLE_GROUP_IDS]
       .map((dim) => ({
         dim,
-        composite: effectiveCompositeFor(dim, engagement, recentReps),
+        composite: effectiveCompositeFor(
+          dim,
+          engagement,
+          recentReps,
+          input.profileFallback,
+        ),
       }))
       .sort((a, b) => {
         if (a.composite == null && b.composite == null) return 0;
@@ -483,7 +526,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
         oldestDate = d;
       }
     }
-    const alternates = pickAlternates(oldest, engagement, recentReps);
+    const alternates = pickAlternates(
+      oldest,
+      engagement,
+      recentReps,
+      input.profileFallback,
+    );
     return {
       suggested: oldest,
       alternates,
@@ -496,7 +544,12 @@ export function selectMuscleGroupForToday(input: SelectInput): SelectResult {
   const ranked = eligibleByFloor
     .map((dim) => ({
       dim,
-      composite: effectiveCompositeFor(dim, engagement, recentReps),
+      composite: effectiveCompositeFor(
+        dim,
+        engagement,
+        recentReps,
+        input.profileFallback,
+      ),
     }))
     // Untrained (null) → push to front (highest priority).
     .sort((a, b) => {
@@ -565,12 +618,13 @@ function pickAlternates(
   exclude: MuscleGroupId,
   engagement: EngagementSnapshot[],
   recentReps: RecentRepsSnapshot[],
+  profileFallback?: Partial<Record<MuscleGroupId, number>>,
 ): MuscleGroupId[] {
   const others = MUSCLE_GROUP_IDS.filter((d) => d !== exclude);
   const ranked = others
     .map((dim) => ({
       dim,
-      composite: effectiveCompositeFor(dim, engagement, recentReps),
+      composite: effectiveCompositeFor(dim, engagement, recentReps, profileFallback),
     }))
     .sort((a, b) => {
       if (a.composite == null && b.composite == null) return 0;
@@ -596,6 +650,12 @@ export type SampleExercisesInput = {
    *  one). When omitted, behavior is byte-identical to the legacy
    *  seeded shuffle — the v1 loop and tests are unaffected. */
   subSkillAverages?: Record<string, number | null>;
+  /** I4 (PRD §8.4.4) — the dim being sampled is plateaued. Inverts the
+   *  Hidden-Skill weighting to PREFER unmeasured / least-trained
+   *  sub-skills, so a plateau always changes the stimulus even when no
+   *  close-scoring alternative dim exists for a swap. Default false =
+   *  weakness-first weighting, byte-identical to before. */
+  plateaued?: boolean;
 };
 
 export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] {
@@ -620,11 +680,16 @@ export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] 
   const pool = preferred.length >= n ? preferred : available;
   const shuffled = seededShuffle(pool, seed);
 
-  // Legacy path — no Hidden Skill signal supplied.
-  if (!input.subSkillAverages) {
+  // Legacy path — no Hidden Skill signal supplied and no plateau to break.
+  if (!input.subSkillAverages && !input.plateaued) {
     return shuffled.slice(0, n);
   }
-  return pickHiddenSkillAware(shuffled, n, input.subSkillAverages);
+  return pickHiddenSkillAware(
+    shuffled,
+    n,
+    input.subSkillAverages ?? {},
+    input.plateaued === true,
+  );
 }
 
 /** Greedy Hidden-Skill-aware pick over an already-seeded-shuffled pool.
@@ -640,11 +705,16 @@ export function sampleExercises(input: SampleExercisesInput): CatalogExercise[] 
 const UNMEASURED_SUB_SKILL_SCORE = 45;
 const NO_METADATA_SCORE = 60;
 const SKILL_OVERLAP_PENALTY = 15;
+/** I4 — inverted-mode score for a never-measured sub-skill: 0 = always
+ *  preferred. Unmeasured behaviors are the strongest stimulus change a
+ *  plateaued dim can get. */
+const PLATEAU_UNMEASURED_SCORE = 0;
 
 function pickHiddenSkillAware(
   shuffled: CatalogExercise[],
   n: number,
   averages: Record<string, number | null>,
+  invert = false,
 ): CatalogExercise[] {
   const picked: CatalogExercise[] = [];
   const coveredSkills = new Set<string>();
@@ -658,9 +728,18 @@ function pickHiddenSkillAware(
       let base = NO_METADATA_SCORE;
       if (ex.hiddenSkills && ex.hiddenSkills.length > 0) {
         base = Math.min(
-          ...ex.hiddenSkills.map((s) =>
-            averages[s] == null ? UNMEASURED_SUB_SKILL_SCORE : averages[s]!,
-          ),
+          ...ex.hiddenSkills.map((s) => {
+            const avg = averages[s];
+            if (invert) {
+              // I4 plateau inversion (PRD §8.4.4): the weakness-first
+              // weighting kept serving the same weak sub-skills — that's
+              // the plateau. Prefer unmeasured sub-skills outright, then
+              // the LEAST-drilled measured ones (highest avg = the skills
+              // normal weighting never picks): a genuinely new stimulus.
+              return avg == null ? PLATEAU_UNMEASURED_SCORE : 100 - avg;
+            }
+            return avg == null ? UNMEASURED_SUB_SKILL_SCORE : avg;
+          }),
         );
       }
       const overlap = ex.hiddenSkills

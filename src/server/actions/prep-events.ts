@@ -8,18 +8,22 @@
 // the authenticated owner; generation failures fall back to strong
 // generic plans so the flow never dead-ends.
 
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
+  callouts,
   criticalMoments,
+  dimensionScores,
   practiceSessions,
   prepContextUploads,
   prepEvents,
   readinessReviews,
+  reps,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log } from "@/lib/log";
+import { awardSessionCompletionXp } from "@/lib/progression/xp";
 import { isBuildARepV2Enabled } from "@/lib/flags";
 import { getBuildARepEntitlement } from "@/lib/entitlements";
 import {
@@ -69,6 +73,9 @@ export type PrepEventDetail = {
   recommendedMode: string;
   recommendedDurationSec: number | null;
   readinessScore: number | null;
+  /** Cached concat of parsed uploads (capped server-side). Feeds the
+   *  per-rep scoring eventContext (§7.5) on the client. */
+  contextSummary: string | null;
   createdAt: string;
   moments: PrepMoment[];
   uploads: PrepUploadMeta[];
@@ -400,6 +407,7 @@ export async function getPrepEvent(
       recommendedMode: event.recommendedMode,
       recommendedDurationSec: event.recommendedDurationSec,
       readinessScore: event.readinessScore,
+      contextSummary: event.contextSummary,
       createdAt: event.createdAt.toISOString(),
       moments: moments.map((m) => ({
         id: m.id,
@@ -635,6 +643,121 @@ export async function recordMomentPractice(input: {
 
 const VALID_DIMS = new Set<string>(SKILL_DIMENSIONS);
 
+type ServerReadinessEvidence = {
+  dimensionAverages: Partial<Record<SkillDimension, number>>;
+  callouts: { dimension: string; title: string; body: string }[];
+  transcriptExcerpt: string | null;
+  /** Scored reps the evidence was derived from (telemetry). */
+  repCount: number;
+};
+
+/** L1 (PRD §7.9) — server-derived readiness evidence.
+ *
+ * The client used to accumulate dimension averages / callouts /
+ * transcript in useRef accumulators and POST them to finishPrepSession —
+ * forgeable, and wiped by a mid-session refresh, which broke §7.9's
+ * "across the entire preparation experience". Recompute the evidence
+ * from persisted reps instead. Reps link to the prep event only through
+ * the practice session ensureSession/startPrepSession created (mode
+ * build_a_rep), so we scope to that session id (and, for simulations,
+ * the backing long rep): ownership + mode are enforced in SQL, and the
+ * numbers come from rows the scoring pipeline itself wrote
+ * (dimension_scores, callouts, reps.transcript).
+ *
+ * Returns null when no scored rep is found so the caller can fall back
+ * to the client payload (degraded path — kept working on purpose).
+ */
+async function deriveReadinessEvidence(input: {
+  userId: string;
+  mode: "guided" | "simulation";
+  sessionId: string | null | undefined;
+  repId: string | null | undefined;
+}): Promise<ServerReadinessEvidence | null> {
+  const scopeWhere = (scope: "rep" | "session") =>
+    and(
+      eq(reps.userId, input.userId),
+      eq(practiceSessions.userId, input.userId),
+      eq(practiceSessions.mode, "build_a_rep"),
+      scope === "rep"
+        ? eq(reps.id, input.repId!)
+        : eq(reps.sessionId, input.sessionId!),
+    );
+
+  // A simulation review is backed by ONE long rep; a guided review by
+  // every rep recorded in the event's practice session. Try the tighter
+  // scope first, then widen to the session before giving up.
+  const scopes: ("rep" | "session")[] = [];
+  if (input.mode === "simulation" && input.repId) scopes.push("rep");
+  if (input.sessionId) scopes.push("session");
+
+  for (const scope of scopes) {
+    const scoreRows = await db
+      .select({
+        repId: dimensionScores.repId,
+        dimension: dimensionScores.dimension,
+        score: dimensionScores.score,
+      })
+      .from(dimensionScores)
+      .innerJoin(reps, eq(dimensionScores.repId, reps.id))
+      .innerJoin(practiceSessions, eq(reps.sessionId, practiceSessions.id))
+      .where(scopeWhere(scope));
+
+    // Same aggregation the client's accumulator performed: per-dimension
+    // mean over the session's scored reps, canonical v3 dims only
+    // (structural_adherence + legacy dims are skipped, matching the
+    // client-side SKILL_DIMENSIONS filter).
+    const acc = new Map<SkillDimension, { total: number; n: number }>();
+    const scoredRepIds = new Set<string>();
+    for (const row of scoreRows) {
+      if (!VALID_DIMS.has(row.dimension)) continue;
+      scoredRepIds.add(row.repId);
+      const dim = row.dimension as SkillDimension;
+      const cur = acc.get(dim) ?? { total: 0, n: 0 };
+      cur.total += Math.min(100, Math.max(0, row.score));
+      cur.n += 1;
+      acc.set(dim, cur);
+    }
+    if (acc.size === 0) continue;
+    const dimensionAverages: Partial<Record<SkillDimension, number>> = {};
+    for (const [dim, { total, n }] of acc) dimensionAverages[dim] = total / n;
+
+    const calloutRows = await db
+      .select({
+        dimension: callouts.dimension,
+        title: callouts.title,
+        body: callouts.body,
+      })
+      .from(callouts)
+      .innerJoin(reps, eq(callouts.repId, reps.id))
+      .innerJoin(practiceSessions, eq(reps.sessionId, practiceSessions.id))
+      .where(
+        and(scopeWhere(scope), inArray(callouts.tone, ["warn", "critical"])),
+      )
+      .orderBy(desc(reps.createdAt))
+      .limit(8);
+
+    // Simulation: ground the review in the sim rep's own transcript
+    // (guided reviews never carried one — parity with the old client).
+    let transcriptExcerpt: string | null = null;
+    if (scope === "rep") {
+      const [simRep] = await db
+        .select({ transcript: reps.transcript })
+        .from(reps)
+        .where(and(eq(reps.id, input.repId!), eq(reps.userId, input.userId)))
+        .limit(1);
+      transcriptExcerpt = simRep?.transcript?.text?.slice(0, 8000) ?? null;
+    }
+
+    return {
+      dimensionAverages,
+      callouts: calloutRows,
+      transcriptExcerpt,
+      repCount: scoredRepIds.size,
+    };
+  }
+  return null;
+}
+
 export type FinishPrepInput = {
   eventId: string;
   mode: "guided" | "simulation";
@@ -642,9 +765,13 @@ export type FinishPrepInput = {
   /** Simulation only — the long rep backing the review. */
   repId?: string | null;
   /** Per-dimension averages the client accumulated across the session's
-   *  scored reps (coaching copy input, validated + clamped server-side). */
+   *  scored reps. L1 — used ONLY as a degraded fallback: whenever ≥1
+   *  scored rep exists server-side, the evidence is recomputed from
+   *  persisted reps (deriveReadinessEvidence) and this is ignored. */
   dimensionAverages: Partial<Record<string, number>>;
+  /** L1 — fallback-only, same as dimensionAverages. */
   transcriptExcerpt?: string | null;
+  /** L1 — fallback-only, same as dimensionAverages. */
   callouts?: { dimension: string; title: string; body: string }[];
 };
 
@@ -667,14 +794,37 @@ export async function finishPrepSession(
         .limit(1);
       if (!event) return { ok: false };
 
+      // L1 (§7.9) — readiness evidence must be server-derived. Recompute
+      // it from the persisted reps of this event's practice session (or
+      // the simulation's backing rep); the client payload is used ONLY
+      // when no scored rep is found (degraded path). The deterministic
+      // weighted readiness score (computeReadinessScore) is unchanged —
+      // only its inputs are swapped.
+      const serverEvidence = await deriveReadinessEvidence({
+        userId: g.userId,
+        mode: input.mode,
+        sessionId: input.sessionId,
+        repId: input.repId,
+      });
+
+      const rawAverages: Partial<Record<string, number>> = serverEvidence
+        ? serverEvidence.dimensionAverages
+        : input.dimensionAverages;
       const dimensionAverages: Partial<Record<SkillDimension, number>> = {};
-      for (const [dim, v] of Object.entries(input.dimensionAverages)) {
+      for (const [dim, v] of Object.entries(rawAverages)) {
         if (!VALID_DIMS.has(dim) || v == null || !Number.isFinite(v)) continue;
         dimensionAverages[dim as SkillDimension] = Math.min(
           100,
           Math.max(0, v),
         );
       }
+
+      const evidenceCallouts = serverEvidence
+        ? serverEvidence.callouts
+        : (input.callouts?.slice(0, 8) ?? []);
+      const evidenceTranscript = serverEvidence
+        ? serverEvidence.transcriptExcerpt
+        : (input.transcriptExcerpt?.slice(0, 8000) ?? null);
 
       const moments = await db
         .select({
@@ -717,8 +867,8 @@ export async function finishPrepSession(
           input.mode === "guided"
             ? moments.filter((m) => m.attempts > 0)
             : undefined,
-        transcriptExcerpt: input.transcriptExcerpt?.slice(0, 8000) ?? null,
-        callouts: input.callouts?.slice(0, 8) ?? [],
+        transcriptExcerpt: evidenceTranscript,
+        callouts: evidenceCallouts,
       };
       const { review, source } = await generateReadinessReview(evidence);
 
@@ -735,6 +885,9 @@ export async function finishPrepSession(
         readinessSummary: review.readinessSummary,
         repId: input.repId ?? null,
       });
+      // Phase 15 R-2 (§10.5.3) — the FIRST Readiness Review for an event
+      // is a completion signal; re-finishing the same event isn't.
+      const firstReview = event.readinessScore == null;
       await db
         .update(prepEvents)
         .set({
@@ -742,6 +895,9 @@ export async function finishPrepSession(
           updatedAt: new Date(),
         })
         .where(eq(prepEvents.id, event.id));
+      if (firstReview) {
+        await awardSessionCompletionXp(g.userId, "build_a_rep");
+      }
       if (input.sessionId) {
         await db
           .update(practiceSessions)
@@ -765,6 +921,10 @@ export async function finishPrepSession(
         mode: input.mode,
         overallScore: review.overallScore,
         reviewSource: source,
+        // L1 — "server" = evidence recomputed from persisted reps;
+        // "client_fallback" = no scored rep found, degraded path.
+        evidenceSource: serverEvidence ? "server" : "client_fallback",
+        evidenceReps: serverEvidence?.repCount ?? 0,
       });
       return { ok: true, review };
     },

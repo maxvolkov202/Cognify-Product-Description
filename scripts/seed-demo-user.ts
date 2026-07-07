@@ -212,7 +212,7 @@ async function main() {
         completedReps: 3,
         plannedExerciseIds: planned.map((e) => e!.id),
         compositeAtClose: dayBase,
-        closedOutAt: new Date(day.getTime() + 19 * 3_600_000),
+        completedAt: new Date(day.getTime() + 19 * 3_600_000),
       })
       .onConflictDoNothing()
       .returning({ id: schema.muscleGroupDays.id });

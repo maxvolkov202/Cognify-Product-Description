@@ -15,6 +15,7 @@ import type {
   FeedbackBullet,
   NextRepFocusItem,
   RepScore,
+  ScoreRepEventContext,
   SkillDimension,
 } from "@/types/domain";
 import { FEEDBACK_VERSION } from "@/types/domain";
@@ -204,6 +205,12 @@ export type ScoreRepModeContext = {
       text: string;
     };
   };
+  /** PRD v3 §7.5 — Build a Rep: the real event this rep is preparing
+   *  for (guided moments AND the Full Simulation). Grounds coaching in
+   *  the event's description + uploaded context. Rendered ONLY when set
+   *  (see renderEventContextBlock), so every non-prep prompt stays
+   *  byte-identical — calibration reference runs never carry it. */
+  eventContext?: ScoreRepEventContext;
   /** 0-based rep index in the session. */
   repIndex: number;
   totalReps: number;
@@ -724,6 +731,11 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
   }
   const retryBlock = renderRetryEvaluationBlock(ctx.retryContext);
   if (retryBlock) lines.push(retryBlock);
+  // PRD v3 §7.5 — event-preparation context, same guardrail as the retry
+  // block: appended ONLY when eventContext is set, so all non-prep
+  // prompts stay byte-identical (calibration guardrail).
+  const eventBlock = renderEventContextBlock(ctx.eventContext);
+  if (eventBlock) lines.push(eventBlock);
   lines.push(`This is rep ${ctx.repIndex + 1} of ${ctx.totalReps}.`);
   return lines.join("\n");
 }
@@ -754,6 +766,28 @@ export function renderRetryEvaluationBlock(
     `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
     `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
   ].join("\n");
+}
+
+/** PRD v3 §7.5 — the EVENT CONTEXT block for Build a Rep preparation
+ *  reps. Shared by the single-call path (via renderModeBlock) and the
+ *  two-stage path (prepareContext in score-stages.ts), mirroring
+ *  renderRetryEvaluationBlock exactly. Returns null when the rep isn't
+ *  a prep rep, keeping non-prep prompts byte-identical — this is the
+ *  calibration guardrail: reference runs never carry eventContext. */
+export function renderEventContextBlock(
+  ec: ScoreRepModeContext["eventContext"] | undefined,
+): string | null {
+  if (!ec) return null;
+  return [
+    `EVENT CONTEXT (the user is preparing for this real event — ground coaching in it, do NOT render verbatim):`,
+    `Event: ${ec.title} (${ec.eventType})`,
+    `What the user told us about it: ${ec.description.slice(0, 2000)}`,
+    ec.contextSummary
+      ? `From their uploaded materials:\n${ec.contextSummary.slice(0, 1500)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** Provider-quirk normalizer. Runs before Zod validation. Today's

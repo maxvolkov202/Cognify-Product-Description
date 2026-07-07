@@ -40,6 +40,11 @@ const WINDOWS: Record<WindowKey, number> = {
 type WindowStats = {
   window: WindowKey;
   count: number;
+  /** Phase 15 P-6 — TRUE when this window's numbers are the safeDb
+   *  fallback (DB unreachable), NOT a genuinely quiet healthy window.
+   *  Without this, "the observability layer is down" rendered as
+   *  count:0 / all-zero failure rates = "all healthy". */
+  degraded?: boolean;
   // Server-wall-clock latency including auth + rate-limit + DB writes.
   totalLatencyMs: { p50: number | null; p95: number | null; p99: number | null };
   // LLM-only latency from the wrapper.
@@ -134,6 +139,7 @@ async function statsForWindow(windowKey: WindowKey): Promise<WindowStats> {
     {
       window: windowKey,
       count: 0,
+      degraded: true,
       totalLatencyMs: { p50: null, p95: null, p99: null },
       modelLatencyMs: { p50: null, p95: null, p99: null },
       avgPromptSizeBytes: null,

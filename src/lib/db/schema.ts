@@ -150,6 +150,11 @@ export const users = cognifyV2Schema.table("users", {
   /** Anti-grinding: at most one level-up per UTC day. XP still accrues
    *  for tomorrow when capped. */
   lastLevelUpAt: timestamp("last_level_up_at", { withTimezone: true }),
+  /** Phase 15 R-3 (migration 0037) — highest rankFromXp().rankIndex the
+   *  user has been celebrated for. NULL = prime silently on next read
+   *  (no retroactive fanfare). Server truth for the rank-up moment;
+   *  localStorage remains only a same-browser dedupe. */
+  lastCelebratedRankIndex: integer("last_celebrated_rank_index"),
   // WS-3 cross-session archetype rotation: excludes the previous
   // session's archetype from the next session's selection so users
   // don't see the same archetype back-to-back.
@@ -264,6 +269,10 @@ export const practiceSessions = cognifyV2Schema.table(
     sessionType: sessionTypeEnum("session_type"),
     // WS-6 Focus Workout: populated only when sessionType='focus'.
     focusDimension: dimensionEnum("focus_dimension"),
+    // Skill Lab resume snapshot (migration 0036, audit L3): client-persisted
+    // { applicationId, exercises, idx, outcomes-lite } so a mid-session
+    // refresh can resume. NULL for other modes and once the session ends.
+    sessionState: jsonb("session_state").$type<Record<string, unknown>>(),
   },
   (t) => [index("sessions_user_started_idx").on(t.userId, t.startedAt)],
 );

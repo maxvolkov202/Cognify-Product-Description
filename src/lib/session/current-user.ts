@@ -7,6 +7,7 @@ import { crewInvites, friendships, users } from "@/lib/db/schema";
 import { hasDatabase, safeDb } from "@/lib/db/safe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabase } from "@/lib/supabase/admin";
+import { recordAuthDegraded } from "@/lib/ops/counters";
 
 export const GUEST_COOKIE = "cognify_guest_id";
 
@@ -32,9 +33,16 @@ export const currentUser = cache(async (): Promise<ResolvedUser | null> => {
       if (authUser && hasDatabase()) {
         const resolved = await resolveSupabaseUser(authUser);
         if (resolved) return resolved;
+        // Phase 15 P-5 — a VALID Supabase session whose user row lookup
+        // failed is about to render the guest experience (F-2's failure
+        // mode). Count it loudly; /api/health surfaces the counter.
+        recordAuthDegraded("resolveSupabaseUser returned null for a valid session");
       }
-    } catch {
-      // Supabase unavailable — fall through
+    } catch (err) {
+      // Supabase unavailable — fall through (guest), but never silently.
+      recordAuthDegraded(
+        err instanceof Error ? err.message : "supabase auth threw",
+      );
     }
   }
 

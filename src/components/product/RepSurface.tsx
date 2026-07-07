@@ -300,6 +300,10 @@ export function RepSurface({
     : maxDurationMs;
 
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  // Phase 15 P-1 — persistence failures must be VISIBLE. saveRep's
+  // graceful fallback used to be indistinguishable from success (F-4:
+  // the whole flagship loop "worked" with zero rows landing).
+  const [persistFailed, setPersistFailed] = useState(false);
   const [frameworkVisible, setFrameworkVisible] = useState(
     revealFrameworkAfterMs === 0,
   );
@@ -721,6 +725,7 @@ export function RepSurface({
       savedRepId = saved.repId;
       savedCalloutIds = saved.calloutIds;
       savedGate = saved.gate ?? null;
+      if (!saved.persisted) setPersistFailed(true);
       onComplete?.({
         score,
         recording: result,
@@ -733,6 +738,7 @@ export function RepSurface({
       });
     } catch {
       // Persistence failed, score still shown.
+      setPersistFailed(true);
     }
 
     setPhase({
@@ -948,6 +954,21 @@ export function RepSurface({
         twoColumnLayout ? "max-w-3xl" : "max-w-2xl",
       )}
     >
+      {/* Phase 15 P-1 — loud persistence failure. The score below is
+          real (it was computed), but nothing about this rep landed in
+          the database: no progress, no streak, no XP. */}
+      {persistFailed && (
+        <div
+          role="alert"
+          data-testid="rep-persist-failed"
+          className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-800 dark:text-amber-200"
+        >
+          <span className="font-bold">This rep didn&apos;t save.</span> Your
+          score is shown, but it won&apos;t count toward progress, streaks,
+          or XP. Check your connection — the next rep will try again.
+        </div>
+      )}
+
       {/* ——— Focus overlay (retry takes precedence over carryover) ——— */}
       {(retryFocus || carryoverFocus) && phase.kind === "idle" && (
         <FocusOverlay

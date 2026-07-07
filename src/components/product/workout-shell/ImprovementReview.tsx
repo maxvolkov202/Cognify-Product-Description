@@ -202,6 +202,20 @@ export default function ImprovementReview({
         </p>
       </div>
 
+      {/* Next development opportunity (Coach's Focus). PRD §4.7 order:
+          Score Movement → Implementation Review → Coach's Focus →
+          Breakdown. */}
+      {nextFocus && (
+        <div className="rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-brand-lavender mb-1">
+            Next development opportunity
+          </div>
+          <p className="text-sm text-slate-800 dark:text-ink-100">
+            {nextFocus.text}
+          </p>
+        </div>
+      )}
+
       {/* PRD §4.7.1 — "The same Core Skill Breakdown appears in both
           feedback screens." Per-skill first→retry movement on top
           (§4.7.2 examples show multi-skill deltas), C10-softened: big
@@ -250,18 +264,6 @@ export default function ImprovementReview({
             callouts={retry.score.callouts}
             primaryFocusDimension={retry.score.primaryFocusDimension}
           />
-        </div>
-      )}
-
-      {/* Next development opportunity. */}
-      {nextFocus && (
-        <div className="rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-brand-lavender mb-1">
-            Next development opportunity
-          </div>
-          <p className="text-sm text-slate-800 dark:text-ink-100">
-            {nextFocus.text}
-          </p>
         </div>
       )}
 
