@@ -94,22 +94,24 @@ export async function POST(req: Request) {
 
   const input: ProgressionInput = parsed;
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Phase 14 — provider-agnostic gate: EITHER configured provider can
+  // serve this analysis (the shim resolves primary/fallback).
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
     if (shouldHardFailOnMissingKey()) {
       log.error({
         event: "progression.missing_key",
-        msg: "ANTHROPIC_API_KEY missing in production",
+        msg: "No AI provider key configured in production",
       });
       return NextResponse.json(
         {
           error: "missing_key",
           message:
-            "Progression analysis is unavailable — ANTHROPIC_API_KEY is not configured on this deployment.",
+            "Progression analysis is unavailable — no AI provider key (ANTHROPIC_API_KEY or OPENAI_API_KEY) is configured on this deployment.",
         },
         { status: 503 },
       );
     }
-    warnMissingKey("ANTHROPIC_API_KEY");
+    warnMissingKey("ANTHROPIC_API_KEY or OPENAI_API_KEY");
     return NextResponse.json(fallbackProgression(input));
   }
 

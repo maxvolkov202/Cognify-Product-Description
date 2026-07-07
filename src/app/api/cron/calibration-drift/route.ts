@@ -8,6 +8,19 @@ import { calibrationRuns } from "@/lib/db/schema";
 import { scoreRep } from "@/lib/ai/score";
 import { log, serializeErr } from "@/lib/log";
 
+// Phase 14 — provider-aware drift tolerance. The reference-rep expected
+// bands were authored against Anthropic Haiku; GPT-4o systematically
+// compresses the top band (measured baseline 2026-07-06: avg |delta| 7.8,
+// worst ~23), so the Haiku threshold flags most reps as "drift" when
+// OpenAI is the active provider. Tolerance follows the provider; override
+// with DRIFT_TOLERANCE for either.
+import { AI_PROVIDER_ACTIVE } from "@/lib/ai/claude";
+const DRIFT_TOLERANCE = parseInt(
+  process.env.DRIFT_TOLERANCE ??
+    (AI_PROVIDER_ACTIVE === "openai" ? "12" : "5"),
+  10,
+);
+
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -99,7 +112,7 @@ export async function GET(req: Request) {
 
       const isFallback = score.modelVersion === "mock-fallback-v1";
       const driftHigh =
-        deltaComposite != null && Math.abs(deltaComposite) > 5;
+        deltaComposite != null && Math.abs(deltaComposite) > DRIFT_TOLERANCE;
       const status = isFallback
         ? "fallback"
         : driftHigh

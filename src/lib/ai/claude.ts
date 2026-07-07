@@ -47,19 +47,46 @@ const openaiKey = process.env.OPENAI_API_KEY;
 const openaiFallbackModel =
   process.env.OPENAI_FALLBACK_MODEL ?? "gpt-4o";
 
-// SCORING_PROVIDER chooses which provider is the canonical primary for
-// the scoring path. Values: "anthropic" (default) | "openai". Anything
-// else falls back to "anthropic" with a warning.
-const rawProvider = (process.env.SCORING_PROVIDER ?? "anthropic")
+// Phase 14 — per-ROLE OpenAI models, mirroring the Anthropic MODELS map
+// so provider choice never collapses the scoring/framework distinction.
+// Call sites keep passing the Anthropic-flavored ids from MODELS as the
+// stable ROLE KEY; when OpenAI serves (primary or fallback) the id is
+// resolved through this map. OPENAI_FALLBACK_MODEL stays honored as the
+// both-roles default for back-compat.
+const OPENAI_MODELS: Record<"scoring" | "framework", string> = {
+  scoring: process.env.OPENAI_SCORING_MODEL ?? openaiFallbackModel,
+  framework: process.env.OPENAI_FRAMEWORK_MODEL ?? openaiFallbackModel,
+};
+
+/** Map an Anthropic-flavored role-key model id → the OpenAI model that
+ *  plays the same role. Unknown ids get the scoring default (safe: it is
+ *  the speed-first choice). */
+function openaiModelForRole(anthropicModelId: string): string {
+  if (anthropicModelId === MODELS.framework) return OPENAI_MODELS.framework;
+  return OPENAI_MODELS.scoring;
+}
+
+// Phase 14 — ONE provider knob for EVERY AI path (scoring, prompt gen,
+// prep plans, narratives, talking points). `AI_PROVIDER` is canonical;
+// `SCORING_PROVIDER` remains a legacy alias (it used to govern only the
+// scoring path while everything else stayed Anthropic-primary — that
+// asymmetry meant "openai mode" still burned a dead Anthropic round-trip
+// on every non-scoring call). Values: "anthropic" (default) | "openai".
+const rawProvider = (
+  process.env.AI_PROVIDER ??
+  process.env.SCORING_PROVIDER ??
+  "anthropic"
+)
   .trim()
   .toLowerCase();
-const SCORING_PROVIDER: "anthropic" | "openai" =
+const PRIMARY_PROVIDER: "anthropic" | "openai" =
   rawProvider === "openai" ? "openai" : "anthropic";
-if (rawProvider !== SCORING_PROVIDER && process.env.NODE_ENV !== "test") {
+if (rawProvider !== PRIMARY_PROVIDER && process.env.NODE_ENV !== "test") {
   console.warn(
-    `[ai] SCORING_PROVIDER="${rawProvider}" not recognized — falling back to "anthropic". Valid values: "anthropic" | "openai".`,
+    `[ai] AI_PROVIDER="${rawProvider}" not recognized — falling back to "anthropic". Valid values: "anthropic" | "openai".`,
   );
 }
+type Provider = "anthropic" | "openai";
 
 // Phase 1 — explicit per-call timeouts. Without these, a slow upstream
 // could block the scoring route for the full Vercel maxDuration (60s).
@@ -163,6 +190,89 @@ function shouldFallback(err: unknown, fallbackClientReady: boolean): boolean {
   return false;
 }
 
+// ── Phase 14 — dead-provider circuit breaker ────────────────────────────
+// A provider with a lapsed key / dead org fails IDENTICALLY on every call,
+// yet each request still paid the failed round-trip (latency + log noise)
+// before falling back. Hard key-level failures open the breaker for a
+// cooldown window during which dispatch skips straight to the peer.
+// In-memory per process — serverless instances each learn independently,
+// which is exactly the isolation we want. Transient failures (5xx / 429 /
+// timeouts) deliberately do NOT trip it.
+const BREAKER_THRESHOLD = 2;
+const BREAKER_COOLDOWN_MS = parseInt(
+  process.env.AI_BREAKER_COOLDOWN_MS ?? "120000",
+  10,
+);
+
+type BreakerState = {
+  consecutiveHardFailures: number;
+  openUntil: number;
+  lastReason: string | null;
+};
+const breaker: Record<Provider, BreakerState> = {
+  anthropic: { consecutiveHardFailures: 0, openUntil: 0, lastReason: null },
+  openai: { consecutiveHardFailures: 0, openUntil: 0, lastReason: null },
+};
+
+/** Key-level failures that will repeat on every call until a human acts. */
+function isHardKeyFailure(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message ?? "";
+  return (
+    msg.includes("credit balance") ||
+    msg.includes("credit_balance_too_low") ||
+    msg.includes("organization_not_found") ||
+    msg.includes("authentication_error") ||
+    msg.includes("insufficient_quota") ||
+    msg.includes("invalid x-api-key") ||
+    msg.includes("Incorrect API key")
+  );
+}
+
+function breakerOpen(provider: Provider): boolean {
+  return Date.now() < breaker[provider].openUntil;
+}
+
+function recordProviderOutcome(provider: Provider, err: unknown | null): void {
+  const state = breaker[provider];
+  if (err == null) {
+    state.consecutiveHardFailures = 0;
+    state.openUntil = 0;
+    state.lastReason = null;
+    return;
+  }
+  if (!isHardKeyFailure(err)) return;
+  state.consecutiveHardFailures += 1;
+  state.lastReason =
+    err instanceof Error ? err.message.slice(0, 160) : String(err).slice(0, 160);
+  if (
+    state.consecutiveHardFailures >= BREAKER_THRESHOLD &&
+    !breakerOpen(provider)
+  ) {
+    state.openUntil = Date.now() + BREAKER_COOLDOWN_MS;
+    console.warn(
+      `[ai] ${provider} breaker OPEN for ${Math.round(BREAKER_COOLDOWN_MS / 1000)}s after ${state.consecutiveHardFailures} hard key failures: ${state.lastReason}`,
+    );
+  }
+}
+
+/** Test-only introspection/reset (pure in-memory state). */
+export const __breakerForTests = {
+  state: breaker,
+  reset(): void {
+    for (const p of ["anthropic", "openai"] as const) {
+      const s = breaker[p];
+      s.consecutiveHardFailures = 0;
+      s.openUntil = 0;
+      s.lastReason = null;
+    }
+  },
+  isHardKeyFailure,
+  recordProviderOutcome,
+  breakerOpen,
+  openaiModelForRole: (id: string) => openaiModelForRole(id),
+};
+
 /** Translate Anthropic `messages.create` params to OpenAI chat
  *  completions format. Lossy by necessity — Anthropic's cache_control
  *  and per-block system structure don't have OpenAI equivalents — but
@@ -214,7 +324,7 @@ function translateToOpenAI(
   }
 
   return {
-    model: openaiFallbackModel,
+    model: openaiModelForRole(params.model),
     max_tokens: params.max_tokens,
     messages: openAiMessages,
     // Match Anthropic's default temperature behavior for parity.
@@ -282,11 +392,12 @@ function translateFromOpenAI(
 async function callAnthropicOnce(
   params: Anthropic.Messages.MessageCreateParamsNonStreaming,
   role: "primary" | "fallback",
+  timeoutMs: number = ANTHROPIC_TIMEOUT_MS,
 ): Promise<{ response: Anthropic.Messages.Message; durationMs: number }> {
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
-  }, ANTHROPIC_TIMEOUT_MS);
+  }, timeoutMs);
   const start = Date.now();
   try {
     const response = (await realAnthropic.messages.create(params, {
@@ -304,7 +415,7 @@ async function callAnthropicOnce(
       /\babort(ed)?\b/i.test(err instanceof Error ? err.message : String(err));
     if (isAbort) {
       const wrapped = new Error(
-        `anthropic timeout after ${ANTHROPIC_TIMEOUT_MS}ms`,
+        `anthropic timeout after ${timeoutMs}ms`,
       );
       wrapped.name = "AbortError";
       throw wrapped;
@@ -321,6 +432,7 @@ async function callAnthropicOnce(
 async function callOpenAIOnce(
   params: Anthropic.Messages.MessageCreateParamsNonStreaming,
   role: "primary" | "fallback",
+  timeoutMs: number = OPENAI_TIMEOUT_MS,
 ): Promise<{ response: Anthropic.Messages.Message; durationMs: number }> {
   if (!realOpenAI) {
     throw new Error("OPENAI_API_KEY not configured");
@@ -328,7 +440,7 @@ async function callOpenAIOnce(
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
-  }, OPENAI_TIMEOUT_MS);
+  }, timeoutMs);
   const start = Date.now();
   try {
     const openaiParams = translateToOpenAI(params);
@@ -346,7 +458,7 @@ async function callOpenAIOnce(
       /\babort(ed)?\b/i.test(err instanceof Error ? err.message : String(err));
     if (isAbort) {
       const wrapped = new Error(
-        `openai timeout after ${OPENAI_TIMEOUT_MS}ms`,
+        `openai timeout after ${timeoutMs}ms`,
       );
       wrapped.name = "AbortError";
       throw wrapped;
@@ -357,35 +469,75 @@ async function callOpenAIOnce(
   }
 }
 
-/** Non-scoring wrapper: Anthropic-primary with optional OpenAI fallback.
+// Phase 14 — generation-path timeouts. These calls (plans, readiness
+// reviews, narratives, prompt gen) legitimately run long, but an
+// unbounded upstream call can hang a server action for the platform's
+// whole maxDuration. Generous, env-tunable ceilings.
+const GEN_ANTHROPIC_TIMEOUT_MS = parseInt(
+  process.env.AI_GEN_ANTHROPIC_TIMEOUT_MS ?? "90000",
+  10,
+);
+const GEN_OPENAI_TIMEOUT_MS = parseInt(
+  process.env.AI_GEN_OPENAI_TIMEOUT_MS ?? "120000",
+  10,
+);
+
+/** Non-scoring wrapper: provider-agnostic since Phase 14.
  *
  *  Used by framework gen, weekly narrative, talking points, prompt gen,
- *  etc. — paths that don't observe SCORING_PROVIDER. Keeping these on the
- *  legacy Anthropic-primary path keeps blast radius scoped to the
- *  scoring path while the provider-peer model is validated.
- *
- *  Note: this path does NOT honor the new timeouts — it's the original
- *  shim shape preserved for back-compat. The scoring path (createWithMetrics)
- *  is the timeout-aware variant. */
+ *  prep plans, readiness reviews. Honors the SAME AI_PROVIDER primary as
+ *  the scoring path (it used to be hardcoded Anthropic-primary, so
+ *  "openai mode" still burned a dead Anthropic round-trip per call),
+ *  consults the dead-provider breaker, and applies generation-grade
+ *  timeouts. Same eligibility rules as the scoring path; no metrics
+ *  object (callers don't record telemetry rows). */
 async function messagesCreateWithFallback(
   params: Anthropic.Messages.MessageCreateParamsNonStreaming,
 ): Promise<Anthropic.Messages.Message> {
+  const isOpenAIPrimary = PRIMARY_PROVIDER === "openai";
+  const fallbackReady = isOpenAIPrimary ? !!apiKey : !!realOpenAI;
+
+  const callPrimary = () =>
+    isOpenAIPrimary
+      ? callOpenAIOnce(params, "primary", GEN_OPENAI_TIMEOUT_MS)
+      : callAnthropicOnce(params, "primary", GEN_ANTHROPIC_TIMEOUT_MS);
+  const callFallback = () =>
+    isOpenAIPrimary
+      ? callAnthropicOnce(params, "fallback", GEN_ANTHROPIC_TIMEOUT_MS)
+      : callOpenAIOnce(params, "fallback", GEN_OPENAI_TIMEOUT_MS);
+  const primaryName: Provider = isOpenAIPrimary ? "openai" : "anthropic";
+  const fallbackName: Provider = isOpenAIPrimary ? "anthropic" : "openai";
+
+  // Breaker short-circuit: a provider known-dead on key-level failures
+  // skips straight to the peer for the cooldown window.
+  if (breakerOpen(primaryName) && fallbackReady) {
+    const { response } = await callFallback();
+    recordProviderOutcome(fallbackName, null);
+    return response;
+  }
+
   try {
-    return (await realAnthropic.messages.create(
-      params,
-    )) as Anthropic.Messages.Message;
+    const { response } = await callPrimary();
+    recordProviderOutcome(primaryName, null);
+    return response;
   } catch (err) {
-    if (!shouldFallback(err, !!realOpenAI) || !realOpenAI) {
+    recordProviderOutcome(primaryName, err);
+    const isAbort =
+      (err instanceof Error && err.name === "AbortError") ||
+      /abort(ed)?|timed out/i.test(
+        err instanceof Error ? err.message : String(err),
+      );
+    if ((!isAbort && !shouldFallback(err, fallbackReady)) || !fallbackReady) {
       throw err;
     }
     const errMsg = err instanceof Error ? err.message : String(err);
     console.warn(
-      `[ai] Anthropic call failed — falling back to OpenAI ${openaiFallbackModel}. Reason:`,
+      `[ai] ${primaryName} call failed — falling back to ${fallbackName}. Reason:`,
       errMsg.slice(0, 200),
     );
-    const openaiParams = translateToOpenAI(params);
-    const openaiResp = await realOpenAI.chat.completions.create(openaiParams);
-    return translateFromOpenAI(openaiResp, "fallback");
+    const { response } = await callFallback();
+    recordProviderOutcome(fallbackName, null);
+    return response;
   }
 }
 
@@ -453,18 +605,32 @@ async function messagesCreateWithMetrics(
   let anthropicDurationMs = 0;
   let openaiDurationMs: number | null = null;
 
-  const isOpenAIPrimary = SCORING_PROVIDER === "openai";
+  const isOpenAIPrimary = PRIMARY_PROVIDER === "openai";
   // For OpenAI primary, the fallback client is Anthropic (always
   // available since we constructed it). For Anthropic primary, the
   // fallback client is OpenAI (only available when OPENAI_API_KEY set).
   const fallbackReady = isOpenAIPrimary ? !!apiKey : !!realOpenAI;
+  const primaryProviderName: Provider = isOpenAIPrimary
+    ? "openai"
+    : "anthropic";
+  const fallbackProviderName: Provider = isOpenAIPrimary
+    ? "anthropic"
+    : "openai";
+  // Phase 14 — dead-provider breaker: skip a known-dead primary for the
+  // cooldown window instead of paying its failed round-trip per call.
+  const skipPrimary = breakerOpen(primaryProviderName) && fallbackReady;
 
   let response: Anthropic.Messages.Message;
   try {
+    if (skipPrimary) {
+      throw new Error(
+        `breaker open: ${breaker[primaryProviderName].lastReason ?? "repeated hard key failures"}`,
+      );
+    }
     if (isOpenAIPrimary) {
       if (!realOpenAI) {
         throw new Error(
-          "SCORING_PROVIDER=openai but OPENAI_API_KEY is not configured",
+          "AI_PROVIDER=openai but OPENAI_API_KEY is not configured",
         );
       }
       const { response: r, durationMs } = await callOpenAIOnce(
@@ -481,7 +647,9 @@ async function messagesCreateWithMetrics(
       response = r;
       anthropicDurationMs = durationMs;
     }
+    recordProviderOutcome(primaryProviderName, null);
   } catch (primaryErr) {
+    if (!skipPrimary) recordProviderOutcome(primaryProviderName, primaryErr);
     underlyingPrimaryError =
       primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
 
@@ -489,7 +657,8 @@ async function messagesCreateWithMetrics(
       (primaryErr instanceof Error && primaryErr.name === "AbortError") ||
       /\babort(ed)?\b|timed out/i.test(underlyingPrimaryError);
 
-    const fallbackEligible = isAbort || shouldFallback(primaryErr, fallbackReady);
+    const fallbackEligible =
+      skipPrimary || isAbort || shouldFallback(primaryErr, fallbackReady);
     if (!fallbackEligible || !fallbackReady) {
       throw primaryErr;
     }
@@ -498,8 +667,8 @@ async function messagesCreateWithMetrics(
     const primaryName = isOpenAIPrimary ? "OpenAI" : "Anthropic";
     const fallbackName = isOpenAIPrimary ? "Anthropic" : "OpenAI";
     const fallbackModel = isOpenAIPrimary
-      ? "claude-haiku-4-5"
-      : openaiFallbackModel;
+      ? params.model // Anthropic serves with the role-key id as-is
+      : openaiModelForRole(params.model);
     console.warn(
       `[ai] ${primaryName} call failed — falling back to ${fallbackName} ${fallbackModel}. Reason:`,
       (underlyingPrimaryError ?? "").slice(0, 200),
@@ -521,7 +690,9 @@ async function messagesCreateWithMetrics(
         response = r;
         openaiDurationMs = durationMs;
       }
+      recordProviderOutcome(fallbackProviderName, null);
     } catch (fallbackErr) {
+      recordProviderOutcome(fallbackProviderName, fallbackErr);
       // BOTH providers failed. Wrap with the primary cause so the route
       // handler's catch + telemetry write can show "both providers failed"
       // + the actual reason on each. Without this wrap, only the fallback
@@ -567,7 +738,7 @@ async function messagesCreateWithMetrics(
   // Single structured log line per call — grep-friendly in Vercel logs
   // and lets us correlate without joining the telemetry table.
   console.log(
-    `[ai] call: provider=${SCORING_PROVIDER} model=${metrics.modelUsed} promptBytes=${metrics.promptSizeBytes ?? "?"} ` +
+    `[ai] call: provider=${PRIMARY_PROVIDER} model=${metrics.modelUsed} promptBytes=${metrics.promptSizeBytes ?? "?"} ` +
       `cacheRead=${metrics.cacheReadTokens ?? 0} cacheCreate=${metrics.cacheCreationTokens ?? 0} ` +
       `input=${metrics.inputTokens ?? 0} output=${metrics.outputTokens ?? 0} ` +
       `anthropicMs=${metrics.anthropicDurationMs} openaiMs=${metrics.openaiDurationMs ?? "-"} ` +
@@ -601,7 +772,10 @@ export const anthropic = {
 /** Which provider is configured as the canonical primary for the scoring
  *  path. Exported so /ops dashboards and the health/stats endpoint can
  *  surface the active configuration. */
-export const SCORING_PROVIDER_ACTIVE = SCORING_PROVIDER;
+export const SCORING_PROVIDER_ACTIVE = PRIMARY_PROVIDER;
+/** Phase 14 — canonical name; SCORING_PROVIDER_ACTIVE kept for ops
+ *  back-compat. */
+export const AI_PROVIDER_ACTIVE = PRIMARY_PROVIDER;
 
 // Latency tuning (2026-04-24): scoring is on the critical path of every
 // rep, so we default to Haiku 4.5 for speed. The deterministic scorer
