@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Flame, Sparkles, Trophy } from "lucide-react";
+import { Flame, Sparkles, Target, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { DIMENSION_LABELS, type SkillDimension } from "@/types/domain";
 import {
@@ -102,7 +102,20 @@ export default function ProgressionStrip({
         </div>
       )}
       <div className="flex items-center gap-3">
-        <RankBadge rank={rank} size={48} />
+        {/* Rank-up: brief scale-pop + tier-colored glow ring. Decorative —
+            .animate-badge-pop is disabled under prefers-reduced-motion. */}
+        <div
+          className={cn("shrink-0 rounded-full", rankUp && "animate-badge-pop")}
+          style={
+            rankUp
+              ? {
+                  boxShadow: `0 0 0 3px ${rank.tierColor}33, 0 0 22px ${rank.tierColor}55`,
+                }
+              : undefined
+          }
+        >
+          <RankBadge rank={rank} size={48} />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-extrabold text-slate-900 dark:text-white">
@@ -128,8 +141,14 @@ export default function ProgressionStrip({
             aria-valuemax={100}
             aria-label={`Progress toward ${rank.nextLabel ?? "max rank"}`}
           >
+            {/* On rank-up the bar visually refills from 0 (600ms ease via
+                .animate-fill-from-zero — keyframe declares only `from`, so
+                the `to` resolves to the inline width). */}
             <div
-              className="h-full rounded-full transition-all"
+              className={cn(
+                "h-full rounded-full transition-all",
+                rankUp && "animate-fill-from-zero",
+              )}
               style={{
                 width: `${Math.max(3, Math.round(rank.progress * 100))}%`,
                 backgroundColor: rank.tierColor,
@@ -201,6 +220,15 @@ export default function ProgressionStrip({
           >
             All achievements →
           </Link>
+        </div>
+      )}
+
+      {/* Empty state — no live weekly challenges. One friendly line
+          instead of dead air; matches the strip's muted microcopy. */}
+      {summary.weeklyChallenges.length === 0 && (
+        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-ink-500">
+          <Target className="w-3.5 h-3.5 shrink-0" aria-hidden />
+          No live challenges right now — fresh ones land every Monday.
         </div>
       )}
 

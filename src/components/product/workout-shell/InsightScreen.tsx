@@ -118,9 +118,21 @@ export default function InsightScreen({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-ink-400">
-          <span className="inline-flex items-center gap-1.5">
-            <Timer className="w-3.5 h-3.5" />
-            {windowSec.min}–{windowSec.max}s response window
+          <span className="inline-flex flex-col gap-0.5">
+            <span className="inline-flex items-center gap-1.5">
+              <Timer className="w-3.5 h-3.5" />
+              {windowSec.min}–{windowSec.max}s response window
+            </span>
+            {/* I-7 (PRD §8.5.3 step 4) — the window was adaptively
+                tightened (profile ≥80 in this dim) or loosened
+                (confidence-builder day). One quiet parenthetical. */}
+            {station.windowAdjusted && (
+              <span className="text-[10px] font-medium text-slate-400 dark:text-ink-500">
+                {station.windowAdjusted === "tightened"
+                  ? "(tightened — you've earned harder reps)"
+                  : "(loosened — bank a clean win)"}
+              </span>
+            )}
           </span>
           {/* ADR-001 Decision 2 — reveal the rep's primary constraint
               type after the topic is chosen (C19). */}

@@ -12,6 +12,29 @@
 
 import type { RepScore, SkillDimension } from "@/types/domain";
 
+/**
+ * Phase 15 I-8 — the coaching-technique taxonomy (PRD §8.3.9). The
+ * coaching memory already tells the model to "switch technique" when
+ * coaching keeps missing, but nothing recorded WHICH technique was in
+ * play — so effectiveness could never be verified per technique. These
+ * four match the angles the EFFECTIVENESS prompt line already suggests.
+ */
+export const COACHING_TECHNIQUES = [
+  "smaller_step",
+  "transcript_example",
+  "related_hidden_skill",
+  "reframe",
+] as const;
+
+export type CoachingTechnique = (typeof COACHING_TECHNIQUES)[number];
+
+export function isCoachingTechnique(v: unknown): v is CoachingTechnique {
+  return (
+    typeof v === "string" &&
+    (COACHING_TECHNIQUES as readonly string[]).includes(v)
+  );
+}
+
 export type CoachFocus = {
   dimension: SkillDimension;
   /** Hidden Skill id (src/types/sub-skills.ts). Null when the focus is
@@ -19,6 +42,10 @@ export type CoachFocus = {
   subSkill: string | null;
   /** The actionable focus line the user is asked to implement. */
   text: string;
+  /** Phase 15 I-8 — the coaching technique in play for this focus.
+   *  Sourced from the retry response's implementationReview.technique
+   *  (first-rep responses don't emit one → null). */
+  technique?: CoachingTechnique | null;
 };
 
 export type ImplementationVerdict = "nailed" | "partial" | "missed";
@@ -29,6 +56,10 @@ export type ImplementationReview = {
   verdict: ImplementationVerdict;
   /** One sentence on HOW the implementation landed. */
   note: string;
+  /** Phase 15 I-8 — which coaching technique the coached focus used
+   *  (model-classified on the retry; lenient schema → invalid tags
+   *  become undefined, never a parse failure). */
+  technique?: CoachingTechnique;
 };
 
 /**
@@ -57,6 +88,14 @@ export function deriveCoachFocus(score: RepScore): CoachFocus | null {
   }
   if (!primary) return null;
 
+  // Phase 15 I-8 — carry the technique tag through to the ledger. Only
+  // retry-evaluated scores carry an implementationReview, so first-rep
+  // focuses get technique=null (their technique is classified later, by
+  // the retry that evaluates them — see saveRep's verdict backfill).
+  const technique = isCoachingTechnique(score.implementationReview?.technique)
+    ? score.implementationReview.technique
+    : null;
+
   const matching =
     bullets.find((b) => b.dimension === primary) ?? bullets[0] ?? null;
   if (matching) {
@@ -64,12 +103,14 @@ export function deriveCoachFocus(score: RepScore): CoachFocus | null {
       dimension: matching.dimension as SkillDimension,
       subSkill: matching.subSkill ?? null,
       text: matching.text,
+      technique,
     };
   }
   return {
     dimension: primary as SkillDimension,
     subSkill: null,
     text: `Improve ${primary.replace(/_/g, " ")} on your next attempt.`,
+    technique,
   };
 }
 

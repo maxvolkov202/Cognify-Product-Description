@@ -229,7 +229,7 @@ export function DashboardHero({
       <div className="relative mt-6 flex flex-wrap items-center gap-3 border-t border-ink-200/60 pt-5 dark:border-ink-700/60">
         <Link
           href="/workout"
-          className="brand-gradient inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(151,136,255,0.6)] transition-transform hover:scale-[1.02]"
+          className="brand-gradient animate-sheen inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(151,136,255,0.6)] transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
           <Mic className="size-4" strokeWidth={2.5} />
           Start today&rsquo;s workout

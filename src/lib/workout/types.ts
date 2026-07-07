@@ -37,6 +37,12 @@ export const StationSchema = z.object({
     .object({ minSec: z.number(), maxSec: z.number() })
     .nullable()
     .default(null),
+  /** I-7 (PRD §8.5.3 step 4) — non-null when responseWindow was
+   *  adaptively tightened (profile dim estimate ≥80) or loosened
+   *  (confidence-builder day). Optional (not defaulted) for the same
+   *  reason as recentFocus below: existing ShellStation literal
+   *  constructors stay valid; absent ≡ null ≡ window as authored. */
+  windowAdjusted: z.enum(["tightened", "loosened"]).nullable().optional(),
   /** ADR-001 Decision 2 — the framework's constraint types (time |
    *  structure | tone | complexity | none), revealed on the insight
    *  screen so the rep's "one primary constraint" is explicit. */

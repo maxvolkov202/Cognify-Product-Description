@@ -17,7 +17,10 @@ import {
   type SelectInput,
   type RecentDaySnapshot,
 } from "@/server/lib/workout/assignment";
-import { renderCoachingMemoryBlock } from "@/lib/profile/snapshot";
+import {
+  aggregateTechniqueEffectiveness,
+  renderCoachingMemoryBlock,
+} from "@/lib/profile/snapshot";
 import type { CommunicationSnapshot } from "@/lib/profile/snapshot";
 import { benchmarkNote } from "@/lib/profile/stage-benchmarks";
 import { MUSCLE_GROUP_IDS, type MuscleGroupId } from "@/types/domain";
@@ -196,6 +199,7 @@ section("coaching effectiveness line (7.1)");
       { dimension: "structure", coached: 6, implemented: 1, rate: 1 / 6 },
       { dimension: "clarity", coached: 5, implemented: 4, rate: 4 / 5 },
     ],
+    techniqueEffectiveness: [],
     eventReadiness: [],
   };
   const block = renderCoachingMemoryBlock(snapshot)!;
@@ -210,6 +214,142 @@ section("coaching effectiveness line (7.1)");
   assert(
     block.includes("DIFFERENT coaching technique"),
     "instructs a technique switch",
+  );
+  // Phase 15 I-8 — without technique data the line carries no named
+  // technique (byte-identical to the pre-I-8 line — calibration-safe).
+  assert(
+    !block.includes("it has landed for this user"),
+    "no technique data → no named-technique suffix",
+  );
+
+  // With a proven better technique for the resistant dim, the line
+  // names it with the exact operator copy.
+  const withTechnique = renderCoachingMemoryBlock({
+    ...snapshot,
+    techniqueEffectiveness: [
+      {
+        dimension: "structure",
+        technique: "smaller_step",
+        coached: 4,
+        implemented: 3,
+        rate: 3 / 4,
+      },
+      {
+        dimension: "structure",
+        technique: "reframe",
+        coached: 3,
+        implemented: 0,
+        rate: 0,
+      },
+    ],
+  })!;
+  assert(
+    withTechnique.includes(
+      "For structure, try the smaller single step approach — it has landed for this user.",
+    ),
+    "better-performing technique is named for the resistant dim",
+  );
+  assert(
+    !withTechnique.includes("reframe approach"),
+    "worse-performing technique is not named",
+  );
+
+  // A technique for a NON-resistant dim never triggers the suffix.
+  const otherDim = renderCoachingMemoryBlock({
+    ...snapshot,
+    techniqueEffectiveness: [
+      {
+        dimension: "clarity",
+        technique: "transcript_example",
+        coached: 5,
+        implemented: 4,
+        rate: 4 / 5,
+      },
+    ],
+  })!;
+  assert(
+    !otherDim.includes("it has landed for this user"),
+    "technique data on a responsive dim → no suffix",
+  );
+
+  // A technique that also misses (rate below 0.5) is not recommended.
+  const noBetter = renderCoachingMemoryBlock({
+    ...snapshot,
+    techniqueEffectiveness: [
+      {
+        dimension: "structure",
+        technique: "smaller_step",
+        coached: 5,
+        implemented: 1,
+        rate: 1 / 3,
+      },
+    ],
+  })!;
+  assert(
+    !noBetter.includes("it has landed for this user"),
+    "technique below the better-rate bar → no suffix",
+  );
+}
+
+section("technique effectiveness aggregation (I-8)");
+{
+  const row = (
+    dimension: string,
+    technique: string | null,
+    implementedVerdict: string | null,
+  ) => ({ dimension, technique, implementedVerdict });
+
+  // ≥3 coached samples required for an entry to appear.
+  const sparse = aggregateTechniqueEffectiveness([
+    row("structure", "smaller_step", "nailed"),
+    row("structure", "smaller_step", "missed"),
+  ]);
+  assert(sparse.length === 0, "<3 coached samples → no entry");
+
+  const agg = aggregateTechniqueEffectiveness([
+    row("structure", "smaller_step", "nailed"),
+    row("structure", "smaller_step", "partial"),
+    row("structure", "smaller_step", "missed"),
+    row("structure", "smaller_step", null), // coached, never retried
+    row("structure", "reframe", "missed"),
+    row("structure", "reframe", "missed"),
+    row("structure", "reframe", "missed"),
+    row("clarity", "smaller_step", "nailed"), // other dim, sparse
+    row("structure", null, "nailed"), // untagged history — ignored
+    row("structure", "not_a_technique", "nailed"), // invalid tag — ignored
+  ]);
+  const smaller = agg.find(
+    (e) => e.dimension === "structure" && e.technique === "smaller_step",
+  );
+  assert(!!smaller, "smaller_step entry present at ≥3 coached");
+  assert(smaller?.coached === 4, `coached counts all tagged rows (got ${smaller?.coached})`);
+  assert(
+    smaller?.implemented === 2,
+    `nailed+partial implement (got ${smaller?.implemented})`,
+  );
+  assert(
+    smaller?.rate === 2 / 3,
+    `rate over RETRIED rows only, 2/3 (got ${smaller?.rate})`,
+  );
+  const reframe = agg.find(
+    (e) => e.dimension === "structure" && e.technique === "reframe",
+  );
+  assert(reframe?.rate === 0, "all-missed technique rates 0");
+  assert(
+    !agg.some((e) => e.dimension === "clarity"),
+    "sparse (dim, technique) pairs excluded",
+  );
+  assert(agg.length === 2, `untagged/invalid rows never aggregate (got ${agg.length})`);
+
+  // Never-retried techniques carry a null rate (no false signal).
+  const neverRetried = aggregateTechniqueEffectiveness([
+    row("tone", "reframe", null),
+    row("tone", "reframe", null),
+    row("tone", "reframe", null),
+  ]);
+  assert(
+    neverRetried[0]?.rate === null && neverRetried[0]?.coached === 3,
+    "coached-but-never-retried → rate null",
   );
 }
 
@@ -240,6 +380,7 @@ section("upcoming event line (I2)");
     mostConsistentCoreSkill: null,
     strongestApplication: null,
     coachingEffectiveness: [],
+    techniqueEffectiveness: [],
     eventReadiness: [],
   };
 

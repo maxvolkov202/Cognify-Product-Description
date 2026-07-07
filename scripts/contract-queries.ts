@@ -31,6 +31,12 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
+// Wave 3 — the workout-day raw-SQL fetchers early-return empty when the
+// v2 training engine is off, which would make their contract checks
+// vacuous. Default the flag ON for the harness run (an explicit value in
+// the environment / .env.local still wins).
+process.env.FF_TRAINING_ENGINE_V2 ??= "true";
+
 import { randomUUID } from "node:crypto";
 
 const DEMO_EMAIL = "demo@cognify.test";
@@ -131,6 +137,10 @@ async function main() {
     "../src/lib/db/queries/weekly-challenges"
   );
   const friends = await import("../src/lib/db/queries/friends");
+  // Wave 3 — the Daily Workout's action-local raw-SQL fetchers
+  // (db.execute path: timestamptz comes back as a STRING, the exact
+  // class that silently broke plateau detection — see day-fetchers.ts).
+  const dayFetchers = await import("../src/server/lib/workout/day-fetchers");
 
   // ── Fixture user: demo@cognify.test, else any user, else exit 0 ─────
   const demoUser = await db.query.users.findFirst({
@@ -311,6 +321,47 @@ async function main() {
     [
       "weekly-challenges.getTeamChallenges",
       () => weeklyChallenges.getTeamChallenges(userId),
+    ],
+
+    // workout-day fetchers (src/server/lib/workout/day-fetchers.ts) —
+    // the db.execute raw-SQL class. Beyond "executes without a swallowed
+    // failure", the checks assert the timestamptz-as-string contract:
+    // every ISO-string field the fetchers return must Date.parse to a
+    // finite number (the .toISOString-on-a-string crash class reduces to
+    // exactly this). fetchPlateauedDims parses its `at` fields
+    // internally — a bad parse throws inside the call and fails the
+    // check the same way.
+    [
+      "workout-day.fetchEngagement",
+      async () => {
+        const rows = await dayFetchers.fetchEngagement(userId);
+        for (const r of rows) {
+          if (
+            r.lastTrainedAt != null &&
+            !Number.isFinite(Date.parse(r.lastTrainedAt))
+          ) {
+            throw new Error(
+              `lastTrainedAt is not a parseable timestamp: ${JSON.stringify(r.lastTrainedAt)} (dim=${r.dimension})`,
+            );
+          }
+        }
+      },
+    ],
+    [
+      "workout-day.fetchRecentRepsAggregates",
+      () => dayFetchers.fetchRecentRepsAggregates(userId),
+    ],
+    [
+      "workout-day.fetchPlateauedDims",
+      () => dayFetchers.fetchPlateauedDims(userId),
+    ],
+    [
+      "workout-day.fetchRecentFocusByDim",
+      () => dayFetchers.fetchRecentFocusByDim(userId),
+    ],
+    [
+      "workout-day.fetchCompletedExerciseIds",
+      () => dayFetchers.fetchCompletedExerciseIds(userId),
     ],
 
     // friends.ts

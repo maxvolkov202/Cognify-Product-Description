@@ -12,6 +12,7 @@
 import {
   applyRepToProfile,
   computeOverallScore,
+  COACHED_ATTEMPT_WEIGHT,
   emptyProfile,
   learningRate,
   PROFILE_MAX_SAMPLE_WEIGHT,
@@ -86,6 +87,100 @@ section("core skill folding");
   assert(
     Object.keys(legacy.coreSkills).length === 0,
     "legacy + structural dims skipped",
+  );
+}
+
+section("coached attempts fold at half weight (Phase 15 I-9)");
+{
+  assert(COACHED_ATTEMPT_WEIGHT === 0.5, "half weight pinned (doc contract)");
+
+  // Same prior, same evidence — the retry moves the estimate exactly
+  // half as far as a first attempt would.
+  const prior = applyRepToProfile(emptyProfile(), {
+    dimensions: dims(70),
+    at: AT,
+  });
+  const asFirst = applyRepToProfile(prior, {
+    dimensions: dims(90),
+    attemptKind: "first",
+    at: AT,
+  });
+  const asRetry = applyRepToProfile(prior, {
+    dimensions: dims(90),
+    attemptKind: "retry",
+    at: AT,
+  });
+  // prior 70, k=0.5: first → 80; retry (k=0.25) → 75.
+  assert(asFirst.coreSkills.clarity?.score === 80, "first attempt moves full k");
+  assert(
+    asRetry.coreSkills.clarity?.score === 75,
+    `retry moves half k (got ${asRetry.coreSkills.clarity?.score})`,
+  );
+  const firstMove = asFirst.coreSkills.clarity!.score - 70;
+  const retryMove = asRetry.coreSkills.clarity!.score - 70;
+  assert(
+    Math.abs(retryMove - firstMove * COACHED_ATTEMPT_WEIGHT) < 1e-9,
+    "retry movement is exactly half the first-attempt movement",
+  );
+
+  // "again" attempts are coached too.
+  const asAgain = applyRepToProfile(prior, {
+    dimensions: dims(90),
+    attemptKind: "again",
+    at: AT,
+  });
+  assert(asAgain.coreSkills.clarity?.score === 75, "again moves half k");
+
+  // PRD "every rep contributes" preserved: the retry still moves the
+  // estimate, still counts as a sample, still increments totalReps.
+  assert(retryMove > 0, "retry still moves the estimate");
+  assert(
+    asRetry.coreSkills.clarity?.sampleCount === 2 && asRetry.totalReps === 2,
+    "retry still counts as a sample + rep",
+  );
+
+  // Half weight applies to hidden skills and application estimates too.
+  const hiddenPrior = applyRepToProfile(emptyProfile(), {
+    dimensions: dims(70),
+    subSkillScores: { word_choice: 60 },
+    applicationId: "storytelling",
+    composite: 60,
+    at: AT,
+  });
+  const hiddenRetry = applyRepToProfile(hiddenPrior, {
+    dimensions: dims(70),
+    subSkillScores: { word_choice: 80 },
+    applicationId: "storytelling",
+    composite: 80,
+    attemptKind: "retry",
+    at: AT,
+  });
+  assert(
+    hiddenRetry.hiddenSkills.word_choice?.score === 65,
+    `hidden skill folds at half k (got ${hiddenRetry.hiddenSkills.word_choice?.score})`,
+  );
+  assert(
+    hiddenRetry.applications.storytelling?.score === 65,
+    `application estimate folds at half k (got ${hiddenRetry.applications.storytelling?.score})`,
+  );
+
+  // First evidence for a skill is adopted outright even on a retry —
+  // an EMA with no prior has nothing to blend against.
+  const coldRetry = applyRepToProfile(emptyProfile(), {
+    dimensions: dims(66),
+    attemptKind: "retry",
+    at: AT,
+  });
+  assert(
+    coldRetry.coreSkills.clarity?.score === 66,
+    "no prior estimate → evidence adopted outright even when coached",
+  );
+
+  // Legacy callers that omit attemptKind keep full weight (back-compat).
+  const omitted = applyRepToProfile(prior, { dimensions: dims(90), at: AT });
+  assert(
+    omitted.coreSkills.clarity?.score === 80,
+    "omitted attemptKind → full weight",
   );
 }
 

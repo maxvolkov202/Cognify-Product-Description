@@ -182,6 +182,11 @@ export type Station = {
   /** PRD v3 Phase 2.2 — Exercise Framework fields (null pre-enrichment). */
   objective: string | null;
   responseWindow: { minSec: number; maxSec: number } | null;
+  /** I-7 (PRD §8.5.3 step 4) — set when responseWindow was adaptively
+   *  tightened (profile dim estimate ≥80: earned harder reps) or
+   *  loosened (confidence-builder day: bank a clean win). Absent/null =
+   *  window exactly as authored in the catalog. */
+  windowAdjusted?: "tightened" | "loosened" | null;
   /** ADR-001 Decision 2 — constraint types this framework may apply. */
   constraintTypes: string[] | null;
   /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
@@ -355,6 +360,17 @@ export type RepScore = {
     /** Optional — GPT-4o sometimes omits it (Phase 11.A); consumers fall
      *  back to the deterministic verdict copy. */
     note?: string;
+    /** Phase 15 I-8 — which coaching technique the coached focus used
+     *  (model-classified on the retry; feeds the coaching_events
+     *  technique ledger). Literal union kept inline to avoid a
+     *  domain→ai import cycle; the canonical CoachingTechnique type
+     *  lives in src/lib/ai/coach-focus.ts. Parsed leniently — invalid
+     *  tags become undefined, never a validation failure. */
+    technique?:
+      | "smaller_step"
+      | "transcript_example"
+      | "related_hidden_skill"
+      | "reframe";
   } | null;
   /** Phase 3 calibration scaffold: the AI's self-classification of which
    *  tone band it landed in. Lets us measure tone-vs-score alignment in

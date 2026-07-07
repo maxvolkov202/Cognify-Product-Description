@@ -18,6 +18,10 @@ import {
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";
 import { SKILL_DIMENSIONS } from "@/types/domain";
+import {
+  isCoachingTechnique,
+  type CoachingTechnique,
+} from "@/lib/ai/coach-focus";
 import type { CommunicationProfileState } from "./communication-profile";
 
 export type CoachingMemoryEntry = {
@@ -42,6 +46,20 @@ export type CoachingEffectiveness = {
   rate: number | null;
 };
 
+/** Phase 15 I-8 — per-(dimension, technique) effectiveness over the same
+ *  ledger window. Verifies whether "switch technique" actually works:
+ *  when a dimension's coaching keeps missing but ONE technique lands,
+ *  the memory block names it. Only techniques with ≥
+ *  EFFECTIVENESS_MIN_SAMPLES coached samples are included. */
+export type TechniqueEffectiveness = {
+  dimension: SkillDimension;
+  technique: CoachingTechnique;
+  coached: number;
+  implemented: number;
+  /** implemented / retried; null when never retried. */
+  rate: number | null;
+};
+
 export type CommunicationSnapshot = {
   profile: CommunicationProfileState;
   /** Weakest / strongest measured core skill (null with no evidence). */
@@ -55,6 +73,9 @@ export type CommunicationSnapshot = {
   /** Phase 7.1 — implementation rates per coached dimension (wider
    *  window than recentCoaching). */
   coachingEffectiveness: CoachingEffectiveness[];
+  /** Phase 15 I-8 — the same rates split per (dimension, technique);
+   *  only entries with ≥ EFFECTIVENESS_MIN_SAMPLES coached samples. */
+  techniqueEffectiveness: TechniqueEffectiveness[];
   /** Phase 7.6 (PRD §8.3.8) — active Build a Rep events + latest
    *  readiness, so every engine knows what the user is preparing for. */
   eventReadiness: { title: string; readinessScore: number | null }[];
@@ -92,6 +113,7 @@ export type CoachingMemorySnapshot = Pick<
   | "recentCoaching"
   | "recurringWeaknesses"
   | "coachingEffectiveness"
+  | "techniqueEffectiveness"
   | "eventReadiness"
 >;
 
@@ -110,9 +132,70 @@ type MemoryReads = [
     implementedVerdict: string | null;
     createdAt: Date;
   }[],
-  { dimension: string; implementedVerdict: string | null }[],
+  {
+    dimension: string;
+    implementedVerdict: string | null;
+    technique: string | null;
+  }[],
   { title: string; readinessScore: number | null }[],
 ];
+
+/** Phase 15 I-8 — pure per-(dimension, technique) aggregation over the
+ *  effectiveness ledger window. Rows without a technique tag (all
+ *  pre-0040 history; first-rep rows not yet classified by a retry)
+ *  don't contribute, so users without the data produce an empty array —
+ *  calibration-safe. Only entries with ≥ EFFECTIVENESS_MIN_SAMPLES
+ *  coached samples are returned. Exported for tests. */
+export function aggregateTechniqueEffectiveness(
+  rows: {
+    dimension: string;
+    implementedVerdict: string | null;
+    technique: string | null;
+  }[],
+): TechniqueEffectiveness[] {
+  const techAgg = new Map<
+    string,
+    {
+      dimension: SkillDimension;
+      technique: CoachingTechnique;
+      coached: number;
+      retried: number;
+      implemented: number;
+    }
+  >();
+  for (const r of rows) {
+    if (!isCoachingTechnique(r.technique)) continue;
+    const dim = r.dimension as SkillDimension;
+    const key = `${dim}:${r.technique}`;
+    const cur = techAgg.get(key) ?? {
+      dimension: dim,
+      technique: r.technique,
+      coached: 0,
+      retried: 0,
+      implemented: 0,
+    };
+    cur.coached += 1;
+    if (r.implementedVerdict != null) {
+      cur.retried += 1;
+      if (
+        r.implementedVerdict === "nailed" ||
+        r.implementedVerdict === "partial"
+      ) {
+        cur.implemented += 1;
+      }
+    }
+    techAgg.set(key, cur);
+  }
+  return [...techAgg.values()]
+    .filter((a) => a.coached >= EFFECTIVENESS_MIN_SAMPLES)
+    .map((a) => ({
+      dimension: a.dimension,
+      technique: a.technique,
+      coached: a.coached,
+      implemented: a.implemented,
+      rate: a.retried > 0 ? a.implemented / a.retried : null,
+    }));
+}
 
 /** The four cheap reads shared by both snapshot builders — everything
  *  except the progress_snapshots trends scan. */
@@ -146,6 +229,8 @@ function fetchCoachingMemoryReads(userId: string): Promise<MemoryReads> {
       .select({
         dimension: coachingEvents.dimension,
         implementedVerdict: coachingEvents.implementedVerdict,
+        // Phase 15 I-8 — per-technique aggregation rides the same read.
+        technique: coachingEvents.technique,
       })
       .from(coachingEvents)
       .where(eq(coachingEvents.userId, userId))
@@ -250,6 +335,9 @@ function assembleCoachingMemory(reads: MemoryReads): CoachingMemorySnapshot {
       rate: a.retried > 0 ? a.implemented / a.retried : null,
     }));
 
+    const techniqueEffectiveness =
+      aggregateTechniqueEffectiveness(effectivenessRows);
+
     return {
       profile,
       weakestCoreSkill: weakest,
@@ -257,6 +345,7 @@ function assembleCoachingMemory(reads: MemoryReads): CoachingMemorySnapshot {
       recentCoaching,
       recurringWeaknesses,
       coachingEffectiveness,
+      techniqueEffectiveness,
       eventReadiness: eventRows.map((e) => ({
         title: e.title,
         readinessScore: e.readinessScore,
@@ -380,6 +469,41 @@ export async function buildCommunicationSnapshot(
   }, null);
 }
 
+/** Phase 15 I-8 — prompt-facing names for the technique taxonomy,
+ *  matching the phrasing the EFFECTIVENESS line already uses. */
+const TECHNIQUE_PROMPT_LABELS: Record<CoachingTechnique, string> = {
+  smaller_step: "smaller single step",
+  transcript_example: "concrete before/after transcript example",
+  related_hidden_skill: "related hidden skill",
+  reframe: "reframe",
+};
+
+/** A technique counts as "better-performing" for a resistant dimension
+ *  when it has enough coached samples (enforced upstream at aggregation:
+ *  ≥ EFFECTIVENESS_MIN_SAMPLES) and at least half its retried focuses
+ *  were implemented — strictly better than the ≤1/3 resistant gate.
+ *  Highest rate wins; ties break toward more evidence. */
+export const TECHNIQUE_BETTER_RATE = 0.5;
+
+function bestTechniqueFor(
+  entries: TechniqueEffectiveness[],
+  dimension: SkillDimension,
+): TechniqueEffectiveness | null {
+  let best: TechniqueEffectiveness | null = null;
+  for (const t of entries) {
+    if (t.dimension !== dimension) continue;
+    if (t.rate == null || t.rate < TECHNIQUE_BETTER_RATE) continue;
+    if (
+      !best ||
+      t.rate > (best.rate ?? 0) ||
+      (t.rate === best.rate && t.coached > best.coached)
+    ) {
+      best = t;
+    }
+  }
+  return best;
+}
+
 /** Render the COACHING MEMORY block for the scoring prompt (PRD §8.6.4).
  *  Returns null when there's nothing to remember — first-time users and
  *  calibration reference reps produce byte-identical prompts.
@@ -416,11 +540,20 @@ export function renderCoachingMemoryBlock(
       e.coached >= EFFECTIVENESS_MIN_SAMPLES,
   );
   if (resistant.length > 0) {
-    lines.push(
-      `EFFECTIVENESS: ${resistant
-        .map((e) => `${e.dimension} coaching implemented ${e.implemented}/${e.coached}`)
-        .join("; ")} — for these, use a DIFFERENT coaching technique: smaller single step, a concrete before/after example from THIS transcript, or coach via a related hidden skill instead.`,
-    );
+    let effectivenessLine = `EFFECTIVENESS: ${resistant
+      .map((e) => `${e.dimension} coaching implemented ${e.implemented}/${e.coached}`)
+      .join("; ")} — for these, use a DIFFERENT coaching technique: smaller single step, a concrete before/after example from THIS transcript, or coach via a related hidden skill instead.`;
+    // Phase 15 I-8 — when the ledger PROVES one technique lands for a
+    // resistant dimension, name it instead of leaving the switch to
+    // chance. Only-when-present: users without technique data (all
+    // pre-0040 history) keep the line byte-identical — calibration-safe.
+    for (const e of resistant) {
+      const best = bestTechniqueFor(snapshot.techniqueEffectiveness, e.dimension);
+      if (best) {
+        effectivenessLine += ` For ${e.dimension}, try the ${TECHNIQUE_PROMPT_LABELS[best.technique]} approach — it has landed for this user.`;
+      }
+    }
+    lines.push(effectivenessLine);
   }
   // I2 / PRD §8.3.8 — the snapshot always knew what the user is preparing
   // for; now the scorer does too. ONE line, most-recent active event only.

@@ -635,6 +635,82 @@ function pickAlternates(
   return ranked.slice(0, 2).map((r) => r.dim);
 }
 
+// ─── 1.5. Adaptive time pressure (I-7) ───────────────────────────────────
+
+/** I-7 (PRD §8.5.3 step 4 — configuration "intentionally varied over
+ *  time"; §8.4.4 lists time pressure as a lever) — thresholds for the
+ *  response-window adaptation. Exported for tests. */
+export const WINDOW_TIGHTEN_DIM_ESTIMATE = 80;
+export const WINDOW_ADJUST_RATE = 0.15;
+export const WINDOW_MIN_FLOOR_SEC = 15;
+export const WINDOW_MAX_CAP_SEC = 300;
+
+export type WindowAdjustment = "tightened" | "loosened" | null;
+
+/** Round to the nearest 5 seconds so adapted windows read like authored
+ *  ones (60–90s, not 51–77s). */
+function roundTo5Sec(sec: number): number {
+  return Math.round(sec / 5) * 5;
+}
+
+/** I-7 — adapt one exercise's response window to the user:
+ *
+ *  - confidence-builder day → LOOSEN min/max by 15% (cap max at 300s).
+ *    Checked FIRST: when both signals fire, banking a clean win beats
+ *    piling on time pressure (same precedence as the day selector's
+ *    confidence check running before sharp regression).
+ *  - profile dim estimate ≥ 80 → TIGHTEN min/max by 15% (round to 5s,
+ *    floor min at 15s) — strong users have earned harder reps.
+ *  - otherwise (or null window) → unchanged.
+ *
+ *  Pure + deterministic. `adjusted` is null whenever the output window
+ *  equals the input (tiny windows can round back onto themselves) so the
+ *  UI never claims an adjustment that didn't happen. */
+export function adaptResponseWindow(
+  window: { minSec: number; maxSec: number } | null,
+  signals: { dimEstimate: number | null; confidenceBuilder: boolean },
+): {
+  window: { minSec: number; maxSec: number } | null;
+  adjusted: WindowAdjustment;
+} {
+  if (!window) return { window: null, adjusted: null };
+
+  if (signals.confidenceBuilder) {
+    const maxSec = Math.min(
+      WINDOW_MAX_CAP_SEC,
+      roundTo5Sec(window.maxSec * (1 + WINDOW_ADJUST_RATE)),
+    );
+    const minSec = Math.min(
+      maxSec,
+      roundTo5Sec(window.minSec * (1 + WINDOW_ADJUST_RATE)),
+    );
+    if (minSec === window.minSec && maxSec === window.maxSec) {
+      return { window, adjusted: null };
+    }
+    return { window: { minSec, maxSec }, adjusted: "loosened" };
+  }
+
+  if (
+    signals.dimEstimate != null &&
+    signals.dimEstimate >= WINDOW_TIGHTEN_DIM_ESTIMATE
+  ) {
+    const minSec = Math.max(
+      WINDOW_MIN_FLOOR_SEC,
+      roundTo5Sec(window.minSec * (1 - WINDOW_ADJUST_RATE)),
+    );
+    const maxSec = Math.max(
+      minSec,
+      roundTo5Sec(window.maxSec * (1 - WINDOW_ADJUST_RATE)),
+    );
+    if (minSec === window.minSec && maxSec === window.maxSec) {
+      return { window, adjusted: null };
+    }
+    return { window: { minSec, maxSec }, adjusted: "tightened" };
+  }
+
+  return { window, adjusted: null };
+}
+
 // ─── 2. Exercise sampler ─────────────────────────────────────────────────
 
 export type SampleExercisesInput = {
