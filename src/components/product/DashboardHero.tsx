@@ -209,7 +209,7 @@ export function DashboardHero({
             href={focusDim ? `/skill-lab?focus=${focusDim}` : "/skill-lab"}
             accent="brand"
             valueNode={
-              <span className="line-clamp-1 text-lg font-extrabold leading-tight text-ink-900 dark:text-white md:text-xl">
+              <span className="truncate text-base font-extrabold leading-tight text-ink-900 dark:text-white sm:text-lg md:text-xl">
                 {focusDim ? DIMENSION_LABELS[focusDim] : "Pick one"}
               </span>
             }
@@ -234,7 +234,7 @@ export function DashboardHero({
           <Mic className="size-4" strokeWidth={2.5} />
           Start today&rsquo;s workout
           <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-            4 reps · ~10 min
+            3 exercises · ~6 min
           </span>
         </Link>
         <Link
@@ -282,7 +282,7 @@ function VitalSign({
       href={href as never}
       className={`group flex flex-col gap-1.5 rounded-2xl border border-ink-200/80 p-3 transition hover:-translate-y-0.5 hover:border-ink-300 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.1)] dark:border-ink-700/80 dark:hover:border-ink-600 md:p-4 ${accentBg}`}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
+      <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.08em] text-ink-500 dark:text-ink-400 sm:text-[10px] sm:tracking-[0.14em]">
         {iconNode}
         {label}
       </div>

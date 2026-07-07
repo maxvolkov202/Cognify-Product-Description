@@ -180,9 +180,14 @@ export async function getStreakStatus(userId: string): Promise<StreakStatus> {
       const t = ymdToUtcMidnight(today);
       // Walk forward from anchor to today; if any intermediate day is
       // committed-but-not-repped, anchor is dead.
+      // Phase 16 fix (caught in the visual tour): the walk must STOP
+      // BEFORE today — today's committed day isn't "missed" while the
+      // user still has hours left to train. With `dt <= t`, every
+      // Mon-Fri user woke to a DEAD streak each committed morning until
+      // their first rep of the day.
       for (
         let dt = new Date(a.getTime() + 86_400_000);
-        dt <= t;
+        dt < t;
         dt = new Date(dt.getTime() + 86_400_000)
       ) {
         const iso = dt.toISOString().slice(0, 10);
@@ -204,15 +209,24 @@ export async function getStreakStatus(userId: string): Promise<StreakStatus> {
       };
     }
 
+    // Phase 16 fix: when today has no rep YET, start the walk from
+    // yesterday — today's committed day isn't "missed" (and must not
+    // consume a freeze) while the user still has hours left to train.
+    // The anchor-alive check above applies the same exclusion.
+    const walkStart = activeToday
+      ? today
+      : new Date(ymdToUtcMidnight(today).getTime() - 86_400_000)
+          .toISOString()
+          .slice(0, 10);
     const withFreeze = walkBackStreak({
-      startDate: today,
+      startDate: walkStart,
       maxFreezes: freezes,
       repDates: repSet,
       committedDays,
       tz,
     });
     const raw = walkBackStreak({
-      startDate: today,
+      startDate: walkStart,
       maxFreezes: 0,
       repDates: repSet,
       committedDays,

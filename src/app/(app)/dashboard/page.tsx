@@ -319,7 +319,7 @@ export default async function DashboardPage() {
             href: "/workout",
             label: "Time to train",
             tagline:
-              "Four speaking reps across different skill drills. Instant feedback after each one. One improvement to focus on every rep.",
+              "Three exercises, each a First Rep and a focused Retry. Instant feedback, one improvement at a time.",
             repsThisWeek: totalRepsThisWeek,
             iconKey: "workout",
           },

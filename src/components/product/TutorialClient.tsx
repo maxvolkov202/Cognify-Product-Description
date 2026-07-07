@@ -196,7 +196,7 @@ function ModeGrid() {
     {
       icon: Dumbbell,
       title: "Daily Workout",
-      line: "10 min · 4 reps · habit engine",
+      line: "6 min · 3 exercises · habit engine",
     },
     {
       icon: Compass,
