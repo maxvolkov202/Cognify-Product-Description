@@ -24,15 +24,15 @@ const MAX_REPS_PER_RUN = 2_000;
  * out and rep audio is kept indefinitely.
  *
  * Voice is biometric PII; retention is GDPR/CCPA-relevant. Auth model
- * is the same as the other crons (CRON_SECRET or x-vercel-cron header).
+ * is the same as the other crons (Bearer CRON_SECRET — Vercel injects it automatically; the
+ * spoofable x-vercel-cron header is deliberately NOT accepted).
  */
 async function handleCron(req: Request) {
   const expected = process.env.CRON_SECRET;
-  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
   const authOk = expected
     ? req.headers.get("authorization") === `Bearer ${expected}`
     : false;
-  if (process.env.NODE_ENV === "production" && !authOk && !isVercelCron) {
+  if (process.env.NODE_ENV === "production" && !authOk) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

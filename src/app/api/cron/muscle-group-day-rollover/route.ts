@@ -19,6 +19,9 @@ import { closeOutDay } from "@/lib/muscle-groups/day-status";
 import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
+// Up to 500 candidate days × per-row closeOutDay — needs Fluid/Pro
+// headroom, same as the drift cron.
+export const maxDuration = 300;
 
 const GRACE_MINUTES = 60;
 
@@ -47,6 +50,15 @@ async function handleCron(req: Request) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
   } else {
+    // Phase 16 pre-prod hardening: warn-and-allow was fine for dev, but
+    // in production a missing secret must FAIL CLOSED — this route
+    // mutates day/streak state (or sends email) for every user.
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "cron_secret_unset" },
+        { status: 503 },
+      );
+    }
     log.warn({
       event: "cron.muscle_group_day_rollover.no_secret",
       msg: "CRON_SECRET not set — running without auth (dev only).",

@@ -53,11 +53,10 @@ const CONCURRENCY = 8;
  */
 async function handleCron(req: Request) {
   const expected = process.env.CRON_SECRET;
-  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
   const authOk = expected
     ? req.headers.get("authorization") === `Bearer ${expected}`
     : false;
-  if (process.env.NODE_ENV === "production" && !authOk && !isVercelCron) {
+  if (process.env.NODE_ENV === "production" && !authOk) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

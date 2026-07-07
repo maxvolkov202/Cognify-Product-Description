@@ -487,15 +487,25 @@ export async function tagWorkoutRep(
             `);
           }
 
-          // Phase 15 W-1 — §5.7 Final Communication Score. This is the
-          // ONLY writer that fires in the real flow: completeWorkout-
-          // Session had zero callers, so composite_at_close stayed NULL
-          // for every real day — the Workout Complete hero showed "—",
-          // the vs-last-day delta never rendered, and the §8.4.4
-          // confidence-builder selector could never fire. When the
-          // recount reaches the day target, close the day with the
-          // average of its scored reps (retries included — the day's
-          // score is the whole day's work).
+        }
+
+        // Phase 15 W-1 (§5.7 Final Communication Score) + Phase 16 fix:
+        // close the day on the rep that ENDS it, not the one that merely
+        // reaches the exercise target. In the v2 loop the 3rd exercise's
+        // FIRST attempt hits completed_reps=3 while its required Retry is
+        // still ahead — closing there flipped the server payload to
+        // day-complete MID-EXERCISE and a background refresh yanked the
+        // UI out of the loop (caught by the live full-day run). Gate:
+        //   • v2 (attemptKind present): close on retry/again attempts —
+        //     the attempt that finishes an exercise loop. A skip-retry
+        //     degraded day stays open for the rollover cron (by design).
+        //   • v1 legacy (attemptKind never sent): close on the first
+        //     attempt that reaches the target — v1 has no retries.
+        // completeWorkoutSession still has zero callers; this is the one
+        // real-flow writer of composite_at_close (avg of the day's
+        // scored reps, retries included).
+        const isLegacyV1Tag = input.attemptKind === undefined;
+        if (isRetryAttempt || isLegacyV1Tag) {
           const closed = await tx.execute<{ id: string }>(drizzleSql`
             UPDATE cognify_v2.muscle_group_days d
             SET composite_at_close = sub.avg_composite,

@@ -315,8 +315,8 @@ Remaining ledger: F-1 🟡 (generated-prompt register — accepted, revisit at A
 2. Max eyes-on dev test of Phases 1–9 on :3333.
 3. Calibration replay (Phase 3 coaching-memory + Phase 7 EFFECTIVENESS lines changed v2 scoring prompts; non-retry legacy prompts remain byte-identical).
 4. Run smoke harness (`scripts/smoke-engine-v2.ts`) with live keys.
-5. Prod migrations 0028–0034 (`apply-prod-migration.mjs`) + exercise seed (84) + profile backfill.
-6. Prod env: flip `FF_*` flags, RESEND_API_KEY, CRON_SECRET (new cron), Supabase `prep-context` bucket auto-creates.
+5. Prod migrations **0028–0039** (`apply-prod-migration.mjs`, one file each, then `node scripts/verify-prod-migrations.mjs`) + exercise seed (**94** exercises / ~1334 prompts — export prod DATABASE_URL, script echoes the host) + `backfill-communication-profile.ts` (NOT backfill-progression — legacy formula). Full runbook: `plans/prod-promotion-runbook.md`.
+6. Prod env: **six** flags (`FF_MUSCLE_GROUP_WORKOUT` + the five PRD flags — all default OFF in prod; missing the first renders BetaSoon), RESEND_API_KEY + EMAIL_FROM, CRON_SECRET (all crons fail closed without it), UPSTASH_* (real rate limits), AI_PROVIDER=openai until Anthropic re-ups. Supabase `prep-context` bucket auto-creates. Then REDEPLOY (env applies to new builds only).
 7. Optional post-credit: `expand-prompt-bank.ts --apply` (Phase 8.2).
 
 ---

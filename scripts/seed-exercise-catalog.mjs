@@ -465,6 +465,10 @@ async function applyToDb(exercises) {
     console.error("[seed-exercise-catalog] DATABASE_URL not set");
     process.exit(1);
   }
+  // Phase 16 interlock: this script legitimately runs against PROD, so
+  // make the target unmistakable in the transcript before any write.
+  const host = new URL(dbUrl.replace(/^postgresql:/, "http:")).host;
+  console.log(`[seed-exercise-catalog] TARGET DATABASE HOST: ${host}`);
   const sql = postgres(dbUrl, { max: 1, prepare: false });
 
   const stats = {

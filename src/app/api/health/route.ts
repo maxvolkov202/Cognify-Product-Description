@@ -76,6 +76,24 @@ export async function GET(req: Request) {
     dbHealth.reachable &&
     !ai.breaker[ai.provider].open;
 
+  // Phase 16 pre-prod hardening: the PUBLIC body is a bare liveness
+  // signal (safe for external uptime pollers). The detailed body — raw
+  // DB error strings, pooler connection counts, write-failure messages,
+  // provider/breaker state — requires the ops bearer (OPS_SECRET, falls
+  // back to CRON_SECRET so no new credential is strictly required).
+  const opsSecret = process.env.OPS_SECRET ?? process.env.CRON_SECRET;
+  const authorized =
+    process.env.NODE_ENV !== "production" ||
+    (!!opsSecret &&
+      req.headers.get("authorization") === `Bearer ${opsSecret}`);
+
+  if (!authorized) {
+    return NextResponse.json(
+      { ok, ts: new Date().toISOString() },
+      { status: ok ? 200 : 503 },
+    );
+  }
+
   return NextResponse.json(
     {
       ok,

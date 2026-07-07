@@ -228,18 +228,43 @@ export async function deleteAccount(
   };
 
   return safeDb<AccountActionResult>(async () => {
+    // Phase 16 pre-prod fix: capture the auth-user id BEFORE deleting the
+    // row. The old lookup paged listUsers() (first 50 only) and matched
+    // by email — past ~50 signups the auth record survived deletion and
+    // the "deleted" email could still sign back in.
+    const [row] = await db
+      .select({ authUserId: users.authUserId })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+
     // Remove our user row — cascade removes reps, sessions, scores, etc.
     // per the ON DELETE CASCADE FKs in schema.ts.
     await db.delete(users).where(eq(users.id, user.id));
 
     // Remove the Supabase auth user so the email can't sign in again.
     const admin = supabaseAdmin();
-    const { data } = await admin.auth.admin.listUsers();
-    const authUser = data.users.find(
-      (u) => u.email?.toLowerCase() === user.email!.toLowerCase(),
-    );
-    if (authUser) {
-      await admin.auth.admin.deleteUser(authUser.id);
+    if (row?.authUserId) {
+      await admin.auth.admin.deleteUser(row.authUserId);
+    } else {
+      // Legacy rows without auth_user_id: best-effort email match, but
+      // page through ALL users instead of trusting page one.
+      let page = 1;
+      for (;;) {
+        const { data } = await admin.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        });
+        const authUser = data.users.find(
+          (u) => u.email?.toLowerCase() === user.email!.toLowerCase(),
+        );
+        if (authUser) {
+          await admin.auth.admin.deleteUser(authUser.id);
+          break;
+        }
+        if (data.users.length < 200) break;
+        page += 1;
+      }
     }
 
     // Sign out the current session

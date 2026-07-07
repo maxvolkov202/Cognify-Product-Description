@@ -19,6 +19,14 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
+// Phase 16 interlock: may run against PROD — announce the target host.
+if (process.env.DATABASE_URL) {
+  const host = new URL(
+    process.env.DATABASE_URL.replace(/^postgresql:/, "http:"),
+  ).host;
+  console.log(`[backfill-communication-profile] TARGET DATABASE HOST: ${host}`);
+}
+
 import postgres from "postgres";
 import {
   applyRepToProfile,

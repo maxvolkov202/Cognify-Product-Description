@@ -58,6 +58,15 @@ async function handleCron(req: Request) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
   } else {
+    // Phase 16 pre-prod hardening: warn-and-allow was fine for dev, but
+    // in production a missing secret must FAIL CLOSED — this route
+    // mutates day/streak state (or sends email) for every user.
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "cron_secret_unset" },
+        { status: 503 },
+      );
+    }
     log.warn({
       event: "cron.committed_day_reminder.no_secret",
       msg: "CRON_SECRET not set — running without auth (dev only).",
