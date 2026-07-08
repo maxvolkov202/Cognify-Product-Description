@@ -29,7 +29,8 @@ const ALLOWED_MIME = new Set([
  */
 export async function POST(req: NextRequest) {
   const ident = getRateLimitIdentifier(req);
-  const rl = await rateLimit(`bug-report:${ident}`, { count: 5, window: "1 h" });
+  // Per-IP: 20/h absorbs a shared office IP without opening spam floodgates.
+  const rl = await rateLimit(`bug-report:${ident}`, { count: 20, window: "1 h" });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: "Too many reports. Try again in an hour." },

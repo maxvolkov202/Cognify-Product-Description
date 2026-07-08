@@ -28,7 +28,9 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: Request) {
   const rl = await rateLimit(getRateLimitIdentifier(req), {
-    count: 10,
+    // Per-IP: offices share one NAT IP, so this absorbs many
+    // simultaneous users, not one browser's request rate.
+    count: 60,
     window: "1 m",
   });
   if (!rl.allowed) {

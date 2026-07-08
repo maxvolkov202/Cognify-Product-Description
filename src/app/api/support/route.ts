@@ -27,7 +27,9 @@ const TOPIC_LABELS: Record<z.infer<typeof SupportSchema>["topic"], string> = {
 
 export async function POST(request: Request) {
   const rl = await rateLimit(getRateLimitIdentifier(request), {
-    count: 5,
+    // Per-IP: shared office/campus IPs mean several users can file
+    // support requests in the same window.
+    count: 20,
     window: "10 m",
   });
   if (!rl.allowed) {
