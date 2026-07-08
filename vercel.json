@@ -15,7 +15,7 @@
     },
     {
       "path": "/api/cron/muscle-group-day-rollover",
-      "schedule": "0 * * * *"
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/api/cron/audio-retention",
@@ -23,7 +23,7 @@
     },
     {
       "path": "/api/cron/committed-day-reminder",
-      "schedule": "0 * * * *"
+      "schedule": "0 16 * * *"
     }
   ]
 }
