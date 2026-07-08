@@ -9,6 +9,7 @@ import { ArrowLeft, Check, Mic } from "lucide-react";
 import { motion } from "motion/react";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import type { ShellStation } from "@/lib/workout/types";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { cn } from "@/lib/utils/cn";
 
 export type WorkoutProgressBarProps = {
@@ -29,9 +30,19 @@ export default function WorkoutProgressBar({
   const totalStations = stations.length || 4;
   const currentStation = stations[currentStationIndex] ?? null;
   const dimLabel = dim ? MUSCLE_GROUP_LABELS[dim] : "Workout";
+  const theme = dim ? DIM_THEMES[dim] : null;
 
   return (
-    <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 via-white to-violet-50/60 dark:from-purple-500/15 dark:via-ink-900 dark:to-ink-900 p-4 sm:p-5 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 via-white to-violet-50/60 dark:from-purple-500/15 dark:via-ink-900 dark:to-ink-900 p-4 sm:p-5 shadow-sm">
+      {/* Dim-gradient hairline — ties the in-workout header to the same
+          branded system as the landing cards. */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+          theme ? theme.tile : "from-brand-lavender to-fuchsia-500",
+        )}
+      />
       <div className="flex items-center justify-between gap-3">
         {onBack && (
           <button
@@ -68,10 +79,21 @@ export default function WorkoutProgressBar({
                 key={station.exerciseId}
                 className={cn(
                   "rounded-full flex items-center justify-center",
+                  // Progress fill = dim gradient (theme.tile) so the dots
+                  // read as the same system as the station strip.
                   isComplete
-                    ? "bg-emerald-500 text-white"
+                    ? theme
+                      ? cn("bg-gradient-to-br text-white", theme.tile)
+                      : "bg-emerald-500 text-white"
                     : isCurrent
-                      ? "bg-purple-600 text-white ring-2 ring-purple-200"
+                      ? theme
+                        ? cn(
+                            "bg-gradient-to-br text-white ring-2 ring-purple-200 dark:ring-white/20",
+                            theme.tile,
+                            "shadow-md",
+                            theme.glow,
+                          )
+                        : "bg-purple-600 text-white ring-2 ring-purple-200"
                       : "bg-slate-200 dark:bg-ink-700",
                 )}
                 style={{ width: isCurrent ? 22 : 18, height: isCurrent ? 22 : 18 }}

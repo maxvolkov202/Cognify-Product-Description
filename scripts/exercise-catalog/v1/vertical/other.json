@@ -884,7 +884,7 @@
       "name": "The 3 Point Rule",
       "prompts": [
         {
-          "text": "Give three reasons you're the right hire for this role.",
+          "text": "Make the case to the hiring panel that you're the right hire for this role.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -894,7 +894,7 @@
           ]
         },
         {
-          "text": "Make the case in three points for the promotion you want.",
+          "text": "Make the case to your manager for the promotion you want.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -912,7 +912,7 @@
           ]
         },
         {
-          "text": "Defend in three points why your project deserves more time.",
+          "text": "Defend to a skeptical exec why your project deserves more time.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -1028,7 +1028,7 @@
           ]
         },
         {
-          "text": "Recount the moment you decided you needed to leave your last job.",
+          "text": "Recount the moment you realized a job or project was no longer right for you.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -1037,7 +1037,7 @@
           ]
         },
         {
-          "text": "Tell the story of a hire who turned out to be a mistake.",
+          "text": "Tell the story of a time you championed a person or an idea that turned out to be a mistake.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -1056,7 +1056,7 @@
           ]
         },
         {
-          "text": "Tell the story of the deliverable you nearly missed and saved at 2am.",
+          "text": "Tell the story of a deadline you nearly missed and what it took to save it.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -1065,7 +1065,7 @@
           ]
         },
         {
-          "text": "Recount the all-hands where you had to deliver news no one wanted.",
+          "text": "Recount a time you had to deliver unwelcome news to a room full of people.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -1918,7 +1918,7 @@
           ]
         },
         {
-          "text": "Describe the moment you knew you needed to leave your last job.",
+          "text": "Describe the moment you realized it was time to walk away from something at work.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -2365,7 +2365,7 @@
           ]
         },
         {
-          "text": "Explain how on-call works on your team.",
+          "text": "Explain how urgent issues get handled on your team after hours.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -2498,7 +2498,7 @@
           ]
         },
         {
-          "text": "Open the design review by naming the central tension.",
+          "text": "Open a project review by naming the central tension.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -2550,7 +2550,7 @@
           ]
         },
         {
-          "text": "Define what your job is to your seven-year-old niece.",
+          "text": "Define what your job is to a curious seven-year-old.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -2604,7 +2604,7 @@
           ]
         },
         {
-          "text": "Summarize the company's strategy for the S-1 cover page.",
+          "text": "Summarize the company's whole strategy for a room of skeptical investors.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -2613,7 +2613,7 @@
           ]
         },
         {
-          "text": "State the moral of this year's hardest leadership decision.",
+          "text": "State the moral of the hardest decision you've made this year.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -2734,7 +2734,7 @@
           ]
         },
         {
-          "text": "Steel man the peer you've been fighting with all quarter.",
+          "text": "Steel man a peer who disagrees with you on almost everything.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -2743,7 +2743,7 @@
           ]
         },
         {
-          "text": "Build the strongest case for the candidate you almost rejected.",
+          "text": "You're on a hiring panel. Build the strongest case for the candidate everyone else wants to reject.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -2761,7 +2761,7 @@
           ]
         },
         {
-          "text": "Steel man the client who's been the hardest to work with.",
+          "text": "Steel man a demanding client who thinks your team is underdelivering.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -2935,7 +2935,7 @@
           ]
         },
         {
-          "text": "Describe what shipped in the last sprint.",
+          "text": "Describe what your team got done in the past two weeks.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -2998,7 +2998,7 @@
           ]
         },
         {
-          "text": "Summarize the user research findings from last month for the exec team.",
+          "text": "Summarize the results of last month's employee survey for the exec team.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -3040,7 +3040,7 @@
           ]
         },
         {
-          "text": "Argue as the direct report who quit on you last month.",
+          "text": "Imagine a direct report just quit on you. Argue their side of the story.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -3058,7 +3058,7 @@
           ]
         },
         {
-          "text": "Argue as the client who's been hardest to make happy.",
+          "text": "Argue as a client who believes your team never listens to them.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -3529,7 +3529,7 @@
           ]
         },
         {
-          "text": "Describe the architecture of the last thing your team shipped.",
+          "text": "Describe how the last thing your team delivered fits together, piece by piece.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -3556,7 +3556,7 @@
           ]
         },
         {
-          "text": "Walk through your incident response from detection to all-clear.",
+          "text": "Walk through how your team handles an emergency, from first alert to all-clear.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -3739,7 +3739,7 @@
           ]
         },
         {
-          "text": "Describe a time you had to fire someone.",
+          "text": "Describe a time you had to deliver news you knew would hurt someone.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -3854,7 +3854,7 @@
           ]
         },
         {
-          "text": "Argue your startup is worth the valuation you're asking for.",
+          "text": "You're a founder pitching investors. Argue your startup is worth the valuation you're asking for.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -3889,7 +3889,7 @@
           ]
         },
         {
-          "text": "Explain how you handled the day your top performer quit.",
+          "text": "Your top performer just quit this morning. Walk your team through what happens next.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -3898,7 +3898,7 @@
           ]
         },
         {
-          "text": "Talk through your reaction when the all-hands news landed.",
+          "text": "Surprise news just dropped at the all-hands. Talk through your reaction out loud.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -3916,7 +3916,7 @@
           ]
         },
         {
-          "text": "Walk through the incident from detection to all-clear.",
+          "text": "A crisis just hit your team. Walk through the response from first alarm to all-clear.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -3934,7 +3934,7 @@
           ]
         },
         {
-          "text": "Explain how you responded to a hostile client escalation.",
+          "text": "A hostile client escalation just landed on you. Explain how you'd respond.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -3943,7 +3943,7 @@
           ]
         },
         {
-          "text": "Walk through the call where you told a candidate they didn't get the offer.",
+          "text": "You have to call a candidate and tell them they didn't get the offer. Walk through the call.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -3961,7 +3961,7 @@
           ]
         },
         {
-          "text": "Explain how you handled the day the layoff list landed in your inbox.",
+          "text": "The layoff list just landed in your inbox. Talk through how you'd handle the day.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -4012,7 +4012,7 @@
           ]
         },
         {
-          "text": "Tell me about the longest project you've ever shipped.",
+          "text": "Tell me about the longest project you've ever seen through to the end.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -4030,7 +4030,7 @@
           ]
         },
         {
-          "text": "Tell the story of the year you nearly quit.",
+          "text": "Tell the story of a time you seriously considered quitting, and what you decided.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -4039,7 +4039,7 @@
           ]
         },
         {
-          "text": "Describe how you became a manager for the first time.",
+          "text": "Describe the first time you were put in charge of something that mattered.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -4057,7 +4057,7 @@
           ]
         },
         {
-          "text": "Walk through the origin story of the product you're proudest of.",
+          "text": "Walk through the origin story of the work you're proudest of.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -4081,7 +4081,7 @@
           ]
         },
         {
-          "text": "Describe the single best hire you've ever made.",
+          "text": "Describe the single best hiring decision you've ever seen up close.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -4433,7 +4433,7 @@
           ]
         },
         {
-          "text": "Read the all-hands compliance update top to bottom.",
+          "text": "Deliver a long, dry compliance update to the whole company at an all-hands.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -4580,7 +4580,7 @@
           ]
         },
         {
-          "text": "Talk about a mentor you still call when things get hard.",
+          "text": "Talk about the person you'd call first when work gets hard.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -4616,7 +4616,7 @@
           ]
         },
         {
-          "text": "Introduce your co-founder to a room of investors.",
+          "text": "You're pitching investors with a co-founder at your side. Introduce them to the room.",
           "difficulty": "core",
           "tags": [
             "other",
@@ -4625,7 +4625,7 @@
           ]
         },
         {
-          "text": "Tell your skip-level about the report you're proudest of mentoring.",
+          "text": "Tell your skip-level about a teammate you're proud of helping grow.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -4764,7 +4764,7 @@
           ]
         },
         {
-          "text": "List the cities you've worked in and one detail about each.",
+          "text": "List the places you've lived or worked and one detail about each.",
           "difficulty": "intro",
           "tags": [
             "other",
@@ -4914,7 +4914,7 @@
           ]
         },
         {
-          "text": "Reflect on a direct report who learns nothing like you expected.",
+          "text": "Think out loud about a teammate who learns completely differently than you do.",
           "difficulty": "stretch",
           "tags": [
             "other",
@@ -5157,7 +5157,7 @@
           ]
         },
         {
-          "text": "Tell the story of your day — to a partner who's had a hard one.",
+          "text": "Tell the story of your day — to a loved one who's had a hard one.",
           "difficulty": "core",
           "tags": [
             "other",

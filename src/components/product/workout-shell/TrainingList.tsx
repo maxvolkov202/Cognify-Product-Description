@@ -7,7 +7,22 @@
 import { Check, Lock, Mic } from "lucide-react";
 import type { ShellStation } from "@/lib/workout/types";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { cn } from "@/lib/utils/cn";
+
+/** Dim-gradient hairline across the card top — Cognify treatment.
+ *  Falls back to the brand pair on dim-less days. */
+function CardHairline({ dim }: { dim: MuscleGroupId | null }) {
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+        dim ? DIM_THEMES[dim].tile : "from-brand-lavender to-fuchsia-500",
+      )}
+    />
+  );
+}
 
 const ESTIMATED_REP_SECONDS = 45;
 
@@ -24,7 +39,8 @@ export default function TrainingList({
 }: TrainingListProps) {
   if (stations.length === 0) {
     return (
-      <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+        <CardHairline dim={dim} />
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400 mb-3">
           Today&apos;s Training
         </div>
@@ -49,7 +65,8 @@ export default function TrainingList({
   }
 
   return (
-    <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+      <CardHairline dim={dim} />
       <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400 mb-3">
         Today&apos;s Training
       </div>
@@ -78,13 +95,19 @@ function TrainingRow({
 }) {
   const isComplete = station.status === "complete";
   const isLocked = station.status === "locked" && !current;
+  const theme = dim ? DIM_THEMES[dim] : null;
 
   return (
     <li
       className={cn(
         "flex items-center gap-3 px-3 py-3 rounded-xl border transition-colors",
         current
-          ? "bg-purple-50 dark:bg-purple-500/15 border-purple-200 dark:border-brand-purple/40"
+          ? theme
+            ? cn(
+                "bg-gradient-to-r border-slate-200 dark:border-ink-600",
+                theme.wash,
+              )
+            : "bg-purple-50 dark:bg-purple-500/15 border-purple-200 dark:border-brand-purple/40"
           : "bg-ink-50/60 dark:bg-ink-800/60 border-transparent",
       )}
       data-current={current ? "true" : "false"}
@@ -95,7 +118,13 @@ function TrainingRow({
           isComplete
             ? "bg-emerald-500 text-white"
             : current
-              ? "bg-purple-600 text-white"
+              ? theme
+                ? cn(
+                    "bg-gradient-to-br text-white shadow-md",
+                    theme.tile,
+                    theme.glow,
+                  )
+                : "bg-purple-600 text-white"
               : "bg-ink-200 dark:bg-ink-700 text-ink-700 dark:text-ink-200",
         )}
         aria-hidden="true"

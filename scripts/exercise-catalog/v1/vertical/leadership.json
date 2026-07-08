@@ -150,32 +150,32 @@
       "dimension": "structure",
       "name": "The 3 Point Rule",
       "prompts": [
-        { "text": "Tell me three reasons your direct report deserves promotion.", "difficulty": "intro", "tags": ["leadership", "direct_report", "persuasion"] },
-        { "text": "Three reasons your team's culture is stronger than last year's.", "difficulty": "intro", "tags": ["leadership", "audience_room", "storytelling"] },
-        { "text": "Three reasons to keep the partnership with the external vendor.", "difficulty": "intro", "tags": ["leadership", "external_partner", "persuasion"] },
-        { "text": "Three reasons your peer should report into ops, not product.", "difficulty": "core", "tags": ["leadership", "peer", "persuasion"] },
-        { "text": "Three reasons to delay the reorg by a quarter.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
-        { "text": "Three reasons your skip-level should be sponsored for the leadership program.", "difficulty": "core", "tags": ["leadership", "skip_level", "persuasion"] },
-        { "text": "Three reasons to cut your favorite project line this year.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
-        { "text": "Three reasons to consolidate two teams that hate each other.", "difficulty": "core", "tags": ["leadership", "peer", "persuasion"] },
-        { "text": "Three reasons to push back on the board's revenue target.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
-        { "text": "Three reasons to lay off 10% without losing the company's soul.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
+        { "text": "Convince the promotion committee that your direct report deserves the promotion this cycle.", "difficulty": "intro", "tags": ["leadership", "direct_report", "persuasion"] },
+        { "text": "Convince a skeptical town-hall audience that your team's culture is stronger than last year's.", "difficulty": "intro", "tags": ["leadership", "audience_room", "storytelling"] },
+        { "text": "Argue why the partnership with the external vendor should survive the budget review.", "difficulty": "intro", "tags": ["leadership", "external_partner", "persuasion"] },
+        { "text": "Persuade a resistant peer that their function should report into ops, not product.", "difficulty": "core", "tags": ["leadership", "peer", "persuasion"] },
+        { "text": "Convince your VP to delay the reorg by a quarter.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
+        { "text": "Make the case to the talent committee that your skip-level deserves the leadership program slot.", "difficulty": "core", "tags": ["leadership", "skip_level", "persuasion"] },
+        { "text": "Argue to your VP for cutting your own favorite project line this year.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
+        { "text": "Convince two feuding team leads that consolidating their teams is the right call.", "difficulty": "core", "tags": ["leadership", "peer", "persuasion"] },
+        { "text": "Persuade the board to soften the revenue target it just handed you.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
+        { "text": "Defend the 10% layoff at the all-hands without losing the company's soul.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
       ]
     },
     {
       "dimension": "structure",
       "name": "The Story Arc",
       "prompts": [
-        { "text": "Tell the story of the first time you had to fire someone.", "difficulty": "intro", "tags": ["leadership", "direct_report", "storytelling"] },
+        { "text": "You've just had to let someone go for the first time. Tell a mentor the story of how it unfolded.", "difficulty": "intro", "tags": ["leadership", "direct_report", "storytelling"] },
         { "text": "Walk me through a one-on-one that shifted a report's career.", "difficulty": "intro", "tags": ["leadership", "direct_report", "storytelling"] },
         { "text": "Tell the story of how you built trust with a skeptical peer.", "difficulty": "intro", "tags": ["leadership", "peer", "storytelling"] },
         { "text": "Walk me through a quarter you thought you'd miss but didn't.", "difficulty": "core", "tags": ["leadership", "vp_executive", "storytelling"] },
         { "text": "Tell the story of a hire who blew up and what you learned.", "difficulty": "core", "tags": ["leadership", "direct_report", "storytelling"] },
-        { "text": "Walk me through the all-hands where you had to clean up a mess.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
-        { "text": "Tell the story of a board meeting where you had to defend an unpopular call.", "difficulty": "core", "tags": ["leadership", "board_investor", "storytelling"] },
-        { "text": "Walk me through a partnership that fell apart on a Friday.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
-        { "text": "Tell the story of the day you realized the founder was the problem.", "difficulty": "stretch", "tags": ["leadership", "vp_executive", "storytelling"] },
-        { "text": "Walk me through the layoff you delivered to two hundred people.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
+        { "text": "Walk me through a time you had to address a group right after something went wrong.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
+        { "text": "You're in front of a skeptical board. Tell the story of an unpopular call you once made and why you stood by it.", "difficulty": "core", "tags": ["leadership", "board_investor", "storytelling"] },
+        { "text": "Walk me through a partnership or collaboration that fell apart, and the moment you knew it was over.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
+        { "text": "Tell the story of a moment you realized a leader you admired was part of the problem.", "difficulty": "stretch", "tags": ["leadership", "vp_executive", "storytelling"] },
+        { "text": "You've just announced a layoff to two hundred people. Walk me through the story of that morning.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
       ]
     },
     {
@@ -316,7 +316,7 @@
         { "text": "Tell me about a moment your skip-level taught you something.", "difficulty": "core", "tags": ["leadership", "skip_level", "storytelling"] },
         { "text": "Describe a peer conflict that almost cost you the relationship.", "difficulty": "core", "tags": ["leadership", "peer", "giving_feedback"] },
         { "text": "Tell me about a partner deal that went sideways.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
-        { "text": "Describe the all-hands you wish you could redo.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
+        { "text": "Describe a team meeting you wish you could redo.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
         { "text": "Talk about the toughest piece of feedback you ever gave.", "difficulty": "core", "tags": ["leadership", "direct_report", "giving_feedback"] },
         { "text": "Pitch your CEO on stepping into the COO role.", "difficulty": "stretch", "tags": ["leadership", "vp_executive", "persuasion"] },
         { "text": "Address the team after a public PR crisis.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
@@ -494,7 +494,7 @@
         { "text": "Recap the partnership review for the exec team.", "difficulty": "core", "tags": ["leadership", "external_partner", "explaining"] },
         { "text": "Walk through the engagement survey results for your org.", "difficulty": "core", "tags": ["leadership", "audience_room", "explaining"] },
         { "text": "Tell me about the new hires you've made this year.", "difficulty": "core", "tags": ["leadership", "vp_executive", "explaining"] },
-        { "text": "List the board feedback you've received over the last three meetings.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
+        { "text": "You present to a board each quarter. Recap the feedback from your last three meetings.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
         { "text": "Recap the layoff outcome a month after the announcement.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
       ]
     },
@@ -622,8 +622,8 @@
         { "text": "Tell me about a partnership you should have ended sooner.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
         { "text": "Describe a strategy you defended that turned out to be wrong.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
         { "text": "Talk about a hire you championed who didn't work out.", "difficulty": "core", "tags": ["leadership", "direct_report", "giving_feedback"] },
-        { "text": "Explain a number you had to defend to the board that didn't hold.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
-        { "text": "Describe the layoff conversation you can't shake.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
+        { "text": "Explain to a board why a number you stood behind didn't hold up.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
+        { "text": "Describe a hard workplace conversation you can't shake.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
       ]
     },
     {
@@ -649,13 +649,13 @@
         { "text": "Tell a direct report they're not getting the role they expected.", "difficulty": "intro", "tags": ["leadership", "direct_report", "giving_feedback"] },
         { "text": "Walk through how you handled a peer publicly contradicting you.", "difficulty": "intro", "tags": ["leadership", "peer", "giving_feedback"] },
         { "text": "Describe an all-hands the day after a tough strategy reset.", "difficulty": "intro", "tags": ["leadership", "audience_room", "storytelling"] },
-        { "text": "Tell me how you broke a missed-quarter to the CEO.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
-        { "text": "Walk through the skip-level meeting where someone broke down.", "difficulty": "core", "tags": ["leadership", "skip_level", "giving_feedback"] },
-        { "text": "Describe the partner call where you delivered a contract termination.", "difficulty": "core", "tags": ["leadership", "external_partner", "giving_feedback"] },
+        { "text": "Break the news of a badly missed quarter to your CEO.", "difficulty": "core", "tags": ["leadership", "vp_executive", "persuasion"] },
+        { "text": "A skip-level starts crying in your one-on-one. Respond in the moment.", "difficulty": "core", "tags": ["leadership", "skip_level", "giving_feedback"] },
+        { "text": "Deliver a contract termination to a longtime partner on a live call.", "difficulty": "core", "tags": ["leadership", "external_partner", "giving_feedback"] },
         { "text": "Walk through the conversation where you told your VP they were wrong.", "difficulty": "core", "tags": ["leadership", "vp_executive", "giving_feedback"] },
-        { "text": "Talk through the moment you realized you had to fire a friend.", "difficulty": "core", "tags": ["leadership", "direct_report", "giving_feedback"] },
-        { "text": "Describe the board update where revenue collapsed mid-quarter.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
-        { "text": "Walk through the layoff announcement you delivered to your full org.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
+        { "text": "You've just realized you have to fire a friend. Talk through the conversation you're about to have.", "difficulty": "core", "tags": ["leadership", "direct_report", "giving_feedback"] },
+        { "text": "Give the board an update mid-quarter while revenue is collapsing.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "persuasion"] },
+        { "text": "Deliver a layoff announcement to your full org.", "difficulty": "stretch", "tags": ["leadership", "audience_room", "storytelling"] }
       ]
     },
     {
@@ -666,12 +666,12 @@
         { "text": "Walk through how you met your most influential mentor.", "difficulty": "intro", "tags": ["leadership", "peer", "storytelling"] },
         { "text": "Tell the story of how your team came together over the last year.", "difficulty": "intro", "tags": ["leadership", "audience_room", "storytelling"] },
         { "text": "Describe a turning point in your career from a single one-on-one.", "difficulty": "core", "tags": ["leadership", "direct_report", "storytelling"] },
-        { "text": "Walk through your relationship with the skip-level who became a peer.", "difficulty": "core", "tags": ["leadership", "skip_level", "storytelling"] },
+        { "text": "Walk through the story of a junior colleague you watched grow into a peer.", "difficulty": "core", "tags": ["leadership", "skip_level", "storytelling"] },
         { "text": "Tell the story of the partnership that defined your team.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
         { "text": "Describe your relationship with the first manager who pushed back on you.", "difficulty": "core", "tags": ["leadership", "vp_executive", "storytelling"] },
         { "text": "Tell the story of the all-hands where the strategy clicked.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
-        { "text": "Walk through the board meeting that changed how you led.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "storytelling"] },
-        { "text": "Tell the story of the year you almost stepped down.", "difficulty": "stretch", "tags": ["leadership", "vp_executive", "storytelling"] }
+        { "text": "You're an exec looking back. Walk a mentee through the board meeting that changed how you led.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "storytelling"] },
+        { "text": "Tell the story of a time you almost walked away from a leadership role — and what made you stay.", "difficulty": "stretch", "tags": ["leadership", "vp_executive", "storytelling"] }
       ]
     },
     {
@@ -747,7 +747,7 @@
         { "text": "Pitch your team's mission to a new hire.", "difficulty": "intro", "tags": ["leadership", "direct_report", "storytelling"] },
         { "text": "Tell the origin story of the team you built.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
         { "text": "Walk a skip-level through a difficult moment in your career.", "difficulty": "core", "tags": ["leadership", "skip_level", "storytelling"] },
-        { "text": "Tell the story of the partnership you saved in the last hour.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
+        { "text": "You've just saved a key partnership at the eleventh hour. Tell your team the story.", "difficulty": "core", "tags": ["leadership", "external_partner", "storytelling"] },
         { "text": "Describe the day your team finally clicked.", "difficulty": "core", "tags": ["leadership", "vp_executive", "storytelling"] },
         { "text": "Pitch the all-hands on why the next year will be different.", "difficulty": "core", "tags": ["leadership", "audience_room", "storytelling"] },
         { "text": "Tell the board the story of how this company nearly didn't survive.", "difficulty": "stretch", "tags": ["leadership", "board_investor", "storytelling"] },

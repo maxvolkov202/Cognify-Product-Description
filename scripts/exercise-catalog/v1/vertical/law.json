@@ -150,8 +150,8 @@
       "dimension": "structure",
       "name": "The 3 Point Rule",
       "prompts": [
-        { "text": "Pitch the three reasons the judge should grant our motion to dismiss.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "persuasion"] },
-        { "text": "Give three reasons the jury should acquit your client on count one.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Persuade the judge to grant our motion to dismiss.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Convince the jury to acquit your client on count one.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
         { "text": "Defend why we should reject the $3M offer and take it to verdict.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
         { "text": "Argue why we should withdraw the motion before tomorrow's hearing.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
         { "text": "Make the case to your client for hiring a second expert witness.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
@@ -166,16 +166,16 @@
       "dimension": "structure",
       "name": "The Story Arc",
       "prompts": [
-        { "text": "Tell the story of a case you almost lost but turned around at trial.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Tell the story of a case you almost lost but managed to turn around.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
         { "text": "Walk me through the toughest cross-examination of your career.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
-        { "text": "Tell the story of how you turned a hostile witness into your strongest witness.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
-        { "text": "Walk me through a regulatory inquiry that nearly killed the deal.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
-        { "text": "Tell the story of a settlement that fell apart the morning of trial.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
-        { "text": "Recount the deposition where your client gave you the case you needed.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
-        { "text": "Walk me through the night before closing argument when the theory had to change.", "difficulty": "core", "tags": ["law", "audience_room", "storytelling"] },
+        { "text": "Tell the story of a time you won over someone who started out hostile to your side of a case.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "Walk me through a time outside scrutiny nearly derailed a matter you worked on.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Tell the story of a time a resolution your client was counting on fell apart at the last minute.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Recount a time a client's own words unexpectedly changed the direction of their matter.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Walk me through a time you had to rework a key argument the night before you presented it.", "difficulty": "core", "tags": ["law", "audience_room", "storytelling"] },
         { "text": "Tell the story of an expert witness who collapsed under cross.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
-        { "text": "Walk me through an emergency TRO filed and granted before sundown.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] },
-        { "text": "Recount the appellate argument where the bench turned hot in the first minute.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] }
+        { "text": "Walk me through the most time-pressured filing or hearing you've ever been part of.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] },
+        { "text": "Recount a hearing or argument you watched turn hostile in the first minute.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] }
       ]
     },
     {
@@ -198,7 +198,7 @@
       "dimension": "structure",
       "name": "The Problem Solution Frame",
       "prompts": [
-        { "text": "Our key witness just recanted at the witness room. Address it.", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Our key witness just recanted in the witness room. Address it.", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
         { "text": "Three of opposing counsel's privilege log entries look fabricated. Solve it.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
         { "text": "The judge just signaled he'll grant their summary judgment motion. Respond.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
         { "text": "Discovery costs are running 40% over the litigation budget. Address it.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
@@ -311,7 +311,7 @@
       "name": "Kill the Filler",
       "prompts": [
         { "text": "Tell me about a case you lost and why.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
-        { "text": "Describe your biggest courtroom win this year.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Describe your biggest win on any matter this year.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
         { "text": "Tell me about a partner who shaped how you litigate.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
         { "text": "Share a piece of feedback from a judge that changed how you argue.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "giving_feedback"] },
         { "text": "Describe an opposing counsel who consistently outmaneuvers you.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
@@ -445,7 +445,7 @@
         { "text": "Argue that most motions in limine are filed to score points, not to win them.", "difficulty": "intro", "tags": ["law", "peer", "persuasion"] },
         { "text": "Make the case that the indemnity package the buy-side accepted is wildly underpriced.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "negotiation"] },
         { "text": "Argue that the best closing arguments are built backwards from the verdict form.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
-        { "text": "Convince me that the witness everyone hated to prep was actually the best on the stand.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Convince me that the witness nobody wants to prep is usually the best one on the stand.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
         { "text": "Argue that big-law billing pressure is the real reason internal investigations balloon.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
         { "text": "Make the case that the firm's entire white-collar playbook needs to be rewritten this year.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
       ]
@@ -527,7 +527,7 @@
         { "text": "Will the in-house function absorb your matter or send it back to outside counsel?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
         { "text": "Predict the next major shift in how M&A indemnity gets priced.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
         { "text": "Will the Supreme Court grant cert on the constitutional question in your matter?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
-        { "text": "Forecast your own path from senior associate to equity partner.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] }
+        { "text": "Forecast where your own legal career lands five years from now.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] }
       ]
     },
     {
@@ -620,10 +620,10 @@
         { "text": "Walk through a witness prep session where the witness fell apart.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
         { "text": "Tell me about a hostile judge who almost derailed your trial.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
         { "text": "Explain a client escalation you couldn't fix.", "difficulty": "stretch", "tags": ["law", "client_customer", "handling_objections"] },
-        { "text": "Describe a time you had to deliver bad news to a defendant before sentencing.", "difficulty": "stretch", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Describe a time you had to deliver bad news to a client at the worst possible moment.", "difficulty": "stretch", "tags": ["law", "client_customer", "confidence"] },
         { "text": "Talk about a deal that fell apart at signing without warning.", "difficulty": "stretch", "tags": ["law", "client_customer", "handling_objections"] },
         { "text": "Explain a procedural rule you misread until opposing counsel exploited it.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
-        { "text": "Describe what you'd change about your last closing argument.", "difficulty": "core", "tags": ["law", "audience_room", "giving_feedback"] }
+        { "text": "Describe what you'd change about the last argument you made that didn't land.", "difficulty": "core", "tags": ["law", "audience_room", "giving_feedback"] }
       ]
     },
     {
@@ -647,15 +647,15 @@
       "name": "Slow Cooker",
       "prompts": [
         { "text": "Explain how you handled the witness who fell apart on the stand last week.", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
-        { "text": "Walk through the moment you realized the prosecution had a new piece of evidence.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
-        { "text": "Describe the closing argument where the jury wasn't tracking with you.", "difficulty": "stretch", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Walk through how you'd react on learning mid-case that the other side holds evidence you've never seen.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Describe a time you could tell mid-argument that your audience had stopped tracking with you.", "difficulty": "stretch", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
         { "text": "Talk through your reaction when the judge denied your motion in chambers.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
-        { "text": "Explain how you broke the news of a defeat to a corporate client at headquarters.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Explain how you'd break the news of a major defeat to a corporate client face to face.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
         { "text": "Walk me through a regulatory subpoena from the first call to the response.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
         { "text": "Describe a co-counsel breakdown on the eve of trial.", "difficulty": "core", "tags": ["law", "peer", "handling_objections"] },
         { "text": "Talk through a renegotiation where your client threatened to walk during signing.", "difficulty": "stretch", "tags": ["law", "client_customer", "negotiation"] },
         { "text": "Explain how you handled a hostile mediator pressuring both sides at the same time.", "difficulty": "core", "tags": ["law", "judge_arbiter", "negotiation"] },
-        { "text": "Walk through the call where you had to withdraw from a billion-dollar matter.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] }
+        { "text": "Walk through how you'd handle the call telling a client you must withdraw from their billion-dollar matter.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] }
       ]
     },
     {
@@ -664,21 +664,21 @@
       "prompts": [
         { "text": "Tell me about your legal career so far.", "difficulty": "core", "tags": ["law", "peer", "storytelling"] },
         { "text": "Walk me through how you ended up in litigation.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
-        { "text": "Tell the story of your first trial verdict.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Tell the story of the first case outcome you ever felt personally invested in.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
         { "text": "Describe the corporate client relationship that defined your year.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
         { "text": "Tell me about the longest matter you've ever closed.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
-        { "text": "Walk through how you built your practice group from scratch.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Walk through the story of how your current team or practice took shape.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
         { "text": "Tell the story of a mentor who taught you how to try cases.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
         { "text": "Describe how your trial team came together after a bad year.", "difficulty": "core", "tags": ["law", "peer", "storytelling"] },
         { "text": "Tell me about a client who became a lifelong advocate for the firm.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
-        { "text": "Walk through the year you almost left the practice of law.", "difficulty": "stretch", "tags": ["law", "peer", "storytelling"] }
+        { "text": "Walk through a stretch of your career when you questioned whether law was the right path.", "difficulty": "stretch", "tags": ["law", "peer", "storytelling"] }
       ]
     },
     {
       "dimension": "pacing",
       "name": "The Stretch",
       "prompts": [
-        { "text": "What's the most important verdict you've ever delivered on?", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "What's the most important case outcome you've ever been part of?", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
         { "text": "Describe the single best witness you've ever put on the stand.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
         { "text": "What's the riskiest matter your team is working right now?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
         { "text": "Tell me the one number that defines this trial's exposure.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
@@ -686,7 +686,7 @@
         { "text": "What's the most surprising objection a judge has ever sustained against you?", "difficulty": "core", "tags": ["law", "judge_arbiter", "handling_objections"] },
         { "text": "Tell me the proudest moment from a courtroom in your career.", "difficulty": "intro", "tags": ["law", "audience_room", "storytelling"] },
         { "text": "What's the most dangerous assumption your trial team is making this week?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
-        { "text": "Describe the best feedback a judge ever gave you in chambers.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "giving_feedback"] },
+        { "text": "Describe the best feedback a judge or senior lawyer ever gave you.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "giving_feedback"] },
         { "text": "What's the one objection you'll never recover from at trial?", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "handling_objections"] }
       ]
     },

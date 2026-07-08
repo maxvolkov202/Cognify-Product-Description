@@ -28,6 +28,7 @@ import {
 } from "@/lib/workout/use-workout-session";
 import type { WorkoutShellHydratedPayload } from "@/lib/workout/types";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import StartCard from "./StartCard";
 import SkillScenariosCard from "./SkillScenariosCard";
 import TrainingList from "./TrainingList";
@@ -285,10 +286,15 @@ function WorkoutShellInner({
     setPersonalize(next);
   }, []);
 
+  // Cognify treatment — per-dim visual identity tokens (single source:
+  // dim-theme.ts). Null on dim-less days; every use below degrades to
+  // the existing brand styling.
+  const dimTheme = payload.dimension ? DIM_THEMES[payload.dimension] : null;
+
   return (
     <div
       className={cn(
-        "min-h-[100dvh] w-full",
+        "relative isolate min-h-[100dvh] w-full",
         "bg-gradient-to-b from-violet-50 via-white to-violet-50/40 dark:from-ink-950 dark:via-ink-900 dark:to-ink-950",
         "text-slate-900 dark:text-white",
         "max-w-3xl mx-auto px-4 sm:px-6 pb-16 pt-8",
@@ -297,6 +303,15 @@ function WorkoutShellInner({
       data-phase={state.phase}
       data-mascot-state={mascotState}
     >
+      {/* Ambient per-dim radial glow behind the shell — same atmosphere
+          pattern as the Skill Lab hub. Decorative only. */}
+      {dimTheme && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96"
+          style={{ background: dimTheme.ambient }}
+        />
+      )}
       <MissedDayModal />
 
       {showLanding ? (
@@ -306,7 +321,12 @@ function WorkoutShellInner({
             Today&apos;s Workout
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Ready to train?
+            Ready to{" "}
+            {/* Brand gradient accent — the one gradient headline on the
+                landing (mirrors the Skill Lab hub hero). */}
+            <span className="bg-gradient-to-r from-brand-lavender to-fuchsia-500 bg-clip-text text-transparent">
+              train?
+            </span>
           </h1>
           <p className="text-base text-slate-500 dark:text-ink-400">
             No notes. No prep. Just reps.

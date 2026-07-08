@@ -67,13 +67,13 @@
         { "text": "Explain to a homesick traveler why their feelings are normal.", "difficulty": "core", "tags": ["general"] },
         { "text": "Welcome someone to your country and tell them what you hope they notice.", "difficulty": "core", "tags": ["general"] },
         { "text": "Tell a friend going through a breakup what you wish someone had told you.", "difficulty": "core", "tags": ["general"] },
-        { "text": "Describe a teacher who believed in you when no one else did.", "difficulty": "core", "tags": ["general"] },
+        { "text": "Describe a teacher or coach who believed in you, to someone who never met them.", "difficulty": "core", "tags": ["general"] },
         { "text": "Talk to a parent who feels they failed their kid and convince them otherwise.", "difficulty": "core", "tags": ["general"] },
         { "text": "Tell a stranger on a long flight about the person you love most.", "difficulty": "core", "tags": ["general"] },
         { "text": "Welcome a new colleague on their first day and make them feel they belong.", "difficulty": "core", "tags": ["general"] },
         { "text": "Deliver a eulogy for someone who lived a small, quiet, generous life.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Comfort a friend who just learned they can't have children.", "difficulty": "stretch", "tags": ["general"] },
-        { "text": "Tell an estranged sibling why you still want them in your life.", "difficulty": "stretch", "tags": ["general"] },
+        { "text": "Imagine a relative you've drifted from wants to reconnect. Tell them why you still want them in your life.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Speak to a room of foster parents about the work they're doing.", "difficulty": "stretch", "tags": ["general"] }
       ]
     },
@@ -109,7 +109,7 @@
         { "text": "Give us your three rules for a good morning.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Describe what you value in a friend — make each value land.", "difficulty": "intro", "tags": ["general"] },
         { "text": "List the things you absolutely will not compromise on, and explain why.", "difficulty": "intro", "tags": ["general"] },
-        { "text": "Tell us what you've learned about money from your twenties.", "difficulty": "intro", "tags": ["general"] },
+        { "text": "Tell us the most important things you've learned about money so far, one lesson at a time.", "difficulty": "intro", "tags": ["general"] },
         { "text": "State your case for what makes a good neighbor.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Describe the kind of person you're trying to become this year.", "difficulty": "core", "tags": ["general"] },
         { "text": "Tell us, plainly, what you think a parent owes a child.", "difficulty": "core", "tags": ["general"] },
@@ -164,7 +164,7 @@
         { "text": "Argue that some opinions deserve to be unpopular and held anyway.", "difficulty": "core", "tags": ["general"] },
         { "text": "Make the case for telling a friend the truth they don't want to hear.", "difficulty": "core", "tags": ["general"] },
         { "text": "Stand behind your position on whether it's okay to lie to spare feelings.", "difficulty": "core", "tags": ["general"] },
-        { "text": "Defend the decision to walk away from someone you used to love.", "difficulty": "core", "tags": ["general"] },
+        { "text": "Defend the position that walking away from someone you love can be the right thing to do.", "difficulty": "core", "tags": ["general"] },
         { "text": "Argue that some traditions are worth keeping even when no one remembers why.", "difficulty": "core", "tags": ["general"] },
         { "text": "State what you believe parents owe their adult children, and what they don't.", "difficulty": "core", "tags": ["general"] },
         { "text": "Make the case that there are some things money should never be able to buy.", "difficulty": "core", "tags": ["general"] },
@@ -174,7 +174,7 @@
         { "text": "Argue, without softening it, what you believe about the responsibility of being well-off.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Defend a moral position you'd hold even if everyone you loved disagreed.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "State what you believe is owed between strangers in a society, and mean every word.", "difficulty": "stretch", "tags": ["general"] },
-        { "text": "Make the case for a hard decision you've made that you still get questioned on.", "difficulty": "stretch", "tags": ["general"] }
+        { "text": "Make the case for a hard decision you've made, to someone who thinks it was a mistake.", "difficulty": "stretch", "tags": ["general"] }
       ]
     },
     {
@@ -182,10 +182,10 @@
       "prompts": [
         { "text": "Talk about your last vacation, then shift to what you're worried about at home.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Describe your best friend, then describe the friend you've drifted from.", "difficulty": "intro", "tags": ["general"] },
-        { "text": "Tell us what you love about your job, then what's wearing you down.", "difficulty": "intro", "tags": ["general"] },
+        { "text": "Tell us what you love about your daily routine, then what's wearing you down.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Describe your morning, then your night. Make them feel different.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Talk about something you're proud of, then something you're still working on.", "difficulty": "intro", "tags": ["general"] },
-        { "text": "Describe what you wanted at twenty, then what you want now.", "difficulty": "intro", "tags": ["general"] },
+        { "text": "Describe what you wanted five years ago, then what you want now.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Start with a happy memory from childhood, then move to one you'd rather forget.", "difficulty": "core", "tags": ["general"] },
         { "text": "Describe your favorite place, then a place you can't bring yourself to visit again.", "difficulty": "core", "tags": ["general"] },
         { "text": "Tell us what you love about a family member, then what you've never told them.", "difficulty": "core", "tags": ["general"] },
@@ -196,7 +196,7 @@
         { "text": "Describe the version of you in public, then the version of you when no one's watching.", "difficulty": "core", "tags": ["general"] },
         { "text": "Move from a story about being a guest to a story about being a host.", "difficulty": "core", "tags": ["general"] },
         { "text": "Tell us what gives you energy, then what drains it. Make us feel the difference.", "difficulty": "core", "tags": ["general"] },
-        { "text": "Start in the loudest room you've ever been in. Move to the quietest. Move to today.", "difficulty": "stretch", "tags": ["general"] },
+        { "text": "Start in the loudest room you've ever been in, move to the quietest, then land on today.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Move from a story about a beginning to a story about an ending to a story about what came after.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Describe yourself at your best, then at your worst, then at your most honest.", "difficulty": "stretch", "tags": ["general"] },
         { "text": "Walk through a story with three distinct emotional acts — and let each one breathe.", "difficulty": "stretch", "tags": ["general"] }
@@ -206,7 +206,7 @@
       "name": "Read the Room",
       "prompts": [
         { "text": "Convince a child that bedtime matters. Then convince a parent of the same.", "difficulty": "intro", "tags": ["general"] },
-        { "text": "Explain what you do for a living to a five-year-old. Then to a grandparent. Then to a peer.", "difficulty": "intro", "tags": ["general"] },
+        { "text": "Explain what you do all day to a five-year-old, then to a grandparent, then to a peer.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Describe your weekend to a close friend, then to a manager you barely know.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Tell the story of your first job to a teenager about to start theirs. Then to a retiree.", "difficulty": "intro", "tags": ["general"] },
         { "text": "Pitch your favorite hobby to someone who'd love it. Then to someone who'd hate it.", "difficulty": "intro", "tags": ["general"] },
@@ -217,7 +217,7 @@
         { "text": "Tell a story about a mistake you made — to a trusted friend, then to a job interviewer.", "difficulty": "core", "tags": ["general"] },
         { "text": "Comfort a friend after a loss. Now comfort a coworker after the same kind of loss.", "difficulty": "core", "tags": ["general"] },
         { "text": "Defend a habit you have — to your doctor, then to your best friend.", "difficulty": "core", "tags": ["general"] },
-        { "text": "Tell us about your week — to your therapist, then to a group at a dinner party.", "difficulty": "core", "tags": ["general"] },
+        { "text": "Tell us about your week — to a therapist, then to a group at a dinner party.", "difficulty": "core", "tags": ["general"] },
         { "text": "Talk about money — to a kid, then to a peer, then to your parents.", "difficulty": "core", "tags": ["general"] },
         { "text": "Share something you're proud of — to a humble grandparent, then to a peer who's competitive.", "difficulty": "core", "tags": ["general"] },
         { "text": "Describe a hard year — to someone who lived through it with you, then to someone meeting you today.", "difficulty": "core", "tags": ["general"] },

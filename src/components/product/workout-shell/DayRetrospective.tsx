@@ -12,21 +12,13 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 import type { MuscleGroupComparison } from "@/lib/db/queries/muscle-group-progress";
 
 export type DayRetrospectiveProps = {
   dim: MuscleGroupId;
   comparison: MuscleGroupComparison;
-};
-
-const DIM_COLORS: Record<MuscleGroupId, string> = {
-  clarity: "text-[#6aa3ff]",
-  structure: "text-[#b39bff]",
-  conciseness: "text-[#e77cf0]",
-  thinking_quality: "text-[#b072ff]",
-  pacing: "text-[#7fd6c8]",
-  tone: "text-[#ffb38a]",
 };
 
 export default function DayRetrospective({
@@ -54,20 +46,35 @@ export default function DayRetrospective({
 
   const highlights = buildHighlights(comparison);
 
+  // Cognify treatment — shared per-dim identity (DIM_THEMES is tuned for
+  // this panel's dark slate surface).
+  const theme = DIM_THEMES[dim];
+
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    // Ambient dim glow painted as the container's own background so it
+    // sits beneath every tile without touching stacking or layout.
+    <div
+      className="flex flex-col items-center gap-4 w-full"
+      style={{ backgroundImage: theme.ambient }}
+    >
       <div
         className={cn(
           "text-xs uppercase tracking-wide",
-          DIM_COLORS[dim],
+          theme.text,
         )}
       >
         {MUSCLE_GROUP_LABELS[dim]} day complete
       </div>
 
-      {/* Composite hero */}
+      {/* Composite hero — the one gradient headline on screen. */}
       <div className="flex flex-col items-center">
-        <div className="text-5xl font-bold text-slate-100 leading-none">
+        <div
+          className={cn(
+            "text-5xl font-bold leading-none",
+            "bg-gradient-to-br bg-clip-text text-transparent",
+            theme.tile,
+          )}
+        >
           {composite != null ? Math.round(composite) : "—"}
         </div>
         <div className="text-xs text-slate-500 mt-1">composite</div>
@@ -107,8 +114,16 @@ export default function DayRetrospective({
             return (
               <div
                 key={d}
-                className="rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2"
+                className="relative overflow-hidden rounded-lg bg-slate-800/50 border border-slate-700 px-3 py-2"
               >
+                {/* Dim-gradient hairline across the tile top. */}
+                <div
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r opacity-60",
+                    theme.tile,
+                  )}
+                />
                 <div className="text-[10px] uppercase tracking-wide text-slate-400">
                   {d.replace(/_/g, " ")}
                 </div>

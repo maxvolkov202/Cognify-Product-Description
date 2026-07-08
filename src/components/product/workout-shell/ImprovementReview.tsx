@@ -22,6 +22,7 @@ import {
   type ImplementationVerdict,
 } from "@/lib/ai/coach-focus";
 import { cn } from "@/lib/utils/cn";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { DimensionGrid } from "@/components/product/feedback/DimensionGrid";
 
 export type AttemptPayload = {
@@ -115,6 +116,9 @@ export default function ImprovementReview({
   // Next development opportunity = the retry's own coach focus.
   const nextFocus = retry ? deriveCoachFocus(retry.score) : null;
 
+  // Cognify treatment — dim identity for the score-movement accents.
+  const theme = dimension ? DIM_THEMES[dimension] : null;
+
   return (
     <div className="flex flex-col gap-4" data-testid="improvement-review">
       <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
@@ -128,7 +132,17 @@ export default function ImprovementReview({
       </div>
 
       {/* Score movement hero. */}
-      <div className="rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 text-center">
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 text-center">
+        {/* Dim-gradient hairline across the hero top. */}
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+            theme
+              ? theme.tile
+              : "from-brand-blue via-brand-lavender to-brand-magenta",
+          )}
+        />
         {firstComposite != null && retryComposite != null ? (
           <>
             <div className="flex items-center justify-center gap-3 text-3xl font-extrabold">
@@ -136,7 +150,17 @@ export default function ImprovementReview({
                 {Math.round(firstComposite)}
               </span>
               <ArrowRight className="w-5 h-5 text-slate-300 dark:text-ink-600" />
-              <span className="text-slate-900 dark:text-white">
+              {/* The "after" score carries the dim-gradient accent. */}
+              <span
+                className={cn(
+                  theme
+                    ? cn(
+                        "bg-gradient-to-br bg-clip-text text-transparent",
+                        theme.tile,
+                      )
+                    : "text-slate-900 dark:text-white",
+                )}
+              >
                 {Math.round(retryComposite)}
               </span>
               {softened?.showNumeric && delta != null && (

@@ -67,7 +67,7 @@
         { "text": "Explain a TIPS procedure to a patient with cirrhosis.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] },
         { "text": "Explain prior authorization to a patient asking why they can't pick up their med.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "explaining"] },
         { "text": "Explain a cath lab activation to a patient's family during a STEMI.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
-        { "text": "Explain MEDDPICC-style risk stratification to a new fellow.", "difficulty": "stretch", "tags": ["healthcare", "peer", "explaining"] }
+        { "text": "Explain how risk stratification works to a new fellow on their first day.", "difficulty": "stretch", "tags": ["healthcare", "peer", "explaining"] }
       ]
     },
     {
@@ -129,7 +129,7 @@
         { "text": "Tell me why the patient should consent to the procedure today.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
         { "text": "Tell me why this resident is ready for unsupervised call.", "difficulty": "core", "tags": ["healthcare", "peer", "giving_feedback"] },
         { "text": "Tell me why this dose change cuts the patient's stroke risk in half.", "difficulty": "core", "tags": ["healthcare", "patient_role", "explaining"] },
-        { "text": "Tell me why hospice is the right path for your mother now.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Tell me why hospice is the right path for my mother — I'm her daughter and I want more chemo.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
         { "text": "Tell me why the unit needs an additional charge nurse on nights.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
         { "text": "Tell me why this experimental therapy is worth the off-label risk for this patient.", "difficulty": "stretch", "tags": ["healthcare", "stakeholder", "persuasion"] }
       ]
@@ -154,8 +154,8 @@
       "dimension": "structure",
       "name": "The 3 Point Rule",
       "prompts": [
-        { "text": "Give three reasons this patient should consent to the surgery today.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
-        { "text": "Give three reasons this family should consider hospice.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
+        { "text": "Convince a hesitant patient to consent to the surgery today.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "persuasion"] },
+        { "text": "Make the case to this family that it's time to consider hospice.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "explaining"] },
         { "text": "Defend why this patient deserves the MRI on the peer-to-peer call.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
         { "text": "Argue why your unit needs two more nurses before winter surge.", "difficulty": "core", "tags": ["healthcare", "manager", "persuasion"] },
         { "text": "Make the case for transferring this patient to a tertiary center tonight.", "difficulty": "core", "tags": ["healthcare", "peer", "persuasion"] },
@@ -179,7 +179,7 @@
         { "text": "Describe a family meeting that turned a conflict into agreement.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "storytelling"] },
         { "text": "Walk me through a peer-to-peer review that overturned a denial.", "difficulty": "core", "tags": ["healthcare", "stakeholder", "handling_objections"] },
         { "text": "Tell the story of a nurse on your unit who saved a patient before you saw it.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
-        { "text": "Recount the shift where you had to deliver three deaths in one night.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "storytelling"] }
+        { "text": "Imagine a shift where you have to deliver three deaths to three families in one night. Tell that story from start to finish.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "storytelling"] }
       ]
     },
     {
@@ -624,9 +624,9 @@
         { "text": "Walk through a complication you caused on a routine procedure.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
         { "text": "Tell me about a code where you couldn't get them back.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
         { "text": "Explain a patient case you still think about years later.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "storytelling"] },
-        { "text": "Describe a time you had to fire someone on your unit.", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] },
+        { "text": "Imagine you have to let someone on your unit go. Describe how you'd handle that conversation.", "difficulty": "stretch", "tags": ["healthcare", "manager", "giving_feedback"] },
         { "text": "Talk about a family meeting that went badly.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "storytelling"] },
-        { "text": "Explain the M&M case where you were named.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
+        { "text": "Imagine being named in an M&M case. Explain the case to a peer, including your own part in it.", "difficulty": "core", "tags": ["healthcare", "peer", "presenting"] },
         { "text": "Describe what you'd change about your last difficult discharge.", "difficulty": "core", "tags": ["healthcare", "patient_role", "giving_feedback"] }
       ]
     },
@@ -650,16 +650,16 @@
       "dimension": "pacing",
       "name": "Slow Cooker",
       "prompts": [
-        { "text": "Explain how you handled the code blue at 4 AM.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "A code blue is called at 4 AM. Explain how you handle it, from first alarm to the debrief.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
         { "text": "Walk through the moment you realized the patient was crashing.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
         { "text": "Describe the ED shift where everything went wrong.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
-        { "text": "Talk through your reaction the first time you lost a young patient.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
+        { "text": "Imagine losing a young patient for the first time. Talk through your reaction in the hours after.", "difficulty": "core", "tags": ["healthcare", "patient_role", "storytelling"] },
         { "text": "Explain how you broke the news of a death to a family at 2 AM.", "difficulty": "stretch", "tags": ["healthcare", "parent_guardian", "explaining"] },
         { "text": "Walk me through the sentinel event from detection to root-cause analysis.", "difficulty": "core", "tags": ["healthcare", "manager", "presenting"] },
-        { "text": "Describe walking the unit through a colleague's sudden death.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
-        { "text": "Talk through the day a patient assaulted a staff member on your unit.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Imagine a colleague on your unit dies suddenly. Describe how you'd walk the team through the days after.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
+        { "text": "Imagine a patient assaults a staff member on your unit. Talk through how you'd lead the team that day.", "difficulty": "stretch", "tags": ["healthcare", "care_team", "storytelling"] },
         { "text": "Explain how you responded to a hostile family escalation.", "difficulty": "core", "tags": ["healthcare", "parent_guardian", "handling_objections"] },
-        { "text": "Walk through the call where you had to deliver a terminal diagnosis.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
+        { "text": "Imagine you have to deliver a terminal diagnosis over the phone. Walk through that call.", "difficulty": "stretch", "tags": ["healthcare", "patient_role", "explaining"] }
       ]
     },
     {
@@ -674,7 +674,7 @@
         { "text": "Walk through how your unit came together during a tough surge.", "difficulty": "core", "tags": ["healthcare", "care_team", "storytelling"] },
         { "text": "Tell the story of a patient who became a friend.", "difficulty": "intro", "tags": ["healthcare", "patient_role", "storytelling"] },
         { "text": "Describe your relationship with your first chief resident.", "difficulty": "core", "tags": ["healthcare", "peer", "storytelling"] },
-        { "text": "Walk me through the year you almost left medicine.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
+        { "text": "Walk me through the hardest stretch of your career in medicine so far.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] },
         { "text": "Tell the story of the trial whose result you waited five years to see.", "difficulty": "stretch", "tags": ["healthcare", "peer", "storytelling"] }
       ]
     },

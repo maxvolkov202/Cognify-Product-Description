@@ -150,8 +150,8 @@
       "dimension": "structure",
       "name": "The 3 Point Rule",
       "prompts": [
-        { "text": "Open back-to-school night with three things parents need to know.", "difficulty": "intro", "tags": ["education", "parent_guardian", "presenting"] },
-        { "text": "Give three reasons your seniors should choose your AP elective.", "difficulty": "intro", "tags": ["education", "student_role", "persuasion"] },
+        { "text": "Persuade parents at back-to-school night that their kids are in good hands this year.", "difficulty": "intro", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Convince your seniors to choose your AP elective over the easier option.", "difficulty": "intro", "tags": ["education", "student_role", "persuasion"] },
         { "text": "Defend keeping recess after the schedule rewrite.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
         { "text": "Make the case for hiring a reading specialist before another aide.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
         { "text": "Argue why your department should adopt a common grading rubric.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
@@ -315,7 +315,7 @@
         { "text": "Talk about a hobby you've kept up despite the school year.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
         { "text": "Share a piece of feedback from a student that changed how you teach.", "difficulty": "intro", "tags": ["education", "student_role", "giving_feedback"] },
         { "text": "Describe a colleague you clashed with and why.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
-        { "text": "Talk about the hardest non-renewal conversation you've had.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Talk about the hardest feedback you've ever had to give a colleague.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
         { "text": "Explain a grading decision you'd take back.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
         { "text": "Describe a student crisis you walked into unprepared.", "difficulty": "core", "tags": ["education", "student_role", "storytelling"] },
         { "text": "Pitch your school to a family touring tomorrow.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "persuasion"] },
@@ -620,7 +620,7 @@
         { "text": "Walk through a lesson you have to redesign tonight.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
         { "text": "Tell me about a parent conference you handled badly.", "difficulty": "core", "tags": ["education", "parent_guardian", "storytelling"] },
         { "text": "Explain a behavioral referral you initially missed.", "difficulty": "stretch", "tags": ["education", "stakeholder", "storytelling"] },
-        { "text": "Describe a time you had to non-renew someone.", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Describe how you would tell a teacher you're not renewing their contract.", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] },
         { "text": "Talk about a colleague friendship that ended badly.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
         { "text": "Explain a topic outside your expertise to a colleague — like a topic from another department.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
         { "text": "Describe what you'd change about your last formal observation.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] }
@@ -646,15 +646,15 @@
       "dimension": "pacing",
       "name": "Slow Cooker",
       "prompts": [
-        { "text": "Explain how you handled the lockdown last Tuesday.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Your school just came out of a two-hour lockdown. Brief your staff on what happened.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
         { "text": "Walk through the moment you realized the unit wasn't landing.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
-        { "text": "Describe the day a kid disclosed something serious to you in class.", "difficulty": "stretch", "tags": ["education", "stakeholder", "storytelling"] },
+        { "text": "A student just disclosed something serious to you in class. Walk the counselor through what happened.", "difficulty": "stretch", "tags": ["education", "stakeholder", "storytelling"] },
         { "text": "Talk through your reaction when scores came back lower than expected.", "difficulty": "core", "tags": ["education", "manager", "storytelling"] },
-        { "text": "Explain how you broke the news of a colleague's leave to your team.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
+        { "text": "A colleague is leaving suddenly mid-semester. Break the news to your team this afternoon.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
         { "text": "Walk me through a parent confrontation in the hallway after school.", "difficulty": "core", "tags": ["education", "parent_guardian", "storytelling"] },
         { "text": "Describe coaching a freshman through the fall semester slide.", "difficulty": "core", "tags": ["education", "champion", "storytelling"] },
-        { "text": "Talk through the day a student had a panic attack during your test.", "difficulty": "stretch", "tags": ["education", "student_role", "storytelling"] },
-        { "text": "Explain how you handled a viral video of a classroom moment.", "difficulty": "core", "tags": ["education", "vp_executive", "storytelling"] },
+        { "text": "A student had a panic attack during your test this morning. Talk them through what happens next.", "difficulty": "stretch", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "A video from one of your classrooms just went viral. Brief the superintendent on your response.", "difficulty": "core", "tags": ["education", "vp_executive", "storytelling"] },
         { "text": "Walk through the conference where you had to deliver hard news about a child.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "storytelling"] }
       ]
     },
@@ -670,8 +670,8 @@
         { "text": "Walk through your curricular philosophy from origin to today.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
         { "text": "Tell the story of your favorite student or mentee.", "difficulty": "intro", "tags": ["education", "champion", "storytelling"] },
         { "text": "Describe how your team came together over the last year.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
-        { "text": "Tell me about the lab discovery that took five years to land with students.", "difficulty": "stretch", "tags": ["education", "audience_room", "storytelling"] },
-        { "text": "Walk me through the year you almost left the classroom.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] }
+        { "text": "Tell your class the story of a lesson that took you years of reworking before it landed.", "difficulty": "stretch", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk me through the hardest year of your career and what kept you going.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] }
       ]
     },
     {
@@ -718,7 +718,7 @@
         { "text": "45 seconds: present your IEP recommendation to the team.", "difficulty": "core", "tags": ["education", "stakeholder", "presenting"] },
         { "text": "45 seconds: open a faculty meeting after a difficult week.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
         { "text": "45 seconds: pitch a new elective to the curriculum committee.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
-        { "text": "45 seconds: explain your reading philosophy to a curious LP-equivalent: a funder.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "45 seconds: explain your reading philosophy to a curious donor at a fundraiser.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
         { "text": "45 seconds: introduce a guest speaker to your seniors.", "difficulty": "intro", "tags": ["education", "audience_room", "presenting"] }
       ]
     },
@@ -735,7 +735,7 @@
         { "text": "Run through last quarter's classroom data with your team.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
         { "text": "Summarize the student intake workflow end to end.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
         { "text": "Describe how parent communication moves through your school.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
-        { "text": "Read the quarterly compliance update from the district top to bottom.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+        { "text": "Walk the school board through the district's quarterly compliance update, item by item.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
       ]
     },
     {
@@ -799,7 +799,7 @@
         { "text": "Lay out the four pillars of your classroom management plan.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
         { "text": "Describe your usual lesson plan for a typical Tuesday.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
         { "text": "Explain how you evaluate a new instructional resource.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
-        { "text": "Read the layoff notice list to the staff at the end-of-year meeting.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] }
+        { "text": "Announce the staffing cuts to your colleagues at the end-of-year meeting.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] }
       ]
     },
     {

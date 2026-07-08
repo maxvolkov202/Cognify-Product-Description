@@ -67,7 +67,9 @@ export default function StartCard({ onStart }: StartCardProps) {
         // primary surface.
         "brand-gradient",
         "shadow-[0_20px_60px_-15px_rgba(151,136,255,0.55)]",
+        "hover:shadow-[0_24px_70px_-15px_rgba(151,136,255,0.7)]",
         "transition-shadow",
+        "motion-safe:transition-[box-shadow,translate] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5",
         "focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-lavender/60",
         "disabled:opacity-90 disabled:cursor-wait",
         "group",

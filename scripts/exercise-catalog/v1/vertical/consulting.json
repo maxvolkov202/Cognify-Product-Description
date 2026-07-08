@@ -880,7 +880,7 @@
           ]
         },
         {
-          "text": "Give three reasons the steering committee should approve the org redesign now.",
+          "text": "Convince the steering committee to approve the org redesign now, not next quarter.",
           "difficulty": "intro",
           "tags": [
             "consulting",
@@ -986,7 +986,7 @@
           ]
         },
         {
-          "text": "Tell the story of how a hostile CIO became your strongest sponsor.",
+          "text": "Tell the story of a skeptical client executive who gradually became your strongest supporter.",
           "difficulty": "intro",
           "tags": [
             "consulting",
@@ -1043,7 +1043,7 @@
           ]
         },
         {
-          "text": "Walk me through the engagement where you had to fire the client.",
+          "text": "Walk me through the toughest client relationship you've had, and how it ended.",
           "difficulty": "stretch",
           "tags": [
             "consulting",
@@ -1805,7 +1805,7 @@
           ]
         },
         {
-          "text": "Status report on the engagement's most-at-risk milestone.",
+          "text": "Give the partner a status report on the engagement's most-at-risk milestone.",
           "difficulty": "core",
           "tags": [
             "consulting",
@@ -3860,7 +3860,7 @@
       "name": "Slow Cooker",
       "prompts": [
         {
-          "text": "Explain how you handled the client escalation last week.",
+          "text": "Imagine a client escalation lands on you an hour before the sponsor calls. Explain how you're handling it.",
           "difficulty": "core",
           "tags": [
             "consulting",
@@ -3878,7 +3878,7 @@
           ]
         },
         {
-          "text": "Describe the readout where the CFO killed your savings model.",
+          "text": "Imagine the CFO just killed your savings model live in the readout. Talk through how you respond in the room.",
           "difficulty": "intro",
           "tags": [
             "consulting",
@@ -3923,7 +3923,7 @@
           ]
         },
         {
-          "text": "Talk through the renegotiation where your top client threatened to fire the firm.",
+          "text": "Imagine your top client threatens to fire the firm mid-renegotiation. Talk through your next move on the call.",
           "difficulty": "stretch",
           "tags": [
             "consulting",
@@ -3941,7 +3941,7 @@
           ]
         },
         {
-          "text": "Walk through the call where you had to recommend the firm walk away.",
+          "text": "Imagine you must tell the sponsor the firm is walking away from the engagement. Walk through that call.",
           "difficulty": "stretch",
           "tags": [
             "consulting",
@@ -4037,7 +4037,7 @@
           ]
         },
         {
-          "text": "Walk through the year you almost left consulting entirely.",
+          "text": "Walk me through a stretch of your career when consulting felt hardest, and what kept you going.",
           "difficulty": "stretch",
           "tags": [
             "consulting",
