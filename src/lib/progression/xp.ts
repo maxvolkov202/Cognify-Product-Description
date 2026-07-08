@@ -30,8 +30,71 @@ import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { levelFromXp, MAX_LEVEL } from "./levels";
+import { rankChanged } from "./rank";
 
 export const BASE_XP = 10;
+
+// Phase 15 R-2 (§10.5.3) — per-mode XP weighting. "Daily Workout serves
+// as the primary driver of progression … Skill Lab and Build a Rep carry
+// different relative weights"; the exact numbers stay configurable via
+// XP_MODE_WEIGHTS (JSON, e.g. {"skill_lab":0.9}).
+const DEFAULT_MODE_XP_WEIGHTS: Record<string, number> = {
+  daily_workout: 1.0,
+  skill_lab: 0.85,
+  build_a_rep: 0.85,
+  scenario_training: 0.85,
+  baseline: 1.0,
+};
+export const MODE_XP_WEIGHTS: Record<string, number> = (() => {
+  try {
+    const raw = process.env.XP_MODE_WEIGHTS;
+    if (!raw) return DEFAULT_MODE_XP_WEIGHTS;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const merged = { ...DEFAULT_MODE_XP_WEIGHTS };
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === "number" && v > 0 && v <= 3) merged[k] = v;
+    }
+    return merged;
+  } catch {
+    return DEFAULT_MODE_XP_WEIGHTS;
+  }
+})();
+
+export function modeMultiplier(mode: string | null | undefined): number {
+  if (!mode) return 1;
+  return MODE_XP_WEIGHTS[mode] ?? 1;
+}
+
+// Phase 15 R-2 (§10.5.3) — completing a training experience is itself a
+// progression signal, beyond its constituent reps. Flat, additive (like
+// quest XP — band/streak multipliers don't apply), awarded once by the
+// mode's finish path.
+export const SESSION_COMPLETION_XP: Record<
+  "daily_workout" | "skill_lab" | "build_a_rep",
+  number
+> = {
+  daily_workout: 30,
+  skill_lab: 20,
+  build_a_rep: 25,
+};
+
+/** Flat additive XP for completing a session/day/prep. Bypasses the
+ *  grant curve on purpose (mirrors quest bonuses). Level recompute rides
+ *  the NEXT awardXp — a session bonus alone never triggers the level-up
+ *  celebration, which keeps the anti-grinding cap simple. */
+export async function awardSessionCompletionXp(
+  userId: string,
+  kind: keyof typeof SESSION_COMPLETION_XP,
+): Promise<{ granted: number }> {
+  const amount = SESSION_COMPLETION_XP[kind];
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ xp: sql`${users.xp} + ${amount}` })
+      .where(eq(users.id, userId));
+    return { granted: amount };
+  }, { granted: 0 });
+}
 
 export function bandMultiplier(composite: number): number {
   if (composite < 40) return 1.0;
@@ -52,6 +115,27 @@ export function streakMultiplier(streakDays: number): number {
   return 1.0;
 }
 
+/** PRD v3 Phase 6 (§10.5.3) — implementing coaching during a Retry earns
+ *  extra progression "because it demonstrates behavioral improvement
+ *  rather than simple participation". Configurable in one place. */
+export function implementationMultiplier(
+  verdict: "nailed" | "partial" | "missed" | null | undefined,
+): number {
+  if (verdict === "nailed") return 1.5;
+  if (verdict === "partial") return 1.25;
+  return 1.0;
+}
+
+/** PRD v3 Phase 6 (§10.5.3) — score improvement between the first attempt
+ *  and its retry adds progression. Small, capped: +1% XP per point of
+ *  composite improvement, max +30%. */
+export function improvementMultiplier(
+  scoreImprovement: number | null | undefined,
+): number {
+  if (scoreImprovement == null || scoreImprovement <= 0) return 1.0;
+  return 1 + Math.min(0.3, scoreImprovement * 0.01);
+}
+
 export type AwardXpInput = {
   userId: string;
   composite: number;
@@ -62,6 +146,21 @@ export type AwardXpInput = {
    *  break, the first rep gets ×2 XP. Caller decides when this fires
    *  (Ch.9 streak surfaces own that detection). */
   comebackBonus?: boolean;
+  /** Phase D — rest-day bonus. When the user trains on a day that ISN'T
+   *  in their committed_days schedule (a "voluntary rep"), reward them
+   *  with ×1.5 XP. Stacks multiplicatively with comebackBonus, so a
+   *  rest-day comeback rep gets ×3 vs base. Caller computes by checking
+   *  `isDateCommitted(committedDays, today) === false`. */
+  restDayBonus?: boolean;
+  /** PRD v3 Phase 6 (§10.5.3) — retry implementation verdict from the
+   *  Improvement Review; only set on retry/again attempts. */
+  implementationVerdict?: "nailed" | "partial" | "missed" | null;
+  /** PRD v3 Phase 6 (§10.5.3) — composite delta vs the first attempt;
+   *  only set on retry/again attempts. */
+  scoreImprovement?: number | null;
+  /** Phase 15 R-2 (§10.5.3) — the rep's training mode; weights the
+   *  grant via MODE_XP_WEIGHTS (Daily Workout is the primary driver). */
+  mode?: string | null;
   /** Override the "now" timestamp for tests / backfill replays. Defaults
    *  to new Date(). */
   now?: Date;
@@ -76,6 +175,9 @@ export type AwardXpResult = {
   leveledUp: boolean;
   /** Previous level — useful for the celebration UI to show "X → Y." */
   previousLevel: number;
+  /** Phase 15 R-3 — server-truth rank promotion: this grant crossed a
+   *  rank boundary (rankFromXp on prev vs new lifetime XP). */
+  rankUp: boolean;
 };
 
 /**
@@ -91,15 +193,22 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
     composite,
     streakDays,
     comebackBonus = false,
+    restDayBonus = false,
+    implementationVerdict = null,
+    scoreImprovement = null,
+    mode = null,
     now = new Date(),
   } = input;
 
-  const grant = Math.round(
-    BASE_XP *
-      bandMultiplier(composite) *
-      streakMultiplier(streakDays) *
-      (comebackBonus ? 2 : 1),
-  );
+  const grant = computeXpGrant({
+    composite,
+    streakDays,
+    comebackBonus,
+    restDayBonus,
+    implementationVerdict,
+    scoreImprovement,
+    mode,
+  });
 
   const fallback: AwardXpResult = {
     xpDelta: grant,
@@ -107,6 +216,7 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
     newLevel: 1,
     leveledUp: false,
     previousLevel: 1,
+    rankUp: false,
   };
 
   return safeDb<AwardXpResult>(async () => {
@@ -159,6 +269,9 @@ export async function awardXp(input: AwardXpInput): Promise<AwardXpResult> {
       newLevel,
       leveledUp,
       previousLevel,
+      // R-3 — rank is a pure function of lifetime XP; the crossing is
+      // computed from server truth, not per-browser localStorage.
+      rankUp: rankChanged(previousXp, newXp),
     };
   }, fallback);
 }
@@ -168,12 +281,20 @@ export function computeXpGrant(opts: {
   composite: number;
   streakDays: number;
   comebackBonus?: boolean;
+  restDayBonus?: boolean;
+  implementationVerdict?: "nailed" | "partial" | "missed" | null;
+  scoreImprovement?: number | null;
+  mode?: string | null;
 }): number {
   return Math.round(
     BASE_XP *
+      modeMultiplier(opts.mode) *
       bandMultiplier(opts.composite) *
       streakMultiplier(opts.streakDays) *
-      (opts.comebackBonus ? 2 : 1),
+      (opts.comebackBonus ? 2 : 1) *
+      (opts.restDayBonus ? 1.5 : 1) *
+      implementationMultiplier(opts.implementationVerdict) *
+      improvementMultiplier(opts.scoreImprovement),
   );
 }
 

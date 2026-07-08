@@ -37,14 +37,14 @@ export function DayDotsPreview({
                     ? "brand-gradient ring-4 ring-brand-purple/20 motion-safe:animate-pulse"
                     : isPast
                     ? "bg-brand-purple/40"
-                    : "border border-ink-300 bg-transparent",
+                    : "border border-ink-300 bg-transparent dark:border-ink-600",
                 ].join(" ")}
                 title={`Day ${i + 1}${isActive ? " — today" : ""}`}
               />
               <span
                 className={[
                   "mt-2 text-[10px] font-semibold uppercase tracking-wider tabular-nums",
-                  isActive ? "text-brand-purple" : "text-ink-400",
+                  isActive ? "text-brand-purple dark:text-brand-lavender" : "text-ink-400 dark:text-ink-500",
                 ].join(" ")}
               >
                 {isActive ? "today" : `D${i + 1}`}

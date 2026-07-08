@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
@@ -215,24 +215,31 @@ export async function getRecentSignups(limit = 20): Promise<RecentSignup[]> {
       .orderBy(desc(users.createdAt))
       .limit(limit);
 
-    const result: RecentSignup[] = [];
-    for (const r of rows) {
-      const [hasRepRow] = await db
-        .select({ c: count() })
-        .from(reps)
-        .where(eq(reps.userId, r.id))
-        .limit(1);
-      result.push({
-        id: r.id,
-        emailDomain: extractDomain(r.email),
-        vertical: r.vertical,
-        createdAt: r.createdAt,
-        onboardedAt: r.onboardedAt ?? null,
-        tutorialSeenAt: r.tutorialSeenAt ?? null,
-        hasRepped: Number(hasRepRow?.c ?? 0) > 0,
-      });
-    }
-    return result;
+    if (rows.length === 0) return [];
+
+    // Single GROUP BY instead of N per-row COUNT(*) queries (audit PR-7).
+    const userIds = rows.map((r) => r.id);
+    const repCountRows = await db
+      .select({
+        userId: reps.userId,
+        c: count(),
+      })
+      .from(reps)
+      .where(inArray(reps.userId, userIds))
+      .groupBy(reps.userId);
+    const repCountByUser = new Map<string, number>(
+      repCountRows.map((r) => [r.userId, Number(r.c)]),
+    );
+
+    return rows.map((r) => ({
+      id: r.id,
+      emailDomain: extractDomain(r.email),
+      vertical: r.vertical,
+      createdAt: r.createdAt,
+      onboardedAt: r.onboardedAt ?? null,
+      tutorialSeenAt: r.tutorialSeenAt ?? null,
+      hasRepped: (repCountByUser.get(r.id) ?? 0) > 0,
+    }));
   }, []);
 }
 

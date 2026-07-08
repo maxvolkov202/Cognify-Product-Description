@@ -395,6 +395,99 @@ export async function getRecentDriftRuns(
   }, []);
 }
 
+/**
+ * Phase B follow-up — per-exercise scoring drift slice.
+ *
+ * Aggregates scoring_telemetry rows (Phase 8 added exercise_id +
+ * muscle_group_day_id) by exercise. Surfaces:
+ *   - rep count, mean composite, p50 composite — for spotting drift
+ *     vs the exercise's own historical mean.
+ *   - mock-fallback rate — caller can flag exercises that fail-open
+ *     more often than the global rate.
+ *   - p95 model latency — for catching the prompt-bloat case where
+ *     adding the <exercise/> block + RAG dim hint pushed an exercise's
+ *     latency above the 8s budget.
+ *
+ * Window: last 30d. Rows with NULL exercise_id (legacy Skill Lab /
+ * scenario reps) excluded — they're already covered by the all-rep
+ * /ops/calibration page.
+ */
+export type PerExerciseDriftRow = {
+  exerciseId: string;
+  slug: string;
+  name: string;
+  dimension: string;
+  repCount: number;
+  meanComposite: number | null;
+  p50Composite: number | null;
+  mockFallbackRate: number; // 0..1
+  p95ModelDurationMs: number | null;
+  lastSeenAt: Date | null;
+};
+
+const PER_EXERCISE_WINDOW_DAYS = 30;
+
+export async function getPerExerciseDrift(): Promise<PerExerciseDriftRow[]> {
+  return safeDb<PerExerciseDriftRow[]>(async () => {
+    const since = new Date(
+      Date.now() - PER_EXERCISE_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+    );
+    // Single grouped query — pulls all stats per exercise in one
+    // round-trip. percentile_cont() for p50/p95 is index-friendly enough
+    // here because the exercise_id index narrows the scan first.
+    const rows = await db.execute<{
+      exercise_id: string;
+      slug: string;
+      name: string;
+      dimension: string;
+      rep_count: string;
+      mean_composite: number | null;
+      p50_composite: number | null;
+      mock_fallback_count: string;
+      p95_model_ms: number | null;
+      last_seen_at: Date | null;
+    }>(sql`
+      SELECT
+        t.exercise_id::text AS exercise_id,
+        e.slug,
+        e.name,
+        e.dimension::text AS dimension,
+        COUNT(*)::text AS rep_count,
+        AVG(t.composite_score)::float AS mean_composite,
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY t.composite_score)::float AS p50_composite,
+        SUM(CASE WHEN t.model_used = 'mock-fallback-v1' THEN 1 ELSE 0 END)::text AS mock_fallback_count,
+        percentile_cont(0.95) WITHIN GROUP (ORDER BY t.model_duration_ms)::float AS p95_model_ms,
+        MAX(t.created_at) AS last_seen_at
+      FROM cognify_v2.scoring_telemetry t
+      JOIN cognify_v2.exercises e ON e.id = t.exercise_id
+      WHERE t.exercise_id IS NOT NULL
+        AND t.created_at >= ${since}
+      GROUP BY t.exercise_id, e.slug, e.name, e.dimension
+      ORDER BY COUNT(*) DESC
+    `);
+
+    return rows.map((r) => {
+      const count = parseInt(r.rep_count, 10);
+      const mockCount = parseInt(r.mock_fallback_count, 10);
+      return {
+        exerciseId: r.exercise_id,
+        slug: r.slug,
+        name: r.name,
+        dimension: r.dimension,
+        repCount: count,
+        meanComposite:
+          r.mean_composite != null ? Math.round(r.mean_composite) : null,
+        p50Composite:
+          r.p50_composite != null ? Math.round(r.p50_composite) : null,
+        mockFallbackRate: count > 0 ? mockCount / count : 0,
+        p95ModelDurationMs:
+          r.p95_model_ms != null ? Math.round(r.p95_model_ms) : null,
+        lastSeenAt: r.last_seen_at,
+      };
+    });
+  }, []);
+}
+
 function pearson(xs: number[], ys: number[]): number | null {
   // Need at least 5 paired observations for the correlation to be at
   // all stable; below that the noise dominates.

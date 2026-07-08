@@ -2,6 +2,11 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import {
+  DEFAULT_COMMITTED_DAYS,
+  isDateCommitted,
+} from "@/lib/onboarding/committed-days";
+import { todayYmdInTz, ymdToUtcMidnight } from "@/lib/time/user-day";
 
 /**
  * Streak-freeze mechanics (habit engine, WS-10).
@@ -14,10 +19,19 @@ import { safeDb } from "@/lib/db/safe";
  * Rules:
  *   - Earn: triggered when raw streak hits a multiple of 7 (7, 14, 21…).
  *     Awarded only once per threshold — tracked via `streak_freezes` cap.
- *   - Spend: auto-applied in `getStreakDaysWithFreeze` when exactly one
- *     day is missing between today/yesterday and the prior rep day.
+ *   - Spend: auto-applied in the streak walk. Up to `freezesAvailable`
+ *     freezes apply per streak (§10.7.1 — a 3-freeze bank really covers
+ *     3 misses), with one constraint: two CONSECUTIVE missed committed
+ *     days break the streak regardless (a freeze protects an isolated
+ *     slip, not a multi-session absence).
  *   - Cap: 3 banked freezes at a time. Any additional earnings are
  *     discarded (no "credits" accumulate for super-long streaks).
+ *
+ * NOTE — spend is a PURE READ-TIME computation: getStreakStatus never
+ * writes; `freezesAvailable` is the banked balance minus the freezes the
+ * current walk virtually consumed, so repeated reads are idempotent.
+ * Persistent decrements happen only in the day close-out path
+ * (closeOutDay → consumeStreakFreeze).
  */
 
 const FREEZE_CAP = 3;
@@ -32,26 +46,112 @@ export type StreakStatus = {
   /** True if today OR yesterday had a rep (common grace window). */
   activeToday: boolean;
   /** If a freeze was auto-applied to preserve continuity, this records
-   *  the date it covered (YYYY-MM-DD). Null otherwise. */
+   *  the MOST RECENT date it covered (YYYY-MM-DD). Null otherwise.
+   *  Kept for back-compat — see `appliedFreezeDates` for the full list. */
+  appliedFreezeDate: string | null;
+  /** All dates the current streak's freezes cover, most recent first. */
+  appliedFreezeDates: string[];
+};
+
+export type WalkBackResult = {
+  streakDays: number;
+  freezesUsed: number;
+  /** Most recent first (the walk runs backwards from `startDate`). */
+  appliedFreezeDates: string[];
+  /** Back-compat alias: appliedFreezeDates[0] ?? null. */
   appliedFreezeDate: string | null;
 };
 
+/**
+ * Pure streak walk — count consecutive committed days with a rep, walking
+ * back from `startDate`. Rest days (non-committed) are skipped without
+ * consuming the streak. A missed committed day consumes one freeze (up to
+ * `maxFreezes`) and counts as attended — UNLESS the next-more-recent
+ * committed day was also freeze-covered: two consecutive missed committed
+ * days always break the streak, freezes protect isolated misses only.
+ *
+ * Exported for unit tests; getStreakStatus is the DB-facing wrapper.
+ */
+export function walkBackStreak(opts: {
+  startDate: string;
+  maxFreezes: number;
+  repDates: ReadonlySet<string>;
+  committedDays: number;
+  tz: string;
+}): WalkBackResult {
+  const { startDate, maxFreezes, repDates, committedDays, tz } = opts;
+  const start = ymdToUtcMidnight(startDate);
+  let streak = 0;
+  let freezesUsed = 0;
+  const appliedFreezeDates: string[] = [];
+  // Was the previously-processed (more recent) committed day covered by
+  // a freeze? Two frozen committed days in a row are not allowed.
+  let prevCommittedWasFrozen = false;
+  // Cap the walk at 365 days to avoid pathological inputs.
+  for (let d = 0; d < 365; d++) {
+    const dt = new Date(start.getTime() - d * 86_400_000);
+    const iso = dt.toISOString().slice(0, 10);
+    const isCommitted = isDateCommitted(committedDays, dt, tz);
+    const hasRep = repDates.has(iso);
+    if (!isCommitted) continue; // rest day — neither counts nor breaks
+    if (hasRep) {
+      streak++;
+      prevCommittedWasFrozen = false;
+      continue;
+    }
+    // Committed day with no rep — try a freeze, otherwise break.
+    if (freezesUsed < maxFreezes && !prevCommittedWasFrozen) {
+      freezesUsed++;
+      appliedFreezeDates.push(iso);
+      prevCommittedWasFrozen = true;
+      streak++; // freeze covers this committed day
+      continue;
+    }
+    break;
+  }
+  return {
+    streakDays: streak,
+    freezesUsed,
+    appliedFreezeDates,
+    appliedFreezeDate: appliedFreezeDates[0] ?? null,
+  };
+}
+
 export async function getStreakStatus(userId: string): Promise<StreakStatus> {
   return safeDb(async () => {
-    const rows = await db
-      .select({
-        date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
-      })
-      .from(reps)
-      .where(eq(reps.userId, userId))
-      .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`)
-      .orderBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD') DESC`);
-
     const [user] = await db
-      .select({ freezes: users.streakFreezes })
+      .select({
+        freezes: users.streakFreezes,
+        committedDays: users.committedDays,
+        tz: users.tz,
+      })
       .from(users)
       .where(eq(users.id, userId));
     const freezes = user?.freezes ?? 0;
+    // Phase C — committed-days streak. Only days the user signed up to
+    // train count as "expected" rep days. Missing a non-committed day
+    // (their rest day) doesn't break the streak — the point of the
+    // habit is to honor what you committed to, not perfect daily reps.
+    const committedDays = user?.committedDays ?? DEFAULT_COMMITTED_DAYS;
+    // CTO review B-4 — bucket reps by user-local date and pull "today"
+    // from the same TZ. Server defaults to UTC; users.tz is populated
+    // by TimezoneDetector on first authenticated visit. Pre-detect
+    // users stay on UTC (no behavior change).
+    const tz = user?.tz ?? "UTC";
+
+    // GROUP/ORDER BY select position, NOT a repeated expression: each
+    // `${tz}` interpolation binds as its OWN parameter ($1, $2, $3), and
+    // Postgres can't prove `AT TIME ZONE $2` equals the selected
+    // `AT TIME ZONE $1` — the query 42803-failed on EVERY call and
+    // safeDb quietly returned the zero-streak fallback (Phase 12 F-3).
+    const rows = await db
+      .select({
+        date: sql<string>`to_char(${reps.createdAt} AT TIME ZONE ${tz}, 'YYYY-MM-DD')`,
+      })
+      .from(reps)
+      .where(eq(reps.userId, userId))
+      .groupBy(sql`1`)
+      .orderBy(sql`1 DESC`);
 
     if (rows.length === 0) {
       return {
@@ -60,63 +160,86 @@ export async function getStreakStatus(userId: string): Promise<StreakStatus> {
         freezesAvailable: freezes,
         activeToday: false,
         appliedFreezeDate: null,
+        appliedFreezeDates: [],
       };
     }
 
     const dates = rows.map((r) => r.date);
-    const today = new Date().toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-    const activeToday = dates[0] === today;
+    const repSet = new Set(dates);
+    const today = todayYmdInTz(tz);
+    const activeToday = repSet.has(today);
 
-    // Break-out path — streak only counts if we have a rep today or yesterday.
-    if (dates[0] !== today && dates[0] !== yesterday) {
+    // Anchor the walk at today if rep today, else the most-recent rep
+    // date (only if it's "still alive" — last committed day was at most
+    // today). If the user missed any committed day between the last rep
+    // and today, the streak is broken (the walkBack from today will hit
+    // a no-rep committed day before reaching any reps).
+    const anchor = activeToday ? today : dates[0]!;
+    const isAnchorAlive = (() => {
+      const a = ymdToUtcMidnight(anchor);
+      const t = ymdToUtcMidnight(today);
+      // Walk forward from anchor to today; if any intermediate day is
+      // committed-but-not-repped, anchor is dead.
+      // Phase 16 fix (caught in the visual tour): the walk must STOP
+      // BEFORE today — today's committed day isn't "missed" while the
+      // user still has hours left to train. With `dt <= t`, every
+      // Mon-Fri user woke to a DEAD streak each committed morning until
+      // their first rep of the day.
+      for (
+        let dt = new Date(a.getTime() + 86_400_000);
+        dt < t;
+        dt = new Date(dt.getTime() + 86_400_000)
+      ) {
+        const iso = dt.toISOString().slice(0, 10);
+        if (isDateCommitted(committedDays, dt, tz) && !repSet.has(iso)) {
+          return false;
+        }
+      }
+      return true;
+    })();
+
+    if (!isAnchorAlive) {
       return {
         streakDays: 0,
         rawStreakDays: 0,
         freezesAvailable: freezes,
-        activeToday: false,
+        activeToday,
         appliedFreezeDate: null,
+        appliedFreezeDates: [],
       };
     }
 
-    let streak = 1;
-    let appliedFreezeDate: string | null = null;
-    let freezesLeft = freezes;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1]!);
-      const curr = new Date(dates[i]!);
-      const diff = (prev.getTime() - curr.getTime()) / 86_400_000;
-      if (diff === 1) {
-        streak++;
-      } else if (diff === 2 && freezesLeft > 0 && !appliedFreezeDate) {
-        // Use ONE freeze to bridge a single-day gap. Only honor the first
-        // such gap per streak — stacking freezes would defeat the point.
-        freezesLeft--;
-        appliedFreezeDate = new Date(prev.getTime() - 86_400_000)
+    // Phase 16 fix: when today has no rep YET, start the walk from
+    // yesterday — today's committed day isn't "missed" (and must not
+    // consume a freeze) while the user still has hours left to train.
+    // The anchor-alive check above applies the same exclusion.
+    const walkStart = activeToday
+      ? today
+      : new Date(ymdToUtcMidnight(today).getTime() - 86_400_000)
           .toISOString()
           .slice(0, 10);
-        streak += 2;
-      } else {
-        break;
-      }
-    }
-
-    // Raw streak (no freezes applied) — useful for the UI delta display.
-    let rawStreak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1]!);
-      const curr = new Date(dates[i]!);
-      const diff = (prev.getTime() - curr.getTime()) / 86_400_000;
-      if (diff === 1) rawStreak++;
-      else break;
-    }
+    const withFreeze = walkBackStreak({
+      startDate: walkStart,
+      maxFreezes: freezes,
+      repDates: repSet,
+      committedDays,
+      tz,
+    });
+    const raw = walkBackStreak({
+      startDate: walkStart,
+      maxFreezes: 0,
+      repDates: repSet,
+      committedDays,
+      tz,
+    });
 
     return {
-      streakDays: streak,
-      rawStreakDays: rawStreak,
-      freezesAvailable: freezesLeft,
+      streakDays: withFreeze.streakDays,
+      rawStreakDays: raw.streakDays,
+      freezesAvailable: freezes - withFreeze.freezesUsed,
       activeToday,
-      appliedFreezeDate,
+      appliedFreezeDate: withFreeze.appliedFreezeDate,
+      appliedFreezeDates: withFreeze.appliedFreezeDates,
     };
   }, {
     streakDays: 0,
@@ -124,6 +247,7 @@ export async function getStreakStatus(userId: string): Promise<StreakStatus> {
     freezesAvailable: 0,
     activeToday: false,
     appliedFreezeDate: null,
+    appliedFreezeDates: [],
   });
 }
 

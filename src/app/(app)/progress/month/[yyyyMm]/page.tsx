@@ -79,7 +79,7 @@ export default async function MonthlyReportPage({
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
       <Link
         href="/progress"
-        className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500 hover:text-ink-900"
+        className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
       >
         <ArrowLeft className="size-3" />
         Progress
@@ -87,24 +87,24 @@ export default async function MonthlyReportPage({
 
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
             Monthly report
           </p>
-          <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+          <h1 className="mt-1 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
             {monthLabel}
           </h1>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href={`/progress/month/${prevYm}`}
-            className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300"
+            className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
           >
             ← {prettyYm(prevYm)}
           </Link>
           {!nextIsFuture && (
             <Link
               href={`/progress/month/${nextYm}`}
-              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300"
+              className="rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
             >
               {prettyYm(nextYm)} →
             </Link>
@@ -113,11 +113,11 @@ export default async function MonthlyReportPage({
       </div>
 
       <div className="mt-8 surface-card p-6">
-        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
-          <Sparkles className="size-3 text-brand-purple" strokeWidth={3} />
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+          <Sparkles className="size-3 text-brand-purple dark:text-brand-lavender" strokeWidth={3} />
           Summary
         </p>
-        <p className="mt-2 text-base leading-relaxed text-ink-800">
+        <p className="mt-2 text-base leading-relaxed text-ink-800 dark:text-ink-100">
           {report.narrative}
         </p>
       </div>
@@ -160,16 +160,16 @@ export default async function MonthlyReportPage({
       </div>
 
       {pressureStats.count > 0 && (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 dark:border-amber-500/40 dark:from-amber-500/15 dark:via-amber-500/10 dark:to-amber-500/20">
           <div className="flex items-start gap-3 p-5">
-            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300">
               <Zap className="size-4" strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                 Pressure performance this month
               </p>
-              <p className="mt-1 text-sm font-semibold text-amber-950">
+              <p className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-100">
                 {pressureStats.count} pressure{" "}
                 {pressureStats.count === 1 ? "rep" : "reps"} · avg composite{" "}
                 <strong>{pressureStats.avgComposite ?? "—"}</strong>
@@ -189,13 +189,13 @@ export default async function MonthlyReportPage({
                   {pressureStats.byArchetype.map((a) => (
                     <span
                       key={a.archetypeName}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900 dark:border-amber-500/40 dark:bg-ink-900/60 dark:text-amber-200"
                     >
                       {a.archetypeName}
-                      <span className="font-mono tabular-nums text-amber-700">
+                      <span className="font-mono tabular-nums text-amber-700 dark:text-amber-300">
                         {a.avgComposite}
                       </span>
-                      <span className="text-[10px] text-amber-500">
+                      <span className="text-[10px] text-amber-500 dark:text-amber-400">
                         × {a.count}
                       </span>
                     </span>
@@ -210,10 +210,10 @@ export default async function MonthlyReportPage({
       <div className="mt-8 grid gap-6 md:grid-cols-[1.2fr_1fr]">
         {/* Month calendar grid */}
         <section className="surface-card p-6">
-          <h2 className="text-lg font-extrabold text-ink-900">
+          <h2 className="text-lg font-extrabold text-ink-900 dark:text-white">
             Day by day
           </h2>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             Each square shows your average composite that day.
           </p>
           <div className="mt-6 grid grid-cols-7 gap-1.5">
@@ -223,7 +223,7 @@ export default async function MonthlyReportPage({
               const count = entry?.count ?? 0;
               const bg =
                 count === 0
-                  ? "border-2 border-dashed border-ink-200 bg-white text-ink-400"
+                  ? "border-2 border-dashed border-ink-200 bg-white text-ink-400 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-500"
                   : composite >= 80
                     ? "bg-success text-white"
                     : composite >= 60
@@ -248,10 +248,10 @@ export default async function MonthlyReportPage({
 
         {/* Most improved + full dimension breakdown */}
         <section className="surface-card p-6">
-          <h2 className="text-lg font-extrabold text-ink-900">
+          <h2 className="text-lg font-extrabold text-ink-900 dark:text-white">
             Dimension movement
           </h2>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             Early-month vs late-month average per dimension.
           </p>
           <ul className="mt-4 space-y-3">
@@ -285,10 +285,10 @@ export default async function MonthlyReportPage({
                   key={t.dimension}
                   className="flex items-center justify-between text-sm"
                 >
-                  <span className="font-medium text-ink-700">
+                  <span className="font-medium text-ink-700 dark:text-ink-200">
                     {DIMENSION_LABELS[t.dimension]}
                   </span>
-                  <span className="tabular-nums text-ink-500">
+                  <span className="tabular-nums text-ink-500 dark:text-ink-400">
                     {Math.round(earlyAvg)} → {Math.round(lateAvg)}
                   </span>
                   <span className={`font-bold tabular-nums ${color}`}>
@@ -317,16 +317,16 @@ function StatCard({
 }) {
   return (
     <div className="surface-card p-4">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
         <span className="brand-gradient grid size-6 place-items-center rounded-md">
           {icon}
         </span>
         {label}
       </div>
-      <p className="mt-2 truncate text-lg font-extrabold text-ink-900">
+      <p className="mt-2 truncate text-lg font-extrabold text-ink-900 dark:text-white">
         {value}
       </p>
-      {suffix && <p className="text-[11px] text-ink-500">{suffix}</p>}
+      {suffix && <p className="text-[11px] text-ink-500 dark:text-ink-400">{suffix}</p>}
     </div>
   );
 }

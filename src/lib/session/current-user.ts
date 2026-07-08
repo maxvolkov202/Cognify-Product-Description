@@ -1,11 +1,13 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { crewInvites, friendships, users } from "@/lib/db/schema";
 import { hasDatabase, safeDb } from "@/lib/db/safe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabase } from "@/lib/supabase/admin";
+import { recordAuthDegraded } from "@/lib/ops/counters";
 
 export const GUEST_COOKIE = "cognify_guest_id";
 
@@ -17,7 +19,10 @@ export type ResolvedUser = {
   image: string | null;
 };
 
-export async function currentUser(): Promise<ResolvedUser | null> {
+// Request-scoped memo: every page that renders the (app) layout calls
+// this 4+ times (layout → page → server actions). Without cache() each
+// call re-hits Supabase auth + 1-3 user lookups.
+export const currentUser = cache(async (): Promise<ResolvedUser | null> => {
   // 1. Try Supabase Auth first (primary auth going forward)
   if (hasSupabase()) {
     try {
@@ -28,9 +33,16 @@ export async function currentUser(): Promise<ResolvedUser | null> {
       if (authUser && hasDatabase()) {
         const resolved = await resolveSupabaseUser(authUser);
         if (resolved) return resolved;
+        // Phase 15 P-5 — a VALID Supabase session whose user row lookup
+        // failed is about to render the guest experience (F-2's failure
+        // mode). Count it loudly; /api/health surfaces the counter.
+        recordAuthDegraded("resolveSupabaseUser returned null for a valid session");
       }
-    } catch {
-      // Supabase unavailable — fall through
+    } catch (err) {
+      // Supabase unavailable — fall through (guest), but never silently.
+      recordAuthDegraded(
+        err instanceof Error ? err.message : "supabase auth threw",
+      );
     }
   }
 
@@ -48,7 +60,7 @@ export async function currentUser(): Promise<ResolvedUser | null> {
     email: null,
     image: null,
   };
-}
+});
 
 /**
  * Reconcile a Supabase-authenticated user with our `users` table. Handles
@@ -214,35 +226,61 @@ async function convertPendingCrewInvites(
         eq(crewInvites.status, "pending"),
       ),
     });
-    for (const invite of pending) {
-      const dupe = await db.query.friendships.findFirst({
-        where: or(
+    if (pending.length === 0) return null;
+
+    // Bulk-fetch existing friendships against any of the inviters so
+    // duplicate-checking is one query, not N (audit IN-1).
+    const inviterIds = Array.from(new Set(pending.map((p) => p.inviterId)));
+    const existingFriendships = await db
+      .select({
+        requesterId: friendships.requesterId,
+        recipientId: friendships.recipientId,
+      })
+      .from(friendships)
+      .where(
+        or(
           and(
-            eq(friendships.requesterId, invite.inviterId),
+            inArray(friendships.requesterId, inviterIds),
             eq(friendships.recipientId, userId),
           ),
           and(
             eq(friendships.requesterId, userId),
-            eq(friendships.recipientId, invite.inviterId),
+            inArray(friendships.recipientId, inviterIds),
           ),
         ),
-      });
-      if (!dupe) {
-        await db.insert(friendships).values({
-          requesterId: invite.inviterId,
-          recipientId: userId,
-          status: "pending",
-        });
-      }
-      await db
-        .update(crewInvites)
-        .set({
-          status: "accepted",
-          acceptedAt: new Date(),
-          acceptedUserId: userId,
-        })
-        .where(eq(crewInvites.id, invite.id));
+      );
+    const dupeInviters = new Set<string>();
+    for (const f of existingFriendships) {
+      dupeInviters.add(
+        f.requesterId === userId ? f.recipientId : f.requesterId,
+      );
     }
+
+    const toInsert = pending
+      .filter((p) => !dupeInviters.has(p.inviterId))
+      .map((p) => ({
+        requesterId: p.inviterId,
+        recipientId: userId,
+        status: "pending" as const,
+      }));
+    if (toInsert.length > 0) {
+      await db.insert(friendships).values(toInsert);
+    }
+
+    // Single UPDATE for all the invite rows.
+    await db
+      .update(crewInvites)
+      .set({
+        status: "accepted",
+        acceptedAt: new Date(),
+        acceptedUserId: userId,
+      })
+      .where(
+        inArray(
+          crewInvites.id,
+          pending.map((p) => p.id),
+        ),
+      );
     return null;
   }, null);
 }

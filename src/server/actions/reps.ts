@@ -9,10 +9,23 @@ import {
   progressSnapshots,
   practiceSessions,
   users,
+  coachingEvents,
+  communicationProfile,
+  exercises,
 } from "@/lib/db/schema";
-import { count, eq, asc, sql } from "drizzle-orm";
+import {
+  applyRepToProfile,
+  emptyProfile,
+  type CommunicationProfileState,
+} from "@/lib/profile/communication-profile";
+import { count, eq, and, asc, gte, isNull, sql } from "drizzle-orm";
+import {
+  deriveCoachFocus,
+  deriveImplementationVerdict,
+} from "@/lib/ai/coach-focus";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
+import { log } from "@/lib/log";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
 import { getStreakDays } from "@/lib/db/queries/progress";
 import { recordPersonalBests } from "@/lib/db/queries/personal-bests";
@@ -31,6 +44,10 @@ import {
   markQuestsCompleted,
   ymdUtc,
 } from "@/lib/db/queries/daily-quests";
+import {
+  incrementTeamChallenges,
+  recordWeeklyChallengeEvent,
+} from "@/lib/db/queries/weekly-challenges";
 import { tickWeeklyXp } from "@/lib/db/queries/leagues";
 import type { Framework, ModeId, RepScore, SkillDimension } from "@/types/domain";
 import {
@@ -42,6 +59,18 @@ import {
  *  back with `gate: "signup_required"` — the UI shows the score, then
  *  replaces the "Next rep" CTA with a signup paywall. */
 const GUEST_REP_LIMIT = 3;
+
+/** Shape of communication_profile.applications (matches the schema $type,
+ *  incl. nested Application Skill estimates — PRD §8.3.6/§8.4.5). */
+type ApplicationsColumn = Record<
+  string,
+  {
+    score: number;
+    sampleCount: number;
+    updatedAt: string;
+    skills?: Record<string, { score: number; sampleCount: number }>;
+  }
+>;
 
 /** Read users.lifetime_reps post-awardXp. Awarded inside awardXp; we
  *  need the post-increment value for achievement evaluation. Wrapped in
@@ -67,6 +96,27 @@ export type SaveRepInput = {
   framework: Framework | null;
   topic: string | null;
   sessionId: string | null;
+  /** Phase 8 — muscle-group exercise + day this rep belongs to. NULL
+   *  for legacy Skill Lab / scenario reps; preserved end-to-end so
+   *  scoring + telemetry can slice per-exercise. */
+  exerciseId?: string | null;
+  muscleGroupDayId?: string | null;
+  /** Phase 8 — pressure graduation rep tag. */
+  isGraduationRep?: boolean;
+  /** Pressure archetype id when this rep ran under a pressure archetype
+   *  (Skill Lab pressure slots, Build-a-Rep pressure mode). Only used to
+   *  flag `isPressureRep` for achievements/quests — the scoring pipeline
+   *  receives it separately via the /api/score body. */
+  pressureArchetypeId?: string | null;
+  /** PRD v3 Phase 4 — Skill Lab application this rep belongs to
+   *  (exercises.application). Folds the composite into the profile's
+   *  per-application estimate. Null for Daily Workout / legacy reps. */
+  applicationId?: string | null;
+  /** PRD v3 engine — where this rep sits in the exercise learning loop.
+   *  Omitted/"first" for all legacy callers. */
+  attemptKind?: "first" | "retry" | "again";
+  /** PRD v3 engine — the First Rep this retry/again attempt improves on. */
+  parentRepId?: string | null;
 };
 
 export type SaveRepResult = {
@@ -91,6 +141,8 @@ export type SaveRepResult = {
   /** DNA Ch.9c — achievements newly unlocked by this rep. Empty when none.
    *  Client iterates and fires earn-time toasts. */
   unlockedAchievements?: AchievementId[];
+  /** PRD v3 Phase 6 (§10.10) — weekly challenges completed by this rep. */
+  completedWeeklyChallenges?: { ids: string[]; bonusXp: number };
   /** DNA Ch.9d — daily quest ids completed by this rep + bonus XP. UI
    *  surfaces as a small "+X XP — quest complete" toast. */
   completedQuests?: { ids: string[]; bonusXp: number };
@@ -107,6 +159,14 @@ export type InsertPendingRepInput = {
   sessionId: string | null;
   timeBudgetMs?: number;
   words?: { word: string; startMs: number; endMs: number }[];
+  /** Phase 8 — muscle-group context. Persisted to reps.exercise_id /
+   *  reps.muscle_group_day_id so /api/score-internal can read them when
+   *  hydrating the scoring input. */
+  exerciseId?: string | null;
+  muscleGroupDayId?: string | null;
+  isGraduationRep?: boolean;
+  /** WS-3 pressure tagging — persists to reps.pressure_archetype_id. */
+  pressureArchetypeId?: string | null;
 };
 
 export type InsertPendingRepResult = {
@@ -154,30 +214,43 @@ export async function insertPendingRep(
         promptText: input.promptText,
         durationMs: input.durationMs,
         audioUrl: input.audioPath,
-        transcript: { text: input.transcript } as unknown as object,
+        transcript: { text: input.transcript },
         topic: input.topic ?? input.promptText,
         status: "pending",
+        // Phase 8 — muscle-group context, threaded end-to-end. Nullable
+        // FKs from migration 0020; legacy callers pass undefined and
+        // these columns remain NULL.
+        ...(input.exerciseId ? { exerciseId: input.exerciseId } : {}),
+        ...(input.muscleGroupDayId
+          ? { muscleGroupDayId: input.muscleGroupDayId }
+          : {}),
+        ...(input.isGraduationRep
+          ? { isGraduationRep: true }
+          : {}),
+        ...(input.pressureArchetypeId
+          ? { pressureArchetypeId: input.pressureArchetypeId as never }
+          : {}),
         frameworkSnapshot: input.framework
-          ? ({
+          ? {
               id: input.framework.id,
               name: input.framework.name,
               description: input.framework.description,
               nodes: input.framework.nodes,
               timeBudgetMs: input.timeBudgetMs,
               words: input.words,
-            } as unknown as object)
+            }
           : input.words || input.timeBudgetMs
-            ? ({
+            ? {
                 timeBudgetMs: input.timeBudgetMs,
                 words: input.words,
-              } as unknown as object)
+              }
             : null,
       })
       .returning({ id: reps.id });
     if (!rep) return null;
 
     return { repId: rep.id, sessionId };
-  }, null);
+  }, null, { write: "rep_pending" });
 }
 
 export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
@@ -191,10 +264,23 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     calloutIds: [],
   };
 
+  // PRD v3 engine — derive the Coach's Focus this rep carries forward.
+  // Skipped on mock-fallback scores (their focus bullets are canned) so
+  // the coaching-history ledger stays trustworthy.
+  const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
+  const coachFocus = isMockFallback ? null : deriveCoachFocus(input.score);
+
   return safeDb(async () => {
+    // Phase 15 P-2 — the CORE persistence is atomic. Pre-tx, a late
+    // failure (e.g. dimension_scores) left the rep row committed while
+    // the caller received persisted:false + a random repId — the retry
+    // then chained onto a phantom parent (the F-4 replay, one write
+    // deeper). Best-effort layers (ledger, personal bests, profile fold,
+    // XP, quests) stay OUTSIDE the tx: they must never roll back a rep.
+    const core = await db.transaction(async (tx) => {
     let sessionId = input.sessionId;
     if (!sessionId) {
-      const [session] = await db
+      const [session] = await tx
         .insert(practiceSessions)
         .values({
           userId,
@@ -204,11 +290,11 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           compositeScore: input.score.composite,
         })
         .returning({ id: practiceSessions.id });
-      if (!session) return fallback;
+      if (!session) throw new Error("practice session insert returned no row");
       sessionId = session.id;
     }
 
-    const [rep] = await db
+    const [rep] = await tx
       .insert(reps)
       .values({
         sessionId,
@@ -216,51 +302,55 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         promptText: input.promptText,
         durationMs: input.durationMs,
         audioUrl: input.audioUrl,
-        transcript: { text: input.transcript } as unknown as object,
+        transcript: { text: input.transcript },
         compositeScore: input.score.composite,
         modelVersion: input.score.modelVersion,
         rubricVersion: input.score.rubricVersion,
         topic: input.topic ?? input.promptText,
+        // Phase 8 — muscle-group context, threaded end-to-end.
+        ...(input.exerciseId ? { exerciseId: input.exerciseId } : {}),
+        ...(input.muscleGroupDayId
+          ? { muscleGroupDayId: input.muscleGroupDayId }
+          : {}),
+        ...(input.isGraduationRep
+          ? { isGraduationRep: true }
+          : {}),
+        ...(input.pressureArchetypeId
+          ? { pressureArchetypeId: input.pressureArchetypeId as never }
+          : {}),
+        // PRD v3 engine — attempt lineage (migration 0028). Legacy
+        // callers omit these; column defaults keep them 'first'/NULL.
+        ...(input.attemptKind && input.attemptKind !== "first"
+          ? { attemptKind: input.attemptKind }
+          : {}),
+        ...(input.parentRepId ? { parentRepId: input.parentRepId } : {}),
+        ...(coachFocus ? { coachFocus } : {}),
         frameworkSnapshot: input.framework
-          ? ({
+          ? {
               name: input.framework.name,
               description: input.framework.description,
               nodes: input.framework.nodes,
-            } as unknown as object)
+            }
           : null,
       })
       .returning({ id: reps.id });
-    if (!rep) return fallback;
-
+    if (!rep) throw new Error("rep insert returned no row");
     const repId = rep.id;
 
     if (input.score.dimensions.length > 0) {
-      await db.insert(dimensionScores).values(
+      await tx.insert(dimensionScores).values(
         input.score.dimensions.map((d) => ({
           repId,
           dimension: d.dimension,
           score: d.score,
-          // Ch.11c — encode narratives + optional subSkillScores into a
-          // single jsonb. Falls back to the legacy string[] shape when
-          // subSkillScores is absent (FF-off path) so back-compat is
-          // preserved on disk.
           signals: encodeDimensionSignals(
             d.signals,
             d.subSkillScores,
-          ) as unknown as object,
+          ) as Record<string, unknown>,
         })),
       );
-      // CTO-scan H8 — when scoring fell into the mock-fallback path
-      // (api/score returned modelVersion="mock-fallback-v1" because
-      // both Anthropic AND OpenAI failed), do NOT pollute the user's
-      // running averages or personal-bests with the mock 70-across-the-
-      // board scores. The dim_scores rows still get written for
-      // historical-record completeness (they carry the mock-fallback
-      // tag in the rep's modelVersion) but progress + PB skips so the
-      // calibration drift surface stays clean.
-      const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
       if (!isMockFallback) {
-        await db.insert(progressSnapshots).values(
+        await tx.insert(progressSnapshots).values(
           input.score.dimensions.map((d) => ({
             userId,
             dimension: d.dimension,
@@ -268,30 +358,12 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             takenAt: new Date(),
           })),
         );
-        // Record any per-dimension personal bests this rep set. Durable
-        // across sessions; in-session UI keeps using WorkoutSession's
-        // local detection for instant-feedback toast, but the DB row is
-        // the source of truth for /progress and /report.
-        if (userId !== "anonymous") {
-          await recordPersonalBests({
-            userId,
-            repId,
-            dimensionScores: input.score.dimensions.map((d) => ({
-              dimension: d.dimension,
-              score: d.score,
-            })),
-          });
-        }
-      } else {
-        console.warn(
-          `[saveRep] rep ${repId} scored via mock-fallback path; progressSnapshots + personalBests SKIPPED (CTO-scan H8).`,
-        );
       }
     }
 
-    let calloutIds: string[] = [];
+    let txCalloutIds: string[] = [];
     if (input.score.callouts.length > 0) {
-      const inserted = await db
+      const inserted = await tx
         .insert(calloutsTable)
         .values(
           input.score.callouts.map((c) => ({
@@ -307,8 +379,229 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           })),
         )
         .returning({ id: calloutsTable.id });
-      calloutIds = inserted.map((r) => r.id);
+      txCalloutIds = inserted.map((r) => r.id);
     }
+
+    return { repId, sessionId, calloutIds: txCalloutIds };
+    });
+
+    const repId = core.repId;
+    const sessionId = core.sessionId;
+
+    // PRD v3 engine — coaching-history ledger (seed of PRD §8.3.9).
+    // One row per delivered Coach's Focus; retry attempts back-fill the
+    // parent rep's implemented_verdict. Best-effort: a ledger failure
+    // must never lose the rep, so errors are logged and swallowed.
+    if (userId !== "anonymous" && !isGuest) {
+      try {
+        if (coachFocus) {
+          await db.insert(coachingEvents).values({
+            userId,
+            repId,
+            dimension: coachFocus.dimension,
+            subSkill: coachFocus.subSkill,
+            focusText: coachFocus.text,
+          });
+        }
+        if (
+          (input.attemptKind === "retry" || input.attemptKind === "again") &&
+          input.parentRepId &&
+          !isMockFallback
+        ) {
+          let verdict = input.score.implementationReview?.verdict ?? null;
+          if (!verdict) {
+            // Deterministic fallback: score movement on the parent rep's
+            // focus dimension (generous thresholds per Owen C10).
+            const [parent] = await db
+              .select({ coachFocus: reps.coachFocus })
+              .from(reps)
+              .where(eq(reps.id, input.parentRepId))
+              .limit(1);
+            const focusDimension = parent?.coachFocus?.dimension as
+              | SkillDimension
+              | undefined;
+            if (focusDimension) {
+              const parentDims = await db
+                .select({
+                  dimension: dimensionScores.dimension,
+                  score: dimensionScores.score,
+                })
+                .from(dimensionScores)
+                .where(eq(dimensionScores.repId, input.parentRepId));
+              verdict = deriveImplementationVerdict({
+                focusDimension,
+                firstDimensions: parentDims.map((d) => ({
+                  dimension: d.dimension as SkillDimension,
+                  score: d.score,
+                })),
+                retryDimensions: input.score.dimensions.map((d) => ({
+                  dimension: d.dimension as SkillDimension,
+                  score: d.score,
+                })),
+              });
+            }
+          }
+          if (verdict) {
+            await db
+              .update(coachingEvents)
+              .set({ implementedVerdict: verdict })
+              .where(
+                and(
+                  eq(coachingEvents.repId, input.parentRepId),
+                  isNull(coachingEvents.implementedVerdict),
+                ),
+              );
+          }
+        }
+      } catch (err) {
+        log.warn({
+          event: "save_rep.coaching_events_failed",
+          repId,
+          msg: err instanceof Error ? err.message : "unknown",
+        });
+      }
+    }
+
+    if (input.score.dimensions.length > 0) {
+      // dims + progress snapshots persisted atomically in the core tx
+      // above (P-2). Mock-fallback scores skip snapshots there (CTO-scan
+      // H8: mock 70s must not pollute averages); dims still land for the
+      // historical record.
+      if (!isMockFallback) {
+        // Personal bests are best-effort — a PB hiccup must never turn a
+        // COMMITTED rep into persisted:false (the reverse lie).
+        if (userId !== "anonymous") {
+          try {
+            await recordPersonalBests({
+              userId,
+              repId,
+              dimensionScores: input.score.dimensions.map((d) => ({
+                dimension: d.dimension,
+                score: d.score,
+              })),
+            });
+          } catch (err) {
+            log.warn({
+              event: "save_rep.personal_bests_failed",
+              repId,
+              msg: err instanceof Error ? err.message : "unknown",
+            });
+          }
+        }
+      } else {
+        log.warn({
+          event: "save_rep.mock_fallback",
+          repId,
+          msg: "progressSnapshots + personalBests skipped",
+        });
+      }
+
+      // PRD v3 Phase 3 — fold this rep's evidence into the Communication
+      // Profile (slow EMA; see src/lib/profile/communication-profile.ts).
+      // Best-effort: a profile write failure never loses the rep.
+      if (!isMockFallback && userId !== "anonymous" && !isGuest) {
+        try {
+          const [row] = await db
+            .select({
+              coreSkills: communicationProfile.coreSkills,
+              hiddenSkills: communicationProfile.hiddenSkills,
+              applications: communicationProfile.applications,
+              overallScore: communicationProfile.overallScore,
+              totalReps: communicationProfile.totalReps,
+            })
+            .from(communicationProfile)
+            .where(eq(communicationProfile.userId, userId))
+            .limit(1);
+          const current: CommunicationProfileState = row
+            ? {
+                coreSkills: row.coreSkills as CommunicationProfileState["coreSkills"],
+                hiddenSkills: row.hiddenSkills as CommunicationProfileState["hiddenSkills"],
+                applications:
+                  (row.applications as CommunicationProfileState["applications"]) ?? {},
+                overallScore: row.overallScore,
+                totalReps: row.totalReps,
+              }
+            : emptyProfile();
+          const subSkillScores: Record<string, number> = {};
+          for (const d of input.score.dimensions) {
+            if (!d.subSkillScores) continue;
+            for (const [id, v] of Object.entries(d.subSkillScores)) {
+              if (typeof v === "number") subSkillScores[id] = v;
+            }
+          }
+          // PRD v3 Phase 4 — application fold data comes from the exercise
+          // row, not the client: the client's applicationId is only the
+          // signal to look. Keeps skill tags authoritative.
+          let applicationId: string | null = null;
+          let applicationSkills: string[] | null = null;
+          if (input.applicationId && input.exerciseId) {
+            const [ex] = await db
+              .select({
+                application: exercises.application,
+                applicationSkills: exercises.applicationSkills,
+              })
+              .from(exercises)
+              .where(eq(exercises.id, input.exerciseId))
+              .limit(1);
+            applicationId = ex?.application ?? null;
+            applicationSkills = ex?.applicationSkills ?? null;
+          }
+          const next = applyRepToProfile(current, {
+            dimensions: input.score.dimensions.map((d) => ({
+              dimension: d.dimension,
+              score: d.score,
+            })),
+            subSkillScores,
+            applicationId,
+            applicationSkills,
+            composite: input.score.composite,
+            at: new Date().toISOString(),
+          });
+          await db
+            .insert(communicationProfile)
+            .values({
+              userId,
+              overallScore: next.overallScore,
+              coreSkills: next.coreSkills as Record<
+                string,
+                { score: number; sampleCount: number; updatedAt: string }
+              >,
+              hiddenSkills: next.hiddenSkills as Record<
+                string,
+                { score: number; sampleCount: number }
+              >,
+              applications: next.applications as ApplicationsColumn,
+              totalReps: next.totalReps,
+            })
+            .onConflictDoUpdate({
+              target: communicationProfile.userId,
+              set: {
+                overallScore: next.overallScore,
+                coreSkills: next.coreSkills as Record<
+                  string,
+                  { score: number; sampleCount: number; updatedAt: string }
+                >,
+                hiddenSkills: next.hiddenSkills as Record<
+                  string,
+                  { score: number; sampleCount: number }
+                >,
+                applications: next.applications as ApplicationsColumn,
+                totalReps: next.totalReps,
+                updatedAt: new Date(),
+              },
+            });
+        } catch (err) {
+          log.warn({
+            event: "save_rep.profile_update_failed",
+            repId,
+            msg: err instanceof Error ? err.message : "unknown",
+          });
+        }
+      }
+    }
+
+    // Callouts persisted in the core tx (P-2).
+    const calloutIds: string[] = core.calloutIds;
 
     // Fire-and-forget activity events. Emits live only when DB + user are
     // available; safeDb swallows failures so the rep save itself is never
@@ -339,8 +632,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           days: streak,
         });
         // Every 7-day streak earns +1 freeze (capped at 3 in-function).
-        // The freeze persists in the users table; consumed automatically
-        // by getStreakStatus when a single-day gap appears.
+        // The freeze persists in the users table; applied automatically
+        // by getStreakStatus when missed committed days appear (up to
+        // the banked count — §10.7.1; consecutive misses still break).
         await awardStreakFreeze(userId);
       }
     }
@@ -364,6 +658,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     // this single round-trip.
     let xp: AwardXpResult | undefined;
     let unlockedAchievements: AchievementId[] | undefined;
+    // Shared with the weekly-challenge block below (G6 — "Maintain your
+    // committed training schedule"): did THIS rep land on a committed day?
+    let trainedOnCommittedDay = false;
     if (userId !== "anonymous" && !isGuest) {
       const streak = await getStreakDays(userId);
       // DNA Ch.9a comeback bonus — fires once when a user returns after a
@@ -374,11 +671,60 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       // signal that fires reliably for actual comebacks.
       const priorLifetime = (await readLifetimeReps(userId)) ?? 0;
       const comebackBonus = streak === 1 && priorLifetime > 0;
+      // Phase D — rest-day bonus. If the user trains today despite today
+      // not being in their committed_days schedule, give them ×1.5 XP as
+      // a "voluntary rep" reward. Cheap read — single column.
+      let restDayBonus = false;
+      try {
+        const [u] = await db
+          .select({ committedDays: users.committedDays })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+        if (u) {
+          const { isDateCommitted } = await import(
+            "@/lib/onboarding/committed-days"
+          );
+          trainedOnCommittedDay = isDateCommitted(u.committedDays, new Date());
+          restDayBonus = !trainedOnCommittedDay;
+        }
+      } catch {
+        // Best-effort; default to no bonus on read failure.
+      }
+      // PRD v3 Phase 6 (§10.5.3) — retries that implement coaching (and
+      // improve the score) progress rank faster than participation alone.
+      let implementationVerdict: "nailed" | "partial" | "missed" | null = null;
+      let scoreImprovement: number | null = null;
+      if (
+        (input.attemptKind === "retry" || input.attemptKind === "again") &&
+        input.parentRepId
+      ) {
+        implementationVerdict =
+          input.score.implementationReview?.verdict ?? null;
+        try {
+          const [parentRep] = await db
+            .select({ composite: reps.compositeScore })
+            .from(reps)
+            .where(eq(reps.id, input.parentRepId))
+            .limit(1);
+          if (parentRep?.composite != null) {
+            scoreImprovement = input.score.composite - parentRep.composite;
+          }
+        } catch {
+          // Best-effort — bonus simply doesn't apply.
+        }
+      }
       xp = await awardXp({
         userId,
         composite: input.score.composite,
         streakDays: streak,
         comebackBonus,
+        restDayBonus,
+        implementationVerdict,
+        scoreImprovement,
+        // Phase 15 R-2 (§10.5.3) — Daily Workout is the primary
+        // progression driver; other modes carry configurable weights.
+        mode: input.mode,
       });
       // DNA Ch.9b — leagues weekly_xp accrual. Behind FF_LEAGUES so the
       // shadow-mode rollout per the master plan can run cohort math
@@ -394,20 +740,38 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       // achievements (priorLifetime is pre-grant).
       const lifetimeReps = (await readLifetimeReps(userId)) ?? priorLifetime + 1;
       const dimsEverScored = await getDimensionsEverScored(userId);
+      // PRD §10.12 — implementation milestones read the coaching_events
+      // ledger (rows back-filled with implemented_verdict='nailed' by the
+      // retry evaluation above, so THIS retry's verdict is included).
+      // safeDb-wrapped like readLifetimeReps: a hiccup returns 0 and the
+      // implement_* achievements simply don't fire this rep.
+      const implementedNailedCount = await safeDb<number>(async () => {
+        const [row] = await db
+          .select({ c: count() })
+          .from(coachingEvents)
+          .where(
+            and(
+              eq(coachingEvents.userId, userId),
+              eq(coachingEvents.implementedVerdict, "nailed"),
+            ),
+          );
+        return Number(row?.c ?? 0);
+      }, 0);
       unlockedAchievements = await evaluateAchievements({
         userId,
         score: input.score,
         mode: input.mode,
         isFocusDrill: input.mode === "skill_lab",
-        // Pressure detection requires the archetype id which doesn't
-        // currently flow into SaveRepInput. Defer to a follow-up that
-        // plumbs pressureArchetypeId; for now explore_pressure achievement
-        // unlocks via the Skill Lab pressure-mode entry point only.
-        isPressureRep: false,
-        isBuildARep: input.mode === "scenario_training",
+        // Pressure reps carry their archetype id end-to-end (Skill Lab
+        // pressure slots + Build-a-Rep pressure mode → RepSurface →
+        // SaveRepInput.pressureArchetypeId).
+        isPressureRep: !!input.pressureArchetypeId,
+        isBuildARep:
+          input.mode === "scenario_training" || input.mode === "build_a_rep",
         lifetimeReps,
         streakDays: streak,
         dimensionsEverScored: dimsEverScored,
+        implementedNailedCount,
       });
     }
 
@@ -417,14 +781,23 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
     // directly to users.xp rather than going through awardXp's curve so
     // quest XP is additive (band/streak multipliers don't apply to it).
     let completedQuests: { ids: string[]; bonusXp: number } | undefined;
+    let completedWeeklyChallenges:
+      | { ids: string[]; bonusXp: number }
+      | undefined;
     if (userId !== "anonymous" && !isGuest) {
       const today = ymdUtc();
       const todays = await getOrCreateTodayQuests(userId, new Date());
+      // Phase 6 bug fix: this previously counted LIFETIME reps (no date
+      // filter), so "N reps today" quests completed instantly. Count
+      // only today's (UTC) reps — includes the row just inserted.
+      const todayStartUtc = new Date(`${today}T00:00:00.000Z`);
       const repsToday = (
         await db
           .select({ c: count() })
           .from(reps)
-          .where(eq(reps.userId, userId))
+          .where(
+            and(eq(reps.userId, userId), gte(reps.createdAt, todayStartUtc)),
+          )
       )[0]?.c ?? 0;
       const evalResult = evaluateQuestProgress({
         todaysQuests: todays.quests,
@@ -436,7 +809,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             score: d.score,
           })),
           isFocusDrill: input.mode === "skill_lab",
-          isPressureRep: false,
+          isPressureRep: !!input.pressureArchetypeId,
           repsToday: Number(repsToday),
         },
       });
@@ -461,6 +834,36 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           bonusXp: evalResult.bonusXp,
         };
       }
+
+      // PRD v3 Phase 6 — Weekly Challenges (§10.10) + Team Challenges
+      // (§10.11). Counter-based, week-keyed; bonus XP additive like
+      // quests. Best-effort: failures never lose the rep.
+      try {
+        const challengeResult = await recordWeeklyChallengeEvent(userId, {
+          mode: input.mode,
+          composite: input.score.composite,
+          implementedRetry:
+            (input.attemptKind === "retry" || input.attemptKind === "again") &&
+            input.score.implementationReview?.verdict === "nailed",
+          newTrainingDay: Number(repsToday) === 1,
+          // G6 — computed alongside restDayBonus above (same committed-
+          // days read); false for guests/anonymous (block never runs).
+          trainedOnCommittedDay,
+        });
+        if (challengeResult && challengeResult.newlyCompletedIds.length > 0) {
+          completedWeeklyChallenges = {
+            ids: challengeResult.newlyCompletedIds,
+            bonusXp: challengeResult.bonusXp,
+          };
+        }
+        await incrementTeamChallenges(userId);
+      } catch (err) {
+        log.warn({
+          event: "save_rep.weekly_challenges_failed",
+          repId,
+          msg: err instanceof Error ? err.message : "unknown",
+        });
+      }
     }
 
     return {
@@ -473,8 +876,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
       xp,
       unlockedAchievements,
       completedQuests,
+      completedWeeklyChallenges,
     };
-  }, fallback);
+  }, fallback, { write: "rep_persist" });
 }
 
 export type GetRepResultOutput = {

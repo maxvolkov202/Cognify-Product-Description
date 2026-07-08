@@ -28,7 +28,10 @@ export const DIMENSION_LABELS: Record<SkillDimension, string> = {
   structure: "Structure",
   conciseness: "Conciseness",
   thinking_quality: "Thinking Quality",
-  delivery: "Delivery",
+  // D6 / PRD v3 §9.6 — user-facing name is "Pacing"; the enum value
+  // stays `delivery` (DB enums are append-only, bridged by
+  // dimension-aliases.ts).
+  delivery: "Pacing",
   tone: "Tone",
 };
 
@@ -131,8 +134,79 @@ export function getDimensionGroup(dim: SkillDimension): SkillDimensionGroup {
   return "delivery";
 }
 
-export const MODE_IDS = ["daily_workout", "skill_lab", "scenario_training"] as const;
+export const MODE_IDS = ["daily_workout", "skill_lab", "scenario_training", "build_a_rep"] as const;
 export type ModeId = (typeof MODE_IDS)[number];
+
+// ——— Muscle groups (muscle-group adventure-path pivot — Phase 3 ————————
+//
+// The product surfaces 6 "muscle groups" the user trains daily. These map
+// 1:1 to the canonical 6 SKILL_DIMENSIONS except for one explicit rename:
+// the product uses `pacing` where the scoring rubric uses `delivery`.
+//
+// Rationale: the product team chose "Pacing" as user-facing language
+// (rate / pauses / fillers), but the v3 rubric (DNA reconciliation
+// 2026-05-01) consolidated under `delivery`. The DB dimension enum is
+// append-only and keeps both values, so we tag muscle-group rows with
+// `pacing` and rely on Phase 8's scoring-side aliasing to bridge to
+// `delivery` when reading dimension_scores.
+//
+// DO NOT collapse these — the product UI reads MUSCLE_GROUP_IDS,
+// scoring reads SKILL_DIMENSIONS. They diverge by design.
+export const MUSCLE_GROUP_IDS = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "pacing",
+  "tone",
+] as const;
+export type MuscleGroupId = (typeof MUSCLE_GROUP_IDS)[number];
+
+export const MUSCLE_GROUP_LABELS: Record<MuscleGroupId, string> = {
+  clarity: "Clarity",
+  structure: "Structure",
+  conciseness: "Conciseness",
+  thinking_quality: "Thinking Quality",
+  pacing: "Pacing",
+  tone: "Tone",
+};
+
+/** One of the 4 stations in a muscle-group day. */
+export type Station = {
+  index: number; // 0..3
+  exerciseId: string;
+  exerciseSlug: string;
+  exerciseName: string;
+  rule: string; // exercises.description in the DB
+  why: string | null; // exercises.instructions in the DB
+  /** PRD v3 Phase 2.2 — Exercise Framework fields (null pre-enrichment). */
+  objective: string | null;
+  responseWindow: { minSec: number; maxSec: number } | null;
+  /** ADR-001 Decision 2 — constraint types this framework may apply. */
+  constraintTypes: string[] | null;
+  /** Phase 11.D2 — Lab Engine V1 Coach's Insight (null pre-enrichment). */
+  coachInsight: string | null;
+  /** I5 (PRD §8.6.4) — the user's most recent Coach's Focus on this
+   *  station's dimension (coaching_events ledger), so the Insight screen
+   *  can show the coach remembers last time. Optional/null when the v2
+   *  engine is off, the user is anonymous, or nothing was coached yet. */
+  recentFocus?: { text: string; verdict: string | null } | null;
+};
+
+/** Fully-hydrated muscle-group day for the Workout shell to render. */
+export type HydratedMuscleGroupDay = {
+  dayId: string;
+  userId: string;
+  dayDate: string; // YYYY-MM-DD
+  dimension: MuscleGroupId;
+  status: "planned" | "in_progress" | "complete" | "abandoned" | "frozen_skip";
+  completedReps: number;
+  stations: Station[];
+  previousDayId: string | null;
+  previousComposite: number | null; // composite_at_close from the prior same-dim day
+  startedAt: string | null;
+  completedAt: string | null;
+};
 
 export type Callout = {
   dimension: SkillDimension | "structural_adherence";
@@ -141,8 +215,10 @@ export type Callout = {
   body: string;
   quote: string | null;
   suggestedRewrite: string | null;
-  transcriptStart: number;
-  transcriptEnd: number;
+  /** Nullable: LLMs occasionally omit the timestamps when they can't
+   *  ground the callout. UI renders without jump-to-moment when null. */
+  transcriptStart: number | null;
+  transcriptEnd: number | null;
 };
 
 export type DimensionScore = {
@@ -218,6 +294,26 @@ export type RepFocusContext = {
   previousHeadline?: string;
 };
 
+/** PRD v3 §7.5 — Build a Rep event-preparation context, threaded into
+ *  ScoreRepModeContext (src/lib/ai/score.ts) so per-moment coaching and
+ *  the Full Simulation are grounded in the real event ("Context should
+ *  influence: … Coaching"). Rendered as an UNCACHED user-prompt block
+ *  ONLY when set — all non-prep scoring prompts stay byte-identical
+ *  (calibration guardrail; see renderEventContextBlock). */
+export type ScoreRepEventContext = {
+  title: string;
+  eventType: string;
+  description: string;
+  /** Capped excerpt (~1500 chars) of the event's parsed context uploads. */
+  contextSummary: string | null;
+  /** L4 (§7.7/§8.4.6) — the practiced Critical Moment's scoring lens:
+   *  one operator-facing line (critical_moments.scoring_hint), rendered
+   *  as ONE extra line inside the same EVENT CONTEXT block. Optional and
+   *  only-when-present, so non-prep prompts AND existing hint-less prep
+   *  prompts stay byte-identical (calibration guardrail). ≤300 chars. */
+  momentHint?: string;
+};
+
 export type RepScore = {
   composite: number;
   dimensions: DimensionScore[];
@@ -250,6 +346,16 @@ export type RepScore = {
    *  for this rep. Drives DimensionGrid emphasis when not overridden by
    *  mode (focus mode pins to focusDimension, pressure to stressed dims). */
   primaryFocusDimension?: SkillDimension;
+  /** PRD v3 engine — present only on retry-evaluated reps (the scoring
+   *  call carried modeContext.retryContext). Whether the user implemented
+   *  the Coach's Focus from their first attempt; drives the Improvement
+   *  Review verdict chip. Absent → deriveImplementationVerdict() fallback. */
+  implementationReview?: {
+    verdict: "nailed" | "partial" | "missed";
+    /** Optional — GPT-4o sometimes omits it (Phase 11.A); consumers fall
+     *  back to the deterministic verdict copy. */
+    note?: string;
+  } | null;
   /** Phase 3 calibration scaffold: the AI's self-classification of which
    *  tone band it landed in. Lets us measure tone-vs-score alignment in
    *  the existing `userCalibration` block — if 60% of "blunt" headlines

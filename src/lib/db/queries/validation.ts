@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { count, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   externalValidations,
@@ -80,24 +80,32 @@ export async function getUserValidations(
       .where(eq(externalValidations.userId, userId))
       .orderBy(desc(externalValidations.createdAt));
 
-    const summaries: ValidationSummary[] = [];
-    for (const row of rows) {
-      const rankings = await db
-        .select({ id: externalRankings.id })
-        .from(externalRankings)
-        .where(eq(externalRankings.validationId, row.id));
-      summaries.push({
-        id: row.id,
-        token: row.token,
-        topic: row.topic,
-        createdAt: row.createdAt,
-        closedAt: row.closedAt,
-        repIds: (row.repIds as string[]) ?? [],
-        rankingCount: rankings.length,
-        reps: [],
-      });
-    }
-    return summaries;
+    if (rows.length === 0) return [];
+
+    // Single GROUP BY instead of per-row rankings count (audit PR-8).
+    const validationIds = rows.map((r) => r.id);
+    const rankingCountRows = await db
+      .select({
+        validationId: externalRankings.validationId,
+        c: count(),
+      })
+      .from(externalRankings)
+      .where(inArray(externalRankings.validationId, validationIds))
+      .groupBy(externalRankings.validationId);
+    const rankingCountByValidation = new Map<string, number>(
+      rankingCountRows.map((r) => [r.validationId, Number(r.c)]),
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      token: row.token,
+      topic: row.topic,
+      createdAt: row.createdAt,
+      closedAt: row.closedAt,
+      repIds: (row.repIds as string[]) ?? [],
+      rankingCount: rankingCountByValidation.get(row.id) ?? 0,
+      reps: [],
+    }));
   }, []);
 }
 

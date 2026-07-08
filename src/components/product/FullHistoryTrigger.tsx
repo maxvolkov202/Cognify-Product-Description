@@ -19,8 +19,8 @@ export function FullHistoryTrigger({
 }) {
   const className =
     variant === "ribbon"
-      ? "inline-flex items-center gap-1 text-[11px] font-bold text-brand-purple hover:text-brand-magenta"
-      : "text-[11px] font-bold text-brand-purple hover:text-brand-magenta";
+      ? "inline-flex items-center gap-1 text-[11px] font-bold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
+      : "text-[11px] font-bold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender";
 
   const trigger = (
     <button type="button" className={className}>

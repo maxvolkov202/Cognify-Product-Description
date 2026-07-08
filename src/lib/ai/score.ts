@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { anthropic, MODELS, MODEL_VERSIONS } from "./claude";
+import { anthropic, MODELS, MODEL_VERSIONS, type AnthropicCallMetrics } from "./claude";
+import {
+  retrieveKnowledgeForRep,
+  renderRagContextBlock,
+} from "./rag/retrieve";
 import {
   ALL_DIMENSIONS,
   DIMENSION_RUBRIC,
@@ -11,6 +15,7 @@ import type {
   FeedbackBullet,
   NextRepFocusItem,
   RepScore,
+  ScoreRepEventContext,
   SkillDimension,
 } from "@/types/domain";
 import { FEEDBACK_VERSION } from "@/types/domain";
@@ -80,8 +85,12 @@ const calloutSchema = z.object({
   body: z.string().max(320),
   quote: z.string().max(320).nullable(),
   suggestedRewrite: z.string().max(360).nullable(),
-  transcriptStart: z.number().min(0),
-  transcriptEnd: z.number().min(0),
+  // Nullable to match the Callout domain type. Missing keys (undefined)
+  // are coerced to null upstream by normalizeProviderQuirks() before
+  // the schema parse — that handles the gpt-4o "field omitted entirely"
+  // case which was the dominant validation_failed cause (2026-05-21).
+  transcriptStart: z.number().min(0).nullable(),
+  transcriptEnd: z.number().min(0).nullable(),
 });
 
 const dimensionEnumSchema = z.enum([
@@ -142,6 +151,21 @@ const scoringResponseSchema = z.object({
   /** Phase 3 scaffold — short tail phrase for the NEXT rep's
    *  LastRepFocusBanner. 3-8 words, no period. */
   nextRepHint: z.string().min(2).max(60),
+  /** PRD v3 engine — implementation review, requested ONLY when the user
+   *  message carries a RETRY EVALUATION block. Optional so first reps,
+   *  legacy calls, and calibration runs validate unchanged; when the
+   *  model omits it on a retry, deriveImplementationVerdict() fills in
+   *  deterministically. */
+  implementationReview: z
+    .object({
+      verdict: z.enum(["nailed", "partial", "missed"]),
+      // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
+      // the note where Haiku always wrote one; the verdict is the
+      // load-bearing field, so the note is optional.
+      note: z.string().max(280).optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 /** Phase 2: per-mode signals plumbed into the scoring prompt so the AI can
@@ -164,6 +188,29 @@ export type ScoreRepModeContext = {
     headline: string;
     score: number;
   };
+  /** PRD v3 engine — present when THIS rep is the required Retry (or an
+   *  optional "again" attempt) of a first rep. Switches feedback into
+   *  implementation-review framing and requests the implementationReview
+   *  field. Absent on first reps and all legacy/calibration paths, so
+   *  reference-rep drift runs are unaffected. */
+  retryContext?: {
+    attempt: "retry" | "again";
+    /** Transcript of the FIRST attempt at this prompt. */
+    firstTranscript: string;
+    firstComposite: number | null;
+    /** The single Coach's Focus the user was asked to implement. */
+    coachFocus: {
+      dimension: SkillDimension;
+      subSkill?: string | null;
+      text: string;
+    };
+  };
+  /** PRD v3 §7.5 — Build a Rep: the real event this rep is preparing
+   *  for (guided moments AND the Full Simulation). Grounds coaching in
+   *  the event's description + uploaded context. Rendered ONLY when set
+   *  (see renderEventContextBlock), so every non-prep prompt stays
+   *  byte-identical — calibration reference runs never carry it. */
+  eventContext?: ScoreRepEventContext;
   /** 0-based rep index in the session. */
   repIndex: number;
   totalReps: number;
@@ -198,6 +245,12 @@ export type ScoreRepInput = {
    *  Injected into the Claude system prompt so scoring adapts to the user's
    *  history. Null/absent when the user has no ratings yet. */
   userCalibration?: string | null;
+  /** PRD v3 Phase 3 (PRD §8.6.4) — rendered COACHING MEMORY block from
+   *  the user's coaching_events ledger (renderCoachingMemoryBlock in
+   *  lib/profile/snapshot.ts). Injected uncached like userCalibration.
+   *  Null/absent for first-time users + calibration reference reps —
+   *  those prompts stay byte-identical. */
+  coachingMemory?: string | null;
   /** Phase 2: mode/session/carry-over context. Optional — when absent,
    *  the scoring prompt runs in mode-blind mode (Phase 1 behavior). */
   modeContext?: ScoreRepModeContext;
@@ -207,6 +260,18 @@ export type ScoreRepInput = {
    *  — keeps trial / unauthenticated flows on the legacy path while we
    *  ramp. */
   userId?: string;
+  /** Phase 8 — muscle-group exercise context. When set, the scoring
+   *  pipeline injects a `<exercise/>` XML block into the user prompt
+   *  and (if the exercise has a registered rubric hint) appends one
+   *  operator-facing constraint sentence to the Stage 2 user message.
+   *  When unset, scoring runs identically to today (Skill Lab / scenario
+   *  reps are unaffected). */
+  exerciseId?: string;
+  /** Phase 8 — muscle-group day this rep belongs to. Telemetry-only;
+   *  doesn't affect the prompt. */
+  muscleGroupDayId?: string;
+  /** Phase 8 — pressure-style graduation rep tag. Telemetry-only. */
+  isGraduationRep?: boolean;
 };
 
 /** Ch.11c — Two-knob feature flag. `FF_DETERMINISTIC_SIGNALS=true` is
@@ -480,8 +545,8 @@ type RawCallout = {
   body: string;
   quote: string | null;
   suggestedRewrite: string | null;
-  transcriptStart: number;
-  transcriptEnd: number;
+  transcriptStart: number | null;
+  transcriptEnd: number | null;
 };
 
 function calloutContainsBanned(c: RawCallout): boolean {
@@ -664,8 +729,72 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
       `Your headline must address whether ${dimension} improved or stayed flat compared to that — extend, don't restate.`,
     );
   }
+  const retryBlock = renderRetryEvaluationBlock(ctx.retryContext);
+  if (retryBlock) lines.push(retryBlock);
+  // PRD v3 §7.5 — event-preparation context, same guardrail as the retry
+  // block: appended ONLY when eventContext is set, so all non-prep
+  // prompts stay byte-identical (calibration guardrail).
+  const eventBlock = renderEventContextBlock(ctx.eventContext);
+  if (eventBlock) lines.push(eventBlock);
   lines.push(`This is rep ${ctx.repIndex + 1} of ${ctx.totalReps}.`);
   return lines.join("\n");
+}
+
+/** PRD v3 engine — the RETRY EVALUATION block. Shared by the single-call
+ *  path (via renderModeBlock) and the two-stage path (prepareContext),
+ *  which otherwise doesn't render MODE context. Returns null when the rep
+ *  isn't a retry, keeping non-retry prompts byte-identical — calibration
+ *  reference runs never carry retryContext. */
+export function renderRetryEvaluationBlock(
+  rc: ScoreRepModeContext["retryContext"] | undefined,
+): string | null {
+  if (!rc) return null;
+  const focusSkill = rc.coachFocus.subSkill
+    ? ` (hidden skill: ${rc.coachFocus.subSkill})`
+    : "";
+  return [
+    `RETRY EVALUATION: this is the user's ${rc.attempt === "again" ? "third-or-later" : "second"} attempt at the SAME prompt.`,
+    `They were coached to implement ONE change: [${rc.coachFocus.dimension}${focusSkill}] "${rc.coachFocus.text}"`,
+    rc.firstComposite != null
+      ? `First attempt composite: ${Math.round(rc.firstComposite)}.`
+      : `First attempt composite unavailable (scoring hiccup).`,
+    `FIRST ATTEMPT TRANSCRIPT (for comparison only — score ONLY the new transcript below):`,
+    `<first_attempt>${rc.firstTranscript.slice(0, 4000)}</first_attempt>`,
+    `Write feedback as an IMPLEMENTATION REVIEW, not a fresh critique:`,
+    `  - The headline answers: did they implement the coached change?`,
+    `  - REQUIRED: your JSON MUST contain a top-level "implementationReview" object — {"implementationReview": {"verdict": "nailed" | "partial" | "missed", "note": "<one sentence on how it landed>"}}. "nailed" = clear behavioral change, "partial" = attempted but inconsistent, "missed" = no behavioral change. Judge the BEHAVIOR, not the score delta. A response without this field is INVALID.`,
+    `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
+    `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
+  ].join("\n");
+}
+
+/** PRD v3 §7.5 — the EVENT CONTEXT block for Build a Rep preparation
+ *  reps. Shared by the single-call path (via renderModeBlock) and the
+ *  two-stage path (prepareContext in score-stages.ts), mirroring
+ *  renderRetryEvaluationBlock exactly. Returns null when the rep isn't
+ *  a prep rep, keeping non-prep prompts byte-identical — this is the
+ *  calibration guardrail: reference runs never carry eventContext. */
+export function renderEventContextBlock(
+  ec: ScoreRepModeContext["eventContext"] | undefined,
+): string | null {
+  if (!ec) return null;
+  return [
+    `EVENT CONTEXT (the user is preparing for this real event — ground coaching in it, do NOT render verbatim):`,
+    `Event: ${ec.title} (${ec.eventType})`,
+    `What the user told us about it: ${ec.description.slice(0, 2000)}`,
+    ec.contextSummary
+      ? `From their uploaded materials:\n${ec.contextSummary.slice(0, 1500)}`
+      : null,
+    // L4 (§7.7/§8.4.6) — the practiced Critical Moment's scoring lens.
+    // One extra line inside this SAME only-when-present block: non-prep
+    // prompts and hint-less prep prompts stay byte-identical, so the
+    // calibration guardrail above still holds.
+    ec.momentHint
+      ? `Scoring lens for this moment (operator note): ${ec.momentHint.slice(0, 300)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** Provider-quirk normalizer. Runs before Zod validation. Today's
@@ -705,16 +834,57 @@ function normalizeSubSkillField(value: unknown): unknown {
 function normalizeBulletArray(arr: unknown): unknown {
   if (!Array.isArray(arr)) return arr;
   return arr.map((b) => {
-    if (b && typeof b === "object" && "subSkill" in b) {
-      return { ...b, subSkill: normalizeSubSkillField((b as { subSkill: unknown }).subSkill) };
+    if (!b || typeof b !== "object") return b;
+    const obj = { ...(b as Record<string, unknown>) };
+    if ("subSkill" in obj) obj.subSkill = normalizeSubSkillField(obj.subSkill);
+    // Coerce missing-or-undefined transcript anchors to null so the
+    // nullable Zod field accepts. LLMs sometimes drop these entirely.
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
     }
-    return b;
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    return obj;
+  });
+}
+
+/** Coerce missing transcript anchors on callouts to null. gpt-4o sometimes
+ *  omits the fields entirely when it can't ground the callout — that lands
+ *  as `undefined` after JSON.parse, which the nullable Zod schema rejects.
+ *  This was the dominant validation_failed → mock-fallback cause in
+ *  2026-05-21 telemetry. */
+function normalizeCalloutsArray(arr: unknown): unknown {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((c) => {
+    if (!c || typeof c !== "object") return c;
+    const obj = { ...(c as Record<string, unknown>) };
+    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
+      obj.transcriptStart = null;
+    }
+    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
+      obj.transcriptEnd = null;
+    }
+    if (!("quote" in obj) || obj.quote === undefined) {
+      obj.quote = null;
+    }
+    if (
+      !("suggestedRewrite" in obj) ||
+      obj.suggestedRewrite === undefined
+    ) {
+      obj.suggestedRewrite = null;
+    }
+    return obj;
   });
 }
 
 function normalizeProviderQuirks(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== "object") return parsed;
   const obj = { ...(parsed as Record<string, unknown>) };
+  if ("callouts" in obj) obj.callouts = normalizeCalloutsArray(obj.callouts);
   if ("didWell" in obj) obj.didWell = normalizeBulletArray(obj.didWell);
   if ("didntLand" in obj) obj.didntLand = normalizeBulletArray(obj.didntLand);
   if ("nextRepFocus" in obj)
@@ -743,7 +913,46 @@ function pickSubSkillsForDim(
   return any ? out : undefined;
 }
 
+/**
+ * Phase 0 — merged metrics from a single scoring call. Joins the
+ * upstream LLM-call metrics from anthropic.messages.createWithMetrics
+ * with the validation+sanitization timing that happens here in scoreRep.
+ * Total server duration of the scoring step is the sum, captured at the
+ * scoreRep boundary.
+ *
+ * Route handlers wrap their own outer timing (which includes auth +
+ * rate-limit + DB writes) and merge into a scoring_telemetry row.
+ */
+export type ScoreRepMetrics = AnthropicCallMetrics & {
+  validationDurationMs: number;
+  /** scoreRep boundary total — model + validation, EXCLUDING route-level
+   *  auth / rate-limit / DB writes. */
+  scoreRepTotalMs: number;
+  /** Phase 4 — RAG retrieval wall-clock. Includes the OpenAI embed call
+   *  + pgvector query. 0 when RAG was disabled or returned empty. */
+  ragDurationMs: number;
+  /** Phase 4 — number of chunks injected into the user prompt. 0 when
+   *  RAG was disabled, failed, or returned no chunks. */
+  ragChunkCount: number;
+};
+
+export type ScoreRepResult = {
+  score: RepScore;
+  metrics: ScoreRepMetrics;
+};
+
+/**
+ * Phase 0 — backward-compat wrapper. Existing callers (e.g. test scripts)
+ * keep using the legacy single-return shape; production route handlers
+ * use scoreRepWithMetrics directly so they can write a scoring_telemetry
+ * row at request end.
+ */
 export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
+  const { score } = await scoreRepWithMetrics(input);
+  return score;
+}
+
+export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRepResult> {
   const timedTranscript = renderTimedTranscript(input.transcript, input.words);
   const hasWordTimestamps = input.words && input.words.length > 0;
 
@@ -776,6 +985,23 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     ? COMPACT_RUBRIC_WITH_ANCHORS
     : COMPACT_RUBRIC;
 
+  // Phase 4 — RAG retrieval. Embed the transcript, fetch top-K chunks
+  // from pgvector, inject as supplemental anchors in the user prompt.
+  // Concurrent with prosody worker call below — neither blocks the
+  // other. Gated by FF_RAG_RETRIEVE so we can ramp safely; falls back
+  // to no-RAG path on any failure or when disabled.
+  const ragEnabled = process.env.FF_RAG_RETRIEVE !== "false"; // default ON in Phase 4
+  const ragPromise = ragEnabled
+    ? retrieveKnowledgeForRep({
+        transcript: input.transcript,
+        scoredDims: LLM_SCORED_DIMENSIONS,
+      })
+    : Promise.resolve<Awaited<ReturnType<typeof retrieveKnowledgeForRep>>>({
+        chunks: [],
+        durationMs: 0,
+        failureReason: null,
+      });
+
   // Ch.3a: derive inline prosody features from word timings when caller
   // didn't supply pre-computed features. Ch.3b: concurrently call the
   // external prosody worker (when configured) and merge its pitch/RMS
@@ -796,7 +1022,13 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           durationMs: input.durationMs,
         })
       : Promise.resolve(null);
-  const workerProsody = await workerPromise;
+  // Await both concurrently — RAG retrieval and prosody worker have no
+  // dependency on each other.
+  const [workerProsody, ragResult] = await Promise.all([
+    workerPromise,
+    ragPromise,
+  ]);
+  const ragBlock = renderRagContextBlock(ragResult.chunks);
   const prosodyFeatures =
     input.prosodyFeatures ??
     (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
@@ -811,6 +1043,11 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
           .join("\n")}`
       : null,
+    // Phase 4 — RAG context block. Injected BEFORE deterministic signals
+    // so the model has access to the rich anchors for the four
+    // LLM-scored dims before reading the numerical signals + transcript.
+    // Uncached (changes per rep based on transcript similarity).
+    ragBlock,
     // Ch.11c — text-derived signals (FF-gated). Placed BEFORE prosody +
     // transcript so Claude sees the objective measurements first and
     // can score the four LLM-scored content dimensions AGAINST the
@@ -824,14 +1061,27 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     .filter(Boolean)
     .join("\n\n");
 
-  const response = await anthropic.messages.create({
+  // Compute prompt size in bytes BEFORE the call so the metrics row
+  // records what we actually shipped (cache_control blocks count even
+  // when they're cache-read). Sums system blocks + user message text.
+  const systemTextBytes = [systemPrompt, rubricBlock, COMPACT_KNOWLEDGE, SUB_SKILL_REFERENCE, input.userCalibration ?? "", input.coachingMemory ?? ""]
+    .reduce((acc, s) => acc + Buffer.byteLength(s ?? "", "utf8"), 0);
+  const userTextBytes = Buffer.byteLength(userPrompt, "utf8");
+  const promptSizeBytes = systemTextBytes + userTextBytes;
+
+  const scoreRepStart = Date.now();
+  const { response, metrics: callMetrics } = await anthropic.messages.createWithMetrics({
     model: MODELS.scoring,
     // Bounded output: 6 dimension scores + ~3 callouts + didWell/didntLand/
-    // nextRepFocus arrays. Prod log analysis (May 2026) showed 1200 truncated
-    // mid-JSON on multi-signal responses, dropping us into mock-fallback. 2400
-    // is the 99th percentile observed across rich-signal reps; further bumps
-    // become wasteful given prompt-cap discipline.
-    max_tokens: 2400,
+    // nextRepFocus arrays. Phase 8 (2026-05-21) — Anthropic console logs
+    // showed Haiku 4.5 hitting EXACTLY 2400 output tokens on every
+    // production scoring call, meaning the response was truncating
+    // mid-JSON and falling through to mock-fallback. 2400 was NOT the
+    // 99th percentile in practice — it was the censoring ceiling. 4000
+    // gives the model real room to finish; cost increase is ~$0.005
+    // worst-case per call ($16 / 1M output × 1600 extra tokens) which
+    // is rounding error vs. the 0% mock-fallback rate it buys us.
+    max_tokens: 4000,
     // Calibration stability: Anthropic SDK defaults temperature to 1.0,
     // which causes 30-50pt run-to-run swings on the same input (documented
     // in docs/calibration-baseline-2026-05-d2.md). Dropping to 0.2 keeps
@@ -875,6 +1125,15 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
             },
           ]
         : []),
+      ...(input.coachingMemory
+        ? [
+            {
+              type: "text" as const,
+              text: input.coachingMemory,
+              // NOT cache-controlled — user-specific (PRD §8.6.4).
+            },
+          ]
+        : []),
     ],
     messages: [
       {
@@ -882,8 +1141,9 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
         content: [{ type: "text", text: userPrompt }],
       },
     ],
-  });
+  }, promptSizeBytes);
 
+  const validationStart = Date.now();
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
     throw new Error("Claude returned no text content");
@@ -1057,7 +1317,10 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 
   const compositeScore = composite(dimensionMap, input.weights);
 
-  return {
+  const validationDurationMs = Date.now() - validationStart;
+  const scoreRepTotalMs = Date.now() - scoreRepStart;
+
+  const score: RepScore = {
     composite: compositeScore,
     dimensions: finalDimensions,
     ...(validated.structuralAdherence != null
@@ -1073,11 +1336,27 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
     primaryFocusDimension: validated.primaryFocusDimension,
     headlineTone: validated.headlineTone,
     nextRepHint: validated.nextRepHint,
+    // PRD v3 engine — present only on retry-evaluated reps. Null-coalesced
+    // so first reps / legacy calls keep an absent field.
+    ...(validated.implementationReview
+      ? { implementationReview: validated.implementationReview }
+      : {}),
     feedbackVersion: FEEDBACK_VERSION,
     prosodyAvailable: hasWorkerProsody(prosodyFeatures),
     // Ch.5 — composite ≥ 95 triggers operator review. We do NOT hold
     // back the score from the user; they see it immediately. The flag
     // surfaces in /ops so operators can retroactively confirm or correct.
     requiresHumanReview: compositeScore >= 95,
+  };
+
+  return {
+    score,
+    metrics: {
+      ...callMetrics,
+      validationDurationMs,
+      scoreRepTotalMs,
+      ragDurationMs: ragResult.durationMs,
+      ragChunkCount: ragResult.chunks.length,
+    },
   };
 }

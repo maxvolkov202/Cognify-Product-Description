@@ -4,11 +4,31 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { calibrationRuns } from "@/lib/db/schema";
+import { calibrationRuns, cronRuns } from "@/lib/db/schema";
+import { scoreRep } from "@/lib/ai/score";
+import { log, serializeErr } from "@/lib/log";
+
+// Phase 14 — provider-aware drift tolerance. The reference-rep expected
+// bands were authored against Anthropic Haiku; GPT-4o systematically
+// compresses the top band (measured baseline 2026-07-06: avg |delta| 7.8,
+// worst ~23), so the Haiku threshold flags most reps as "drift" when
+// OpenAI is the active provider. Tolerance follows the provider; override
+// with DRIFT_TOLERANCE for either.
+import { AI_PROVIDER_ACTIVE } from "@/lib/ai/claude";
+const DRIFT_TOLERANCE = parseInt(
+  process.env.DRIFT_TOLERANCE ??
+    (AI_PROVIDER_ACTIVE === "openai" ? "12" : "5"),
+  10,
+);
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
+
+// Per-rep fanout concurrency. 8 workers × ~15s/rep × 4 batches ≈ 60s wall
+// time on the 29-rep band — comfortable headroom under maxDuration=300.
+// Mirrors weekly-narrative/route.ts:92–99.
+const CONCURRENCY = 8;
 
 /**
  * Ch.15b — Nightly calibration drift cron.
@@ -31,24 +51,14 @@ export const dynamic = "force-dynamic";
  * `status = "fallback"` so the /ops page can show a clear "credits
  * lapsed" warning instead of a silently-broken run.
  */
-export async function GET(req: Request) {
+async function handleCron(req: Request) {
   const expected = process.env.CRON_SECRET;
-  const isVercelCron = req.headers.get("x-vercel-cron") === "1";
   const authOk = expected
     ? req.headers.get("authorization") === `Bearer ${expected}`
     : false;
-  if (process.env.NODE_ENV === "production" && !authOk && !isVercelCron) {
+  if (process.env.NODE_ENV === "production" && !authOk) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-
-  // Resolve the base URL for the score-API self-call. Vercel runtime
-  // sets VERCEL_URL to the deploy host (no protocol); in dev we hit
-  // localhost. Fall back to a manual override env var.
-  const baseUrl =
-    process.env.CRON_SELF_BASE_URL ??
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://127.0.0.1:3333");
 
   let refReps: ReferenceRep[];
   try {
@@ -61,13 +71,22 @@ export async function GET(req: Request) {
     );
   }
 
+  const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
   const runId = randomUUID();
   const results: RunOutcome[] = [];
 
-  for (const rep of refReps) {
+  log.info({
+    event: "cron.calibration_drift.start",
+    runId,
+    refRepCount: refReps.length,
+    concurrency: CONCURRENCY,
+    dryRun,
+  });
+
+  async function processOne(rep: ReferenceRep): Promise<void> {
     const t0 = Date.now();
     try {
-      const score = await scoreOne(baseUrl, rep);
+      const score = await scoreOne(rep);
       const expectedComposite = rep.expected?.composite ?? null;
       const actualComposite = score.composite ?? null;
       const deltaComposite =
@@ -92,31 +111,33 @@ export async function GET(req: Request) {
 
       const isFallback = score.modelVersion === "mock-fallback-v1";
       const driftHigh =
-        deltaComposite != null && Math.abs(deltaComposite) > 5;
+        deltaComposite != null && Math.abs(deltaComposite) > DRIFT_TOLERANCE;
       const status = isFallback
         ? "fallback"
         : driftHigh
           ? "drift"
           : "ok";
 
-      await db.insert(calibrationRuns).values({
-        runId,
-        refRepId: rep.id,
-        expectedComposite,
-        actualComposite,
-        deltaComposite,
-        expectedPerDim:
-          (expectedPerDim as unknown as object | null) ?? null,
-        actualPerDim:
-          (actualPerDim as unknown as object | null) ?? null,
-        deltaPerDim:
-          Object.keys(deltaPerDim).length > 0
-            ? (deltaPerDim as unknown as object)
-            : null,
-        rubricVersion: score.rubricVersion ?? null,
-        modelVersion: score.modelVersion ?? null,
-        status,
-      });
+      if (!dryRun) {
+        await db.insert(calibrationRuns).values({
+          runId,
+          refRepId: rep.id,
+          expectedComposite,
+          actualComposite,
+          deltaComposite,
+          expectedPerDim:
+            (expectedPerDim as Record<string, number> | null) ?? null,
+          actualPerDim:
+            (actualPerDim as Record<string, number> | null) ?? null,
+          deltaPerDim:
+            Object.keys(deltaPerDim).length > 0
+              ? (deltaPerDim as Record<string, number>)
+              : null,
+          rubricVersion: score.rubricVersion ?? null,
+          modelVersion: score.modelVersion ?? null,
+          status,
+        });
+      }
 
       results.push({
         refRepId: rep.id,
@@ -126,31 +147,34 @@ export async function GET(req: Request) {
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "unknown";
-      console.error(
-        `[cron/calibration-drift] ref-rep ${rep.id} failed:`,
-        msg,
-      );
-      try {
-        await db.insert(calibrationRuns).values({
-          runId,
-          refRepId: rep.id,
-          expectedComposite: rep.expected?.composite ?? null,
-          actualComposite: null,
-          deltaComposite: null,
-          expectedPerDim:
-            (rep.expected?.dimensions as unknown as object | null) ?? null,
-          actualPerDim: null,
-          deltaPerDim: null,
-          rubricVersion: null,
-          modelVersion: null,
-          status: "error",
-        });
-      } catch (writeErr) {
-        // Stay quiet — the next nightly run will retry.
-        console.error(
-          `[cron/calibration-drift] failed to record error row:`,
-          writeErr,
-        );
+      log.error({
+        event: "cron.calibration_drift.ref_rep_failed",
+        refRepId: rep.id,
+        err: serializeErr(err),
+      });
+      if (!dryRun) {
+        try {
+          await db.insert(calibrationRuns).values({
+            runId,
+            refRepId: rep.id,
+            expectedComposite: rep.expected?.composite ?? null,
+            actualComposite: null,
+            deltaComposite: null,
+            expectedPerDim:
+              (rep.expected?.dimensions as Record<string, number> | null) ?? null,
+            actualPerDim: null,
+            deltaPerDim: null,
+            rubricVersion: null,
+            modelVersion: null,
+            status: "error",
+          });
+        } catch (writeErr) {
+          // Stay quiet — the next nightly run will retry.
+          log.error({
+            event: "cron.calibration_drift.record_error_row_failed",
+            err: serializeErr(writeErr),
+          });
+        }
       }
       results.push({
         refRepId: rep.id,
@@ -160,6 +184,20 @@ export async function GET(req: Request) {
       });
     }
   }
+
+  // Hand-rolled bounded concurrency — N workers pull from a shared cursor.
+  // Mirrors the proven pattern in weekly-narrative/route.ts:92–99.
+  let cursor = 0;
+  const workers = Array.from(
+    { length: Math.min(CONCURRENCY, refReps.length) },
+    async () => {
+      while (cursor < refReps.length) {
+        const i = cursor++;
+        await processOne(refReps[i]!);
+      }
+    },
+  );
+  await Promise.all(workers);
 
   const summary = {
     runId,
@@ -189,14 +227,21 @@ export async function GET(req: Request) {
   const shouldAlert =
     avgAbsDelta > 5 || worstAbsDelta > 15 || summary.fallbackCount > 2;
   let alertSentAt: Date | null = null;
-  let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" = "skipped";
+  let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" | "dry-run" =
+    "skipped";
 
-  if (shouldAlert) {
+  if (shouldAlert && dryRun) {
+    alertOutcome = "dry-run";
+  } else if (shouldAlert) {
     const webhookUrl = process.env.CALIBRATION_ALERT_WEBHOOK_URL;
     if (!webhookUrl) {
-      console.warn(
-        `[cron/calibration-drift] DRIFT ALERT (no webhook configured): runId=${runId} avg=${avgAbsDelta.toFixed(1)} worst=${worstAbsDelta} fallbacks=${summary.fallbackCount}`,
-      );
+      log.warn({
+        event: "cron.calibration_drift.alert_no_webhook",
+        runId,
+        avgAbsDelta: Number(avgAbsDelta.toFixed(1)),
+        worstAbsDelta,
+        fallbacks: summary.fallbackCount,
+      });
       alertOutcome = "no-webhook";
     } else {
       const top3 = [...results]
@@ -210,7 +255,10 @@ export async function GET(req: Request) {
       const driftLines = top3.map(
         (r) => `• ${r.refRepId}: ${r.deltaComposite! > 0 ? "+" : ""}${r.deltaComposite}`,
       );
-      const opsUrl = baseUrl + "/ops/calibration";
+      const opsUrl =
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "") + "/ops/calibration";
       const payload = {
         text: [
           `*Cognify calibration drift alert* (run ${runId})`,
@@ -239,16 +287,17 @@ export async function GET(req: Request) {
             .set({ alertSentAt })
             .where(eq(calibrationRuns.runId, runId));
         } else {
-          console.error(
-            `[cron/calibration-drift] alert webhook returned ${alertRes.status}`,
-          );
+          log.error({
+            event: "cron.calibration_drift.alert_http_error",
+            status: alertRes.status,
+          });
           alertOutcome = "failed";
         }
       } catch (err) {
-        console.error(
-          `[cron/calibration-drift] alert webhook error:`,
-          err,
-        );
+        log.error({
+          event: "cron.calibration_drift.alert_webhook_error",
+          err: serializeErr(err),
+        });
         alertOutcome = "failed";
       }
     }
@@ -261,6 +310,52 @@ export async function GET(req: Request) {
     alertSentAt: alertSentAt?.toISOString() ?? null,
     alertOutcome,
   });
+}
+
+// ── P8 — cron run ledger ────────────────────────────────────────────────
+// Wraps the handler so every authorized invocation records one
+// cognify_v2.cron_runs row (name, ok, duration_ms, error). Best-effort:
+// a down DB never turns the cron response into a 500. Unauthorized
+// probes (401/403) are not recorded so they don't spam the ledger.
+const CRON_NAME = "calibration-drift";
+
+async function recordCronRun(
+  ok: boolean,
+  durationMs: number,
+  error: string | null,
+): Promise<void> {
+  try {
+    await db
+      .insert(cronRuns)
+      .values({ name: CRON_NAME, ok, durationMs, error });
+  } catch {
+    // Ledger write is best-effort — never fail the cron over it.
+  }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const startedAt = Date.now();
+  let res: Response;
+  try {
+    res = await handleCron(req);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await recordCronRun(false, Date.now() - startedAt, message.slice(0, 300));
+    throw err;
+  }
+  if (res.status !== 401 && res.status !== 403) {
+    const ok = res.status >= 200 && res.status < 300;
+    let error: string | null = null;
+    if (!ok) {
+      try {
+        error = (await res.clone().text()).slice(0, 300);
+      } catch {
+        error = `HTTP ${res.status}`;
+      }
+    }
+    await recordCronRun(ok, Date.now() - startedAt, error);
+  }
+  return res;
 }
 
 // ——— Reference-rep loading ————————————————————————————————
@@ -306,25 +401,28 @@ type ScoreResponse = {
   dimensions?: { dimension: string; score: number }[];
 };
 
-async function scoreOne(
-  baseUrl: string,
-  rep: ReferenceRep,
-): Promise<ScoreResponse> {
-  const body: Record<string, unknown> = {
+async function scoreOne(rep: ReferenceRep): Promise<ScoreResponse> {
+  // P-4: call the scorer in-process. The cron used to self-fetch
+  // /api/score, but that endpoint now requires currentUser(). The
+  // shared-secret alternative (/api/score-internal) is purpose-built
+  // for the Supabase Edge Function with a different body shape;
+  // calling scoreRep directly avoids the HTTP hop, the secret
+  // handling, and the body-schema mismatch entirely.
+  const score = await scoreRep({
     transcript: rep.transcript,
     promptText: rep.promptText,
     durationMs: rep.durationMs,
-  };
-  if (rep.audioUrl) body.audioUrl = rep.audioUrl;
-  const res = await fetch(`${baseUrl}/api/score`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    ...(rep.audioUrl ? { audioUrl: rep.audioUrl } : {}),
   });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  }
-  return (await res.json()) as ScoreResponse;
+  return {
+    composite: score.composite,
+    rubricVersion: score.rubricVersion,
+    modelVersion: score.modelVersion,
+    dimensions: score.dimensions.map((d) => ({
+      dimension: d.dimension,
+      score: d.score,
+    })),
+  };
 }
 
 type RunOutcome = {

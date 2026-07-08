@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
@@ -7,6 +8,14 @@ import type {
   PersonaId,
   ImprovementGoalId,
 } from "@/lib/onboarding/constants";
+
+export type AudioRetentionDays = 30 | 90 | 180 | null;
+export const AUDIO_RETENTION_OPTIONS: { value: AudioRetentionDays; label: string }[] = [
+  { value: 30, label: "30 days" },
+  { value: 90, label: "90 days" },
+  { value: 180, label: "180 days" },
+  { value: null, label: "Keep forever" },
+];
 
 export type UserProfile = {
   id: string;
@@ -27,11 +36,28 @@ export type UserProfile = {
   level: number;
   xp: number;
   lifetimeReps: number;
+  /** Phase C — committed training days bitmask. Mon=bit 0, Sun=bit 6.
+   *  Default 31 (Mon-Fri). */
+  committedDays: number;
+  /** IANA timezone (e.g. "America/Los_Angeles"). Defaults to "UTC" until
+   *  TimezoneDetector posts the browser-inferred TZ on first authenticated
+   *  app visit. CTO review B-4 — surfaced here so the dashboard can pass
+   *  it to isDateCommitted + todayYmdInTz. */
+  tz: string;
+  /** Audio retention window in days; null = keep forever. Default 90.
+   *  Drives the audio-retention cron sweep. */
+  audioRetentionDays: number | null;
+  /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
+  communicationStage: string | null;
+  /** PRD v3 Phase 6.8 — committed-day reminder emails (default on). */
+  reminderEmailsEnabled: boolean;
 };
 
-export async function getUserProfile(
+// Request-scoped: called by layout, dashboard, workout, settings, and
+// several server actions per render. cache() dedupes within a request.
+export const getUserProfile = cache(async (
   userId: string,
-): Promise<UserProfile | null> {
+): Promise<UserProfile | null> => {
   return safeDb(async () => {
     const row = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -54,9 +80,14 @@ export async function getUserProfile(
       level: row.level ?? 1,
       xp: row.xp ?? 0,
       lifetimeReps: row.lifetimeReps ?? 0,
+      committedDays: row.committedDays ?? 31,
+      tz: row.tz ?? "UTC",
+      audioRetentionDays: row.audioRetentionDays ?? 90,
+      communicationStage: row.communicationStage ?? null,
+      reminderEmailsEnabled: row.reminderEmailsEnabled ?? true,
     };
   }, null);
-}
+});
 
 export async function setUserVertical(
   userId: string,
@@ -64,6 +95,20 @@ export async function setUserVertical(
 ): Promise<boolean> {
   return safeDb(async () => {
     await db.update(users).set({ vertical }).where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage setter. Null clears. */
+export async function setUserCommunicationStage(
+  userId: string,
+  stage: string | null,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ communicationStage: stage })
+      .where(eq(users.id, userId));
     return true;
   }, false);
 }
@@ -86,6 +131,38 @@ export async function setUserImprovementGoals(
     await db
       .update(users)
       .set({ improvementGoals })
+      .where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
+/**
+ * Privacy → audio retention window. NULL means "keep forever" (opt-out).
+ * Positive integer = days. The audio-retention cron reads this column to
+ * decide whose blobs to sweep.
+ */
+/** PRD v3 Phase 6.8 — reminder-email opt-in/out. */
+export async function setUserReminderEmails(
+  userId: string,
+  enabled: boolean,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ reminderEmailsEnabled: enabled })
+      .where(eq(users.id, userId));
+    return true;
+  }, false);
+}
+
+export async function setUserAudioRetention(
+  userId: string,
+  days: number | null,
+): Promise<boolean> {
+  return safeDb(async () => {
+    await db
+      .update(users)
+      .set({ audioRetentionDays: days })
       .where(eq(users.id, userId));
     return true;
   }, false);

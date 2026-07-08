@@ -5,8 +5,10 @@ import {
   fallbackProgression,
   type ProgressionInput,
 } from "@/lib/ai/progression";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
+import { currentUser } from "@/lib/session/current-user";
 import { shouldHardFailOnMissingKey, warnMissingKey } from "@/lib/env";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 25;
@@ -57,7 +59,14 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const rl = await rateLimit(getRateLimitIdentifier(req), {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "auth_required", message: "Sign in to use this endpoint." },
+      { status: 401 },
+    );
+  }
+  const rl = await rateLimit(`user:${user.id}:progression`, {
     count: 20,
     window: "1 m",
   });
@@ -85,21 +94,24 @@ export async function POST(req: Request) {
 
   const input: ProgressionInput = parsed;
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Phase 14 — provider-agnostic gate: EITHER configured provider can
+  // serve this analysis (the shim resolves primary/fallback).
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
     if (shouldHardFailOnMissingKey()) {
-      console.error(
-        "[progression] ANTHROPIC_API_KEY missing in production. Progression is a core feature — set the key and redeploy.",
-      );
+      log.error({
+        event: "progression.missing_key",
+        msg: "No AI provider key configured in production",
+      });
       return NextResponse.json(
         {
           error: "missing_key",
           message:
-            "Progression analysis is unavailable — ANTHROPIC_API_KEY is not configured on this deployment.",
+            "Progression analysis is unavailable — no AI provider key (ANTHROPIC_API_KEY or OPENAI_API_KEY) is configured on this deployment.",
         },
         { status: 503 },
       );
     }
-    warnMissingKey("ANTHROPIC_API_KEY");
+    warnMissingKey("ANTHROPIC_API_KEY or OPENAI_API_KEY");
     return NextResponse.json(fallbackProgression(input));
   }
 
@@ -107,8 +119,10 @@ export async function POST(req: Request) {
     const result = await analyzeProgression(input);
     return NextResponse.json(result);
   } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    console.error("[progression] Claude call failed, falling back:", detail);
+    log.error({
+      event: "progression.claude_failed",
+      err: serializeErr(err),
+    });
     return NextResponse.json(fallbackProgression(input));
   }
 }

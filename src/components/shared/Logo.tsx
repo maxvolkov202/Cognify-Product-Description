@@ -6,22 +6,30 @@ type LogoProps = {
   variant?: "mark" | "full";
   className?: string;
   href?: string;
+  /** Rendered pixel size of the mark. Default 36 for nav legibility. */
+  size?: number;
 };
 
-export function Logo({ variant = "full", className, href = "/" }: LogoProps) {
+export function Logo({
+  variant = "full",
+  className,
+  href = "/",
+  size = 36,
+}: LogoProps) {
   const content = (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
         src="/logo/mark.svg"
         alt=""
         aria-hidden="true"
-        width={32}
-        height={32}
+        width={size}
+        height={size}
         priority
-        className="size-8 rounded-[10px]"
+        unoptimized
+        className="shrink-0"
       />
       {variant === "full" && (
-        <span className="text-[21px] font-extrabold tracking-tight text-ink-900">
+        <span className="text-[21px] font-extrabold tracking-tight text-ink-900 dark:text-white">
           Cognify
         </span>
       )}
@@ -30,7 +38,7 @@ export function Logo({ variant = "full", className, href = "/" }: LogoProps) {
 
   if (!href) return content;
   return (
-    <Link href={href} aria-label="Cognify home" className="inline-flex">
+    <Link href={href} aria-label="Cognify home" className="inline-flex min-h-[44px] items-center">
       {content}
     </Link>
   );

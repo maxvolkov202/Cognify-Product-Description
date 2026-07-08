@@ -12,6 +12,9 @@ import { LastRepFocusBanner } from "./LastRepFocusBanner";
 import { ScoreHero } from "./ScoreHero";
 import { OutcomeCard } from "./OutcomeCard";
 import { NextRepFocusCard } from "./NextRepFocusCard";
+import { CoachFocusCard } from "./CoachFocusCard";
+import { DimensionGrid } from "./DimensionGrid";
+import { deriveCoachFocus } from "@/lib/ai/coach-focus";
 import { RepAudioScrubber } from "./RepAudioScrubber";
 import { ExemplarModal } from "./ExemplarModal";
 import type { DimensionGridHandle } from "./DimensionGrid";
@@ -80,6 +83,12 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
+  /** PRD v3 §4.5 — the Universal Training Engine's feedback layout:
+   *  Score → ONE Coach's Focus → Core Skill Breakdown. Removes the
+   *  legacy did-well/didn't-land split (§4.5.3: those sections "do not
+   *  exist") and the multi-bullet Next Rep Focus list (§4.5.2: never
+   *  multiple primary objectives). Default false = v1, byte-identical. */
+  engineV2?: boolean;
 };
 
 const STAGGER_SEC = 0.06;
@@ -97,22 +106,22 @@ export function FeedbackPanel({
   lastRepFocus,
   onSaveExit,
   modeSignals,
+  engineV2 = false,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DimensionGridHandle>(null);
   const [exemplarOpen, setExemplarOpen] = useState(false);
 
-  // Compute the matching exemplar once per render. Picks by primary
-  // focus dimension first, falling back to the first nextRepFocus item's
-  // dimension when primaryFocusDimension isn't set. Archetype-specific
-  // variants win when this is a pressure rep.
+  // Compute the matching exemplar once per render. Uses deriveCoachFocus
+  // so the exemplar dimension matches what the Coach's Focus card actually
+  // shows — including the F-5 structural_adherence → core-dimension
+  // redirect (raw primaryFocusDimension would bail on framework-heavy
+  // reps and leave them without a "Hear a stronger version" exemplar).
+  // Archetype-specific variants win when this is a pressure rep.
   const exemplar = useMemo(() => {
-    const primaryDim =
-      score.primaryFocusDimension ??
-      score.nextRepFocus?.[0]?.dimension ??
-      null;
-    if (!primaryDim || primaryDim === "structural_adherence") return null;
+    const primaryDim = deriveCoachFocus(score)?.dimension ?? null;
+    if (!primaryDim) return null;
     const rawArchetype = modeSignals?.pressureArchetypeId;
     const archetypeId =
       rawArchetype && isPressureArchetypeId(rawArchetype)
@@ -122,7 +131,7 @@ export function FeedbackPanel({
       dimension: primaryDim,
       archetypeId,
     });
-  }, [score.primaryFocusDimension, score.nextRepFocus, modeSignals]);
+  }, [score, modeSignals]);
 
   const formattedDuration = useMemo(() => {
     const total = Math.floor(durationMs / 1000);
@@ -237,12 +246,12 @@ export function FeedbackPanel({
           <Section delay={0}>
             <div
               role="status"
-              className="overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 px-5 py-4"
+              className="overflow-hidden rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 dark:from-amber-500/10 dark:via-amber-500/5 dark:to-amber-500/10 px-5 py-4"
             >
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                 You just trained · {pressureContext.archetypeName}
               </p>
-              <p className="mt-1 text-sm font-semibold text-amber-950">
+              <p className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-100">
                 {pressureContext.archetypeTagline} Scoring weighted this rep
                 toward the dimensions the archetype stresses.
               </p>
@@ -273,7 +282,7 @@ export function FeedbackPanel({
         <Section delay={2}>
           <div ref={heroRef}>
             <ScoreHero
-              ref={gridRef}
+              ref={engineV2 ? undefined : gridRef}
               composite={score.composite}
               headline={headline}
               dimensions={score.dimensions}
@@ -281,53 +290,90 @@ export function FeedbackPanel({
               durationLabel={formattedDuration}
               primaryFocusDimension={score.primaryFocusDimension}
               modeSignals={modeSignals}
+              hideBreakdown={engineV2}
             />
           </div>
         </Section>
 
-        <Section delay={3}>
-          <OutcomeCard
-            variant="positive"
-            title="What you did well"
-            bullets={usePhase2DidWell ? score.didWell : undefined}
-            fallbackBullets={usePhase2DidWell ? undefined : didWellFallback}
-            linkLabel={positiveDrillTarget ? "See examples" : undefined}
-            onLinkClick={
-              positiveDrillTarget
-                ? () => expandDimension(positiveDrillTarget)
-                : undefined
-            }
-          />
-        </Section>
+        {/* PRD v3 §4.5 (v2): Score → ONE Coach's Focus → Breakdown. */}
+        {engineV2 && (
+          <>
+            {(() => {
+              const focus = deriveCoachFocus(score);
+              return focus ? (
+                <Section delay={3}>
+                  <CoachFocusCard
+                    focus={focus}
+                    onSeeExample={
+                      exemplar ? () => setExemplarOpen(true) : undefined
+                    }
+                  />
+                </Section>
+              ) : null;
+            })()}
+            <Section delay={4}>
+              <div className="surface-card relative overflow-hidden">
+                <div className="p-5 md:p-6">
+                  <DimensionGrid
+                    ref={gridRef}
+                    dimensions={score.dimensions}
+                    callouts={score.callouts}
+                    primaryFocusDimension={score.primaryFocusDimension}
+                    modeSignals={modeSignals}
+                  />
+                </div>
+              </div>
+            </Section>
+          </>
+        )}
 
-        <Section delay={4}>
-          <OutcomeCard
-            variant="negative"
-            title="What didn't land"
-            bullets={usePhase2DidntLand ? score.didntLand : undefined}
-            fallbackBullets={
-              usePhase2DidntLand ? undefined : didntLandFallback
-            }
-            linkLabel={improvementDrillTarget ? "See breakdown" : undefined}
-            onLinkClick={
-              improvementDrillTarget
-                ? () => expandDimension(improvementDrillTarget)
-                : undefined
-            }
-          />
-        </Section>
+        {!engineV2 && (
+          <>
+            <Section delay={3}>
+              <OutcomeCard
+                variant="positive"
+                title="What you did well"
+                bullets={usePhase2DidWell ? score.didWell : undefined}
+                fallbackBullets={usePhase2DidWell ? undefined : didWellFallback}
+                linkLabel={positiveDrillTarget ? "See examples" : undefined}
+                onLinkClick={
+                  positiveDrillTarget
+                    ? () => expandDimension(positiveDrillTarget)
+                    : undefined
+                }
+              />
+            </Section>
 
-        <Section delay={5}>
-          <NextRepFocusCard
-            items={usePhase2NextRep ? score.nextRepFocus : undefined}
-            fallbackBullets={
-              usePhase2NextRep ? undefined : nextRepFocusFallback
-            }
-            onSeeExample={
-              exemplar ? () => setExemplarOpen(true) : undefined
-            }
-          />
-        </Section>
+            <Section delay={4}>
+              <OutcomeCard
+                variant="negative"
+                title="What didn't land"
+                bullets={usePhase2DidntLand ? score.didntLand : undefined}
+                fallbackBullets={
+                  usePhase2DidntLand ? undefined : didntLandFallback
+                }
+                linkLabel={improvementDrillTarget ? "See breakdown" : undefined}
+                onLinkClick={
+                  improvementDrillTarget
+                    ? () => expandDimension(improvementDrillTarget)
+                    : undefined
+                }
+              />
+            </Section>
+
+            <Section delay={5}>
+              <NextRepFocusCard
+                items={usePhase2NextRep ? score.nextRepFocus : undefined}
+                fallbackBullets={
+                  usePhase2NextRep ? undefined : nextRepFocusFallback
+                }
+                onSeeExample={
+                  exemplar ? () => setExemplarOpen(true) : undefined
+                }
+              />
+            </Section>
+          </>
+        )}
         <ExemplarModal
           open={exemplarOpen}
           exemplar={exemplar}
@@ -346,8 +392,8 @@ export function FeedbackPanel({
 
         {/* ——— Calibration & flywheel (demoted) ———————————————— */}
         <Section delay={7}>
-          <div className="space-y-3 border-t border-ink-200 pt-5">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
+          <div className="space-y-3 border-t border-ink-200 dark:border-ink-700 pt-5">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
               Help us improve
             </p>
             <FeedbackRatingTile repId={repId ?? null} />
@@ -361,13 +407,13 @@ export function FeedbackPanel({
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
                       Want human feedback?
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-ink-900">
+                    <p className="mt-1 text-sm font-semibold text-ink-900 dark:text-white">
                       Send this rep to 3 friends for a blind ranking.
                     </p>
-                    <p className="mt-1 text-xs leading-relaxed text-ink-600">
+                    <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
                       No scores, no names. They rank your attempts on which
                       landed best. Pure human signal — the proof the algorithm
                       can&rsquo;t fake.

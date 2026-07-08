@@ -24,7 +24,7 @@ export function InfoTooltip({ content, label }: Props) {
           <button
             type="button"
             aria-label={label ?? content}
-            className="inline-flex size-3.5 items-center justify-center rounded-full text-ink-400 transition-colors hover:text-brand-purple focus:text-brand-purple focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-1"
+            className="inline-flex size-3.5 items-center justify-center rounded-full text-ink-400 transition-colors hover:text-brand-purple focus:text-brand-purple focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-1 dark:text-ink-500 dark:hover:text-brand-lavender dark:focus:text-brand-lavender"
           >
             <Info className="size-3.5" strokeWidth={2} />
           </button>
@@ -33,10 +33,10 @@ export function InfoTooltip({ content, label }: Props) {
           <Tooltip.Content
             side="top"
             sideOffset={6}
-            className="z-50 max-w-xs rounded-lg border border-ink-200 bg-white px-3 py-2 text-xs leading-relaxed text-ink-700 shadow-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0"
+            className="z-50 max-w-xs rounded-lg border border-ink-200 bg-white px-3 py-2 text-xs leading-relaxed text-ink-700 shadow-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200"
           >
             {content}
-            <Tooltip.Arrow className="fill-white" />
+            <Tooltip.Arrow className="fill-white dark:fill-ink-900" />
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>

@@ -472,3 +472,25 @@ export function goalsForVertical(
   ).map((goal) => ({ goal, featured: false }));
   return [...featured, ...rest];
 }
+
+// ─── PRD v3 Phase 3 (PRD §8.2) — Communication Stage ─────────────────────
+// Career-stage context for prompt/coaching personalization. Never affects
+// scoring. Surfaced in /settings (and a future onboarding step).
+
+export const COMMUNICATION_STAGES = [
+  { id: "student", label: "Student" },
+  { id: "early_career", label: "Early career" },
+  { id: "individual_contributor", label: "Individual contributor" },
+  { id: "manager", label: "Manager" },
+  { id: "senior_leader", label: "Senior leader" },
+  { id: "executive", label: "Executive" },
+] as const;
+
+export type CommunicationStageId =
+  (typeof COMMUNICATION_STAGES)[number]["id"];
+
+export function isCommunicationStage(
+  id: string,
+): id is CommunicationStageId {
+  return COMMUNICATION_STAGES.some((s) => s.id === id);
+}

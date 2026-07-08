@@ -71,7 +71,7 @@ export function ExemplarModal({ open, exemplar, onClose }: Props) {
                   "linear-gradient(110deg, var(--color-brand-blue), var(--color-brand-lavender), var(--color-brand-purple), var(--color-brand-magenta))",
               }}
             >
-              <div className="rounded-[14px] bg-white p-6">
+              <div className="rounded-[14px] bg-white dark:bg-ink-900 p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="brand-gradient grid size-9 shrink-0 place-items-center rounded-xl shadow-[var(--shadow-glow)]">
@@ -82,11 +82,11 @@ export function ExemplarModal({ open, exemplar, onClose }: Props) {
                       />
                     </span>
                     <div>
-                      <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
                         Example —{" "}
                         {DIMENSION_LABELS[exemplar.dimension].toUpperCase()}
                       </p>
-                      <h3 className="mt-0.5 text-[15px] font-extrabold text-ink-900">
+                      <h3 className="mt-0.5 text-[15px] font-extrabold text-ink-900 dark:text-white">
                         {exemplar.topic}
                       </h3>
                     </div>
@@ -94,7 +94,7 @@ export function ExemplarModal({ open, exemplar, onClose }: Props) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                    className="rounded-lg p-1.5 text-ink-400 dark:text-ink-500 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200"
                     aria-label="Close"
                   >
                     <X className="size-4" strokeWidth={2.5} />
@@ -104,22 +104,22 @@ export function ExemplarModal({ open, exemplar, onClose }: Props) {
                   {exemplar.lines.map((line, i) => (
                     <li
                       key={i}
-                      className="flex gap-3 rounded-xl border border-ink-100 bg-ink-50 px-3 py-2.5"
+                      className="flex gap-3 rounded-xl border border-ink-100 dark:border-ink-700 bg-ink-50 dark:bg-ink-800 px-3 py-2.5"
                     >
-                      <span className="mt-0.5 text-[11px] font-bold tabular-nums text-brand-purple">
+                      <span className="mt-0.5 text-[11px] font-bold tabular-nums text-brand-purple dark:text-brand-lavender">
                         {i + 1}
                       </span>
-                      <p className="text-[13px] leading-relaxed text-ink-800">
+                      <p className="text-[13px] leading-relaxed text-ink-800 dark:text-ink-100">
                         {line}
                       </p>
                     </li>
                   ))}
                 </ol>
-                <div className="mt-4 rounded-xl border border-brand-purple/20 bg-brand-purple/5 px-3 py-2.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-brand-purple">
+                <div className="mt-4 rounded-xl border border-brand-purple/20 dark:border-brand-purple/40 bg-brand-purple/5 dark:bg-brand-purple/10 px-3 py-2.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
                     What to listen for
                   </p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-ink-700">
+                  <p className="mt-1 text-[12px] leading-relaxed text-ink-700 dark:text-ink-200">
                     {exemplar.tip}
                   </p>
                 </div>

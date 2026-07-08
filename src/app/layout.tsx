@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -44,10 +45,20 @@ export const metadata: Metadata = {
     description: "The Duolingo for communication.",
   },
   icons: {
-    icon: [{ url: "/logo/mark.svg", type: "image/svg+xml" }],
-    apple: "/logo/mark.svg",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/logo/mark.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
-  manifest: "/manifest.json",
+  // Phase 12 — the muscle-group pivot ships /manifest.webmanifest with
+  // the brain-gym framing + standalone display + idle-mascot splash
+  // colors. Legacy /manifest.json was pre-pivot; keep redirecting via
+  // public/ for backwards compat with browsers that cached it.
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -56,10 +67,76 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// iOS standalone-mode splash images. Targeting the modern iPhone +
+// iPad-mini sizes; older devices fall back to the default white splash.
+// Phase D — list comes from scripts/generate-app-icons.mjs.
+const APPLE_SPLASH = [
+  {
+    href: "/icons/apple-splash-iphone-15-pro-max.png",
+    media:
+      "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-iphone-15-pro.png",
+    media:
+      "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-iphone-14-13.png",
+    media:
+      "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)",
+  },
+  {
+    href: "/icons/apple-splash-ipad-mini.png",
+    media:
+      "(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2)",
+  },
+];
+
+// Pre-hydration theme script. Reads cognify:theme from localStorage and
+// toggles the `dark` class on <html> before React paints, so app routes
+// don't flash light-then-dark. Marketing + public routes are excluded —
+// the prefix list mirrors src/app/(app)/* + onboarding.
+const THEME_SCRIPT = `(function(){try{
+  var path = window.location.pathname;
+  var appPrefixes = ['/dashboard','/workout','/skill-lab','/drills','/build-a-rep','/library','/progress','/leaderboard','/friends','/settings','/achievements','/onboarding','/compare','/tutorial','/admin','/dev','/ops','/report','/scenario','/validate'];
+  var inApp = appPrefixes.some(function(p){return path === p || path.indexOf(p + '/') === 0;});
+  if (!inApp) { document.documentElement.classList.remove('dark'); return; }
+  var stored = null;
+  try { stored = localStorage.getItem('cognify:theme'); } catch(e) {}
+  var dark = false;
+  if (stored === 'dark') dark = true;
+  else if (stored === 'system') {
+    dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  if (dark) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen antialiased">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Cognify" />
+        {APPLE_SPLASH.map((s) => (
+          <link
+            key={s.href}
+            rel="apple-touch-startup-image"
+            href={s.href}
+            media={s.media}
+          />
+        ))}
+      </head>
+      <body className="min-h-screen antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

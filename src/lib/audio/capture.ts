@@ -121,7 +121,7 @@ export async function startRecording(): Promise<RecordingController> {
     if (e.data.size > 0) chunks.push(e.data);
   });
 
-  const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  const audioContext = new (window.AudioContext ?? window.webkitAudioContext!)();
   const source = audioContext.createMediaStreamSource(stream);
   const analyser = audioContext.createAnalyser();
   analyser.fftSize = 256;

@@ -1,7 +1,14 @@
 import { and, desc, eq, gte, sql, inArray, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { reps, users, memberships, teams } from "@/lib/db/schema";
+import {
+  communicationProfile,
+  reps,
+  users,
+  memberships,
+  teams,
+} from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { rankFromXp, type RankInfo } from "@/lib/progression/rank";
 
 /**
  * Leaderboard domain — real data sourced from the reps / users / teams
@@ -30,6 +37,16 @@ export type LeaderboardEntry = {
   reps: number;
   streak: number;
   delta: number;
+  /** PRD §10.5.1 — the user's permanent Cognify Rank, derived from
+   *  lifetime XP. Named `rankBadge` because `rank` above is the board
+   *  POSITION. Rendered as a small shield/chip next to the name when
+   *  FF_RANK_SYSTEM is on. */
+  rankBadge: {
+    label: string;
+    tierColor: string;
+    rankIndex: number;
+    divisionRoman: RankInfo["divisionRoman"];
+  };
 };
 
 export type LeaderboardBoard = {
@@ -43,6 +60,16 @@ export type LeaderboardBoard = {
 };
 
 export type LeaderboardScope = "global" | "this_week" | "team";
+
+/** PRD v3 Phase 6 (§10.9) — ranking metric.
+ *  - "composite": avg composite in window (legacy default)
+ *  - "improvement": weekly improvement (delta vs last week) — the PRD's
+ *    default, "rewards communication growth rather than natural ability"
+ *  - "communication_score": Overall Communication Score (profile EMA) */
+export type LeaderboardMetric =
+  | "composite"
+  | "improvement"
+  | "communication_score";
 
 /** Limit — deliberately ~match the mock leaderboard the page previously
  *  rendered so the UI doesn't shrink when the real query lands. */
@@ -239,9 +266,11 @@ export async function getLeaderboard(opts: {
   scope: LeaderboardScope;
   userId: string | null;
   limit?: number;
+  metric?: LeaderboardMetric;
 }): Promise<LeaderboardBoard> {
   const { scope, userId } = opts;
   const limit = opts.limit ?? DEFAULT_LIMIT;
+  const metric = opts.metric ?? "composite";
 
   return safeDb(async () => {
     // 1. Scope → time window + optional team filter.
@@ -276,51 +305,106 @@ export async function getLeaderboard(opts: {
         userId: reps.userId,
         name: users.name,
         email: users.email,
+        // §10.5.1 — lifetime XP feeds the permanent Rank badge per row.
+        xp: users.xp,
         composite: sql<number>`avg(${reps.compositeScore})::float`,
         reps: sql<number>`count(*)::int`,
       })
       .from(reps)
       .innerJoin(users, eq(users.id, reps.userId))
       .where(and(...whereClauses))
-      .groupBy(reps.userId, users.name, users.email)
+      .groupBy(reps.userId, users.name, users.email, users.xp)
       .having(sql`count(*) >= 1`)
       .orderBy(desc(sql`avg(${reps.compositeScore})`));
 
     if (aggregateRows.length === 0) return emptyBoard();
 
-    const topSlice = aggregateRows.slice(0, limit);
+    // PRD v3 Phase 6 — metric re-ranking. The base aggregation (avg
+    // composite + rep counts) is shared; the metric only changes the
+    // sort key (and, for communication_score, the displayed number).
+    let rankedRows = aggregateRows;
+    let overallScores: Map<string, number> | null = null;
+    if (metric === "improvement") {
+      const deltaMap = await computeDeltas(aggregateRows.map((r) => r.userId));
+      rankedRows = [...aggregateRows].sort(
+        (a, b) => (deltaMap.get(b.userId) ?? 0) - (deltaMap.get(a.userId) ?? 0),
+      );
+    } else if (metric === "communication_score") {
+      overallScores = await safeDb(async () => {
+        const rows = await db
+          .select({
+            userId: communicationProfile.userId,
+            overall: communicationProfile.overallScore,
+          })
+          .from(communicationProfile)
+          .where(
+            inArray(
+              communicationProfile.userId,
+              aggregateRows.map((r) => r.userId),
+            ),
+          );
+        const m = new Map<string, number>();
+        for (const r of rows) if (r.overall != null) m.set(r.userId, r.overall);
+        return m;
+      }, new Map<string, number>());
+      rankedRows = [...aggregateRows]
+        .filter((r) => overallScores!.has(r.userId))
+        .sort(
+          (a, b) =>
+            (overallScores!.get(b.userId) ?? 0) -
+            (overallScores!.get(a.userId) ?? 0),
+        );
+      if (rankedRows.length === 0) return emptyBoard();
+    }
+
+    const topSlice = rankedRows.slice(0, limit);
     const topUserIds = topSlice.map((r) => r.userId);
 
     // Ensure self appears even when outside top N — needed for the
     // "your rank" row at the bottom of the board.
     const userIdsForExtras = [...topUserIds];
     if (userId && !topUserIds.includes(userId)) {
-      const selfRow = aggregateRows.find((r) => r.userId === userId);
+      const selfRow = rankedRows.find((r) => r.userId === userId);
       if (selfRow) userIdsForExtras.push(userId);
     }
 
+    // Compute streaks + deltas once over the FULL user set so the
+    // top-N table and the global topStreak/biggestClimb callouts both
+    // reuse the same maps (audit PR-9 — was recomputing each twice).
+    const allUserIds = aggregateRows.map((r) => r.userId);
     const [streaks, deltas, teamLabels] = await Promise.all([
-      computeSimpleStreaks(userIdsForExtras),
-      computeDeltas(userIdsForExtras),
+      computeSimpleStreaks(allUserIds),
+      computeDeltas(allUserIds),
       resolveTeamLabels(userIdsForExtras),
     ]);
 
     const toEntry = (
       row: (typeof aggregateRows)[number],
       rank: number,
-    ): LeaderboardEntry => ({
-      rank,
-      userId: row.userId,
-      name:
-        row.name && row.name.trim()
-          ? row.name
-          : row.email?.split("@")[0] ?? "Trainee",
-      team: teamLabels.get(row.userId) ?? "Solo",
-      composite: Math.round(row.composite ?? 0),
-      reps: row.reps,
-      streak: streaks.get(row.userId) ?? 0,
-      delta: deltas.get(row.userId) ?? 0,
-    });
+    ): LeaderboardEntry => {
+      const rankInfo = rankFromXp(row.xp ?? 0);
+      return {
+        rank,
+        userId: row.userId,
+        name:
+          row.name && row.name.trim()
+            ? row.name
+            : row.email?.split("@")[0] ?? "Trainee",
+        team: teamLabels.get(row.userId) ?? "Solo",
+        composite: Math.round(
+          overallScores?.get(row.userId) ?? row.composite ?? 0,
+        ),
+        reps: row.reps,
+        streak: streaks.get(row.userId) ?? 0,
+        delta: deltas.get(row.userId) ?? 0,
+        rankBadge: {
+          label: rankInfo.label,
+          tierColor: rankInfo.tierColor,
+          rankIndex: rankInfo.rankIndex,
+          divisionRoman: rankInfo.divisionRoman,
+        },
+      };
+    };
 
     const entries = topSlice.map((r, i) => toEntry(r, i + 1));
 
@@ -330,21 +414,19 @@ export async function getLeaderboard(opts: {
       if (inTop) {
         selfEntry = inTop;
       } else {
-        const selfIdx = aggregateRows.findIndex((r) => r.userId === userId);
+        const selfIdx = rankedRows.findIndex((r) => r.userId === userId);
         if (selfIdx !== -1) {
-          selfEntry = toEntry(aggregateRows[selfIdx]!, selfIdx + 1);
+          selfEntry = toEntry(rankedRows[selfIdx]!, selfIdx + 1);
         }
       }
     }
 
     // Longest streak — across all users in scope (not just top N) so the
     // callout accurately reflects who's training most consistently.
-    const streakContenders = await computeSimpleStreaks(
-      aggregateRows.map((r) => r.userId),
-    );
+    // Reuses `streaks` computed above; no second roundtrip.
     let topStreak: LeaderboardBoard["topStreak"] = null;
     for (const r of aggregateRows) {
-      const s = streakContenders.get(r.userId) ?? 0;
+      const s = streaks.get(r.userId) ?? 0;
       if (!topStreak || s > topStreak.streak) {
         if (s <= 0) continue;
         topStreak = {
@@ -357,13 +439,10 @@ export async function getLeaderboard(opts: {
       }
     }
 
-    // Biggest climb — largest positive delta in scope.
-    const climbContenders = await computeDeltas(
-      aggregateRows.map((r) => r.userId),
-    );
+    // Biggest climb — reuses `deltas` for the same reason.
     let biggestClimb: LeaderboardBoard["biggestClimb"] = null;
     for (const r of aggregateRows) {
-      const d = climbContenders.get(r.userId) ?? 0;
+      const d = deltas.get(r.userId) ?? 0;
       if (d <= 0) continue;
       if (!biggestClimb || d > biggestClimb.delta) {
         biggestClimb = {

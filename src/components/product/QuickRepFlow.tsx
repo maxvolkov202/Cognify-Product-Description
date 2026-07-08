@@ -202,7 +202,7 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
             Sign up free to keep training.
           </h3>
           <ul className="mt-3 space-y-1.5 text-sm text-ink-600">
-            <li>· Daily Workout — 4 reps, 10 minutes</li>
+            <li>· Daily Workout — 3 exercises, ~6 minutes</li>
             <li>· Your reps saved, compared, trended over time</li>
             <li>· Head-to-head challenges with friends</li>
             <li>· A baseline and monthly report card</li>

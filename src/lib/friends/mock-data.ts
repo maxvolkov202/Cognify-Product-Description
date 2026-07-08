@@ -40,7 +40,12 @@ export type Challenge = {
   expiresAt: string;
 };
 
-export const MOCK_FRIENDS: FriendProfile[] = [
+// Mock arrays are dev/preview-only. In production these resolve to empty
+// arrays so the MOCK_* code path that runs when a real user has no
+// activity yet never serves fake names from the bundle (audit DC-2).
+const isDevPreview = process.env.NODE_ENV !== "production";
+
+const RAW_MOCK_FRIENDS: FriendProfile[] = [
   {
     id: "f1",
     name: "Sarah Kim",
@@ -171,12 +176,12 @@ export const MOCK_FRIENDS: FriendProfile[] = [
   },
 ];
 
-export const MOCK_PENDING_REQUESTS: Pick<FriendProfile, "id" | "name" | "initials" | "vertical" | "composite" | "mutualFriends">[] = [
+const RAW_MOCK_PENDING_REQUESTS: Pick<FriendProfile, "id" | "name" | "initials" | "vertical" | "composite" | "mutualFriends">[] = [
   { id: "p1", name: "Mei Lin Chen", initials: "MC", vertical: "Education", composite: 79, mutualFriends: 2 },
   { id: "p2", name: "Noah Daniels", initials: "ND", vertical: "Sales", composite: 70, mutualFriends: 1 },
 ];
 
-export const MOCK_ACTIVITY: FriendActivity[] = [
+const RAW_MOCK_ACTIVITY: FriendActivity[] = [
   {
     id: "a1",
     friendId: "f1",
@@ -257,7 +262,7 @@ export const MOCK_ACTIVITY: FriendActivity[] = [
   },
 ];
 
-export const MOCK_CHALLENGES: Challenge[] = [
+const RAW_MOCK_CHALLENGES: Challenge[] = [
   {
     id: "c1",
     challengerName: "You",
@@ -299,9 +304,24 @@ export const MOCK_CHALLENGES: Challenge[] = [
   },
 ];
 
-export const MOCK_SUGGESTED: Pick<FriendProfile, "id" | "name" | "initials" | "vertical" | "composite" | "mutualFriends">[] = [
+const RAW_MOCK_SUGGESTED: Pick<FriendProfile, "id" | "name" | "initials" | "vertical" | "composite" | "mutualFriends">[] = [
   { id: "s1", name: "Sofia Mendes", initials: "SM", vertical: "Consulting", composite: 76, mutualFriends: 3 },
   { id: "s2", name: "Tomás García", initials: "TG", vertical: "Finance", composite: 74, mutualFriends: 2 },
   { id: "s3", name: "Hana Kobayashi", initials: "HK", vertical: "Education", composite: 72, mutualFriends: 4 },
   { id: "s4", name: "Chloe Wright", initials: "CW", vertical: "Healthcare", composite: 68, mutualFriends: 1 },
 ];
+
+// Dev/preview-only re-exports. In production these resolve to empty
+// arrays so the mock preview (rendered when a real user has no
+// connections yet) never shows fabricated names. Tree-shaking can't
+// drop the data because consumers import by name, so we gate at the
+// export level.
+export const MOCK_FRIENDS: FriendProfile[] = isDevPreview ? RAW_MOCK_FRIENDS : [];
+export const MOCK_PENDING_REQUESTS: typeof RAW_MOCK_PENDING_REQUESTS =
+  isDevPreview ? RAW_MOCK_PENDING_REQUESTS : [];
+export const MOCK_ACTIVITY: FriendActivity[] =
+  isDevPreview ? RAW_MOCK_ACTIVITY : [];
+export const MOCK_CHALLENGES: Challenge[] =
+  isDevPreview ? RAW_MOCK_CHALLENGES : [];
+export const MOCK_SUGGESTED: typeof RAW_MOCK_SUGGESTED =
+  isDevPreview ? RAW_MOCK_SUGGESTED : [];

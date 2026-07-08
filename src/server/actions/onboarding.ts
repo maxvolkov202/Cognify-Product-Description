@@ -6,12 +6,16 @@ import {
   setUserVertical,
   setUserPersonas,
   setUserImprovementGoals,
+  setUserAudioRetention,
+  setUserCommunicationStage,
   markUserOnboarded,
+  setUserReminderEmails,
 } from "@/lib/db/queries/user";
 import {
   isVerticalId,
   isPersonaId,
   isImprovementGoalId,
+  isCommunicationStage,
   type PersonaId,
   type ImprovementGoalId,
 } from "@/lib/onboarding/constants";
@@ -114,6 +118,49 @@ export async function setUserPreferencesAction(input: {
   if (results.some((ok) => !ok)) {
     return { ok: false, error: "db_error" };
   }
+  return { ok: true };
+}
+
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage. Career-stage context
+ *  for personalization only; never touches scoring. Stage ids live in
+ *  lib/onboarding/constants.ts ("use server" files may only export
+ *  async functions). */
+export async function setCommunicationStageAction(
+  stage: string | null,
+): Promise<ActionResult> {
+  if (stage !== null && !isCommunicationStage(stage)) {
+    return { ok: false, error: "invalid_input" };
+  }
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserCommunicationStage(user.id, stage);
+  if (!ok) return { ok: false, error: "db_error" };
+  return { ok: true };
+}
+
+/** PRD v3 Phase 6.8 — committed-day reminder emails toggle. */
+export async function setReminderEmailsAction(
+  enabled: boolean,
+): Promise<ActionResult> {
+  if (typeof enabled !== "boolean") return { ok: false, error: "invalid_input" };
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserReminderEmails(user.id, enabled);
+  if (!ok) return { ok: false, error: "db_error" };
+  return { ok: true };
+}
+
+/** Privacy → audio retention. Accepts 30 | 90 | 180 | null (= keep forever). */
+export async function setAudioRetentionAction(
+  days: number | null,
+): Promise<ActionResult> {
+  if (days !== null && !(days === 30 || days === 90 || days === 180)) {
+    return { ok: false, error: "invalid_input" };
+  }
+  const user = await currentUser();
+  if (!user) return { ok: false, error: "no_user" };
+  const ok = await setUserAudioRetention(user.id, days);
+  if (!ok) return { ok: false, error: "db_error" };
   return { ok: true };
 }
 

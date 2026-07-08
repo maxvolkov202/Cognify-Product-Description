@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppNav } from "@/components/shared/AppNav";
 import { InstallPrompt } from "@/components/product/InstallPrompt";
+import TimezoneDetector from "@/components/product/TimezoneDetector";
+import ServiceWorkerRegister from "@/components/product/ServiceWorkerRegister";
 import { SixSkillsBar } from "@/components/product/SixSkillsBar";
 import { SkillsFocusProvider } from "@/components/product/SkillsFocusContext";
 import { ReportBugButton } from "@/components/product/ReportBugButton";
@@ -13,9 +16,14 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 // Nav items. Phase 5: /scenario replaced by /build-a-rep. The /scenario
 // route still exists as a redirect to /build-a-rep for backwards compat
 // until Phase 6 cleanup deletes it.
+// Phase 11 nav reshuffle: Workout is the daily-default; Skill Lab is
+// reframed as a focused "Practice" surface for targeted drills,
+// framework practice, and custom reps. The URL stays /skill-lab so
+// links + bookmarks don't break.
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/workout", label: "Daily Workout" },
+  { href: "/workout", label: "Workout" },
+  // D6 — PRD terminology: the mode is "Skill Lab", not "Practice".
   { href: "/skill-lab", label: "Skill Lab" },
   { href: "/build-a-rep", label: "Build a Rep" },
   { href: "/library", label: "Library" },
@@ -31,14 +39,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // unavailable, isUserOnboarded returns true so onboarding becomes optional
   // and the gym still works in degraded mode (no personalization, but usable).
   const user = await currentUser();
-  if (user && process.env.NODE_ENV === "production") {
-    const onboarded = await isUserOnboarded(user.id);
-    if (!onboarded) {
-      redirect("/onboarding/vertical");
-    }
+
+  // Parallelize the three independent lookups instead of awaiting them
+  // serially. With React.cache on getUserProfile + getCurrentSkillScores,
+  // child pages reuse these results — so layout pays the cost once.
+  const [onboardingResult, profile, skillScores] = user
+    ? await Promise.all([
+        process.env.NODE_ENV === "production"
+          ? isUserOnboarded(user.id)
+          : Promise.resolve(true),
+        getUserProfile(user.id),
+        getCurrentSkillScores(user.id),
+      ])
+    : [true, null, null];
+
+  if (user && !onboardingResult) {
+    redirect("/onboarding/vertical");
   }
 
-  const profile = user ? await getUserProfile(user.id) : null;
   const sessionUser =
     user?.kind === "authenticated"
       ? {
@@ -49,20 +67,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }
       : null;
 
-  const skillScores = user ? await getCurrentSkillScores(user.id) : null;
-
   return (
-    <SkillsFocusProvider>
-      <SettingsDirtyProvider>
-        <div className="flex min-h-screen flex-col bg-ink-50/60">
-          <AppNav navItems={navItems} sessionUser={sessionUser} />
-          <main className="flex-1 pb-20">{children}</main>
-          <SixSkillsBar scores={skillScores ?? {}} />
-          <InstallPrompt />
-          <ReportBugButton />
-          <LeavePromptModal />
-        </div>
-      </SettingsDirtyProvider>
-    </SkillsFocusProvider>
+    <ThemeProvider>
+      <SkillsFocusProvider>
+        <SettingsDirtyProvider>
+          <div className="flex min-h-screen flex-col bg-ink-50/60 dark:bg-ink-950">
+            <AppNav navItems={navItems} sessionUser={sessionUser} />
+            <main className="flex-1 pb-20">{children}</main>
+            <SixSkillsBar scores={skillScores ?? {}} />
+            <InstallPrompt />
+            <ReportBugButton />
+            <LeavePromptModal />
+            {user ? <TimezoneDetector /> : null}
+            <ServiceWorkerRegister />
+          </div>
+        </SettingsDirtyProvider>
+      </SkillsFocusProvider>
+    </ThemeProvider>
   );
 }

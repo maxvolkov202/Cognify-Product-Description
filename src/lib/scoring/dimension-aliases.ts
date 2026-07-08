@@ -1,4 +1,4 @@
-import type { SkillDimension } from "@/types/domain";
+import { SKILL_DIMENSIONS, type SkillDimension } from "@/types/domain";
 
 /**
  * Legacy dimension identifiers from prior rubric versions.
@@ -82,6 +82,26 @@ export function aliasLegacyDimension(
   legacy: string,
 ): SkillDimension | null {
   return LEGACY_TO_CURRENT_DIMENSION[legacy as LegacySkillDimension] ?? null;
+}
+
+/**
+ * Forward mapping: muscle-group ID → current SKILL_DIMENSION.
+ *
+ * The product team labels one muscle group `pacing` while the scoring
+ * rubric uses `delivery`. All other muscle-group IDs are 1:1 with the
+ * canonical SKILL_DIMENSIONS. Used wherever the scoring pipeline needs
+ * to convert a muscle-group exercise's dimension into the rubric vocab
+ * (e.g. RAG dim filtering, calibration drift slicing).
+ *
+ * Returns null when the input isn't a recognized muscle group OR skill
+ * dim — callers should treat that as "no preferred dim."
+ */
+export function muscleGroupToSkillDim(mgId: string): SkillDimension | null {
+  if (mgId === "pacing") return "delivery";
+  if ((SKILL_DIMENSIONS as readonly string[]).includes(mgId)) {
+    return mgId as SkillDimension;
+  }
+  return null;
 }
 
 /**

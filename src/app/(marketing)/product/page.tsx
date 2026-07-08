@@ -13,7 +13,7 @@ const modes = [
     name: "Daily Workout",
     tagline: "Build the habit. Ten minutes, four reps, every day.",
     body: "A pre-built sequence of four to five speaking drills targeting different skills. General prompts, no setup required. Pick one of five prompts per rep, speak for 30 to 60 seconds, get feedback, retry or move on. The gym loop that compounds across days.",
-    trains: ["Clarity", "Structure", "Thinking Quality", "Delivery"],
+    trains: ["Clarity", "Structure", "Thinking Quality", "Pacing"],
   },
   {
     n: "Mode 02",
@@ -44,7 +44,7 @@ const dimensionGroups = [
   },
   {
     name: "Delivery",
-    dims: ["Delivery", "Tone"],
+    dims: ["Pacing", "Tone"],
     blurb: "How you said it",
   },
 ] as const;

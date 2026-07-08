@@ -9,10 +9,16 @@ import {
   callouts as calloutsTable,
   progressSnapshots,
 } from "@/lib/db/schema";
-import { scoreRep } from "@/lib/ai/score";
+import { scoreRepWithMetrics } from "@/lib/ai/score";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { encodeDimensionSignals } from "@/lib/scoring/signals";
+import {
+  writeScoringTelemetry,
+  categorizeFailure,
+  resolveFallbackReason,
+} from "@/lib/scoring/telemetry";
 import type { SkillDimension } from "@/types/domain";
+import { log, serializeErr } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -32,13 +38,24 @@ export const maxDuration = 60;
  *      writes compositeScore + modelVersion + rubricVersion.
  */
 export async function POST(req: Request) {
+  // Phase 0 — total wall-clock for the route handler. scoring_telemetry
+  // writes the merged duration so /api/score/health/stats can show
+  // p50/p95/p99 across both endpoints.
+  const requestStart = Date.now();
+
   // CTO scan C2 — timing-safe secret comparison. Plain `===` leaks
   // byte-by-byte info via response time on careful probes; node:crypto's
   // timingSafeEqual returns in constant time relative to input length.
   // Length mismatch shortcircuits before the constant-time compare so
   // we don't compare different-length buffers (which throws).
-  const secret = req.headers.get("x-internal-secret");
-  const expected = process.env.INTERNAL_SCORING_SECRET;
+  //
+  // Trailing-whitespace tolerance: both the Vercel env var and the
+  // Supabase Edge Function env var were stored with a stray `\n` at
+  // some point. Trimming on both inputs before comparison makes the
+  // comparator robust to either side being cleaned (or not) at any
+  // time — no coordinated env-store flip required.
+  const secret = (req.headers.get("x-internal-secret") ?? "").replace(/\s+$/, "");
+  const expected = (process.env.INTERNAL_SCORING_SECRET ?? "").replace(/\s+$/, "");
   if (!secret || !expected || secret.length !== expected.length) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
@@ -61,6 +78,12 @@ export async function POST(req: Request) {
       .array(z.object({ word: z.string(), startMs: z.number(), endMs: z.number() }))
       .optional(),
     userCalibration: z.string().nullable().optional(),
+    // Phase 8 — muscle-group context. Optional; when set, overrides the
+    // values on the rep row (rep row may not have them yet — they're
+    // tagged via Phase 7's tagWorkoutRep which races with this call).
+    exerciseId: z.string().uuid().optional(),
+    muscleGroupDayId: z.string().uuid().optional(),
+    isGraduationRep: z.boolean().optional(),
   });
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -71,6 +94,9 @@ export async function POST(req: Request) {
     );
   }
   const body = parsed.data;
+  // Phase 0 — captured for catch-block telemetry; body is consumed by
+  // safeParse above so we can't re-read it from the request.
+  const capturedRepId = body.repId;
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
@@ -86,7 +112,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "rep_not_found" }, { status: 404 });
     }
 
-    const score = await scoreRep({
+    const { score, metrics: scoreMetrics } = await scoreRepWithMetrics({
       transcript: body.transcript,
       promptText: body.promptText,
       durationMs: body.durationMs,
@@ -96,6 +122,22 @@ export async function POST(req: Request) {
       userCalibration: body.userCalibration ?? null,
       ...(rep.userId ? { userId: rep.userId } : {}),
       ...(frameworkWeights ? { weights: frameworkWeights } : {}),
+      // Phase 8 — surface the muscle-group exercise context to scoring.
+      // Body values take priority because tagWorkoutRep races with this
+      // call (it tags after the rep is saved); the rep row may not have
+      // the FKs yet at scoring time, but the client knows them.
+      ...(body.exerciseId || rep.exerciseId
+        ? { exerciseId: body.exerciseId ?? rep.exerciseId! }
+        : {}),
+      ...(body.muscleGroupDayId || rep.muscleGroupDayId
+        ? {
+            muscleGroupDayId:
+              body.muscleGroupDayId ?? rep.muscleGroupDayId!,
+          }
+        : {}),
+      ...(body.isGraduationRep || rep.isGraduationRep
+        ? { isGraduationRep: true }
+        : {}),
     });
 
     // CTO-scan H6 — wrap dim_scores + progress_snapshots + callouts
@@ -121,7 +163,7 @@ export async function POST(req: Request) {
             signals: encodeDimensionSignals(
               d.signals,
               d.subSkillScores,
-            ) as unknown as object,
+            ) as Record<string, unknown>,
           })),
         );
         if (!isMockFallback) {
@@ -158,10 +200,31 @@ export async function POST(req: Request) {
     });
 
     if (isMockFallback) {
-      console.warn(
-        `[api/score-internal] rep ${body.repId} scored via mock-fallback path; progressSnapshots write SKIPPED to keep running averages clean (CTO-scan H8).`,
-      );
+      log.warn({
+        event: "score_internal.mock_fallback",
+        repId: body.repId,
+        msg: "progressSnapshots write skipped",
+      });
     }
+
+    // Phase 0 — happy-path telemetry. score-internal always has repId
+    // because the Edge Function only invokes this endpoint with a real
+    // pending rep in hand.
+    void writeScoringTelemetry({
+      source: "api_score_internal",
+      repId: body.repId,
+      userId: rep.userId,
+      metrics: scoreMetrics,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason: resolveFallbackReason(scoreMetrics),
+      compositeScore: score.composite,
+      // Phase 8 — muscle-group slicing.
+      exerciseId: body.exerciseId ?? rep.exerciseId ?? null,
+      muscleGroupDayId:
+        body.muscleGroupDayId ?? rep.muscleGroupDayId ?? null,
+      isGraduationRep:
+        body.isGraduationRep ?? rep.isGraduationRep ?? false,
+    });
 
     return NextResponse.json({
       score,
@@ -169,7 +232,31 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "scoring_failed";
-    console.error("[api/score-internal] failed:", message);
+    const failureReason = categorizeFailure(error);
+    log.error({
+      event: "score_internal.failed",
+      failureReason,
+      err: serializeErr(error),
+    });
+
+    // Phase 0 — failure-path telemetry. Best-effort attribution: we may
+    // or may not have repId in scope depending on which try-block step
+    // threw; safeParse + the rep lookup are above the scoring call, so
+    // by this point repId is usually known. Try-catch the lookup so a
+    // telemetry write never blocks the error response.
+    void writeScoringTelemetry({
+      source: "api_score_internal",
+      repId: capturedRepId,
+      metrics: null,
+      totalServerDurationMs: Date.now() - requestStart,
+      failureReason:
+        failureReason === "none"
+          ? "mock_fallback_both_failed"
+          : failureReason,
+      errorDetail: message,
+      modelUsedOverride: "mock-fallback-v1",
+    });
+
     return NextResponse.json({ error: "scoring_failed", message }, { status: 500 });
   }
 }

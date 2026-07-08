@@ -1,0 +1,870 @@
+{
+  "version": "v1-vertical",
+  "vertical": "education",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        { "text": "Explain photosynthesis to your 4th-grade class on day one.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain what a variable is to a student who's never coded.", "difficulty": "intro", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Explain to a parent at conferences why their kid is reading two grade levels behind.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain derivatives to your AP Calc class the morning after they bombed the quiz.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain the water cycle to a kindergartener who keeps asking why.", "difficulty": "intro", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Explain to the school board what Tier 2 intervention actually does for kids.", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Explain mitochondria to your 7th graders without saying powerhouse.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain to a parent what dyslexia means before the IEP starts at noon.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain integration by parts to a freshman seminar that's never seen calculus.", "difficulty": "stretch", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain to a board member why phonics matters more than memorizing whole words.", "difficulty": "stretch", "tags": ["education", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        { "text": "Is Maya ready to move up to honors English next year?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Did the new reading curriculum work this year?", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Should we move Jaden into a smaller group for math?", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Is the new bell schedule helping attendance?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Should the district adopt the four-day week next fall?", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Did Sophia earn an A this quarter?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Is this student ready to test out of ELL services?", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Should we keep Mr. Bell on the 8th grade team next year?", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Will the freshman cohort hit the algebra benchmark by May?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the school safe after yesterday's incident?", "difficulty": "stretch", "tags": ["education", "parent_guardian", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        { "text": "Explain a gradient to your AP Chem class using something from a kitchen.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain scaffolding in instruction to a parent who's never heard the term.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain working memory to a parent worried about ADHD.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain how literacy compounds to a board member skeptical of early-grade investment.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Explain what executive function is to your 3rd graders before a new routine.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain compound interest to your 11th grade econ class.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain to a new tutor how spaced repetition actually moves a struggling reader.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain how a research thesis works to a freshman who's only written 5-paragraph essays.", "difficulty": "core", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Explain entropy to your IB Physics seniors in week one.", "difficulty": "stretch", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain a federal funding formula to staff at Friday's PD.", "difficulty": "stretch", "tags": ["education", "peer", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        { "text": "Explain RTI to a parent who thinks their kid is being labeled.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain a 504 plan to a dad at back-to-school night.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain MTSS to the school board in plain English.", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Explain what FAPE means before the IEP meeting starts.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain SEL to a parent who saw a news story calling it indoctrination.", "difficulty": "core", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Explain DIBELS scores to parents at fall conferences.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain a growth mindset to your 5th graders without the slogan.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain backward design to a brand-new teacher you're mentoring.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain Bloom's Taxonomy to a parent asking why the work looks easy.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Explain Title I to a community parent meeting tonight.", "difficulty": "stretch", "tags": ["education", "audience_room", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        { "text": "Why does reading aloud at home matter for your 1st grader?", "difficulty": "intro", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Why does sleep matter more than tutoring for an exhausted 7th grader?", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Why is your IEP recommending speech therapy twice a week?", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Why did your students' writing scores jump this semester?", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Why does small-group instruction outperform whole-class for early reading?", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Why is chronic absenteeism a bigger crisis than test scores right now?", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Why does the new lab schedule actually free up your science teachers?", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Why should the board fund a full-time counselor at the middle school?", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Why is class participation the metric that predicts your seniors' college GPA?", "difficulty": "core", "tags": ["education", "audience_room", "persuasion"] },
+        { "text": "Why does this college freshman keep failing your prerequisite class?", "difficulty": "stretch", "tags": ["education", "student_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        { "text": "Why is third-period algebra unraveling this semester?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the single biggest reason Marcus isn't turning in homework?", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Why did your AP pass rate drop this year?", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "What's the one thing that would move our 4th-grade reading data?", "difficulty": "core", "tags": ["education", "peer", "giving_feedback"] },
+        { "text": "Why should the dean keep your fellowship program funded?", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "What's the one habit that turned around your student-teaching year?", "difficulty": "intro", "tags": ["education", "champion", "storytelling"] },
+        { "text": "Why did Ms. Park's classroom culture shift this spring?", "difficulty": "intro", "tags": ["education", "peer", "giving_feedback"] },
+        { "text": "What's the central reason your science department lost two teachers?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Why is one student worth the IEP team meeting we're holding tomorrow?", "difficulty": "core", "tags": ["education", "stakeholder", "persuasion"] },
+        { "text": "What's the single thing freshmen need to survive your seminar?", "difficulty": "core", "tags": ["education", "student_role", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        { "text": "Explain the difference between an IEP and a 504 to a confused parent.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain the difference between accommodation and modification at the IEP table.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Explain the difference between equity and equality to your staff Monday.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain why correlation isn't causation to your AP Stats kids.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain the difference between a grade and a learning standard at conferences.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain the difference between formative and summative assessment to a new hire.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain the difference between bullying and conflict to a dad demanding action.", "difficulty": "core", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Explain the difference between an associate's and a bachelor's to your seniors.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Explain the difference between dyslexia and a reading delay to a worried mom.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain why a passing grade isn't the same as mastery to your honors class.", "difficulty": "stretch", "tags": ["education", "audience_room", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        { "text": "Tell me why your new reading block schedule is working.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Tell me why this student deserves to walk at graduation.", "difficulty": "core", "tags": ["education", "stakeholder", "persuasion"] },
+        { "text": "Tell me why phonics-first beats balanced literacy for our K-2 kids.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Tell me why the field trip is worth the lost instructional day.", "difficulty": "intro", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Tell me why your candidate deserves the department chair position.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Tell me why we should keep the late-bus program after the budget cut.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Tell me why your AP curriculum is harder than the public exam.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Tell me why your student teacher is ready for her own classroom.", "difficulty": "core", "tags": ["education", "champion", "giving_feedback"] },
+        { "text": "Tell me why this struggling freshman belongs in your seminar, not on academic probation.", "difficulty": "stretch", "tags": ["education", "student_role", "persuasion"] },
+        { "text": "Tell me why your charter renewal application deserves another five years.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        { "text": "Explain your classroom management plan to a sub in 30 words.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Pitch your course to incoming freshmen.", "difficulty": "intro", "tags": ["education", "student_role", "persuasion"] },
+        { "text": "Summarize the year for parents at the open house.", "difficulty": "intro", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Describe your teaching philosophy in a hiring interview.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "Explain why a student failed your class to their parent.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Summarize the IEP goal you're proposing.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Describe the toughest moment of your week to your mentor.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Brief the principal on the playground fight before the bell.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Pitch the board on a new advisory program.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Summarize the year's curriculum changes for tomorrow's board agenda.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        { "text": "Open back-to-school night with three things parents need to know.", "difficulty": "intro", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Give three reasons your seniors should choose your AP elective.", "difficulty": "intro", "tags": ["education", "student_role", "persuasion"] },
+        { "text": "Defend keeping recess after the schedule rewrite.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case for hiring a reading specialist before another aide.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue why your department should adopt a common grading rubric.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Defend why your team should pilot the new ELA curriculum first.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Convince the principal to let you co-teach algebra with the SPED specialist.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue why this struggling freshman deserves a second probation semester.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Defend a school's decision to keep cell phones banned during the day.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Convince the board to fund a year-round teacher residency program.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        { "text": "Tell me about a student you almost gave up on.", "difficulty": "intro", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Walk me through your hardest week of student teaching.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Tell the story of the parent conference that completely turned around.", "difficulty": "intro", "tags": ["education", "parent_guardian", "storytelling"] },
+        { "text": "Recount the lesson that bombed and what you did the next day.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk me through the IEP meeting where everyone finally agreed.", "difficulty": "core", "tags": ["education", "stakeholder", "storytelling"] },
+        { "text": "Tell the story of a colleague's classroom you walked into in chaos.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Describe the fight you broke up first period and how the day ended.", "difficulty": "core", "tags": ["education", "manager", "storytelling"] },
+        { "text": "Walk through coaching a new teacher from quitting talk to a great spring semester.", "difficulty": "core", "tags": ["education", "champion", "storytelling"] },
+        { "text": "Tell the story of the board meeting where you defended your curriculum.", "difficulty": "stretch", "tags": ["education", "vp_executive", "storytelling"] },
+        { "text": "Recount the year your school made its accreditation visit work.", "difficulty": "stretch", "tags": ["education", "vp_executive", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        { "text": "Should Liam repeat third grade or move up?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Should we suspend the student or assign restorative work?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the new math curriculum working or is it time to switch?", "difficulty": "intro", "tags": ["education", "manager", "explaining"] },
+        { "text": "Cut the music program or the after-school tutoring?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Move the struggling teacher off the 8th-grade team or coach another quarter?", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Should Aaliyah be tested for gifted services this year?", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Should the school adopt a phone-free policy or keep current rules?", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Approve the field trip waiver for the student on probation or deny it?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Hold the freshman seminar on Mondays or split it across the week?", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Pull the controversial novel from the 10th-grade list or keep it?", "difficulty": "stretch", "tags": ["education", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        { "text": "Fifth period won't settle down all semester. Address it.", "difficulty": "intro", "tags": ["education", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Three students have missed more than 20 days. Talk about it.", "difficulty": "intro", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Homework completion is below 40% in your section. Solve it.", "difficulty": "intro", "tags": ["education", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Your inbox has 73 parent emails from this week. Walk me through your plan.", "difficulty": "intro", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] },
+        { "text": "Your AP scores dropped a half-grade across two sections. Fix it.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Two staff members aren't speaking after a department meeting. Address it.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Three families threatened to pull their kids over the new reading list. Talk about it.", "difficulty": "core", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Your IEP caseload jumped from 18 to 27 since September. Solve it.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Your 10th-grade chronic absenteeism rate is now 31%. Address it.", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "A board member leaked your draft curriculum to the local paper. Respond.", "difficulty": "stretch", "tags": ["education", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        { "text": "Convince your students to commit to the summer reading list.", "difficulty": "intro", "tags": ["education", "audience_room", "persuasion"] },
+        { "text": "Persuade parents to volunteer for the spring book fair.", "difficulty": "intro", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Convince a quiet freshman to apply for the writing fellowship.", "difficulty": "intro", "tags": ["education", "champion", "persuasion"] },
+        { "text": "Rally a faculty meeting around piloting a new grading system.", "difficulty": "intro", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Persuade the principal to fund a co-teaching model for 9th grade English.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Convince the PTA to sponsor a literacy night at the elementary school.", "difficulty": "core", "tags": ["education", "stakeholder", "persuasion"] },
+        { "text": "Rally your department around an honest end-of-year reflection.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Persuade the dean to approve a new general education requirement.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Convince the school board to fund full-day kindergarten next year.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Rally the staff before walk-throughs by the accreditation team Thursday.", "difficulty": "stretch", "tags": ["education", "audience_room", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        { "text": "Walk me through how you'd plan your first week of school.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain how you'd run your first parent-teacher conference.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Describe your approach to introducing a new novel to 9th graders.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Walk through your fire-drill procedure for a new aide.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain how you'd run an IEP meeting from welcome to signatures.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Walk me through how you'd diagnose why a class lost momentum.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Describe your process for handling a fight between two students.", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Explain how you'd structure a year-one mentor cycle for a new teacher.", "difficulty": "core", "tags": ["education", "champion", "explaining"] },
+        { "text": "Walk through how you'd lead a department through a curriculum overhaul.", "difficulty": "stretch", "tags": ["education", "manager", "explaining"] },
+        { "text": "Describe how you'd respond to a credible threat reported during third period.", "difficulty": "stretch", "tags": ["education", "audience_room", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        { "text": "Make the case for raising the AP class size cap.", "difficulty": "intro", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue why your team deserves an extra planning period a week.", "difficulty": "intro", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Convince a parent to enroll their kid in your summer program.", "difficulty": "intro", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Sell a senior on signing up for your senior capstone.", "difficulty": "intro", "tags": ["education", "student_role", "persuasion"] },
+        { "text": "Argue why your school should sunset the textbook adoption from 2018.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case for moving science labs to a block schedule.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue why advisory should be teacher-led, not counselor-led.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Convince the principal to fund a teacher-led PD day.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case for school-wide standardized rubrics across grade levels.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Argue why the board should approve a phone-locker pilot this fall.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        { "text": "Honors vs AP for a college-bound junior.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Phonics-first vs balanced literacy in K-2.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Standards-based grading vs traditional letter grades.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Pull-out services vs push-in for special education.", "difficulty": "intro", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Project-based learning vs direct instruction for middle school science.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Promote the assistant principal vs hire a seasoned outside leader.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Block schedule vs traditional periods for high school.", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Community college transfer vs four-year start for a first-gen student.", "difficulty": "core", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Charter school vs traditional public in your district.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Coaching out vs counseling out an underperforming teacher.", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        { "text": "Why do good students bomb a single test?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Why do most New Year's classroom resolutions die by February?", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Why do strong teachers leave after three years?", "difficulty": "intro", "tags": ["education", "manager", "explaining"] },
+        { "text": "Why do parent conferences feel rushed even when you plan?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Why do most curriculum rollouts disappoint by year two?", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Why do schools keep mismeasuring growth?", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Why do most edtech pilots fail to move outcomes?", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Why do good lesson plans still flop second period?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Why do well-meaning PD days feel useless?", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Why is institutional trust between teachers and admins collapsing?", "difficulty": "stretch", "tags": ["education", "manager", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        { "text": "Give a 30-second status on the new reading rollout to your principal.", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Update your team on where the curriculum review stands.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Brief the principal on yesterday's hallway incident before homeroom.", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Recap the staff meeting for a teacher who was out.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain why third period got cut short yesterday.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk the IEP team through where the eval results stand.", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Update the board on this quarter's chronic absenteeism numbers.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Brief the dean before he steps into the parent meeting at 2.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Brief your sub on what just happened with Jordan before you leave the room.", "difficulty": "stretch", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Brief the superintendent on a lockdown drill that went badly.", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        { "text": "Tell me about a lesson you taught that didn't land.", "difficulty": "intro", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Describe your proudest moment as an educator.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Talk about a hobby you've kept up despite the school year.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Share a piece of feedback from a student that changed how you teach.", "difficulty": "intro", "tags": ["education", "student_role", "giving_feedback"] },
+        { "text": "Describe a colleague you clashed with and why.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Talk about the hardest non-renewal conversation you've had.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Explain a grading decision you'd take back.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Describe a student crisis you walked into unprepared.", "difficulty": "core", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Pitch your school to a family touring tomorrow.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Deliver the news of a colleague's death to your faculty at 7:30 AM.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        { "text": "Was the new schedule worth it?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Are letter grades still useful?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Should we keep the homework policy?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the new teacher working out?", "difficulty": "intro", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Was the curriculum adoption a good call?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Should phones be banned during the school day?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Are standardized tests still useful in admissions?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Was suspending the student the right call?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Should the district fire the underperforming principal?", "difficulty": "stretch", "tags": ["education", "vp_executive", "giving_feedback"] },
+        { "text": "Should your department drop the textbook entirely next year?", "difficulty": "stretch", "tags": ["education", "peer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        { "text": "What's the main reason 8th-grade reading scores dropped?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Why did the unit run a week long?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "What's the biggest risk to the spring testing window?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the one thing your grade level needs to do better?", "difficulty": "intro", "tags": ["education", "peer", "giving_feedback"] },
+        { "text": "What's the root cause of the third-period behavior pattern?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Why are teachers leaving the middle school faster than the high school?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "What's driving the IEP backlog this year?", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Why are honors enrollments falling?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "What's the central goal of this IEP for Marcus?", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Why has parent engagement at conferences dropped two years running?", "difficulty": "stretch", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        { "text": "Move Maya up or hold her back?", "difficulty": "intro", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] },
+        { "text": "Suspend the student or assign restorative work?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Keep the textbook or drop it?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Field trip or testing-prep day?", "difficulty": "intro", "tags": ["education", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Promote internally or hire a new department chair from outside?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Approve the IEP eligibility or recommend a 504?", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Cut the music program or extend day care?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Keep the struggling teacher or non-renew?", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Stay at the school or take the principal job in the next district?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Pull the book from the 9th-grade list or stand by it?", "difficulty": "stretch", "tags": ["education", "vp_executive", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        { "text": "Explain why morning routines matter for elementary kids.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Describe what a good mentor teacher does.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Pitch why your school should keep recess after 4th grade.", "difficulty": "intro", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Explain why classroom culture matters more than curriculum in week one.", "difficulty": "intro", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Describe how decoding instruction actually works.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain what executive function looks like in a 5th grader.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Pitch the value of early-grade investment to a tight budget.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Describe why direct instruction belongs in your toolkit.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Explain your school's behavior framework to a touring family.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Defend your grading philosophy to a board parent who thinks you're too lenient.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        { "text": "Explain how your gradebook is set up.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Describe how attendance gets reported to the district.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Walk through how a student qualifies for free or reduced lunch.", "difficulty": "intro", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Explain how your weekly lesson planning cycle works.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Describe how the IEP referral process flows from teacher concern to eval.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Explain how the school's discipline ladder escalates.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Walk through how state testing scores translate into school report cards.", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Describe how your new writing rubric scores a paragraph.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain how IEP minutes get tracked across pull-out and push-in.", "difficulty": "stretch", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Walk through how Title I funding gets allocated across grade levels.", "difficulty": "stretch", "tags": ["education", "vp_executive", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        { "text": "Tell me about your day teaching.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk me through your teaching experience.", "difficulty": "intro", "tags": ["education", "manager", "presenting"] },
+        { "text": "Introduce yourself to the new staff at the August meeting.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Tell me about your weekend.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Open the standup with the day's most important issue.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Kick off back-to-school night with the agenda.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Open the IEP meeting with your recommendation.", "difficulty": "core", "tags": ["education", "stakeholder", "presenting"] },
+        { "text": "Start the conference with your assessment of the student.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Open the morning announcement to a divided school after a fight Friday.", "difficulty": "stretch", "tags": ["education", "audience_room", "confidence"] },
+        { "text": "Begin the board testimony defending the curriculum without preamble.", "difficulty": "stretch", "tags": ["education", "vp_executive", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        { "text": "Summarize this quarter for parents in one sentence.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Describe your class in one sentence.", "difficulty": "intro", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Define what your job is to a stranger at a holiday party.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Sum up your year so far.", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize the parent's concern back to them.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "State the central goal of the IEP you're proposing.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Define what good teaching is.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Summarize Marcus's progress for the IEP team.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Sum up the year's biggest curriculum lesson for the board.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "State your school's reason to exist for the accreditation cover letter.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        { "text": "Argue why your school's homework policy is failing students.", "difficulty": "intro", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Make the case that letter grades hurt the kids you most want to reach.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Argue why screen time in elementary classrooms has gone too far.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Convince me that PD days are mostly wasted as designed.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue that high-stakes testing season degrades real learning every spring.", "difficulty": "intro", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Make the case that your district's last reorg hurt teachers more than it helped kids.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Argue that most classroom observations don't change teaching practice.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Convince me phonics-first should be non-negotiable district-wide.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Argue that the AP system pushes the wrong students into the wrong courses.", "difficulty": "stretch", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case that admissions essays measure income more than potential.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        { "text": "Make the strongest case AGAINST your school's phone ban — even if you support it.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Steel man the parent who thinks you're picking on her son.", "difficulty": "core", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Build the strongest case for the colleague who teaches with a textbook every day.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Make the case for banning AI tools in K-12 classrooms.", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Steel man the board member arguing your reading list is age-inappropriate.", "difficulty": "core", "tags": ["education", "vp_executive", "handling_objections"] },
+        { "text": "Build the best argument against the curriculum you currently teach.", "difficulty": "stretch", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Steel man the position that college isn't worth it for most of your seniors.", "difficulty": "core", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "Argue convincingly that the gifted program at your school should not exist.", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Make the strongest case for keeping a teacher who's a culture pillar despite weak scores.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Steel man the senior who told you your seminar is a waste of his time.", "difficulty": "intro", "tags": ["education", "student_role", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        { "text": "What is a school for, actually?", "difficulty": "intro", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Why do we give homework at all?", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Why do classrooms still look the way they did fifty years ago?", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "What is a grade for? Strip away the gradebook.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Why does your school exist? Not the mission statement — the real reason.", "difficulty": "stretch", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "What is a parent-teacher conference fundamentally trying to do?", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Why do we still use bells between classes?", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "What is tenure supposed to protect, fundamentally?", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Why do students sit in rows? Build the answer from zero.", "difficulty": "intro", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "What is a teacher evaluation for, stripped of the rubric?", "difficulty": "core", "tags": ["education", "manager", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        { "text": "List three things that went well this semester in your class.", "difficulty": "intro", "tags": ["education", "manager", "presenting"] },
+        { "text": "Walk me through your latest unit start to finish.", "difficulty": "intro", "tags": ["education", "peer", "presenting"] },
+        { "text": "Describe the features of your new gradebook.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Recap the key takeaways from the last district PD you attended.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Summarize your school's state assessment results.", "difficulty": "core", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "Tell me about the new staff you hired this year.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "Walk through the student outcomes from your reading intervention.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "List the parent feedback themes from this fall's conferences.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Describe what your team accomplished in the last marking period.", "difficulty": "intro", "tags": ["education", "peer", "presenting"] },
+        { "text": "Recap the regulatory changes affecting your district this year.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        { "text": "Defend the principal's decision to suspend a student — from the principal's chair.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Argue as the freshman struggling in your class.", "difficulty": "intro", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "Defend the parent who pulled their kid from your class — from their perspective.", "difficulty": "core", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] },
+        { "text": "Argue as the colleague whose classroom you'd never want to teach in.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Defend a phone ban — from the superintendent's seat.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Argue as the special ed teacher carrying a 27-kid caseload.", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Defend the school board member who voted against your curriculum.", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Argue as a counselor pushing for a policy change you're resisting.", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Defend the parent of the student whose teacher you'd reassign.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] },
+        { "text": "Argue as the student you couldn't reach all year — make their best case.", "difficulty": "stretch", "tags": ["education", "student_role", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        { "text": "Will AI replace meaningful parts of teaching in the next decade?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Will your district hit its literacy goal by spring testing?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Will your school exist in five years? Where does your confidence end?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Predict whether college enrollment in your senior class rises or falls.", "difficulty": "core", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "Will phones be banned in most K-12 schools by 2030?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Forecast the next major shift in how reading is taught in K-2.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Will standardized testing survive the decade?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Predict the next big shift in college admissions.", "difficulty": "core", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "Predict your own career trajectory five years out.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Will K-12 schools still grade students with letters by 2040?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        { "text": "Argue we should adopt a new reading curriculum next fall.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case for rewriting the discipline policy.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue that your team needs an instructional coach next year.", "difficulty": "intro", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case to consolidate two elementary schools next year.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Argue that the school should drop AP and adopt dual enrollment.", "difficulty": "stretch", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Make the case for switching to a four-day school week.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Argue we should sunset the gifted pull-out program.", "difficulty": "core", "tags": ["education", "stakeholder", "persuasion"] },
+        { "text": "Make the case for moving freshman orientation off-site for a week.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue that your school should drop letter grades entirely.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Make the case for putting AI tutoring into the math classroom.", "difficulty": "stretch", "tags": ["education", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        { "text": "You believe project-based learning works — what would prove you wrong?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "You think your school's strategy is right. What evidence would flip you?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "You believe phonics-first wins. What would make you stop believing that?", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "You think your best teacher is irreplaceable. What would change your mind?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "You believe small classes outperform large ones. What data would shake that?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "You think a college degree is worth the cost. What would convince you it isn't?", "difficulty": "intro", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "You believe your hiring bar is high enough. What would prove it isn't?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "You think your IEP is well-designed. What would tell you it isn't?", "difficulty": "stretch", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You believe restorative practices work. What event would change that?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "You think your AP curriculum is rigorous enough. What would tell you it isn't?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        { "text": "How many minutes per day should a 1st grader spend on independent reading?", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "How much should a district spend per pupil on Tier 2 intervention?", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How many hours per week does an average teacher work off-contract?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "How big a caseload can a special ed teacher handle before quality collapses?", "difficulty": "core", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How many students per teacher is right for a public high school?", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "How much should a school spend on cybersecurity per student per year?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "How many absences before a student is at real academic risk?", "difficulty": "intro", "tags": ["education", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "How much time should an admin spend in classrooms each week?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "How many years before a new teacher hits their stride?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "How much homework is appropriate for a 7th grader on a school night?", "difficulty": "core", "tags": ["education", "parent_guardian", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        { "text": "Walk through how your team plans a unit from start to finish.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Describe your morning routine from alarm to first bell.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk me through your last weekend off.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Explain how you'd onboard a new teacher in their first two weeks.", "difficulty": "intro", "tags": ["education", "manager", "explaining"] },
+        { "text": "Talk through how an IEP review meeting unfolds end to end.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Describe the structure of your AP review week.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Walk me through a parent-teacher conference from greeting to next steps.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain how you read a benchmark assessment report.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Take me through how you graded your last batch of student essays.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Take me through a non-renewal conversation you'd have to deliver tomorrow.", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        { "text": "Pitch your course to a board member you just met.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Make the case for hiring two more aides this fall.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Open a conference with a parent who's only got 15 minutes.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Introduce yourself at a panel before the first audience question.", "difficulty": "intro", "tags": ["education", "audience_room", "confidence"] },
+        { "text": "Pitch your favorite novel to a class that doesn't want to read.", "difficulty": "intro", "tags": ["education", "audience_room", "persuasion"] },
+        { "text": "Recommend a placement change to a parent who looks defensive.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Brief the executive cabinet on a missed accreditation benchmark.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "Open a town hall the night after a serious school incident.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Pitch a new course design to your department chair.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Make the case for adopting a new reading program with the literacy team.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        { "text": "Tell me about a time you were wrong about a student.", "difficulty": "stretch", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Explain a grading decision you regret.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Describe the worst feedback you've ever received from a parent.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "storytelling"] },
+        { "text": "Walk through a lesson you have to redesign tonight.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Tell me about a parent conference you handled badly.", "difficulty": "core", "tags": ["education", "parent_guardian", "storytelling"] },
+        { "text": "Explain a behavioral referral you initially missed.", "difficulty": "stretch", "tags": ["education", "stakeholder", "storytelling"] },
+        { "text": "Describe a time you had to non-renew someone.", "difficulty": "stretch", "tags": ["education", "manager", "giving_feedback"] },
+        { "text": "Talk about a colleague friendship that ended badly.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Explain a topic outside your expertise to a colleague — like a topic from another department.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Describe what you'd change about your last formal observation.", "difficulty": "core", "tags": ["education", "manager", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        { "text": "Make the case for your school's new schedule.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Argue why your team should pilot the new program.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Defend the budget cut you just announced to your department.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
+        { "text": "Make three arguments for adopting a co-teaching model.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Convince a parent to switch their child to your school.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Argue why this lesson plan deserves district recognition.", "difficulty": "stretch", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Defend the trade-off you made in the last curriculum cycle.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Make the case for hiring an experienced teacher over a first-year.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Argue your literacy night was worth the staff hours it cost.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "Defend why you're the right person to lead the curriculum committee.", "difficulty": "stretch", "tags": ["education", "vp_executive", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        { "text": "Explain how you handled the lockdown last Tuesday.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk through the moment you realized the unit wasn't landing.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Describe the day a kid disclosed something serious to you in class.", "difficulty": "stretch", "tags": ["education", "stakeholder", "storytelling"] },
+        { "text": "Talk through your reaction when scores came back lower than expected.", "difficulty": "core", "tags": ["education", "manager", "storytelling"] },
+        { "text": "Explain how you broke the news of a colleague's leave to your team.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk me through a parent confrontation in the hallway after school.", "difficulty": "core", "tags": ["education", "parent_guardian", "storytelling"] },
+        { "text": "Describe coaching a freshman through the fall semester slide.", "difficulty": "core", "tags": ["education", "champion", "storytelling"] },
+        { "text": "Talk through the day a student had a panic attack during your test.", "difficulty": "stretch", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Explain how you handled a viral video of a classroom moment.", "difficulty": "core", "tags": ["education", "vp_executive", "storytelling"] },
+        { "text": "Walk through the conference where you had to deliver hard news about a child.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        { "text": "Tell me about your teaching career so far.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk me through how you got into teaching.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Tell the story of how your school was founded.", "difficulty": "core", "tags": ["education", "vp_executive", "storytelling"] },
+        { "text": "Describe the student case that shaped how you teach.", "difficulty": "core", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Tell me about the longest project you've designed and led.", "difficulty": "core", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk through your curricular philosophy from origin to today.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Tell the story of your favorite student or mentee.", "difficulty": "intro", "tags": ["education", "champion", "storytelling"] },
+        { "text": "Describe how your team came together over the last year.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Tell me about the lab discovery that took five years to land with students.", "difficulty": "stretch", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk me through the year you almost left the classroom.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        { "text": "What's the most important thing you learned this school year?", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Describe the single best teacher you've ever worked with.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "What's the riskiest curricular bet your school has placed?", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Tell me the one number that defines this semester.", "difficulty": "core", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Describe the most memorable student you've ever taught.", "difficulty": "core", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "What's the most surprising result from a unit you ran this year?", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Tell me about the proudest moment of your teaching career.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "What's the most dangerous assumption your school is making right now?", "difficulty": "stretch", "tags": ["education", "vp_executive", "thinking_on_the_spot"] },
+        { "text": "Describe the best lesson a student ever taught you.", "difficulty": "intro", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "What's the one practice that took your teaching to another level?", "difficulty": "core", "tags": ["education", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        { "text": "Brief the staff on next semester's goals.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Present your curriculum proposal to a skeptical department chair.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "Walk leadership through your safety drill roadmap.", "difficulty": "core", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "Present this quarter's data to the school board.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "Brief your team on a strategy reset after a tough quarter.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
+        { "text": "Present your research findings at a conference keynote.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
+        { "text": "Open back-to-school night with your year's plan.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Brief the coaching staff on the new behavior framework.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Pitch a new advisory program at the all-staff meeting.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Walk new families through their child's transition into your school.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        { "text": "45 seconds: introduce yourself to a new staff cohort.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "45 seconds: give the morning update to your homeroom.", "difficulty": "intro", "tags": ["education", "audience_room", "presenting"] },
+        { "text": "45 seconds: pitch your school to a family touring at lunch.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "45 seconds: summarize the cafeteria incident for the principal.", "difficulty": "core", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: brief a sub before your first-period bell.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "45 seconds: present your IEP recommendation to the team.", "difficulty": "core", "tags": ["education", "stakeholder", "presenting"] },
+        { "text": "45 seconds: open a faculty meeting after a difficult week.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
+        { "text": "45 seconds: pitch a new elective to the curriculum committee.", "difficulty": "core", "tags": ["education", "manager", "persuasion"] },
+        { "text": "45 seconds: explain your reading philosophy to a curious LP-equivalent: a funder.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "45 seconds: introduce a guest speaker to your seniors.", "difficulty": "intro", "tags": ["education", "audience_room", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        { "text": "Walk me through what you taught yesterday.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Explain how your morning routine usually goes.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Give me a status update on your top three classes.", "difficulty": "intro", "tags": ["education", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the last faculty meeting you sat through.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk through the architecture of your gradebook.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Explain how your school's referral process is structured.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Run through last quarter's classroom data with your team.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Summarize the student intake workflow end to end.", "difficulty": "core", "tags": ["education", "stakeholder", "explaining"] },
+        { "text": "Describe how parent communication moves through your school.", "difficulty": "core", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Read the quarterly compliance update from the district top to bottom.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        { "text": "Tell the story of how you ended up in this classroom.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Recap the most memorable field trip you've ever led.", "difficulty": "intro", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Walk me through your favorite unit, start to finish.", "difficulty": "intro", "tags": ["education", "audience_room", "storytelling"] },
+        { "text": "Tell me about a teaching practice that has slowly transformed your year.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Pitch your school in 90 seconds.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Tell the origin story of your school's flagship program.", "difficulty": "core", "tags": ["education", "vp_executive", "storytelling"] },
+        { "text": "Describe a turning point in your teaching career.", "difficulty": "core", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk a touring family through the case for your school.", "difficulty": "core", "tags": ["education", "parent_guardian", "persuasion"] },
+        { "text": "Tell the story of a student case where the diagnosis surprised everyone.", "difficulty": "core", "tags": ["education", "stakeholder", "storytelling"] },
+        { "text": "Eulogize a colleague at a memorial in the school auditorium.", "difficulty": "stretch", "tags": ["education", "audience_room", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        { "text": "Tell me about your team.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Describe a colleague who quietly carries the grade level.", "difficulty": "intro", "tags": ["education", "peer", "giving_feedback"] },
+        { "text": "Tell me about a mentor who shaped how you teach.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Talk about a student you've stayed in touch with for years.", "difficulty": "intro", "tags": ["education", "champion", "storytelling"] },
+        { "text": "Introduce your team to a new assistant principal.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "Tell a parent about the aide who works one-on-one with their kid.", "difficulty": "core", "tags": ["education", "parent_guardian", "storytelling"] },
+        { "text": "Walk a new hire through what it's like to teach on your team.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Describe a counselor whose students ask for her by name.", "difficulty": "core", "tags": ["education", "stakeholder", "giving_feedback"] },
+        { "text": "Talk about a student who completely changed how you teach.", "difficulty": "core", "tags": ["education", "student_role", "storytelling"] },
+        { "text": "Deliver a goodbye message to a colleague leaving mid-year.", "difficulty": "stretch", "tags": ["education", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        { "text": "State what you're best at as a teacher, in one sentence, three times.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Tell me three things you know for certain about how kids learn.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Declare your role and what you own as a department chair.", "difficulty": "intro", "tags": ["education", "manager", "confidence"] },
+        { "text": "List five facts about your classroom you'd stake your career on.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Tell the board the new reading program is working.", "difficulty": "core", "tags": ["education", "vp_executive", "confidence"] },
+        { "text": "Defend this year's hiring plan against pushback.", "difficulty": "core", "tags": ["education", "manager", "confidence"] },
+        { "text": "Tell the staff the curriculum decision is final, and explain why.", "difficulty": "core", "tags": ["education", "peer", "confidence"] },
+        { "text": "Brief the press on the school incident — what happened, what's fixed.", "difficulty": "core", "tags": ["education", "vp_executive", "confidence"] },
+        { "text": "Walk the audit committee through why your spending was correct.", "difficulty": "core", "tags": ["education", "vp_executive", "confidence"] },
+        { "text": "Tell a hostile parent meeting why the book stays on the reading list.", "difficulty": "stretch", "tags": ["education", "parent_guardian", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        { "text": "Describe what your day in the classroom actually involves.", "difficulty": "intro", "tags": ["education", "peer", "explaining"] },
+        { "text": "Tell me three things you did last weekend.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "List the grades you've taught and one thing you learned from each.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "State your name, your role, and what you're teaching this semester.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Summarize what your school does in five sentences.", "difficulty": "core", "tags": ["education", "vp_executive", "explaining"] },
+        { "text": "Recap last week's team decisions for someone who missed the meeting.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Lay out the four pillars of your classroom management plan.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Describe your usual lesson plan for a typical Tuesday.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Explain how you evaluate a new instructional resource.", "difficulty": "core", "tags": ["education", "peer", "explaining"] },
+        { "text": "Read the layoff notice list to the staff at the end-of-year meeting.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        { "text": "What's a question about teaching you've been chewing on lately?", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Talk about a book or idea about kids that's stuck with you this month.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Wonder out loud about something in your subject you still don't fully get.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Describe a teaching strategy you keep meaning to try.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Brainstorm three new ways to open a unit, thinking out loud.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Walk through a student problem you don't yet have an answer for.", "difficulty": "core", "tags": ["education", "student_role", "thinking_on_the_spot"] },
+        { "text": "Talk through a curriculum tradeoff you're still weighing.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Speculate about where your subject will be in ten years.", "difficulty": "core", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Explore why a recent class didn't respond to the lesson you'd run for years.", "difficulty": "core", "tags": ["education", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Reflect on a student who learns nothing like you expected.", "difficulty": "core", "tags": ["education", "student_role", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        { "text": "Tell me one belief about teaching most of your peers don't share.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "State the principle that guides how you run your classroom.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Name the rule you refuse to break, and why.", "difficulty": "intro", "tags": ["education", "peer", "confidence"] },
+        { "text": "Tell me the one piece of advice you give every new teacher.", "difficulty": "intro", "tags": ["education", "champion", "giving_feedback"] },
+        { "text": "Why is reading mastery the only thing that matters in K-2?", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Argue for the single metric your school should be judged on.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Make the case for teaching less content, more carefully.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Defend a controversial grading decision you'd make again.", "difficulty": "core", "tags": ["education", "parent_guardian", "handling_objections"] },
+        { "text": "Make the case that letter grades destroy real learning.", "difficulty": "core", "tags": ["education", "peer", "persuasion"] },
+        { "text": "Tell the team why you're killing their favorite school tradition.", "difficulty": "stretch", "tags": ["education", "peer", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        { "text": "Tell me about your morning, your prep period, and your afternoon.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Update me on the three things on your plate right now.", "difficulty": "intro", "tags": ["education", "peer", "thinking_on_the_spot"] },
+        { "text": "Cover what you taught, what you graded, and what you planned yesterday.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Walk through your week: classroom, family, and personal goals.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Brief me on curriculum, then on assessment, then on family engagement.", "difficulty": "core", "tags": ["education", "manager", "presenting"] },
+        { "text": "Give updates on attendance, behavior, and academic growth.", "difficulty": "core", "tags": ["education", "vp_executive", "presenting"] },
+        { "text": "Cover three students in your IEP caseload, each with a different status.", "difficulty": "core", "tags": ["education", "stakeholder", "presenting"] },
+        { "text": "Move through last week's wins, this week's risks, and next week's focus.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Cover a celebration, a hard call, and a strategy reset in one staff meeting.", "difficulty": "stretch", "tags": ["education", "peer", "presenting"] },
+        { "text": "Update the board on growth data, on a complaint, and on a teacher departure.", "difficulty": "stretch", "tags": ["education", "vp_executive", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        { "text": "Introduce yourself — to a new neighbor at a school event.", "difficulty": "intro", "tags": ["education", "parent_guardian", "explaining"] },
+        { "text": "Describe your job — to a curious eight-year-old.", "difficulty": "intro", "tags": ["education", "student_role", "explaining"] },
+        { "text": "Explain how your weekend went — to your best friend, then to your principal.", "difficulty": "intro", "tags": ["education", "manager", "storytelling"] },
+        { "text": "Tell the story of your day — to a partner who's had a hard one.", "difficulty": "intro", "tags": ["education", "peer", "storytelling"] },
+        { "text": "Deliver the same curriculum update — to teachers, then to parents.", "difficulty": "core", "tags": ["education", "parent_guardian", "presenting"] },
+        { "text": "Pitch the school — to a skeptical board.", "difficulty": "core", "tags": ["education", "vp_executive", "persuasion"] },
+        { "text": "Share quarterly data — to a team that just lost a colleague.", "difficulty": "core", "tags": ["education", "peer", "presenting"] },
+        { "text": "Explain a diagnosis — to a parent, then to your principal.", "difficulty": "core", "tags": ["education", "manager", "explaining"] },
+        { "text": "Walk through the same lesson — to a kindergarten class, then to graduate students.", "difficulty": "core", "tags": ["education", "audience_room", "explaining"] },
+        { "text": "Defend the same decision — to a friendly reporter, then to a hostile one.", "difficulty": "stretch", "tags": ["education", "vp_executive", "handling_objections"] }
+      ]
+    }
+  ]
+}

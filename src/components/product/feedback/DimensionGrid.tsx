@@ -124,7 +124,7 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
     }, [modeSignals, scoreMap, primaryFocusDimension]);
 
     return (
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
         {layout.ordered.map((dim, i) => {
           const score = scoreMap.get(dim) ?? 0;
           const expanded = openDim === dim;

@@ -56,8 +56,8 @@ export default function AboutPage() {
           <div className="flex justify-center">
             <div className="relative">
               <div className="brand-gradient absolute -inset-10 rounded-full opacity-20 blur-3xl" />
-              <div className="relative scale-[2.5]">
-                <Logo variant="mark" href="" />
+              <div className="relative">
+                <Logo variant="mark" href="" size={160} />
               </div>
             </div>
           </div>

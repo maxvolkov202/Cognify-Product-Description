@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, or } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   activityEvents,
@@ -7,7 +7,6 @@ import {
   users,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
-import type { SkillDimension } from "@/types/domain";
 
 /**
  * Activity feed — emit + read. Events live in activity_events keyed by
@@ -22,19 +21,14 @@ import type { SkillDimension } from "@/types/domain";
  *   - friend_joined     { name }
  */
 
-export type ActivityEventType =
-  | "workout_complete"
-  | "new_high"
-  | "streak_milestone"
-  | "challenge_win"
-  | "friend_joined";
-
-export type ActivityPayload =
-  | { type: "workout_complete"; composite: number; repsCount: number; topDimension: SkillDimension | null }
-  | { type: "new_high"; dimension: SkillDimension; score: number }
-  | { type: "streak_milestone"; days: number }
-  | { type: "challenge_win"; opponentName: string; score: number }
-  | { type: "friend_joined"; name: string };
+// Canonical definitions live in src/types/db-payloads.ts so schema.ts can
+// reference them without a circular import. Re-export for back-compat
+// with downstream callers.
+export type {
+  ActivityEventType,
+  ActivityPayload,
+} from "@/types/db-payloads";
+import type { ActivityPayload, ActivityEventType } from "@/types/db-payloads";
 
 export type ActivityRow = {
   id: string;
@@ -55,7 +49,7 @@ export async function emitActivityEvent(
     await db.insert(activityEvents).values({
       userId,
       type: payload.type,
-      payload: payload as unknown as object,
+      payload,
     });
     return true;
   }, false);
@@ -138,14 +132,11 @@ export async function detectNewHigh(
   newComposite: number,
 ): Promise<{ score: number } | null> {
   return safeDb(async () => {
-    const prior = await db
-      .select({ s: reps.compositeScore })
+    const [row] = await db
+      .select({ max: sql<number | null>`MAX(${reps.compositeScore})` })
       .from(reps)
       .where(eq(reps.userId, userId));
-    const priorMax = prior.reduce<number>(
-      (max, r) => (r.s !== null && r.s > max ? r.s : max),
-      0,
-    );
+    const priorMax = row?.max ?? 0;
     // Threshold: beat the prior max AND at least 70 (avoid celebrating low scores)
     if (newComposite > priorMax && newComposite >= 70) {
       return { score: newComposite };

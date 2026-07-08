@@ -22,11 +22,11 @@ export function RepProgressStrip({
 }: Props) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+      <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
         Rep {repIndex} of {totalReps}
         {modeLabel && (
           <>
-            <span className="mx-2 text-ink-300">·</span>
+            <span className="mx-2 text-ink-300 dark:text-ink-600">·</span>
             <span>{modeLabel}</span>
           </>
         )}
@@ -36,7 +36,7 @@ export function RepProgressStrip({
         <button
           type="button"
           onClick={onSaveExit}
-          className="text-xs font-semibold text-ink-500 transition-colors hover:text-ink-900"
+          className="text-xs font-semibold text-ink-500 dark:text-ink-400 transition-colors hover:text-ink-900 dark:hover:text-white"
         >
           Save and exit
         </button>
@@ -53,7 +53,7 @@ export function RepProgressStrip({
                 "h-1.5 flex-1 rounded-full",
                 completed && "bg-brand-purple",
                 current && "brand-gradient",
-                !completed && !current && "bg-ink-200",
+                !completed && !current && "bg-ink-200 dark:bg-ink-700",
               )}
               role={current ? "progressbar" : undefined}
               aria-valuenow={current ? repIndex : undefined}

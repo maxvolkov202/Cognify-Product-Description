@@ -13,7 +13,7 @@ const modes = [
   },
   {
     icon: Briefcase,
-    title: "Scenario Training",
+    title: "Build a Rep",
     body: "Applied practice. Take what you have built and apply it to the exact real world situations you face. Vertically specific structure and feedback for your industry and role.",
   },
 ] as const;

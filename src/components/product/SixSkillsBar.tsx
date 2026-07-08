@@ -129,7 +129,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
     <div
       aria-label="Six communication skills"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur-sm",
+        "fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur-sm dark:border-ink-700 dark:bg-ink-900/95",
         "shadow-[0_-4px_20px_-8px_rgb(10_10_15_/_0.08)]",
       )}
     >
@@ -139,7 +139,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
           onClick={toggle}
           aria-expanded={!effectiveCollapsed}
           aria-label={effectiveCollapsed ? "Expand skills bar" : "Collapse skills bar"}
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-ink-500 transition hover:bg-ink-100 hover:text-ink-900 md:size-7 dark:text-ink-400 dark:hover:bg-ink-800 dark:hover:text-white"
         >
           {effectiveCollapsed ? (
             <ChevronUp className="size-4" aria-hidden="true" />
@@ -150,7 +150,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
 
         <p
           className={cn(
-            "shrink-0 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500",
+            "shrink-0 text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400",
             "hidden md:block",
           )}
         >
@@ -189,7 +189,7 @@ export function SixSkillsBar({ scores = {} }: Props) {
                   aria-label={`${DIMENSION_LABELS[dim]} current score ${
                     hasScore ? score : "unavailable"
                   }${isPrimary ? ", primary focus" : ""}`}
-                  className="inline-flex shrink-0"
+                  className="inline-flex min-h-[44px] min-w-[24px] -my-3 shrink-0 items-center justify-center"
                 >
                   <span
                     className={cn(
@@ -204,21 +204,13 @@ export function SixSkillsBar({ scores = {} }: Props) {
               );
             }
             return (
+              // 9.2 — the LINK is a transparent 44px-tall hit target with a
+              // negative margin so the bar's visual height doesn't change;
+              // the inner span carries the unchanged pill visuals.
               <Link
                 key={dim}
                 href="/progress"
-                className={cn(
-                  "group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
-                  isPrimary
-                    ? "border-brand-purple bg-white shadow-[var(--shadow-glow)] ring-2 ring-brand-lavender/50"
-                    : isSecondary
-                      ? "border-brand-lavender/60 bg-white"
-                      : "border-ink-200 bg-white",
-                  hasScore
-                    ? "hover:border-ink-300 hover:shadow-sm"
-                    : "text-ink-400",
-                  muted && "opacity-50",
-                )}
+                className="group inline-flex min-h-[44px] -my-2 shrink-0 items-center"
                 title={`${DIMENSION_LABELS[dim]}${
                   hasScore ? ` · ${score}/100` : " · no data yet"
                 }${isContentDim(dim) ? " · Content" : " · Delivery"}${
@@ -227,25 +219,40 @@ export function SixSkillsBar({ scores = {} }: Props) {
               >
                 <span
                   className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    hasScore ? colors.dot : "bg-ink-300",
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                    isPrimary
+                      ? "border-brand-purple bg-white shadow-[var(--shadow-glow)] ring-2 ring-brand-lavender/50 dark:bg-ink-900"
+                      : isSecondary
+                        ? "border-brand-lavender/60 bg-white dark:bg-ink-900"
+                        : "border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900",
+                    hasScore
+                      ? "group-hover:border-ink-300 group-hover:shadow-sm dark:group-hover:border-ink-600"
+                      : "text-ink-400 dark:text-ink-500",
+                    muted && "opacity-50",
                   )}
-                  aria-hidden="true"
-                />
-                <span className={cn("text-ink-700", isPrimary && "text-ink-900")}>
-                  {DIMENSION_LABELS[dim]}
-                </span>
-                {hasScore && (
+                >
                   <span
                     className={cn(
-                      "rounded-md px-1 font-mono tabular-nums",
-                      colors.bg,
-                      colors.text,
+                      "size-2 shrink-0 rounded-full",
+                      hasScore ? colors.dot : "bg-ink-300",
                     )}
-                  >
-                    {score}
+                    aria-hidden="true"
+                  />
+                  <span className={cn("text-ink-700 dark:text-ink-200", isPrimary && "text-ink-900 dark:text-white")}>
+                    {DIMENSION_LABELS[dim]}
                   </span>
-                )}
+                  {hasScore && (
+                    <span
+                      className={cn(
+                        "rounded-md px-1 font-mono tabular-nums",
+                        colors.bg,
+                        colors.text,
+                      )}
+                    >
+                      {score}
+                    </span>
+                  )}
+                </span>
               </Link>
             );
           })}

@@ -73,7 +73,7 @@ export default function OnboardingPersonasPage() {
         <ArrowLeft className="size-3.5" />
         Back
       </Link>
-      <OnboardingProgress step={2} total={4} />
+      <OnboardingProgress step={2} total={5} />
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           Who do you talk to?

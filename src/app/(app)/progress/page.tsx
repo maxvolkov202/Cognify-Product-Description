@@ -28,6 +28,7 @@ import {
   ArrowRight,
   Zap,
   FileDown,
+  Trophy,
 } from "lucide-react";
 import { InfoTooltip } from "@/components/shared/InfoTooltip";
 
@@ -93,28 +94,39 @@ export default async function ProgressPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
             Progress
           </p>
-          <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
             Your training, measured.
           </h1>
-          <p className="mt-1 max-w-2xl text-lg text-ink-600">
+          <p className="mt-1 max-w-2xl text-lg text-ink-600 dark:text-ink-300">
             Every rep scored across six dimensions. Every callout anchored to a timestamp
             in your transcript. No grades — just signals that show improvement compound.
           </p>
         </div>
-        <Link
-          href="/report"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900"
-        >
-          <FileDown className="size-3.5" />
-          Export report
-        </Link>
+        {/* Phase 11.E4 — Achievements had no entry point outside the
+            post-completion strip; Progress is its natural home. */}
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/achievements"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:text-white"
+          >
+            <Trophy className="size-3.5" />
+            Achievements
+          </Link>
+          <Link
+            href="/report"
+            className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 hover:text-ink-900 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:text-white"
+          >
+            <FileDown className="size-3.5" />
+            Export report
+          </Link>
+        </div>
       </div>
 
       {!hasDatabase() && (
-        <div className="mt-6 rounded-xl border border-brand-purple/30 bg-brand-purple/5 px-5 py-4 text-sm text-ink-700">
+        <div className="mt-6 rounded-xl border border-brand-purple/30 bg-brand-purple/5 px-5 py-4 text-sm text-ink-700 dark:bg-brand-purple/15 dark:text-ink-200">
           <strong>Persistence is off.</strong> Set <code>DATABASE_URL</code> in{" "}
           <code>.env.local</code> to enable longitudinal progress. Run a free Neon branch
           and paste the connection string.
@@ -128,13 +140,13 @@ export default async function ProgressPage() {
         <div className="mt-10 surface-card overflow-hidden">
           <div className="brand-gradient h-1" aria-hidden="true" />
           <div className="p-8 md:p-10">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
               No data yet
             </p>
-            <h2 className="mt-2 text-2xl font-extrabold text-ink-900 md:text-3xl">
+            <h2 className="mt-2 text-2xl font-extrabold text-ink-900 md:text-3xl dark:text-white">
               This page fills in as you train.
             </h2>
-            <p className="mt-3 max-w-xl text-sm text-ink-600 md:text-base">
+            <p className="mt-3 max-w-xl text-sm text-ink-600 md:text-base dark:text-ink-300">
               After your first rep: per-skill trend lines over 7/30/90 days, an
               activity heat map, a streak counter, and a monthly report card.
               It all builds from the reps you run.
@@ -161,16 +173,16 @@ export default async function ProgressPage() {
       </div>
 
       {topImprovement && (
-        <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+        <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/40 dark:bg-emerald-500/15">
           <div className="flex items-start gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/25 dark:text-emerald-300">
               <Sparkles className="size-4" />
             </div>
             <div>
-              <p className="font-bold uppercase tracking-wider text-emerald-800 text-[11px]">
+              <p className="font-bold uppercase tracking-wider text-emerald-800 text-[11px] dark:text-emerald-300">
                 Nice — real improvement
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-emerald-900">
+              <p className="mt-1 text-sm leading-relaxed text-emerald-900 dark:text-emerald-100">
                 Your <strong className="capitalize">{topImprovement.dimension}</strong>{" "}
                 is up +{topImprovement.delta} points over the last 30 days. Keep
                 pushing — the gap between reps is where the growth shows.
@@ -181,16 +193,16 @@ export default async function ProgressPage() {
       )}
 
       {pressureStats.count > 0 && (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-amber-50/70 to-amber-100/40 dark:border-amber-500/40 dark:from-amber-500/15 dark:via-amber-500/10 dark:to-amber-500/20">
           <div className="flex items-start gap-3 p-5">
-            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300">
               <Zap className="size-4" strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                 Pressure performance · last 60 days
               </p>
-              <p className="mt-1 text-sm font-semibold text-amber-950">
+              <p className="mt-1 text-sm font-semibold text-amber-950 dark:text-amber-100">
                 {pressureStats.count} pressure{" "}
                 {pressureStats.count === 1 ? "rep" : "reps"} completed ·
                 avg composite{" "}
@@ -211,13 +223,13 @@ export default async function ProgressPage() {
                   {pressureStats.byArchetype.map((a) => (
                     <span
                       key={a.archetypeName}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-amber-900 dark:border-amber-500/40 dark:bg-ink-900/60 dark:text-amber-200"
                     >
                       {a.archetypeName}
-                      <span className="font-mono tabular-nums text-amber-700">
+                      <span className="font-mono tabular-nums text-amber-700 dark:text-amber-300">
                         {a.avgComposite}
                       </span>
-                      <span className="text-[10px] text-amber-500">
+                      <span className="text-[10px] text-amber-500 dark:text-amber-400">
                         × {a.count}
                       </span>
                     </span>
@@ -230,16 +242,16 @@ export default async function ProgressPage() {
       )}
 
       {hasValidatable && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-5 dark:bg-brand-purple/15">
           <div className="flex items-start gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-purple/10 text-brand-purple">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/25 dark:text-brand-lavender">
               <TrendingUp className="size-4" />
             </div>
             <div>
-              <p className="font-bold uppercase tracking-wider text-brand-purple text-[11px]">
+              <p className="font-bold uppercase tracking-wider text-brand-purple text-[11px] dark:text-brand-lavender">
                 Ready for a blind-listener check?
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-ink-800">
+              <p className="mt-1 text-sm leading-relaxed text-ink-800 dark:text-ink-100">
                 You&rsquo;ve run the same prompt multiple times. Send your
                 attempts to a friend or coach — they rank without seeing scores,
                 giving you honest human feedback on which version landed.
@@ -248,7 +260,7 @@ export default async function ProgressPage() {
           </div>
           <Link
             href="/validate/new"
-            className="inline-flex items-center gap-1 rounded-full border border-brand-purple bg-white px-4 py-2 text-xs font-semibold text-brand-purple hover:bg-brand-purple/10"
+            className="inline-flex items-center gap-1 rounded-full border border-brand-purple bg-white px-4 py-2 text-xs font-semibold text-brand-purple hover:bg-brand-purple/10 dark:bg-ink-900 dark:text-brand-lavender dark:hover:bg-brand-purple/15"
           >
             Set up validation
             <ArrowRight className="size-3.5" />
@@ -257,11 +269,11 @@ export default async function ProgressPage() {
       )}
 
       {streakStatus.appliedFreezeDate && (
-        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-sky-300 bg-gradient-to-br from-sky-50 via-sky-50/70 to-sky-100/40 p-4">
-          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-700">
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-sky-300 bg-gradient-to-br from-sky-50 via-sky-50/70 to-sky-100/40 p-4 dark:border-sky-500/40 dark:from-sky-500/15 dark:via-sky-500/10 dark:to-sky-500/20">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-500/25 dark:text-sky-300">
             <Flame className="size-4" strokeWidth={2.5} />
           </div>
-          <p className="flex-1 text-sm font-semibold text-sky-950">
+          <p className="flex-1 text-sm font-semibold text-sky-950 dark:text-sky-100">
             Streak freeze applied — you missed a day but your{" "}
             {streakStatus.streakDays}-day streak is intact. {streakStatus.freezesAvailable}{" "}
             freeze{streakStatus.freezesAvailable === 1 ? "" : "s"} left.
@@ -328,10 +340,10 @@ export default async function ProgressPage() {
         <div className="surface-card p-8">
           <div className="flex items-baseline justify-between">
             <div className="flex items-center gap-1.5">
-              <h2 className="text-xl font-extrabold text-ink-900">Skill trends</h2>
+              <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Skill trends</h2>
               <InfoTooltip content="One line per dimension. Trend up = consistent improvement week over week. Each point is a rep." />
             </div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               last 30 days
             </span>
           </div>
@@ -342,16 +354,16 @@ export default async function ProgressPage() {
 
         <div className="surface-card p-8">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-xl font-extrabold text-ink-900">Current shape</h2>
+            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Current shape</h2>
             <InfoTooltip content="Your latest score on each of the six dimensions. The hexagon shape shows strengths vs. gaps at a glance." />
           </div>
-          <p className="mt-1 text-xs text-ink-500">
+          <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             Latest score across all six dimensions.
           </p>
           <div className="mt-4 flex justify-center">
             <SkillRadar scores={currentScores} size={280} />
           </div>
-          <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
+          <p className="mt-4 text-[11px] leading-relaxed text-ink-500 dark:text-ink-400">
             A balanced hexagon = you&rsquo;re consistent across all six
             dimensions. Dents point at where work compounds fastest.
           </p>
@@ -360,15 +372,15 @@ export default async function ProgressPage() {
 
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_1.3fr]">
         <div className="surface-card p-8">
-          <h2 className="text-xl font-extrabold text-ink-900">Activity</h2>
-          <p className="mt-1 text-xs text-ink-500">12-week heat map of your reps.</p>
+          <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Activity</h2>
+          <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">12-week heat map of your reps.</p>
           <div className="mt-6">
             <StreakHeatmap activity={activity} days={84} />
           </div>
-          <div className="mt-4 flex items-center gap-2 text-[11px] text-ink-500">
+          <div className="mt-4 flex items-center gap-2 text-[11px] text-ink-500 dark:text-ink-400">
             <span>Less</span>
             <div className="flex gap-0.5">
-              <span className="size-3 rounded-sm bg-ink-100" />
+              <span className="size-3 rounded-sm bg-ink-100 dark:bg-ink-700" />
               <span className="size-3 rounded-sm bg-brand-purple/25" />
               <span className="size-3 rounded-sm bg-brand-purple/50" />
               <span className="size-3 rounded-sm bg-brand-purple/75" />
@@ -380,17 +392,17 @@ export default async function ProgressPage() {
 
         <div className="surface-card p-8">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-xl font-extrabold text-ink-900">Recent reps</h2>
+            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
             <Link
               href="/workout"
-              className="text-xs font-semibold text-brand-purple hover:text-brand-magenta"
+              className="text-xs font-semibold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
             >
               Run another →
             </Link>
           </div>
           {recentReps.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center">
-              <p className="text-sm text-ink-500">No reps yet. Your first rep becomes your baseline.</p>
+            <div className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center dark:border-ink-700">
+              <p className="text-sm text-ink-500 dark:text-ink-400">No reps yet. Your first rep becomes your baseline.</p>
               <div className="mt-4">
                 <GradientButton href="/workout" size="md">
                   Start your first rep
@@ -398,15 +410,15 @@ export default async function ProgressPage() {
               </div>
             </div>
           ) : (
-            <ul className="mt-4 divide-y divide-ink-100">
+            <ul className="mt-4 divide-y divide-ink-100 dark:divide-ink-700">
               {recentReps.map((rep) => (
                 <li
                   key={rep.id}
                   className="flex items-center justify-between gap-4 py-3 text-sm"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-ink-800">{rep.promptText}</p>
-                    <p className="mt-0.5 text-[11px] text-ink-400">
+                    <p className="truncate font-medium text-ink-800 dark:text-ink-100">{rep.promptText}</p>
+                    <p className="mt-0.5 text-[11px] text-ink-400 dark:text-ink-500">
                       {new Date(rep.createdAt).toLocaleString()} ·{" "}
                       {(rep.durationMs / 1000).toFixed(0)}s
                     </p>
@@ -443,7 +455,7 @@ function StatCard({
 }) {
   return (
     <div className="surface-card p-5">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">
+      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
         <span className="brand-gradient grid size-6 place-items-center rounded-md">
           {icon}
         </span>
@@ -456,7 +468,7 @@ function StatCard({
         >
           {value}
         </span>
-        {suffix && <span className="text-xs text-ink-500">{suffix}</span>}
+        {suffix && <span className="text-xs text-ink-500 dark:text-ink-400">{suffix}</span>}
       </div>
     </div>
   );

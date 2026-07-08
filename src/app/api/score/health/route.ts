@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
-import { anthropic, MODELS } from "@/lib/ai/claude";
+import { anthropic, MODELS, AI_PROVIDER_ACTIVE } from "@/lib/ai/claude";
 import { rateLimit, getRateLimitIdentifier } from "@/lib/ratelimit";
 
 /**
- * One-shot Claude reachability probe. Sends a single-token completion to
- * the scoring model. Used to disambiguate "the API is down" from "the
- * scoring prompt has a bug" without burning a real rep through /api/score.
+ * One-shot AI reachability probe (Phase 14: provider-agnostic). Sends a
+ * single-token completion through the shim — whichever provider is the
+ * configured primary answers (breaker/fallback rules apply, so this
+ * probes the SAME serving path real reps use). Disambiguates "the API is
+ * down" from "the scoring prompt has a bug" without burning a real rep.
  *
  * Cost: ~5–10 input tokens, 1 output token. Rate-limited to keep this
- * from being abused as a free Claude proxy.
+ * from being abused as a free proxy.
  *
  * Returns:
- *   { ok: true,  model, latencyMs }                            — Claude reachable
- *   { ok: false, status, errorType, message, latencyMs }       — Claude responded with an error
- *   { ok: false, status: 0, errorType: "network", message }    — couldn't reach Anthropic at all
+ *   { ok: true,  provider, model, latencyMs }                  — serving path reachable
+ *   { ok: false, status, errorType, message, latencyMs }       — provider errored
  */
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -30,13 +31,14 @@ export async function GET(req: Request) {
     );
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       {
         ok: false,
         status: 0,
         errorType: "no_api_key",
-        message: "ANTHROPIC_API_KEY is not set in .env.local",
+        message:
+          "No AI provider key set — add ANTHROPIC_API_KEY or OPENAI_API_KEY to .env.local",
       },
       { status: 500 },
     );
@@ -51,15 +53,16 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({
       ok: true,
+      provider: AI_PROVIDER_ACTIVE,
       model: MODELS.scoring,
       latencyMs: Date.now() - start,
     });
   } catch (error) {
     const latencyMs = Date.now() - start;
-    // Anthropic SDK errors expose .status (HTTP) and .message (verbatim
+    // Provider SDK errors expose .status (HTTP) and .message (verbatim
     // server response). Pass both through unfiltered — this endpoint is
-    // diagnostic, the developer needs to see the real billing message
-    // from Anthropic to know whether to add credits, swap workspaces, etc.
+    // diagnostic; the developer needs the real billing message to know
+    // whether to add credits, swap workspaces, etc.
     const e = error as { status?: number; message?: string; name?: string };
     return NextResponse.json(
       {

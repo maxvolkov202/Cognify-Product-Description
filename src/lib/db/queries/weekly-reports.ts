@@ -2,7 +2,11 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { weeklyReports, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
-import type { WeeklyNarrative } from "@/lib/ai/weekly-summary";
+import {
+  WeeklyNarrativeSchema,
+  type WeeklyNarrative,
+} from "@/lib/ai/weekly-summary";
+import { log } from "@/lib/log";
 
 /**
  * Cross-session cache for the Claude-generated weekly coaching narrative.
@@ -31,10 +35,17 @@ export async function getWeeklyReportForWeek(
       .limit(1);
     const row = rows[0];
     if (!row) return null;
-    return {
-      narrative: row.narrative as unknown as WeeklyNarrative,
-      generatedAt: row.generatedAt,
-    };
+    const parsed = WeeklyNarrativeSchema.safeParse(row.narrative);
+    if (!parsed.success) {
+      log.warn({
+        event: "weekly_reports.narrative_invalid",
+        userId,
+        weekStartIso,
+        issues: parsed.error.issues.map((i) => i.message),
+      });
+      return null;
+    }
+    return { narrative: parsed.data, generatedAt: row.generatedAt };
   }, null);
 }
 
@@ -62,16 +73,13 @@ export async function upsertWeeklyReport(opts: {
     if (existing[0]) {
       await db
         .update(weeklyReports)
-        .set({
-          narrative: opts.narrative as unknown as object,
-          generatedAt: new Date(),
-        })
+        .set({ narrative: opts.narrative, generatedAt: new Date() })
         .where(eq(weeklyReports.id, existing[0].id));
     } else {
       await db.insert(weeklyReports).values({
         userId: opts.userId,
         weekStartIso: opts.weekStartIso,
-        narrative: opts.narrative as unknown as object,
+        narrative: opts.narrative,
       });
     }
     return null;

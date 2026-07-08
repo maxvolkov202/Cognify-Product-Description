@@ -81,7 +81,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
     <button
       type="button"
       className={cn(
-        "text-sm font-medium text-ink-700 transition-colors hover:text-ink-900",
+        "text-sm font-medium text-ink-700 transition-colors hover:text-ink-900 dark:text-ink-200 dark:hover:text-white",
         triggerClassName,
       )}
     >
@@ -94,11 +94,11 @@ function DialogInner({ trigger, triggerClassName }: Props) {
       <Dialog.Trigger asChild>{triggerEl}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-ink-950/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-ink-200 bg-white p-8 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-ink-200 bg-white p-8 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 dark:border-ink-700 dark:bg-ink-900">
           <Dialog.Close asChild>
             <button
               type="button"
-              className="absolute right-4 top-4 rounded-full p-1.5 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700"
+              className="absolute right-4 top-4 rounded-full p-1.5 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700 dark:text-ink-500 dark:hover:bg-ink-800 dark:hover:text-ink-200"
               aria-label="Close"
             >
               <X className="size-4" />
@@ -109,10 +109,10 @@ function DialogInner({ trigger, triggerClassName }: Props) {
             <div className="brand-gradient grid size-14 place-items-center rounded-2xl shadow-[0_12px_40px_-8px_rgba(151,136,255,0.55)]">
               <BrainDumbbell className="size-8 text-[#fdf7e4]" />
             </div>
-            <Dialog.Title className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900">
+            <Dialog.Title className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 dark:text-white">
               Welcome to Cognify
             </Dialog.Title>
-            <Dialog.Description className="mt-2 max-w-xs text-sm leading-relaxed text-ink-600">
+            <Dialog.Description className="mt-2 max-w-xs text-sm leading-relaxed text-ink-600 dark:text-ink-300">
               Sign in to train, track progress, and run reps.
             </Dialog.Description>
 
@@ -127,7 +127,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
                 type="button"
                 onClick={handleGoogle}
                 disabled={submitting !== null}
-                className="flex w-full items-center justify-center gap-3 rounded-full border border-ink-200 bg-white px-5 py-3.5 text-sm font-semibold text-ink-900 transition-all hover:border-ink-300 hover:bg-ink-50 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-ink-200 bg-white px-5 py-3.5 text-sm font-semibold text-ink-900 transition-all hover:border-ink-300 hover:bg-ink-50 disabled:opacity-60 dark:border-ink-700 dark:bg-ink-900 dark:text-white dark:hover:border-ink-600 dark:hover:bg-ink-800"
               >
                 <GoogleG className="size-[18px]" />
                 {submitting === "google"
@@ -136,10 +136,10 @@ function DialogInner({ trigger, triggerClassName }: Props) {
               </button>
             </div>
 
-            <div className="mt-5 flex items-center gap-3 text-ink-300 w-full">
-              <div className="h-px flex-1 bg-ink-200" />
+            <div className="mt-5 flex items-center gap-3 text-ink-300 w-full dark:text-ink-600">
+              <div className="h-px flex-1 bg-ink-200 dark:bg-ink-700" />
               <span className="text-xs">or</span>
-              <div className="h-px flex-1 bg-ink-200" />
+              <div className="h-px flex-1 bg-ink-200 dark:bg-ink-700" />
             </div>
 
             <form onSubmit={handleEmail} className="mt-5 w-full space-y-3 text-left">
@@ -150,7 +150,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none dark:border-ink-700 dark:bg-ink-900 dark:text-white"
               />
               <input
                 type="password"
@@ -160,14 +160,14 @@ function DialogInner({ trigger, triggerClassName }: Props) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === "signup" ? "Password (8+ chars)" : "Password"}
-                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                className="w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm text-ink-900 focus:border-brand-purple focus:outline-none dark:border-ink-700 dark:bg-ink-900 dark:text-white"
               />
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-600 dark:text-ink-300">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
+                  className="size-4 rounded border-ink-300 text-brand-purple focus:ring-brand-purple dark:border-ink-600"
                 />
                 <span>Remember me on this device</span>
               </label>
@@ -192,7 +192,7 @@ function DialogInner({ trigger, triggerClassName }: Props) {
                 setMode(mode === "signin" ? "signup" : "signin");
                 setFormError(null);
               }}
-              className="mt-3 text-xs text-ink-500 hover:text-ink-700"
+              className="mt-3 text-xs text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200"
             >
               {mode === "signin"
                 ? "Don't have an account? Sign up"
@@ -202,12 +202,12 @@ function DialogInner({ trigger, triggerClassName }: Props) {
             <Link
               href="/signin"
               onClick={() => setOpen(false)}
-              className="mt-2 text-xs text-ink-400 hover:text-ink-600"
+              className="mt-2 text-xs text-ink-400 hover:text-ink-600 dark:text-ink-500 dark:hover:text-ink-300"
             >
               More sign-in options
             </Link>
 
-            <p className="mt-6 text-xs leading-relaxed text-ink-500">
+            <p className="mt-6 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
               By continuing, you agree to Cognify&rsquo;s{" "}
               <a href="/terms" className="underline-offset-2 hover:underline">
                 Terms

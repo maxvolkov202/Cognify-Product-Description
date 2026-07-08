@@ -12,10 +12,7 @@ import {
   type ImprovementGoalId,
   type VerticalId,
 } from "@/lib/onboarding/constants";
-import {
-  setImprovementGoalsAction,
-  completeOnboardingAction,
-} from "@/server/actions/onboarding";
+import { setImprovementGoalsAction } from "@/server/actions/onboarding";
 import { OnboardingProgress } from "@/components/product/OnboardingProgress";
 import {
   useOnboardingDraft,
@@ -67,13 +64,11 @@ export default function OnboardingGoalsPage() {
         );
         return;
       }
-      const completion = await completeOnboardingAction();
-      if (completion.ok) {
-        clearOnboardingDraft();
-        router.push("/onboarding/done");
-      } else {
-        setError("Something went wrong finishing setup. Try again.");
-      }
+      // PRD v3 Phase 10 (§8.2) — goals → communication stage → days.
+      // The /days page calls completeOnboardingAction itself after
+      // saving committed_days.
+      clearOnboardingDraft();
+      router.push("/onboarding/stage");
     });
   }
 
@@ -86,7 +81,8 @@ export default function OnboardingGoalsPage() {
         <ArrowLeft className="size-3.5" />
         Back
       </Link>
-      <OnboardingProgress step={3} total={4} />
+      <OnboardingProgress step={3} total={5} />
+      {/* 5-step: vertical → personas → goals → stage → days (PRD §8.2). */}
       <div className="text-center">
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
           What do you want to get better at?
@@ -178,7 +174,7 @@ export default function OnboardingGoalsPage() {
           disabled={isPending}
           className="brand-gradient inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isPending ? "Saving…" : "Finish setup"}
+          {isPending ? "Saving…" : "Continue"}
           <ArrowRight className="size-4" />
         </button>
       </div>

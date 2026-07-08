@@ -85,10 +85,7 @@ export function InstallPrompt({
     // "Add to Home Screen" nudge if the rep gate is passed.
     const ua = window.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !("MSStream" in window);
-    const isStandalone =
-      "standalone" in window.navigator &&
-      (window.navigator as unknown as { standalone?: boolean }).standalone ===
-        true;
+    const isStandalone = window.navigator.standalone === true;
     if (isIOS && !isStandalone && checkGate()) {
       setIosFallback(true);
       setVisible(true);
@@ -141,19 +138,19 @@ export function InstallPrompt({
         <Download className="size-5 text-white" strokeWidth={2.5} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-purple dark:text-brand-lavender">
           Install Cognify
         </p>
-        <p className="mt-0.5 text-sm font-semibold text-ink-900">
+        <p className="mt-0.5 text-sm font-semibold text-ink-900 dark:text-white">
           1-tap start from your home screen.
         </p>
         {iosFallback ? (
-          <p className="mt-1 text-xs leading-relaxed text-ink-600">
+          <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
             Tap the <strong>Share</strong> button in Safari, then{" "}
             <strong>Add to Home Screen</strong>.
           </p>
         ) : (
-          <p className="mt-1 text-xs leading-relaxed text-ink-600">
+          <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
             No app store. No account setup. Opens straight into your daily
             workout.
           </p>
@@ -174,7 +171,7 @@ export function InstallPrompt({
         type="button"
         onClick={handleDismiss}
         aria-label="Dismiss install prompt"
-        className="ml-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
+        className="ml-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full text-ink-400 transition hover:bg-ink-100 hover:text-ink-700 dark:text-ink-500 dark:hover:bg-ink-800 dark:hover:text-ink-200"
       >
         <X className="size-4" aria-hidden="true" />
       </button>

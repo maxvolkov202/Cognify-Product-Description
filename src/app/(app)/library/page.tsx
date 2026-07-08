@@ -210,31 +210,44 @@ function thumbnailFor(url: string): string | null {
   return null;
 }
 
-export default async function LibraryPage() {
-  // Resolve all OG images in parallel for cards that aren't already a known
-  // video thumbnail. The fetch results are cached at the data layer so this
-  // is fast on subsequent renders.
+// Module-scope memo for the 15-item OG-image fetch. The SECTIONS array
+// is static, so the result is stable for the process lifetime; promise-
+// caching here means /library only pays the 15 fetches on the first
+// render after a deploy (audit PR-12 follow-up).
+let ogMapPromise: Promise<Map<string, string | null>> | null = null;
+function buildOgMap(): Promise<Map<string, string | null>> {
+  if (ogMapPromise) return ogMapPromise;
   const allItems = SECTIONS.flatMap((s) =>
     s.items.map((it) => ({ url: it.url, sectionId: s.id })),
   );
-  const ogResults = await Promise.all(
+  ogMapPromise = Promise.allSettled(
     allItems.map(async (it) => {
       if (thumbnailFor(it.url)) return [it.url, null] as const;
       return [it.url, await getOgImageUrl(it.url)] as const;
     }),
-  );
-  const ogMap = new Map<string, string | null>(ogResults);
+  ).then((settled) => {
+    const out = new Map<string, string | null>();
+    for (const r of settled) {
+      if (r.status === "fulfilled") out.set(r.value[0], r.value[1]);
+    }
+    return out;
+  });
+  return ogMapPromise;
+}
+
+export default async function LibraryPage() {
+  const ogMap = await buildOgMap();
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
       <header className="mb-10">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
           Cognify Library
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl">
+        <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl dark:text-white">
           Watch what good looks like.
         </h1>
-        <p className="mt-3 max-w-2xl text-lg text-ink-500">
+        <p className="mt-3 max-w-2xl text-lg text-ink-500 dark:text-ink-400">
           A small, curated set of talks, stories, and guides from people who have spent careers studying how communication works. The reps build the muscle. These build the taste.
         </p>
       </header>
@@ -250,10 +263,10 @@ export default async function LibraryPage() {
                     <Icon className="size-4 text-white" strokeWidth={2.5} />
                   </span>
                   <div>
-                    <h2 className="text-xl font-extrabold tracking-tight text-ink-900">
+                    <h2 className="text-xl font-extrabold tracking-tight text-ink-900 dark:text-white">
                       {section.title}
                     </h2>
-                    <p className="text-[12px] text-ink-500">{section.blurb}</p>
+                    <p className="text-[12px] text-ink-500 dark:text-ink-400">{section.blurb}</p>
                   </div>
                 </div>
               </div>
@@ -269,7 +282,7 @@ export default async function LibraryPage() {
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition-all hover:-translate-y-0.5 hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-18px_rgba(176,114,255,0.45)]"
+                        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition-all hover:-translate-y-0.5 hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-18px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:bg-ink-900"
                       >
                         {heroImage ? (
                           <div className="relative aspect-[16/9] w-full overflow-hidden bg-ink-900">
@@ -308,7 +321,7 @@ export default async function LibraryPage() {
                               sectionId={section.id}
                             />
                             <div className="absolute left-3 top-3">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-700 backdrop-blur">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-700 backdrop-blur dark:border-ink-700 dark:bg-ink-900/90 dark:text-ink-200">
                                 {KIND_LABEL[item.kind]}
                               </span>
                             </div>
@@ -316,18 +329,18 @@ export default async function LibraryPage() {
                         )}
                         <div className="flex flex-1 flex-col gap-1.5 p-4">
                           <div className="flex items-start justify-between gap-3">
-                            <p className="text-sm font-bold tracking-tight text-ink-900">
+                            <p className="text-sm font-bold tracking-tight text-ink-900 dark:text-white">
                               {item.title}
                             </p>
                             <ArrowUpRight
-                              className="size-4 shrink-0 text-ink-400 transition-colors group-hover:text-brand-purple"
+                              className="size-4 shrink-0 text-ink-400 transition-colors group-hover:text-brand-purple dark:text-ink-500 dark:group-hover:text-brand-lavender"
                               strokeWidth={2.5}
                             />
                           </div>
-                          <p className="text-[11px] font-semibold text-ink-500">
+                          <p className="text-[11px] font-semibold text-ink-500 dark:text-ink-400">
                             {item.source}
                           </p>
-                          <p className="text-[12px] leading-relaxed text-ink-600">
+                          <p className="text-[12px] leading-relaxed text-ink-600 dark:text-ink-300">
                             {item.why}
                           </p>
                         </div>
@@ -341,14 +354,14 @@ export default async function LibraryPage() {
         })}
       </div>
 
-      <section className="mt-16 rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 md:p-8">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+      <section className="mt-16 rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-brand-lavender/5 to-brand-magenta/5 p-6 md:p-8 dark:border-ink-700 dark:from-ink-900 dark:via-brand-lavender/10 dark:to-brand-magenta/10">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
           From taste to reps
         </p>
-        <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900">
+        <h3 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900 dark:text-white">
           Watch one. Train one.
         </h3>
-        <p className="mt-2 text-sm text-ink-600">
+        <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
           Pick a talk above. Notice the move you want to steal. Then run a Daily Workout or open the Skill Lab and put that move into your body.
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
@@ -360,7 +373,7 @@ export default async function LibraryPage() {
           </Link>
           <Link
             href="/skill-lab"
-            className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-white px-5 py-2.5 text-sm font-bold text-brand-purple"
+            className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-white px-5 py-2.5 text-sm font-bold text-brand-purple dark:bg-ink-900 dark:text-brand-lavender"
           >
             Open Skill Lab
           </Link>

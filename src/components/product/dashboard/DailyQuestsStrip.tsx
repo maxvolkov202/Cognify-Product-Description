@@ -35,16 +35,16 @@ export function DailyQuestsStrip({
       <div className="brand-gradient h-1" aria-hidden="true" />
       <div className="p-5">
         <div className="flex items-baseline justify-between">
-          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
+          <p className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
             <Sparkles className="size-3" strokeWidth={2.5} aria-hidden="true" />
             Daily quests
           </p>
-          <p className="text-[11px] tabular-nums text-ink-500">
+          <p className="text-[11px] tabular-nums text-ink-500 dark:text-ink-400">
             {completedCount}/{quests.length} ·{" "}
-            <span className="font-extrabold text-ink-700">
+            <span className="font-extrabold text-ink-700 dark:text-ink-200">
               +{earnedXp}
             </span>
-            <span className="text-ink-400"> / +{totalXp} XP</span>
+            <span className="text-ink-400 dark:text-ink-500"> / +{totalXp} XP</span>
           </p>
         </div>
         <ul className="mt-3 space-y-2">
@@ -57,13 +57,13 @@ export function DailyQuestsStrip({
                   "flex items-start gap-3 rounded-lg border px-3 py-2.5",
                   done
                     ? "border-success/30 bg-success/5"
-                    : "border-ink-200 bg-white",
+                    : "border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900",
                 )}
               >
                 <span
                   className={cn(
                     "mt-0.5 shrink-0",
-                    done ? "text-success" : "text-ink-400",
+                    done ? "text-success" : "text-ink-400 dark:text-ink-500",
                   )}
                 >
                   {done ? (
@@ -85,8 +85,8 @@ export function DailyQuestsStrip({
                     className={cn(
                       "text-[13px] font-extrabold",
                       done
-                        ? "text-ink-500 line-through"
-                        : "text-ink-900",
+                        ? "text-ink-500 line-through dark:text-ink-400"
+                        : "text-ink-900 dark:text-white",
                     )}
                   >
                     {q.title}
@@ -94,7 +94,7 @@ export function DailyQuestsStrip({
                   <p
                     className={cn(
                       "mt-0.5 text-[12px] leading-snug",
-                      done ? "text-ink-400" : "text-ink-600",
+                      done ? "text-ink-400 dark:text-ink-500" : "text-ink-600 dark:text-ink-300",
                     )}
                   >
                     {q.description}
@@ -105,7 +105,7 @@ export function DailyQuestsStrip({
                     "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider",
                     done
                       ? "bg-success/15 text-success"
-                      : "bg-ink-100 text-ink-600",
+                      : "bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300",
                   )}
                 >
                   +{q.bonusXp} XP

@@ -1,0 +1,870 @@
+{
+  "version": "v1-vertical",
+  "vertical": "law",
+  "exercises": [
+    {
+      "dimension": "clarity",
+      "name": "Explain Like I'm 12",
+      "prompts": [
+        { "text": "Explain to your client what a motion in limine is before tomorrow's hearing.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a first-time deponent what a privilege objection actually means.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to your client why a summary judgment ruling tomorrow ends the case.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a board member what a derivative shareholder suit puts at risk.", "difficulty": "core", "tags": ["law", "stakeholder", "explaining"] },
+        { "text": "Explain to your client what an indemnification carve-out does in their term sheet.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a paralegal what a Daubert challenge will look like Friday morning.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain to your client why we're filing a 12(b)(6) instead of answering the complaint.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a hostile board what attorney-client privilege does and does not protect.", "difficulty": "stretch", "tags": ["law", "manager", "explaining", "handling_objections"] },
+        { "text": "Explain to an anxious client what voir dire on Monday actually looks like in the room.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to your client why pleading the Fifth in a parallel civil deposition is risky.", "difficulty": "stretch", "tags": ["law", "client_customer", "explaining", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Headline First",
+      "prompts": [
+        { "text": "Should we accept the $4M settlement offer that landed an hour ago?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Did the motion to compel work?", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the deposition transcript usable at trial, yes or no?", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Should we file the emergency TRO before the close of business today?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Did the expert hold up under cross this afternoon?", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Should our client take the plea on the table or push for trial?", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Is the jury leaning our way after opening, yes or no?", "difficulty": "intro", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Should we waive the conflict and stay on the deal?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Did the in-house team's privilege log hold up at the hearing?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Should the GC sign off on the indemnity cap the sellers are demanding?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Analogy Bridge",
+      "prompts": [
+        { "text": "Explain to your client how layered indemnification caps stack against a $50M loss.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a juror in closing how circumstantial evidence builds a case.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Explain to your client what a representations and warranties insurance policy actually buys them.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to the board why a deferred prosecution agreement leaves teeth in the file.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain to a new associate how a motion to compel forces movement on discovery.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain to your client how earn-out triggers behave like a delayed second contract.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a jury why a chain-of-custody break does what a broken seal on a package does.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Explain to your CEO how a consent decree quietly reshapes the next ten years of operations.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain to your client what \"piercing the corporate veil\" really risks for their personal assets.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain to a regulator how our compliance program functions like an immune system, not a wall.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "No Jargon Allowed",
+      "prompts": [
+        { "text": "Explain res judicata to a client who's asking why we can't just refile.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain a 30(b)(6) deposition to your client's CFO before their prep session.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain a no-shop covenant to the founder you represent.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain a Markman hearing to a board member running a patent portfolio.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain a tolling agreement to a client deciding whether to sign by Friday.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain a Brady disclosure to a young defendant the morning of trial.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain a Section 220 books-and-records demand to your CEO.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain a fraudulent conveyance claim to your client's spouse.", "difficulty": "stretch", "tags": ["law", "stakeholder", "explaining"] },
+        { "text": "Explain a MAC clause to the operations lead on the buy-side.", "difficulty": "core", "tags": ["law", "opposing_counsel", "explaining"] },
+        { "text": "Explain spoliation sanctions to a custodian who deleted texts after the litigation hold.", "difficulty": "stretch", "tags": ["law", "client_customer", "explaining", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Make It Real",
+      "prompts": [
+        { "text": "Why is our breach-of-contract theory stronger than their fraud counterclaim?", "difficulty": "core", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Why should the partner trust your reading of the deposition before Monday's argument?", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Why does your investigator's timeline beat the prosecution's witness lineup?", "difficulty": "core", "tags": ["law", "champion", "persuasion"] },
+        { "text": "Why is mediation a better bet than trial for your client this month?", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Why does our motion to exclude survive even if the judge applies the strictest standard?", "difficulty": "core", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Why does cross on the second expert end the prosecution's damages case?", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Why does the buyer's MAC argument fail under Delaware case law?", "difficulty": "core", "tags": ["law", "opposing_counsel", "persuasion"] },
+        { "text": "Why should the GC sign off on settling the wage-and-hour class for $11M?", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Why is your client's testimony the cleanest way to put the timeline in front of the jury?", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Why does a venue motion to Delaware change the math on every claim in the complaint?", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "One Point Only",
+      "prompts": [
+        { "text": "What's the single reason the motion to dismiss should be granted?", "difficulty": "core", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "What's the one weakness opposing counsel will hit at oral argument?", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Why did the jury believe their witness over ours?", "difficulty": "core", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "What's the single biggest risk to closing the M&A deal by Friday?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "What's the one defense theory the jury is most likely to accept?", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Why should the partner approve the discovery motion before tomorrow?", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "What's the single biggest reason your associate's brief needs another pass?", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Why should we walk away from this client engagement after three years?", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "What's the one piece of evidence the prosecution cannot survive losing?", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Why is settling Monday the right call even though we'd win at trial?", "difficulty": "stretch", "tags": ["law", "client_customer", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Answer the Confusion",
+      "prompts": [
+        { "text": "Explain the difference between a motion to dismiss and summary judgment to your client.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between a deposition and trial testimony to a first-time witness.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between an injunction and a TRO to a frantic client.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between civil and criminal contempt to the board.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain the difference between a misdemeanor plea and an Alford plea to a defendant.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between a representation and a warranty to the buy-side founder.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between waiving privilege and waiving work product to in-house counsel.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain why a hung jury isn't the same as an acquittal to your defendant's family.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain the difference between arbitration and mediation to a small-business owner.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain why a settlement isn't an admission of liability to a fearful corporate defendant.", "difficulty": "stretch", "tags": ["law", "client_customer", "explaining", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "Prove It",
+      "prompts": [
+        { "text": "Tell me why our breach-of-fiduciary-duty claim survives a motion to dismiss.", "difficulty": "core", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Tell me why your damages model holds under cross by their economist.", "difficulty": "core", "tags": ["law", "opposing_counsel", "persuasion"] },
+        { "text": "Tell me why this is the right case to take to trial and not settle.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Tell me why your forensic timeline outranks their lead detective's.", "difficulty": "core", "tags": ["law", "champion", "persuasion"] },
+        { "text": "Tell me why the M&A indemnity cap should be 15% of purchase price, not 10%.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Tell me why your client is the strongest witness in their own defense.", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Tell me why the new venue motion lands even if the judge denied the last one.", "difficulty": "core", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Tell me why the deal should close even with the regulatory inquiry pending.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Tell me why this whistleblower's credibility holds up to the entire defense bar.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Tell me why settling the class action below $20M is the right move for the GC.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "clarity",
+      "name": "The Word Budget",
+      "prompts": [
+        { "text": "Pitch the theory of the case to the trial partner before Monday's pretrial.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Summarize the deposition for the senior partner in the hallway.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the client's exposure in one sentence.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain why the motion in limine slipped past us.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Pitch the settlement to the GC of the corporate defendant in 30 words.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Summarize the prosecution's strongest count against your client.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Describe your trial theme in one sentence for the jury.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Brief the managing partner on a deal at risk of regulatory veto.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Pitch a $50M settlement to a hostile board in 30 words.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion", "negotiation"] },
+        { "text": "Summarize next quarter's litigation pipeline for the GC.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The 3 Point Rule",
+      "prompts": [
+        { "text": "Pitch the three reasons the judge should grant our motion to dismiss.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Give three reasons the jury should acquit your client on count one.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Defend why we should reject the $3M offer and take it to verdict.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Argue why we should withdraw the motion before tomorrow's hearing.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case to your client for hiring a second expert witness.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Argue why your associate needs to second-chair the trial next month.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Defend a 30% reduction in the proposed indemnity escrow to opposing counsel.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Convince the GC that an internal investigation has to start this week.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue why a paid pilot of the new e-discovery vendor is worth six figures.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Convince a hostile board to approve a global settlement during a budget freeze.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Story Arc",
+      "prompts": [
+        { "text": "Tell the story of a case you almost lost but turned around at trial.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Walk me through the toughest cross-examination of your career.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Tell the story of how you turned a hostile witness into your strongest witness.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "Walk me through a regulatory inquiry that nearly killed the deal.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Tell the story of a settlement that fell apart the morning of trial.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Recount the deposition where your client gave you the case you needed.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Walk me through the night before closing argument when the theory had to change.", "difficulty": "core", "tags": ["law", "audience_room", "storytelling"] },
+        { "text": "Tell the story of an expert witness who collapsed under cross.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "Walk me through an emergency TRO filed and granted before sundown.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] },
+        { "text": "Recount the appellate argument where the bench turned hot in the first minute.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Bottom Line First",
+      "prompts": [
+        { "text": "Settle this morning or push to verdict next week?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "File the motion today or wait until after the deposition?", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Is the new expert ready to testify Tuesday or not?", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Should we put the defendant on the stand or rest after the state's case?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Accept the carve-out in the indemnity or hold the line?", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Push for the larger sanction motion or take the lesser stipulation?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Should our client cooperate with the SEC inquiry or assert the Fifth?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Take the misdemeanor plea or hold out for a dismissal?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Fire the lateral partner now or coach them through next quarter?", "difficulty": "stretch", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Accept the mediator's bracketed range or walk out and try the case?", "difficulty": "stretch", "tags": ["law", "client_customer", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "The Problem Solution Frame",
+      "prompts": [
+        { "text": "Our key witness just recanted at the witness room. Address it.", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Three of opposing counsel's privilege log entries look fabricated. Solve it.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "The judge just signaled he'll grant their summary judgment motion. Respond.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Discovery costs are running 40% over the litigation budget. Address it.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Your client just texted that they may have deleted relevant Slack threads. Fix it.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Opposing counsel is leaking deposition excerpts to a reporter. Solve it.", "difficulty": "core", "tags": ["law", "opposing_counsel", "handling_objections"] },
+        { "text": "Two associates duplicated work on the same brief over the weekend. Address it.", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "The trial judge keeps cutting off your direct examination. Talk about it.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "The GC just learned about a parallel federal probe two days before closing. Address it.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "The board found out about a regulatory subpoena from the morning paper. Respond.", "difficulty": "stretch", "tags": ["law", "manager", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Monroe's Motivated Sequence",
+      "prompts": [
+        { "text": "Convince a hesitant client to accept the settlement on the table.", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Rally the trial team to pull a third all-nighter before opening.", "difficulty": "intro", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Persuade a junior associate to take first chair on the suppression motion.", "difficulty": "intro", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Convince your expert witness to commit to one final mock cross.", "difficulty": "intro", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Persuade opposing counsel to recommend a confidential mediation to their client.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Rally the partners to fund an internal investigation before regulators arrive.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Convince a skeptical board to authorize a deferred prosecution agreement.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Persuade a jury in closing that reasonable doubt lives in three specific gaps.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Convince the managing partner to take a high-risk pro bono death-row appeal.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Rally a demoralized litigation group after losing a billion-dollar verdict.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Signpost First",
+      "prompts": [
+        { "text": "Walk me through how you'd run a witness prep session for a nervous CFO.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain how you'd structure tomorrow's opening statement.", "difficulty": "intro", "tags": ["law", "audience_room", "explaining"] },
+        { "text": "Describe how you'd onboard a new corporate client into the engagement.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Walk through your process for triaging a litigation hold on day one.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain how you'd respond to a Daubert challenge filed last night.", "difficulty": "core", "tags": ["law", "judge_arbiter", "explaining"] },
+        { "text": "Walk me through your sequence for prepping cross of their lead expert.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Describe your approach to negotiating the indemnity package in a $200M deal.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Explain how you'd structure a closing argument that survives a hot judge.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Walk through how you'd rebuild trial theory after a key ruling went the wrong way.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe your playbook for an internal investigation that may surface board misconduct.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Two Then One",
+      "prompts": [
+        { "text": "Make the case for filing the motion for sanctions this week.", "difficulty": "intro", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue why your team should run the deposition of the lead defendant.", "difficulty": "intro", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Convince the client to fly out for the mediation session in person.", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Sell your co-counsel on letting you handle the opening statement.", "difficulty": "intro", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Make the case for moving the depositions out of Houston into a neutral city.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Argue why your group should handle the next three white-collar matters.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Convince the trial judge that the redirect should be expanded.", "difficulty": "core", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Make the case for terminating the engagement with the difficult client.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue why we should bet the firm's reputation on the constitutional challenge.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Convince the board to approve a class-wide settlement at four times reserve.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion", "negotiation"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Compare and Contrast",
+      "prompts": [
+        { "text": "Federal vs state court forum for a contract dispute under $5M.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Mediation vs binding arbitration for a partnership dissolution.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Litigating vs settling a non-compete fight against a former employee.", "difficulty": "intro", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "An MNDA vs a clean-team agreement for the buy-side diligence.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "explaining"] },
+        { "text": "Cooperating with the DOJ vs declining the proffer for your defendant.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Bench trial vs jury trial for a complex commercial dispute.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Promoting an associate to counsel vs hiring a lateral partner.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "A blanket protective order vs an attorneys'-eyes-only carve-out.", "difficulty": "core", "tags": ["law", "judge_arbiter", "negotiation"] },
+        { "text": "Walking away from the deal vs renegotiating after the regulatory letter arrives.", "difficulty": "stretch", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "Going to trial on the conspiracy count vs taking the plea on the substantive charges.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "structure",
+      "name": "Question Then Answer",
+      "prompts": [
+        { "text": "Why do most civil cases settle on the courthouse steps?", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Why do strong witnesses fall apart on cross?", "difficulty": "intro", "tags": ["law", "stakeholder", "explaining"] },
+        { "text": "Why does opposing counsel always object on hearsay even when it doesn't apply?", "difficulty": "intro", "tags": ["law", "opposing_counsel", "explaining"] },
+        { "text": "Why do prosecutors push for plea deals two days before trial?", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Why do M&A deals die in the indemnity schedule, not in the price negotiation?", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Why do good motions get denied by judges who agree with the law?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Why do internal investigations slow rather than accelerate after the first interview?", "difficulty": "core", "tags": ["law", "champion", "explaining"] },
+        { "text": "Why do juries acquit on facts a judge would have convicted on?", "difficulty": "core", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Why do regulators settle cases they could win at trial?", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Why does in-house counsel lose budget battles even when the legal risk is obvious?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The 30 Second Rule",
+      "prompts": [
+        { "text": "Give a 30-second status on the discovery dispute pending before the magistrate.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Update the partner on where mediation stands this morning.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief your supervising partner on yesterday's witness prep session.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Recap the deposition for co-counsel who is covering the next session.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain why the judge denied the motion to compel last night.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief the GC on a competing class action filed this morning in Delaware.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Update the team on the new protective order rules in 30 seconds.", "difficulty": "core", "tags": ["law", "peer", "explaining"] },
+        { "text": "Status report on the largest matter in your litigation portfolio.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Brief the CEO on the regulatory subpoena before the audit committee call.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Update the board on why your firm's billing in the matter just doubled.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Kill the Filler",
+      "prompts": [
+        { "text": "Tell me about a case you lost and why.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Describe your biggest courtroom win this year.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Tell me about a partner who shaped how you litigate.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Share a piece of feedback from a judge that changed how you argue.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "giving_feedback"] },
+        { "text": "Describe an opposing counsel who consistently outmaneuvers you.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Talk about the hardest objection you've ever fielded mid-direct.", "difficulty": "core", "tags": ["law", "opposing_counsel", "handling_objections"] },
+        { "text": "Explain a settlement number you regret recommending.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Describe the moment a deposition turned in your favor.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "Deliver the unfavorable verdict to your client in the hallway.", "difficulty": "stretch", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Defend your billing on a fee dispute before the managing partner.", "difficulty": "stretch", "tags": ["law", "manager", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Hedging",
+      "prompts": [
+        { "text": "Will the motion to dismiss be granted?", "difficulty": "intro", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Is the deal closing on Friday?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Is the witness ready to testify Monday?", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Should we waive the conflict?", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Was settling the wage-and-hour matter the right call?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Is going to trial on count two worth the exposure?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Should the senior associate be put up for partner this year?", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Is the new in-house program meaningfully reducing outside counsel spend?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Will the appellate panel reverse the trial court?", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Should the firm drop the longtime corporate client over the new conflict?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "One Idea Per Response",
+      "prompts": [
+        { "text": "What's the main reason the deposition went badly?", "difficulty": "intro", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Why did the judge deny the motion to compel?", "difficulty": "intro", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "What's the biggest risk to closing the deal next week?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "What's the one thing the trial team needs to do differently?", "difficulty": "intro", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "What's the single objection holding up summary judgment?", "difficulty": "core", "tags": ["law", "opposing_counsel", "handling_objections"] },
+        { "text": "Why are associates missing the deadlines on discovery responses?", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "What's driving the surge in pro se filings against your client?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Why is your client threatening to fire the firm?", "difficulty": "core", "tags": ["law", "client_customer", "handling_objections"] },
+        { "text": "What's the central reason to take the equal-protection challenge en banc?", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "persuasion"] },
+        { "text": "Why should the board double the litigation reserves this quarter?", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Hard Stop",
+      "prompts": [
+        { "text": "Object or let the question go?", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Push for trial Monday or take the continuance?", "difficulty": "intro", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Hire the senior litigator or two junior associates?", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Mediate first or file the complaint?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Walk away or sign the indemnification carve-out?", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Escalate to the judge or work it out with opposing counsel?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Take the plea today or hold for trial?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Fire the underperforming senior associate or coach them another quarter?", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Accept the carved-out settlement or hold for the en banc petition?", "difficulty": "stretch", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "Withdraw from representation or push through the conflict-of-interest motion?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Cut by Half",
+      "prompts": [
+        { "text": "Pitch your trial theory to the jury.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Explain why witness prep matters.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Describe what makes a strong opening statement.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Pitch the case for filing the discovery motion this week.", "difficulty": "intro", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Explain how a deferred prosecution agreement protects both sides.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Describe how to handle a hearsay objection on a live direct.", "difficulty": "core", "tags": ["law", "opposing_counsel", "handling_objections"] },
+        { "text": "Pitch the value of mediation to a skeptical CEO.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Explain why we should withdraw the third counterclaim.", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Pitch the firm's litigation team to a Fortune 100 GC you've never met.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Defend your case theory to a partner who thinks it's overreaching.", "difficulty": "stretch", "tags": ["law", "manager", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "Subject Verb Object",
+      "prompts": [
+        { "text": "Explain how a motion to compel works.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Describe how a case moves from complaint to discovery.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Walk through how a deposition gets scheduled and noticed.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain how grand jury secrecy works in plain language.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Describe how representations and warranties translate into indemnity payments.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain how juror challenges work in voir dire.", "difficulty": "core", "tags": ["law", "audience_room", "explaining"] },
+        { "text": "Walk through how the protective order routes confidential documents.", "difficulty": "core", "tags": ["law", "opposing_counsel", "explaining"] },
+        { "text": "Describe how an internal investigation scopes its first interviews.", "difficulty": "core", "tags": ["law", "champion", "explaining"] },
+        { "text": "Explain how an interlocutory appeal disrupts the trial calendar.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "explaining"] },
+        { "text": "Walk through how a Section 363 sale bypasses ordinary creditor rights.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "No Throat Clearing",
+      "prompts": [
+        { "text": "Tell me about your top case.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through your week.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Introduce yourself to a new client at the intake meeting.", "difficulty": "intro", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Tell me about your litigation docket.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Open the pretrial conference with the agenda.", "difficulty": "core", "tags": ["law", "judge_arbiter", "presenting"] },
+        { "text": "Kick off the deposition with the ground rules.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Open the case status call with the most important development.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Start the closing argument with your trial theme.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Open oral argument before a hot panel without a windup.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "confidence"] },
+        { "text": "Open the all-firm meeting after the firm just lost its largest matter.", "difficulty": "stretch", "tags": ["law", "manager", "presenting", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "name": "The Single Sentence",
+      "prompts": [
+        { "text": "Summarize the case theory in one sentence.", "difficulty": "intro", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Describe your litigation practice.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Define what your firm does to a stranger at a bar association event.", "difficulty": "intro", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Sum up the deposition in one sentence.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize opposing counsel's strongest argument.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "State the matter's central risk to your client.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Define why the jury should believe your client over the prosecutor's witness.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Sum up the mediation outcome in one sentence for the GC.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Summarize a billion-dollar trial outcome in one sentence for the firm-wide email.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "State the appellate brief's core argument in a single sentence for the cover page.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Claim and Proof",
+      "prompts": [
+        { "text": "Argue why early settlement preserves more value than a trial victory.", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Make the case that most discovery disputes are about lawyer ego, not evidence.", "difficulty": "core", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Argue why putting a defendant on the stand wins more cases than it loses.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Convince me that the prosecution's expert is unqualified under Rule 702.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Argue that most motions in limine are filed to score points, not to win them.", "difficulty": "intro", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Make the case that the indemnity package the buy-side accepted is wildly underpriced.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Argue that the best closing arguments are built backwards from the verdict form.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Convince me that the witness everyone hated to prep was actually the best on the stand.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Argue that big-law billing pressure is the real reason internal investigations balloon.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case that the firm's entire white-collar playbook needs to be rewritten this year.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Steel Man",
+      "prompts": [
+        { "text": "Make the strongest case AGAINST taking the settlement your client wants to accept.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Steel man the prosecutor's theory of motive in your defendant's case.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Build the strongest case for the judge who keeps ruling against you at every hearing.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Make the case for the opposing counsel who's pushing for AEO designation.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Steel man the GC who refused to authorize the internal investigation.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Build the best argument against your own theory of damages.", "difficulty": "stretch", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Steel man a hostile witness who insists their version of events is right.", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Argue convincingly that the case you're fighting hardest should be dismissed.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Make the strongest case for the associate the partners voted against last cycle.", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Steel man the regulator who wants triple your client's proposed civil penalty.", "difficulty": "intro", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "First Principles",
+      "prompts": [
+        { "text": "Why does the adversarial system exist at all? Build from zero.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "What is a jury, fundamentally? Skip the civics-class answer.", "difficulty": "intro", "tags": ["law", "audience_room", "explaining"] },
+        { "text": "Why do contracts need consideration to be enforceable?", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "What is attorney-client privilege actually protecting? Define it from scratch.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Why do we read defendants Miranda rights? Forget the case law.", "difficulty": "stretch", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "What is a deposition really for? Not the textbook answer.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Why do partnerships have any duty of loyalty between partners?", "difficulty": "core", "tags": ["law", "peer", "explaining"] },
+        { "text": "What is a trial supposed to do, fundamentally?", "difficulty": "intro", "tags": ["law", "audience_room", "explaining"] },
+        { "text": "Why do we have an appellate process at all?", "difficulty": "intro", "tags": ["law", "judge_arbiter", "explaining"] },
+        { "text": "What is the criminal sentencing function for? Strip it to fundamentals.", "difficulty": "core", "tags": ["law", "judge_arbiter", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The So What Test",
+      "prompts": [
+        { "text": "List three things that went well at the trial this week.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk me through the depositions your team took this month.", "difficulty": "intro", "tags": ["law", "manager", "presenting"] },
+        { "text": "Describe the arguments raised at the last summary judgment hearing.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "presenting"] },
+        { "text": "Recap the key takeaways from yesterday's all-hands litigation update.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Summarize the prosecution's case in chief at the end of week one.", "difficulty": "core", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Tell me about the new matters your group opened this quarter.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Walk through the witnesses you'll call in order at trial.", "difficulty": "core", "tags": ["law", "audience_room", "presenting"] },
+        { "text": "List the objections raised during yesterday's depositions.", "difficulty": "core", "tags": ["law", "opposing_counsel", "handling_objections"] },
+        { "text": "Describe the technology your litigation group adopted this year.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] },
+        { "text": "Summarize the regulatory letters that arrived during the diligence period.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "The Perspective Shift",
+      "prompts": [
+        { "text": "Defend the judge who keeps overruling your hearsay objections — from her chair.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Argue as the opposing counsel running the motion to disqualify your firm.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Defend the client who fired the firm right before trial.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Argue as the witness whose deposition you completely destroyed.", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Defend the senior partner who killed your dispositive motion strategy.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Argue as the juror most likely to hold out against your verdict.", "difficulty": "intro", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Defend the GC who chose mediation over the trial you wanted.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Argue as the prosecutor your defendant calls overzealous.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Defend the buyer's M&A counsel who insisted on the basket and cap structure you hate.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Argue as the appellate panel that affirmed the verdict you appealed.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Draw the Line",
+      "prompts": [
+        { "text": "Will the appellate court reverse the trial verdict?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Where will the final settlement number land before mediation closes?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Will your defendant be convicted on the lead count?", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Predict whether the regulator opens a formal enforcement action this quarter.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Will AI agents handle first-pass document review in your firm by next year?", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Forecast the volume of class actions your group sees in the next 18 months.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Will the in-house function absorb your matter or send it back to outside counsel?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Predict the next major shift in how M&A indemnity gets priced.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Will the Supreme Court grant cert on the constitutional question in your matter?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Forecast your own path from senior associate to equity partner.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Name the Assumption",
+      "prompts": [
+        { "text": "Argue we should refer the matter out to specialized white-collar counsel.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case for rewriting the firm's litigation budgeting model.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue your group needs two more litigators before trial season begins.", "difficulty": "intro", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case to bring the entire deal closing onshore from London.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Argue that the firm should open a dedicated regulatory enforcement practice.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case for switching to fixed-fee billing on this matter.", "difficulty": "core", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "Argue we should withdraw from one of two simultaneously running trials.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Make the case for moving the deposition battle to written discovery only.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Argue your client should consent to a monitor rather than fight an injunction.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Make the case for terminating a longtime client over recurring billing disputes.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Disconfirm Yourself",
+      "prompts": [
+        { "text": "You believe the jury will acquit. What would prove you wrong?", "difficulty": "core", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "You think the motion to suppress is a winner. What evidence would flip you?", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "You believe your expert will hold up under cross. What would tell you otherwise?", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "You think the corporate client's privilege log is bulletproof. What would change your mind?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "You believe early mediation increases settlement value. What data would shake that?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "You think putting the defendant on the stand will work. What would tell you it won't?", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "You believe your team's discovery responses are airtight. What would prove they aren't?", "difficulty": "core", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "You think this fact witness is credible. What would tell you they aren't?", "difficulty": "intro", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "You believe the appellate panel will affirm. What would change that?", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "You think the partnership track is the right path for your career. What would convince you otherwise?", "difficulty": "stretch", "tags": ["law", "peer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "name": "Order of Magnitude",
+      "prompts": [
+        { "text": "How many depositions does a complex commercial trial typically require?", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "How long should it take to close a $250M private acquisition end to end?", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "How many billable hours should a midlevel associate carry in a healthy week?", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "How big does a damages exposure need to be before the GC personally takes the call?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "How many witnesses should you call in a one-week jury trial?", "difficulty": "intro", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "How much discovery cost is reasonable for a single mid-size litigation?", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "How many questions should you draft for a six-hour deposition?", "difficulty": "intro", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "How long does it take a new partner to build a self-sustaining book of business?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "How much should a Fortune 500 GC reserve against a new class action complaint?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "How many internal interviews does a real internal investigation actually require?", "difficulty": "stretch", "tags": ["law", "champion", "asking_questions"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Metronome",
+      "prompts": [
+        { "text": "Walk through how your team runs weekly case strategy meetings.", "difficulty": "intro", "tags": ["law", "manager", "explaining"] },
+        { "text": "Describe your standard intake call with a new corporate client.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Walk me through your typical day during trial.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Explain how you onboard a new witness through prep sessions.", "difficulty": "intro", "tags": ["law", "stakeholder", "explaining"] },
+        { "text": "Talk through how a matter moves from intake to closure on your docket.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Describe how you ran the most recent motion hearing start to finish.", "difficulty": "core", "tags": ["law", "judge_arbiter", "presenting"] },
+        { "text": "Walk me through how you handled the last all-day deposition.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Explain how you manage a competitive M&A bid from term sheet to signing.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Walk through a regulatory inquiry from first letter to closure.", "difficulty": "stretch", "tags": ["law", "manager", "explaining"] },
+        { "text": "Take me through a difficult conversation with an associate who missed a court deadline.", "difficulty": "stretch", "tags": ["law", "peer", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Strategic Pause",
+      "prompts": [
+        { "text": "Pitch the trial theory to the senior partner who has five minutes.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Make the case to hire two more litigation associates this quarter.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Open the deposition with the witness who has tried to stall every prior session.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Introduce yourself to a jury panel during voir dire.", "difficulty": "intro", "tags": ["law", "audience_room", "confidence"] },
+        { "text": "Pitch a deferred prosecution agreement to a client who insists on trial.", "difficulty": "intro", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "Recommend a global settlement to a board with three skeptics in the room.", "difficulty": "core", "tags": ["law", "manager", "negotiation"] },
+        { "text": "Brief the exec team on a verdict that just came back against the company.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Open a town hall the day after the firm lost its largest client.", "difficulty": "stretch", "tags": ["law", "manager", "presenting"] },
+        { "text": "Pitch a new litigation strategy to a roomful of skeptical co-counsel.", "difficulty": "core", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Sell a hostile audit committee on doubling the legal reserve next year.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Silence Over Filler",
+      "prompts": [
+        { "text": "Tell me about a verdict you lost and why.", "difficulty": "stretch", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Explain a settlement amount you regret recommending.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Describe the worst oral argument you've ever delivered.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "confidence"] },
+        { "text": "Walk through a witness prep session where the witness fell apart.", "difficulty": "core", "tags": ["law", "stakeholder", "asking_questions"] },
+        { "text": "Tell me about a hostile judge who almost derailed your trial.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Explain a client escalation you couldn't fix.", "difficulty": "stretch", "tags": ["law", "client_customer", "handling_objections"] },
+        { "text": "Describe a time you had to deliver bad news to a defendant before sentencing.", "difficulty": "stretch", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Talk about a deal that fell apart at signing without warning.", "difficulty": "stretch", "tags": ["law", "client_customer", "handling_objections"] },
+        { "text": "Explain a procedural rule you misread until opposing counsel exploited it.", "difficulty": "core", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Describe what you'd change about your last closing argument.", "difficulty": "core", "tags": ["law", "audience_room", "giving_feedback"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Two-Beat Landing",
+      "prompts": [
+        { "text": "Make the case for the new litigation hold protocol to the GC.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue why your team should run all upcoming federal grand jury work.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Defend the settlement number you recommended to a skeptical partner.", "difficulty": "stretch", "tags": ["law", "manager", "negotiation"] },
+        { "text": "Make three arguments for the alternative fee arrangement.", "difficulty": "core", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "Convince an expert witness that a third mock cross is worth their time.", "difficulty": "core", "tags": ["law", "stakeholder", "persuasion"] },
+        { "text": "Argue why the jury should reject the prosecution's central inference.", "difficulty": "stretch", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Defend the trade-off you made on the indemnification escrow.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Make the case for a senior partner to first-chair the upcoming trial.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Argue your case theory survives even if the court excludes your lead expert.", "difficulty": "stretch", "tags": ["law", "judge_arbiter", "confidence"] },
+        { "text": "Pitch why the firm's litigation pricing model deserves a doubled investment.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Slow Cooker",
+      "prompts": [
+        { "text": "Explain how you handled the witness who fell apart on the stand last week.", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Walk through the moment you realized the prosecution had a new piece of evidence.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] },
+        { "text": "Describe the closing argument where the jury wasn't tracking with you.", "difficulty": "stretch", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Talk through your reaction when the judge denied your motion in chambers.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Explain how you broke the news of a defeat to a corporate client at headquarters.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Walk me through a regulatory subpoena from the first call to the response.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Describe a co-counsel breakdown on the eve of trial.", "difficulty": "core", "tags": ["law", "peer", "handling_objections"] },
+        { "text": "Talk through a renegotiation where your client threatened to walk during signing.", "difficulty": "stretch", "tags": ["law", "client_customer", "negotiation"] },
+        { "text": "Explain how you handled a hostile mediator pressuring both sides at the same time.", "difficulty": "core", "tags": ["law", "judge_arbiter", "negotiation"] },
+        { "text": "Walk through the call where you had to withdraw from a billion-dollar matter.", "difficulty": "stretch", "tags": ["law", "client_customer", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Punctuation Breathing",
+      "prompts": [
+        { "text": "Tell me about your legal career so far.", "difficulty": "core", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Walk me through how you ended up in litigation.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Tell the story of your first trial verdict.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Describe the corporate client relationship that defined your year.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Tell me about the longest matter you've ever closed.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Walk through how you built your practice group from scratch.", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Tell the story of a mentor who taught you how to try cases.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Describe how your trial team came together after a bad year.", "difficulty": "core", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Tell me about a client who became a lifelong advocate for the firm.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Walk through the year you almost left the practice of law.", "difficulty": "stretch", "tags": ["law", "peer", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Stretch",
+      "prompts": [
+        { "text": "What's the most important verdict you've ever delivered on?", "difficulty": "core", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Describe the single best witness you've ever put on the stand.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "What's the riskiest matter your team is working right now?", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Tell me the one number that defines this trial's exposure.", "difficulty": "core", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Describe the most memorable cross-examination of your career.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "What's the most surprising objection a judge has ever sustained against you?", "difficulty": "core", "tags": ["law", "judge_arbiter", "handling_objections"] },
+        { "text": "Tell me the proudest moment from a courtroom in your career.", "difficulty": "intro", "tags": ["law", "audience_room", "storytelling"] },
+        { "text": "What's the most dangerous assumption your trial team is making this week?", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the best feedback a judge ever gave you in chambers.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "giving_feedback"] },
+        { "text": "What's the one objection you'll never recover from at trial?", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "handling_objections"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Tempo Shift",
+      "prompts": [
+        { "text": "Brief the team on next quarter's litigation priorities.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Present your trial plan to a skeptical lead partner.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Walk the GC through your enforcement-defense playbook.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Present the quarter's matter outcomes to the executive committee.", "difficulty": "stretch", "tags": ["law", "manager", "presenting"] },
+        { "text": "Brief your team on a strategy reset after a verdict went against you.", "difficulty": "stretch", "tags": ["law", "peer", "presenting"] },
+        { "text": "Present a major case win at the firm's annual retreat.", "difficulty": "stretch", "tags": ["law", "peer", "presenting", "storytelling"] },
+        { "text": "Open a board meeting with your annual litigation reserves report.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Brief your trial team on tomorrow's voir dire approach.", "difficulty": "core", "tags": ["law", "audience_room", "presenting"] },
+        { "text": "Pitch a new alternative-fee model at the partners' meeting.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Walk a Fortune 500 GC through their first executive briefing with your firm.", "difficulty": "core", "tags": ["law", "client_customer", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "Beat the Buzzer",
+      "prompts": [
+        { "text": "45 seconds: introduce yourself to a new corporate client.", "difficulty": "intro", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "45 seconds: give your weekly case status update.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: pitch the firm's litigation team in an elevator.", "difficulty": "core", "tags": ["law", "client_customer", "persuasion"] },
+        { "text": "45 seconds: summarize a major motion ruling for the executive team.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: brief co-counsel before they cover the next deposition session.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "45 seconds: present your top trial's risks to the GC.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "45 seconds: open a town hall after losing the firm's largest verdict.", "difficulty": "stretch", "tags": ["law", "manager", "presenting"] },
+        { "text": "45 seconds: pitch a deferred prosecution strategy to a corporate board.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "45 seconds: explain your billing methodology to a new finance partner at the client.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "45 seconds: recap the litigation quarter to your firm's executive committee.", "difficulty": "stretch", "tags": ["law", "manager", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "The Monotone Breaker",
+      "prompts": [
+        { "text": "Walk me through what you did on your top case yesterday.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Explain how your discovery workflow usually runs.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Give me a status update on your top three matters.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Describe the last hearing you sat through as second chair.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Walk through the architecture of your firm's litigation pricing model.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Explain how our case teams are structured by practice area.", "difficulty": "core", "tags": ["law", "manager", "explaining"] },
+        { "text": "Run through last quarter's matter outcomes.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Summarize the litigation lifecycle from intake to closure.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Describe how a deal moves from term sheet to definitive agreement.", "difficulty": "core", "tags": ["law", "opposing_counsel", "explaining"] },
+        { "text": "Narrate your entire annual litigation report without notes.", "difficulty": "stretch", "tags": ["law", "manager", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Volume Dial",
+      "prompts": [
+        { "text": "Tell the story of how you got into the practice of law.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Recap the most memorable trial you've ever tried.", "difficulty": "intro", "tags": ["law", "audience_room", "storytelling"] },
+        { "text": "Walk me through your favorite case from start to finish.", "difficulty": "intro", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Tell me about a mentor who shaped how you litigate.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
+        { "text": "Pitch the firm in 90 seconds to a hostile general counsel.", "difficulty": "core", "tags": ["law", "manager", "persuasion", "confidence"] },
+        { "text": "Tell the origin story of your most loyal client relationship.", "difficulty": "core", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Describe a turning point in your career as a trial lawyer.", "difficulty": "core", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Walk a GC through the case for retaining the firm on a bet-the-company matter.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Tell the story of a trial that nearly fell apart in week two.", "difficulty": "core", "tags": ["law", "audience_room", "storytelling"] },
+        { "text": "Give a keynote at the bar association about why the profession has to change.", "difficulty": "stretch", "tags": ["law", "audience_room", "presenting", "persuasion"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Warmth Switch",
+      "prompts": [
+        { "text": "Tell me about your trial team.", "difficulty": "intro", "tags": ["law", "peer", "storytelling"] },
+        { "text": "Describe an associate who quietly carries the docket.", "difficulty": "intro", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Tell me about a client who shaped how you practice.", "difficulty": "intro", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Talk about a longtime client you've represented for a decade.", "difficulty": "intro", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Introduce your associates to a new client at the kickoff meeting.", "difficulty": "core", "tags": ["law", "client_customer", "presenting"] },
+        { "text": "Tell a client about the investigator who broke open their case.", "difficulty": "core", "tags": ["law", "champion", "storytelling"] },
+        { "text": "Walk a law school recruit through what it's like to work on your team.", "difficulty": "core", "tags": ["law", "peer", "persuasion"] },
+        { "text": "Describe the witness on a recent case who deserved more credit than they got.", "difficulty": "core", "tags": ["law", "stakeholder", "storytelling"] },
+        { "text": "Introduce your client to a jury during your opening statement.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Deliver a farewell message to a senior partner retiring after thirty years.", "difficulty": "stretch", "tags": ["law", "manager", "storytelling"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Authority Voice",
+      "prompts": [
+        { "text": "State what you're best at as a litigator in one sentence, three times.", "difficulty": "intro", "tags": ["law", "peer", "confidence"] },
+        { "text": "Tell me three things you know for certain about winning trials.", "difficulty": "intro", "tags": ["law", "peer", "confidence"] },
+        { "text": "Declare your role and the matters you own at the firm.", "difficulty": "intro", "tags": ["law", "manager", "confidence"] },
+        { "text": "List five facts about your client's case that you'd stake your career on.", "difficulty": "intro", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Tell the board the internal investigation is now substantially complete.", "difficulty": "core", "tags": ["law", "manager", "confidence", "persuasion"] },
+        { "text": "Defend the litigation budget against pushback from the audit committee.", "difficulty": "core", "tags": ["law", "manager", "confidence"] },
+        { "text": "Tell the trial team we are not settling and explain why.", "difficulty": "core", "tags": ["law", "peer", "persuasion", "confidence"] },
+        { "text": "Brief opposing counsel that the terms in their last redline are non-negotiable.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation", "confidence"] },
+        { "text": "Address the all-hands the day after the firm's largest client left.", "difficulty": "stretch", "tags": ["law", "manager", "confidence", "presenting"] },
+        { "text": "Tell a roomful of skeptical jurors why your client's account is the only one that fits the evidence.", "difficulty": "stretch", "tags": ["law", "audience_room", "persuasion", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Downward Landing",
+      "prompts": [
+        { "text": "Describe what your role at the firm actually involves day-to-day.", "difficulty": "intro", "tags": ["law", "peer", "explaining"] },
+        { "text": "Tell me three things you did to move the case last week.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "List the matters you've worked this year and one outcome from each.", "difficulty": "intro", "tags": ["law", "manager", "storytelling"] },
+        { "text": "State your name, your practice, and the top matter you're handling.", "difficulty": "intro", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Summarize what the firm does in five sentences for an enterprise GC.", "difficulty": "core", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Recap last week's depositions for someone who missed the case team call.", "difficulty": "core", "tags": ["law", "peer", "explaining"] },
+        { "text": "Lay out the four pillars of your trial strategy.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Describe your standard witness prep framework.", "difficulty": "core", "tags": ["law", "stakeholder", "explaining"] },
+        { "text": "Explain how you evaluate whether a case is worth taking on contingency.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk an outside auditor through how your firm tracks privileged communications.", "difficulty": "stretch", "tags": ["law", "stakeholder", "explaining"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Curiosity Lift",
+      "prompts": [
+        { "text": "What's a legal question you've been chewing on this month?", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Talk about a recent appellate opinion that's stuck with you.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Wonder out loud about why a recent settlement landed where it did.", "difficulty": "intro", "tags": ["law", "client_customer", "thinking_on_the_spot"] },
+        { "text": "Describe a litigation tactic you keep meaning to test in trial.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Brainstorm three new arguments to add to the reply brief, thinking out loud.", "difficulty": "core", "tags": ["law", "judge_arbiter", "thinking_on_the_spot"] },
+        { "text": "Walk through a witness's testimony you don't yet have a great way to handle.", "difficulty": "core", "tags": ["law", "stakeholder", "thinking_on_the_spot"] },
+        { "text": "Talk through a case theory you're still trying to make stick.", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Speculate about how AI will reshape document review in five years.", "difficulty": "core", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Explore why a recent jury came back with a verdict no one expected.", "difficulty": "core", "tags": ["law", "audience_room", "thinking_on_the_spot"] },
+        { "text": "Speculate on what opposing counsel is about to file, and why.", "difficulty": "stretch", "tags": ["law", "opposing_counsel", "thinking_on_the_spot"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Conviction Floor",
+      "prompts": [
+        { "text": "Tell me one belief about trial practice that most of your peers don't share.", "difficulty": "intro", "tags": ["law", "peer", "confidence"] },
+        { "text": "State the principle that guides how you run a deposition.", "difficulty": "intro", "tags": ["law", "stakeholder", "asking_questions", "confidence"] },
+        { "text": "Name the rule you refuse to break with a client, and why.", "difficulty": "intro", "tags": ["law", "client_customer", "confidence"] },
+        { "text": "Tell me the one piece of advice you give every new associate.", "difficulty": "intro", "tags": ["law", "peer", "giving_feedback"] },
+        { "text": "Argue why trial preparation is the only thing that separates great lawyers from good ones.", "difficulty": "core", "tags": ["law", "peer", "persuasion", "confidence"] },
+        { "text": "Make the case for the single metric the firm should grade litigation outcomes on.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Defend your refusal to accept a settlement that everyone else wants to take.", "difficulty": "core", "tags": ["law", "client_customer", "negotiation", "confidence"] },
+        { "text": "Tell the board why your firm is the right counsel for a bet-the-company matter.", "difficulty": "core", "tags": ["law", "manager", "persuasion", "confidence"] },
+        { "text": "Make the case that the billable hour destroys more value than it creates.", "difficulty": "stretch", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Tell a longtime client you're declining their next matter, and why it's the right call.", "difficulty": "stretch", "tags": ["law", "client_customer", "confidence"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Pivot Tone",
+      "prompts": [
+        { "text": "Update me on your top case, your second, and your third.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Cover the three matters on your plate right now.", "difficulty": "intro", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Walk through what you filed, what's pending, and what's coming next.", "difficulty": "intro", "tags": ["law", "peer", "thinking_on_the_spot"] },
+        { "text": "Brief me on intake, discovery, and trial-ready matters in that order.", "difficulty": "intro", "tags": ["law", "manager", "explaining"] },
+        { "text": "Brief me on litigation, transactions, and regulatory work — in that order.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Give updates on case load, settlement reserves, and outside counsel spend.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Cover three matters on the docket, each at a different posture.", "difficulty": "core", "tags": ["law", "manager", "thinking_on_the_spot"] },
+        { "text": "Move through last week's wins, this week's risks, and next week's filings.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Pitch the case theory, then walk the evidence, then close on the verdict you want.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Update the board on a verdict, a regulatory subpoena, and a partner departure.", "difficulty": "stretch", "tags": ["law", "manager", "presenting"] }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "name": "Read the Room",
+      "prompts": [
+        { "text": "Introduce yourself — to a CFO, then to your defendant client.", "difficulty": "intro", "tags": ["law", "client_customer", "explaining"] },
+        { "text": "Describe your practice — to a procurement lead, then to an in-house lawyer.", "difficulty": "intro", "tags": ["law", "manager", "explaining"] },
+        { "text": "Explain what you did this weekend — to a junior associate, then to a judge in chambers.", "difficulty": "intro", "tags": ["law", "judge_arbiter", "confidence"] },
+        { "text": "Tell the story of your top case — to a peer, then to a paying client.", "difficulty": "intro", "tags": ["law", "client_customer", "storytelling"] },
+        { "text": "Deliver the same case update — to your partners, then to the GC.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Pitch the firm — to a skeptical general counsel.", "difficulty": "core", "tags": ["law", "manager", "persuasion"] },
+        { "text": "Share trial prep status — to the trial team, then to the GC, then to the board.", "difficulty": "core", "tags": ["law", "manager", "presenting"] },
+        { "text": "Explain the indemnity package — to your client, then to opposing counsel.", "difficulty": "core", "tags": ["law", "opposing_counsel", "negotiation"] },
+        { "text": "Walk through the trial theme — to your jury consultant, then to the actual jury.", "difficulty": "core", "tags": ["law", "audience_room", "persuasion"] },
+        { "text": "Defend the same verdict — to a friendly reporter, then to a hostile one.", "difficulty": "stretch", "tags": ["law", "audience_room", "handling_objections", "persuasion"] }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
@@ -224,9 +225,10 @@ export async function getRunningAverages(
   })));
 }
 
-export async function getCurrentSkillScores(
+// Request-scoped: layout SixSkillsBar + /progress radar both call this.
+export const getCurrentSkillScores = cache(async (
   userId: string,
-): Promise<Record<SkillDimension, number | null>> {
+): Promise<Record<SkillDimension, number | null>> => {
   return safeDb(async () => {
     const rows = await db
       .select({
@@ -248,7 +250,7 @@ export async function getCurrentSkillScores(
     for (const dim of ALL_DIMENSIONS) result[dim] = latest.get(dim) ?? null;
     return result;
   }, Object.fromEntries(ALL_DIMENSIONS.map((d) => [d, null])) as Record<SkillDimension, null>);
-}
+});
 
 export async function getActivityHeatmap(
   userId: string,
@@ -719,33 +721,22 @@ export async function getUserDimensionMaxes(
   ));
 }
 
+/**
+ * Phase 15 R-1 — the ONE streak. This used to be a second, naive
+ * implementation (consecutive UTC calendar days, no committed schedule,
+ * no freezes, no user TZ) while getStreakStatus computed the PRD §10.7
+ * committed-days streak. The naive one fed EVERYTHING progression — XP
+ * multipliers, all streak achievements, freeze awards, comeback bonus,
+ * the celebration strip, the reminder email — so a perfectly-on-schedule
+ * MWF user could never earn streak rewards, and two different streak
+ * numbers rendered on the same completion screen. Now a thin delegate:
+ * getStreakStatus (src/lib/db/queries/streak-freeze.ts) is the single
+ * source of truth.
+ */
 export async function getStreakDays(userId: string): Promise<number> {
-  return safeDb(async () => {
-    const rows = await db
-      .select({
-        date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
-      })
-      .from(reps)
-      .where(eq(reps.userId, userId))
-      .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`)
-      .orderBy(desc(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`));
-
-    if (rows.length === 0) return 0;
-    const dates = rows.map((r) => r.date);
-    const today = new Date().toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    if (dates[0] !== today && dates[0] !== yesterday) return 0;
-
-    let streak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1]!);
-      const curr = new Date(dates[i]!);
-      const diff = (prev.getTime() - curr.getTime()) / 86400000;
-      if (diff === 1) streak++;
-      else break;
-    }
-    return streak;
-  }, 0);
+  const { getStreakStatus } = await import("./streak-freeze");
+  const status = await getStreakStatus(userId);
+  return status?.streakDays ?? 0;
 }
 
 /**

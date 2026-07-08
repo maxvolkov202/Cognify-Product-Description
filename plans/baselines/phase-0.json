@@ -1,0 +1,272 @@
+{
+  "phase": "0",
+  "baseUrl": "http://127.0.0.1:3333",
+  "startedAt": "2026-05-21T00:47:27.643Z",
+  "subsetIds": [
+    "band-poor-mic-test",
+    "band-below-rambling-pitch",
+    "band-competent-okay-pitch",
+    "band-strong-clean-pitch",
+    "band-excellent-tight-pitch",
+    "edge-shallow-but-organized",
+    "edge-fast-no-fillers",
+    "edge-variety-with-upspeak",
+    "indep-clear-but-padded",
+    "qa-strong-pricing-question"
+  ],
+  "perRep": [
+    {
+      "id": "band-poor-mic-test",
+      "kind": "band",
+      "composite": 21,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 10442
+    },
+    {
+      "id": "band-below-rambling-pitch",
+      "kind": "band",
+      "composite": 70,
+      "modelVersion": "mock-fallback-v1",
+      "clientLatencyMs": 6242
+    },
+    {
+      "id": "band-competent-okay-pitch",
+      "kind": "band",
+      "composite": 79,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7205
+    },
+    {
+      "id": "band-strong-clean-pitch",
+      "kind": "band",
+      "composite": 80,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 6903
+    },
+    {
+      "id": "band-excellent-tight-pitch",
+      "kind": "band",
+      "composite": 78,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 6923
+    },
+    {
+      "id": "edge-shallow-but-organized",
+      "kind": "independence",
+      "composite": 44,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7958
+    },
+    {
+      "id": "edge-fast-no-fillers",
+      "kind": "independence",
+      "composite": 79,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 8345
+    },
+    {
+      "id": "edge-variety-with-upspeak",
+      "kind": "independence",
+      "composite": 54,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 6633
+    },
+    {
+      "id": "indep-clear-but-padded",
+      "kind": "independence",
+      "composite": 75,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 7915
+    },
+    {
+      "id": "qa-strong-pricing-question",
+      "kind": "band",
+      "composite": 80,
+      "modelVersion": "claude-haiku-4-5-20251001",
+      "clientLatencyMs": 6446
+    }
+  ],
+  "summary": {
+    "count": 10,
+    "totalLatencyMs": {
+      "p50": 7175,
+      "p95": 9480,
+      "p99": 9480
+    },
+    "modelLatencyMs": {
+      "p50": 7172,
+      "p95": 9463,
+      "p99": 9463
+    },
+    "avgPromptSizeBytes": 39050,
+    "cacheHitRate": 0,
+    "failureReasonCounts": {
+      "openai_fallback_used": 9,
+      "unknown": 1
+    },
+    "mockFallbackRate": 0,
+    "openaiFallbackRate": 0.9
+  },
+  "rows": [
+    {
+      "id": "71821519-880b-438b-a8b5-961ec0f16947",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 38838,
+      "input_tokens": 8770,
+      "output_tokens": 872,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 9463,
+      "validation_duration_ms": 2,
+      "total_server_duration_ms": 9480,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 21,
+      "created_at": "2026-05-21T00:47:38.130Z"
+    },
+    {
+      "id": "7258e8d7-ee20-446a-a5a2-24357668f36c",
+      "source": "api_score",
+      "model_used": "mock-fallback-v1",
+      "prompt_size_bytes": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": null,
+      "validation_duration_ms": null,
+      "total_server_duration_ms": 6188,
+      "failure_reason": "unknown",
+      "composite_score": 70,
+      "created_at": "2026-05-21T00:47:44.332Z"
+    },
+    {
+      "id": "dfc493e6-bf99-416b-934f-6a0cb7c2dd33",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 38984,
+      "input_tokens": 8785,
+      "output_tokens": 922,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 7172,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 7175,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 79,
+      "created_at": "2026-05-21T00:47:51.797Z"
+    },
+    {
+      "id": "dea613ac-a4f5-41ee-aec7-dc5225249277",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 39028,
+      "input_tokens": 8804,
+      "output_tokens": 931,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6851,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 6862,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 80,
+      "created_at": "2026-05-21T00:47:58.952Z"
+    },
+    {
+      "id": "7dd7a650-6e8e-437b-8b07-7b78157b55c4",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 39046,
+      "input_tokens": 8799,
+      "output_tokens": 910,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6889,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 6896,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 78,
+      "created_at": "2026-05-21T00:48:06.128Z"
+    },
+    {
+      "id": "eb91ae12-41ac-49b6-8973-1038f1000e0d",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 38881,
+      "input_tokens": 8767,
+      "output_tokens": 864,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 7906,
+      "validation_duration_ms": 1,
+      "total_server_duration_ms": 7922,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 44,
+      "created_at": "2026-05-21T00:48:14.344Z"
+    },
+    {
+      "id": "4ed44cce-d728-4798-aaf3-ec9d67db4acc",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 39044,
+      "input_tokens": 8797,
+      "output_tokens": 1009,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 8296,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 8299,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 79,
+      "created_at": "2026-05-21T00:48:22.953Z"
+    },
+    {
+      "id": "5bc56d5b-3ea4-43d1-a03a-3dcc9e3f7983",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 38855,
+      "input_tokens": 8762,
+      "output_tokens": 917,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6579,
+      "validation_duration_ms": 3,
+      "total_server_duration_ms": 6601,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 54,
+      "created_at": "2026-05-21T00:48:29.841Z"
+    },
+    {
+      "id": "8db84ad1-7db5-4d26-a21d-f65950eeea2c",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 39541,
+      "input_tokens": 8898,
+      "output_tokens": 1004,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 7884,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 7886,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 75,
+      "created_at": "2026-05-21T00:48:38.017Z"
+    },
+    {
+      "id": "501cb5b8-56bb-4cbf-953c-5a03d12982d4",
+      "source": "api_score",
+      "model_used": "openai-fallback:gpt-4o-2024-08-06",
+      "prompt_size_bytes": 39234,
+      "input_tokens": 8824,
+      "output_tokens": 875,
+      "cache_read_tokens": null,
+      "cache_creation_tokens": null,
+      "model_duration_ms": 6412,
+      "validation_duration_ms": 0,
+      "total_server_duration_ms": 6415,
+      "failure_reason": "openai_fallback_used",
+      "composite_score": 80,
+      "created_at": "2026-05-21T00:48:44.718Z"
+    }
+  ]
+}

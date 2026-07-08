@@ -12,7 +12,23 @@ import {
   type PersonaId,
   type ImprovementGoalId,
 } from "@/lib/onboarding/constants";
-import { setUserPreferencesAction } from "@/server/actions/onboarding";
+import {
+  DAYS_OF_WEEK,
+  DEFAULT_COMMITTED_DAYS,
+  MIN_COMMITTED_DAYS,
+  committedDayCount,
+  isDayCommitted,
+  maskToHumanSummary,
+  type DayBit,
+} from "@/lib/onboarding/committed-days";
+import {
+  setUserPreferencesAction,
+  setAudioRetentionAction,
+  setCommunicationStageAction,
+  setReminderEmailsAction,
+} from "@/server/actions/onboarding";
+import { COMMUNICATION_STAGES } from "@/lib/onboarding/constants";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
   sendPasswordResetEmail,
   exportUserData,
@@ -25,6 +41,12 @@ type Props = {
   initialVertical: VerticalId | null;
   initialPersonas: PersonaId[];
   initialGoals: ImprovementGoalId[];
+  initialCommittedDays?: number;
+  initialAudioRetentionDays?: number | null;
+  /** PRD v3 Phase 3 (PRD §8.2) — career stage for personalization. */
+  initialCommunicationStage?: string | null;
+  /** PRD v3 Phase 6.8 — committed-day reminder emails. */
+  initialReminderEmails?: boolean;
   userEmail: string | null;
   userKind: "authenticated" | "guest";
 };
@@ -35,9 +57,56 @@ export function SettingsClient({
   initialVertical,
   initialPersonas,
   initialGoals,
+  initialCommittedDays,
+  initialAudioRetentionDays,
+  initialCommunicationStage,
+  initialReminderEmails = true,
   userEmail,
   userKind,
 }: Props) {
+  // Phase C — committed training days (bitmask Mon..Sun). Saved through
+  // the dedicated /api/me/committed-days endpoint so it's independent of
+  // the existing setUserPreferencesAction save batch.
+  const [committedDays, setCommittedDays] = useState<number>(
+    initialCommittedDays ?? DEFAULT_COMMITTED_DAYS,
+  );
+  const [persistedCommittedDays, setPersistedCommittedDays] = useState<number>(
+    initialCommittedDays ?? DEFAULT_COMMITTED_DAYS,
+  );
+  const [committedDaysSaving, setCommittedDaysSaving] = useState(false);
+  const [committedDaysError, setCommittedDaysError] = useState<string | null>(
+    null,
+  );
+
+  async function saveCommittedDays(next: number) {
+    setCommittedDays(next);
+    setCommittedDaysError(null);
+    // Validate before sending.
+    if (committedDayCount(next) < MIN_COMMITTED_DAYS) {
+      setCommittedDaysError(
+        `Pick at least ${MIN_COMMITTED_DAYS} days — consistency matters.`,
+      );
+      return;
+    }
+    setCommittedDaysSaving(true);
+    try {
+      const res = await fetch("/api/me/committed-days", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ committedDays: next }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setCommittedDaysError(body?.message ?? "Couldn't save — try again.");
+        return;
+      }
+      setPersistedCommittedDays(next);
+    } catch {
+      setCommittedDaysError("Couldn't reach the server.");
+    } finally {
+      setCommittedDaysSaving(false);
+    }
+  }
   const [vertical, setVertical] = useState<VerticalId | null>(initialVertical);
   const [personas, setPersonas] = useState<Set<PersonaId>>(
     new Set(initialPersonas),
@@ -191,8 +260,8 @@ export function SettingsClient({
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-ink-900">Your vertical</h2>
-              <p className="mt-1 text-xs text-ink-500">
+              <h2 className="text-lg font-bold text-ink-900 dark:text-white">Your vertical</h2>
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
                 The field closest to your day-to-day work. Drives prompts and
                 tone across the entire product.
               </p>
@@ -213,14 +282,14 @@ export function SettingsClient({
                   className={`group relative flex min-w-[160px] flex-1 items-start gap-2.5 overflow-hidden rounded-2xl border px-3.5 py-2.5 text-left transition-colors sm:flex-none sm:max-w-[280px] ${
                     active
                       ? "brand-gradient border-transparent text-white shadow-sm"
-                      : "border-ink-200 bg-white hover:border-ink-300"
+                      : "border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:hover:border-ink-600"
                   }`}
                 >
                   <div
                     className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
                       active
                         ? "bg-white/25"
-                        : "border border-ink-200 bg-white group-hover:border-ink-400"
+                        : "border border-ink-200 bg-white group-hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900 dark:group-hover:border-ink-500"
                     }`}
                   >
                     {active && (
@@ -236,14 +305,14 @@ export function SettingsClient({
                   <div className="min-w-0">
                     <div
                       className={`text-sm font-bold leading-tight ${
-                        active ? "text-white" : "text-ink-900"
+                        active ? "text-white" : "text-ink-900 dark:text-white"
                       }`}
                     >
                       {v.label}
                     </div>
                     <div
                       className={`mt-0.5 text-[11px] leading-snug ${
-                        active ? "text-white/80" : "text-ink-500"
+                        active ? "text-white/80" : "text-ink-500 dark:text-ink-400"
                       }`}
                     >
                       {v.description}
@@ -256,16 +325,79 @@ export function SettingsClient({
         </div>
       </section>
 
+      {/* ——— Training schedule (Phase C) ——————————————— */}
+      <section className="surface-card overflow-hidden">
+        <div className="brand-gradient h-1" aria-hidden="true" />
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-ink-900 dark:text-white">
+                Training schedule
+              </h2>
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+                Pick which days you commit to training. Streaks only count
+                missed committed days — rest days are guilt-free.
+              </p>
+            </div>
+            <div className="text-right text-[11px] font-semibold text-ink-500 dark:text-ink-400">
+              {committedDaysSaving
+                ? "Saving…"
+                : committedDays !== persistedCommittedDays
+                  ? "Unsaved"
+                  : "Saved"}
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-7 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
+            {DAYS_OF_WEEK.map((d) => {
+              const active = isDayCommitted(committedDays, d.bit as DayBit);
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => {
+                    const next = committedDays ^ (1 << d.bit);
+                    void saveCommittedDays(next);
+                  }}
+                  aria-pressed={active}
+                  className={`flex h-14 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 px-2 text-sm font-bold transition-colors sm:min-w-[64px] sm:px-3 ${
+                    active
+                      ? "brand-gradient border-transparent text-white shadow-sm"
+                      : "border-ink-200 bg-white text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200"
+                  }`}
+                >
+                  {d.label}
+                  {active && (
+                    <Check className="size-3 text-white" strokeWidth={3} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 text-xs text-ink-600 dark:text-ink-300">
+            <span className="font-extrabold tabular-nums text-ink-900 dark:text-white">
+              {committedDayCount(committedDays)}
+            </span>{" "}
+            {committedDayCount(committedDays) === 1 ? "day" : "days"} ·{" "}
+            {maskToHumanSummary(committedDays)}
+          </div>
+          {committedDaysError && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+              {committedDaysError}
+            </p>
+          )}
+        </div>
+      </section>
+
       {/* ——— Personas ——————————————————————————————— */}
       <section className="surface-card overflow-hidden">
         <div className="brand-gradient h-1" aria-hidden="true" />
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-ink-900">
+              <h2 className="text-lg font-bold text-ink-900 dark:text-white">
                 Who you talk to
               </h2>
-              <p className="mt-1 text-xs text-ink-500">
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
                 Your typical audience. Tunes AI tone and the scoring register.
                 Adapts to your vertical.
               </p>
@@ -312,14 +444,14 @@ export function SettingsClient({
                     className={`group relative flex min-w-[160px] flex-1 items-start gap-2.5 overflow-hidden rounded-2xl border px-3.5 py-2.5 text-left transition-colors sm:flex-none sm:max-w-[280px] ${
                       active
                         ? "brand-gradient border-transparent text-white shadow-sm"
-                        : "border-ink-200 bg-white hover:border-ink-300"
+                        : "border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:hover:border-ink-600"
                     }`}
                   >
                     <div
                       className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
                         active
                           ? "bg-white/25"
-                          : "border border-ink-200 bg-white group-hover:border-ink-400"
+                          : "border border-ink-200 bg-white group-hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900 dark:group-hover:border-ink-500"
                       }`}
                     >
                       {active && (
@@ -335,14 +467,14 @@ export function SettingsClient({
                     <div className="min-w-0">
                       <div
                         className={`text-sm font-bold leading-tight ${
-                          active ? "text-white" : "text-ink-900"
+                          active ? "text-white" : "text-ink-900 dark:text-white"
                         }`}
                       >
                         {p.label}
                       </div>
                       <div
                         className={`mt-0.5 text-[11px] leading-snug ${
-                          active ? "text-white/80" : "text-ink-500"
+                          active ? "text-white/80" : "text-ink-500 dark:text-ink-400"
                         }`}
                       >
                         {p.description}
@@ -362,10 +494,10 @@ export function SettingsClient({
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-ink-900">
+              <h2 className="text-lg font-bold text-ink-900 dark:text-white">
                 What you want to improve
               </h2>
-              <p className="mt-1 text-xs text-ink-500">
+              <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
                 Drives which rep types get prioritized in your workouts.
               </p>
             </div>
@@ -391,15 +523,15 @@ export function SettingsClient({
                     active
                       ? "brand-gradient border-transparent text-white shadow-sm"
                       : featured
-                        ? "border-brand-purple/40 bg-gradient-to-br from-brand-blue/5 to-brand-magenta/5 hover:border-brand-purple/60"
-                        : "border-ink-200 bg-white hover:border-ink-300"
+                        ? "border-brand-purple/40 bg-gradient-to-br from-brand-blue/5 to-brand-magenta/5 hover:border-brand-purple/60 dark:from-brand-blue/15 dark:to-brand-magenta/15"
+                        : "border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:hover:border-ink-600"
                   }`}
                 >
                   <div
                     className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full transition ${
                       active
                         ? "bg-white/25"
-                        : "border border-ink-200 bg-white group-hover:border-ink-400"
+                        : "border border-ink-200 bg-white group-hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900 dark:group-hover:border-ink-500"
                     }`}
                   >
                     {active && (
@@ -416,20 +548,20 @@ export function SettingsClient({
                     <div className="flex items-center gap-1.5">
                       <div
                         className={`text-sm font-bold leading-tight ${
-                          active ? "text-white" : "text-ink-900"
+                          active ? "text-white" : "text-ink-900 dark:text-white"
                         }`}
                       >
                         {g.label}
                       </div>
                       {featured && verticalLabel && !active && (
-                        <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-purple">
+                        <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-purple dark:bg-ink-900/60 dark:text-brand-lavender">
                           ★
                         </span>
                       )}
                     </div>
                     <div
                       className={`mt-0.5 text-[11px] leading-snug ${
-                        active ? "text-white/80" : "text-ink-500"
+                        active ? "text-white/80" : "text-ink-500 dark:text-ink-400"
                       }`}
                     >
                       {g.description}
@@ -442,8 +574,25 @@ export function SettingsClient({
         </div>
       </section>
 
+      {/* ——— Communication Stage (PRD v3 §8.2) ————————— */}
+      {userKind === "authenticated" && (
+        <CommunicationStageSection
+          initialStage={initialCommunicationStage ?? null}
+        />
+      )}
+
+      {/* ——— Appearance ——————————————————————————— */}
+      <ThemeToggle />
+
+      {/* ——— Privacy ————————————————————————————— */}
+      {userKind === "authenticated" && (
+        <PrivacySection
+          initialDays={initialAudioRetentionDays ?? 90}
+        />
+      )}
+
       {/* ——— Notifications ——————————————————————— */}
-      <NotificationsSection />
+      <NotificationsSection initialReminderEmails={initialReminderEmails} />
 
       {/* ——— Sticky save bar ——————————————————————— */}
       <AnimatePresence>
@@ -454,13 +603,13 @@ export function SettingsClient({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-3xl flex-col gap-2 rounded-2xl border border-brand-purple/30 bg-white p-3 shadow-[0_18px_60px_-20px_rgba(176,114,255,0.55)] md:bottom-6 md:flex-row md:items-center md:justify-between md:p-4"
+            className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-3xl flex-col gap-2 rounded-2xl border border-brand-purple/30 bg-white p-3 shadow-[0_18px_60px_-20px_rgba(176,114,255,0.55)] md:bottom-6 md:flex-row md:items-center md:justify-between md:p-4 dark:bg-ink-900"
           >
             <div className="flex items-center gap-2">
               <span
                 className={`grid size-7 place-items-center rounded-full ${
                   savedSection === "all"
-                    ? "bg-emerald-100 text-emerald-700"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
                     : "brand-gradient text-white"
                 }`}
               >
@@ -471,16 +620,16 @@ export function SettingsClient({
                 )}
               </span>
               <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-500">
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-ink-500 dark:text-ink-400">
                   {savedSection === "all" ? "Saved" : "Unsaved changes"}
                 </p>
-                <p className="text-sm font-semibold text-ink-800">
+                <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">
                   {savedSection === "all"
                     ? "Your preferences are up to date."
                     : "Save before leaving the page."}
                 </p>
                 {saveError && (
-                  <p className="mt-0.5 text-[11px] font-semibold text-rose-600">
+                  <p className="mt-0.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
                     {saveError}
                   </p>
                 )}
@@ -491,7 +640,7 @@ export function SettingsClient({
                 type="button"
                 onClick={discardChanges}
                 disabled={isPending || !isDirty}
-                className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:bg-ink-800"
               >
                 <RotateCcw className="size-3" strokeWidth={2.5} />
                 Discard
@@ -519,23 +668,207 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
   return true;
 }
 
-function NotificationsSection() {
+/** PRD v3 Phase 3 (PRD §8.2) — Communication Stage picker. Saves
+ *  immediately (independent of the batched preferences save), same
+ *  pattern as PrivacySection. */
+function CommunicationStageSection({
+  initialStage,
+}: {
+  initialStage: string | null;
+}) {
+  const [stage, setStage] = useState<string | null>(initialStage);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  async function onPick(next: string) {
+    const value = next === stage ? null : next; // tap again to clear
+    setStage(value);
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await setCommunicationStageAction(value);
+      if (!res.ok) {
+        setError("Couldn't save. Try again.");
+        return;
+      }
+      setSavedAt(Date.now());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const justSaved = savedAt && Date.now() - savedAt < 4000;
+
   return (
     <section className="surface-card overflow-hidden">
       <div className="brand-gradient h-1" aria-hidden="true" />
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-ink-900">
+            <h2 className="text-lg font-bold text-ink-900 dark:text-white">
+              Communication stage
+            </h2>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Where you are in your career. Cognify uses this to pick more
+              relevant prompts and coaching examples — it never affects your
+              scores.
+            </p>
+          </div>
+          {saving && (
+            <span className="text-[11px] font-semibold text-ink-400">
+              Saving…
+            </span>
+          )}
+          {!saving && justSaved && (
+            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              Saved
+            </span>
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {COMMUNICATION_STAGES.map((s) => {
+            const active = stage === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onPick(s.id)}
+                className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+                  active
+                    ? "brand-gradient text-white shadow-sm"
+                    : "border border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600 dark:hover:bg-ink-800"
+                }`}
+              >
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+        {error && (
+          <p className="mt-2 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+            {error}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function PrivacySection({ initialDays }: { initialDays: number | null }) {
+  const [days, setDays] = useState<number | null>(initialDays);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  async function onChange(next: number | null) {
+    setDays(next);
+    setError(null);
+    setSaving(true);
+    try {
+      const res = await setAudioRetentionAction(next);
+      if (!res.ok) {
+        setError("Couldn't save. Try again.");
+        return;
+      }
+      setSavedAt(Date.now());
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const justSaved = savedAt && Date.now() - savedAt < 4000;
+
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900 dark:text-white">
+              Privacy
+            </h2>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Voice recordings are biometric data. Choose how long we keep
+              your rep audio before it&rsquo;s auto-deleted from our storage.
+            </p>
+          </div>
+        </div>
+        <div className="mt-5">
+          <label
+            htmlFor="audio-retention-select"
+            className="text-xs font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400"
+          >
+            Audio retention
+          </label>
+          <select
+            id="audio-retention-select"
+            value={days === null ? "forever" : String(days)}
+            onChange={(e) => {
+              const v = e.target.value;
+              onChange(v === "forever" ? null : Number(v));
+            }}
+            disabled={saving}
+            className="mt-2 w-full max-w-xs rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm font-semibold text-ink-900 disabled:opacity-50 dark:border-ink-700 dark:bg-ink-900 dark:text-white"
+          >
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+            <option value="forever">Keep forever</option>
+          </select>
+          <p className="mt-2 text-[11px] text-ink-500 dark:text-ink-400">
+            Transcripts are deleted alongside the audio. Composite scores and
+            framework analyses are kept indefinitely.
+          </p>
+          {error && (
+            <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">
+              {error}
+            </p>
+          )}
+          {justSaved && !error && (
+            <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              Saved.
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NotificationsSection({
+  initialReminderEmails = true,
+}: {
+  initialReminderEmails?: boolean;
+}) {
+  // PRD v3 Phase 6.8 — the committed-day reminder EMAIL is live; push
+  // notification toggles below remain coming-soon.
+  const [reminderEmails, setReminderEmails] = useState(initialReminderEmails);
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="brand-gradient h-1" aria-hidden="true" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink-900 dark:text-white">
               Notifications
             </h2>
-            <p className="mt-1 text-xs text-ink-500">
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
               Nudges that help the habit land. All off by default; turn on
               only what you&rsquo;ll actually use.
             </p>
           </div>
         </div>
         <ul className="mt-5 space-y-3">
+          <NotificationToggle
+            title="Committed-day reminder email"
+            body="An email at 5pm your time on committed training days you haven't trained yet."
+            checked={reminderEmails}
+            onChange={(next) => {
+              setReminderEmails(next);
+              void setReminderEmailsAction(next);
+            }}
+          />
           <NotificationToggle
             title="Daily rep reminder"
             body="One push per day at the time you train — coming soon."
@@ -552,7 +885,7 @@ function NotificationsSection() {
             comingSoon
           />
         </ul>
-        <p className="mt-4 text-[11px] text-ink-500">
+        <p className="mt-4 text-[11px] text-ink-500 dark:text-ink-400">
           Push notifications need browser permission and run through a
           service worker that hasn&rsquo;t been installed yet. Toggles light
           up once that lands.
@@ -566,35 +899,52 @@ function NotificationToggle({
   title,
   body,
   comingSoon,
+  checked = false,
+  onChange,
 }: {
   title: string;
   body: string;
   comingSoon?: boolean;
+  /** PRD v3 Phase 6.8 — live toggles. Ignored when comingSoon. */
+  checked?: boolean;
+  onChange?: (next: boolean) => void;
 }) {
+  const live = !comingSoon && onChange != null;
   return (
-    <li className="flex items-start gap-3 rounded-xl border border-ink-200 bg-white p-4">
-      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink-100">
-        <Bell className="size-4 text-ink-500" strokeWidth={2.25} aria-hidden="true" />
+    <li className="flex items-start gap-3 rounded-xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900">
+      <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink-100 dark:bg-ink-800">
+        <Bell className="size-4 text-ink-500 dark:text-ink-400" strokeWidth={2.25} aria-hidden="true" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-ink-900">{title}</p>
+          <p className="text-sm font-bold text-ink-900 dark:text-white">{title}</p>
           {comingSoon && (
-            <span className="rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-500">
+            <span className="rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-400">
               Coming soon
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs text-ink-500">{body}</p>
+        <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">{body}</p>
       </div>
       <button
         type="button"
-        disabled
-        aria-pressed={false}
-        aria-label={`${title} — coming soon`}
-        className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-ink-200 opacity-60 transition-colors disabled:cursor-not-allowed"
+        disabled={!live}
+        aria-pressed={live ? checked : false}
+        aria-label={live ? title : `${title} — coming soon`}
+        onClick={live ? () => onChange!(!checked) : undefined}
+        className={
+          live
+            ? `relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                checked ? "bg-brand-purple" : "bg-ink-200 dark:bg-ink-700"
+              }`
+            : "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-ink-200 opacity-60 transition-colors disabled:cursor-not-allowed dark:bg-ink-700"
+        }
       >
-        <span className="inline-block size-5 translate-x-0.5 rounded-full bg-white shadow" />
+        <span
+          className={`inline-block size-5 rounded-full bg-white shadow transition-transform dark:bg-ink-300 ${
+            live && checked ? "translate-x-[22px]" : "translate-x-0.5"
+          }`}
+        />
       </button>
     </li>
   );
@@ -670,25 +1020,25 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
   return (
     <>
       <section className="surface-card overflow-hidden">
-        <div className="h-1 bg-ink-200" aria-hidden="true" />
+        <div className="h-1 bg-ink-200 dark:bg-ink-700" aria-hidden="true" />
         <div className="p-6">
-          <h2 className="text-lg font-bold text-ink-900">Account &amp; data</h2>
-          <p className="mt-1 text-xs text-ink-500">
+          <h2 className="text-lg font-bold text-ink-900 dark:text-white">Account &amp; data</h2>
+          <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
             Signed in as{" "}
-            <span className="font-semibold text-ink-700">{userEmail}</span>
+            <span className="font-semibold text-ink-700 dark:text-ink-200">{userEmail}</span>
           </p>
 
           <div className="mt-5 space-y-3">
             <form
               onSubmit={handleChangeEmail}
-              className="rounded-xl border border-ink-200 p-4"
+              className="rounded-xl border border-ink-200 p-4 dark:border-ink-700"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex-1 min-w-[200px]">
-                  <p className="text-sm font-semibold text-ink-900">
+                  <p className="text-sm font-semibold text-ink-900 dark:text-white">
                     Change email
                   </p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-xs text-ink-500 dark:text-ink-400">
                     We&rsquo;ll email confirmation links to both the old and new
                     address. Both must be clicked for the change to take effect.
                   </p>
@@ -699,12 +1049,12 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                     placeholder="new@email.com"
                     value={emailDraft}
                     onChange={(e) => setEmailDraft(e.target.value)}
-                    className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-brand-purple focus:outline-none"
+                    className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-brand-purple focus:outline-none dark:border-ink-700 dark:bg-ink-900 dark:text-white"
                   />
                   <button
                     type="submit"
                     disabled={emailPending || !emailDraft}
-                    className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60 dark:border-ink-700 dark:text-ink-200 dark:hover:border-ink-600"
                   >
                     <Mail className="size-3.5" />
                     {emailPending ? "Sending…" : "Update"}
@@ -715,8 +1065,8 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                 <p
                   className={
                     emailError
-                      ? "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
-                      : "mt-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700"
+                      ? "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-300"
+                      : "mt-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700 dark:border-green-500/40 dark:bg-green-500/15 dark:text-green-300"
                   }
                 >
                   {emailMessage}
@@ -724,12 +1074,12 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
               )}
             </form>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4 dark:border-ink-700">
               <div>
-                <p className="text-sm font-semibold text-ink-900">
+                <p className="text-sm font-semibold text-ink-900 dark:text-white">
                   Reset password
                 </p>
-                <p className="text-xs text-ink-500">
+                <p className="text-xs text-ink-500 dark:text-ink-400">
                   We&apos;ll email you a link to set a new one.
                 </p>
               </div>
@@ -737,19 +1087,19 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                 type="button"
                 onClick={handleResetPassword}
                 disabled={resetPending}
-                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60 dark:border-ink-700 dark:text-ink-200 dark:hover:border-ink-600"
               >
                 <KeyRound className="size-3.5" />
                 {resetPending ? "Sending…" : "Send reset email"}
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 p-4 dark:border-ink-700">
               <div>
-                <p className="text-sm font-semibold text-ink-900">
+                <p className="text-sm font-semibold text-ink-900 dark:text-white">
                   Export your data
                 </p>
-                <p className="text-xs text-ink-500">
+                <p className="text-xs text-ink-500 dark:text-ink-400">
                   Every rep, score, callout, and session you&apos;ve recorded —
                   downloaded as JSON.
                 </p>
@@ -758,7 +1108,7 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                 type="button"
                 onClick={handleExport}
                 disabled={exportPending}
-                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 disabled:opacity-60 dark:border-ink-700 dark:text-ink-200 dark:hover:border-ink-600"
               >
                 <Download className="size-3.5" />
                 {exportPending ? "Preparing…" : "Download JSON"}
@@ -769,21 +1119,21 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
               <div
                 className={
                   resetError
-                    ? "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
-                    : "rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700"
+                    ? "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-300"
+                    : "rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700 dark:border-green-500/40 dark:bg-green-500/15 dark:text-green-300"
                 }
               >
                 {resetMessage}
               </div>
             )}
 
-            <div className="rounded-xl border-2 border-red-200 bg-red-50/40 p-4">
+            <div className="rounded-xl border-2 border-red-200 bg-red-50/40 p-4 dark:border-red-500/40 dark:bg-red-500/10">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-red-900">
+                  <p className="text-sm font-semibold text-red-900 dark:text-red-200">
                     Delete account
                   </p>
-                  <p className="text-xs text-red-700/80">
+                  <p className="text-xs text-red-700/80 dark:text-red-300/90">
                     Permanently removes your reps, scores, and sign-in. Can&apos;t
                     be undone.
                   </p>
@@ -792,7 +1142,7 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                   <button
                     type="button"
                     onClick={() => setDeleteOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-full border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                    className="inline-flex items-center gap-2 rounded-full border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 dark:border-red-500/40 dark:bg-ink-900 dark:text-red-300 dark:hover:bg-red-500/20"
                   >
                     <Trash2 className="size-3.5" />
                     Delete my account
@@ -801,8 +1151,8 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
               </div>
 
               {deleteOpen && (
-                <div className="mt-4 border-t border-red-200/80 pt-4">
-                  <p className="flex items-start gap-2 text-xs text-red-900">
+                <div className="mt-4 border-t border-red-200/80 pt-4 dark:border-red-500/40">
+                  <p className="flex items-start gap-2 text-xs text-red-900 dark:text-red-200">
                     <AlertTriangle className="size-4 shrink-0" />
                     <span>
                       Type your email{" "}
@@ -817,10 +1167,10 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}
                     placeholder="your@email.com"
-                    className="mt-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-red-400 focus:outline-none"
+                    className="mt-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-ink-900 focus:border-red-400 focus:outline-none dark:border-red-500/40 dark:bg-ink-900 dark:text-white"
                   />
                   {deleteError && (
-                    <p className="mt-2 text-xs text-red-700">{deleteError}</p>
+                    <p className="mt-2 text-xs text-red-700 dark:text-red-300">{deleteError}</p>
                   )}
                   <div className="mt-3 flex gap-2">
                     <button
@@ -839,7 +1189,7 @@ function AccountSection({ userEmail }: { userEmail: string | null }) {
                         setDeleteConfirm("");
                         setDeleteError(null);
                       }}
-                      className="inline-flex items-center rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300"
+                      className="inline-flex items-center rounded-full border border-ink-200 bg-white px-4 py-2 text-xs font-semibold text-ink-700 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:border-ink-600"
                     >
                       Cancel
                     </button>

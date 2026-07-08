@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    // Archived components (e.g. src/components/_archive/) are retained
+    // for reference and intentionally use @ts-nocheck. They are not
+    // imported by live code.
+    ignores: ["src/components/_archive/**"],
+  },
 ];
 
 export default eslintConfig;

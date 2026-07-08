@@ -218,7 +218,7 @@ export function fallbackProgression(
     .map((x) => ({
       dimension: x.dimension,
       delta: x.delta,
-      observation: `${x.dimension} moved from ${Math.round(x.prev)} to ${Math.round(x.curr)} (+${x.delta}). Real Claude-scored coaching unavailable — add ANTHROPIC_API_KEY to unlock rich comparison.`,
+      observation: `${x.dimension} moved from ${Math.round(x.prev)} to ${Math.round(x.curr)} (+${x.delta}). AI coaching unavailable — configure an AI provider key to unlock rich comparison.`,
       quoteNow: null,
     }));
 

@@ -16,38 +16,70 @@ type Props = {
    *  the "My team" tab's empty-state copy — "no team yet" is different
    *  from "nobody on your team has reps yet". */
   userInTeam: boolean;
+  /** PRD v3 Phase 6 (§10.9) — when provided (FF_RANK_SYSTEM), weekly
+   *  improvement becomes the DEFAULT board and a Communication Score
+   *  board joins the tabs. */
+  improvement?: LeaderboardBoard | null;
+  commScore?: LeaderboardBoard | null;
 };
 
-const TABS: { id: LeaderboardScope; label: string }[] = [
-  { id: "global", label: "Global" },
-  { id: "this_week", label: "This week" },
-  { id: "team", label: "My team" },
-];
+type TabId = LeaderboardScope | "improvement" | "comm_score";
 
 export function LeaderboardTabs({
   global,
   thisWeek,
   team,
   userInTeam,
+  improvement = null,
+  commScore = null,
 }: Props) {
-  const [scope, setScope] = useState<LeaderboardScope>("global");
+  const v2 = improvement != null;
+  const [scope, setScope] = useState<TabId>(v2 ? "improvement" : "global");
+
+  const tabs: { id: TabId; label: string }[] = [
+    ...(v2
+      ? [
+          { id: "improvement" as const, label: "Weekly improvement" },
+          { id: "comm_score" as const, label: "Top communicators" },
+        ]
+      : []),
+    { id: "global" as const, label: "Global" },
+    ...(v2 ? [] : [{ id: "this_week" as const, label: "This week" }]),
+    { id: "team" as const, label: "My team" },
+  ];
 
   const activeBoard =
-    scope === "global" ? global : scope === "this_week" ? thisWeek : team;
+    scope === "improvement"
+      ? (improvement ?? thisWeek)
+      : scope === "comm_score"
+        ? (commScore ?? global)
+        : scope === "global"
+          ? global
+          : scope === "this_week"
+            ? thisWeek
+            : team;
   const top3 = activeBoard.entries.slice(0, 3);
 
   const title =
-    scope === "global"
-      ? "The gym's best, last 30 days."
-      : scope === "this_week"
-        ? "The gym's best this week."
-        : "Your team's leaders.";
+    scope === "improvement"
+      ? "Most improved this week."
+      : scope === "comm_score"
+        ? "The strongest communicators."
+        : scope === "global"
+          ? "The gym's best, last 30 days."
+          : scope === "this_week"
+            ? "The gym's best this week."
+            : "Your team's leaders.";
   const subtitle =
-    scope === "global"
-      ? "Ranked by average composite across the last 30 days of reps. A fresh board — stop training and you fall off."
-      : scope === "this_week"
-        ? "Ranked by average composite for the current ISO week (Monday → now). Weekly leaders rotate every Monday."
-        : "Ranked by average composite within your team over the last 30 days.";
+    scope === "improvement"
+      ? "Ranked by this week's improvement over last week — everyone can win this board, whatever their starting point."
+      : scope === "comm_score"
+        ? "Ranked by Overall Communication Score — Cognify's long-run estimate across all six Core Skills."
+        : scope === "global"
+          ? "Ranked by average composite across the last 30 days of reps. A fresh board — stop training and you fall off."
+          : scope === "this_week"
+            ? "Ranked by average composite for the current ISO week (Monday → now). Weekly leaders rotate every Monday."
+            : "Ranked by average composite within your team over the last 30 days.";
 
   return (
     <>
@@ -61,8 +93,8 @@ export function LeaderboardTabs({
         <p className="mt-1 max-w-2xl text-lg text-ink-600">{subtitle}</p>
       </div>
 
-      <div className="mt-8 flex gap-2">
-        {TABS.map((t) => (
+      <div className="mt-8 flex flex-wrap gap-2">
+        {tabs.map((t) => (
           <FilterChip
             key={t.id}
             active={scope === t.id}
@@ -115,7 +147,8 @@ export function LeaderboardTabs({
               Full rankings
             </h2>
             <div className="mt-4">
-              <LeaderboardTable entries={activeBoard.entries} />
+              {/* Rank badge column is v2-only (FF_RANK_SYSTEM). */}
+              <LeaderboardTable entries={activeBoard.entries} showRank={v2} />
             </div>
 
             {activeBoard.selfEntry &&
@@ -233,7 +266,7 @@ function EmptyState({
   scope,
   userInTeam,
 }: {
-  scope: LeaderboardScope;
+  scope: TabId;
   userInTeam: boolean;
 }) {
   if (scope === "team" && !userInTeam) {

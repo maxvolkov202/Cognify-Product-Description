@@ -1,4 +1,6 @@
 import { Flame, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { RankBadge } from "@/components/product/progression/RankBadge";
+import type { RankInfo } from "@/lib/progression/rank";
 
 type Entry = {
   rank: number;
@@ -8,13 +10,22 @@ type Entry = {
   reps: number;
   delta: number;
   team: string;
+  /** PRD §10.5.1 — permanent Cognify Rank badge data (from lifetime XP). */
+  rankBadge?: {
+    label: string;
+    tierColor: string;
+    rankIndex: number;
+    divisionRoman: RankInfo["divisionRoman"];
+  };
 };
 
 type Props = {
   entries: readonly Entry[];
+  /** Render the Cognify Rank shield next to names (FF_RANK_SYSTEM on). */
+  showRank?: boolean;
 };
 
-export function LeaderboardTable({ entries }: Props) {
+export function LeaderboardTable({ entries, showRank = false }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-200">
       <table className="w-full">
@@ -44,6 +55,20 @@ export function LeaderboardTable({ entries }: Props) {
                 <div className="flex items-center gap-3">
                   <Avatar name={e.name} />
                   <span className="font-semibold text-ink-900">{e.name}</span>
+                  {showRank && e.rankBadge && (
+                    <span
+                      className="inline-flex items-center gap-1"
+                      title={e.rankBadge.label}
+                    >
+                      <RankBadge rank={e.rankBadge} size={20} />
+                      <span
+                        className="hidden text-[11px] font-bold md:inline"
+                        style={{ color: e.rankBadge.tierColor }}
+                      >
+                        {e.rankBadge.label}
+                      </span>
+                    </span>
+                  )}
                 </div>
               </td>
               <td className="hidden px-6 py-4 text-ink-600 md:table-cell">{e.team}</td>

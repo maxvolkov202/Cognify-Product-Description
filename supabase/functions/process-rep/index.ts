@@ -9,7 +9,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const DEEPGRAM_API_KEY = Deno.env.get("DEEPGRAM_API_KEY")!;
 const INTERNAL_API_URL = Deno.env.get("INTERNAL_API_URL")!; // e.g. https://cognifygym.com or http://host.docker.internal:3333 for local
-const INTERNAL_SCORING_SECRET = Deno.env.get("INTERNAL_SCORING_SECRET")!;
+// Trim trailing whitespace — defensive against a stray `\n` in the
+// Supabase secret store. The Vercel-side comparator does the same so
+// either side can be cleaned independently without breaking the pair.
+const INTERNAL_SCORING_SECRET = Deno.env.get("INTERNAL_SCORING_SECRET")!.replace(/\s+$/, "");
 
 const SIGNED_URL_TTL_SECONDS = 300;
 
