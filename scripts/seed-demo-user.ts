@@ -22,9 +22,76 @@
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 const DEMO_EMAIL = "demo@cognify.test";
 const DEMO_PASSWORD = "cognify-demo-7h2p9w!D";
 const DAYS = 21;
+
+// ── Demo-guard interlock (prod runbook risk #4) ─────────────────────────
+// The /prod/i regex below likely never matches a real Supabase prod
+// hostname (they look like db.<ref>.supabase.co / aws-0-<region>
+// poolers). The ACTUAL hole: dotenv never overrides pre-set vars, so a
+// shell-exported prod DATABASE_URL — exactly the state the prod-seeding
+// procedure leaves behind — silently wins over .env.local. Interlock:
+// the effective DATABASE_URL host must MATCH the host in .env.local.
+
+function dbHostOf(url: string): string | null {
+  try {
+    const host = new URL(url).hostname;
+    return host ? host.toLowerCase() : null;
+  } catch {
+    // Unencoded credentials can break WHATWG parsing — fall back to a
+    // last-@ host grab.
+    const m = url.match(/@\[?([^/@\s:\]?]+)[^@]*$/);
+    return m?.[1]?.toLowerCase() ?? null;
+  }
+}
+
+function envLocalDatabaseUrl(envLocalPath: string): string | null {
+  if (!existsSync(envLocalPath)) return null;
+  for (const line of readFileSync(envLocalPath, "utf8").split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:export\s+)?DATABASE_URL\s*=\s*(.*)$/);
+    if (!m) continue;
+    let v = m[1]!.trim();
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
+      v = v.slice(1, -1);
+    }
+    return v || null;
+  }
+  return null;
+}
+
+function assertDbHostMatchesEnvLocal(
+  effectiveUrl: string,
+  envLocalPath: string,
+): void {
+  const fileUrl = envLocalDatabaseUrl(envLocalPath);
+  if (!fileUrl) {
+    console.warn(
+      `[guard] no DATABASE_URL found in ${envLocalPath} — host interlock skipped (regex guard still applies).`,
+    );
+    return;
+  }
+  const fileHost = dbHostOf(fileUrl);
+  const envHost = dbHostOf(effectiveUrl);
+  if (!fileHost || !envHost) {
+    throw new Error(
+      "Refusing to run: could not parse a host out of DATABASE_URL (env and/or .env.local) — fix the URL(s) before seeding.",
+    );
+  }
+  if (fileHost !== envHost) {
+    throw new Error(
+      `Refusing to run: process.env.DATABASE_URL points at host "${envHost}" but .env.local points at "${fileHost}". ` +
+        `A shell-exported DATABASE_URL is overriding .env.local (dotenv never overrides pre-set vars) — ` +
+        `likely left over from a prod procedure. Unset it or update .env.local, then re-run.`,
+    );
+  }
+}
 
 // Deterministic PRNG (mulberry32) — same seed, same demo user.
 function rng(seed: number) {
@@ -44,6 +111,10 @@ async function main() {
   if (/prod/i.test(dbUrl) && !/dev|local|staging/i.test(dbUrl)) {
     throw new Error("Refusing to seed a production-looking DATABASE_URL");
   }
+  // Second layer (see the interlock docs above): the effective
+  // DATABASE_URL host must match .env.local's, or a shell export is
+  // steering this seeder at a different (possibly prod) database.
+  assertDbHostMatchesEnvLocal(dbUrl, resolve(process.cwd(), ".env.local"));
 
   const { createClient } = await import("@supabase/supabase-js");
   const { db } = await import("../src/lib/db/client");

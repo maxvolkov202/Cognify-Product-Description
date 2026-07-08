@@ -121,6 +121,33 @@ const nextRepFocusItemSchema = feedbackBulletSchema.extend({
   exampleLine: z.string().max(360).nullable(),
 });
 
+/** PRD v3 engine — the shared implementationReview schema (single-call
+ *  path here + stage-2 in score-stages.ts). Present only on retry reps.
+ *
+ *  Phase 15 I-8 — `technique`: which coaching technique the coached
+ *  focus used (taxonomy: CoachingTechnique in coach-focus.ts). LENIENT
+ *  by design — any value outside the taxonomy is coerced to undefined;
+ *  a bad tag must never fail the whole score parse. */
+export const implementationReviewSchema = z
+  .object({
+    verdict: z.enum(["nailed", "partial", "missed"]),
+    // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
+    // the note where Haiku always wrote one; the verdict is the
+    // load-bearing field, so the note is optional.
+    note: z.string().max(280).optional(),
+    technique: z
+      .enum([
+        "smaller_step",
+        "transcript_example",
+        "related_hidden_skill",
+        "reframe",
+      ])
+      .optional()
+      .catch(undefined),
+  })
+  .nullable()
+  .optional();
+
 const scoringResponseSchema = z.object({
   dimensions: z.array(dimensionScoreSchema).length(ALL_DIMENSIONS.length),
   structuralAdherence: z.number().min(0).max(100).nullable().optional(),
@@ -156,16 +183,7 @@ const scoringResponseSchema = z.object({
    *  legacy calls, and calibration runs validate unchanged; when the
    *  model omits it on a retry, deriveImplementationVerdict() fills in
    *  deterministically. */
-  implementationReview: z
-    .object({
-      verdict: z.enum(["nailed", "partial", "missed"]),
-      // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
-      // the note where Haiku always wrote one; the verdict is the
-      // load-bearing field, so the note is optional.
-      note: z.string().max(280).optional(),
-    })
-    .nullable()
-    .optional(),
+  implementationReview: implementationReviewSchema,
 });
 
 /** Phase 2: per-mode signals plumbed into the scoring prompt so the AI can
@@ -763,6 +781,11 @@ export function renderRetryEvaluationBlock(
     `Write feedback as an IMPLEMENTATION REVIEW, not a fresh critique:`,
     `  - The headline answers: did they implement the coached change?`,
     `  - REQUIRED: your JSON MUST contain a top-level "implementationReview" object — {"implementationReview": {"verdict": "nailed" | "partial" | "missed", "note": "<one sentence on how it landed>"}}. "nailed" = clear behavioral change, "partial" = attempted but inconsistent, "missed" = no behavioral change. Judge the BEHAVIOR, not the score delta. A response without this field is INVALID.`,
+    // Phase 15 I-8 — CALIBRATION GUARDRAIL: this line changes the v2
+    // scoring prompt for RETRY reps only (non-retry prompts stay
+    // byte-identical). Any prompt change batches with a calibration
+    // replay — the orchestrator runs it; do not re-baseline here.
+    `  - In implementationReview also set "technique" — which coaching technique the coached change above used: "smaller_step" (one small concrete action), "transcript_example" (a before/after example from the user's own words), "related_hidden_skill" (coaching an adjacent hidden skill), "reframe" (the same fix under a new framing). Omit the field if none clearly fits.`,
     `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
     `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
   ].join("\n");

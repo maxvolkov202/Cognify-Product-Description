@@ -203,6 +203,8 @@ function WorkoutShellInner({
         objective: s.objective ?? null,
         constraintTypes: s.constraintTypes ?? null,
         responseWindow: s.responseWindow ?? null,
+        // I7 — adaptive time-pressure marker for the Insight screen hint.
+        windowAdjusted: s.windowAdjusted ?? null,
         coachInsight: s.coachInsight ?? null,
         // I5 — "last time on this dim" line for the Insight screen.
         recentFocus: s.recentFocus ?? null,

@@ -7,7 +7,20 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "motion/react";
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  Mic,
+  Sparkles,
+} from "lucide-react";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { softenScoreDelta } from "@/lib/ai/coach-focus";
 import {
@@ -96,12 +109,13 @@ export default function DayCompleteSummary({
   return (
     <div className="space-y-5">
       {/* Hero — celebratory framing per PRD §5.7 + Hunter C16. */}
-      <div className="text-center">
+      <div className="relative text-center">
+        <CelebrationSparkles />
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
           🎉 {MUSCLE_GROUP_LABELS[dim]} day complete
         </div>
         <div className="mt-2 text-6xl sm:text-7xl font-extrabold text-slate-900 dark:text-white leading-none tabular-nums">
-          {composite != null ? Math.round(composite) : "—"}
+          {composite != null ? <CountUpScore value={Math.round(composite)} /> : "—"}
         </div>
         <div className="mt-1 text-xs text-slate-500 dark:text-ink-400 uppercase tracking-wider">
           Composite
@@ -187,8 +201,8 @@ export default function DayCompleteSummary({
           </div>
           {exercisePairs.length > 0 ? (
             <div className="space-y-2.5">
-              {exercisePairs.map((pair) => (
-                <ExercisePairRow key={pair.exerciseId} pair={pair} />
+              {exercisePairs.map((pair, i) => (
+                <ExercisePairRow key={pair.exerciseId} pair={pair} index={i} />
               ))}
               {gradReps.map((rep) => (
                 <div
@@ -221,6 +235,21 @@ export default function DayCompleteSummary({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Empty state — no reps recorded for this day (degraded fetch or a
+          freeze-preserved day). Friendly, on-voice, no dead air. */}
+      {reps.length === 0 && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 shadow-sm text-center">
+          <Mic
+            className="mx-auto w-5 h-5 text-slate-300 dark:text-ink-600"
+            aria-hidden
+          />
+          <p className="mt-2 text-sm text-slate-500 dark:text-ink-400">
+            No reps to show for this day. Tomorrow: no notes, no prep — just
+            reps.
+          </p>
         </div>
       )}
 
@@ -328,6 +357,70 @@ export default function DayCompleteSummary({
   );
 }
 
+/** Final Communication Score count-up (§5.7 celebration). Mirrors the
+ *  CompositeScore idiom: motion value + rounded transform, instant when
+ *  the user prefers reduced motion. */
+function CountUpScore({ value }: { value: number }) {
+  const reduced = useReducedMotion();
+  const motionValue = useMotionValue(reduced ? value : 0);
+  const rounded = useTransform(motionValue, (v) => Math.round(v));
+
+  useEffect(() => {
+    if (reduced) {
+      motionValue.set(value);
+      return;
+    }
+    const controls = animate(motionValue, value, {
+      duration: 0.9,
+      ease: [0.32, 0.72, 0, 1],
+    });
+    return controls.stop;
+  }, [value, motionValue, reduced]);
+
+  return <motion.span>{rounded}</motion.span>;
+}
+
+/** One-time floating sparkles behind the hero score. Pure CSS animation
+ *  (.animate-sparkle plays once, forwards); the reduced-motion guard in
+ *  globals.css keeps them invisible when motion is off. Brand palette
+ *  only — no new colors. */
+const SPARKLES: {
+  left: string;
+  top: string;
+  size: number;
+  delay: number;
+  color: string;
+}[] = [
+  { left: "18%", top: "38%", size: 6, delay: 0.1, color: "var(--color-brand-lavender)" },
+  { left: "30%", top: "62%", size: 4, delay: 0.45, color: "var(--color-brand-blue)" },
+  { left: "40%", top: "24%", size: 5, delay: 0.8, color: "var(--color-brand-magenta)" },
+  { left: "58%", top: "20%", size: 4, delay: 0.3, color: "var(--color-brand-purple)" },
+  { left: "68%", top: "58%", size: 6, delay: 0.6, color: "var(--color-brand-lavender)" },
+  { left: "78%", top: "34%", size: 4, delay: 0.15, color: "var(--color-brand-magenta)" },
+  { left: "86%", top: "56%", size: 5, delay: 0.95, color: "var(--color-brand-blue)" },
+];
+
+function CelebrationSparkles() {
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {SPARKLES.map((s, i) => (
+        <span
+          key={i}
+          className="animate-sparkle absolute rounded-full"
+          style={{
+            left: s.left,
+            top: s.top,
+            width: s.size,
+            height: s.size,
+            backgroundColor: s.color,
+            animationDelay: `${s.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function RepMiniBar({ rep }: { rep: DayRepBreakdown }) {
   const heightPct = Math.max(8, Math.min(100, rep.composite));
   return (
@@ -394,10 +487,26 @@ function groupRepsByExercise(reps: DayRepBreakdown[]): ExercisePair[] {
   return [...byExercise.values()];
 }
 
-function ExercisePairRow({ pair }: { pair: ExercisePair }) {
+function ExercisePairRow({
+  pair,
+  index = 0,
+}: {
+  pair: ExercisePair;
+  index?: number;
+}) {
   const { first, bestFollowUp } = pair;
+  const reduced = useReducedMotion();
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-ink-800 bg-slate-50/60 dark:bg-ink-800/40 px-3 py-2">
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: 0.25 + index * 0.08,
+        duration: 0.4,
+        ease: [0.32, 0.72, 0, 1],
+      }}
+      className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-ink-800 bg-slate-50/60 dark:bg-ink-800/40 px-3 py-2"
+    >
       <span className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-ink-200">
         {pair.exerciseName}
       </span>
@@ -421,7 +530,7 @@ function ExercisePairRow({ pair }: { pair: ExercisePair }) {
           <span>Retry {bestFollowUp.composite}</span>
         ) : null}
       </span>
-    </div>
+    </motion.div>
   );
 }
 

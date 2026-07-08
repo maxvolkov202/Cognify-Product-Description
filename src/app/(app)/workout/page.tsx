@@ -27,7 +27,9 @@ import {
   suggestTodaysMuscleGroup,
   previewTodaysWorkoutPlan,
   getStationRecentFocus,
+  getStationWindowSignals,
 } from "@/server/actions/workout-day";
+import { adaptResponseWindow } from "@/server/lib/workout/assignment";
 import { getLastMuscleGroupDay } from "@/lib/db/queries/muscle-group-progress";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import {
@@ -197,7 +199,13 @@ async function fetchTodaysDayPayload(
     // I5 (PRD §8.6.4) — the coach's most recent focus on this day's dim,
     // shown as one quiet "last time" line on the Insight screen. Scoped
     // to the current user server-side; {} when the v2 engine is off.
-    const recentFocusByDim = await getStationRecentFocus();
+    // I7 — adaptive time-pressure signals for this dim, so the resumed
+    // day rebuilds the SAME adapted windows the server actions produce
+    // (this mapping hydrates from raw exercise rows).
+    const [recentFocusByDim, windowSignals] = await Promise.all([
+      getStationRecentFocus(),
+      getStationWindowSignals(dim),
+    ]);
     const dimRecentFocus = recentFocusByDim[dim] ?? null;
 
     const stations: ShellStation[] = exerciseIds.flatMap((id, index) => {
@@ -209,6 +217,10 @@ async function fetchTodaysDayPayload(
           : index === day.completedReps
             ? "current"
             : "locked";
+      const adaptedWindow = adaptResponseWindow(
+        ex.responseWindow ?? null,
+        windowSignals,
+      );
       const station: ShellStation = {
         index,
         exerciseId: ex.id,
@@ -220,7 +232,8 @@ async function fetchTodaysDayPayload(
         compositeScore: null,
         objective: ex.objective ?? null,
         constraintTypes: ex.constraintTypes ?? null,
-        responseWindow: ex.responseWindow ?? null,
+        responseWindow: adaptedWindow.window,
+        windowAdjusted: adaptedWindow.adjusted,
         coachInsight: ex.coachInsight ?? null,
         recentFocus: dimRecentFocus,
       };

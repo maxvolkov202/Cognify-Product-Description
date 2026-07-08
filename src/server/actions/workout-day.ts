@@ -36,21 +36,26 @@ import {
 import { getSubSkillRunningAverages } from "@/lib/db/queries/sub-skills";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import { SUB_SKILLS } from "@/types/sub-skills";
-import { detectPlateau } from "@/lib/profile/plateau";
 import {
   selectMuscleGroupForToday,
   planUpcomingDims,
   sampleExercises,
   isAssessmentActive,
+  adaptResponseWindow,
   type CatalogExercise,
-  type EngagementSnapshot,
   type RecentDaySnapshot,
-  type RecentRepsSnapshot,
   type SelectResult,
 } from "@/server/lib/workout/assignment";
+import {
+  fetchEngagement,
+  fetchRecentRepsAggregates,
+  fetchPlateauedDims,
+  fetchRecentFocusByDim,
+  fetchCompletedExerciseIds,
+  type StationRecentFocus,
+} from "@/server/lib/workout/day-fetchers";
 import { createWorkoutSession } from "@/server/actions/sessions";
 
-const REP_HISTORY_DAYS = 14;
 const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
 
 /** PRD v3 Phase 2.1 — exercises per day. The v2 engine runs 3 exercises
@@ -60,45 +65,12 @@ function stationsPerDay(): number {
   return isTrainingEngineV2Enabled() ? 3 : 4;
 }
 
-/** PRD v3 Phase 3.5 — dims plateaued per detectPlateau() over the last
- *  21 days of progress snapshots. Empty when the v2 engine is off.
- *  React.cache'd (I4): the suggest path AND every exercise-sampling path
- *  now read it, so dedupe within a request. */
-const fetchPlateauedDims = cache(async (
-  userId: string,
-): Promise<MuscleGroupId[]> => {
-  if (!isTrainingEngineV2Enabled()) return [];
-  if (userId === "anonymous") return [];
-  const rows = await db.execute<{
-    dimension: string;
-    taken_at: Date;
-    score: number;
-  }>(drizzleSql`
-    SELECT dimension::text AS dimension, taken_at, score
-    FROM cognify_v2.progress_snapshots
-    WHERE user_id = ${userId}
-      AND taken_at >= NOW() - INTERVAL '21 days'
-    ORDER BY taken_at ASC
-  `);
-  const byDim = new Map<string, { at: string; score: number }[]>();
-  for (const r of rows) {
-    const list = byDim.get(r.dimension) ?? [];
-    // db.execute returns timestamptz as a STRING (postgres-js raw path —
-    // no drizzle column mapping). .toISOString() on it threw on every
-    // call and safeDb ate it: plateau detection has never fired. Same
-    // class as F-3/F-4 ("the fallback is the lie").
-    list.push({ at: new Date(r.taken_at as unknown as string).toISOString(), score: r.score });
-    byDim.set(r.dimension, list);
-  }
-  const out: MuscleGroupId[] = [];
-  for (const mg of MUSCLE_GROUP_IDS) {
-    const skillDim = muscleGroupToSkillDim(mg);
-    if (!skillDim) continue;
-    const series = byDim.get(skillDim) ?? [];
-    if (detectPlateau(series)) out.push(mg);
-  }
-  return out;
-});
+// PRD v3 Phase 3.5 / I5 / I6 — the action-local raw-SQL fetchers
+// (fetchPlateauedDims, fetchRecentFocusByDim, fetchCompletedExerciseIds,
+// fetchEngagement, fetchRecentRepsAggregates) live in
+// src/server/lib/workout/day-fetchers.ts so the contract harness can
+// execute them against the real dev DB ("use server" files may only
+// export async functions, which would have made them forgeable actions).
 
 /** I3 — the user's Communication Profile signals, shaped for the
  *  assignment engine: core-skill estimates keyed by muscle group (the
@@ -151,46 +123,6 @@ const fetchProfileSignals = cache(async (
  *  src/lib/db/queries/sub-skills.ts. */
 const SUB_SKILL_PROFILE_MIN_SAMPLES = 5;
 
-/** I5 (PRD §8.6.4) — per-dimension "the coach remembers last time"
- *  signal for the Insight screen. */
-export type StationRecentFocus = { text: string; verdict: string | null };
-
-/** I5 — the user's most recent coaching_events row per dimension, keyed
- *  by muscle group (coaching_events stores skill dims — "delivery" maps
- *  back to the "pacing" muscle group). ONE DISTINCT ON query for the
- *  whole day, React.cache'd per request. Empty when the v2 engine is
- *  off, for anonymous users, or before any Coach's Focus was delivered. */
-const fetchRecentFocusByDim = cache(async (
-  userId: string,
-): Promise<Partial<Record<MuscleGroupId, StationRecentFocus>>> => {
-  if (!isTrainingEngineV2Enabled()) return {};
-  if (userId === "anonymous") return {};
-  const rows = await db.execute<{
-    dimension: string;
-    focus_text: string;
-    implemented_verdict: string | null;
-  }>(drizzleSql`
-    SELECT DISTINCT ON (dimension)
-      dimension::text AS dimension,
-      focus_text,
-      implemented_verdict
-    FROM cognify_v2.coaching_events
-    WHERE user_id = ${userId}
-    ORDER BY dimension, created_at DESC
-  `);
-  const bySkillDim = new Map(rows.map((r) => [r.dimension, r]));
-  const out: Partial<Record<MuscleGroupId, StationRecentFocus>> = {};
-  for (const mg of MUSCLE_GROUP_IDS) {
-    const skillDim = muscleGroupToSkillDim(mg);
-    if (!skillDim) continue;
-    const row = bySkillDim.get(skillDim);
-    if (row) {
-      out[mg] = { text: row.focus_text, verdict: row.implemented_verdict };
-    }
-  }
-  return out;
-});
-
 /** I5 — page.tsx entry point (server component hydration path). Scoped
  *  to the CURRENT user server-side, so the exported action carries no
  *  forgeable userId parameter. */
@@ -201,21 +133,6 @@ export async function getStationRecentFocus(): Promise<
   if (!user) return {};
   return safeDb(() => fetchRecentFocusByDim(user.id), {});
 }
-
-/** I6 (PRD §8.5.3 step 2) — every exercise id the user has logged a rep
- *  against, ever. Only queried while the Assessment Phase is active (a
- *  bounded window), so the DISTINCT stays cheap. React.cache'd. */
-const fetchCompletedExerciseIds = cache(async (
-  userId: string,
-): Promise<Set<string>> => {
-  if (userId === "anonymous") return new Set<string>();
-  const rows = await db.execute<{ exercise_id: string }>(drizzleSql`
-    SELECT DISTINCT exercise_id
-    FROM cognify_v2.reps
-    WHERE user_id = ${userId} AND exercise_id IS NOT NULL
-  `);
-  return new Set(rows.map((r) => r.exercise_id));
-});
 
 /** I6 — sampleExercises extras for the Assessment Phase: when the v2
  *  engine is on AND the user is still inside the assessment window,
@@ -302,107 +219,8 @@ function logEvent(event: string, payload: Record<string, unknown>): void {
 }
 
 // ─── World-state fetchers ────────────────────────────────────────────────
-
-async function fetchEngagement(userId: string): Promise<EngagementSnapshot[]> {
-  // Aggregate per-(user, exercise.dimension): row count, avg composite of
-  // engagement.recent_composite, latest last_trained_at. Returns one row
-  // per muscle group present.
-  const rows = await db.execute<{
-    dimension: string;
-    avg_recent: number | null;
-    last_trained: Date | null;
-    row_count: number;
-  }>(drizzleSql`
-    SELECT
-      e.dimension::text AS dimension,
-      AVG(g.recent_composite)::real AS avg_recent,
-      MAX(g.last_trained_at) AS last_trained,
-      COUNT(g.*)::int AS row_count
-    FROM cognify_v2.exercise_engagement g
-    JOIN cognify_v2.exercises e ON e.id = g.exercise_id
-    WHERE g.user_id = ${userId}
-    GROUP BY e.dimension
-  `);
-
-  const byDim = new Map<MuscleGroupId, EngagementSnapshot>();
-  for (const r of rows) {
-    if (!isMuscleGroupId(r.dimension)) continue;
-    byDim.set(r.dimension, {
-      dimension: r.dimension,
-      recentComposite: r.avg_recent,
-      lastTrainedAt: r.last_trained
-        ? new Date(r.last_trained as unknown as string).toISOString()
-        : null,
-      rowCount: r.row_count,
-    });
-  }
-  // Fill in any missing dim with zero-row sentinel for cold-start detection.
-  return MUSCLE_GROUP_IDS.map(
-    (dim) =>
-      byDim.get(dim) ?? {
-        dimension: dim,
-        recentComposite: null,
-        lastTrainedAt: null,
-        rowCount: 0,
-      },
-  );
-}
-
-async function fetchRecentRepsAggregates(
-  userId: string,
-): Promise<RecentRepsSnapshot[]> {
-  const rows = await db.execute<{
-    dimension: string;
-    avg_14: number | null;
-    avg_7: number | null;
-    avg_prior_7: number | null;
-    count_14: number;
-  }>(drizzleSql`
-    SELECT
-      e.dimension::text AS dimension,
-      AVG(r.composite_score) FILTER (
-        WHERE r.created_at >= NOW() - INTERVAL '14 days'
-      )::real AS avg_14,
-      AVG(r.composite_score) FILTER (
-        WHERE r.created_at >= NOW() - INTERVAL '7 days'
-      )::real AS avg_7,
-      AVG(r.composite_score) FILTER (
-        WHERE r.created_at >= NOW() - INTERVAL '14 days'
-          AND r.created_at < NOW() - INTERVAL '7 days'
-      )::real AS avg_prior_7,
-      COUNT(*) FILTER (
-        WHERE r.created_at >= NOW() - INTERVAL '14 days'
-      )::int AS count_14
-    FROM cognify_v2.reps r
-    JOIN cognify_v2.exercises e ON e.id = r.exercise_id
-    WHERE r.user_id = ${userId}
-      AND r.exercise_id IS NOT NULL
-      AND r.created_at >= NOW() - (${REP_HISTORY_DAYS * 2} * INTERVAL '1 day')
-    GROUP BY e.dimension
-  `);
-
-  const byDim = new Map<MuscleGroupId, RecentRepsSnapshot>();
-  for (const r of rows) {
-    if (!isMuscleGroupId(r.dimension)) continue;
-    byDim.set(r.dimension, {
-      dimension: r.dimension,
-      avgComposite14d: r.avg_14,
-      avgComposite7d: r.avg_7,
-      avgCompositePrior7d: r.avg_prior_7,
-      count14d: r.count_14,
-    });
-  }
-  return MUSCLE_GROUP_IDS.map(
-    (dim) =>
-      byDim.get(dim) ?? {
-        dimension: dim,
-        avgComposite14d: null,
-        avgComposite7d: null,
-        avgCompositePrior7d: null,
-        count14d: 0,
-      },
-  );
-}
+// (fetchEngagement / fetchRecentRepsAggregates and the other raw-SQL
+// fetchers live in day-fetchers.ts — see the import note above.)
 
 async function fetchRecentDays(userId: string): Promise<RecentDaySnapshot[]> {
   const rows = await db
@@ -476,6 +294,89 @@ async function fetchCatalogExercises(
   }));
 }
 
+// ─── I-7 — adaptive time pressure ────────────────────────────────────────
+
+/** Signals for adaptResponseWindow, shaped per (user, dim). */
+type WindowSignals = { dimEstimate: number | null; confidenceBuilder: boolean };
+
+const NO_WINDOW_SIGNALS: WindowSignals = {
+  dimEstimate: null,
+  confidenceBuilder: false,
+};
+
+/** I-7 (PRD §8.5.3 step 4, §8.4.4 time-pressure lever) — the two inputs
+ *  to adaptResponseWindow for one dim:
+ *
+ *  - dimEstimate: the Communication Profile's LONG-memory core-skill
+ *    estimate (fetchProfileSignals, I3) — ≥80 tightens the window.
+ *  - confidenceBuilder: today's suggestion is a confidence-builder day
+ *    for THIS dim — loosens the window. suggestTodaysMuscleGroup is
+ *    React.cache'd, and for an already-started day it echoes back
+ *    "weakest_recent", so the loosening only applies while the day is
+ *    being previewed/created ("where available"); resumed days keep the
+ *    profile-driven tightening, which is stable across the day.
+ *
+ *  {null,false} when the v2 engine is off or the user is anonymous →
+ *  adaptResponseWindow returns every window unchanged (legacy behavior
+ *  byte-identical). */
+async function windowSignalsForDim(
+  userId: string,
+  dim: MuscleGroupId,
+): Promise<WindowSignals> {
+  if (!isTrainingEngineV2Enabled()) return NO_WINDOW_SIGNALS;
+  if (userId === "anonymous") return NO_WINDOW_SIGNALS;
+  const [profileSignals, suggest] = await Promise.all([
+    fetchProfileSignals(userId),
+    _suggestTodaysMuscleGroupImpl(),
+  ]);
+  return {
+    dimEstimate: profileSignals?.coreByMg[dim] ?? null,
+    confidenceBuilder:
+      suggest.rationaleCode === "confidence_builder" &&
+      suggest.suggested === dim,
+  };
+}
+
+/** I-7 — page.tsx entry point (server-component hydration of an existing
+ *  day, which rebuilds stations from raw exercise rows). Scoped to the
+ *  CURRENT user server-side, so the exported action carries no forgeable
+ *  userId parameter (same contract as getStationRecentFocus). */
+export async function getStationWindowSignals(
+  dim: MuscleGroupId,
+): Promise<WindowSignals> {
+  const user = await currentUser();
+  if (!user) return NO_WINDOW_SIGNALS;
+  return safeDb(() => windowSignalsForDim(user.id, dim), NO_WINDOW_SIGNALS);
+}
+
+/** Map sampled catalog exercises to Stations, applying the I-7 adaptive
+ *  response window. ONE shared builder for preview / start / self-heal /
+ *  swap so every path produces identical stations from identical inputs
+ *  (preview↔start identity is a hard requirement). */
+function buildStations(
+  sampled: CatalogExercise[],
+  signals: WindowSignals,
+  recentFocus: StationRecentFocus | null,
+): Station[] {
+  return sampled.map((ex, index) => {
+    const adapted = adaptResponseWindow(ex.responseWindow ?? null, signals);
+    return {
+      index,
+      exerciseId: ex.id,
+      exerciseSlug: ex.slug,
+      exerciseName: ex.name,
+      rule: ex.description,
+      why: ex.instructions,
+      objective: ex.objective,
+      responseWindow: adapted.window,
+      windowAdjusted: adapted.adjusted,
+      constraintTypes: ex.constraintTypes ?? null,
+      coachInsight: ex.coachInsight ?? null,
+      recentFocus,
+    };
+  });
+}
+
 // ─── Public actions ──────────────────────────────────────────────────────
 
 /**
@@ -499,17 +400,24 @@ export async function previewTodaysWorkoutPlan(input: {
       fetchCatalogExercises(input.dim),
       fetchRecentDays(userId),
     ]);
-    const [subSkillAverages, plateauedDims, assessmentExtras, recentFocusByDim] =
-      await Promise.all([
-        fetchSubSkillAveragesForDim(userId, input.dim),
-        fetchPlateauedDims(userId),
-        // I6 — assessment days hard-prefer never-seen exercises. Same
-        // extras as startMuscleGroupDay (identical seed) so Start lands
-        // on the exercises the preview showed.
-        assessmentSampleExtras(userId, recentDays),
-        // I5 — "last time on this dim" coaching memory per station.
-        fetchRecentFocusByDim(userId),
-      ]);
+    const [
+      subSkillAverages,
+      plateauedDims,
+      assessmentExtras,
+      recentFocusByDim,
+      windowSignals,
+    ] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, input.dim),
+      fetchPlateauedDims(userId),
+      // I6 — assessment days hard-prefer never-seen exercises. Same
+      // extras as startMuscleGroupDay (identical seed) so Start lands
+      // on the exercises the preview showed.
+      assessmentSampleExtras(userId, recentDays),
+      // I5 — "last time on this dim" coaching memory per station.
+      fetchRecentFocusByDim(userId),
+      // I7 — adaptive response window (same signals as start).
+      windowSignalsForDim(userId, input.dim),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -520,19 +428,11 @@ export async function previewTodaysWorkoutPlan(input: {
       ...(plateauedDims.includes(input.dim) ? { plateaued: true } : {}),
       ...assessmentExtras,
     });
-    const stations: Station[] = sampled.map((ex, index) => ({
-      index,
-      exerciseId: ex.id,
-      exerciseSlug: ex.slug,
-      exerciseName: ex.name,
-      rule: ex.description,
-      why: ex.instructions,
-      objective: ex.objective,
-      responseWindow: ex.responseWindow,
-      constraintTypes: ex.constraintTypes ?? null,
-      coachInsight: ex.coachInsight ?? null,
-      recentFocus: recentFocusByDim[input.dim] ?? null,
-    }));
+    const stations = buildStations(
+      sampled,
+      windowSignals,
+      recentFocusByDim[input.dim] ?? null,
+    );
     return { stations, persisted: false };
   }, { stations: [], persisted: false });
 }
@@ -767,11 +667,31 @@ export async function startMuscleGroupDay(input: {
 
       // I5 — decorate the hydrated stations with the day-dim's most
       // recent Coach's Focus (hydrateStations only sees exercise ids).
-      const existingFocusByDim = await fetchRecentFocusByDim(userId);
-      const existingDimFocus = isMuscleGroupId(existing.dimension as string)
+      // I7 — apply the adaptive response window on resume too (the
+      // profile-driven tightening is stable across the day; the
+      // confidence-builder loosening is only knowable pre-start).
+      const existingIsMg = isMuscleGroupId(existing.dimension as string);
+      const [existingFocusByDim, existingWindowSignals] = await Promise.all([
+        fetchRecentFocusByDim(userId),
+        existingIsMg
+          ? windowSignalsForDim(userId, existing.dimension as MuscleGroupId)
+          : Promise.resolve(NO_WINDOW_SIGNALS),
+      ]);
+      const existingDimFocus = existingIsMg
         ? (existingFocusByDim[existing.dimension as MuscleGroupId] ?? null)
         : null;
-      stations = stations.map((s) => ({ ...s, recentFocus: existingDimFocus }));
+      stations = stations.map((s) => {
+        const adapted = adaptResponseWindow(
+          s.responseWindow,
+          existingWindowSignals,
+        );
+        return {
+          ...s,
+          recentFocus: existingDimFocus,
+          responseWindow: adapted.window,
+          windowAdjusted: adapted.adjusted,
+        };
+      });
 
       // Orphan-day self-heal: planned IDs point at exercises that no
       // longer exist (catalog re-seeded with fresh UUIDs while this
@@ -808,19 +728,11 @@ export async function startMuscleGroupDay(input: {
               .update(muscleGroupDays)
               .set({ plannedExerciseIds: freshIds })
               .where(eq(muscleGroupDays.id, existing.id));
-            stations = resampled.map((ex, index) => ({
-              index,
-              exerciseId: ex.id,
-              exerciseSlug: ex.slug,
-              exerciseName: ex.name,
-              rule: ex.description,
-              why: ex.instructions,
-              objective: ex.objective,
-              responseWindow: ex.responseWindow,
-              constraintTypes: ex.constraintTypes ?? null,
-              coachInsight: ex.coachInsight ?? null,
-              recentFocus: existingDimFocus,
-            }));
+            stations = buildStations(
+              resampled,
+              existingWindowSignals,
+              existingDimFocus,
+            );
             logEvent("workout.day.self_healed", {
               userId,
               dayId: existing.id,
@@ -869,13 +781,21 @@ export async function startMuscleGroupDay(input: {
       fetchCatalogExercises(chosenDim),
       fetchRecentDays(userId),
     ]);
-    const [subSkillAverages, plateauedDims, startAssessment, startFocusByDim] =
-      await Promise.all([
-        fetchSubSkillAveragesForDim(userId, chosenDim),
-        fetchPlateauedDims(userId),
-        assessmentSampleExtras(userId, recentDays),
-        fetchRecentFocusByDim(userId),
-      ]);
+    const [
+      subSkillAverages,
+      plateauedDims,
+      startAssessment,
+      startFocusByDim,
+      startWindowSignals,
+    ] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, chosenDim),
+      fetchPlateauedDims(userId),
+      assessmentSampleExtras(userId, recentDays),
+      fetchRecentFocusByDim(userId),
+      // I7 — same signals as previewTodaysWorkoutPlan, so preview and
+      // start produce identical stations (window included).
+      windowSignalsForDim(userId, chosenDim),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -943,19 +863,11 @@ export async function startMuscleGroupDay(input: {
       inserted = winner;
     }
 
-    const stations: Station[] = sampled.map((ex, index) => ({
-      index,
-      exerciseId: ex.id,
-      exerciseSlug: ex.slug,
-      exerciseName: ex.name,
-      rule: ex.description,
-      why: ex.instructions,
-      objective: ex.objective,
-      responseWindow: ex.responseWindow,
-      constraintTypes: ex.constraintTypes ?? null,
-      coachInsight: ex.coachInsight ?? null,
-      recentFocus: startFocusByDim[chosenDim] ?? null,
-    }));
+    const stations = buildStations(
+      sampled,
+      startWindowSignals,
+      startFocusByDim[chosenDim] ?? null,
+    );
 
     // Open the workout_session for the new day so the rest of the
     // pipeline (prompt-selection events, rep recording state) has a
@@ -1020,13 +932,20 @@ export async function swapMuscleGroup(input: {
       return { ok: false as const, reason: "no_catalog" };
     }
     const recentDays = await fetchRecentDays(userId);
-    const [swapAverages, swapPlateaued, swapAssessment, swapFocusByDim] =
-      await Promise.all([
-        fetchSubSkillAveragesForDim(userId, input.newDim),
-        fetchPlateauedDims(userId),
-        assessmentSampleExtras(userId, recentDays),
-        fetchRecentFocusByDim(userId),
-      ]);
+    const [
+      swapAverages,
+      swapPlateaued,
+      swapAssessment,
+      swapFocusByDim,
+      swapWindowSignals,
+    ] = await Promise.all([
+      fetchSubSkillAveragesForDim(userId, input.newDim),
+      fetchPlateauedDims(userId),
+      assessmentSampleExtras(userId, recentDays),
+      fetchRecentFocusByDim(userId),
+      // I7 — adaptive window for the swapped-to dim.
+      windowSignalsForDim(userId, input.newDim),
+    ]);
     const sampled = sampleExercises({
       available,
       recentDays,
@@ -1053,19 +972,11 @@ export async function swapMuscleGroup(input: {
       toDim: input.newDim,
     });
 
-    const stations: Station[] = sampled.map((ex, index) => ({
-      index,
-      exerciseId: ex.id,
-      exerciseSlug: ex.slug,
-      exerciseName: ex.name,
-      rule: ex.description,
-      why: ex.instructions,
-      objective: ex.objective,
-      responseWindow: ex.responseWindow,
-      constraintTypes: ex.constraintTypes ?? null,
-      coachInsight: ex.coachInsight ?? null,
-      recentFocus: swapFocusByDim[input.newDim] ?? null,
-    }));
+    const stations = buildStations(
+      sampled,
+      swapWindowSignals,
+      swapFocusByDim[input.newDim] ?? null,
+    );
 
     return {
       ok: true as const,
@@ -1097,7 +1008,7 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
 
   const byId = new Map(rows.map((r) => [r.id, r]));
   return exerciseIds
-    .map((id, index) => {
+    .map((id, index): Station | null => {
       const row = byId.get(id);
       if (!row) return null;
       return {
@@ -1108,7 +1019,10 @@ async function hydrateStations(exerciseIds: string[]): Promise<Station[]> {
         rule: row.description,
         why: row.instructions,
         objective: row.objective ?? null,
+        // Raw catalog window; the existing-day caller applies the I-7
+        // adaptation (hydrateStations has no user context).
         responseWindow: row.responseWindow ?? null,
+        windowAdjusted: null,
         constraintTypes: row.constraintTypes ?? null,
         coachInsight: row.coachInsight ?? null,
       } satisfies Station;

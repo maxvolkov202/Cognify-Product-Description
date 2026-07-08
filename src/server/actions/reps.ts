@@ -401,6 +401,11 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             dimension: coachFocus.dimension,
             subSkill: coachFocus.subSkill,
             focusText: coachFocus.text,
+            // Phase 15 I-8 — technique tag carried by deriveCoachFocus
+            // (from the retry's implementationReview; null on first
+            // reps — their technique is classified by the retry's
+            // verdict backfill below).
+            technique: coachFocus.technique ?? null,
           });
         }
         if (
@@ -442,9 +447,23 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             }
           }
           if (verdict) {
+            // Phase 15 I-8 — the retry classified which technique the
+            // COACHED focus used (implementationReview.technique), so
+            // stamp it on the parent row together with the verdict.
+            // This is what makes per-(dimension, technique)
+            // effectiveness computable: verdicts only ever land on
+            // first-rep rows (parentRepId always points at the First
+            // Rep), and first-rep focuses are untagged at insert time.
+            // The isNull(implementedVerdict) guard means we never
+            // overwrite an earlier classification.
+            const technique =
+              input.score.implementationReview?.technique ?? null;
             await db
               .update(coachingEvents)
-              .set({ implementedVerdict: verdict })
+              .set({
+                implementedVerdict: verdict,
+                ...(technique ? { technique } : {}),
+              })
               .where(
                 and(
                   eq(coachingEvents.repId, input.parentRepId),
@@ -555,6 +574,9 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
             applicationId,
             applicationSkills,
             composite: input.score.composite,
+            // Phase 15 I-9 — coached attempts (retry/again) fold at half
+            // the learning rate; see COACHED_ATTEMPT_WEIGHT.
+            attemptKind: input.attemptKind ?? "first",
             at: new Date().toISOString(),
           });
           await db

@@ -64,6 +64,37 @@ export function learningRate(sampleCount: number): number {
   return 1 / Math.min(sampleCount + 1, PROFILE_MAX_SAMPLE_WEIGHT);
 }
 
+/**
+ * Phase 15 I-9 — coached attempts fold at HALF the learning rate.
+ *
+ * The profile is Cognify's estimate of how the user CURRENTLY
+ * communicates unaided. A retry seconds after targeted coaching ("do
+ * this one thing") measures the coached ceiling, not the baseline —
+ * folding it at full weight drifts the profile toward that ceiling and
+ * then every downstream engine (dim selection, plateau detection,
+ * benchmarks) overestimates the user. The PRD's "every rep contributes"
+ * (§8.3) is preserved: retry/again evidence still moves the estimate
+ * and still increments sampleCount — just at half the k.
+ * Recommendation approved by Max (audit item I-9).
+ */
+export const COACHED_ATTEMPT_WEIGHT = 0.5;
+
+function isCoachedAttempt(kind: RepEvidence["attemptKind"]): boolean {
+  return kind === "retry" || kind === "again";
+}
+
+/** One EMA step, honoring the coached-attempt half weight. */
+function foldEstimate(
+  prevScore: number,
+  prevSampleCount: number,
+  evidenceScore: number,
+  coached: boolean,
+): number {
+  const k =
+    learningRate(prevSampleCount) * (coached ? COACHED_ATTEMPT_WEIGHT : 1);
+  return Math.round((prevScore + k * (evidenceScore - prevScore)) * 10) / 10;
+}
+
 /** Overall Communication Score (PRD §10.3): DIMENSION_WEIGHTS-weighted
  *  average over measured core skills. Null until at least 3 skills have
  *  evidence — a one-skill "overall" would be noise dressed as a number. */
@@ -101,6 +132,11 @@ export type RepEvidence = {
    *  canonical set are skipped. */
   applicationSkills?: string[] | null;
   composite?: number | null;
+  /** Phase 15 I-9 — where the rep sits in the exercise learning loop
+   *  (reps.attempt_kind). "retry"/"again" attempts happen seconds after
+   *  targeted coaching and fold at HALF the learning rate (see
+   *  COACHED_ATTEMPT_WEIGHT). Omitted/"first"/null → full weight. */
+  attemptKind?: "first" | "retry" | "again" | null;
   /** ISO timestamp of the rep. */
   at: string;
 };
@@ -112,6 +148,12 @@ export function applyRepToProfile(
   profile: CommunicationProfileState,
   evidence: RepEvidence,
 ): CommunicationProfileState {
+  // Phase 15 I-9 — coached attempts (retry/again) move every estimate at
+  // half the k. When the evidence CREATES an estimate (no prior), it is
+  // adopted outright regardless: an EMA has nothing to blend against,
+  // and in practice a retry is always preceded by its first attempt.
+  const coached = isCoachedAttempt(evidence.attemptKind);
+
   const coreSkills = { ...profile.coreSkills };
   for (const d of evidence.dimensions) {
     if (!CANONICAL_DIMS.has(d.dimension)) continue;
@@ -121,9 +163,8 @@ export function applyRepToProfile(
     if (!prev) {
       coreSkills[dim] = { score: d.score, sampleCount: 1, updatedAt: evidence.at };
     } else {
-      const k = learningRate(prev.sampleCount);
       coreSkills[dim] = {
-        score: Math.round((prev.score + k * (d.score - prev.score)) * 10) / 10,
+        score: foldEstimate(prev.score, prev.sampleCount, d.score, coached),
         sampleCount: prev.sampleCount + 1,
         updatedAt: evidence.at,
       };
@@ -140,9 +181,8 @@ export function applyRepToProfile(
       if (!prev) {
         hiddenSkills[skillId] = { score: raw, sampleCount: 1 };
       } else {
-        const k = learningRate(prev.sampleCount);
         hiddenSkills[skillId] = {
-          score: Math.round((prev.score + k * (raw - prev.score)) * 10) / 10,
+          score: foldEstimate(prev.score, prev.sampleCount, raw, coached),
           sampleCount: prev.sampleCount + 1,
         };
       }
@@ -174,11 +214,13 @@ export function applyRepToProfile(
         if (!prevSkill) {
           skills[skillId] = { score: composite, sampleCount: 1 };
         } else {
-          const k = learningRate(prevSkill.sampleCount);
           skills[skillId] = {
-            score:
-              Math.round((prevSkill.score + k * (composite - prevSkill.score)) * 10) /
-              10,
+            score: foldEstimate(
+              prevSkill.score,
+              prevSkill.sampleCount,
+              composite,
+              coached,
+            ),
             sampleCount: prevSkill.sampleCount + 1,
           };
         }
@@ -193,10 +235,8 @@ export function applyRepToProfile(
         skills,
       };
     } else {
-      const k = learningRate(prev.sampleCount);
       applications[evidence.applicationId] = {
-        score:
-          Math.round((prev.score + k * (composite - prev.score)) * 10) / 10,
+        score: foldEstimate(prev.score, prev.sampleCount, composite, coached),
         sampleCount: prev.sampleCount + 1,
         updatedAt: evidence.at,
         skills,

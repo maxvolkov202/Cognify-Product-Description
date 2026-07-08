@@ -11,8 +11,10 @@
  */
 
 import {
+  COACHING_TECHNIQUES,
   deriveCoachFocus,
   deriveImplementationVerdict,
+  isCoachingTechnique,
   softenScoreDelta,
 } from "@/lib/ai/coach-focus";
 import type { RepScore } from "@/types/domain";
@@ -130,6 +132,90 @@ section("deriveCoachFocus");
   assert(
     f7?.dimension === "tone",
     "structural_adherence primary falls back to weakest core dimension",
+  );
+}
+
+section("coaching technique (Phase 15 I-8)");
+{
+  assert(
+    COACHING_TECHNIQUES.length === 4 &&
+      isCoachingTechnique("smaller_step") &&
+      isCoachingTechnique("transcript_example") &&
+      isCoachingTechnique("related_hidden_skill") &&
+      isCoachingTechnique("reframe"),
+    "taxonomy pinned to the four techniques",
+  );
+  assert(
+    !isCoachingTechnique("bigger_step") && !isCoachingTechnique(null),
+    "guard rejects unknown values",
+  );
+
+  // Retry-evaluated score: the implementationReview technique tag rides
+  // the derived focus — this is the exact shape saveRep's ledger insert
+  // persists (coachingEvents.technique = coachFocus.technique).
+  const tagged = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "structure",
+      implementationReview: {
+        verdict: "partial",
+        note: "Attempted the map but lost it mid-answer.",
+        technique: "smaller_step",
+      },
+      nextRepFocus: [
+        {
+          ...bullet("structure", "Lead with the answer.", "bottom_line_discipline"),
+          exampleLine: null,
+        },
+      ],
+    }),
+  );
+  assert(
+    tagged?.technique === "smaller_step",
+    "implementationReview.technique carried onto the CoachFocus",
+  );
+
+  // First-rep score (no implementationReview) → technique null.
+  const untagged = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "structure",
+      nextRepFocus: [
+        { ...bullet("structure", "Lead with the answer."), exampleLine: null },
+      ],
+    }),
+  );
+  assert(
+    untagged !== null && untagged.technique === null,
+    "no implementationReview → technique null",
+  );
+
+  // Lenient carry: junk tag on the score never leaks into the ledger.
+  const junkTag = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "structure",
+      implementationReview: {
+        verdict: "missed",
+        technique: "vibes" as never,
+      },
+      nextRepFocus: [
+        { ...bullet("structure", "Lead with the answer."), exampleLine: null },
+      ],
+    }),
+  );
+  assert(
+    junkTag?.technique === null,
+    "invalid technique tag → null on the CoachFocus",
+  );
+
+  // The bare-dimension fallback path carries the tag too.
+  const bare = deriveCoachFocus(
+    mkScore({
+      primaryFocusDimension: "tone",
+      implementationReview: { verdict: "nailed", technique: "reframe" },
+    }),
+  );
+  assert(
+    bare?.technique === "reframe",
+    "bare-dimension fallback carries the technique",
   );
 }
 

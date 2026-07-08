@@ -1,0 +1,26 @@
+# Uptime monitor for production (plans/prod-promotion-runbook.md).
+# GitHub emails the repo owner when a scheduled run fails — that email IS
+# the alert. Scheduled workflows only run from the default branch, so this
+# activates when the branch merges to main.
+name: uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe /api/health
+        run: |
+          for attempt in 1 2 3; do
+            body=$(curl -sS -m 20 https://cognify-v2-neon.vercel.app/api/health) && \
+              echo "$body" | grep -q '"ok":true' && exit 0
+            echo "attempt $attempt failed: $body"
+            sleep 20
+          done
+          echo "::error::production /api/health failing after 3 attempts"
+          exit 1

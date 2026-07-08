@@ -50,6 +50,11 @@ async function main() {
   const sql = postgres(url, { max: 1, prepare: false });
 
   try {
+    // Phase 15 I-9 — attempt_kind rides along so coached attempts
+    // (retry/again) replay at half the learning rate, exactly like the
+    // live saveRep fold. Replay order stays created_at ASC per user —
+    // the EMA is order-sensitive, so the backfilled profile matches one
+    // accumulated live.
     const rows = await sql<
       {
         user_id: string;
@@ -58,6 +63,7 @@ async function main() {
         composite_score: number | null;
         application: string | null;
         application_skills: string[] | null;
+        attempt_kind: string | null;
         dimension: string;
         score: number;
         signals: unknown;
@@ -65,6 +71,7 @@ async function main() {
     >`
       SELECT r.user_id, r.id AS rep_id, r.created_at,
              r.composite_score, e.application, e.application_skills,
+             r.attempt_kind,
              ds.dimension::text AS dimension, ds.score, ds.signals
       FROM cognify_v2.reps r
       LEFT JOIN cognify_v2.exercises e ON e.id = r.exercise_id
@@ -82,6 +89,7 @@ async function main() {
       applicationId: string | null;
       applicationSkills: string[] | null;
       composite: number | null;
+      attemptKind: "first" | "retry" | "again";
     };
     const byUser = new Map<string, Map<string, Evidence>>();
     for (const row of rows) {
@@ -99,6 +107,12 @@ async function main() {
           applicationId: row.application ?? null,
           applicationSkills: row.application_skills ?? null,
           composite: row.composite_score,
+          // Phase 15 I-9 — coached attempts replay at half k, matching
+          // the live fold. Unknown values default to full weight.
+          attemptKind:
+            row.attempt_kind === "retry" || row.attempt_kind === "again"
+              ? row.attempt_kind
+              : "first",
         };
         userReps.set(row.rep_id, ev);
       }

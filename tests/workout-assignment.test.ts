@@ -22,8 +22,10 @@ import {
   detectSharpRegression,
   effectiveCompositeFor,
   isAssessmentActive,
+  adaptResponseWindow,
   ASSESSMENT_DAYS,
   PROFILE_FALLBACK_WEIGHT,
+  WINDOW_TIGHTEN_DIM_ESTIMATE,
   type CatalogExercise,
   type CatalogPrompt,
   type EngagementSnapshot,
@@ -1112,6 +1114,165 @@ section("prompt slate tag diversity (G5)");
   assert(
     JSON.stringify(difficulties) === JSON.stringify(sortedAsc),
     `G5 preserves the preferEasier ascending difficulty profile (got ${difficulties.join(",")})`,
+  );
+}
+
+// ─── I-7. adaptResponseWindow — adaptive time pressure ───────────────────
+section("adaptResponseWindow (I-7)");
+{
+  const noSignals = { dimEstimate: null, confidenceBuilder: false };
+
+  // Null window passes through untouched.
+  const nullWin = adaptResponseWindow(null, {
+    dimEstimate: 95,
+    confidenceBuilder: true,
+  });
+  assert(
+    nullWin.window === null && nullWin.adjusted === null,
+    "null window → null window, adjusted null",
+  );
+
+  // No signals → unchanged, same object semantics.
+  const plain = adaptResponseWindow({ minSec: 60, maxSec: 90 }, noSignals);
+  assert(
+    plain.window?.minSec === 60 &&
+      plain.window?.maxSec === 90 &&
+      plain.adjusted === null,
+    "no signals → window unchanged, adjusted null",
+  );
+
+  // Tighten: dimEstimate exactly at the 80 boundary fires; 15% off,
+  // rounded to 5s (60→51→50, 90→76.5→75).
+  const tightened = adaptResponseWindow(
+    { minSec: 60, maxSec: 90 },
+    { dimEstimate: WINDOW_TIGHTEN_DIM_ESTIMATE, confidenceBuilder: false },
+  );
+  assert(
+    tightened.window?.minSec === 50 &&
+      tightened.window?.maxSec === 75 &&
+      tightened.adjusted === "tightened",
+    `dimEstimate=80 tightens 60–90 → 50–75 (got ${tightened.window?.minSec}–${tightened.window?.maxSec}, ${tightened.adjusted})`,
+  );
+
+  // Just under the boundary → unchanged.
+  const under = adaptResponseWindow(
+    { minSec: 60, maxSec: 90 },
+    { dimEstimate: 79.9, confidenceBuilder: false },
+  );
+  assert(
+    under.window?.minSec === 60 &&
+      under.window?.maxSec === 90 &&
+      under.adjusted === null,
+    "dimEstimate=79.9 leaves the window unchanged",
+  );
+
+  // Rounding to nearest 5s: 62→52.7→55, 88→74.8→75.
+  const rounded = adaptResponseWindow(
+    { minSec: 62, maxSec: 88 },
+    { dimEstimate: 85, confidenceBuilder: false },
+  );
+  assert(
+    rounded.window?.minSec === 55 && rounded.window?.maxSec === 75,
+    `tighten rounds to 5s: 62–88 → 55–75 (got ${rounded.window?.minSec}–${rounded.window?.maxSec})`,
+  );
+
+  // Min floor at 15s: 16→13.6→15(floored), 40→34→35.
+  const floored = adaptResponseWindow(
+    { minSec: 16, maxSec: 40 },
+    { dimEstimate: 90, confidenceBuilder: false },
+  );
+  assert(
+    floored.window?.minSec === 15 &&
+      floored.window?.maxSec === 35 &&
+      floored.adjusted === "tightened",
+    `tighten floors min at 15s: 16–40 → 15–35 (got ${floored.window?.minSec}–${floored.window?.maxSec})`,
+  );
+
+  // Degenerate tiny window rounds back onto itself → adjusted stays null
+  // (the UI must never claim an adjustment that didn't happen).
+  const noop = adaptResponseWindow(
+    { minSec: 15, maxSec: 15 },
+    { dimEstimate: 90, confidenceBuilder: false },
+  );
+  assert(
+    noop.window?.minSec === 15 &&
+      noop.window?.maxSec === 15 &&
+      noop.adjusted === null,
+    "tighten that changes nothing reports adjusted=null",
+  );
+
+  // Max never tightens below min: 15–20 → min 15 (floor), max 17→15.
+  const clamped = adaptResponseWindow(
+    { minSec: 15, maxSec: 20 },
+    { dimEstimate: 90, confidenceBuilder: false },
+  );
+  assert(
+    clamped.window?.minSec === 15 &&
+      clamped.window?.maxSec === 15 &&
+      clamped.adjusted === "tightened",
+    `tighten clamps max ≥ min: 15–20 → 15–15 (got ${clamped.window?.minSec}–${clamped.window?.maxSec}, ${clamped.adjusted})`,
+  );
+
+  // Loosen: confidence-builder day, 15% up (60→69→70, 90→103.5→105).
+  const loosened = adaptResponseWindow(
+    { minSec: 60, maxSec: 90 },
+    { dimEstimate: null, confidenceBuilder: true },
+  );
+  assert(
+    loosened.window?.minSec === 70 &&
+      loosened.window?.maxSec === 105 &&
+      loosened.adjusted === "loosened",
+    `confidence builder loosens 60–90 → 70–105 (got ${loosened.window?.minSec}–${loosened.window?.maxSec}, ${loosened.adjusted})`,
+  );
+
+  // Loosen caps max at 300s: 230→264.5→265, 270→310.5→310→300.
+  const capped = adaptResponseWindow(
+    { minSec: 230, maxSec: 270 },
+    { dimEstimate: null, confidenceBuilder: true },
+  );
+  assert(
+    capped.window?.minSec === 265 &&
+      capped.window?.maxSec === 300 &&
+      capped.adjusted === "loosened",
+    `loosen caps max at 300: 230–270 → 265–300 (got ${capped.window?.minSec}–${capped.window?.maxSec})`,
+  );
+
+  // Already at the cap → nothing changes → adjusted null.
+  const atCap = adaptResponseWindow(
+    { minSec: 300, maxSec: 300 },
+    { dimEstimate: null, confidenceBuilder: true },
+  );
+  assert(
+    atCap.window?.minSec === 300 &&
+      atCap.window?.maxSec === 300 &&
+      atCap.adjusted === null,
+    "loosen at the 300s cap reports adjusted=null",
+  );
+
+  // Precedence: both signals set → confidenceBuilder WINS (loosen).
+  const both = adaptResponseWindow(
+    { minSec: 60, maxSec: 90 },
+    { dimEstimate: 95, confidenceBuilder: true },
+  );
+  assert(
+    both.adjusted === "loosened" &&
+      both.window?.minSec === 70 &&
+      both.window?.maxSec === 105,
+    "confidenceBuilder wins over dimEstimate≥80 (loosened)",
+  );
+
+  // Deterministic: identical inputs → identical outputs.
+  const a = adaptResponseWindow(
+    { minSec: 45, maxSec: 75 },
+    { dimEstimate: 88, confidenceBuilder: false },
+  );
+  const b = adaptResponseWindow(
+    { minSec: 45, maxSec: 75 },
+    { dimEstimate: 88, confidenceBuilder: false },
+  );
+  assert(
+    JSON.stringify(a) === JSON.stringify(b),
+    "adaptResponseWindow is deterministic",
   );
 }
 

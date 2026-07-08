@@ -78,7 +78,11 @@ import {
   renderReferenceRepsBlock,
 } from "./rag/reference-reps";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
-import { renderEventContextBlock, renderRetryEvaluationBlock } from "./score";
+import {
+  implementationReviewSchema,
+  renderEventContextBlock,
+  renderRetryEvaluationBlock,
+} from "./score";
 import {
   getExerciseScoringContext,
   renderExerciseXmlBlock,
@@ -322,17 +326,10 @@ const stage2Schema = z.object({
   nextRepHint: z.string().min(2).max(60),
   /** PRD v3 engine — present only when the user prompt carried a
    *  RETRY EVALUATION block. Optional so non-retry reps validate
-   *  unchanged; deriveImplementationVerdict() covers omission. */
-  implementationReview: z
-    .object({
-      verdict: z.enum(["nailed", "partial", "missed"]),
-      // Phase 11.A — GPT-4o (the OpenAI-primary path) sometimes omits
-      // the note where Haiku always wrote one; the verdict is the
-      // load-bearing field, so the note is optional.
-      note: z.string().max(280).optional(),
-    })
-    .nullable()
-    .optional(),
+   *  unchanged; deriveImplementationVerdict() covers omission.
+   *  Phase 15 I-8 — shared schema now carries the lenient `technique`
+   *  tag (invalid values → undefined, never a parse failure). */
+  implementationReview: implementationReviewSchema,
 });
 
 // ——— Stage outputs ——————————————————————————————————————————
@@ -551,9 +548,13 @@ function normalizeAnchorFieldsInArrays(parsed: unknown): unknown {
   return obj;
 }
 
+// Input widened to `unknown` (Phase 15 I-8): the implementationReview
+// schema now carries a lenient .catch() field whose input type differs
+// from its output; z.ZodSchema<T> forces input === output and collapsed
+// the inferred field to `unknown`. Behavior-neutral for all callers.
 function parseJsonResponse<T>(
   responseText: string,
-  schema: z.ZodSchema<T>,
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
   stageName: string,
 ): T {
   const MAX_BYTES = 64 * 1024;

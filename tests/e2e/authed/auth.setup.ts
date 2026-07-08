@@ -9,11 +9,67 @@
 import { test as setup, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-config({ path: resolve(__dirname, "../../../.env.local") });
+const ENV_LOCAL_PATH = resolve(__dirname, "../../../.env.local");
+config({ path: ENV_LOCAL_PATH });
 
 import { DEMO_STORAGE_STATE } from "./helpers";
+
+// ── Demo-guard interlock (prod runbook risk #4) ─────────────────────────
+// dotenv never overrides pre-set vars, so a shell-exported prod
+// DATABASE_URL (exactly the state the prod-seeding procedure leaves
+// behind) silently wins over .env.local — and this setup provisions +
+// signs in test users against whatever environment the process sees.
+// Abort when the effective DATABASE_URL host differs from .env.local's.
+// (The baseURL production check below stays as a second layer.)
+
+function dbHostOf(url: string): string | null {
+  try {
+    const host = new URL(url).hostname;
+    return host ? host.toLowerCase() : null;
+  } catch {
+    const m = url.match(/@\[?([^/@\s:\]?]+)[^@]*$/);
+    return m?.[1]?.toLowerCase() ?? null;
+  }
+}
+
+function envLocalDatabaseUrl(): string | null {
+  if (!existsSync(ENV_LOCAL_PATH)) return null;
+  for (const line of readFileSync(ENV_LOCAL_PATH, "utf8").split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:export\s+)?DATABASE_URL\s*=\s*(.*)$/);
+    if (!m) continue;
+    let v = m[1]!.trim();
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
+      v = v.slice(1, -1);
+    }
+    return v || null;
+  }
+  return null;
+}
+
+function assertDbHostMatchesEnvLocal(): void {
+  const effectiveUrl = process.env.DATABASE_URL;
+  const fileUrl = envLocalDatabaseUrl();
+  if (!effectiveUrl || !fileUrl) {
+    // No .env.local DATABASE_URL (CI env-only setups) or no effective
+    // URL at all — nothing to cross-check; the baseURL guard still runs.
+    return;
+  }
+  const fileHost = dbHostOf(fileUrl);
+  const envHost = dbHostOf(effectiveUrl);
+  if (fileHost && envHost && fileHost !== envHost) {
+    throw new Error(
+      `Refusing to run auth setup: process.env.DATABASE_URL points at host "${envHost}" but .env.local points at "${fileHost}". ` +
+        `A shell-exported DATABASE_URL is overriding .env.local (dotenv never overrides pre-set vars) — ` +
+        `likely left over from a prod procedure. Unset it or update .env.local, then re-run.`,
+    );
+  }
+}
 
 export const STORAGE_STATE = resolve(__dirname, ".auth/user.json");
 
@@ -24,6 +80,7 @@ const DEMO_EMAIL = "demo@cognify.test";
 const DEMO_PASSWORD = "cognify-demo-7h2p9w!D";
 
 setup("authenticate as the e2e test user", async ({ page, baseURL }) => {
+  assertDbHostMatchesEnvLocal();
   if (baseURL?.includes("cognifygym.com")) {
     throw new Error("Refusing to run the auth setup against production.");
   }
@@ -60,6 +117,7 @@ setup("authenticate as the e2e test user", async ({ page, baseURL }) => {
 });
 
 setup("authenticate as the demo user (when seeded)", async ({ browser, baseURL }) => {
+  assertDbHostMatchesEnvLocal();
   if (baseURL?.includes("cognifygym.com")) {
     throw new Error("Refusing to run the auth setup against production.");
   }

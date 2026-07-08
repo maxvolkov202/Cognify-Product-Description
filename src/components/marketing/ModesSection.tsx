@@ -35,13 +35,17 @@ export function ModesSection() {
           {modes.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="surface-card p-6 transition-shadow hover:shadow-[var(--shadow-glow)]"
+              className="surface-card overflow-hidden transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)]"
             >
-              <div className="brand-gradient mb-4 grid size-9 place-items-center rounded-lg shadow-sm">
-                <Icon className="size-4.5 text-white" aria-hidden="true" />
+              {/* Thin brand strip — same idiom as the app's score cards. */}
+              <div className="brand-gradient h-1" aria-hidden="true" />
+              <div className="p-6">
+                <div className="brand-gradient mb-4 grid size-9 place-items-center rounded-lg shadow-sm">
+                  <Icon className="size-4.5 text-white" aria-hidden="true" />
+                </div>
+                <h3 className="text-[17px] font-bold text-ink-900">{title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-500">{body}</p>
               </div>
-              <h3 className="text-[17px] font-bold text-ink-900">{title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-500">{body}</p>
             </div>
           ))}
         </div>

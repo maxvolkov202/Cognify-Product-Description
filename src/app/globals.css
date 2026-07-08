@@ -173,6 +173,104 @@
   --shadow-glow-xl: 0 28px 80px -20px rgb(151 136 255 / 0.75);
 }
 
+/* ─── Shared celebration/polish animations (PRD v3 wave-3 visual pass) ──
+ * Small, brand-consistent motion utilities. Every one of these is
+ * decorative — the prefers-reduced-motion block at the end disables them
+ * without changing layout or hiding content. */
+
+/* Slow highlight sweep across a brand-gradient surface (primary CTA).
+ * The sweep occupies ~1.4s of an 8s loop, low opacity — a glint, not a
+ * marquee. Host element gains position/overflow so the band clips. */
+.animate-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.animate-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 50%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgb(255 255 255 / 0.22),
+    transparent
+  );
+  transform: skewX(-14deg);
+  animation: sheen-sweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sheen-sweep {
+  0%,
+  82% {
+    transform: translateX(0) skewX(-14deg);
+  }
+  100% {
+    transform: translateX(340%) skewX(-14deg);
+  }
+}
+
+/* Brief scale-pop for the rank badge on a rank-up. Runs once. */
+.animate-badge-pop {
+  animation: badge-pop 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.75);
+  }
+  45% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Progress-bar fill: animates width from 0 to the inline width. Only the
+ * `from` is declared so the `to` resolves to the element's own style. */
+.animate-fill-from-zero {
+  animation: fill-from-zero 600ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes fill-from-zero {
+  from {
+    width: 0%;
+  }
+}
+
+/* One-shot floating sparkle for the Day Complete hero. Base opacity 0 so
+ * particles are invisible whenever the animation doesn't run. */
+.animate-sparkle {
+  opacity: 0;
+  animation: sparkle-float 1.7s ease-out forwards;
+}
+@keyframes sparkle-float {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.4);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-36px) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheen::after {
+    animation: none;
+    opacity: 0;
+  }
+  .animate-badge-pop,
+  .animate-fill-from-zero,
+  .animate-sparkle {
+    animation: none;
+  }
+}
+
 /* Print-friendly rules for /report. The page is rendered for screen by
  * default; these rules kick in when the browser enters print mode, which
  * happens both for the Print dialog and for "Save as PDF". */

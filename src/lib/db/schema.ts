@@ -443,6 +443,14 @@ export const coachingEvents = cognifyV2Schema.table(
      *  Review evaluation. NULL until the retry lands (or forever, if the
      *  user quit before retrying). */
     implementedVerdict: text("implemented_verdict"),
+    /** Phase 15 I-8 (migration 0040) — which coaching technique the
+     *  focus used: 'smaller_step' | 'transcript_example' |
+     *  'related_hidden_skill' | 'reframe' (CoachingTechnique in
+     *  src/lib/ai/coach-focus.ts). Plain text (not an enum) so the
+     *  taxonomy can grow without migrations. NULL = untagged
+     *  (historical rows; first-rep rows until their retry classifies
+     *  the coached change via the verdict backfill). */
+    technique: text("technique"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
