@@ -103,6 +103,55 @@ export default async function SkillLabPage({
   );
 }
 
+/** Per-application accent identities — hue spread mirrors the skills-bar
+ *  chips (the Cognify look is multi-hue inside one saturated family),
+ *  with the brand lavender→fuchsia pair anchoring Persuasion. */
+const APPLICATION_ACCENTS: Record<
+  (typeof APPLICATION_IDS)[number],
+  { tile: string; glow: string; wash: string; chip: string; link: string; hoverBorder: string }
+> = {
+  storytelling: {
+    tile: "from-violet-500 to-purple-600",
+    glow: "shadow-violet-500/25",
+    wash: "from-violet-50/80 to-transparent dark:from-violet-950/30",
+    chip: "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300",
+    link: "text-violet-600 dark:text-violet-400",
+    hoverBorder: "hover:border-violet-300 dark:hover:border-violet-500/50",
+  },
+  presenting: {
+    tile: "from-sky-500 to-blue-600",
+    glow: "shadow-sky-500/25",
+    wash: "from-sky-50/80 to-transparent dark:from-sky-950/30",
+    chip: "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
+    link: "text-sky-600 dark:text-sky-400",
+    hoverBorder: "hover:border-sky-300 dark:hover:border-sky-500/50",
+  },
+  teaching: {
+    tile: "from-emerald-500 to-teal-600",
+    glow: "shadow-emerald-500/25",
+    wash: "from-emerald-50/80 to-transparent dark:from-emerald-950/30",
+    chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+    link: "text-emerald-600 dark:text-emerald-400",
+    hoverBorder: "hover:border-emerald-300 dark:hover:border-emerald-500/50",
+  },
+  interviewing: {
+    tile: "from-amber-500 to-orange-600",
+    glow: "shadow-amber-500/25",
+    wash: "from-amber-50/80 to-transparent dark:from-amber-950/30",
+    chip: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+    link: "text-amber-600 dark:text-amber-500",
+    hoverBorder: "hover:border-amber-300 dark:hover:border-amber-500/50",
+  },
+  persuasion: {
+    tile: "from-brand-lavender to-fuchsia-500",
+    glow: "shadow-fuchsia-500/25",
+    wash: "from-fuchsia-50/80 to-transparent dark:from-fuchsia-950/30",
+    chip: "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/50 dark:text-fuchsia-300",
+    link: "text-fuchsia-600 dark:text-fuchsia-400",
+    hoverBorder: "hover:border-fuchsia-300 dark:hover:border-fuchsia-500/50",
+  },
+};
+
 async function ApplicationsHub() {
   const user = await currentUser();
   const appScores = user
@@ -118,14 +167,22 @@ async function ApplicationsHub() {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900">
-      <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
+      {/* Brand glow behind the hero — matches the dashboard's ambient accent. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_30%_0%,color-mix(in_srgb,var(--color-brand-lavender)_14%,transparent),transparent_70%)]"
+      />
+      <div className="relative mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
         <header className="mb-8">
           <p className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
             <FlaskConical className="size-3.5" strokeWidth={2.5} />
             Skill Lab
           </p>
           <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Master the moments that matter
+            Master the{" "}
+            <span className="bg-gradient-to-r from-brand-lavender to-fuchsia-500 bg-clip-text text-transparent">
+              moments that matter
+            </span>
           </h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600 dark:text-ink-300">
             Pick the communication application you want to improve. Cognify
@@ -138,18 +195,33 @@ async function ApplicationsHub() {
           {APPLICATION_IDS.map((appId) => {
             const Icon = APPLICATION_ICONS[appId];
             const est = appScores[appId];
+            const accent = APPLICATION_ACCENTS[appId];
             return (
               <Link
                 key={appId}
                 href={`/skill-lab/${appId}`}
-                className="group flex flex-col rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 shadow-sm transition hover:border-purple-300 dark:hover:border-brand-lavender/50 hover:shadow-md"
+                className={`group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${accent.hoverBorder}`}
               >
-                <div className="flex items-start justify-between">
-                  <span className="inline-flex size-10 items-center justify-center rounded-xl bg-purple-50 dark:bg-ink-800 text-purple-600 dark:text-brand-lavender">
+                {/* Per-application gradient wash, revealed on hover. */}
+                <div
+                  aria-hidden
+                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${accent.wash}`}
+                />
+                {/* Gradient hairline across the card top. */}
+                <div
+                  aria-hidden
+                  className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${accent.tile}`}
+                />
+                <div className="relative flex items-start justify-between">
+                  <span
+                    className={`inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md ${accent.tile} ${accent.glow}`}
+                  >
                     <Icon className="size-5" strokeWidth={2.25} />
                   </span>
                   {est ? (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-ink-800 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-700 dark:text-ink-200">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${accent.chip}`}
+                    >
                       {Math.round(est.score)}
                     </span>
                   ) : (
@@ -158,13 +230,15 @@ async function ApplicationsHub() {
                     </span>
                   )}
                 </div>
-                <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
+                <h2 className="relative mt-4 text-lg font-bold text-slate-900 dark:text-white">
                   {APPLICATION_LABELS[appId]}
                 </h2>
-                <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-500 dark:text-ink-400">
+                <p className="relative mt-1 flex-1 text-sm leading-relaxed text-slate-500 dark:text-ink-400">
                   {APPLICATION_DESCRIPTIONS[appId]}
                 </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-brand-lavender">
+                <span
+                  className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${accent.link}`}
+                >
                   Start training
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </span>

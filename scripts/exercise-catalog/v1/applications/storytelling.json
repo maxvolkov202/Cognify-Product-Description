@@ -116,12 +116,12 @@
         { "text": "In a job interview, tell the story of a project that changed how you work. Build the tension before the shift, then show what's different since.", "difficulty": "core", "tags": ["people", "business"] },
         { "text": "You're speaking to students choosing their field. Tell the story of the moment you realized your first plan was wrong, and what pivoting opened up.", "difficulty": "core", "tags": ["education"] },
         { "text": "At a team offsite, tell the story of a piece of feedback that stung and then changed you. Let the audience feel the before, the sting, and the after.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "A mentee asks when your career clicked. Tell the story of that hinge — the pressure building up to it and the change that followed.", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're recording an intro video for a community you joined. Tell the story of the event that pulled you in, building to the moment it stopped being casual.", "difficulty": "core", "tags": ["creative", "personal"] },
-        { "text": "Over coffee, a colleague asks why you left a role people thought you loved. Tell the story so the turning point lands as a moment, not a summary.", "difficulty": "core", "tags": ["people", "personal"] },
+        { "text": "A mentee asks about a time something finally made sense after a long struggle. Tell the story of that hinge — the pressure building up to it and the change that followed.", "difficulty": "core", "tags": ["education", "personal"] },
+        { "text": "You're introducing yourself to a group that shares an interest of yours. Tell the story of how that interest deepened, building to the moment it stopped being casual.", "difficulty": "core", "tags": ["creative", "personal"] },
+        { "text": "Over coffee, a colleague asks why you walked away from something you had invested a lot in. Tell the story so the turning point lands as a moment, not a summary.", "difficulty": "core", "tags": ["people", "personal"] },
         { "text": "You're opening a workshop with a personal story. Pick a day that split your work into before and after, and make the audience feel the hinge.", "difficulty": "core", "tags": ["leadership", "creative"] },
         { "text": "At an alumni event, you have two minutes. Tell the story of the failure or encounter that redirected your path, holding the turn until the tension peaks.", "difficulty": "stretch", "tags": ["education", "personal"] },
-        { "text": "A documentary crew asks for the moment everything changed for your team. Tell it so the turn arrives once, clearly, and the ending shows a changed world.", "difficulty": "stretch", "tags": ["creative", "leadership"] }
+        { "text": "A documentary crew asks for the moment a group effort you were part of changed direction. Tell it so the turn arrives once, clearly, and the ending shows a changed world.", "difficulty": "stretch", "tags": ["creative", "leadership"] }
       ]
     },
     {
@@ -152,17 +152,17 @@
       "constraint_types": ["tone"],
       "prompts": [
         { "text": "Your new team asks how you got into this work. Tell the origin story like you're remembering it, with the detail that still sticks with you.", "difficulty": "intro", "tags": ["people", "personal"] },
-        { "text": "At a meetup, someone asks why you care so much about your craft. Tell the story of where that care started, sounding like yourself, not a bio.", "difficulty": "intro", "tags": ["personal", "creative"] },
+        { "text": "At a meetup, someone asks how you got into something you've spent years getting better at. Tell the story of where it started, sounding like yourself, not a bio.", "difficulty": "intro", "tags": ["personal", "creative"] },
         { "text": "A friend's kid is curious about your job. Tell them the story of the first time it hooked you, warm and unpolished.", "difficulty": "intro", "tags": ["personal"] },
         { "text": "You're opening a talk with your origin story. Tell the room about the moment this field chose you, letting them hear that it still matters to you.", "difficulty": "core", "tags": ["creative", "leadership"] },
-        { "text": "A customer asks why your team built this product. Tell the founding story with the frustration that started it, sounding invested, not scripted.", "difficulty": "core", "tags": ["business", "product"] },
+        { "text": "A new coworker asks why you hold the standards you do. Tell the story of the frustration that set them, sounding invested, not scripted.", "difficulty": "core", "tags": ["business", "people"] },
         { "text": "In a podcast interview, the host asks for your how-it-started story. Tell it with the texture of the real moment — where you were, what you noticed.", "difficulty": "core", "tags": ["creative", "personal"] },
-        { "text": "You're welcoming volunteers to a cause you've served for years. Tell the story of your first day with it, letting the feeling reach your voice.", "difficulty": "core", "tags": ["people", "personal"] },
+        { "text": "You're meeting a group working on an issue you care about. Tell the story of the first time that issue felt personal to you, letting the feeling reach your voice.", "difficulty": "core", "tags": ["people", "personal"] },
         { "text": "A mentee asks if you always knew what you wanted. Tell the true, wandering version of your origin, comfortable with the detours.", "difficulty": "core", "tags": ["education", "personal"] },
         { "text": "At a family gathering, a relative finally asks what you actually do. Tell them the story of how it began, like a story, not a job description.", "difficulty": "core", "tags": ["personal"] },
         { "text": "You're introducing yourself at a leadership program. Tell the story of the person or moment that set your path, letting warmth carry the telling.", "difficulty": "core", "tags": ["leadership", "personal"] },
-        { "text": "You're giving a short toast at your old school club's anniversary. Tell the origin story of what that club started in you, and let the room feel it.", "difficulty": "stretch", "tags": ["education", "personal"] },
-        { "text": "An investor asks the story behind your commitment to this problem. Tell the origin honestly — the moment it got personal — without pitching.", "difficulty": "stretch", "tags": ["business", "finance"] }
+        { "text": "You're giving a short toast at a school reunion. Tell the story of something your school years started in you, and let the room feel it.", "difficulty": "stretch", "tags": ["education", "personal"] },
+        { "text": "In a final-round interview, you're asked what really drives you. Answer with the story of a moment when that drive first showed up — honest, not a pitch.", "difficulty": "stretch", "tags": ["business", "people"] }
       ]
     },
     {
@@ -193,16 +193,16 @@
       "constraint_types": ["structure"],
       "prompts": [
         { "text": "Tell a new intern the story behind a rule you never break at work, ending with the lesson in one clean sentence.", "difficulty": "intro", "tags": ["people", "education"] },
-        { "text": "A friend asks for advice before their first big presentation. Tell the story of yours going wrong, and land one lesson at the end.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "A friend asks for advice before their first big presentation. Tell the story of a time you had to perform under pressure and it went sideways, and land one lesson at the end.", "difficulty": "intro", "tags": ["personal"] },
         { "text": "At a book club, share a story about advice you ignored and later understood. Close with the lesson in a single sentence, then stop.", "difficulty": "intro", "tags": ["personal", "creative"] },
         { "text": "In a mentoring session, tell the story of the hardest feedback you ever received, ending on one sentence you'd want your mentee to keep.", "difficulty": "core", "tags": ["education", "people"] },
-        { "text": "You're closing a team retro. Tell the story of this quarter's roughest moment and end with the one lesson the team should carry forward.", "difficulty": "core", "tags": ["ops", "leadership"] },
+        { "text": "You're closing a team retro. Tell the story of the roughest moment from a shared effort you know firsthand, and end with the one lesson the group should carry forward.", "difficulty": "core", "tags": ["ops", "leadership"] },
         { "text": "An interviewer asks what experience shaped you most. Tell that story and finish with one sentence of takeaway, no trailing qualifiers.", "difficulty": "core", "tags": ["people", "personal"] },
-        { "text": "You're speaking at a new-manager training. Tell the story of your first management mistake, ending with the single lesson it burned in.", "difficulty": "core", "tags": ["leadership", "people"] },
+        { "text": "You're speaking at a training for new team leads. Tell the story of a time you were trusted with responsibility and misjudged something, ending with the single lesson it burned in.", "difficulty": "core", "tags": ["leadership", "people"] },
         { "text": "A colleague is about to repeat a mistake you once made. Tell them your version of the story and end on the one line you wish someone had told you.", "difficulty": "core", "tags": ["people"] },
         { "text": "On a panel about career growth, tell the story of a bet on yourself that paid off or didn't, closing with exactly one lesson.", "difficulty": "core", "tags": ["personal", "leadership"] },
         { "text": "You're recording a two-minute video for your company's learning library. Tell one story from a real project and end with its single takeaway.", "difficulty": "core", "tags": ["business", "education"] },
-        { "text": "At an all-hands after a tough launch, tell the story of what happened, and give the company one sentence to remember, nothing after it.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "At an all-hands after a difficult stretch, tell the story of a setback you lived through, and give the room one sentence to remember, nothing after it.", "difficulty": "stretch", "tags": ["business", "leadership"] },
         { "text": "You're giving a short address to graduating students. Tell one story from your path and land one earned lesson — not three, not a montage.", "difficulty": "stretch", "tags": ["education"] }
       ]
     },
@@ -237,12 +237,12 @@
         { "text": "In a job interview, describe a conflict on a past team. Name what each person specifically wanted and why it made sense to them.", "difficulty": "intro", "tags": ["people"] },
         { "text": "At dinner, tell the story of a family debate that got heated. Give the other side's best argument as vividly as your own.", "difficulty": "intro", "tags": ["personal"] },
         { "text": "Your new manager asks how you handle conflict. Tell one real story, grounding both positions in specifics — dates, numbers, exact concerns.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "At a team workshop on collaboration, tell the story of a cross-team standoff you were part of, making each team's pressure concrete.", "difficulty": "core", "tags": ["ops", "people"] },
+        { "text": "At a team workshop on collaboration, tell the story of a standoff between two groups you saw up close, making each side's pressure concrete.", "difficulty": "core", "tags": ["ops", "people"] },
         { "text": "A mentee is stuck in a feud with a peer. Tell the story of a similar clash of yours, stating each side's stakes so plainly they could argue either one.", "difficulty": "core", "tags": ["education", "people"] },
         { "text": "On a panel about difficult colleagues, tell a story where the difficult person turned out to have a real point. Make their case in specifics.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "You're onboarding a new teammate into a team with history. Tell the story of the old disagreement fairly, both positions in concrete terms.", "difficulty": "core", "tags": ["people", "ops"] },
-        { "text": "An interviewer asks about disagreeing with your boss. Tell the story with your boss's actual constraints as clear as your own reasoning.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "At a retro, recount the sharpest debate of the project. Reconstruct both arguments with enough detail that the room can weigh them.", "difficulty": "core", "tags": ["ops", "tech"] },
+        { "text": "A new member of a group you're in asks about its old tensions. Tell the story of a disagreement between two people you knew well, both positions in concrete terms.", "difficulty": "core", "tags": ["people"] },
+        { "text": "An interviewer asks about a time you disagreed with someone in charge. Tell the story with that person's actual constraints as clear as your own reasoning.", "difficulty": "core", "tags": ["people", "leadership"] },
+        { "text": "At a retro, recount the sharpest debate from a project you were part of. Reconstruct both arguments with enough detail that the room can weigh them.", "difficulty": "core", "tags": ["ops", "people"] },
         { "text": "In a mediation training, share a real conflict where you misjudged the other side. Rebuild their position in concrete detail before telling how it ended.", "difficulty": "stretch", "tags": ["people", "education"] },
         { "text": "In a leadership program, tell the story of a conflict where both sides were right about different things. Make each truth specific before the resolution.", "difficulty": "stretch", "tags": ["leadership"] }
       ]
@@ -270,22 +270,22 @@
       ],
       "scoring_emphasis": "Weight what the speaker chose to leave out — whether every piece of included context earns its place in the story — not just the sentence count before the first event.",
       "retry_objective": "Pick the two facts the listener cannot follow the story without, say them, and let the first event arrive by sentence three.",
-      "prompt_rules": "Every prompt must ask for a true first-person story with a named listener and a rich, tempting backstory — long histories, tangled context — told in 60-90 seconds. Scenarios vary across work, school, and life; every prompt must carry more background than the story needs so selection is required. The prompt never says to trim the setup — knowing what to cut is the exercise.",
+      "prompt_rules": "Every prompt must ask for a true first-person story with a named listener and a rich, tempting backstory — long histories, tangled context — told in 60-90 seconds. Scenarios vary across work, school, and life; every prompt must invite a real experience carrying more background than the story needs so selection is required. The prompt never says to trim the setup — knowing what to cut is the exercise.",
       "response_window": { "min_sec": 60, "max_sec": 90 },
       "constraint_types": ["structure"],
       "prompts": [
-        { "text": "Your new coworker asks about the legendary outage from before they joined. The full history goes back two years — tell them the story.", "difficulty": "intro", "tags": ["people", "tech"] },
-        { "text": "A friend asks why you and your old roommate stopped speaking. Years of history sit behind it. Tell the story.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Your cousin asks how you ended up with your pet. There's a whole saga before the day it actually happened. Tell it.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A date asks about the worst travel day of your life. The trip took months to plan. Tell the story.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "In an interview, you're asked about a project that got cancelled. The politics behind it were tangled. Tell the story of what happened.", "difficulty": "core", "tags": ["business", "people"] },
-        { "text": "At a retro, recount the incident that took the site down last month. The system's quirks have a long history.", "difficulty": "core", "tags": ["ops", "tech"] },
-        { "text": "A mentee asks how you landed your first promotion. The office context was complicated. Tell them the story.", "difficulty": "core", "tags": ["education", "people"] },
-        { "text": "Tell your team the story of how the flagship feature nearly shipped broken. The dependency chain behind it was a mess.", "difficulty": "core", "tags": ["product", "tech"] },
-        { "text": "At a dinner party, someone asks about the wedding where everything went sideways. Half the drama started months earlier.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "You have two minutes at an all-hands to tell the story of last quarter's client save. The account history spans three years.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "On a podcast, the host asks for your company's near-death story. A decade of pivots and investors sits behind it.", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "You're briefing new leadership on the vendor dispute. The contract history is long, and they need the story of what went wrong.", "difficulty": "stretch", "tags": ["business", "ops"] }
+        { "text": "Your new coworker asks about the most tangled situation you've ever helped sort out. The full history behind it goes back a long way — tell them the story.", "difficulty": "intro", "tags": ["people"] },
+        { "text": "A friend asks about someone you were once close to but drifted away from. Years of history sit behind it. Tell the story.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "Your cousin asks about the longest you've ever waited or worked for something you wanted. There's a whole saga behind it. Tell it.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "A date asks about a day when your plans completely fell apart. The buildup to that day is a story in itself. Tell it.", "difficulty": "intro", "tags": ["personal"] },
+        { "text": "In an interview, you're asked about a piece of work you put real effort into that never saw the light of day. The context behind it was tangled. Tell the story of what happened.", "difficulty": "core", "tags": ["business", "people"] },
+        { "text": "At a retro, recount a time a routine everyone trusted finally broke down. The quirks behind it have a long history.", "difficulty": "core", "tags": ["ops"] },
+        { "text": "A mentee asks how you got good at something that took you years. The backstory is long and winding — tell them the story of when it finally clicked.", "difficulty": "core", "tags": ["education", "personal"] },
+        { "text": "Tell your team the story of a time something important nearly went out the door with a serious flaw. The chain of events behind it was a mess.", "difficulty": "core", "tags": ["ops", "business"] },
+        { "text": "At a dinner party, someone asks about a gathering you attended where nothing went to plan. Half the story starts long before that day.", "difficulty": "core", "tags": ["personal"] },
+        { "text": "You have two minutes at an all-hands to tell the story of a time you helped rescue something that was close to failing. The history behind it runs deep.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "On a podcast, the host asks about the closest you've ever come to giving up on something that mattered to you. Years of twists sit behind it.", "difficulty": "stretch", "tags": ["creative", "personal"] },
+        { "text": "You're briefing a new decision-maker on a disagreement that has dragged on for a long time. The history is long, and they need the story of what went wrong.", "difficulty": "stretch", "tags": ["business", "ops"] }
       ]
     },
     {
@@ -315,17 +315,17 @@
       "response_window": { "min_sec": 60, "max_sec": 120 },
       "constraint_types": ["complexity"],
       "prompts": [
-        { "text": "Your younger sibling is dreading their first day at a new job. Tell them a story from your own first weeks somewhere.", "difficulty": "intro", "tags": ["personal", "people"] },
+        { "text": "Someone close to you is dreading their first day at a new job. Tell them a story from your own first weeks somewhere.", "difficulty": "intro", "tags": ["personal", "people"] },
         { "text": "A friend's project just got rejected. Tell them about a time something you made got turned down.", "difficulty": "intro", "tags": ["personal", "creative"] },
         { "text": "A new grad asks if it's normal to feel lost at work. Tell a story about a stretch when you had no idea what you were doing.", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "Your mentee bombed a presentation this morning. Tell them the story of one of yours.", "difficulty": "intro", "tags": ["education", "people"] },
+        { "text": "Your mentee bombed a presentation this morning. Tell them the story of a time you stumbled in front of other people.", "difficulty": "intro", "tags": ["education", "people"] },
         { "text": "At a team offsite icebreaker, share a story from outside work that shaped how you work.", "difficulty": "core", "tags": ["people", "personal"] },
-        { "text": "An interviewer asks what your hobby has to do with the role. Tell a story from that hobby.", "difficulty": "core", "tags": ["personal", "business"] },
+        { "text": "An interviewer asks what you do outside of work and why it matters. Tell a story from something you do purely because you choose to.", "difficulty": "core", "tags": ["personal", "business"] },
         { "text": "You're mentoring a founder who's afraid to raise prices. Tell a story from your own life about asking for more than felt comfortable.", "difficulty": "core", "tags": ["business"] },
-        { "text": "A student asks why you kept volunteering at the shelter for years. Tell them one story from a single shift.", "difficulty": "core", "tags": ["personal", "education"] },
+        { "text": "A student asks why you keep showing up for a commitment nobody pays you for. Tell them one story from a single day of it.", "difficulty": "core", "tags": ["personal", "education"] },
         { "text": "Your team is flat after losing a big deal. Open Monday's meeting with a story from your own career.", "difficulty": "core", "tags": ["leadership", "business"] },
         { "text": "You're giving a five-minute talk at a conference far outside your field. All you have is one personal story the audience didn't come to hear.", "difficulty": "stretch", "tags": ["creative", "leadership"] },
-        { "text": "You're closing an all-hands during a rough quarter. Your material: one story about a summer job you had at nineteen.", "difficulty": "stretch", "tags": ["business", "leadership"] },
+        { "text": "You're closing an all-hands during a rough quarter. Your material: one story from the least glamorous work you've ever done.", "difficulty": "stretch", "tags": ["business", "leadership"] },
         { "text": "On a leadership panel, you're asked what shaped your management style. The honest answer is a story from your childhood.", "difficulty": "stretch", "tags": ["leadership", "personal"] }
       ]
     }

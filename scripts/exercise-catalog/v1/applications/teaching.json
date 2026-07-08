@@ -29,11 +29,11 @@
       "constraint_types": ["complexity"],
       "prompts": [
         { "text": "Explain what a stock index fund is to a coworker who just opened her first brokerage account and only knows how a savings account works.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain what version control does to a new marketing hire who has only ever saved files as final_v2.docx.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "Explain what a spam filter does to an office manager who lives in her inbox all day but has no idea where the vanished emails go.", "difficulty": "core", "tags": ["tech", "business"] },
         { "text": "Explain what a control group is to your cousin starting a science fair project who has never run an experiment.", "difficulty": "intro", "tags": ["science", "education"] },
         { "text": "Explain what inflammation is to a patient who knows it as 'swelling' and is confused why her doctor keeps blaming it for everything.", "difficulty": "core", "tags": ["healthcare"] },
         { "text": "Explain what a supply chain is to a teenager whose only job so far has been mowing lawns for neighbors.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Explain what caching is to a junior designer who has noticed websites feel faster on a second visit but has no idea why.", "difficulty": "core", "tags": ["tech"] },
+        { "text": "Explain what streaming is to an uncle who assumes watching a movie online means the whole file gets saved onto his TV first.", "difficulty": "core", "tags": ["tech"] },
         { "text": "Explain what equity in a startup offer means to a friend who has only ever been paid an hourly wage.", "difficulty": "core", "tags": ["finance", "business"] },
         { "text": "Explain what peer review is to a first-year student who thinks published papers are just fancy blog posts.", "difficulty": "core", "tags": ["science", "education"] },
         { "text": "Explain what a deductible is to a new employee picking health insurance for the first time, who assumes the plan pays for everything.", "difficulty": "intro", "tags": ["finance", "healthcare"] },
@@ -70,16 +70,16 @@
       "constraint_types": ["complexity"],
       "prompts": [
         { "text": "Teach how the immune system remembers infections to a soccer coach — build your analogy from the training and drills he already runs.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Teach what an API is to a restaurant owner who has never coded, using something from her own kitchen or front-of-house.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "Teach what a computer virus is to a restaurant owner who has never studied tech — build the analogy from the food-safety rules she runs her kitchen by.", "difficulty": "core", "tags": ["tech", "business"] },
         { "text": "Teach how compound interest snowballs to a gardener who has never invested a dollar — use something that grows.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Teach what a database index does to a librarian who organizes physical stacks but has never written a line of code.", "difficulty": "core", "tags": ["tech"] },
+        { "text": "Teach how a search engine finds an answer in a split second to a librarian who organizes physical stacks but has never studied computers.", "difficulty": "core", "tags": ["tech"] },
         { "text": "Teach how vaccines prepare the body to a firefighter using an analogy from fire drills or prevention work he knows cold.", "difficulty": "core", "tags": ["healthcare"] },
         { "text": "Teach what diversification means to a farmer who plants a single crop each year and has never bought a stock.", "difficulty": "intro", "tags": ["finance"] },
         { "text": "Teach what network latency is to a delivery driver who assumes the internet moves everything instantly.", "difficulty": "core", "tags": ["tech"] },
         { "text": "Teach how a bill becomes law to a dedicated video gamer who has never followed politics — borrow from the games he plays.", "difficulty": "core", "tags": ["education", "current events"] },
         { "text": "Teach what a hypothesis is to a home cook who tweaks recipes constantly but has never done formal science.", "difficulty": "intro", "tags": ["science"] },
         { "text": "Teach how credit scores work to a college athlete who has never borrowed money — use the training stats she already tracks.", "difficulty": "core", "tags": ["finance", "education"] },
-        { "text": "Teach what technical debt is to a homeowner who has never coded but has skipped plenty of house repairs.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "Teach why phones keep demanding software updates to a homeowner who has never coded but knows exactly what skipped house maintenance costs.", "difficulty": "core", "tags": ["tech"] },
         { "text": "Teach how the stock market matches buyers and sellers to a flea market vendor who haggles daily but distrusts Wall Street.", "difficulty": "stretch", "tags": ["finance"] }
       ]
     },
@@ -110,17 +110,17 @@
       "response_window": { "min_sec": 75, "max_sec": 120 },
       "constraint_types": ["structure"],
       "prompts": [
-        { "text": "Walk a brand-new intern through running her first customer interview — she has read about them but never spoken to a customer.", "difficulty": "core", "tags": ["business"] },
+        { "text": "Walk a nervous friend through preparing for his first job interview — he has read advice online but has never sat across from a hiring manager.", "difficulty": "core", "tags": ["business"] },
         { "text": "Walk your dad through backing up his phone before an upgrade — he has never done it and is terrified of losing photos.", "difficulty": "intro", "tags": ["tech", "personal/relationships"] },
-        { "text": "Walk a new nurse through the shift-handoff report on her first day — she knows the medicine but not your unit's routine.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Walk a first-time founder through opening a business bank account — he has only ever had a personal checking account.", "difficulty": "intro", "tags": ["finance", "business"] },
+        { "text": "Walk your grandfather through sorting his new prescriptions into a weekly pill organizer — some are morning pills, some are night pills, and he has never used one.", "difficulty": "core", "tags": ["healthcare"] },
+        { "text": "Walk a teenager through opening his first bank account — he has only ever kept cash in a shoebox and has no idea what to bring.", "difficulty": "intro", "tags": ["finance", "personal/relationships"] },
         { "text": "Walk a new grad through preparing for her first salary negotiation — she has never negotiated anything in her life.", "difficulty": "core", "tags": ["business", "personal/relationships"] },
-        { "text": "Walk a junior engineer through his first production deploy — he has only ever shipped code to a test environment.", "difficulty": "core", "tags": ["tech"] },
+        { "text": "Walk a first-time flyer through the airport, from check-in to boarding — he has never flown and is sure he will get something wrong.", "difficulty": "core", "tags": ["personal/relationships"] },
         { "text": "Walk a first-time teaching assistant through grading her first stack of essays — she has the rubric but zero practice applying it.", "difficulty": "core", "tags": ["education"] },
         { "text": "Walk your neighbor through filing a home insurance claim after a burst pipe — it is his first claim ever.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
         { "text": "Walk a new manager through running her first one-on-one — she was promoted on Friday and has only ever attended them.", "difficulty": "core", "tags": ["leadership"] },
         { "text": "Walk a college freshman through using the shared dorm laundry machines — he has never washed his own clothes.", "difficulty": "intro", "tags": ["personal/relationships", "education"] },
-        { "text": "Walk a new lab assistant through preparing a sample slide — she watched it done once and does it alone tomorrow.", "difficulty": "core", "tags": ["science"] },
+        { "text": "Walk a middle schooler through his first science-fair experiment — testing which paper airplane flies farthest — he has an idea but no method.", "difficulty": "core", "tags": ["science", "education"] },
         { "text": "Walk a boutique owner through her first end-of-year inventory count — she has run the shop for a year but never audited stock.", "difficulty": "stretch", "tags": ["business", "finance"] }
       ]
     },
@@ -155,14 +155,14 @@
         { "text": "Your younger brother thinks skipping breakfast permanently 'slows your metabolism.' Set the record straight while honoring why he believes it.", "difficulty": "core", "tags": ["healthcare"] },
         { "text": "A friend new to investing is sure a falling stock 'has to bounce back eventually.' Correct him without a single finance term.", "difficulty": "core", "tags": ["finance"] },
         { "text": "A student believes humans only use 10% of their brains. Replace the myth while crediting where it came from.", "difficulty": "intro", "tags": ["science", "education"] },
-        { "text": "Your client thinks SEO still means stuffing keywords into every page. Correct the outdated model she learned years ago.", "difficulty": "core", "tags": ["business", "tech"] },
+        { "text": "Your friend is sure the top result on a search page is always the most trustworthy source. Correct the model without dismissing why it feels true.", "difficulty": "core", "tags": ["business", "tech"] },
         { "text": "A first-time manager believes being liked is the same as being trusted. Correct the confusion with one concrete contrast.", "difficulty": "core", "tags": ["leadership"] },
         { "text": "Your aunt is convinced the flu shot gave her cousin the flu. Correct the misconception with respect for her worry.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] },
         { "text": "A junior analyst thinks the correlation in his chart proves his campaign caused the sales bump. Show him why that model breaks.", "difficulty": "core", "tags": ["business", "science"] },
         { "text": "Your friend believes renting is always throwing money away. Complicate the rule she absorbed from her parents.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "A new hire thinks agile means no planning at all. Correct the picture he formed from one chaotic standup.", "difficulty": "core", "tags": ["tech"] },
+        { "text": "A new hire believes multitasking means getting more done. Correct the picture he formed from years of praise for juggling everything at once.", "difficulty": "core", "tags": ["business"] },
         { "text": "A high schooler believes lightning never strikes the same place twice. Replace the folk wisdom with the real mechanism.", "difficulty": "intro", "tags": ["science", "education"] },
-        { "text": "Your neighbor thinks having a will lets his family skip probate entirely. Correct the misunderstanding his golf buddy handed him.", "difficulty": "stretch", "tags": ["finance", "personal/relationships"] }
+        { "text": "Your neighbor thinks moving into a higher tax bracket means his whole paycheck gets taxed at the new rate. Correct the math his coworker handed him.", "difficulty": "stretch", "tags": ["finance", "personal/relationships"] }
       ]
     },
     {
@@ -202,7 +202,7 @@
         { "text": "Teach the 'placebo effect' to your grandmother who swears by her copper bracelet — one gentle example, then a real-medicine non-example.", "difficulty": "core", "tags": ["healthcare", "science"] },
         { "text": "Teach 'minimum viable product' to a baker who wants everything perfect before selling — one example from food, one near-miss from business.", "difficulty": "core", "tags": ["business", "tech"] },
         { "text": "Teach 'active listening' to a new peer mentor who thinks it just means staying quiet — one example, then one near-miss that fails.", "difficulty": "intro", "tags": ["leadership", "personal/relationships"] },
-        { "text": "Teach 'statistical significance' to a marketing intern who ran her first A/B test yesterday — one example, one result that only looks significant.", "difficulty": "stretch", "tags": ["science", "business"] },
+        { "text": "Teach 'anecdotal evidence' to a marketing intern convinced two glowing customer emails prove the campaign worked — one vivid example, then a near-miss that is actually solid evidence.", "difficulty": "stretch", "tags": ["science", "business"] },
         { "text": "Teach 'emotional labor' to your uncle who thinks job strain is only physical or mental — ground it in one shift of a flight attendant's day.", "difficulty": "core", "tags": ["personal/relationships", "business"] }
       ]
     },
@@ -234,7 +234,7 @@
       "constraint_types": ["complexity"],
       "prompts": [
         { "text": "Explain to a bored ninth-grader why algebra matters when he plans to be a carpenter and swears he'll never use it.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Explain to a new engineer why writing tests matters when she sees them as busywork slowing down her first sprint.", "difficulty": "core", "tags": ["tech"] },
+        { "text": "Explain to a friend why phone software updates matter when he taps 'remind me later' every time because his phone works fine as is.", "difficulty": "core", "tags": ["tech"] },
         { "text": "Explain to a food-truck owner why bookkeeping matters beyond taxes when he thinks his bank balance tells the whole story.", "difficulty": "core", "tags": ["finance", "business"] },
         { "text": "Explain to a healthy 25-year-old why sleep consistency matters when he brags about all-nighters with zero consequences.", "difficulty": "core", "tags": ["healthcare"] },
         { "text": "Explain to a first-time voter why local elections matter when she believes only presidential races change anything.", "difficulty": "core", "tags": ["current events", "education"] },
@@ -276,17 +276,16 @@
       "prompts": [
         { "text": "Explain to your neighbor what the 401(k) match in his new job offer means — he has never had a retirement account.", "difficulty": "intro", "tags": ["finance"] },
         { "text": "Explain to a new gym member why her trainer keeps changing her program every few weeks and calls it 'progressive overload.'", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Tell your parents what you actually do all day as a DevOps engineer — right now they tell friends you 'fix computers.'", "difficulty": "core", "tags": ["tech", "personal/relationships"] },
-        { "text": "Explain to a first-time homebuyer what happens between her accepted offer and getting the keys.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Explain to a friend just diagnosed with prediabetes what his A1C number measures and what his doctor will watch next.", "difficulty": "core", "tags": ["healthcare"] },
+        { "text": "Explain to your parents what it means that their photos are 'in the cloud' — they picture the pictures floating somewhere above the house.", "difficulty": "core", "tags": ["tech", "personal/relationships"] },
+        { "text": "Explain to a teenager holding his first paycheck why the take-home number is smaller than his hourly math predicted — gross pay, taxes, withholding.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
+        { "text": "Explain to a friend what his doctor meant by 'good' and 'bad' cholesterol — he nodded through the checkup and has been afraid to ask since.", "difficulty": "core", "tags": ["healthcare"] },
         { "text": "Explain to your book club how mRNA vaccines work — the last biology class anyone took was decades ago.", "difficulty": "core", "tags": ["science", "healthcare"] },
-        { "text": "Explain to a new barista why the café's monthly meeting keeps coming back to 'shrinkage' and 'cost of goods.'", "difficulty": "intro", "tags": ["business"] },
+        { "text": "Explain to a new barista what the owner means by 'overhead' and 'margin' — she assumes every five-dollar latte is five dollars of pure profit.", "difficulty": "intro", "tags": ["business"] },
         { "text": "Explain to a poetry-major intern what the marketing dashboard is showing her — impressions, reach, engagement rate.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Explain to a high schooler shadowing you what a pull request is and why your team argues inside them.", "difficulty": "intro", "tags": ["tech", "education"] },
-        { "text": "Explain the offside rule to a friend at his first soccer match — he keeps asking why perfectly good goals get cancelled.", "difficulty": "core", "tags": ["personal/relationships"] },
-        { "text": "Explain to a client with no legal background the liability and indemnification clauses in the contract she signs tomorrow.", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "Explain to your aunt what her oncologist meant by 'stage two' and 'clean margins' — she left the appointment too rattled to ask.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Explain to a city council member why the water utility's report flags 'non-revenue water' — she votes on the budget Thursday.", "difficulty": "stretch", "tags": ["current events", "science"] }
+        { "text": "Explain to a high schooler shadowing you what 'phishing' is and why every workplace training keeps warning about it.", "difficulty": "intro", "tags": ["tech", "education"] },
+        { "text": "Explain to a college student signing her first lease what 'security deposit', 'lease term', and 'subletting' mean before she initials each page.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
+        { "text": "Explain to a friend what the 'non-disclosure agreement' in his new-job paperwork means — what it stops him from sharing and what it doesn't.", "difficulty": "stretch", "tags": ["business"] },
+        { "text": "Explain to your aunt what 'benign' and 'malignant' meant in her test results — she left the appointment too rattled to ask.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] }
       ]
     },
     {
@@ -316,18 +315,18 @@
       "response_window": { "min_sec": 60, "max_sec": 100 },
       "constraint_types": ["complexity"],
       "prompts": [
-        { "text": "Your seven-year-old asks why the moon looks different every night.", "difficulty": "intro", "tags": ["science", "personal/relationships"] },
-        { "text": "Your mother read that your company got acquired and is worried about your job. Explain what the acquisition actually means for you.", "difficulty": "intro", "tags": ["finance", "personal/relationships"] },
-        { "text": "A first-year design intern asks why the app feels slow — she has never heard the word 'server.'", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Your gym buddy, a licensed physical therapist, asks why you switched to your new training program.", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Explain why the release slipped to your CTO — a former kernel engineer who reads the commit log for fun.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "Now explain the same slipped release to the customer success team, none of whom have ever seen the codebase.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "A retired cardiologist at the family reunion asks what your health-tracking startup actually measures.", "difficulty": "core", "tags": ["healthcare", "business"] },
-        { "text": "Your grandfather, a retired electrician, asks how the solar panels on your roof sell power back to the grid.", "difficulty": "core", "tags": ["science", "personal/relationships"] },
-        { "text": "The head of sales — who builds hobby apps on weekends — asks why the CRM integration keeps breaking.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Your new client, a math PhD who has never worked in finance, asks how your firm's risk model works.", "difficulty": "stretch", "tags": ["finance", "science"] },
-        { "text": "Explain the quarter's miss to the board — half are finance veterans, half are first-time founders who skim the deck.", "difficulty": "stretch", "tags": ["finance", "leadership"] },
-        { "text": "Midway through your benefits-plan overview, the new hire's eyes glaze and she starts nodding too fast. Keep going.", "difficulty": "stretch", "tags": ["business", "personal/relationships"] }
+        { "text": "A friend's seven-year-old asks you why the moon looks different every night.", "difficulty": "intro", "tags": ["science", "personal/relationships"] },
+        { "text": "A worried friend heard her company is being acquired and asks what an acquisition actually means for regular employees like her.", "difficulty": "intro", "tags": ["finance", "personal/relationships"] },
+        { "text": "A first-year design intern asks why apps get slow when everyone piles on at once — she has never heard the word 'server.'", "difficulty": "intro", "tags": ["tech"] },
+        { "text": "A friend who is a licensed physical therapist asks how you actually stay active and why you settled on it — answer from your real routine, however modest.", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
+        { "text": "A project you were part of blew past its deadline. Explain what went wrong to the most experienced expert involved, who knows every detail of the work.", "difficulty": "core", "tags": ["business", "leadership"] },
+        { "text": "Now explain the same late project to the people who were waiting on it, none of whom know how the work gets done.", "difficulty": "core", "tags": ["business"] },
+        { "text": "A retired cardiologist at the family reunion asks what fitness trackers actually measure when they count steps and report heart rate.", "difficulty": "core", "tags": ["healthcare", "tech"] },
+        { "text": "Your grandfather, a retired electrician, asks how houses with rooftop solar panels sell power back to the grid.", "difficulty": "core", "tags": ["science", "personal/relationships"] },
+        { "text": "A coworker who builds hobby apps on weekends asks why the office wifi crawls to a stop every afternoon.", "difficulty": "core", "tags": ["tech", "business"] },
+        { "text": "A friend with a math PhD who has never invested asks why advisors keep telling everyone not to try timing the market.", "difficulty": "stretch", "tags": ["finance"] },
+        { "text": "Explain what inflation is doing to prices and savings to a mixed room — half finance veterans, half people who change the channel at money news.", "difficulty": "stretch", "tags": ["finance", "current events"] },
+        { "text": "Midway through explaining health-insurance basics to a friend starting her first job, her eyes glaze and she starts nodding too fast. Keep going.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] }
       ]
     }
   ]
