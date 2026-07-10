@@ -7,13 +7,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -21,6 +15,8 @@ import {
   Mic,
   Sparkles,
 } from "lucide-react";
+import CelebrationSparkles from "./CelebrationSparkles";
+import CountUpScore from "./CountUpScore";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { softenScoreDelta } from "@/lib/ai/coach-focus";
 import {
@@ -125,7 +121,7 @@ export default function DayCompleteSummary({
           className={cn(
             "mt-2 text-6xl sm:text-7xl font-extrabold leading-none tabular-nums",
             "bg-gradient-to-br bg-clip-text text-transparent",
-            theme.tile,
+            theme.scoreGradient,
           )}
         >
           {composite != null ? <CountUpScore value={Math.round(composite)} /> : "—"}
@@ -387,70 +383,6 @@ export default function DayCompleteSummary({
           Back to dashboard
         </Link>
       </div>
-    </div>
-  );
-}
-
-/** Final Communication Score count-up (§5.7 celebration). Mirrors the
- *  CompositeScore idiom: motion value + rounded transform, instant when
- *  the user prefers reduced motion. */
-function CountUpScore({ value }: { value: number }) {
-  const reduced = useReducedMotion();
-  const motionValue = useMotionValue(reduced ? value : 0);
-  const rounded = useTransform(motionValue, (v) => Math.round(v));
-
-  useEffect(() => {
-    if (reduced) {
-      motionValue.set(value);
-      return;
-    }
-    const controls = animate(motionValue, value, {
-      duration: 0.9,
-      ease: [0.32, 0.72, 0, 1],
-    });
-    return controls.stop;
-  }, [value, motionValue, reduced]);
-
-  return <motion.span>{rounded}</motion.span>;
-}
-
-/** One-time floating sparkles behind the hero score. Pure CSS animation
- *  (.animate-sparkle plays once, forwards); the reduced-motion guard in
- *  globals.css keeps them invisible when motion is off. Brand palette
- *  only — no new colors. */
-const SPARKLES: {
-  left: string;
-  top: string;
-  size: number;
-  delay: number;
-  color: string;
-}[] = [
-  { left: "18%", top: "38%", size: 6, delay: 0.1, color: "var(--color-brand-lavender)" },
-  { left: "30%", top: "62%", size: 4, delay: 0.45, color: "var(--color-brand-blue)" },
-  { left: "40%", top: "24%", size: 5, delay: 0.8, color: "var(--color-brand-magenta)" },
-  { left: "58%", top: "20%", size: 4, delay: 0.3, color: "var(--color-brand-purple)" },
-  { left: "68%", top: "58%", size: 6, delay: 0.6, color: "var(--color-brand-lavender)" },
-  { left: "78%", top: "34%", size: 4, delay: 0.15, color: "var(--color-brand-magenta)" },
-  { left: "86%", top: "56%", size: 5, delay: 0.95, color: "var(--color-brand-blue)" },
-];
-
-function CelebrationSparkles() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      {SPARKLES.map((s, i) => (
-        <span
-          key={i}
-          className="animate-sparkle absolute rounded-full"
-          style={{
-            left: s.left,
-            top: s.top,
-            width: s.size,
-            height: s.size,
-            backgroundColor: s.color,
-            animationDelay: `${s.delay}s`,
-          }}
-        />
-      ))}
     </div>
   );
 }

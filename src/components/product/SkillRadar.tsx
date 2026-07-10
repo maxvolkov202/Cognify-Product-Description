@@ -8,7 +8,7 @@ const LABELS: Record<SkillDimension, string> = {
   structure: "Structure",
   conciseness: "Conciseness",
   thinking_quality: "Thinking",
-  delivery: "Delivery",
+  delivery: "Pacing", // D6 — user-facing name for the delivery enum
   tone: "Tone",
 };
 
@@ -81,12 +81,22 @@ export function SkillRadar({ scores, size = 260 }: Props) {
             return `${cx + r * frac * Math.cos(a)},${cy + r * frac * Math.sin(a)}`;
           }).join(" ")}
           fill="none"
-          stroke="#e5e5ec"
+          stroke="currentColor"
+          className="text-ink-200 dark:text-ink-700"
           strokeWidth="1"
         />
       ))}
       {axisPoints.map((p, i) => (
-        <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#eef0f5" strokeWidth="1" />
+        <line
+          key={i}
+          x1={cx}
+          y1={cy}
+          x2={p.x}
+          y2={p.y}
+          stroke="currentColor"
+          className="text-ink-100 dark:text-ink-800"
+          strokeWidth="1"
+        />
       ))}
       <polygon
         points={polygonPoints}
@@ -103,7 +113,7 @@ export function SkillRadar({ scores, size = 260 }: Props) {
           dominantBaseline="middle"
           fontSize="11"
           fontWeight="600"
-          fill="#6b6b83"
+          className="fill-ink-500 dark:fill-ink-400"
         >
           {LABELS[lp.dim]}
         </text>

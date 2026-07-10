@@ -26,6 +26,16 @@ export type PrepEventListItem = {
   createdAt: string;
 };
 
+/** Readiness chip tint tiers with the score instead of always-emerald:
+ *  <50 rose (not ready), 50-74 amber (getting there), ≥75 emerald. */
+function readinessChipClass(score: number): string {
+  if (score < 50)
+    return "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300";
+  if (score < 75)
+    return "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300";
+  return "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300";
+}
+
 export default function PrepHome({
   initialEvents,
 }: {
@@ -54,8 +64,14 @@ export default function PrepHome({
   };
 
   return (
-    <div className="space-y-8">
-      <header>
+    <div className="isolate space-y-8">
+      <header className="relative">
+        {/* Brand glow behind the hero — matches the Skill Lab hub's ambient
+            accent (see app/(app)/skill-lab/page.tsx). */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-8 -top-12 -z-10 h-72 bg-[radial-gradient(60%_100%_at_30%_0%,color-mix(in_srgb,var(--color-brand-lavender)_14%,transparent),transparent_70%)]"
+        />
         <p className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
           <CalendarClock className="size-3.5" />
           Build a Rep
@@ -91,7 +107,7 @@ export default function PrepHome({
               key={ex}
               type="button"
               onClick={() => setDescription(ex)}
-              className="min-h-[44px] rounded-full border border-slate-200 dark:border-ink-700 px-3 py-1 text-xs text-slate-500 dark:text-ink-400 hover:border-purple-300 hover:text-purple-600 dark:hover:text-brand-lavender"
+              className="min-h-[44px] rounded-full border border-slate-200 dark:border-ink-700 px-3 py-2 text-sm text-slate-500 dark:text-ink-400 hover:border-purple-300 hover:text-purple-600 dark:hover:text-brand-lavender"
             >
               {ex}
             </button>
@@ -143,7 +159,9 @@ export default function PrepHome({
                     {e.title}
                   </span>
                   {e.readinessScore != null && (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${readinessChipClass(e.readinessScore)}`}
+                    >
                       <Target className="w-3 h-3" />
                       {Math.round(e.readinessScore)}
                     </span>

@@ -19,6 +19,8 @@ import { currentUser } from "@/lib/session/current-user";
 import { SessionPhaseSchema, type SessionPhase } from "@/lib/workout/types";
 import { log, serializeErr } from "@/lib/log";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
+import { getUserProfile } from "@/lib/db/queries/user";
+import { todayYmdInTz } from "@/lib/time/user-day";
 import { awardSessionCompletionXp } from "@/lib/progression/xp";
 
 // ─── Auth/ownership helpers ──────────────────────────────────────────────
@@ -142,7 +144,11 @@ export async function getActiveWorkoutSession(): Promise<ActiveWorkoutSessionSna
   const userId = user?.id ?? "anonymous";
 
   return safeDb<ActiveWorkoutSessionSnapshot>(async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    // muscle_group_days.day_date is keyed to the USER-LOCAL calendar day
+    // (see workout-day.ts todayDateForUser) — a UTC key here would miss
+    // the active session for any user whose local date differs from UTC.
+    const profile = user?.id ? await getUserProfile(user.id) : null;
+    const today = todayYmdInTz(profile?.tz ?? "UTC");
     const [row] = await db
       .select({
         id: workoutSessions.id,
@@ -423,10 +429,15 @@ export async function tagWorkoutRep(
         // planned list using the workout_sessions.current_station_index.
         let resolvedExerciseId = input.exerciseId;
         if (!resolvedExerciseId) {
+          // planned_exercise_ids is a native uuid[] (migration 0026), so
+          // subscript it as an array — Postgres arrays are 1-indexed while
+          // current_station_index is 0-based. (The old `->>` jsonb operator
+          // raised 42883 on uuid[], aborting the whole tagging tx for the
+          // exact degraded reps this branch exists to rescue.)
           const [healed] = await tx.execute<{
             exercise_id: string | null;
           }>(drizzleSql`
-            SELECT (mgd.planned_exercise_ids ->> ws.current_station_index)::text
+            SELECT (mgd.planned_exercise_ids[ws.current_station_index + 1])::text
                      AS exercise_id
             FROM cognify_v2.muscle_group_days mgd
             JOIN cognify_v2.workout_sessions ws

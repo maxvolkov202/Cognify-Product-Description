@@ -86,7 +86,11 @@ export default function QuitSummary({
 
       <Link
         href="/dashboard"
-        className="mt-2 min-h-[44px] px-5 py-2.5 rounded-xl font-semibold bg-pink-500 hover:bg-pink-400 text-white inline-flex items-center"
+        className={cn(
+          "mt-2 min-h-[44px] px-5 py-2.5 rounded-xl font-semibold inline-flex items-center",
+          "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
+        )}
       >
         Back to dashboard
       </Link>

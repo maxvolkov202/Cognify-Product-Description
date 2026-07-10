@@ -25,12 +25,13 @@
  *                          general       general-<sha8(exerciseId:text)>
  *                          vertical      vertical-<v>-<sha8(exerciseId:text)>
  *
- *   --dry-run            Report counts, write nothing.
+ *   --apply              Actually write. Without it the script only
+ *                        reports counts (same convention as the seeders).
  *
  * Usage:
- *   node scripts/prune-stale-prompts.mjs --generated --dry-run
- *   node scripts/prune-stale-prompts.mjs --generated --orphaned --dir applications
- *   node scripts/prune-stale-prompts.mjs --orphaned --dir root,general,vertical
+ *   node scripts/prune-stale-prompts.mjs --generated                        (dry-run)
+ *   node scripts/prune-stale-prompts.mjs --generated --orphaned --dir applications --apply
+ *   node scripts/prune-stale-prompts.mjs --orphaned --dir root,general,vertical --apply
  */
 
 import { createHash } from "node:crypto";
@@ -42,7 +43,9 @@ import { config } from "dotenv";
 config({ path: resolve(process.cwd(), ".env.local") });
 
 const args = process.argv.slice(2);
-const DRY_RUN = args.includes("--dry-run");
+// Same safety convention as every seeder this script pairs with: writes
+// require an explicit --apply; the default is a dry-run report.
+const DRY_RUN = !args.includes("--apply");
 const DO_GENERATED = args.includes("--generated");
 const DO_ORPHANED = args.includes("--orphaned");
 const dirIdx = args.indexOf("--dir");
@@ -164,6 +167,15 @@ try {
         const missing = [];
         for (const file of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
           const doc = JSON.parse(readFileSync(join(dir, file), "utf8"));
+          // Guard: seed-general-prompts derives the dim from the FILENAME
+          // while this script reads doc.dimension. If they ever drift the
+          // uuid lookups miss and a --dir general run would deactivate
+          // every live prompt for that dim. Refuse instead.
+          if (subdir === "general" && doc.dimension !== file.replace(/\.json$/, "")) {
+            throw new Error(
+              `${file}: doc.dimension "${doc.dimension}" != filename dim — refusing to prune general`,
+            );
+          }
           const fileDim = doc.dimension ?? null; // general files: dim at doc level
           for (const ex of doc.exercises) {
             const dim = ex.dimension ?? fileDim;

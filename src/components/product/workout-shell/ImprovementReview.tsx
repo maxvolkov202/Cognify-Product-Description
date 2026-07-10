@@ -8,7 +8,10 @@
 // positive deltas loudly, keep small negatives numeric-but-neutral, and
 // hide big negative numbers behind soft copy.
 
+import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
+import CelebrationSparkles from "./CelebrationSparkles";
+import CountUpScore from "./CountUpScore";
 import type { RepScore, SkillDimension } from "@/types/domain";
 import {
   DIMENSION_LABELS,
@@ -119,6 +122,11 @@ export default function ImprovementReview({
   // Cognify treatment — dim identity for the score-movement accents.
   const theme = dimension ? DIM_THEMES[dimension] : null;
 
+  // Reveal sequence timing (skipped entirely under reduced motion):
+  // first score fades in → arrow at 0.3s → retry counts up from 0.45s
+  // (0.9s count) → delta chip pops at 1.35s, when the count lands.
+  const reduced = useReducedMotion();
+
   return (
     <div className="flex flex-col gap-4" data-testid="improvement-review">
       <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
@@ -145,35 +153,53 @@ export default function ImprovementReview({
         />
         {firstComposite != null && retryComposite != null ? (
           <>
+            {/* Celebratory deltas earn the DayCompleteSummary sparkles
+                behind the retry score. */}
+            {softened?.tone === "celebrate" && <CelebrationSparkles />}
             <div className="flex items-center justify-center gap-3 text-3xl font-extrabold">
-              <span className="text-slate-400 dark:text-ink-500">
+              <motion.span
+                className="text-slate-400 dark:text-ink-500"
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 {Math.round(firstComposite)}
-              </span>
-              <ArrowRight className="w-5 h-5 text-slate-300 dark:text-ink-600" />
+              </motion.span>
+              <motion.span
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.25 }}
+              >
+                <ArrowRight className="w-5 h-5 text-slate-300 dark:text-ink-600" />
+              </motion.span>
               {/* The "after" score carries the dim-gradient accent. */}
               <span
                 className={cn(
                   theme
                     ? cn(
                         "bg-gradient-to-br bg-clip-text text-transparent",
-                        theme.tile,
+                        theme.scoreGradient,
                       )
                     : "text-slate-900 dark:text-white",
                 )}
               >
-                {Math.round(retryComposite)}
+                <CountUpScore value={Math.round(retryComposite)} delay={0.45} />
               </span>
               {softened?.showNumeric && delta != null && (
-                <span
+                <motion.span
+                  initial={reduced ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.35, duration: 0.1 }}
+                  style={reduced ? undefined : { animationDelay: "1.35s" }}
                   className={cn(
-                    "text-base font-bold px-2 py-0.5 rounded-full",
+                    "animate-badge-pop text-base font-bold px-2 py-0.5 rounded-full",
                     softened.tone === "celebrate"
                       ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                       : "bg-slate-100 text-slate-500 dark:bg-ink-800 dark:text-ink-400",
                   )}
                 >
                   {delta > 0 ? `+${delta}` : `${delta}`}
-                </span>
+                </motion.span>
               )}
             </div>
             {softened?.tone === "soft" && (
@@ -299,8 +325,8 @@ export default function ImprovementReview({
           data-testid="review-advance"
           className={cn(
             "min-h-[48px] px-6 py-3 rounded-xl font-semibold",
-            "bg-pink-500 hover:bg-pink-400 text-white",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
+            "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
           )}
         >
           {advanceLabel ?? (isLastStation ? "Finish workout →" : "Next exercise →")}

@@ -45,7 +45,7 @@ export function DailyScoreCard({ points }: Props) {
                 </p>
                 {delta !== null && <DeltaPill delta={delta} />}
               </div>
-              <p className="mt-1 text-sm text-ink-600">
+              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
                 Composite across {todayPoint.repCount}{" "}
                 {todayPoint.repCount === 1 ? "rep" : "reps"} today.
               </p>
@@ -53,7 +53,7 @@ export function DailyScoreCard({ points }: Props) {
           ) : (
             <>
               <p className="mt-1 text-2xl font-extrabold text-ink-400">—</p>
-              <p className="mt-1 text-sm text-ink-600">
+              <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
                 No reps today yet. A 10-minute session will land here.
               </p>
             </>
@@ -84,7 +84,7 @@ function DeltaPill({ delta }: { delta: number }) {
   const rounded = Math.round(delta);
   if (rounded === 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-bold text-ink-700">
+      <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-bold text-ink-700 dark:bg-ink-800 dark:text-ink-300">
         <Minus className="size-3" strokeWidth={3} />
         0
       </span>
@@ -92,13 +92,13 @@ function DeltaPill({ delta }: { delta: number }) {
   }
   if (rounded > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400">
         <TrendingUp className="size-3" strokeWidth={3} />+{rounded}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-500/15 dark:text-amber-400">
       <TrendingDown className="size-3" strokeWidth={3} />
       {rounded}
     </span>
@@ -119,10 +119,10 @@ function TinyStat({
       <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink-900">
+      <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink-900 dark:text-white">
         {value ?? "—"}
       </p>
-      {suffix && <p className="text-[10px] text-ink-500">{suffix}</p>}
+      {suffix && <p className="text-[10px] text-ink-500 dark:text-ink-400">{suffix}</p>}
     </div>
   );
 }

@@ -34,7 +34,7 @@ export default async function BaselinePage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-10 md:px-6">
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
-          Step 4 of 4 · Your baseline
+          Final step · Your baseline
         </p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
           One rep to start. This is the anchor.

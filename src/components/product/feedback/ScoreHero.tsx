@@ -55,7 +55,7 @@ export const ScoreHero = forwardRef<DimensionGridHandle, Props>(function ScoreHe
         <div className="grid items-center gap-5 md:grid-cols-[auto_1fr] md:gap-8">
           <CompositeScore value={composite} durationLabel={durationLabel} />
           <div className="space-y-3">
-            <h2 className="text-xl font-extrabold leading-snug tracking-[-0.01em] text-ink-900 md:text-2xl">
+            <h2 className="text-xl font-extrabold leading-snug tracking-[-0.01em] text-ink-900 dark:text-white md:text-2xl">
               {headline}
             </h2>
             <motion.p
@@ -66,9 +66,9 @@ export const ScoreHero = forwardRef<DimensionGridHandle, Props>(function ScoreHe
                 duration: 0.4,
                 ease: [0.32, 0.72, 0, 1],
               }}
-              className="text-[13px] leading-relaxed text-ink-600 md:text-sm"
+              className="text-[13px] leading-relaxed text-ink-600 dark:text-ink-300 md:text-sm"
             >
-              <span className="mr-1.5 inline-flex items-center rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-ink-700">
+              <span className="mr-1.5 inline-flex items-center rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-ink-700 dark:bg-ink-800 dark:text-ink-200">
                 {band.label}
               </span>
               {band.description}

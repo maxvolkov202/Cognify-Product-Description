@@ -377,17 +377,6 @@ export default async function ProgressPage() {
           <div className="mt-6">
             <StreakHeatmap activity={activity} days={84} />
           </div>
-          <div className="mt-4 flex items-center gap-2 text-[11px] text-ink-500 dark:text-ink-400">
-            <span>Less</span>
-            <div className="flex gap-0.5">
-              <span className="size-3 rounded-sm bg-ink-100 dark:bg-ink-700" />
-              <span className="size-3 rounded-sm bg-brand-purple/25" />
-              <span className="size-3 rounded-sm bg-brand-purple/50" />
-              <span className="size-3 rounded-sm bg-brand-purple/75" />
-              <span className="size-3 rounded-sm bg-brand-purple" />
-            </div>
-            <span>More reps that day</span>
-          </div>
         </div>
 
         <div className="surface-card p-8">

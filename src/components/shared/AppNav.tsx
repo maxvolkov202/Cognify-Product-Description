@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
@@ -21,12 +22,20 @@ type Props = {
   sessionUser: SessionUser | null;
 };
 
+/** Active when the pathname is the link target or nested under it
+ *  (e.g. /build-a-rep/abc highlights "Build a Rep"). */
+function isActive(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 /**
  * App-surface header. Includes a responsive hamburger menu for mobile
  * since the full nav doesn't fit on narrow viewports.
  */
 export function AppNav({ navItems, sessionUser }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink-200/70 bg-white/95 backdrop-blur-md dark:border-ink-700/70 dark:bg-ink-900/95">
@@ -37,15 +46,29 @@ export function AppNav({ navItems, sessionUser }: Props) {
             aria-label="App"
             className="hidden items-center gap-x-5 gap-y-1 md:flex"
           >
-            {navItems.map((item) => (
-              <GuardedLink
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap text-[13px] font-semibold text-ink-600 transition-colors hover:text-ink-900 dark:text-ink-300 dark:hover:text-white"
-              >
-                {item.label}
-              </GuardedLink>
-            ))}
+            {navItems.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <GuardedLink
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    active
+                      ? "relative whitespace-nowrap text-[13px] font-bold text-ink-900 dark:text-white"
+                      : "whitespace-nowrap text-[13px] font-semibold text-ink-600 transition-colors hover:text-ink-900 dark:text-ink-300 dark:hover:text-white"
+                  }
+                >
+                  {item.label}
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-0 -bottom-1.5 h-0.5 rounded-full brand-gradient"
+                    />
+                  )}
+                </GuardedLink>
+              );
+            })}
           </nav>
         </div>
         <div className="flex items-center gap-2">
@@ -86,17 +109,25 @@ export function AppNav({ navItems, sessionUser }: Props) {
           className="border-t border-ink-200/60 bg-white md:hidden dark:border-ink-700/60 dark:bg-ink-900"
         >
           <ul className="mx-auto flex w-full max-w-6xl flex-col px-6 py-3">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <GuardedLink
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-ink-800"
-                >
-                  {item.label}
-                </GuardedLink>
-              </li>
-            ))}
+            {navItems.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <li key={item.href}>
+                  <GuardedLink
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={
+                      active
+                        ? "block rounded-lg bg-ink-50 px-2 py-2.5 text-sm font-bold text-ink-900 dark:bg-ink-800 dark:text-white"
+                        : "block rounded-lg px-2 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50 dark:text-ink-200 dark:hover:bg-ink-800"
+                    }
+                  >
+                    {item.label}
+                  </GuardedLink>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       )}

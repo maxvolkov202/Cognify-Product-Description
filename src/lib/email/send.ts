@@ -142,7 +142,7 @@ function buildDayReminderHtml(firstName: string, streakDays: number): string {
 <html>
 <body style="margin:0;padding:0;background:#f8f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e5f0;">
-    <div style="background:linear-gradient(135deg,#9788ff,#d946ef);padding:28px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);padding:28px;text-align:center;">
       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
         ${streakDays >= 3 ? "🔥 Streak check" : "Time to train"}
       </h1>
@@ -153,7 +153,7 @@ function buildDayReminderHtml(firstName: string, streakDays: number): string {
       </p>
       <div style="text-align:center;margin:24px 0 8px;">
         <a href="${appUrl}/workout"
-           style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
+           style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
           Start today's workout →
         </a>
       </div>
@@ -173,7 +173,7 @@ function buildCrewInviteHtml(inviter: string, inviteUrl: string): string {
 <html>
 <body style="margin:0;padding:0;background:#f8f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e5f0;">
-    <div style="background:linear-gradient(135deg,#9788ff,#d946ef);padding:28px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);padding:28px;text-align:center;">
       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
         ${escapeHtml(inviter)} wants you in their Cognify crew
       </h1>
@@ -186,7 +186,7 @@ function buildCrewInviteHtml(inviter: string, inviteUrl: string): string {
         Join the crew and you can both track progress, push each other on streaks, and run head to head challenges.
       </p>
       <div style="text-align:center;margin:24px 0;">
-        <a href="${inviteUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
+        <a href="${inviteUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
           Accept invite and start training
         </a>
       </div>
@@ -236,7 +236,7 @@ function buildWelcomeHtml(firstName: string): string {
 </head>
 <body style="margin:0;padding:0;background:#f8f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8e5f0;">
-    <div style="background:linear-gradient(135deg,#9788ff,#d946ef);padding:32px 28px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);padding:32px 28px;text-align:center;">
       <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">
         Welcome to Cognify
       </h1>
@@ -279,7 +279,7 @@ function buildWelcomeHtml(firstName: string): string {
 
       <div style="text-align:center;margin:28px 0 16px;">
         <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://cognifygym.com"}/workout"
-           style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#9788ff,#d946ef);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
+           style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6aa3ff,#9788ff 40%,#b072ff 70%,#e77cf0);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;">
           Start your first workout →
         </a>
       </div>

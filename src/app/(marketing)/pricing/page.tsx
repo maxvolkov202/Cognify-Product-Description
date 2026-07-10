@@ -19,7 +19,7 @@ const individualPlans = [
       "Basic progress tracking",
       "Streak counter",
     ],
-    cta: { label: "Start training free", href: "/signup" },
+    cta: { label: "Start training free", href: "/signin?mode=signup" },
     variant: "outline" as const,
   },
   {
@@ -29,13 +29,13 @@ const individualPlans = [
     tagline: "Unlimited reps, all modes, deeper feedback.",
     features: [
       "Unlimited daily reps",
-      "Both modes unlocked (Daily Workout + Build a Rep)",
+      "All three modes unlocked (Daily Workout, Skill Lab, Build a Rep)",
       "Longitudinal progress dashboard",
       "Rep-to-rep comparison",
       "External validation flow",
       "Priority feedback model",
     ],
-    cta: { label: "Start Pro trial", href: "/signup?plan=pro" },
+    cta: { label: "Start Pro trial", href: "/signin?mode=signup&plan=pro" },
     variant: "primary" as const,
     featured: true,
   },
@@ -56,7 +56,7 @@ const teamPlans = [
   {
     name: "Companies",
     tagline:
-      "Corporate Health &amp; Performance teams investing in communication as a measurable brain-productivity benefit.",
+      "Corporate Health & Performance teams investing in communication as a measurable brain-productivity benefit.",
     features: [
       "Per-seat licensing",
       "Admin dashboard with team-wide scores",

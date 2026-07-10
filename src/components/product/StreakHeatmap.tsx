@@ -38,22 +38,17 @@ export function StreakHeatmap({ activity, days = 84 }: Props) {
             {week.map((cell) => (
               <div
                 key={cell.date}
-                className="size-3 rounded-sm"
-                style={{ backgroundColor: intensityColor(cell.count) }}
+                className={`size-3 rounded-sm ${intensityClass(cell.count)}`}
                 title={`${cell.date}: ${cell.count} rep${cell.count === 1 ? "" : "s"}`}
               />
             ))}
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center gap-2 text-[11px] text-ink-500">
+      <div className="mt-3 flex items-center gap-2 text-[11px] text-ink-500 dark:text-ink-400">
         <span>Less</span>
         {[0, 1, 3, 5, 8].map((n) => (
-          <div
-            key={n}
-            className="size-3 rounded-sm"
-            style={{ backgroundColor: intensityColor(n) }}
-          />
+          <div key={n} className={`size-3 rounded-sm ${intensityClass(n)}`} />
         ))}
         <span>More</span>
       </div>
@@ -61,10 +56,13 @@ export function StreakHeatmap({ activity, days = 84 }: Props) {
   );
 }
 
-function intensityColor(count: number): string {
-  if (count === 0) return "#eef0f5";
-  if (count <= 1) return "#d4d1ff";
-  if (count <= 3) return "#a8a0ff";
-  if (count <= 5) return "#8a7cff";
-  return "#6956ff";
+// Brand-purple ramp (#b072ff at rising opacity) so the heatmap matches
+// the rest of the palette; empty cells use the ink scale so they get a
+// dark-mode twin for free.
+function intensityClass(count: number): string {
+  if (count === 0) return "bg-ink-100 dark:bg-ink-700";
+  if (count <= 1) return "bg-brand-purple/25";
+  if (count <= 3) return "bg-brand-purple/50";
+  if (count <= 5) return "bg-brand-purple/75";
+  return "bg-brand-purple";
 }

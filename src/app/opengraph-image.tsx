@@ -93,7 +93,7 @@ export default async function Image() {
             <span style={{ opacity: 0.5 }}>·</span>
             <span>Skill Lab</span>
             <span style={{ opacity: 0.5 }}>·</span>
-            <span>Scenario Training</span>
+            <span>Build a Rep</span>
           </div>
           <div style={{ fontWeight: 700 }}>cognifygym.com</div>
         </div>

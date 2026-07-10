@@ -60,14 +60,14 @@ export default function StartCard({ onStart }: StartCardProps) {
       disabled={isPending}
       whileTap={{ scale: 0.985 }}
       className={cn(
-        "relative w-full rounded-2xl overflow-hidden text-left",
+        "relative w-full rounded-[var(--radius-hero)] overflow-hidden text-left",
         "px-8 py-10 sm:py-14",
         // Canonical brand gradient (globals.css) — was a one-off
         // indigo→purple→pink stack that drifted from every other
-        // primary surface.
-        "brand-gradient",
-        "shadow-[0_20px_60px_-15px_rgba(151,136,255,0.55)]",
-        "hover:shadow-[0_24px_70px_-15px_rgba(151,136,255,0.7)]",
+        // primary surface. Sheen sweep is reduced-motion-safe (globals).
+        "brand-gradient animate-sheen",
+        "shadow-[var(--shadow-glow-lg)]",
+        "hover:shadow-[var(--shadow-glow-xl)]",
         "transition-shadow",
         "motion-safe:transition-[box-shadow,translate] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5",
         "focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-lavender/60",
@@ -84,7 +84,7 @@ export default function StartCard({ onStart }: StartCardProps) {
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
             Start workout
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-white max-w-md">
+          <p className="mt-3 text-sm sm:text-base text-white/85 max-w-md">
             Your first prompt appears the moment you tap.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold text-white tracking-wider">

@@ -167,7 +167,7 @@ export default function InsightScreen({
                 className={cn(
                   "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider",
                   theme
-                    ? cn("border", theme.chip)
+                    ? cn("border", theme.chipLight)
                     : "bg-purple-50 dark:bg-ink-800 text-purple-600 dark:text-brand-lavender",
                 )}
               >
@@ -181,8 +181,8 @@ export default function InsightScreen({
           data-testid="insight-ready"
           className={cn(
             "min-h-[48px] px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2",
-            "bg-pink-500 hover:bg-pink-400 text-white",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
+            "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
           )}
         >
           <Mic className="w-4 h-4" />
