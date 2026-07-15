@@ -8,49 +8,17 @@
 //
 // Usage: node scripts/taxonomy/generate-sub-skills.mjs
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+// Load + integrity checks (id shape, dup ids, per-dim counts, migration
+// target liveness) live in the shared loader — fail loud at generation
+// time, not at import time.
+import { loadTaxonomy } from "./lib.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const taxonomy = JSON.parse(
-  readFileSync(resolve(__dirname, "hidden-skills-v2.json"), "utf8"),
-);
-const migration = JSON.parse(
-  readFileSync(resolve(__dirname, "migration-map.json"), "utf8"),
-);
-
-// Integrity checks mirror tests/taxonomy.test.ts — fail loud at generation
-// time, not at import time.
-const ids = new Set();
-const counts = {};
-for (const s of taxonomy.skills) {
-  if (!/^[a-z][a-z0-9_]*$/.test(s.id)) throw new Error(`bad id: ${s.id}`);
-  if (ids.has(s.id)) throw new Error(`duplicate id: ${s.id}`);
-  ids.add(s.id);
-  counts[s.dimension] = (counts[s.dimension] ?? 0) + 1;
-}
-for (const [dim, expected] of Object.entries(taxonomy.counts)) {
-  if (dim === "total") continue;
-  if (counts[dim] !== expected) {
-    throw new Error(`count mismatch for ${dim}: ${counts[dim]} != ${expected}`);
-  }
-}
-
-// Every migration target must be a live v2 id, and only RENAMED ids
-// belong in the emitted legacy map (identity entries would shadow live
-// ids at read time for no benefit).
-const legacyEntries = Object.entries(migration.map).filter(
-  ([oldId, newId]) => oldId !== newId,
-);
-for (const [oldId, newId] of legacyEntries) {
-  if (!ids.has(newId)) {
-    throw new Error(`migration target not in taxonomy: ${oldId} -> ${newId}`);
-  }
-  if (ids.has(oldId)) {
-    throw new Error(`legacy id collides with a live v2 id: ${oldId}`);
-  }
-}
+const { taxonomy, legacyMap } = loadTaxonomy();
+const legacyEntries = Object.entries(legacyMap);
 
 const rows = taxonomy.skills
   .map(

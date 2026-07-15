@@ -47,6 +47,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import postgres from "postgres";
 import { config } from "dotenv";
+import { loadTaxonomy, toSkillDim } from "./taxonomy/lib.mjs";
 
 config({ path: ".env.local" });
 
@@ -66,21 +67,15 @@ const DIFFICULTY_MAP = { intro: 1, core: 2, stretch: 3 };
 const VALID_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_MAP));
 
 // System Change v2 Phase 1 (D20) — Exercise Framework validation reads
-// the Hidden Skill Taxonomy v2 (148 skills) straight from the taxonomy
-// JSON, the same source src/types/sub-skills.ts is generated from. The
-// `pacing` muscle group maps to the `delivery` dimension's skills.
-// hidden_skills may draw from the exercise's PRIMARY dimension plus its
-// secondary_core_skills dimensions (mirrors scripts/taxonomy/
-// retag-exercises.mjs), and must include ≥1 primary-dimension skill.
-const TAXONOMY_V2 = JSON.parse(
-  readFileSync(resolve(__dirname, "taxonomy", "hidden-skills-v2.json"), "utf-8"),
-);
-const DIM_TO_SKILL_DIM = { pacing: "delivery" };
-const toSkillDim = (d) => DIM_TO_SKILL_DIM[d] ?? d;
-const SUB_SKILLS_BY_SKILL_DIM = {};
-for (const s of TAXONOMY_V2.skills) {
-  (SUB_SKILLS_BY_SKILL_DIM[s.dimension] ??= []).push(s.id);
-}
+// the Hidden Skill Taxonomy v2 (148 skills) via the shared loader
+// (scripts/taxonomy/lib.mjs), the same source src/types/sub-skills.ts is
+// generated from. The `pacing` muscle group maps to the `delivery`
+// dimension's skills. hidden_skills may draw from the exercise's PRIMARY
+// dimension plus its secondary_core_skills dimensions (mirrors
+// scripts/taxonomy/retag-exercises.mjs), and must include ≥1
+// primary-dimension skill.
+const { skillIdsByDim } = loadTaxonomy();
+const SUB_SKILLS_BY_SKILL_DIM = Object.fromEntries(skillIdsByDim);
 const VALID_CONSTRAINT_TYPES = new Set(["time", "structure", "tone", "complexity", "none"]);
 
 // PRD v3 Phase 4 — Skill Lab applications. Mirrors

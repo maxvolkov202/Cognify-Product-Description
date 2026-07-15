@@ -1,0 +1,770 @@
+{
+  "version": "v1",
+  "exercises": [
+    {
+      "dimension": "thinking_quality",
+      "application": "pressure",
+      "application_skills": [
+        "pushback"
+      ],
+      "name": "Pressure: Pushback",
+      "rule": "Make your case, then hold it when the objection lands.",
+      "why": "Trains you to absorb disagreement and redirect without abandoning your original point.",
+      "default_difficulty": "core",
+      "ordering": 1,
+      "tags": [
+        "pressure-v1"
+      ],
+      "objective": "Train the user to acknowledge a stated objection and redirect to their original claim without caving, escalating, or restarting.",
+      "scoring_lens": "Constraint: the objection baked into the prompt must be acknowledged and answered. Ignoring it, caving to it, or turning combative MUST drag thinking_quality and tone.",
+      "coach_insight": "Take the objection seriously in one sentence, then steer back to your strongest point. The trap is caving, softening your claim the moment someone disagrees, or bulldozing past the objection as if it was never said.",
+      "secondary_core_skills": [
+        "tone",
+        "structure"
+      ],
+      "common_failure_modes": [
+        "Ignores the objection entirely and repeats the original pitch",
+        "Abandons the claim at the first sign of disagreement",
+        "Gets defensive or sarcastic toward the objector instead of answering the substance",
+        "Answers the objection but never returns to land the original point"
+      ],
+      "scoring_emphasis": "Weight the moments right after the objection: whether the speaker acknowledges it, answers its substance, and returns to the claim, over the polish of the opening case.",
+      "retry_objective": "Acknowledge the objection in one sentence, answer it directly, and land your original claim in the final line.",
+      "response_window": {
+        "min_sec": 45,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
+      "prompts": [
+        {
+          "text": "Make the case that you deserve the lead on the next big project. When you finish, your manager says: \"You've only been here six months. Is this really the right moment?\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're pitching your manager on buying a new tool for the team. Your case lands, then they say: \"We tried something like this last year and no one used it.\" Keep your claim alive.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Tell a skeptical colleague why the team should double-check each other's work before it goes out. They say: \"Checks just slow us down. Good people don't need them.\" Respond without caving.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Argue to your manager that the team should cancel its weekly status meeting. At the end, they say: \"That meeting is the only thing keeping us aligned.\" Keep going.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Tell a peer that the new process they designed isn't working for your team. They say: \"Everyone else has adapted. What's different about your team?\" Stay specific.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Argue to your manager that you should drop a project you're already on. After your case they say: \"You're abandoning the team mid-flight.\" Hold your ground.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain to your boss why you missed a goal you committed to. They say: \"That's the same explanation you gave last time.\" Respond without hedging.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Make the case for abandoning a project that's 80% done. A teammate says: \"People have been asking for this for a year.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Tell your manager you want to step back from a leadership role. They say: \"That's a step backwards. You'll regret it.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Tell your boss the measure they judge the team by is the wrong one. They say: \"That's the number the higher-ups look at.\" Make your case.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Make the case for picking someone for potential over experience. Your manager says: \"We've been burned every time we've done that.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Pitch your team on canceling a tradition they love. Someone says: \"This is the only fun part of working here.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're convincing a friend to quit their comfortable job for a startup. After your pitch, they say: \"That sounds reckless. I have a mortgage.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Convince a friend not to make a purchase they're excited about. They say: \"Why are you talking me out of this?\" Hold your point.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Tell your partner you want to delay buying a house. They say: \"We agreed on the timeline a year ago.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Argue to a parent that you don't want kids. They say: \"You'll change your mind, everyone does.\" Hold your ground.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Tell a sibling you can't lend them more money. They say: \"You're the only one who can help me.\" Respond.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Tell a friend you're cutting back on going out. They say: \"You're becoming boring.\" Respond.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Argue to your in-laws that the holiday plan needs to change. They say: \"We've done it this way for 30 years.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "You're arguing that the AI hype is overdone. Someone cuts in: \"You sound like the people who said the internet was a fad.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're making the case that remote work is the future. Someone fires back: \"That's killing junior careers.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're defending a controversial decision you stand by. Someone asks: \"How do you sleep at night?\" Respond without defensiveness.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        }
+      ]
+    },
+    {
+      "dimension": "conciseness",
+      "application": "pressure",
+      "application_skills": [
+        "time_compression"
+      ],
+      "name": "Pressure: Time Compression",
+      "rule": "Say it in half the time; every word earns its place.",
+      "why": "Builds the ability to deliver the core of an answer when the clock leaves no room for warm-up.",
+      "default_difficulty": "core",
+      "ordering": 2,
+      "tags": [
+        "pressure-v1"
+      ],
+      "objective": "Train the user to deliver a complete, signal-dense answer inside a hard 15-20 second budget with no preamble and no trailing filler.",
+      "scoring_lens": "Constraint: the answer must land inside the stated time budget with the point up front. Preamble, hedging, or running past the clock MUST drag conciseness.",
+      "coach_insight": "Lead with the answer itself: your first sentence carries the whole point, the rest supports it. The trap is warming up. Context, caveats, and 'so basically' burn the budget before the point ever arrives.",
+      "secondary_core_skills": [
+        "pacing",
+        "clarity"
+      ],
+      "common_failure_modes": [
+        "Opens with throat-clearing ('so, great question, basically...') instead of the answer",
+        "Runs past the stated time budget",
+        "Crams in multiple points, so none of them land",
+        "Trails off or restarts instead of finishing on a clean final line"
+      ],
+      "scoring_emphasis": "Weight the first five seconds and the density of the whole answer: one clear point delivered inside the budget beats three points squeezed past it.",
+      "retry_objective": "Open with the point in your first sentence and finish inside the stated budget with zero preamble.",
+      "response_window": {
+        "min_sec": 20,
+        "max_sec": 45
+      },
+      "constraint_types": [
+        "time"
+      ],
+      "prompts": [
+        {
+          "text": "Your boss stops you in the hallway: \"Why is the project two weeks behind?\" You have 15 seconds. No preamble.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "In a big meeting, a senior leader asks: \"What's the one thing you'd change about how this team operates?\" 20 seconds. Go.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "A teammate asks: \"What should I focus on this week?\" You have 15 seconds. Be actionable.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your manager catches you between meetings: \"Why is morale slipping?\" 15 seconds. Be honest.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "A teammate pings you: \"One sentence: what's the biggest risk to the plan?\" 15 seconds.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Someone new asks on day one: \"What does success look like for this team in six months?\" 20 seconds.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "A new hire asks: \"What's the weirdest part about working here that I should know?\" 15 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your boss in a hallway: \"What did you learn this week?\" 15 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your mentor asks: \"What are you not telling me about this project?\" 20 seconds. Be honest.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "A peer in the break room: \"How do you decide what to drop when everything's on fire?\" 20 seconds.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your manager, between calls: \"What's one thing you need from me right now?\" 15 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Someone asks: \"What does the place you work actually do?\" 20 seconds. No jargon.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're up for something you want, against strong competition. The question: \"Why you?\" 15 seconds. Begin.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "A recruiter catches you at a conference: \"Tell me about yourself: what you do, what you want next.\" 20 seconds.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Someone at a networking event asks: \"What are you working on that you're excited about?\" 20 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "On the spot: \"What's a strong opinion you hold loosely?\" 20 seconds.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Out of nowhere: \"What's the worst advice you ever got?\" 20 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're asked live: \"What would you tell your 22-year-old self?\" 15 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You get one closing line: \"In 15 seconds, what's the one thing you want people to remember?\" Go.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "\"In 20 seconds, what's the most surprising thing you've learned this year?\" Go.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Your partner: \"In 20 seconds, what's the next big thing you want for us?\" Go.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "A close friend: \"15 seconds. Am I being honest with myself about this?\" Be direct.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Your parent at dinner: \"What are you actually proud of this year?\" 20 seconds.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "A best friend: \"15 seconds. Should I take the offer?\" Real answer.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "A first date: \"What are you actually looking for?\" 20 seconds. No script.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        }
+      ]
+    },
+    {
+      "dimension": "tone",
+      "application": "pressure",
+      "application_skills": [
+        "audience_switch"
+      ],
+      "name": "Pressure: Audience Switch",
+      "rule": "Explain it twice; shift register for each listener, keep the facts.",
+      "why": "Trains tone control by shifting vocabulary and stakes for a new listener without losing the substance.",
+      "default_difficulty": "core",
+      "ordering": 3,
+      "tags": [
+        "pressure-v1"
+      ],
+      "objective": "Train the user to deliver the same substance to two different audiences in one rep, pivoting register, vocabulary, and stakes without restarting or losing the facts.",
+      "scoring_lens": "Constraint: both audiences must get the same substance in a clearly different register. A missing pivot, identical phrasing for both, or substance drift MUST drag tone.",
+      "coach_insight": "Same facts, different frame: change your words and what you emphasize when the listener changes, not what's true. The trap is restarting from scratch at the pivot, or reciting the same sentences twice in a slightly different voice.",
+      "secondary_core_skills": [
+        "clarity",
+        "structure"
+      ],
+      "common_failure_modes": [
+        "Delivers the same sentences to both audiences with no register change",
+        "Restarts the explanation from scratch at the pivot instead of shifting",
+        "Changes the facts or claims between the two audiences",
+        "Runs long on the first audience and rushes or skips the second"
+      ],
+      "scoring_emphasis": "Weight the pivot itself, how cleanly the register shifts while the substance holds, over the quality of either half in isolation.",
+      "retry_objective": "Hit the pivot cleanly: keep every fact, but change the vocabulary and stakes for the second listener.",
+      "response_window": {
+        "min_sec": 45,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
+      "prompts": [
+        {
+          "text": "Explain what your team does. First: someone brand new on day one (20s). Then pivot: the person who decides your team's budget (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why a project failed. First to the junior who worked on it and needs to learn (20s). Then to the boss who approved it and must decide about the next one (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain AI to two people. First: a friend who's suspicious of it (20s). Then: someone deep in the field who wants to know what's genuinely new to you (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Describe what you do all day. First to your grandparent, who's never heard of work like yours (20s). Then to someone in your field who'll spot any fudging (15s).",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain a decision you made recently. First to someone with no background in it (20s). Then to an expert who'll challenge every tradeoff (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Describe a recent win. First to a friend at dinner who's outside your world (20s). Then to someone deciding whether to bet on you (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain why something you promised is late. First to the person waiting on it (20s). Then to the person you answer to, who already promised it onward (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why a goal was missed. First to your team, who needs the morale lift (20s). Then to your boss, who needs the truth (15s).",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain a tradeoff between speed and quality. First to your own team (20s). Then to the person on the receiving end who's asking why (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain a big reorganization. First to someone worried about their spot (20s). Then to a peer who thinks it's a power play (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why something flopped. First to your team in private (20s). Then to a wider group in public (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain your career path. First to a student wondering what to do (20s). Then to a skeptic who thinks you just got lucky (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Explain a major life change you're making. First to your parents (20s). Then to your boss, who needs to know what it means for work (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain a money mistake. First to your partner (20s). Then to the person helping you fix it (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain why you're moving cities. First to your aging parents (20s). Then to a friend you grew up with (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain something you do that others find unusual. First to a five-year-old (20s). Then to a skeptical old friend (15s).",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain why a project is ending. First to the people who built it (20s). Then to the people deciding what to fund next (15s).",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain the biggest risk in your field. First to a student considering it (20s). Then to an expert who'll poke holes (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why you turned down a promotion. First to your boss (20s). Then to your partner, who was excited about it (15s).",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "application": "pressure",
+      "application_skills": [
+        "clarifying_interrupt"
+      ],
+      "name": "Pressure: Clarifying Interrupt",
+      "rule": "Absorb the interruption, answer it, then land your point.",
+      "why": "Trains recovery by turning a mid-answer challenge into sharper specificity instead of a derailment.",
+      "default_difficulty": "core",
+      "ordering": 4,
+      "tags": [
+        "pressure-v1"
+      ],
+      "objective": "Train the user to absorb a mid-explanation interruption, answer its challenge with something concrete, and still land the original point.",
+      "scoring_lens": "Constraint: the interruption in the prompt must be addressed head-on with added specificity. Restarting, ignoring the challenge, or going defensive MUST drag thinking_quality.",
+      "coach_insight": "Treat the interruption as a demand for something concrete: answer it with a specific, then finish your point. The trap is starting over from the top, or getting defensive instead of getting sharper.",
+      "secondary_core_skills": [
+        "structure",
+        "tone"
+      ],
+      "common_failure_modes": [
+        "Ignores the interruption and continues the original script",
+        "Restarts the whole explanation from the beginning",
+        "Responds to the challenge with more abstraction instead of a concrete specific",
+        "Turns defensive or apologetic and never lands the original point"
+      ],
+      "scoring_emphasis": "Weight the recovery, what the speaker says in the sentences immediately after the interrupt, more than the quality of the setup before it.",
+      "retry_objective": "Meet the interruption with one concrete specific, then return to your structure and finish the point.",
+      "response_window": {
+        "min_sec": 45,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
+      "prompts": [
+        {
+          "text": "Walk me through how you'd handle a coworker who misses deadlines. Around 15 seconds in you'll hear: \"That doesn't address the root issue. Try again.\" Keep your structure. Recover.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain how you'd decide between two job offers. About 15 seconds in, the interrupt says: \"You're just listing things. What actually matters to you?\" Respond and keep going.",
+          "difficulty": "intro",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Teach someone how to give constructive feedback. 15 seconds in: \"That sounds like theory. What do you actually say?\" Land concrete next.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Describe how you'd get a new teammate up to speed. 15 seconds in: \"I've heard all this before. What's different about your way?\" Respond with specificity.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why your project deserves more resources. 15 seconds in: \"I'm not hearing results, I'm hearing activity.\" Redirect.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Walk through how you'd improve your team's meetings. 15 seconds in: \"Every team thinks their meetings are the problem. What's the actual waste?\" Stay sharp.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why your standards should stay high even when it slows things down. 15 seconds in: \"That's what everyone says right before they miss their goals.\" Hold the line.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain your plan for the next few months. 15 seconds in: \"Why is none of this aimed at the thing that's broken right now?\" Land it.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Walk through your plan for next year. 15 seconds in: \"This sounds like last year's plan with the dates changed.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Walk through something that went wrong. 15 seconds in: \"You keep saying 'we'. What specifically did YOU miss?\" Land it.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Pitch an idea you believe in. 15 seconds in: \"What evidence do you have this actually works?\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Pitch a change you want to make. 15 seconds in a peer says: \"You're solving the symptom, not the cause.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Explain why you're putting off the doctor's appointment. 15 seconds in your partner: \"That sounds like fear talking.\" Respond honestly.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Describe your retirement plan. 15 seconds in your partner: \"That assumes nothing goes wrong, ever.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain why you want to move. 15 seconds in your partner: \"That sounds like running, not pursuing.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Talk through a friendship that's struggling. 15 seconds in: \"You keep blaming them. What's your part?\" Respond honestly.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Explain a budgeting plan. 15 seconds in your partner: \"That's not budgeting, that's restriction.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Walk through how you're handling a family conflict. 15 seconds in: \"You're not being honest about what you actually want.\" Respond.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "You're describing how you work. 15 seconds in someone says: \"That sounds great in theory.\" Respond with specifics.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're telling a story you've told before. 15 seconds in: \"Wait, that's not how I heard it from someone else.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're pitching an idea to a room. 15 seconds in someone calls out: \"This is a solution looking for a problem.\" Hold composure.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're answering a hard question. 15 seconds in: \"What you just said sounds like you're dodging the question.\" Respond directly.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're talking about ethics in your field. 15 seconds in: \"That's the convenient answer. What's the honest one?\" Respond.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're explaining a group effort. 15 seconds in: \"That's a deflection. The question was about you, not your team.\" Respond.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        }
+      ]
+    },
+    {
+      "dimension": "thinking_quality",
+      "application": "pressure",
+      "application_skills": [
+        "stakes_raise"
+      ],
+      "name": "Pressure: Stakes Raise",
+      "rule": "Speak like it counts; hold steady when the moment matters.",
+      "why": "Trains composure by keeping delivery and judgment steady when the prompt names a real consequence.",
+      "default_difficulty": "stretch",
+      "ordering": 5,
+      "tags": [
+        "pressure-v1"
+      ],
+      "objective": "Train the user to keep reasoning honest and delivery composed when the prompt frames a real consequence, such as an offer, a relationship, or a team's trust, riding on the answer.",
+      "scoring_lens": "Constraint: the answer must sound believed, with honest substance delivered in steady composure. A rushed, hollow, or performative answer under the stated stakes MUST drag thinking_quality.",
+      "coach_insight": "Say the true thing at a steady pace, as if the outcome depends on it, because in this frame it does. The trap is performing: inflated promises, rushed delivery, or a rehearsed script where a real answer was needed.",
+      "secondary_core_skills": [
+        "pacing",
+        "tone"
+      ],
+      "common_failure_modes": [
+        "Speeds up or turns breathless as the stakes register",
+        "Reaches for a rehearsed-sounding script instead of a direct answer",
+        "Inflates promises or certainty to escape the pressure",
+        "Dodges the named consequence instead of speaking to it"
+      ],
+      "scoring_emphasis": "Weight whether the delivery holds steady end to end and the content stays honest under the stated consequence, over the cleverness of the answer itself.",
+      "retry_objective": "Keep the same honesty, but slow the delivery and cut anything that sounds performed rather than believed.",
+      "response_window": {
+        "min_sec": 45,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
+      "prompts": [
+        {
+          "text": "This is the interview question that decides the offer: \"Tell me about a time you failed.\" 45 seconds. Start when you're ready.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're about to lose someone's trust for good. They say: \"Give me one reason to stay.\" 30 seconds. Go.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're up for a promotion. Your boss asks: \"What's the biggest risk of putting you in this role?\" 45 seconds. Honest answer, composed delivery.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're about to ask your partner to move cities with you for this opportunity. You have 60 seconds to tell them why it's worth it.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Your boss says: \"Your role is on the cut list. Convince me otherwise.\" 45 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're meeting the person who could change everything for you. They ask: \"What are you most afraid of?\" 30 seconds. Real answer.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Your team is in the room. Morale is low after a rough stretch. You have one minute to say what you actually believe about what's next. 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Bad news just hit your team and everyone is looking at you. You have 60 seconds to speak first. What do you say?",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Final round for the role you want. The question: \"What do you think this place is actually missing?\" 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "The review meeting starts now. Everyone knows you signed off on the bad call. The first question: \"Walk us through what you saw.\" 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You're presenting a plan you've worked on for months. The first response: \"In one minute, convince me this isn't just optimism.\" 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "You just learned your favorite project is being killed. The team meeting starts now. 60 seconds. What do you say?",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your replacement starts Monday. The handover meeting is now. 60 seconds to set them up to win. Go.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "Your boss calls you in: \"I'm hearing two very different stories about what happened. Tell me yours.\" 45 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "It's your last day, and it wasn't your choice. You're asked: \"What do you wish you'd done differently?\" 60 seconds. Real answer.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "work"]
+        },
+        {
+          "text": "It's the biggest audience you've ever had. The question: \"What's the strongest thing you believe that most people would disagree with?\" 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Final round of the speech competition. The judge: \"In 60 seconds, why does what you do matter to a stranger?\" Go.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "You're at a public memorial. The family asks you to speak about the person. 60 seconds. Don't break.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "The room is hostile. The challenge: \"Convince us that your work is honest.\" 60 seconds.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "public"]
+        },
+        {
+          "text": "Your aging parent asks: \"What do you actually think I should do about the house?\" You have 60 seconds. They're deciding tonight.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Your partner: \"Tell me, in 60 seconds, what's been making you so distant lately.\" Real answer.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Your closest friend is sick. They ask: \"What do you think I should do?\" 45 seconds. Be honest.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "A teenager in your life asks: \"Why should I trust your judgment on this?\" 45 seconds. You have one shot.",
+          "difficulty": "core",
+          "tags": ["general", "pressure", "personal"]
+        },
+        {
+          "text": "Your sibling, after years of silence: \"What would it take for you to forgive me?\" 60 seconds. Real answer.",
+          "difficulty": "stretch",
+          "tags": ["general", "pressure", "personal"]
+        }
+      ]
+    }
+  ]
+}
