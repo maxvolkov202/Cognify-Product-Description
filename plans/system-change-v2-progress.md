@@ -109,10 +109,14 @@ phase) → check the phase off here. Never commit to main directly.
 - **Exit criteria:** typecheck + tests green ✅; feedback-bullet attribution + profile check =
   Max's verify list below.
 - **⚠️ Calibration guardrail:** the scoring prompt BYTES changed (new reference block + focus-dim
-  definitions). Calibration suite could NOT be re-run this session — both Anthropic and OpenAI
-  API keys are out of credits (retag hit the same wall). **Re-run
-  `scripts/calibrate-with-signals.mjs` as soon as a provider is re-upped, before trusting scores
-  for drift monitoring.** (Suite itself updated: dimension_fallback gate removed.)
+  definitions). **Replay RAN 2026-07-15 (session 3) after Max refilled OpenAI credits** — serving
+  provider was gpt-4o (Anthropic still dead), so the measurement is provider-shift + prompt-shift
+  combined against Anthropic-Haiku-era baselines: **0/48 reps within ±5**; per-dim mean drift
+  modest (+1.3 structure … +11.3 conciseness) but variance huge (−40…+52). Verdict: baselines are
+  UNUSABLE while OpenAI serves; a clean re-baseline is Phase 3's job (D22 flips provider
+  officially + rubric rewrite + recalibration 3.6). Until then treat drift-cron alerts as noise.
+  Raw results: session scratchpad `calibration-full.json`; harness now needs
+  `CALIBRATION_GUEST_ID=<uuid>` env (auth gate on /api/score).
 - **Verify after merge (Max):** complete one dev workout rep → feedback bullets name plausible
   hidden skills for the trained dimension; `/progress` unaffected.
 
@@ -257,3 +261,20 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   cleanup (not bugs): consolidate the 3 script-side taxonomy loaders/validators + pacing→delivery
   alias maps into one shared scripts/taxonomy lib — fold into Phase 2's tooling rewrite. Next:
   Phase 2 (prompt architecture overhaul, D21+D23) in a fresh session.
+- **2026-07-15 (session 3) — prod promotion of Phases 0+1.** Max refilled OpenAI credits and
+  authorized self-merge. PR #5 merged; hotfix PR #6 merged (role-aware OpenAI PRIMARY scoring
+  timeout 45s — prod was timing out gpt-4o at the 15s fallback-tuned budget, cascading to dead
+  Anthropic → mock scores). Deployed twice to prod (cognify-v2-neon.vercel.app, final dpl on
+  merge 4f38aff6). **Discovery: dev `.env.local` and prod Vercel point at the SAME Supabase DB**
+  (postgres.dunnoccrvrqzsgxsfjuv) — so migration 0041 + the 94-exercise re-tag were already
+  live for prod; 0041 re-applied idempotently via apply-prod-migration.mjs. Prod env already had
+  `AI_PROVIDER=openai`. Calibration replay ran (see Phase 1 note). Prod smoke: pages 200, real
+  scoring at ~20s via gpt-4o, dims sane. **One item needs Max (prod flag write blocked for the
+  agent):** bullet sub-skill attribution on prod returns null because
+  `FF_DETERMINISTIC_SIGNALS=false` there — reproduced locally: with the flag off, gpt-4o stops
+  emitting `subSkill` (the SIGNALS block's presence is what cues attribution). To enable:
+  `vercel env rm FF_DETERMINISTIC_SIGNALS production --yes && printf 'true' | vercel env add
+  FF_DETERMINISTIC_SIGNALS production` then `vercel deploy --prod` (percent already 100; the
+  taxonomy-v2 mapper is evidence-gated so the old fallback-flooding risk is gone). Also worth a
+  password rotation: the prod DATABASE_URL (incl. password) got echoed into a local session
+  transcript by a node error during env plumbing.
