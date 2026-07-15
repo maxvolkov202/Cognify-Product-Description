@@ -333,8 +333,8 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     Smoked via direct server-action POSTs on dev: focus/clarity plan (exercise rotation +
     doc-merged prompts in slates) and pressure plan (ramp order, relocated pressure exercises,
     correct budgets) both green; /try serving varied catalog prompts.
-  - **Password rotation SKIPPED by Max's instruction this session** ("we don't need that yet") —
-    the leaked-credential rotation from session 3 stays open.
+  - **Chore 2 (credential maintenance) skipped by Max's instruction this session** ("we don't
+    need that yet, focus on builds").
   - Deferred/flagged: Word Budget doc prompts say "75 words max" but the exercise rule is 30
     words — doc suffix dropped, needs Max ruling if 75-word variant wanted; six-word-story +
     read-and-teach one-liners skipped (see 2B.1); SkillLabSession reps now record exerciseId
