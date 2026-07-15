@@ -53,10 +53,10 @@ export function BeforeAfterAudio({ oldest, newest }: Props) {
           <ArrowLeftRight className="size-3.5" strokeWidth={2.5} />
           Before · After
         </div>
-        <h2 className="mt-2 text-xl font-extrabold text-ink-900 md:text-2xl">
+        <h2 className="mt-2 text-xl font-extrabold text-ink-900 md:text-2xl dark:text-white">
           Hear the delta.
         </h2>
-        <p className="mt-1 text-sm text-ink-600">
+        <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
           Your first audio-bearing rep on the left. Your most recent on the
           right. Same lens, different you.
         </p>
@@ -82,25 +82,25 @@ export function BeforeAfterAudio({ oldest, newest }: Props) {
           />
         </div>
 
-        <div className="mt-5 flex items-baseline justify-between gap-3 rounded-xl border border-ink-100 bg-ink-50/60 px-4 py-3 text-sm">
+        <div className="mt-5 flex items-baseline justify-between gap-3 rounded-xl border border-ink-100 bg-ink-50/60 px-4 py-3 text-sm dark:border-ink-800 dark:bg-ink-800/60">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Composite change
             </p>
             <p
               className={`mt-1 text-2xl font-extrabold tabular-nums ${
                 compositeDelta > 0
-                  ? "text-emerald-700"
+                  ? "text-emerald-700 dark:text-emerald-400"
                   : compositeDelta < 0
-                    ? "text-amber-700"
-                    : "text-ink-900"
+                    ? "text-amber-700 dark:text-amber-400"
+                    : "text-ink-900 dark:text-white"
               }`}
             >
               {compositeDelta >= 0 ? "+" : ""}
               {compositeDelta}
             </p>
           </div>
-          <div className="text-right text-xs text-ink-500">
+          <div className="text-right text-xs text-ink-500 dark:text-ink-400">
             {elapsedBetween(oldest.createdAt, newest.createdAt)} of training
             between these two reps.
           </div>
@@ -128,15 +128,17 @@ function Clip({
   accent: "ink" | "brand";
 }) {
   const ring =
-    accent === "brand" ? "ring-brand-purple/30" : "ring-ink-200";
+    accent === "brand" ? "ring-brand-purple/30" : "ring-ink-200 dark:ring-ink-700";
   const btn =
     accent === "brand"
       ? "brand-gradient text-white"
-      : "bg-ink-900 text-white";
+      : "bg-ink-900 text-white dark:bg-ink-100 dark:text-ink-900";
   return (
-    <div className={`rounded-2xl border border-ink-200 bg-white p-4 ring-1 ${ring}`}>
+    <div
+      className={`rounded-2xl border border-ink-200 bg-white p-4 ring-1 dark:border-ink-700 dark:bg-ink-900 ${ring}`}
+    >
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-ink-500">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-ink-500 dark:text-ink-400">
           {label}
         </p>
         <p className="text-[10px] text-ink-400">
@@ -147,7 +149,7 @@ function Clip({
           })}
         </p>
       </div>
-      <p className="mt-2 line-clamp-2 text-sm font-semibold text-ink-900">
+      <p className="mt-2 line-clamp-2 text-sm font-semibold text-ink-900 dark:text-ink-100">
         {rep.promptText}
       </p>
       <div className="mt-4 flex items-center gap-3">
@@ -167,7 +169,7 @@ function Clip({
           <p className="brand-gradient-text text-2xl font-extrabold tabular-nums">
             {Math.round(rep.compositeScore)}
           </p>
-          <p className="text-[11px] text-ink-500">
+          <p className="text-[11px] text-ink-500 dark:text-ink-400">
             {(rep.durationMs / 1000).toFixed(0)}s rep · composite
           </p>
         </div>

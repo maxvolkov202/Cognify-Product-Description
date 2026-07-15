@@ -43,6 +43,9 @@ import InsightScreen from "@/components/product/workout-shell/InsightScreen";
 import ImprovementReview, {
   type AttemptPayload,
 } from "@/components/product/workout-shell/ImprovementReview";
+import CelebrationSparkles from "@/components/product/workout-shell/CelebrationSparkles";
+import CountUpScore from "@/components/product/workout-shell/CountUpScore";
+import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { deriveCoachFocus } from "@/lib/ai/coach-focus";
@@ -410,7 +413,14 @@ export default function AppSessionClient({
         )}
       </header>
 
-      <div className="bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 rounded-2xl p-5 sm:p-6 shadow-sm">
+      <div
+        className={cn(
+          "bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 rounded-2xl p-5 sm:p-6 shadow-sm",
+          // Session Complete carries the application-accent hairline —
+          // the card needs to be its positioning + clipping context.
+          phase.kind === "complete" && "relative overflow-hidden",
+        )}
+      >
         {phase.kind === "length-pick" && resumeOffer && (
           <ResumeOffer
             label={label}
@@ -578,7 +588,11 @@ function ResumeOffer({
         <button
           type="button"
           onClick={onResume}
-          className="min-h-[48px] px-5 py-3 rounded-xl font-semibold bg-pink-500 hover:bg-pink-400 text-white"
+          className={cn(
+            "min-h-[48px] px-5 py-3 rounded-xl font-semibold",
+            "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
+          )}
         >
           Resume your session ({doneCount} of {total} done)
         </button>
@@ -614,7 +628,7 @@ function LengthPick({
         {description} Every exercise runs the full loop: rep → coaching →
         retry → improvement review.
       </p>
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
         {[3, 5, 10].map((n) => (
           <button
             key={n}
@@ -622,8 +636,9 @@ function LengthPick({
             onClick={() => onPick(n)}
             className={cn(
               "min-h-[48px] px-5 py-3 rounded-xl font-semibold",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
               n === 3
-                ? "bg-pink-500 hover:bg-pink-400 text-white"
+                ? "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow"
                 : "border border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800",
             )}
           >
@@ -740,20 +755,37 @@ function SessionComplete({
     return `Strong base here. Try ${APPLICATION_LABELS[RELATED_APPLICATION[applicationId]]} next — it builds directly on your ${label} skills.`;
   })();
 
+  // Cognify treatment — this session's application identity (hairline,
+  // most-improved chip) mirrors the Skill Lab hub cards.
+  const accent = APPLICATION_ACCENTS[applicationId];
+  const scoreValue =
+    summary?.applicationScore != null
+      ? Math.round(summary.applicationScore)
+      : avgRetry != null
+        ? Math.round(avgRetry)
+        : null;
+
   return (
     <div className="flex flex-col items-center text-center gap-3 py-4">
+      {/* Application-accent hairline across the card top (the wrapping
+          card is `relative overflow-hidden` on this phase). */}
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+          accent.tile,
+        )}
+      />
       <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
         🎉 {label} session {quitEarly ? "banked" : "complete"}
       </div>
 
-      {/* Application Score (post-session profile estimate). */}
-      <div className="flex flex-col items-center">
+      {/* Application Score (post-session profile estimate) — count-up +
+          sparkles, DayCompleteSummary parity. */}
+      <div className="relative flex flex-col items-center">
+        <CelebrationSparkles />
         <div className="text-5xl font-extrabold text-slate-900 dark:text-white tabular-nums">
-          {summary?.applicationScore != null
-            ? Math.round(summary.applicationScore)
-            : avgRetry != null
-              ? Math.round(avgRetry)
-              : "—"}
+          {scoreValue != null ? <CountUpScore value={scoreValue} /> : "—"}
         </div>
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500 mt-1">
           {label} score
@@ -784,7 +816,12 @@ function SessionComplete({
       ) : null}
 
       {mostImproved && (
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+        <div
+          className={cn(
+            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold",
+            accent.chip,
+          )}
+        >
           Most improved: {applicationSkillLabel(mostImproved.id)} (+
           {Math.round(mostImproved.avg)})
         </div>
@@ -833,7 +870,11 @@ function SessionComplete({
       <div className="flex gap-2 mt-2">
         <Link
           href="/skill-lab"
-          className="min-h-[44px] px-5 py-2.5 rounded-xl font-semibold bg-pink-500 hover:bg-pink-400 text-white inline-flex items-center gap-1.5"
+          className={cn(
+            "min-h-[44px] px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-1.5",
+            "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
+          )}
         >
           Back to Skill Lab <ArrowRight className="w-4 h-4" />
         </Link>

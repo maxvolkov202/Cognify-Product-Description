@@ -1,9 +1,9 @@
 "use server";
 
 import { randomBytes, randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { externalValidations, externalRankings } from "@/lib/db/schema";
+import { externalValidations, externalRankings, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 
@@ -39,6 +39,18 @@ export async function createValidation(
   };
 
   return safeDb<CreateValidationResult>(async () => {
+    // Ownership gate: only the caller's own reps may be shared. Without
+    // this, a crafted repIds list would leak another user's scores to
+    // whoever holds the validation token.
+    if (user?.id) {
+      const owned = await db
+        .select({ id: reps.id })
+        .from(reps)
+        .where(and(inArray(reps.id, input.repIds), eq(reps.userId, user.id)));
+      if (owned.length !== input.repIds.length) {
+        throw new Error("Validation can only include your own reps.");
+      }
+    }
     const [row] = await db
       .insert(externalValidations)
       .values({

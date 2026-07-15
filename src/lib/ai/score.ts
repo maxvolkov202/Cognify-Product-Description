@@ -42,7 +42,9 @@ import {
   SUB_SKILL_TO_DIMENSION,
   SUB_SKILL_LABELS,
   SUB_SKILLS,
+  canonicalizeSubSkillId,
   renderSubSkillReference,
+  renderSubSkillReferenceWithDefinitions,
   type SubSkillId,
 } from "@/types/sub-skills";
 import { createHash } from "node:crypto";
@@ -433,7 +435,7 @@ BULLET RULES (didWell / didntLand / nextRepFocus — these are the user-facing s
   - didWell:        exactly 2 bullets in the normal case. ALLOWED 0 only when composite < 25 (junk reps must not manufacture praise).
   - didntLand:      exactly 2 bullets, paired with the 2 nextRepFocus items (each gap gets a paired fix in the same array index).
   - nextRepFocus:   exactly 2 bullets, prescriptive ("Open with a direction-setting sentence so the listener knows where you're going.").
-  - SUB-SKILL ATTRIBUTION (Ch.2 sub-skill grading): every bullet MUST set \`subSkill\` to the specific lever within the named dimension. The sub-skill must belong to the bullet's \`dimension\` (Word Choice belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message to choose. Bullets with mismatched sub-skill / dimension are sanitized to subSkill=null.
+  - SUB-SKILL ATTRIBUTION (Ch.2 sub-skill grading): every bullet MUST set \`subSkill\` to the specific lever within the named dimension. The sub-skill must belong to the bullet's \`dimension\` (Vocabulary Precision belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message to choose. Bullets with mismatched sub-skill / dimension are sanitized to subSkill=null.
   - text ≤140 chars, second-person ("you …"), action-oriented, no hedging.
   - Voice differs from callouts: callouts label what happened ("Rushed the setup"); bullets give actionable context ("You started talking without telling me where you were going.").
   - GROUNDING — non-negotiable for didWell + didntLand:
@@ -517,6 +519,15 @@ High: ${r.highScoreSignals.slice(0, 3).join("; ")}${anchorBlock}`;
 const COMPACT_RUBRIC = renderRubric(false);
 const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
 const SUB_SKILL_REFERENCE = renderSubSkillReference();
+/** Taxonomy v2 — definition blocks are pure module data; precompute the
+ *  six variants once so renderModeBlock never rebuilds them per rep, and
+ *  each dimension's block stays byte-stable by construction. */
+const FOCUS_SKILL_REFS: Record<SkillDimension, string> = Object.fromEntries(
+  (Object.keys(SUB_SKILLS) as SkillDimension[]).map((d) => [
+    d,
+    renderSubSkillReferenceWithDefinitions(d),
+  ]),
+) as Record<SkillDimension, string>;
 
 /** Knowledge for ONLY the LLM-scored skills. delivery + thinking_quality
  *  are deterministic so we don't ship their knowledge to the model. */
@@ -731,6 +742,15 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
   lines.push(`MODE: ${ctx.sessionType}`);
   if (ctx.sessionType === "focus" && ctx.focusDimension) {
     lines.push(`FOCUS DIMENSION: ${ctx.focusDimension}`);
+    // Taxonomy v2 (D20) — definitions for ONLY the focused dimension so
+    // sub-skill attribution inside the trained dimension is definition-
+    // guided. All 148 definitions would blow the token budget; the
+    // labels-only SUB-SKILL REFERENCE block still covers the other
+    // dimensions. Deterministic per focusDimension (calibration-safe).
+    lines.push(
+      `FOCUS DIMENSION HIDDEN SKILLS (prefer these for ${ctx.focusDimension} bullets' subSkill):`,
+      FOCUS_SKILL_REFS[ctx.focusDimension],
+    );
   }
   if (ctx.pressureArchetypeId) {
     const arch = getPressureArchetype(ctx.pressureArchetypeId);
@@ -767,9 +787,12 @@ export function renderRetryEvaluationBlock(
   rc: ScoreRepModeContext["retryContext"] | undefined,
 ): string | null {
   if (!rc) return null;
-  const focusSkill = rc.coachFocus.subSkill
-    ? ` (hidden skill: ${rc.coachFocus.subSkill})`
-    : "";
+  // Taxonomy v2 — the persisted coach focus may carry a pre-v2 id;
+  // canonicalize so the model sees (and echoes) a live taxonomy id.
+  const focusSkillId = rc.coachFocus.subSkill
+    ? (canonicalizeSubSkillId(rc.coachFocus.subSkill) ?? rc.coachFocus.subSkill)
+    : null;
+  const focusSkill = focusSkillId ? ` (hidden skill: ${focusSkillId})` : "";
   return [
     `RETRY EVALUATION: this is the user's ${rc.attempt === "again" ? "third-or-later" : "second"} attempt at the SAME prompt.`,
     `They were coached to implement ONE change: [${rc.coachFocus.dimension}${focusSkill}] "${rc.coachFocus.text}"`,
@@ -842,14 +865,18 @@ const SUB_SKILL_LABEL_TO_ID: Record<string, SubSkillId> = (() => {
 
 function normalizeSubSkillField(value: unknown): unknown {
   if (typeof value !== "string") return value;
-  // Already an id — pass through.
-  if ((ALL_SUB_SKILLS as readonly string[]).includes(value)) return value;
+  // Already a v2 id, or a pre-v2 id the model echoed back (retry context
+  // and coaching memory can inject persisted legacy ids) — canonicalize.
+  const canonical = canonicalizeSubSkillId(value);
+  if (canonical) return canonical;
   // Try human-label match (case-insensitive).
   const mapped = SUB_SKILL_LABEL_TO_ID[value] ?? SUB_SKILL_LABEL_TO_ID[value.toLowerCase()];
   if (mapped) return mapped;
-  // Try snake_case'd label ("Word Choice" → "word_choice").
-  const snake = value.toLowerCase().replace(/\s+/g, "_");
-  if ((ALL_SUB_SKILLS as readonly string[]).includes(snake)) return snake;
+  // Try snake_case'd label. v2 labels are hyphen-heavy ("Filler-to-Pause
+  // Substitution", "Real-Time Editing") so hyphens fold to underscores too.
+  const snake = value.toLowerCase().replace(/[\s-]+/g, "_");
+  const canonicalSnake = canonicalizeSubSkillId(snake);
+  if (canonicalSnake) return canonicalSnake;
   // Unknown string — null it out so the optional schema field accepts.
   return null;
 }
@@ -1314,21 +1341,16 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     );
   }
 
-  // Ch.11c — attach per-sub-skill scores from the text-signal mapper.
-  // Runs ONLY when the FF gated SIGNALS block was rendered above
-  // (textSignals != null). Uses the post-deterministic dimensionMap so
-  // the dimension_fallback path inherits the FINAL dim score (Delivery
-  // override + Thinking blend already applied) rather than the raw LLM
-  // dim score. Audio-driven sub-skills (Delivery + Tone) all flow
-  // through dimension_fallback and inherit their dim's holistic score.
+  // Ch.11c — attach per-sub-skill scores from the signal mapper. Runs
+  // ONLY when the FF gated SIGNALS block was rendered above
+  // (textSignals != null).
   if (signalsFlagOn && textSignals) {
-    // Ch.S5: pass prosody features so the mapper can populate Tone
-    // sub-skills from Hume emotion vectors (or Praat raw DSP) when
-    // available; falls through to dimension_fallback when prosody is
-    // absent (text-only reps).
+    // Ch.S5: pass prosody features so the mapper can populate the
+    // voice-measured skills (filler/wpm DSP + Hume emotion vectors) when
+    // available. Taxonomy v2 (D20): only genuinely-measured skills get
+    // entries — no dimension_fallback copies.
     const subSkillMap = mapSignalsToSubSkillScores(
       textSignals,
-      dimensionMap,
       prosodyFeatures,
     );
     const allScores = toScoresOnly(subSkillMap);

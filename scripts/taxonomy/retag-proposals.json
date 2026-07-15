@@ -1,0 +1,1538 @@
+{
+  "model": "manual (authored by Claude in-session 2026-07-15; Anthropic+OpenAI API quota exhausted)",
+  "proposals": [
+    {
+      "file": "clarity.json",
+      "name": "Explain Like I'm 12",
+      "dimension": "clarity",
+      "old": [
+        "word_choice",
+        "audience_awareness",
+        "concreteness"
+      ],
+      "proposed": [
+        "plain_english_conversion",
+        "audience_calibration",
+        "jargon_translation",
+        "vocabulary_precision"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "Headline First",
+      "dimension": "clarity",
+      "old": [
+        "logical_sequencing",
+        "precision"
+      ],
+      "proposed": [
+        "takeaway_clarity",
+        "listener_first_sequencing",
+        "bluf_fluency",
+        "answer_first_compression"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "The Analogy Bridge",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "audience_awareness"
+      ],
+      "proposed": [
+        "analogy_selection",
+        "abstraction_laddering",
+        "common_ground_creation"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "No Jargon Allowed",
+      "dimension": "clarity",
+      "old": [
+        "word_choice",
+        "audience_awareness"
+      ],
+      "proposed": [
+        "jargon_translation",
+        "plain_english_conversion",
+        "vocabulary_precision"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "Make It Real",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "precision"
+      ],
+      "proposed": [
+        "concreteness",
+        "example_grounding",
+        "lexical_specificity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "One Point Only",
+      "dimension": "clarity",
+      "old": [
+        "idea_isolation"
+      ],
+      "proposed": [
+        "idea_isolation",
+        "signal_to_noise_control",
+        "one_point_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "Answer the Confusion",
+      "dimension": "clarity",
+      "old": [
+        "audience_awareness",
+        "precision"
+      ],
+      "proposed": [
+        "assumption_checking",
+        "mental_model_matching",
+        "question_fidelity",
+        "ambiguity_reduction"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "Prove It",
+      "dimension": "clarity",
+      "old": [
+        "precision",
+        "concreteness"
+      ],
+      "proposed": [
+        "example_grounding",
+        "claim_support",
+        "evidence_relevance"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "clarity.json",
+      "name": "The Word Budget",
+      "dimension": "clarity",
+      "old": [
+        "word_choice",
+        "precision",
+        "idea_isolation"
+      ],
+      "proposed": [
+        "takeaway_clarity",
+        "compression",
+        "priority_selection",
+        "information_density"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "The 3 Point Rule",
+      "dimension": "structure",
+      "old": [
+        "argument_hierarchy",
+        "signposting",
+        "coherence"
+      ],
+      "proposed": [
+        "mece_grouping",
+        "argument_hierarchy",
+        "signposting",
+        "priority_selection"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "The Story Arc",
+      "dimension": "structure",
+      "old": [
+        "narrative_arc",
+        "coherence"
+      ],
+      "proposed": [
+        "narrative_arc",
+        "sequence_logic",
+        "coherence"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Bottom Line First",
+      "dimension": "structure",
+      "old": [
+        "bottom_line_discipline",
+        "argument_hierarchy"
+      ],
+      "proposed": [
+        "bottom_line_discipline",
+        "bluf_fluency",
+        "answer_first_compression"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "The Problem Solution Frame",
+      "dimension": "structure",
+      "old": [
+        "argument_hierarchy",
+        "coherence"
+      ],
+      "proposed": [
+        "problem_solution_framing",
+        "problem_diagnosis",
+        "coherence"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Monroe's Motivated Sequence",
+      "dimension": "structure",
+      "old": [
+        "opening_hook",
+        "narrative_arc",
+        "coherence"
+      ],
+      "proposed": [
+        "structural_fit",
+        "opening_hook",
+        "narrative_arc",
+        "sequence_logic"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Signpost First",
+      "dimension": "structure",
+      "old": [
+        "signposting",
+        "coherence"
+      ],
+      "proposed": [
+        "signposting",
+        "listener_navigation",
+        "chunking"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Two Then One",
+      "dimension": "structure",
+      "old": [
+        "argument_hierarchy",
+        "narrative_arc"
+      ],
+      "proposed": [
+        "sequence_logic",
+        "argument_hierarchy",
+        "recap_and_closure"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Compare and Contrast",
+      "dimension": "structure",
+      "old": [
+        "coherence",
+        "argument_hierarchy"
+      ],
+      "proposed": [
+        "contrast_structure",
+        "tradeoff_awareness",
+        "distinction_making"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "structure.json",
+      "name": "Question Then Answer",
+      "dimension": "structure",
+      "old": [
+        "opening_hook",
+        "coherence"
+      ],
+      "proposed": [
+        "opening_hook",
+        "question_fidelity",
+        "listener_first_sequencing"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "The 30 Second Rule",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "time_box_awareness",
+        "response_scoping",
+        "priority_selection"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "Kill the Filler",
+      "dimension": "conciseness",
+      "old": [
+        "filler_elimination"
+      ],
+      "proposed": [
+        "filler_reduction",
+        "verbal_clutter_removal",
+        "filler_to_pause_substitution"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "No Hedging",
+      "dimension": "conciseness",
+      "old": [
+        "hedging_awareness"
+      ],
+      "proposed": [
+        "hedging_control",
+        "qualifier_discipline",
+        "confidence"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "One Idea Per Response",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "one_point_discipline",
+        "response_scoping",
+        "real_time_editing",
+        "idea_isolation"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "The Hard Stop",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "repetition_control"
+      ],
+      "proposed": [
+        "end_discipline",
+        "strong_close",
+        "redundancy_detection"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "Cut by Half",
+      "dimension": "conciseness",
+      "old": [
+        "editing_in_real_time",
+        "repetition_control"
+      ],
+      "proposed": [
+        "compression",
+        "information_density",
+        "redundancy_detection"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "Subject Verb Object",
+      "dimension": "conciseness",
+      "old": [
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "information_density",
+        "sentence_simplicity",
+        "verbal_clutter_removal"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "No Throat Clearing",
+      "dimension": "conciseness",
+      "old": [
+        "filler_elimination",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "verbal_clutter_removal",
+        "answer_first_compression",
+        "opening_hook"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "conciseness.json",
+      "name": "The Single Sentence",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "compression",
+        "one_point_discipline",
+        "information_density",
+        "claim_clarity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "The Claim and Proof",
+      "dimension": "thinking_quality",
+      "old": [
+        "claim_support",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "claim_support",
+        "evidence_relevance",
+        "claim_clarity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "The Steel Man",
+      "dimension": "thinking_quality",
+      "old": [
+        "counterargument_awareness",
+        "intellectual_honesty",
+        "perspective_taking"
+      ],
+      "proposed": [
+        "steel_manning",
+        "counterargument_awareness",
+        "perspective_taking",
+        "intellectual_honesty"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "First Principles",
+      "dimension": "thinking_quality",
+      "old": [
+        "first_principles_reasoning",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "first_principles_reasoning",
+        "mechanism_explanation",
+        "reasoning_chain_logic"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "The So What Test",
+      "dimension": "thinking_quality",
+      "old": [
+        "depth_of_analysis",
+        "claim_support"
+      ],
+      "proposed": [
+        "implication_drawing",
+        "depth_of_analysis",
+        "relevance_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "The Perspective Shift",
+      "dimension": "thinking_quality",
+      "old": [
+        "perspective_taking",
+        "intellectual_honesty"
+      ],
+      "proposed": [
+        "perspective_taking",
+        "steel_manning",
+        "synthesis"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "Draw the Line",
+      "dimension": "thinking_quality",
+      "old": [
+        "intellectual_honesty",
+        "claim_support"
+      ],
+      "proposed": [
+        "scope_control",
+        "epistemic_humility",
+        "intellectual_honesty"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "Name the Assumption",
+      "dimension": "thinking_quality",
+      "old": [
+        "first_principles_reasoning",
+        "intellectual_honesty"
+      ],
+      "proposed": [
+        "assumption_transparency",
+        "first_principles_reasoning",
+        "reasoning_chain_logic"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "Disconfirm Yourself",
+      "dimension": "thinking_quality",
+      "old": [
+        "intellectual_honesty",
+        "counterargument_awareness"
+      ],
+      "proposed": [
+        "intellectual_honesty",
+        "epistemic_humility",
+        "counterargument_awareness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "thinking_quality.json",
+      "name": "Order of Magnitude",
+      "dimension": "thinking_quality",
+      "old": [
+        "first_principles_reasoning",
+        "claim_support"
+      ],
+      "proposed": [
+        "probabilistic_thinking",
+        "reasoning_chain_logic",
+        "lexical_specificity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Metronome",
+      "dimension": "delivery",
+      "old": [
+        "rate_awareness"
+      ],
+      "proposed": [
+        "rate_awareness",
+        "words_per_minute_control",
+        "cadence_control"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Strategic Pause",
+      "dimension": "delivery",
+      "old": [
+        "strategic_pausing"
+      ],
+      "proposed": [
+        "strategic_pausing",
+        "pause_placement",
+        "emphasis_timing"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Silence Over Filler",
+      "dimension": "delivery",
+      "old": [
+        "filler_word_control",
+        "strategic_pausing"
+      ],
+      "proposed": [
+        "filler_to_pause_substitution",
+        "silence_tolerance",
+        "filler_reduction"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Two-Beat Landing",
+      "dimension": "delivery",
+      "old": [
+        "strategic_pausing",
+        "rhythm_variation"
+      ],
+      "proposed": [
+        "strategic_pausing",
+        "processing_space_creation",
+        "emphasis_timing"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Slow Cooker",
+      "dimension": "delivery",
+      "old": [
+        "rate_awareness",
+        "pressure_management"
+      ],
+      "proposed": [
+        "words_per_minute_control",
+        "pressure_pacing",
+        "emotional_tempo"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Punctuation Breathing",
+      "dimension": "delivery",
+      "old": [
+        "strategic_pausing",
+        "rhythm_variation"
+      ],
+      "proposed": [
+        "thought_group_chunking",
+        "pause_placement",
+        "cadence_control"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "The Stretch",
+      "dimension": "delivery",
+      "old": [
+        "rhythm_variation",
+        "rate_awareness"
+      ],
+      "proposed": [
+        "emphasis_timing",
+        "prosodic_alignment",
+        "rhythm_variation"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Tempo Shift",
+      "dimension": "delivery",
+      "old": [
+        "rhythm_variation",
+        "rate_awareness"
+      ],
+      "proposed": [
+        "rhythm_variation",
+        "acceleration_control",
+        "emotional_tempo",
+        "transition_pacing"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "pacing.json",
+      "name": "Beat the Buzzer",
+      "dimension": "delivery",
+      "old": [
+        "pressure_management",
+        "rate_awareness"
+      ],
+      "proposed": [
+        "time_management",
+        "pressure_pacing",
+        "time_box_awareness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "The Monotone Breaker",
+      "dimension": "tone",
+      "old": [
+        "pitch_variation",
+        "volume_control"
+      ],
+      "proposed": [
+        "congruence",
+        "prosodic_alignment",
+        "monotony_avoidance"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Volume Dial",
+      "dimension": "tone",
+      "old": [
+        "volume_control",
+        "vocal_presence"
+      ],
+      "proposed": [
+        "gravitas",
+        "emphasis_timing",
+        "prosodic_alignment"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Warmth Switch",
+      "dimension": "tone",
+      "old": [
+        "warmth",
+        "emotional_authenticity"
+      ],
+      "proposed": [
+        "warmth",
+        "emotional_authenticity",
+        "congruence"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Authority Voice",
+      "dimension": "tone",
+      "old": [
+        "downward_inflection",
+        "vocal_presence"
+      ],
+      "proposed": [
+        "authority",
+        "confidence",
+        "credibility_through_restraint"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Downward Landing",
+      "dimension": "tone",
+      "old": [
+        "downward_inflection"
+      ],
+      "proposed": [
+        "confidence",
+        "authority",
+        "directness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Curiosity Lift",
+      "dimension": "tone",
+      "old": [
+        "pitch_variation",
+        "emotional_authenticity"
+      ],
+      "proposed": [
+        "curiosity",
+        "enthusiasm",
+        "emotional_authenticity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Conviction Floor",
+      "dimension": "tone",
+      "old": [
+        "downward_inflection",
+        "vocal_presence"
+      ],
+      "proposed": [
+        "confidence",
+        "authority",
+        "credibility_through_restraint"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Pivot Tone",
+      "dimension": "tone",
+      "old": [
+        "pitch_variation",
+        "volume_control"
+      ],
+      "proposed": [
+        "congruence",
+        "transition_pacing",
+        "prosodic_alignment"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "tone.json",
+      "name": "Read the Room",
+      "dimension": "tone",
+      "old": [
+        "warmth",
+        "emotional_authenticity",
+        "pitch_variation"
+      ],
+      "proposed": [
+        "formality_calibration",
+        "power_distance_calibration",
+        "audience_calibration"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "The Proof Point Answer",
+      "dimension": "thinking_quality",
+      "old": [
+        "claim_support",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "claim_support",
+        "evidence_relevance",
+        "example_validity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "The Failure Debrief",
+      "dimension": "structure",
+      "old": [
+        "narrative_arc",
+        "coherence"
+      ],
+      "proposed": [
+        "narrative_arc",
+        "star_fluency",
+        "intellectual_honesty"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "Across the Table",
+      "dimension": "thinking_quality",
+      "old": [
+        "perspective_taking",
+        "intellectual_honesty"
+      ],
+      "proposed": [
+        "steel_manning",
+        "perspective_taking",
+        "nondefensiveness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "Why This, Why You",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "idea_isolation",
+        "audience_awareness"
+      ],
+      "proposed": [
+        "concreteness",
+        "example_grounding",
+        "one_point_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "One Strength, One Proof",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "one_point_discipline",
+        "example_economy",
+        "end_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "The Unhedged Weakness",
+      "dimension": "conciseness",
+      "old": [
+        "hedging_awareness",
+        "response_scoping"
+      ],
+      "proposed": [
+        "hedging_control",
+        "qualifier_discipline",
+        "accountability"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "The Honest Why",
+      "dimension": "thinking_quality",
+      "old": [
+        "intellectual_honesty",
+        "claim_support"
+      ],
+      "proposed": [
+        "intellectual_honesty",
+        "claim_support",
+        "emotional_authenticity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/interviewing.json",
+      "name": "The Composed Curveball",
+      "dimension": "delivery",
+      "old": [
+        "pressure_management",
+        "strategic_pausing",
+        "filler_word_control"
+      ],
+      "proposed": [
+        "pressure_pacing",
+        "strategic_pausing",
+        "recovery_pacing",
+        "reasoning_chain_logic"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Decision on the Table",
+      "dimension": "structure",
+      "old": [
+        "bottom_line_discipline",
+        "argument_hierarchy"
+      ],
+      "proposed": [
+        "decision_framing",
+        "bottom_line_discipline",
+        "argument_hierarchy"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Meet the Pushback",
+      "dimension": "thinking_quality",
+      "old": [
+        "counterargument_awareness",
+        "intellectual_honesty"
+      ],
+      "proposed": [
+        "counterargument_awareness",
+        "steel_manning",
+        "nondefensiveness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Start From Their Side",
+      "dimension": "thinking_quality",
+      "old": [
+        "perspective_taking",
+        "claim_support"
+      ],
+      "proposed": [
+        "perspective_taking",
+        "steel_manning",
+        "reasoning_chain_logic"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "The Honest Sell",
+      "dimension": "tone",
+      "old": [
+        "emotional_authenticity",
+        "warmth",
+        "vocal_presence"
+      ],
+      "proposed": [
+        "emotional_authenticity",
+        "credibility_through_restraint",
+        "enthusiasm",
+        "warmth"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "The Unflinching Ask",
+      "dimension": "conciseness",
+      "old": [
+        "hedging_awareness",
+        "response_scoping"
+      ],
+      "proposed": [
+        "hedging_control",
+        "directness",
+        "end_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Build the Case",
+      "dimension": "structure",
+      "old": [
+        "argument_hierarchy",
+        "coherence"
+      ],
+      "proposed": [
+        "argument_hierarchy",
+        "pyramid_thinking",
+        "evidence_relevance"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Evidence on a Budget",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "priority_selection",
+        "example_economy",
+        "evidence_relevance"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/persuasion.json",
+      "name": "Warm Steel",
+      "dimension": "tone",
+      "old": [
+        "warmth",
+        "emotional_authenticity",
+        "downward_inflection"
+      ],
+      "proposed": [
+        "warmth_authority_balance",
+        "assertiveness",
+        "emotional_control",
+        "nondefensiveness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Executive Update",
+      "dimension": "structure",
+      "old": [
+        "bottom_line_discipline",
+        "argument_hierarchy"
+      ],
+      "proposed": [
+        "bottom_line_discipline",
+        "pyramid_thinking",
+        "takeaway_clarity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Project Briefing",
+      "dimension": "structure",
+      "old": [
+        "signposting",
+        "coherence"
+      ],
+      "proposed": [
+        "signposting",
+        "listener_navigation",
+        "transition_control"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Problem Overview",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "context_minimization",
+        "relevance_filtering",
+        "low_value_detail_deletion"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Data Explanation",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "audience_awareness",
+        "precision"
+      ],
+      "proposed": [
+        "takeaway_clarity",
+        "concreteness",
+        "audience_calibration",
+        "implication_drawing"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Recommendation Presentation",
+      "dimension": "thinking_quality",
+      "old": [
+        "claim_support",
+        "counterargument_awareness"
+      ],
+      "proposed": [
+        "claim_support",
+        "counterargument_awareness",
+        "decision_criteria",
+        "tradeoff_awareness"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Closing Summary",
+      "dimension": "conciseness",
+      "old": [
+        "repetition_control",
+        "response_scoping"
+      ],
+      "proposed": [
+        "priority_selection",
+        "recap_and_closure",
+        "strong_close",
+        "repetition_control"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Audience Translation",
+      "dimension": "clarity",
+      "old": [
+        "audience_awareness",
+        "word_choice",
+        "idea_isolation"
+      ],
+      "proposed": [
+        "audience_calibration",
+        "listener_first_sequencing",
+        "relevance_filtering"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/presenting.json",
+      "name": "Concept Grounding",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "word_choice",
+        "precision"
+      ],
+      "proposed": [
+        "concreteness",
+        "abstraction_laddering",
+        "example_grounding",
+        "analogy_selection"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "The Stakes Opener",
+      "dimension": "thinking_quality",
+      "old": [
+        "depth_of_analysis",
+        "perspective_taking"
+      ],
+      "proposed": [
+        "implication_drawing",
+        "depth_of_analysis",
+        "opening_hook"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "The Honest Wreck",
+      "dimension": "thinking_quality",
+      "old": [
+        "intellectual_honesty",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "intellectual_honesty",
+        "accountability",
+        "depth_of_analysis"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "The Hinge Moment",
+      "dimension": "structure",
+      "old": [
+        "narrative_arc",
+        "coherence"
+      ],
+      "proposed": [
+        "narrative_arc",
+        "sequence_logic",
+        "contrast_structure"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "Where It Began",
+      "dimension": "tone",
+      "old": [
+        "emotional_authenticity",
+        "warmth"
+      ],
+      "proposed": [
+        "emotional_authenticity",
+        "warmth",
+        "congruence"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "Land the Lesson",
+      "dimension": "structure",
+      "old": [
+        "bottom_line_discipline",
+        "coherence"
+      ],
+      "proposed": [
+        "recap_and_closure",
+        "strong_close",
+        "end_discipline"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "Two Sides, One Scene",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "precision"
+      ],
+      "proposed": [
+        "concreteness",
+        "distinction_making",
+        "perspective_taking",
+        "example_grounding"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "The Two-Sentence Runway",
+      "dimension": "conciseness",
+      "old": [
+        "response_scoping",
+        "editing_in_real_time"
+      ],
+      "proposed": [
+        "context_minimization",
+        "context_ratio_control",
+        "low_value_detail_deletion"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/storytelling.json",
+      "name": "Make It Theirs",
+      "dimension": "thinking_quality",
+      "old": [
+        "claim_support",
+        "perspective_taking"
+      ],
+      "proposed": [
+        "synthesis",
+        "implication_drawing",
+        "takeaway_clarity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Start Where They Are",
+      "dimension": "clarity",
+      "old": [
+        "audience_awareness",
+        "word_choice",
+        "logical_sequencing"
+      ],
+      "proposed": [
+        "common_ground_creation",
+        "mental_model_matching",
+        "listener_first_sequencing",
+        "audience_calibration"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Borrow Their World",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "audience_awareness"
+      ],
+      "proposed": [
+        "analogy_selection",
+        "common_ground_creation",
+        "mental_model_matching"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "One Step at a Time",
+      "dimension": "structure",
+      "old": [
+        "signposting",
+        "coherence"
+      ],
+      "proposed": [
+        "sequence_logic",
+        "signposting",
+        "chunking",
+        "cognitive_load_reduction"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Replace the Myth",
+      "dimension": "thinking_quality",
+      "old": [
+        "perspective_taking",
+        "claim_support",
+        "intellectual_honesty"
+      ],
+      "proposed": [
+        "steel_manning",
+        "mechanism_explanation",
+        "empathy"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Example First",
+      "dimension": "clarity",
+      "old": [
+        "concreteness",
+        "precision"
+      ],
+      "proposed": [
+        "example_grounding",
+        "distinction_making",
+        "example_validity"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Why It Matters",
+      "dimension": "thinking_quality",
+      "old": [
+        "claim_support",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "implication_drawing",
+        "perspective_taking",
+        "audience_calibration"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Earn Your Jargon",
+      "dimension": "clarity",
+      "old": [
+        "precision",
+        "word_choice",
+        "concreteness"
+      ],
+      "proposed": [
+        "definition_discipline",
+        "jargon_translation",
+        "vocabulary_precision"
+      ],
+      "source": "manual",
+      "llmError": null
+    },
+    {
+      "file": "applications/teaching.json",
+      "name": "Dial the Depth",
+      "dimension": "thinking_quality",
+      "old": [
+        "perspective_taking",
+        "depth_of_analysis"
+      ],
+      "proposed": [
+        "scope_control",
+        "depth_of_analysis",
+        "audience_calibration"
+      ],
+      "source": "manual",
+      "llmError": null
+    }
+  ]
+}

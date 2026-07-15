@@ -625,22 +625,22 @@ section("sampleExercises hidden-skill weighting");
     coachInsight: null,
   });
   const available = [
-    mk(1, ["word_choice"]),
-    mk(2, ["word_choice", "precision"]),
+    mk(1, ["vocabulary_precision"]),
+    mk(2, ["vocabulary_precision", "lexical_specificity"]),
     mk(3, ["concreteness"]),
-    mk(4, ["audience_awareness"]),
+    mk(4, ["audience_calibration"]),
     mk(5, ["idea_isolation"]),
-    mk(6, ["precision"]),
+    mk(6, ["lexical_specificity"]),
   ];
 
-  // Weakest skill = audience_awareness (30). Its exercise must be picked.
+  // Weakest skill = audience_calibration (30). Its exercise must be picked.
   const averages: Record<string, number | null> = {
-    word_choice: 80,
-    precision: 75,
+    vocabulary_precision: 80,
+    lexical_specificity: 75,
     concreteness: 70,
-    audience_awareness: 30,
+    audience_calibration: 30,
     idea_isolation: 65,
-    logical_sequencing: null,
+    listener_first_sequencing: null,
   };
   const picked = sampleExercises({
     available,
@@ -651,12 +651,12 @@ section("sampleExercises hidden-skill weighting");
   });
   assert(picked.length === 3, "returns n exercises");
   assert(
-    picked.some((e) => e.hiddenSkills?.includes("audience_awareness")),
+    picked.some((e) => e.hiddenSkills?.includes("audience_calibration")),
     "weakest hidden skill's exercise is selected",
   );
   // Diversity: the three picks should not all share one hidden skill.
   const skillLists = picked.map((e) => e.hiddenSkills ?? []);
-  const allShareWordChoice = skillLists.every((l) => l.includes("word_choice"));
+  const allShareWordChoice = skillLists.every((l) => l.includes("vocabulary_precision"));
   assert(!allShareWordChoice, "picks spread across different hidden skills");
 
   // Determinism: same inputs → same output.
@@ -685,14 +685,14 @@ section("sampleExercises hidden-skill weighting");
   // Unmeasured skills (null avg) beat strong measured skills — the
   // engine explores unmeasured behaviors before re-drilling strengths.
   const unmeasured = sampleExercises({
-    available: [mk(1, ["word_choice"]), mk(2, ["logical_sequencing"])],
+    available: [mk(1, ["vocabulary_precision"]), mk(2, ["listener_first_sequencing"])],
     recentDays: [],
     n: 1,
     seed: "s2",
-    subSkillAverages: { word_choice: 85, logical_sequencing: null },
+    subSkillAverages: { vocabulary_precision: 85, listener_first_sequencing: null },
   });
   assert(
-    unmeasured[0]!.hiddenSkills?.includes("logical_sequencing"),
+    unmeasured[0]!.hiddenSkills?.includes("listener_first_sequencing"),
     "unmeasured hidden skill preferred over a strong one",
   );
 }
@@ -809,14 +809,14 @@ section("plateau stimulus inversion (I4)");
     coachInsight: null,
   });
   const available = [
-    mk(1, ["word_choice"]), // weak measured (30) — normal mode's pick
-    mk(2, ["precision"]), // strong measured (85) — least-drilled
-    mk(3, ["logical_sequencing"]), // never measured
+    mk(1, ["vocabulary_precision"]), // weak measured (30) — normal mode's pick
+    mk(2, ["lexical_specificity"]), // strong measured (85) — least-drilled
+    mk(3, ["listener_first_sequencing"]), // never measured
   ];
   const averages: Record<string, number | null> = {
-    word_choice: 30,
-    precision: 85,
-    logical_sequencing: null,
+    vocabulary_precision: 30,
+    lexical_specificity: 85,
+    listener_first_sequencing: null,
   };
 
   // Normal weighting drills the weakest measured skill.
@@ -828,7 +828,7 @@ section("plateau stimulus inversion (I4)");
     subSkillAverages: averages,
   });
   assert(
-    normal[0]!.hiddenSkills?.includes("word_choice") === true,
+    normal[0]!.hiddenSkills?.includes("vocabulary_precision") === true,
     `normal mode picks the weakest skill (got ${normal[0]!.id})`,
   );
 
@@ -843,15 +843,15 @@ section("plateau stimulus inversion (I4)");
     plateaued: true,
   });
   assert(
-    inverted[0]!.hiddenSkills?.includes("logical_sequencing") === true,
+    inverted[0]!.hiddenSkills?.includes("listener_first_sequencing") === true,
     `plateau prefers the unmeasured sub-skill first (got ${inverted[0]!.id})`,
   );
   assert(
-    inverted[1]!.hiddenSkills?.includes("precision") === true,
+    inverted[1]!.hiddenSkills?.includes("lexical_specificity") === true,
     `plateau then prefers the least-drilled measured skill (got ${inverted[1]!.id})`,
   );
   assert(
-    inverted[2]!.hiddenSkills?.includes("word_choice") === true,
+    inverted[2]!.hiddenSkills?.includes("vocabulary_precision") === true,
     "the over-drilled weak skill drops to last — the stimulus changed",
   );
 
@@ -990,9 +990,9 @@ section("assessment prefers unseen exercises (I6)");
 
   // Hidden-skill weighting still applies WITHIN the unseen partition.
   const skillAvailable = [
-    { ...mk(1), hiddenSkills: ["word_choice"] },
-    { ...mk(2), hiddenSkills: ["precision"] },
-    { ...mk(3), hiddenSkills: ["audience_awareness"] }, // weakest, unseen
+    { ...mk(1), hiddenSkills: ["vocabulary_precision"] },
+    { ...mk(2), hiddenSkills: ["lexical_specificity"] },
+    { ...mk(3), hiddenSkills: ["audience_calibration"] }, // weakest, unseen
     { ...mk(4), hiddenSkills: ["concreteness"] }, // unseen
   ];
   const skillPick = sampleExercises({
@@ -1003,9 +1003,9 @@ section("assessment prefers unseen exercises (I6)");
     assessmentActive: true,
     completedExerciseIds: new Set(["ex-1", "ex-2"]),
     subSkillAverages: {
-      word_choice: 20, // weakest overall — but SEEN, so excluded first
-      precision: 30,
-      audience_awareness: 40,
+      vocabulary_precision: 20, // weakest overall — but SEEN, so excluded first
+      lexical_specificity: 30,
+      audience_calibration: 40,
       concreteness: 90,
     },
   });

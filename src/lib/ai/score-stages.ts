@@ -84,6 +84,11 @@ import {
   renderRetryEvaluationBlock,
 } from "./score";
 import {
+  SUB_SKILL_TO_DIMENSION,
+  canonicalizeSubSkillId,
+  renderSubSkillReference,
+} from "@/types/sub-skills";
+import {
   getExerciseScoringContext,
   renderExerciseXmlBlock,
   tryExerciseFastFail,
@@ -197,7 +202,7 @@ BULLET RULES (didWell / didntLand / nextRepFocus):
   - didWell: exactly 2 bullets normally. ALLOWED 0 only when composite < 25 (no manufactured praise on junk reps).
   - didntLand: exactly 2 bullets, paired with the 2 nextRepFocus items (each gap → paired fix at same index).
   - nextRepFocus: exactly 2 bullets, prescriptive ("Open with a direction-setting sentence so the listener knows where you're going.")
-  - SUB-SKILL: every bullet MUST set 'subSkill' to a sub-skill within the named 'dimension'. The sub-skill must belong to the bullet's dimension (Word Choice belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message.
+  - SUB-SKILL: every bullet MUST set 'subSkill' to a sub-skill within the named 'dimension'. The sub-skill must belong to the bullet's dimension (Vocabulary Precision belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE below.
   - text ≤140 chars, second-person, action-oriented, no hedging.
 
 GROUNDING (mirrors the callout shape split):
@@ -213,7 +218,11 @@ NEXT REP HINT:
   - Becomes the tail of the next rep's banner. Tied to primaryFocusDimension. Specific over generic.
   - No "focus on" / "work on" filler — give an action.
 
-This is COPY ONLY. Do not include 'dimensions', 'primaryFocusDimension', or 'headlineTone' in your output — those came from stage 1.`;
+This is COPY ONLY. Do not include 'dimensions', 'primaryFocusDimension', or 'headlineTone' in your output — those came from stage 1.
+
+SUB-SKILL REFERENCE (for bullet 'subSkill' — must match the bullet's 'dimension'):
+
+${renderSubSkillReference()}`;
 
 // ——— Shared knowledge load (slim variants) ——————————————————————
 
@@ -873,6 +882,25 @@ export async function scoreStage2(
  * When prosody is absent (e.g. /api/score/stage2 was called without
  * a precomputed context), prosodyAvailable defaults to false.
  */
+/** Taxonomy v2 — stage 2's subSkill is free-form text from the model.
+ *  Canonicalize (v2 id, legacy id, or label variant) and enforce
+ *  dimension membership, mirroring score.ts's normalize+sanitize pass;
+ *  anything unresolvable nulls out so the UI skips the chip instead of
+ *  persisting an invented id. */
+function normalizeStage2SubSkill<
+  T extends { subSkill?: string | null; dimension: string },
+>(bullet: T): T {
+  const raw = bullet.subSkill;
+  if (raw == null) return bullet;
+  const canonical =
+    canonicalizeSubSkillId(raw) ??
+    canonicalizeSubSkillId(raw.toLowerCase().replace(/[\s-]+/g, "_"));
+  if (!canonical || SUB_SKILL_TO_DIMENSION[canonical] !== bullet.dimension) {
+    return { ...bullet, subSkill: null };
+  }
+  return { ...bullet, subSkill: canonical };
+}
+
 export function assembleRepScore(
   stage1: Stage1Output,
   stage2: Stage2Output,
@@ -888,9 +916,11 @@ export function assembleRepScore(
     modelVersion: MODEL_VERSIONS.scoring + "+twostage",
     rubricVersion: RUBRIC_VERSION,
     headline: stage2.headline,
-    didWell: stage2.didWell as FeedbackBullet[],
-    didntLand: stage2.didntLand as FeedbackBullet[],
-    nextRepFocus: stage2.nextRepFocus as NextRepFocusItem[],
+    didWell: stage2.didWell.map(normalizeStage2SubSkill) as FeedbackBullet[],
+    didntLand: stage2.didntLand.map(normalizeStage2SubSkill) as FeedbackBullet[],
+    nextRepFocus: stage2.nextRepFocus.map(
+      normalizeStage2SubSkill,
+    ) as NextRepFocusItem[],
     primaryFocusDimension: stage1.primaryFocusDimension,
     headlineTone: stage1.headlineTone,
     nextRepHint: stage2.nextRepHint,

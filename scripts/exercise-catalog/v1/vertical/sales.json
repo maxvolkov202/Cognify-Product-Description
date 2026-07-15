@@ -151,7 +151,7 @@
       "name": "The 3 Point Rule",
       "prompts": [
         { "text": "Pitch our offering to a CFO who's never heard of us.", "difficulty": "intro", "tags": ["sales", "vp_executive", "persuasion"] },
-        { "text": "Give three reasons this prospect should choose us over the incumbent.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
+        { "text": "Convince this prospect to choose us over the incumbent they've trusted for years.", "difficulty": "intro", "tags": ["sales", "stakeholder", "persuasion"] },
         { "text": "Defend why your top deal moves from commit to closed-won this quarter.", "difficulty": "core", "tags": ["sales", "manager", "persuasion"] },
         { "text": "Argue why we should walk away from a deal stuck in procurement.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
         { "text": "Make the case for hiring two more AEs before next quarter.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
@@ -168,14 +168,14 @@
       "prompts": [
         { "text": "Tell the story of a deal you almost lost but closed.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Walk me through the toughest negotiation of your career.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling", "negotiation"] },
-        { "text": "Tell the story of how you turned a skeptical CFO into a champion.", "difficulty": "core", "tags": ["sales", "vp_executive", "storytelling", "persuasion"] },
+        { "text": "Tell the story of a time you won over a skeptical senior stakeholder at work.", "difficulty": "core", "tags": ["sales", "vp_executive", "storytelling", "persuasion"] },
         { "text": "Walk me through a procurement battle that nearly killed the deal.", "difficulty": "core", "tags": ["sales", "procurement", "storytelling", "handling_objections"] },
         { "text": "Tell the story of a champion who disappeared mid-cycle.", "difficulty": "core", "tags": ["sales", "champion", "storytelling"] },
         { "text": "Recount a deal that slipped a quarter and what you learned.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
-        { "text": "Walk me through the discovery call that flipped a closed-lost back to active.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
-        { "text": "Tell the story of a competitor displacement you didn't think you could win.", "difficulty": "core", "tags": ["sales", "stakeholder", "storytelling", "persuasion"] },
-        { "text": "Walk me through a 7-figure deal that closed in the final 48 hours.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
-        { "text": "Recount the board negotiation that reset your largest customer relationship.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "storytelling", "negotiation"] }
+        { "text": "Walk me through a time a customer you'd written off came back around.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
+        { "text": "Tell the story of a competitive deal you didn't expect to win.", "difficulty": "core", "tags": ["sales", "stakeholder", "storytelling", "persuasion"] },
+        { "text": "Walk me through the most down-to-the-wire close of your sales career.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
+        { "text": "Recount a high-stakes negotiation that reset your relationship with a key customer.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "storytelling", "negotiation"] }
       ]
     },
     {
@@ -462,7 +462,7 @@
         { "text": "Build the best argument against your own forecast for this quarter.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
         { "text": "Steel man a buyer who thinks pilots are a waste of their time.", "difficulty": "core", "tags": ["sales", "economic_buyer", "handling_objections"] },
         { "text": "Argue convincingly that your top deal should be marked closed-lost.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
-        { "text": "Make the strongest case for the rep on your team you wanted to fire.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Imagine you want to fire a struggling rep on your team. Make the strongest case for keeping them.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
         { "text": "Steel man the champion who's gone dark on you for three weeks.", "difficulty": "intro", "tags": ["sales", "champion", "handling_objections"] }
       ]
     },
@@ -506,7 +506,7 @@
         { "text": "Argue as the CFO who just rejected your proposal.", "difficulty": "core", "tags": ["sales", "vp_executive", "handling_objections"] },
         { "text": "Defend the customer who chose your competitor over you.", "difficulty": "core", "tags": ["sales", "stakeholder", "persuasion"] },
         { "text": "Argue as the champion who couldn't get internal alignment.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
-        { "text": "Defend the sales manager who put you on a performance plan.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Imagine your manager just put you on a performance plan. Defend their decision from their chair.", "difficulty": "core", "tags": ["sales", "manager", "giving_feedback"] },
         { "text": "Argue as the prospect who said they're not ready to buy.", "difficulty": "intro", "tags": ["sales", "stakeholder", "handling_objections"] },
         { "text": "Defend the VP of Sales who killed your favorite enterprise account.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
         { "text": "Argue as the SE who told the buyer the product can't do it.", "difficulty": "core", "tags": ["sales", "peer", "thinking_on_the_spot"] },
@@ -620,7 +620,7 @@
         { "text": "Walk through a forecast call where you missed badly.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
         { "text": "Tell me about a champion who left mid-cycle.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
         { "text": "Explain a customer escalation you couldn't recover.", "difficulty": "stretch", "tags": ["sales", "client_customer", "handling_objections"] },
-        { "text": "Describe a time you had to fire a rep you liked.", "difficulty": "stretch", "tags": ["sales", "manager", "giving_feedback"] },
+        { "text": "Describe the hardest piece of bad news you've had to deliver at work.", "difficulty": "stretch", "tags": ["sales", "manager", "giving_feedback"] },
         { "text": "Talk about a renewal that churned without warning.", "difficulty": "stretch", "tags": ["sales", "client_customer", "handling_objections"] },
         { "text": "Explain a product gap you couldn't sell around.", "difficulty": "core", "tags": ["sales", "stakeholder", "handling_objections"] },
         { "text": "Describe what you'd change about your last quarterly business review.", "difficulty": "core", "tags": ["sales", "client_customer", "giving_feedback"] }
@@ -646,7 +646,7 @@
       "dimension": "pacing",
       "name": "Slow Cooker",
       "prompts": [
-        { "text": "Explain how you handled the customer escalation last week.", "difficulty": "core", "tags": ["sales", "client_customer", "handling_objections"] },
+        { "text": "Imagine a top customer just escalated a major issue. Talk them through how you'll fix it.", "difficulty": "core", "tags": ["sales", "client_customer", "handling_objections"] },
         { "text": "Walk through the moment you realized the deal was slipping.", "difficulty": "stretch", "tags": ["sales", "manager", "thinking_on_the_spot"] },
         { "text": "Describe the call where the CFO killed your proposal.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "handling_objections"] },
         { "text": "Talk through your reaction when the pipeline dropped 30% in a week.", "difficulty": "core", "tags": ["sales", "manager", "thinking_on_the_spot"] },
@@ -655,7 +655,7 @@
         { "text": "Describe a champion meltdown on a critical call.", "difficulty": "core", "tags": ["sales", "champion", "handling_objections"] },
         { "text": "Talk through the renegotiation where your top customer threatened to leave.", "difficulty": "stretch", "tags": ["sales", "client_customer", "negotiation"] },
         { "text": "Explain how you handled a hostile procurement review on a 7-figure deal.", "difficulty": "core", "tags": ["sales", "procurement", "negotiation"] },
-        { "text": "Walk through the call where you had to walk away from a six-figure deal.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "negotiation"] }
+        { "text": "Imagine you've decided to walk away from a six-figure deal. Talk the buyer through why.", "difficulty": "stretch", "tags": ["sales", "economic_buyer", "negotiation"] }
       ]
     },
     {
@@ -664,14 +664,14 @@
       "prompts": [
         { "text": "Tell me about your sales career so far.", "difficulty": "core", "tags": ["sales", "peer", "storytelling"] },
         { "text": "Walk me through how you got into sales.", "difficulty": "intro", "tags": ["sales", "peer", "storytelling"] },
-        { "text": "Tell the story of your first enterprise close.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
+        { "text": "Tell the story of your first real close in sales.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Describe the customer relationship that defined your year.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
         { "text": "Tell me about the longest deal you've ever closed.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling"] },
         { "text": "Walk through how you built your top territory from scratch.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Tell the story of a mentor who taught you to sell.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Describe how your team came together after a bad quarter.", "difficulty": "core", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Tell me about a customer who became a long-term advocate.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
-        { "text": "Walk through the year you almost left sales entirely.", "difficulty": "stretch", "tags": ["sales", "peer", "storytelling"] }
+        { "text": "Walk me through the toughest year of your sales career.", "difficulty": "stretch", "tags": ["sales", "peer", "storytelling"] }
       ]
     },
     {
@@ -750,7 +750,7 @@
         { "text": "Tell the origin story of your top customer relationship.", "difficulty": "core", "tags": ["sales", "client_customer", "storytelling"] },
         { "text": "Describe a turning point in your sales career.", "difficulty": "core", "tags": ["sales", "peer", "storytelling"] },
         { "text": "Walk a CFO through the case for our enterprise tier.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
-        { "text": "Tell the story of a 7-figure deal that nearly fell apart.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
+        { "text": "Tell the story of the biggest deal you've ever watched nearly fall apart.", "difficulty": "core", "tags": ["sales", "economic_buyer", "storytelling", "negotiation"] },
         { "text": "Give a keynote about why your sales motion has to change — now.", "difficulty": "stretch", "tags": ["sales", "vp_executive", "presenting", "persuasion"] }
       ]
     },
@@ -856,7 +856,7 @@
       "prompts": [
         { "text": "Introduce yourself — to a CFO, then to your champion.", "difficulty": "intro", "tags": ["sales", "vp_executive", "explaining"] },
         { "text": "Describe your product — to a procurement lead, then to an end user.", "difficulty": "intro", "tags": ["sales", "procurement", "explaining"] },
-        { "text": "Explain what you do this weekend — to a new prospect, then to your VP.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
+        { "text": "Describe your weekend plans — to a new prospect, then to your VP.", "difficulty": "intro", "tags": ["sales", "peer", "confidence"] },
         { "text": "Tell the story of your top deal — to a peer, then to your sales manager.", "difficulty": "intro", "tags": ["sales", "manager", "storytelling"] },
         { "text": "Deliver the same product pitch — to engineering, then to a CFO.", "difficulty": "core", "tags": ["sales", "vp_executive", "persuasion"] },
         { "text": "Pitch the company — to a skeptical economic buyer.", "difficulty": "core", "tags": ["sales", "economic_buyer", "persuasion"] },

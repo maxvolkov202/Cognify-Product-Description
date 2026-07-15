@@ -13,6 +13,7 @@ import type { ShellStation } from "@/lib/workout/types";
 import type { MuscleGroupId } from "@/types/domain";
 import { MUSCLE_GROUP_LABELS } from "@/types/domain";
 import type { RepTypeFramework } from "@/lib/ai/rep-types";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { cn } from "@/lib/utils/cn";
 
 export type InsightScreenProps = {
@@ -43,10 +44,23 @@ export default function InsightScreen({
   const windowSec = station.responseWindow
     ? { min: station.responseWindow.minSec, max: station.responseWindow.maxSec }
     : { min: 60, max: 90 };
+  const theme = dimension ? DIM_THEMES[dimension] : null;
   return (
     <div className="flex flex-col gap-4" data-testid="insight-screen">
       <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
-        <Lightbulb className="w-3.5 h-3.5" />
+        {/* Dim-gradient icon tile — same identity marker as the Skill Lab
+            hub cards. */}
+        <span
+          aria-hidden
+          className={cn(
+            "inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br text-white shadow-sm",
+            theme
+              ? cn(theme.tile, theme.glow)
+              : "from-brand-lavender to-fuchsia-500",
+          )}
+        >
+          <Lightbulb className="w-3.5 h-3.5" />
+        </span>
         Coach&apos;s Insight
         {dimension && (
           <span className="text-slate-400 dark:text-ink-500 normal-case tracking-normal font-semibold">
@@ -60,7 +74,15 @@ export default function InsightScreen({
           becomes the enforcement line under it. Phase 11.D2: when the
           catalog carries a Coach's Insight, IT leads and the rule stays
           as the enforcement line. */}
-      <div className="rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
+      <div className="relative overflow-hidden rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4">
+        {/* Dim-gradient hairline across the cue card top. */}
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+            theme ? theme.tile : "from-brand-lavender to-fuchsia-500",
+          )}
+        />
         {station.coachInsight ? (
           <>
             <p className="text-base font-semibold text-slate-900 dark:text-white leading-snug">
@@ -142,7 +164,12 @@ export default function InsightScreen({
             .map((c) => (
               <span
                 key={c}
-                className="inline-flex items-center rounded-full bg-purple-50 dark:bg-ink-800 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-brand-lavender"
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider",
+                  theme
+                    ? cn("border", theme.chipLight)
+                    : "bg-purple-50 dark:bg-ink-800 text-purple-600 dark:text-brand-lavender",
+                )}
               >
                 {CONSTRAINT_LABELS[c] ?? c} constraint
               </span>
@@ -154,8 +181,8 @@ export default function InsightScreen({
           data-testid="insight-ready"
           className={cn(
             "min-h-[48px] px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2",
-            "bg-pink-500 hover:bg-pink-400 text-white",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
+            "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
           )}
         >
           <Mic className="w-4 h-4" />

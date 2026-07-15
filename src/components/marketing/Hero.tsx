@@ -25,16 +25,17 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <GradientButton href="/signin" size="lg">
-              Try your first rep now →
+            <GradientButton href="/try" size="lg">
+              Try a rep — no signup →
             </GradientButton>
-            <GradientButton href="/signin" variant="outline" size="lg">
-              Log in
+            <GradientButton href="/signin?mode=signup" variant="outline" size="lg">
+              Create your account
             </GradientButton>
           </div>
 
           <p className="mt-5 text-sm text-ink-500">
-            Two minutes to set up. Four reps a day keeps the clarity sharp.
+            Twenty seconds to your first rep. Six minutes a day keeps the
+            clarity sharp.
           </p>
         </div>
 

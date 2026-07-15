@@ -13,7 +13,7 @@ import {
   DIMENSION_WEIGHTS,
   type SkillDimension,
 } from "@/types/domain";
-import { SUB_SKILL_TO_DIMENSION, type SubSkillId } from "@/types/sub-skills";
+import { canonicalizeSubSkillId, type SubSkillId } from "@/types/sub-skills";
 import { isApplicationId, isApplicationSkill } from "@/types/application-skills";
 
 export type SkillEstimate = {
@@ -175,8 +175,10 @@ export function applyRepToProfile(
   if (evidence.subSkillScores) {
     for (const [id, raw] of Object.entries(evidence.subSkillScores)) {
       if (raw == null || !Number.isFinite(raw)) continue;
-      if (!(id in SUB_SKILL_TO_DIMENSION)) continue;
-      const skillId = id as SubSkillId;
+      // Taxonomy v2 (D20): pre-v2 ids in historical rep evidence fold
+      // into their v2 successor; unknown ids are skipped.
+      const skillId = canonicalizeSubSkillId(id);
+      if (skillId == null) continue;
       const prev = hiddenSkills[skillId];
       if (!prev) {
         hiddenSkills[skillId] = { score: raw, sampleCount: 1 };

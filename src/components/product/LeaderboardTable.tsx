@@ -27,9 +27,9 @@ type Props = {
 
 export function LeaderboardTable({ entries, showRank = false }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-ink-200">
+    <div className="overflow-x-auto rounded-2xl border border-ink-200 dark:border-ink-700">
       <table className="w-full">
-        <thead className="bg-ink-50 text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+        <thead className="bg-ink-50 text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:bg-ink-900 dark:text-ink-400">
           <tr>
             <th className="px-6 py-4 text-left">Rank</th>
             <th className="px-6 py-4 text-left">Name</th>
@@ -44,7 +44,7 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
           {entries.map((e, i) => (
             <tr
               key={e.rank}
-              className={`text-sm ${i % 2 === 0 ? "bg-white" : "bg-ink-50/40"} border-t border-ink-200`}
+              className={`text-sm ${i % 2 === 0 ? "bg-white dark:bg-ink-950" : "bg-ink-50/40 dark:bg-ink-900/40"} border-t border-ink-200 dark:border-ink-700`}
             >
               <td className="px-6 py-4">
                 <span className="brand-gradient-text text-lg font-extrabold tabular-nums">
@@ -54,7 +54,7 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   <Avatar name={e.name} />
-                  <span className="font-semibold text-ink-900">{e.name}</span>
+                  <span className="font-semibold text-ink-900 dark:text-white">{e.name}</span>
                   {showRank && e.rankBadge && (
                     <span
                       className="inline-flex items-center gap-1"
@@ -71,19 +71,19 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
                   )}
                 </div>
               </td>
-              <td className="hidden px-6 py-4 text-ink-600 md:table-cell">{e.team}</td>
+              <td className="hidden px-6 py-4 text-ink-600 md:table-cell dark:text-ink-300">{e.team}</td>
               <td className="px-4 py-4 text-right">
-                <span className="text-lg font-extrabold tabular-nums text-ink-900">
+                <span className="text-lg font-extrabold tabular-nums text-ink-900 dark:text-white">
                   {e.composite}
                 </span>
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell">
-                <span className="inline-flex items-center gap-1 text-xs text-ink-600">
+                <span className="inline-flex items-center gap-1 text-xs text-ink-600 dark:text-ink-300">
                   <Flame className="size-3 text-brand-purple" />
                   {e.streak}
                 </span>
               </td>
-              <td className="hidden px-4 py-4 text-right text-xs text-ink-600 sm:table-cell">
+              <td className="hidden px-4 py-4 text-right text-xs text-ink-600 sm:table-cell dark:text-ink-300">
                 {e.reps}
               </td>
               <td className="px-4 py-4 text-right">

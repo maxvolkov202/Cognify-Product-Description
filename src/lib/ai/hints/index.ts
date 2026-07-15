@@ -28,7 +28,10 @@ export type Hint = {
 };
 
 /**
- * 2-4 hints per sub-skill across all 36 sub-skills. The selector reads
+ * 2-4 hints per covered sub-skill. Partial by design under Taxonomy v2
+ * (148 skills, D20): the bank covers the historically-drilled skills;
+ * uncovered skills simply contribute no hints (the selector's
+ * `HINTS[subSkill] ?? []` already handles absence). The selector reads
  * `HINTS[subSkill]` and picks one stratified by session history.
  *
  * Authoring rules (re-applied across the whole bank):
@@ -39,9 +42,9 @@ export type Hint = {
  *   - cite the source when there's a real one (Cognitive Load Theory,
  *     prosody research, etc.); leave source absent for craft heuristics
  */
-export const HINTS: Record<SubSkillId, readonly Hint[]> = {
+export const HINTS: Partial<Record<SubSkillId, readonly Hint[]>> = {
   // ——— Clarity ———————————————————————————————————————————
-  word_choice: [
+  vocabulary_precision: [
     {
       text: "Pick the simplest word that holds the meaning",
       source: "Cognitive Load Theory (Sweller, 1988)",
@@ -57,7 +60,7 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     { text: "Name a person, a number, or a moment in your first sentence" },
     { text: "Show, don't categorize — give the example before the label" },
   ],
-  audience_awareness: [
+  audience_calibration: [
     {
       text: "Re-anchor every minute: would they understand this?",
       source: "Audience Design (Clark & Murphy, 1982)",
@@ -72,12 +75,12 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     },
     { text: "If you say 'and' three times in a row, split the sentence" },
   ],
-  precision: [
+  lexical_specificity: [
     { text: "Replace 'thing' with what the thing actually is" },
     { text: "Resolve every 'it' to a noun the listener can point at" },
     { text: "Numbers beat adjectives — '40%' lands; 'a lot' doesn't" },
   ],
-  logical_sequencing: [
+  listener_first_sequencing: [
     { text: "State the conclusion before the build-up" },
     { text: "Order: cause, then effect — never the other way around" },
   ],
@@ -121,14 +124,14 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     { text: "Mid-rep check: did this point earn its place in the arc?" },
   ],
   // ——— Conciseness ————————————————————————————————————————
-  filler_elimination: [
+  filler_reduction: [
     {
       text: "Replace 'um' and 'like' with a one-second pause",
       source: "Quantified Communications — fewer fillers = 33% more persuasive",
     },
     { text: "Silence is more authoritative than filler" },
   ],
-  hedging_awareness: [
+  hedging_control: [
     { text: "Cut 'I think' and 'kind of' — say it as a fact" },
     { text: "If you'd defend it, drop the qualifier" },
   ],
@@ -143,7 +146,7 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     },
     { text: "Last sentence is the strongest, not an apology" },
   ],
-  editing_in_real_time: [
+  real_time_editing: [
     { text: "If a sentence drifts, end it and start the next one cleanly" },
     { text: "Cut adjectives. Verbs and nouns carry meaning" },
   ],
@@ -196,7 +199,7 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     },
     { text: "Pause is not dead air — it's the listener catching up" },
   ],
-  filler_word_control: [
+  filler_to_pause_substitution: [
     {
       text: "Pause instead of 'um' — silence reads as authority",
       source: "Duvall et al. (2014), Journal of Nonverbal Behavior",
@@ -207,23 +210,23 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     { text: "Vary tempo between points — flat tempo loses attention" },
     { text: "Slow on the verbs that matter; quick through the connectors" },
   ],
-  pressure_management: [
+  pressure_pacing: [
     { text: "Inhale through the nose before answering — resets the voice" },
     { text: "First three words at half-speed — buys composure" },
   ],
   // ——— Tone ——————————————————————————————————————————————
-  pitch_variation: [
+  prosodic_alignment: [
     {
       text: "Vary pitch by ≥3 semitones across the response",
       source: "Baker & McGowan (2013) — variety = +30% engagement",
     },
     { text: "Avoid the flat-line — change pitch when changing thoughts" },
   ],
-  volume_control: [
+  emphasis_timing: [
     { text: "Raise volume on the verb that carries the meaning" },
     { text: "Drop volume on the connector words; lift on the claims" },
   ],
-  downward_inflection: [
+  confidence: [
     {
       text: "Land statements with downward pitch — signals conviction",
       source: "Paralinguistics — upspeak undercuts authority",
@@ -235,7 +238,7 @@ export const HINTS: Record<SubSkillId, readonly Hint[]> = {
     { text: "Let the content's weight come through your voice" },
     { text: "If it's serious, sound serious — match the stakes" },
   ],
-  vocal_presence: [
+  gravitas: [
     {
       text: "Project from the chest, not the throat",
       source: "Patsy Rodenburg, The Right to Speak — second circle",

@@ -4,18 +4,30 @@
     {
       "dimension": "clarity",
       "application": "teaching",
-      "application_skills": ["simplifying_complexity", "known_to_unknown"],
+      "application_skills": [
+        "simplifying_complexity",
+        "known_to_unknown"
+      ],
       "name": "Start Where They Are",
       "rule": "Start from what the learner already knows; build one step up.",
       "why": "Explanations fail when they start above the learner's head.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to teach a new idea by anchoring it in what the learner already understands and building upward one step at a time.",
-      "hidden_skills": ["audience_awareness", "word_choice", "logical_sequencing"],
+      "hidden_skills": [
+        "common_ground_creation",
+        "mental_model_matching",
+        "listener_first_sequencing",
+        "audience_calibration"
+      ],
       "scoring_lens": "Constraint: the explanation must open from the learner's named starting point and add one new layer at a time. Jumping past the learner's level MUST drag the clarity score.",
       "coach_insight": "Say their world first — the savings account before the index fund. Great reps keep returning to that anchor as each layer stacks. The trap: defining the new thing up front and circling back; once you jump ahead, backfilling won't rescue it.",
-      "secondary_core_skills": ["structure"],
+      "secondary_core_skills": [
+        "structure"
+      ],
       "common_failure_modes": [
         "Opens with the new concept's definition instead of the learner's stated starting point",
         "Stacks two or more new ideas into a single step",
@@ -25,38 +37,134 @@
       "scoring_emphasis": "Weight the opening sentence and each transition — check that every new layer ties back to the learner's anchor rather than to jargon introduced moments earlier.",
       "retry_objective": "If the explanation started above the learner's head, retry by opening with what they already know and adding only one new idea per step.",
       "prompt_rules": "Every prompt names a specific learner and their exact starting point — what they already know, do, or believe. Topics vary across domains; the constant objective is opening from the learner's world and climbing one step at a time.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain what a stock index fund is to a coworker who just opened her first brokerage account and only knows how a savings account works.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain what version control does to a new marketing hire who has only ever saved files as final_v2.docx.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Explain what a control group is to your cousin starting a science fair project who has never run an experiment.", "difficulty": "intro", "tags": ["science", "education"] },
-        { "text": "Explain what inflammation is to a patient who knows it as 'swelling' and is confused why her doctor keeps blaming it for everything.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain what a supply chain is to a teenager whose only job so far has been mowing lawns for neighbors.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Explain what caching is to a junior designer who has noticed websites feel faster on a second visit but has no idea why.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain what equity in a startup offer means to a friend who has only ever been paid an hourly wage.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain what peer review is to a first-year student who thinks published papers are just fancy blog posts.", "difficulty": "core", "tags": ["science", "education"] },
-        { "text": "Explain what a deductible is to a new employee picking health insurance for the first time, who assumes the plan pays for everything.", "difficulty": "intro", "tags": ["finance", "healthcare"] },
-        { "text": "Explain what training data is to your uncle who thinks AI 'just knows things' the way people do.", "difficulty": "core", "tags": ["tech", "science"] },
-        { "text": "Explain how interest rate hikes cool the economy to a barista who follows the news but tunes out whenever the Fed comes up.", "difficulty": "stretch", "tags": ["finance", "current events"] },
-        { "text": "Explain what a brand actually is to a new bakery owner who thinks it just means her logo and colors.", "difficulty": "intro", "tags": ["business", "creative"] }
+        {
+          "text": "Explain what a stock index fund is to a coworker who just opened her first brokerage account and only knows how a savings account works.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what a spam filter does to an office manager who lives in her inbox all day but has no idea where the vanished emails go.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what a control group is to your cousin starting a science fair project who has never run an experiment.",
+          "difficulty": "intro",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what inflammation is to a patient who knows it as 'swelling' and is confused why her doctor keeps blaming it for everything.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what a supply chain is to a teenager whose only job so far has been mowing lawns for neighbors.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what streaming is to an uncle who assumes watching a movie online means the whole file gets saved onto his TV first.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain what equity in a startup offer means to a friend who has only ever been paid an hourly wage.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what peer review is to a first-year student who thinks published papers are just fancy blog posts.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a deductible is to a new employee picking health insurance for the first time, who assumes the plan pays for everything.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what training data is to your uncle who thinks AI 'just knows things' the way people do.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how interest rate hikes cool the economy to a barista who follows the news but tunes out whenever the Fed comes up.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "current events"
+          ]
+        },
+        {
+          "text": "Explain what a brand actually is to a new bakery owner who thinks it just means her logo and colors.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        }
       ]
     },
     {
       "dimension": "clarity",
       "application": "teaching",
-      "application_skills": ["explaining_with_analogy", "known_to_unknown"],
+      "application_skills": [
+        "explaining_with_analogy",
+        "known_to_unknown"
+      ],
       "name": "Borrow Their World",
       "rule": "Teach the whole idea through one thing the learner already gets.",
       "why": "Analogies stick when they live in the learner's world, not yours.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to build an analogy out of the learner's own world so a new concept lands in territory the learner already trusts.",
-      "hidden_skills": ["concreteness", "audience_awareness"],
+      "hidden_skills": [
+        "analogy_selection",
+        "common_ground_creation",
+        "mental_model_matching"
+      ],
       "scoring_lens": "Constraint: the core analogy must be drawn from the learner's stated world — their job, hobby, or daily life — and must carry the whole explanation. A generic or speaker-centric analogy MUST drag the clarity score.",
       "coach_insight": "Pick one thing from their world and stretch it across the whole idea — every part of the concept should have a counterpart in their territory. The trap: a one-line comparison you abandon the moment the explanation gets technical.",
-      "secondary_core_skills": ["thinking_quality"],
+      "secondary_core_skills": [
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Analogy drawn from the speaker's own domain rather than the learner's stated world",
         "Comparison used once as decoration, then the explanation reverts to technical terms",
@@ -66,38 +174,132 @@
       "scoring_emphasis": "Weight how far the single analogy is carried — reward mappings where each element of the concept lands on a counterpart in the learner's world, and note where the mapping is silently dropped.",
       "retry_objective": "If the analogy came from your world instead of the learner's, retry with one comparison drawn from their stated job, hobby, or daily routine.",
       "prompt_rules": "Every prompt names a learner, the world they know well, and a concept foreign to them. Topics vary; the constant objective is one analogy built from the learner's own territory that carries the entire explanation.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Teach how the immune system remembers infections to a soccer coach — build your analogy from the training and drills he already runs.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Teach what an API is to a restaurant owner who has never coded, using something from her own kitchen or front-of-house.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Teach how compound interest snowballs to a gardener who has never invested a dollar — use something that grows.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Teach what a database index does to a librarian who organizes physical stacks but has never written a line of code.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Teach how vaccines prepare the body to a firefighter using an analogy from fire drills or prevention work he knows cold.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Teach what diversification means to a farmer who plants a single crop each year and has never bought a stock.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Teach what network latency is to a delivery driver who assumes the internet moves everything instantly.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Teach how a bill becomes law to a dedicated video gamer who has never followed politics — borrow from the games he plays.", "difficulty": "core", "tags": ["education", "current events"] },
-        { "text": "Teach what a hypothesis is to a home cook who tweaks recipes constantly but has never done formal science.", "difficulty": "intro", "tags": ["science"] },
-        { "text": "Teach how credit scores work to a college athlete who has never borrowed money — use the training stats she already tracks.", "difficulty": "core", "tags": ["finance", "education"] },
-        { "text": "Teach what technical debt is to a homeowner who has never coded but has skipped plenty of house repairs.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Teach how the stock market matches buyers and sellers to a flea market vendor who haggles daily but distrusts Wall Street.", "difficulty": "stretch", "tags": ["finance"] }
+        {
+          "text": "Teach how the immune system remembers infections to a soccer coach — build your analogy from the training and drills he already runs.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Teach what a computer virus is to a restaurant owner who has never studied tech — build the analogy from the food-safety rules she runs her kitchen by.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Teach how compound interest snowballs to a gardener who has never invested a dollar — use something that grows.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Teach how a search engine finds an answer in a split second to a librarian who organizes physical stacks but has never studied computers.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Teach how vaccines prepare the body to a firefighter using an analogy from fire drills or prevention work he knows cold.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Teach what diversification means to a farmer who plants a single crop each year and has never bought a stock.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Teach what network latency is to a delivery driver who assumes the internet moves everything instantly.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Teach how a bill becomes law to a dedicated video gamer who has never followed politics — borrow from the games he plays.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "current events"
+          ]
+        },
+        {
+          "text": "Teach what a hypothesis is to a home cook who tweaks recipes constantly but has never done formal science.",
+          "difficulty": "intro",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "Teach how credit scores work to a college athlete who has never borrowed money — use the training stats she already tracks.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "education"
+          ]
+        },
+        {
+          "text": "Teach why phones keep demanding software updates to a homeowner who has never coded but knows exactly what skipped house maintenance costs.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Teach how the stock market matches buyers and sellers to a flea market vendor who haggles daily but distrusts Wall Street.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        }
       ]
     },
     {
       "dimension": "structure",
       "application": "teaching",
-      "application_skills": ["teaching_for_application", "known_to_unknown"],
+      "application_skills": [
+        "teaching_for_application",
+        "known_to_unknown"
+      ],
       "name": "One Step at a Time",
       "rule": "Number every step; one action per step, in order.",
       "why": "First-timers need order and signposts, not a wall of steps.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to break a process into clearly ordered, signposted steps a first-timer could follow without asking questions.",
-      "hidden_skills": ["signposting", "coherence"],
+      "hidden_skills": [
+        "sequence_logic",
+        "signposting",
+        "chunking",
+        "cognitive_load_reduction"
+      ],
       "scoring_lens": "Constraint: steps must be explicitly ordered and signposted, one action per step, in the sequence the learner will actually perform them. Missing, merged, or out-of-order steps MUST drag the structure score.",
       "coach_insight": "Say the numbers out loud — first, second, third — and give each step one verb the learner can act on. The trap: narrating the process the way you experience it, folding two actions into one breath and burying the step they'll fumble.",
-      "secondary_core_skills": ["clarity", "pacing"],
+      "secondary_core_skills": [
+        "clarity",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Two or more actions merged into a single step",
         "Steps delivered out of the order the learner would actually perform them",
@@ -107,38 +309,134 @@
       "scoring_emphasis": "Weight executability: judge whether a first-timer could perform the process from the transcript alone, with nothing missing, merged, or dependent on knowledge they were said not to have.",
       "retry_objective": "If steps blurred together or arrived out of order, retry by numbering each step aloud and giving it exactly one action.",
       "prompt_rules": "Every prompt names a learner about to attempt a process for the first time and states what they have and have not done before. Processes vary across domains; the constant objective is an ordered, signposted walkthrough a first-timer could execute alone.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Walk a brand-new intern through running her first customer interview — she has read about them but never spoken to a customer.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Walk your dad through backing up his phone before an upgrade — he has never done it and is terrified of losing photos.", "difficulty": "intro", "tags": ["tech", "personal/relationships"] },
-        { "text": "Walk a new nurse through the shift-handoff report on her first day — she knows the medicine but not your unit's routine.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Walk a first-time founder through opening a business bank account — he has only ever had a personal checking account.", "difficulty": "intro", "tags": ["finance", "business"] },
-        { "text": "Walk a new grad through preparing for her first salary negotiation — she has never negotiated anything in her life.", "difficulty": "core", "tags": ["business", "personal/relationships"] },
-        { "text": "Walk a junior engineer through his first production deploy — he has only ever shipped code to a test environment.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Walk a first-time teaching assistant through grading her first stack of essays — she has the rubric but zero practice applying it.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Walk your neighbor through filing a home insurance claim after a burst pipe — it is his first claim ever.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Walk a new manager through running her first one-on-one — she was promoted on Friday and has only ever attended them.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Walk a college freshman through using the shared dorm laundry machines — he has never washed his own clothes.", "difficulty": "intro", "tags": ["personal/relationships", "education"] },
-        { "text": "Walk a new lab assistant through preparing a sample slide — she watched it done once and does it alone tomorrow.", "difficulty": "core", "tags": ["science"] },
-        { "text": "Walk a boutique owner through her first end-of-year inventory count — she has run the shop for a year but never audited stock.", "difficulty": "stretch", "tags": ["business", "finance"] }
+        {
+          "text": "Walk a nervous friend through preparing for his first job interview — he has read advice online but has never sat across from a hiring manager.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Walk your dad through backing up his phone before an upgrade — he has never done it and is terrified of losing photos.",
+          "difficulty": "intro",
+          "tags": [
+            "tech",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Walk your grandfather through sorting his new prescriptions into a weekly pill organizer — some are morning pills, some are night pills, and he has never used one.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Walk a teenager through opening his first bank account — he has only ever kept cash in a shoebox and has no idea what to bring.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Walk a new grad through preparing for her first salary negotiation — she has never negotiated anything in her life.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Walk a first-time flyer through the airport, from check-in to boarding — he has never flown and is sure he will get something wrong.",
+          "difficulty": "core",
+          "tags": [
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Walk a first-time teaching assistant through grading her first stack of essays — she has the rubric but zero practice applying it.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Walk your neighbor through filing a home insurance claim after a burst pipe — it is his first claim ever.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Walk a new manager through running her first one-on-one — she was promoted on Friday and has only ever attended them.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Walk a college freshman through using the shared dorm laundry machines — he has never washed his own clothes.",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships",
+            "education"
+          ]
+        },
+        {
+          "text": "Walk a middle schooler through his first science-fair experiment — testing which paper airplane flies farthest — he has an idea but no method.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Walk a boutique owner through her first end-of-year inventory count — she has run the shop for a year but never audited stock.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "teaching",
-      "application_skills": ["anticipating_confusion", "examples_and_nonexamples"],
+      "application_skills": [
+        "anticipating_confusion",
+        "examples_and_nonexamples"
+      ],
       "name": "Replace the Myth",
       "rule": "Name the wrong belief, then replace it with the right one.",
       "why": "Corrections land only when the learner's logic is respected first.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to correct a learner's misconception by naming the wrong belief, honoring why it feels true, and replacing it with a sturdier model.",
-      "hidden_skills": ["perspective_taking", "claim_support", "intellectual_honesty"],
+      "hidden_skills": [
+        "steel_manning",
+        "mechanism_explanation",
+        "empathy"
+      ],
       "scoring_lens": "Constraint: the response must state the misconception plainly, acknowledge why the learner holds it, and support the correction with concrete evidence. Dismissing the learner or asserting without proof MUST drag the thinking-quality score.",
       "coach_insight": "Make the learner feel smart for having believed it — spend a sentence on why the myth is a reasonable conclusion before you take it apart. The trap: opening with 'actually, that's wrong' — you win the fact and lose the person.",
-      "secondary_core_skills": ["tone", "structure"],
+      "secondary_core_skills": [
+        "tone",
+        "structure"
+      ],
       "common_failure_modes": [
         "Never states the wrong belief plainly before correcting it",
         "Jumps straight to the right answer with no acknowledgment of why the myth feels true",
@@ -148,38 +446,134 @@
       "scoring_emphasis": "Weight the replacement over the debunk — the learner should walk away with a sturdier working model, not just the news that their old one was broken.",
       "retry_objective": "If the correction dismissed the learner or lacked proof, retry by first crediting why the belief feels true, then dismantling it with one concrete piece of evidence.",
       "prompt_rules": "Every prompt names a learner and the specific wrong belief they hold, often with a hint of where it came from. Myths vary across domains; the constant objective is respecting the learner's logic while replacing the broken model with evidence.",
-      "response_window": { "min_sec": 60, "max_sec": 120 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Your teammate believes more features always make a product better. Correct the misconception without dismissing why it feels true.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Your younger brother thinks skipping breakfast permanently 'slows your metabolism.' Set the record straight while honoring why he believes it.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "A friend new to investing is sure a falling stock 'has to bounce back eventually.' Correct him without a single finance term.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "A student believes humans only use 10% of their brains. Replace the myth while crediting where it came from.", "difficulty": "intro", "tags": ["science", "education"] },
-        { "text": "Your client thinks SEO still means stuffing keywords into every page. Correct the outdated model she learned years ago.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "A first-time manager believes being liked is the same as being trusted. Correct the confusion with one concrete contrast.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Your aunt is convinced the flu shot gave her cousin the flu. Correct the misconception with respect for her worry.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "A junior analyst thinks the correlation in his chart proves his campaign caused the sales bump. Show him why that model breaks.", "difficulty": "core", "tags": ["business", "science"] },
-        { "text": "Your friend believes renting is always throwing money away. Complicate the rule she absorbed from her parents.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "A new hire thinks agile means no planning at all. Correct the picture he formed from one chaotic standup.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "A high schooler believes lightning never strikes the same place twice. Replace the folk wisdom with the real mechanism.", "difficulty": "intro", "tags": ["science", "education"] },
-        { "text": "Your neighbor thinks having a will lets his family skip probate entirely. Correct the misunderstanding his golf buddy handed him.", "difficulty": "stretch", "tags": ["finance", "personal/relationships"] }
+        {
+          "text": "Your teammate believes more features always make a product better. Correct the misconception without dismissing why it feels true.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Your younger brother thinks skipping breakfast permanently 'slows your metabolism.' Set the record straight while honoring why he believes it.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "A friend new to investing is sure a falling stock 'has to bounce back eventually.' Correct him without a single finance term.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "A student believes humans only use 10% of their brains. Replace the myth while crediting where it came from.",
+          "difficulty": "intro",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Your friend is sure the top result on a search page is always the most trustworthy source. Correct the model without dismissing why it feels true.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "A first-time manager believes being liked is the same as being trusted. Correct the confusion with one concrete contrast.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Your aunt is convinced the flu shot gave her cousin the flu. Correct the misconception with respect for her worry.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A junior analyst thinks the correlation in his chart proves his campaign caused the sales bump. Show him why that model breaks.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "science"
+          ]
+        },
+        {
+          "text": "Your friend believes renting is always throwing money away. Complicate the rule she absorbed from her parents.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A new hire believes multitasking means getting more done. Correct the picture he formed from years of praise for juggling everything at once.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "A high schooler believes lightning never strikes the same place twice. Replace the folk wisdom with the real mechanism.",
+          "difficulty": "intro",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Your neighbor thinks moving into a higher tax bracket means his whole paycheck gets taxed at the new rate. Correct the math his coworker handed him.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        }
       ]
     },
     {
       "dimension": "clarity",
       "application": "teaching",
-      "application_skills": ["examples_and_nonexamples", "teaching_for_application"],
+      "application_skills": [
+        "examples_and_nonexamples",
+        "teaching_for_application"
+      ],
       "name": "Example First",
       "rule": "Lead with one concrete example; add a non-example to sharpen it.",
       "why": "One sharp example teaches faster than three definitions.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to teach a concept by leading with one vivid example, then sharpening the boundary with a non-example.",
-      "hidden_skills": ["concreteness", "precision"],
+      "hidden_skills": [
+        "example_grounding",
+        "distinction_making",
+        "example_validity"
+      ],
       "scoring_lens": "Constraint: the teaching must lead with one concrete example and include a non-example that marks the concept's edge. An abstract-first opening or a missing non-example MUST drag the clarity score.",
       "coach_insight": "Let them see the thing happening before you name it — the example comes first, the label second. The trap: a non-example so obviously wrong it teaches nothing; the best near-miss is something people genuinely mistake for the concept.",
-      "secondary_core_skills": ["thinking_quality"],
+      "secondary_core_skills": [
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Opens with a definition or abstraction before any example appears",
         "Non-example missing entirely, leaving the concept's boundary undrawn",
@@ -189,38 +583,140 @@
       "scoring_emphasis": "Weight the quality of the boundary: reward a near-miss that could plausibly pass for the concept and gets explicitly disqualified, not just any second example.",
       "retry_objective": "If the definition came before the example or the boundary stayed fuzzy, retry by opening with the example and closing with one near-miss that shows what the concept is not.",
       "prompt_rules": "Every prompt names a concept, a learner, and the learner's starting point, and invites an example drawn near the learner's life. Concepts vary; the constant objective is example-first teaching with a non-example that draws the concept's boundary.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure", "complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure",
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Teach 'sunk cost' to a friend who keeps finishing bad movies because he paid for the ticket — make his habit the opening example.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Teach 'confirmation bias' to your book club, none of whom have studied psychology — one vivid example, then a case that looks like it but isn't.", "difficulty": "core", "tags": ["science", "personal/relationships"] },
-        { "text": "Teach 'scope creep' to a first-time wedding planner who has never run a formal project — anchor it in one concrete story.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Teach 'passive income' to a nurse who has only ever earned a salary — one real example, then something people wrongly call passive.", "difficulty": "core", "tags": ["finance", "healthcare"] },
-        { "text": "Teach 'user experience' to a chef who has never touched design software — start with an example from a dining room, not a screen.", "difficulty": "core", "tags": ["creative", "tech"] },
-        { "text": "Teach 'opportunity cost' to a high school senior choosing between a summer job and summer classes — make her own choice the example.", "difficulty": "intro", "tags": ["finance", "education"] },
-        { "text": "Teach 'herd behavior' in markets to a rancher who knows actual herds but has never traded — one market example, one non-example.", "difficulty": "core", "tags": ["finance", "science"] },
-        { "text": "Teach the 'placebo effect' to your grandmother who swears by her copper bracelet — one gentle example, then a real-medicine non-example.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Teach 'minimum viable product' to a baker who wants everything perfect before selling — one example from food, one near-miss from business.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Teach 'active listening' to a new peer mentor who thinks it just means staying quiet — one example, then one near-miss that fails.", "difficulty": "intro", "tags": ["leadership", "personal/relationships"] },
-        { "text": "Teach 'statistical significance' to a marketing intern who ran her first A/B test yesterday — one example, one result that only looks significant.", "difficulty": "stretch", "tags": ["science", "business"] },
-        { "text": "Teach 'emotional labor' to your uncle who thinks job strain is only physical or mental — ground it in one shift of a flight attendant's day.", "difficulty": "core", "tags": ["personal/relationships", "business"] }
+        {
+          "text": "Teach 'sunk cost' to a friend who keeps finishing bad movies because he paid for the ticket — make his habit the opening example.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Teach 'confirmation bias' to your book club, none of whom have studied psychology — one vivid example, then a case that looks like it but isn't.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Teach 'scope creep' to a first-time wedding planner who has never run a formal project — anchor it in one concrete story.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Teach 'passive income' to a nurse who has only ever earned a salary — one real example, then something people wrongly call passive.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Teach 'user experience' to a chef who has never touched design software — start with an example from a dining room, not a screen.",
+          "difficulty": "core",
+          "tags": [
+            "creative",
+            "tech"
+          ]
+        },
+        {
+          "text": "Teach 'opportunity cost' to a high school senior choosing between a summer job and summer classes — make her own choice the example.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "education"
+          ]
+        },
+        {
+          "text": "Teach 'herd behavior' in markets to a rancher who knows actual herds but has never traded — one market example, one non-example.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "science"
+          ]
+        },
+        {
+          "text": "Teach the 'placebo effect' to your grandmother who swears by her copper bracelet — one gentle example, then a real-medicine non-example.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Teach 'minimum viable product' to a baker who wants everything perfect before selling — one example from food, one near-miss from business.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Teach 'active listening' to a new peer mentor who thinks it just means staying quiet — one example, then one near-miss that fails.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Teach 'anecdotal evidence' to a marketing intern convinced two glowing customer emails prove the campaign worked — one vivid example, then a near-miss that is actually solid evidence.",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "business"
+          ]
+        },
+        {
+          "text": "Teach 'emotional labor' to your uncle who thinks job strain is only physical or mental — ground it in one shift of a flight attendant's day.",
+          "difficulty": "core",
+          "tags": [
+            "personal/relationships",
+            "business"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "teaching",
-      "application_skills": ["teaching_for_application", "simplifying_complexity"],
+      "application_skills": [
+        "teaching_for_application",
+        "simplifying_complexity"
+      ],
       "name": "Why It Matters",
       "rule": "Connect the concept to something the learner actually cares about.",
       "why": "Learners ignore what you can't connect to their own stakes.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to make a concept matter to an indifferent learner by connecting it to consequences in the learner's own life.",
-      "hidden_skills": ["claim_support", "depth_of_analysis"],
+      "hidden_skills": [
+        "implication_drawing",
+        "perspective_taking",
+        "audience_calibration"
+      ],
       "scoring_lens": "Constraint: relevance must be argued through consequences the named learner would personally feel, with each claim backed by a concrete stake or example. Generic 'because it's important' assertions MUST drag the thinking-quality score.",
       "coach_insight": "Argue from their stakes, not yours — name a consequence this learner will hit this month, in their own project, paycheck, or routine. The trap: escalating to grand importance the moment your specifics run out.",
-      "secondary_core_skills": ["tone", "clarity"],
+      "secondary_core_skills": [
+        "tone",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Leans on generic importance claims with no concrete consequence attached",
         "Stakes belong to the speaker or to people in general, not the named learner",
@@ -230,38 +726,133 @@
       "scoring_emphasis": "Weight whether each relevance claim is cashed out as a consequence this specific learner would feel — count the concrete stakes, not the enthusiasm.",
       "retry_objective": "If the case for relevance stayed generic, retry by tying each claim to one consequence the learner would personally feel this year, not someday.",
       "prompt_rules": "Every prompt names a learner, the thing they dismiss, and the reason for their indifference. Topics vary across domains; the constant objective is arguing relevance through stakes the learner already cares about, not abstract importance.",
-      "response_window": { "min_sec": 60, "max_sec": 100 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 100
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain to a bored ninth-grader why algebra matters when he plans to be a carpenter and swears he'll never use it.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Explain to a new engineer why writing tests matters when she sees them as busywork slowing down her first sprint.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain to a food-truck owner why bookkeeping matters beyond taxes when he thinks his bank balance tells the whole story.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain to a healthy 25-year-old why sleep consistency matters when he brags about all-nighters with zero consequences.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain to a first-time voter why local elections matter when she believes only presidential races change anything.", "difficulty": "core", "tags": ["current events", "education"] },
-        { "text": "Explain to a junior salesperson why follow-up notes matter when he is convinced deals are won or lost on the call itself.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Explain to a new lab tech why calibrating instruments matters when the readings already look fine to her without it.", "difficulty": "core", "tags": ["science"] },
-        { "text": "Explain to your teenage niece why compound interest matters at her age when retirement feels like science fiction.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Explain to a veteran teacher why learning the new gradebook software matters when her paper system has worked for twenty years.", "difficulty": "core", "tags": ["education", "tech"] },
-        { "text": "Explain to a new team lead why documenting decisions matters when she believes hallway conversations are faster.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Explain to a weekend hiker why sharing your route matters when he has finished fifty solo hikes without a hitch.", "difficulty": "intro", "tags": ["personal/relationships", "healthcare"] },
-        { "text": "Explain to a startup founder why accessibility matters now when he wants to 'add it later' after product-market fit.", "difficulty": "stretch", "tags": ["tech", "business"] }
+        {
+          "text": "Explain to a bored ninth-grader why algebra matters when he plans to be a carpenter and swears he'll never use it.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Explain to a friend why phone software updates matter when he taps 'remind me later' every time because his phone works fine as is.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain to a food-truck owner why bookkeeping matters beyond taxes when he thinks his bank balance tells the whole story.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to a healthy 25-year-old why sleep consistency matters when he brags about all-nighters with zero consequences.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain to a first-time voter why local elections matter when she believes only presidential races change anything.",
+          "difficulty": "core",
+          "tags": [
+            "current events",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain to a junior salesperson why follow-up notes matter when he is convinced deals are won or lost on the call itself.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to a new lab tech why calibrating instruments matters when the readings already look fine to her without it.",
+          "difficulty": "core",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "Explain to your teenage niece why compound interest matters at her age when retirement feels like science fiction.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain to a veteran teacher why learning the new gradebook software matters when her paper system has worked for twenty years.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain to a new team lead why documenting decisions matters when she believes hallway conversations are faster.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain to a weekend hiker why sharing your route matters when he has finished fifty solo hikes without a hitch.",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain to a startup founder why accessibility matters now when he wants to 'add it later' after product-market fit.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        }
       ]
     },
     {
       "dimension": "clarity",
       "application": "teaching",
-      "application_skills": ["defining_terms", "simplifying_complexity"],
+      "application_skills": [
+        "defining_terms",
+        "simplifying_complexity"
+      ],
       "name": "Earn Your Jargon",
       "rule": "Give every new term a crisp definition before building on it.",
       "why": "One undefined term quietly locks the learner out of everything after it.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to introduce necessary jargon deliberately — pausing at each new term to give a crisp, usable definition before the explanation builds on it.",
-      "hidden_skills": ["precision", "word_choice", "concreteness"],
+      "hidden_skills": [
+        "definition_discipline",
+        "jargon_translation",
+        "vocabulary_precision"
+      ],
       "scoring_lens": "Constraint: every term of art must receive a crisp, usable definition at first mention, before the explanation depends on it. Terms left undefined or defined with more jargon MUST drag the clarity score.",
       "coach_insight": "Treat every term of art as a toll gate: stop, define it in one plain sentence, then move on. The trap: definitions that lean on more jargon — if your definition needs its own definition, the learner is already locked out.",
-      "secondary_core_skills": ["pacing", "conciseness"],
+      "secondary_core_skills": [
+        "pacing",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "A term of art is used and built upon before it is ever defined",
         "A definition leans on other jargon the learner has not met",
@@ -271,39 +862,135 @@
       "scoring_emphasis": "Weight first mentions: trace each technical term to the exact moment it appears and check that a plain-language definition lands right there, not paragraphs later.",
       "retry_objective": "If a term slipped by undefined, retry by pausing at each new term and giving it one plain sentence a newcomer could repeat back.",
       "prompt_rules": "Every prompt drops the user into a topic whose vocabulary is unavoidable and names a learner who has never met that vocabulary. Topics vary across domains; the constant objective is introducing each necessary term with a crisp definition before building on it.",
-      "response_window": { "min_sec": 60, "max_sec": 100 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 100
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain to your neighbor what the 401(k) match in his new job offer means — he has never had a retirement account.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain to a new gym member why her trainer keeps changing her program every few weeks and calls it 'progressive overload.'", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Tell your parents what you actually do all day as a DevOps engineer — right now they tell friends you 'fix computers.'", "difficulty": "core", "tags": ["tech", "personal/relationships"] },
-        { "text": "Explain to a first-time homebuyer what happens between her accepted offer and getting the keys.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Explain to a friend just diagnosed with prediabetes what his A1C number measures and what his doctor will watch next.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain to your book club how mRNA vaccines work — the last biology class anyone took was decades ago.", "difficulty": "core", "tags": ["science", "healthcare"] },
-        { "text": "Explain to a new barista why the café's monthly meeting keeps coming back to 'shrinkage' and 'cost of goods.'", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Explain to a poetry-major intern what the marketing dashboard is showing her — impressions, reach, engagement rate.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Explain to a high schooler shadowing you what a pull request is and why your team argues inside them.", "difficulty": "intro", "tags": ["tech", "education"] },
-        { "text": "Explain the offside rule to a friend at his first soccer match — he keeps asking why perfectly good goals get cancelled.", "difficulty": "core", "tags": ["personal/relationships"] },
-        { "text": "Explain to a client with no legal background the liability and indemnification clauses in the contract she signs tomorrow.", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "Explain to your aunt what her oncologist meant by 'stage two' and 'clean margins' — she left the appointment too rattled to ask.", "difficulty": "stretch", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Explain to a city council member why the water utility's report flags 'non-revenue water' — she votes on the budget Thursday.", "difficulty": "stretch", "tags": ["current events", "science"] }
+        {
+          "text": "Explain to your neighbor what the 401(k) match in his new job offer means — he has never had a retirement account.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain to a new gym member why her trainer keeps changing her program every few weeks and calls it 'progressive overload.'",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain to your parents what it means that their photos are 'in the cloud' — they picture the pictures floating somewhere above the house.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain to a teenager holding his first paycheck why the take-home number is smaller than his hourly math predicted — gross pay, taxes, withholding.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain to a friend what his doctor meant by 'good' and 'bad' cholesterol — he nodded through the checkup and has been afraid to ask since.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain to your book club how mRNA vaccines work — the last biology class anyone took was decades ago.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain to a new barista what the owner means by 'overhead' and 'margin' — she assumes every five-dollar latte is five dollars of pure profit.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to a poetry-major intern what the marketing dashboard is showing her — impressions, reach, engagement rate.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Explain to a high schooler shadowing you what 'phishing' is and why every workplace training keeps warning about it.",
+          "difficulty": "intro",
+          "tags": [
+            "tech",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain to a college student signing her first lease what 'security deposit', 'lease term', and 'subletting' mean before she initials each page.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain to a friend what the 'non-disclosure agreement' in his new-job paperwork means — what it stops him from sharing and what it doesn't.",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to your aunt what 'benign' and 'malignant' meant in her test results — she left the appointment too rattled to ask.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "teaching",
-      "application_skills": ["adjusting_depth", "anticipating_confusion"],
+      "application_skills": [
+        "adjusting_depth",
+        "anticipating_confusion"
+      ],
       "name": "Dial the Depth",
       "rule": "Match your depth to what this listener can actually use.",
       "why": "One-size explanations bore experts and bury beginners.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to calibrate how deep an explanation goes based on who is listening — fundamentals for novices, real detail for experts, and a judgment call for everyone in between.",
-      "hidden_skills": ["perspective_taking", "depth_of_analysis"],
+      "hidden_skills": [
+        "scope_control",
+        "depth_of_analysis",
+        "audience_calibration"
+      ],
       "scoring_lens": "Constraint: the depth of the explanation must be calibrated to the named listener — real detail for experts, fundamentals for novices, nothing the listener cannot use. Depth mismatched to the audience MUST drag the thinking-quality score.",
       "coach_insight": "Commit to a depth before you speak: real mechanics for the expert, the shape of the idea for the novice. The trap: hedging in the middle — walking a specialist through basics they know, or drowning a beginner in detail to sound thorough.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Explains fundamentals an expert listener was stated to already know",
         "Uses depth or vocabulary the named novice cannot use",
@@ -313,21 +1000,107 @@
       "scoring_emphasis": "Weight audience fit above content completeness — a technically flawless explanation pitched at the wrong listener should score worse than a simpler one pitched correctly.",
       "retry_objective": "If the depth missed the listener — too shallow for an expert or too deep for a novice — retry by first judging what this person can already handle, then pitching one notch inside it.",
       "prompt_rules": "Every prompt names a listener whose knowledge level is unmistakable — a domain expert, a total novice, or a mixed room — sometimes with a live reaction to read. Topics vary across domains; the constant objective is pitching the explanation at exactly the depth that listener can use.",
-      "response_window": { "min_sec": 60, "max_sec": 100 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 100
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Your seven-year-old asks why the moon looks different every night.", "difficulty": "intro", "tags": ["science", "personal/relationships"] },
-        { "text": "Your mother read that your company got acquired and is worried about your job. Explain what the acquisition actually means for you.", "difficulty": "intro", "tags": ["finance", "personal/relationships"] },
-        { "text": "A first-year design intern asks why the app feels slow — she has never heard the word 'server.'", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Your gym buddy, a licensed physical therapist, asks why you switched to your new training program.", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Explain why the release slipped to your CTO — a former kernel engineer who reads the commit log for fun.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "Now explain the same slipped release to the customer success team, none of whom have ever seen the codebase.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "A retired cardiologist at the family reunion asks what your health-tracking startup actually measures.", "difficulty": "core", "tags": ["healthcare", "business"] },
-        { "text": "Your grandfather, a retired electrician, asks how the solar panels on your roof sell power back to the grid.", "difficulty": "core", "tags": ["science", "personal/relationships"] },
-        { "text": "The head of sales — who builds hobby apps on weekends — asks why the CRM integration keeps breaking.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Your new client, a math PhD who has never worked in finance, asks how your firm's risk model works.", "difficulty": "stretch", "tags": ["finance", "science"] },
-        { "text": "Explain the quarter's miss to the board — half are finance veterans, half are first-time founders who skim the deck.", "difficulty": "stretch", "tags": ["finance", "leadership"] },
-        { "text": "Midway through your benefits-plan overview, the new hire's eyes glaze and she starts nodding too fast. Keep going.", "difficulty": "stretch", "tags": ["business", "personal/relationships"] }
+        {
+          "text": "A friend's seven-year-old asks you why the moon looks different every night.",
+          "difficulty": "intro",
+          "tags": [
+            "science",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A worried friend heard her company is being acquired and asks what an acquisition actually means for regular employees like her.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A first-year design intern asks why apps get slow when everyone piles on at once — she has never heard the word 'server.'",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "A friend who is a licensed physical therapist asks how you actually stay active and why you settled on it — answer from your real routine, however modest.",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A project you were part of blew past its deadline. Explain what went wrong to the most experienced expert involved, who knows every detail of the work.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Now explain the same late project to the people who were waiting on it, none of whom know how the work gets done.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "A retired cardiologist at the family reunion asks what fitness trackers actually measure when they count steps and report heart rate.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "tech"
+          ]
+        },
+        {
+          "text": "Your grandfather, a retired electrician, asks how houses with rooftop solar panels sell power back to the grid.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "A coworker who builds hobby apps on weekends asks why the office wifi crawls to a stop every afternoon.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "A friend with a math PhD who has never invested asks why advisors keep telling everyone not to try timing the market.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what inflation is doing to prices and savings to a mixed room — half finance veterans, half people who change the channel at money news.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "current events"
+          ]
+        },
+        {
+          "text": "Midway through explaining health-insurance basics to a friend starting her first job, her eyes glaze and she starts nodding too fast. Keep going.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        }
       ]
     }
   ]

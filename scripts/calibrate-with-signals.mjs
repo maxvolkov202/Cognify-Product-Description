@@ -5,9 +5,9 @@
  * Extends `calibrate-scoring.mjs` with two additional gates that only
  * make sense when FF_DETERMINISTIC_SIGNALS is on:
  *
- *   1. `subSkillScores` populated on every dimension (or, for sub-skills
- *      not covered by an extractor, the dimension's holistic score
- *      flowed through as the dimension_fallback).
+ *   1. `subSkillScores` populated on at least one dimension. Taxonomy v2
+ *      (D20): only signal-measured sub-skills carry entries — there is
+ *      no dimension_fallback anymore.
  *   2. Per-sub-skill score within ±20 of the dimension score for any
  *      sub-skill on a `kind=band` rep (sub-skills DO vary within a dim,
  *      but a 30-point swing on a single sub-skill is suspect on a rep
@@ -48,24 +48,6 @@ const FILTER = parseArg("--filter");
 const JSON_OUT = process.argv.includes("--json");
 const DIM_TOLERANCE = 5;
 const SUBSKILL_DIM_TOLERANCE = 20;
-
-const TEXT_DRIVEN_SUB_SKILLS = new Set([
-  "word_choice",
-  "audience_awareness",
-  "precision",
-  "concreteness",
-  "signposting",
-  "opening_hook",
-  "argument_hierarchy",
-  "narrative_arc",
-  "hedging_awareness",
-  "repetition_control",
-  "response_scoping",
-  "claim_support",
-  "counterargument_awareness",
-  "depth_of_analysis",
-  "intellectual_honesty",
-]);
 
 function parseArg(name) {
   const idx = process.argv.indexOf(name);
@@ -182,21 +164,14 @@ function evaluateSubSkills(rep, score) {
       }
       const drift = Math.abs(sub - d.score);
       if (drift > SUBSKILL_DIM_TOLERANCE) {
-        // For text-driven sub-skills the drift is expected when the
-        // signal disagrees with the LLM's holistic dim score — that's
-        // the whole point of per-sub-skill scoring. Surface as a
-        // WARNING (not failure) on text-driven sub-skills, since the
-        // tighter SUBSKILL_DIM_TOLERANCE is more about catching
-        // dimension_fallback bugs than constraining text-driven scores.
-        if (TEXT_DRIVEN_SUB_SKILLS.has(subSkill)) {
-          warnings.push(
-            `${d.dimension}.${subSkill}=${sub} differs from dim ${d.score} by ${drift} (text-driven, expected variance)`,
-          );
-        } else {
-          failures.push(
-            `${d.dimension}.${subSkill}=${sub} differs from dim ${d.score} by ${drift} (dimension_fallback should be within ±${SUBSKILL_DIM_TOLERANCE})`,
-          );
-        }
+        // Taxonomy v2 (D20): the mapper emits ONLY signal-driven entries
+        // (dimension_fallback is gone), so drift from the holistic dim
+        // score is expected whenever the signal disagrees with the LLM —
+        // that's the whole point of per-sub-skill scoring. Always a
+        // WARNING, never a failure.
+        warnings.push(
+          `${d.dimension}.${subSkill}=${sub} differs from dim ${d.score} by ${drift} (signal-driven, expected variance)`,
+        );
       }
     }
   }
@@ -204,6 +179,24 @@ function evaluateSubSkills(rep, score) {
     failures.push(
       "no dimension carried subSkillScores — FF_DETERMINISTIC_SIGNALS may be off on the target deployment",
     );
+  }
+  // Taxonomy v2: voice-measured skills come only from prosody. A rep
+  // WITH audio that produces zero delivery/tone sub-skill entries means
+  // the prosody→mapper wiring silently broke — text-driven dims would
+  // still populate, so anyDimHadSubSkills alone can't catch it.
+  if (rep.audioUrl) {
+    const voiceDims = new Set(["delivery", "tone"]);
+    const anyVoiceEntries = dims.some(
+      (d) =>
+        voiceDims.has(d.dimension) &&
+        d.subSkillScores &&
+        Object.keys(d.subSkillScores).length > 0,
+    );
+    if (!anyVoiceEntries) {
+      failures.push(
+        "rep has audio but no delivery/tone subSkillScores — prosody pipeline into the sub-skill mapper looks broken",
+      );
+    }
   }
   return { failures, warnings };
 }

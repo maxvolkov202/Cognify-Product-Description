@@ -15,7 +15,7 @@
 
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import { useEffect, useState, useTransition } from "react";
-import { Loader2, Mic, Sparkles, Trophy, X } from "lucide-react";
+import { Mic, Sparkles, Trophy, X } from "lucide-react";
 import type {
   AttemptKind,
   LoopVariant,
@@ -24,7 +24,9 @@ import type {
 } from "@/lib/workout/types";
 import type { PickMode } from "@/lib/workout/session-machine";
 import type { Callout, MuscleGroupId, RepScore } from "@/types/domain";
+import { MUSCLE_GROUP_LABELS } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
 import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
@@ -222,10 +224,9 @@ export default function RepControls({
         )}
 
         {phase === "walking" && (
-          <PlaceholderControls
-            icon={<Loader2 className="w-5 h-5 animate-spin" />}
-            title="Walking to next station…"
-            sub={station ? station.exerciseName : "Hold tight."}
+          <WalkingControls
+            dimension={dimension}
+            exerciseName={station ? station.exerciseName : null}
           />
         )}
 
@@ -292,8 +293,8 @@ function IdleControls({
         type="button"
         className={cn(
           "min-h-[48px] px-6 py-3 rounded-xl font-semibold",
-          "bg-pink-500 hover:bg-pink-400 text-white",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-300",
+          "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
           "disabled:opacity-50",
         )}
         disabled={isPending}
@@ -594,9 +595,26 @@ function DayCompleteControls({
   }, [dim, muscleGroupDayId]);
 
   if (loading) {
+    // Celebratory skeleton — the party starts DURING the fetch: the
+    // eyebrow + a shimmering hero-score placeholder in the dim's wash,
+    // so the reveal doesn't open on a bare spinner.
+    const theme = dim ? DIM_THEMES[dim] : null;
     return (
-      <div className="flex flex-col items-center text-center gap-2 py-4">
-        <Loader2 className="w-5 h-5 animate-spin text-slate-400 dark:text-ink-500" />
+      <div className="flex flex-col items-center text-center gap-3 py-4">
+        <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
+          🎉 {dim ? `${MUSCLE_GROUP_LABELS[dim]} day complete` : "Workout complete"}
+        </div>
+        <div
+          aria-hidden
+          className="relative h-16 w-36 animate-pulse overflow-hidden rounded-2xl bg-slate-100 dark:bg-ink-800"
+        >
+          <div
+            className={cn(
+              "absolute inset-0 bg-gradient-to-br",
+              theme ? theme.wash : "from-brand-lavender/15 to-transparent",
+            )}
+          />
+        </div>
         <p className="text-sm text-slate-500 dark:text-ink-400">Building your summary…</p>
       </div>
     );
@@ -632,6 +650,42 @@ function DayCompleteControls({
       lifetimeReps={summary.lifetimeReps}
       streakDays={summary.streakDays}
     />
+  );
+}
+
+/** Between-stations transition — a dim-washed card in place of the old
+ *  bare spinner, carrying the next exercise's name when known. */
+function WalkingControls({
+  dimension,
+  exerciseName,
+}: {
+  dimension: MuscleGroupId | null;
+  exerciseName: string | null;
+}) {
+  const theme = dimension ? DIM_THEMES[dimension] : null;
+  return (
+    <div className="flex flex-col items-center text-center gap-2">
+      <div
+        className={cn(
+          "w-full max-w-xs rounded-xl border border-slate-200 dark:border-ink-700 bg-gradient-to-br p-4",
+          theme ? theme.wash : "from-brand-lavender/15 to-transparent",
+        )}
+      >
+        <div className="flex items-center justify-center gap-2">
+          <span
+            aria-hidden
+            className="inline-block size-2 animate-pulse rounded-full"
+            style={{ backgroundColor: theme?.accent ?? "var(--color-brand-lavender)" }}
+          />
+          <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+            Walking to next station…
+          </h2>
+        </div>
+        <p className="mt-1 text-sm text-slate-500 dark:text-ink-400">
+          {exerciseName ?? "Hold tight."}
+        </p>
+      </div>
+    </div>
   );
 }
 

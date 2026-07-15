@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { anthropic, MODELS } from "./claude";
 import { resolveKnowledge, renderBlocks } from "./knowledge";
+import {
+  canonicalizeSubSkillId,
+  SUB_SKILL_DEFINITIONS,
+  SUB_SKILL_LABELS,
+} from "@/types/sub-skills";
 
 /**
  * PRD v3 Phase 8.1 — runtime prompt generation (PRD §9, decision D3
@@ -76,7 +81,11 @@ Every prompt must be:
 - Directly practicing the exercise's rule — a user following the rule should score well
 - Free of theory names (no "SCQA", "Grice", "STAR" etc.) and free of meta-text ("Here's a prompt…")
 
-TOPIC SPREAD (PRD §5.6): unless the framework prompt rules pin the setting, spread the batch across DIFFERENT topic categories — ${TOPIC_CATEGORIES.join(", ")} — rather than clustering in workplace scenarios. Refreshing changes the topic, never the objective.
+UNIVERSALLY ANSWERABLE (hard rule): ANY adult must be able to answer truthfully from their own real life or common knowledge, in the response window, with no preparation. NEVER presume a specific possession, hobby, biographical event, job artifact, or relationship — no "your band", "your pet", "your garden", "the wedding you attended", "your first promotion", "your company's near-death story". Anchor prompts in experiences everyone has (a plan that fell apart, a decision you agonized over, a skill that took years, a disagreement that built up, something you know well) or in hypotheticals where the prompt itself supplies the position ("Make the case that…"). If a scenario would make even one user think "but that never happened to me", it is invalid.
+
+Also (PRD Lab Engine rules): one main communication challenge per prompt — do not stack constraints; reward truthful, specific, grounded answers over polished-but-empty performance; the prompt must be answerable AGAIN immediately after coaching (no surprise, trivia, or one-time cleverness).
+
+TOPIC SPREAD (PRD §5.6): unless the framework prompt rules pin the setting, spread the batch across DIFFERENT topic categories — ${TOPIC_CATEGORIES.join(", ")} — rather than clustering in workplace scenarios. Spread across professional, academic, leadership, social, and personal contexts. Refreshing changes the topic, never the objective.
 
 Match the register of the exercise's existing prompts when examples are given. Do NOT reuse or lightly paraphrase the examples — produce genuinely fresh topics.
 
@@ -151,7 +160,16 @@ export function buildGenUserPrompt(input: {
     ex.objective ? `COMMUNICATION OBJECTIVE: ${ex.objective}` : null,
     ex.promptRules ? `FRAMEWORK PROMPT RULES (follow exactly): ${ex.promptRules}` : null,
     ex.hiddenSkills?.length
-      ? `HIDDEN SKILLS TRAINED: ${ex.hiddenSkills.join(", ")}`
+      ? `HIDDEN SKILLS TRAINED (target these behaviors):\n${ex.hiddenSkills
+          .map((id) => {
+            // Catalog rows on an unreseeded DB may carry pre-v2 ids —
+            // canonicalize so they still render label + definition.
+            const skillId = canonicalizeSubSkillId(id);
+            return skillId
+              ? `- ${SUB_SKILL_LABELS[skillId]} — ${SUB_SKILL_DEFINITIONS[skillId]}`
+              : `- ${id.replace(/_/g, " ")}`;
+          })
+          .join("\n")}`
       : null,
     ex.responseWindow
       ? `RESPONSE WINDOW: ${ex.responseWindow.minSec}-${ex.responseWindow.maxSec} seconds — prompts must be answerable in that window.`

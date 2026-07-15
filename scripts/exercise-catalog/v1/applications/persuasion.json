@@ -4,18 +4,30 @@
     {
       "dimension": "structure",
       "application": "persuasion",
-      "application_skills": ["framing_recommendation", "clear_ask"],
+      "application_skills": [
+        "framing_recommendation",
+        "clear_ask"
+      ],
       "name": "Decision on the Table",
       "rule": "Recommendation in sentence one. Reasons second. Ask last.",
       "why": "A recommendation lands when the listener never has to assemble it themselves — they hear the decision, the reasons they need, and exactly what to do next.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train making a clear recommendation by leading with the desired decision, supporting it with reasons that matter to the audience, and ending with one specific next step.",
-      "hidden_skills": ["bottom_line_discipline", "argument_hierarchy"],
+      "hidden_skills": [
+        "decision_framing",
+        "bottom_line_discipline",
+        "argument_hierarchy"
+      ],
       "scoring_lens": "The evaluator should primarily look for whether the listener knows exactly what is being recommended, why it serves their stated priorities, and what specific action is being asked of them. Strong execution sounds direct, practical, and audience-aware; weak execution builds up slowly, gives speaker-centric reasons, or ends with a vague suggestion.",
       "coach_insight": "The best reps hand over a decision, not a topic — the listener could repeat your recommendation after one sentence. The trap is warming up with context first; every sentence before the recommendation makes them assemble it.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Opens with background or context instead of the recommendation itself",
         "Gives reasons that matter to the speaker rather than the audience's stated priority",
@@ -25,39 +37,145 @@
       "scoring_emphasis": "Weight the first sentence and the last: whether the recommendation literally opens the response, and whether the closing ask names one concrete, grantable action rather than a general direction.",
       "retry_objective": "On the second attempt, state the recommendation in the first sentence and make the final ask more specific.",
       "prompt_rules": "Every prompt names a specific audience, states explicitly what that audience cares about, and asks for a recommendation toward one concrete decision. Each prompt must leave room to choose audience-relevant reasons; the decision-first structure is the exercise rule and never appears in the prompt text. Vary contexts across work, community, and personal life. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Your manager cares about team focus. Recommend replacing the weekly status meeting with a written update, and make the case in terms of hours reclaimed.", "difficulty": "intro", "tags": ["business", "ops"] },
-        { "text": "A busy department head cares about hitting deadlines. Recommend pushing a feature to the next release so the current one ships on time.", "difficulty": "intro", "tags": ["product", "tech"] },
-        { "text": "Your roommate cares about saving money. Recommend a shared grocery plan and name the first step to start this week.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A finance director cares about predictable costs. Recommend switching a key vendor to an annual contract, and end with the approval you need.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Your team lead cares about onboarding speed. Recommend pairing every new hire with a buddy for two weeks, and ask for a pilot.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "A clinic office manager cares about shorter wait times. Recommend moving appointment reminders to text messages, and ask for a one-month trial.", "difficulty": "core", "tags": ["healthcare", "ops"] },
-        { "text": "A school committee cares about student participation. Recommend moving the science fair to a weekend, and close with the vote you want.", "difficulty": "core", "tags": ["education", "community"] },
-        { "text": "Your CEO cares about retention. Recommend a quarterly stay-interview program and name exactly what you need to launch it.", "difficulty": "core", "tags": ["leadership", "people"] },
-        { "text": "A nonprofit board cares about donor trust. Recommend publishing a simple annual impact report, and ask for a decision today.", "difficulty": "core", "tags": ["community", "leadership"] },
-        { "text": "A skeptical friend cares about their weekends. Recommend they automate one recurring chore, and tell them the first step to take tonight.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "A restaurant owner cares about repeat customers. Recommend a simple loyalty punch card over a discount app, and ask them to commit to a trial month.", "difficulty": "core", "tags": ["business", "sales"] },
-        { "text": "An ops director cares about audit risk. Recommend consolidating three tracking spreadsheets into one system, and end with a dated ask.", "difficulty": "stretch", "tags": ["ops", "business"] },
-        { "text": "The exec team cares about runway. Recommend cutting one underperforming project now, and be explicit about the decision you want in the room.", "difficulty": "stretch", "tags": ["business", "leadership"] }
+        {
+          "text": "Your manager cares about team focus. Recommend replacing the weekly status meeting with a written update, and make the case in terms of hours reclaimed.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "ops"
+          ]
+        },
+        {
+          "text": "A busy department head cares about hitting deadlines. Recommend pushing a feature to the next release so the current one ships on time.",
+          "difficulty": "intro",
+          "tags": [
+            "product",
+            "tech"
+          ]
+        },
+        {
+          "text": "A friend cares about saving money. Recommend planning the week's meals before grocery shopping, and name the first step to start this week.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "A finance director cares about predictable costs. Recommend switching a key vendor to an annual contract, and end with the approval you need.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Your team lead cares about onboarding speed. Recommend pairing every new hire with a buddy for two weeks, and ask for a pilot.",
+          "difficulty": "core",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A clinic office manager cares about shorter wait times. Recommend moving appointment reminders to text messages, and ask for a one-month trial.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "ops"
+          ]
+        },
+        {
+          "text": "A school committee cares about student participation. Recommend moving the science fair to a weekend, and close with the vote you want.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "community"
+          ]
+        },
+        {
+          "text": "A CEO cares about retention. Recommend a quarterly stay-interview program and name exactly what you'd need to launch it.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "people"
+          ]
+        },
+        {
+          "text": "A nonprofit board cares about donor trust. Recommend publishing a simple annual impact report, and ask for a decision today.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A skeptical friend cares about their weekends. Recommend they automate one recurring chore, and tell them the first step to take tonight.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "A restaurant owner cares about repeat customers. Recommend a simple loyalty punch card over a discount app, and ask them to commit to a trial month.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "sales"
+          ]
+        },
+        {
+          "text": "An ops director cares about audit risk. Recommend consolidating three tracking spreadsheets into one system, and end with a dated ask.",
+          "difficulty": "stretch",
+          "tags": [
+            "ops",
+            "business"
+          ]
+        },
+        {
+          "text": "An exec team cares about conserving cash. Recommend cutting one underperforming project now, and be explicit about the decision you want from them.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "persuasion",
-      "application_skills": ["handling_objections", "building_credibility"],
+      "application_skills": [
+        "handling_objections",
+        "building_credibility"
+      ],
       "name": "Meet the Pushback",
       "rule": "Name the objection fairly before you answer it.",
       "why": "Credibility is built the moment you state the other side's concern better than they did — dodging it costs you the whole argument.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train handling a live objection by restating it honestly, conceding what is true in it, and then answering it with reasons the objector actually weighs.",
-      "hidden_skills": ["counterargument_awareness", "intellectual_honesty"],
+      "hidden_skills": [
+        "counterargument_awareness",
+        "steel_manning",
+        "nondefensiveness"
+      ],
       "scoring_lens": "The evaluator should primarily look for whether the objection is restated fairly and answered on its merits. Strong execution concedes real tradeoffs before rebutting and keeps the proposal alive; weak execution strawmans the concern, dismisses it, or gets defensive.",
       "coach_insight": "State their concern so well they'd say 'exactly' — then concede the part of it that's true before you answer. The trap is rushing past the restatement to your rebuttal; a fast defense reads as not having listened at all.",
-      "secondary_core_skills": ["tone", "structure"],
+      "secondary_core_skills": [
+        "tone",
+        "structure"
+      ],
       "common_failure_modes": [
         "Restates the objection in a weakened or distorted form the objector would not accept",
         "Jumps straight to rebuttal without conceding anything true in the concern",
@@ -67,39 +185,142 @@
       "scoring_emphasis": "Weight the concession move: whether the response names the true part of the objection out loud before rebutting, and whether the answer engages that specific concern rather than mounting a general defense of the proposal.",
       "retry_objective": "On the second attempt, open by restating the objection in one sentence the objector would accept as fair, then answer it.",
       "prompt_rules": "Every prompt names the objector, states the specific objection they raised, and makes explicit what that person cares about. The desired outcome is always to keep the proposal or request alive, not to win the exchange. Objections must contain a kernel of truth so honest concession is possible. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Your manager objects that a new tool costs too much. They care about budget discipline. Answer the cost concern honestly and keep your proposal alive.", "difficulty": "intro", "tags": ["business", "ops"] },
-        { "text": "A teammate objects that your timeline is unrealistic. They care about quality. Acknowledge what's right in their concern, then defend a workable schedule.", "difficulty": "intro", "tags": ["product", "tech"] },
-        { "text": "A client worries switching plans means downtime. They care about uptime. Address the risk directly and keep the upgrade on the table.", "difficulty": "core", "tags": ["sales", "tech"] },
-        { "text": "Your parents object that a career change is risky. They care about your stability. Take the risk seriously and make your case anyway.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A landlord objects that a pet will damage the unit. They care about repair costs. Concede the real risk and propose terms that protect them.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "An engineer objects that your feature adds tech debt. They care about maintainability. Grant the tradeoff and argue why it is worth it now.", "difficulty": "core", "tags": ["tech", "product"] },
-        { "text": "A donor hesitates because overhead looks high. They care about impact per dollar. Explain what overhead buys without dodging the number.", "difficulty": "core", "tags": ["community", "finance"] },
-        { "text": "Your co-founder objects that hiring now is premature. They care about runway. Steelman their view, then argue for the one role that pays for itself.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "A neighbor objects that a community garden will attract noise. They care about quiet streets. Validate the worry and offer a concrete safeguard.", "difficulty": "core", "tags": ["community"] },
-        { "text": "A buyer objects that your quote is 20% above a rival's. They care about total cost. Address the gap head-on without trashing the competitor.", "difficulty": "stretch", "tags": ["sales", "business"] },
-        { "text": "The board objects that your market is too small. They care about growth. Accept the premise where it's true and show the expansion path.", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "A teacher objects that phones in class only distract. They care about attention. Concede the risk, then argue for one structured use.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Your gym buddy objects that morning workouts never stick. They care about consistency. Own the failure rate and pitch a schedule that survives it.", "difficulty": "core", "tags": ["personal"] }
+        {
+          "text": "Your manager objects that a new tool costs too much. They care about budget discipline. Answer the cost concern honestly and keep your proposal alive.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "ops"
+          ]
+        },
+        {
+          "text": "A teammate objects that your timeline is unrealistic. They care about quality. Acknowledge what's right in their concern, then defend a workable schedule.",
+          "difficulty": "intro",
+          "tags": [
+            "product",
+            "tech"
+          ]
+        },
+        {
+          "text": "An older relative won't switch to a cheaper phone plan, fearing days without service. They care about staying reachable. Address the risk directly and keep the switch on the table.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "tech"
+          ]
+        },
+        {
+          "text": "Your parents object that a career change is risky. They care about your stability. Take the risk seriously and make your case anyway.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "At a neighborhood meeting, a homeowner insists renting to pet owners always ends in damage. They care about repair costs. Concede the real risk and argue that clear terms can protect them.",
+          "difficulty": "core",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "A colleague objects that your quick fix will create bigger cleanup work later. They care about doing things properly. Grant the tradeoff and argue why speed matters more right now.",
+          "difficulty": "core",
+          "tags": [
+            "ops",
+            "business"
+          ]
+        },
+        {
+          "text": "A donor hesitates because overhead looks high. They care about impact per dollar. Explain what overhead buys without dodging the number.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "finance"
+          ]
+        },
+        {
+          "text": "A friend launching a small business insists hiring anyone now is premature. They care about not running out of cash. Steelman their view, then argue for the one hire that pays for itself.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A neighbor objects that a community garden will attract noise. They care about quiet streets. Validate the worry and offer a concrete safeguard.",
+          "difficulty": "core",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "A committee member objects that the venue you proposed costs 20% more than a rival option. They care about total cost. Address the gap head-on without trashing the cheaper venue.",
+          "difficulty": "stretch",
+          "tags": [
+            "community",
+            "business"
+          ]
+        },
+        {
+          "text": "A skeptical coworker dismisses a business idea you find promising as too niche. They care about growth. Accept the premise where it's true and show the expansion path.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "A teacher objects that phones in class only distract. They care about attention. Concede the risk, then argue for one structured use.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Your gym buddy objects that morning workouts never stick. They care about consistency. Own the failure rate and pitch a schedule that survives it.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "persuasion",
-      "application_skills": ["audience_priorities", "handling_objections"],
+      "application_skills": [
+        "audience_priorities",
+        "handling_objections"
+      ],
       "name": "Start From Their Side",
       "rule": "Open with their view, stated so they'd nod.",
       "why": "Nobody changes their mind while defending it — start where the listener already stands and they lower the drawbridge for you.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train changing someone's mind by opening from their current belief and priorities, then walking them step by step toward a different conclusion using reasons anchored in what they already value.",
-      "hidden_skills": ["perspective_taking", "claim_support"],
+      "hidden_skills": [
+        "perspective_taking",
+        "steel_manning",
+        "reasoning_chain_logic"
+      ],
       "scoring_lens": "The evaluator should primarily look for whether the response opens from the listener's actual belief and priorities before arguing, and whether each step toward the new conclusion is anchored in what the listener values. Strong execution feels like a guided walk; weak execution opens with the speaker's position or lectures past the listener.",
       "coach_insight": "Your first sentences should sound like you're on their side of the table — their belief, in their words, tied to what they value. The trap is pivoting too early; a 'but' in sentence two undoes everything the opening earned.",
-      "secondary_core_skills": ["structure", "tone"],
+      "secondary_core_skills": [
+        "structure",
+        "tone"
+      ],
       "common_failure_modes": [
         "Opens with the speaker's own position instead of the listener's belief",
         "States the listener's view as a caricature they would never nod along to",
@@ -109,39 +330,144 @@
       "scoring_emphasis": "Weight the bridge: whether each step from the listener's current belief to the new conclusion is tied back to the priority they stated, so the shift reads as their own reasoning extended rather than replaced.",
       "retry_objective": "On the second attempt, spend the first two sentences on their view and their priority, and tie every reason back to it.",
       "prompt_rules": "Every prompt names the person, states the belief they currently hold, makes explicit what they care about, and names the shift in view or action being sought. The listener's priority must be usable as the bridge to the new conclusion. Vary beliefs across work, family, and community life. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "A friend believes gap years waste momentum. They care about career progress. Change their mind by starting from what progress means to them.", "difficulty": "intro", "tags": ["personal", "education"] },
-        { "text": "Your manager believes remote work erodes mentorship. They care about junior growth. Begin from that concern, then move them toward a hybrid trial.", "difficulty": "core", "tags": ["leadership", "people"] },
-        { "text": "A colleague believes long documents beat short memos. They care about rigor. Start from their standard of rigor and shift them to tighter writing.", "difficulty": "core", "tags": ["business", "ops"] },
-        { "text": "Your uncle believes electric cars are impractical. He cares about reliability on long trips. Begin with his road-trip worry and move him to a test drive.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A student believes public speaking is pure talent. They care about their grade. Start where they are and convince them practice moves the needle.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "A customer believes annual plans are a trap. They care about flexibility. Open from the lock-in fear and move them toward the annual option.", "difficulty": "core", "tags": ["sales", "business"] },
-        { "text": "Your team believes retros are a waste of time. They care about shipping. Start from the shipping pressure and change their minds about keeping retros.", "difficulty": "core", "tags": ["tech", "ops"] },
-        { "text": "A parent believes video games are only harmful. They care about their kid's focus. Start with the focus concern and move them to limits instead of bans.", "difficulty": "core", "tags": ["personal", "education"] },
-        { "text": "A skeptic believes networking is fake. They care about authenticity. Begin from that value and shift them toward one genuine outreach a week.", "difficulty": "core", "tags": ["personal", "business"] },
-        { "text": "Your CFO believes brand spend is unmeasurable. They care about attribution. Start from the measurement gap and move them to a small tracked pilot.", "difficulty": "stretch", "tags": ["finance", "business"] },
-        { "text": "A neighbor believes composting is messy and smelly. They care about a tidy yard. Start there and move them toward a sealed-bin trial.", "difficulty": "intro", "tags": ["community"] },
-        { "text": "A senior dev believes code review slows delivery. They care about velocity. Open from velocity and change their mind about review depth.", "difficulty": "stretch", "tags": ["tech"] },
-        { "text": "A club president believes dues increases drive members away. They care about membership. Start with churn fear and move them to a modest raise with perks.", "difficulty": "stretch", "tags": ["community", "finance"] }
+        {
+          "text": "A friend believes gap years waste momentum. They care about career progress. Change their mind by starting from what progress means to them.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "education"
+          ]
+        },
+        {
+          "text": "Your manager believes remote work erodes mentorship. They care about junior growth. Begin from that concern, then move them toward a hybrid trial.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "people"
+          ]
+        },
+        {
+          "text": "A colleague believes long documents beat short memos. They care about rigor. Start from their standard of rigor and shift them to tighter writing.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "ops"
+          ]
+        },
+        {
+          "text": "Your uncle believes electric cars are impractical. He cares about reliability on long trips. Begin with his road-trip worry and move him to a test drive.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "A student believes public speaking is pure talent. They care about their grade. Start where they are and convince them practice moves the needle.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "A friend believes annual subscription plans are a trap. They care about flexibility. Open from the lock-in fear and move them toward the annual deal that actually saves money.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "finance"
+          ]
+        },
+        {
+          "text": "Your team believes end-of-project reviews are a waste of time. They care about getting things done. Start from that pressure and change their minds about keeping the reviews.",
+          "difficulty": "core",
+          "tags": [
+            "ops",
+            "business"
+          ]
+        },
+        {
+          "text": "A parent believes video games are only harmful. They care about their kid's focus. Start with the focus concern and move them to limits instead of bans.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "education"
+          ]
+        },
+        {
+          "text": "A skeptic believes networking is fake. They care about authenticity. Begin from that value and shift them toward one genuine outreach a week.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "business"
+          ]
+        },
+        {
+          "text": "A numbers-minded coworker believes advertising is wasted money because results can't be measured. They care about proof. Start from the measurement gap and move them to a small tracked test.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "A neighbor believes composting is messy and smelly. They care about a tidy yard. Start there and move them toward a sealed-bin trial.",
+          "difficulty": "intro",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "A veteran tradesperson believes having someone double-check finished work just slows the job. They care about speed. Open from speed and change their mind about keeping the check.",
+          "difficulty": "stretch",
+          "tags": [
+            "ops"
+          ]
+        },
+        {
+          "text": "A club president believes dues increases drive members away. They care about membership. Start with churn fear and move them to a modest raise with perks.",
+          "difficulty": "stretch",
+          "tags": [
+            "community",
+            "finance"
+          ]
+        }
       ]
     },
     {
       "dimension": "tone",
       "application": "persuasion",
-      "application_skills": ["calibrated_urgency", "audience_priorities"],
+      "application_skills": [
+        "calibrated_urgency",
+        "audience_priorities"
+      ],
       "name": "The Honest Sell",
       "rule": "Sell with warmth and conviction. Never oversell.",
       "why": "Enthusiasm persuades only when it sounds true — the moment your voice inflates past the facts, the listener discounts everything.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train selling an idea with genuine warmth and conviction, letting urgency come from real stakes and timing rather than exaggeration, while staying honest about costs and tradeoffs.",
-      "hidden_skills": ["emotional_authenticity", "warmth", "vocal_presence"],
+      "hidden_skills": [
+        "emotional_authenticity",
+        "credibility_through_restraint",
+        "enthusiasm",
+        "warmth"
+      ],
       "scoring_lens": "The evaluator should primarily look for whether enthusiasm sounds genuine and proportionate to the facts. Strong execution is warm, present, and candid about downsides while still selling; weak execution is either flat and dutiful or inflated with superlatives the content cannot support.",
       "coach_insight": "Let the facts set your energy ceiling — conviction persuades when it matches what the idea can actually deliver. The trap is superlatives: one claim the content can't support and the listener discounts everything, even the true parts.",
-      "secondary_core_skills": ["thinking_quality", "pacing"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Inflates with superlatives ('game-changing', 'incredible') the facts don't back",
         "Sells flat and dutiful — lists the idea's features with no audible warmth or energy",
@@ -151,38 +477,134 @@
       "scoring_emphasis": "Weight the proportion between energy and evidence: whether the stated cost is named plainly rather than minimized, and whether any urgency traces to genuine timing or stakes instead of pressure language.",
       "retry_objective": "On the second attempt, keep the energy but name one real cost out loud — let honesty carry the conviction.",
       "prompt_rules": "Every prompt names the audience, makes explicit what they care about or protect, and names the idea to sell. Each prompt must include a real cost or tradeoff the user is expected to stay honest about, so calibrated enthusiasm is trainable. Vary settings across work, social, and community life. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Sell your team on a Friday demo ritual. They care about protected maker time. Sound genuinely excited without minimizing the cost.", "difficulty": "intro", "tags": ["tech", "ops"] },
-        { "text": "Sell your manager on a lunch-and-learn series. They care about team skills. Let real enthusiasm carry it, not superlatives.", "difficulty": "intro", "tags": ["people", "leadership"] },
-        { "text": "Sell a friend on joining your morning run club. They care about sleep. Make it warm and honest about the 6 a.m. part.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Sell the office on adopting a shared playlist. People care about focus. Be enthusiastic and upfront about headphone hours.", "difficulty": "intro", "tags": ["ops", "people"] },
-        { "text": "Sell your partner on a camping trip. They care about comfort. Convey genuine excitement while being straight about the tradeoffs.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "Sell a local café owner on hosting a community board-game night. They care about weeknight revenue. Sound warm, urgent, and factual.", "difficulty": "core", "tags": ["community", "business"] },
-        { "text": "Sell your class on choosing the harder project option. They care about grades. Bring conviction without dismissing the risk.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Sell leadership on an internal hack week. They care about the roadmap. Let urgency come from timing, not exaggeration.", "difficulty": "stretch", "tags": ["tech", "leadership"] },
-        { "text": "Sell your neighbors on a street cleanup day. They care about their Saturday. Be warm and specific about what one hour buys.", "difficulty": "core", "tags": ["community"] },
-        { "text": "Sell a colleague on presenting at the next all-hands. They care about looking polished. Be encouraging and honest about the prep.", "difficulty": "core", "tags": ["people"] },
-        { "text": "Sell your book club on a genre they always skip. They care about their limited reading time. Enthuse without overpromising.", "difficulty": "core", "tags": ["personal", "creative"] },
-        { "text": "Sell the exec team on sponsoring one apprenticeship. They care about hiring cost. Make the urgency real and the numbers honest.", "difficulty": "stretch", "tags": ["business", "people"] }
+        {
+          "text": "Sell your team on ending each week with short demos of finished work. They care about protected focus time. Sound genuinely excited without minimizing the cost.",
+          "difficulty": "intro",
+          "tags": [
+            "ops",
+            "people"
+          ]
+        },
+        {
+          "text": "Sell your manager on a lunch-and-learn series. They care about team skills. Let real enthusiasm carry it, not superlatives.",
+          "difficulty": "intro",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Sell a friend on joining a morning run club with you. They care about sleep. Make it warm and honest about the 6 a.m. part.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Sell the office on adopting a shared playlist. People care about focus. Be enthusiastic and upfront about headphone hours.",
+          "difficulty": "intro",
+          "tags": [
+            "ops",
+            "people"
+          ]
+        },
+        {
+          "text": "Sell a reluctant family member on a weekend camping trip. They care about comfort. Convey genuine excitement while being straight about the tradeoffs.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Sell a local café owner on hosting a community board-game night. They care about weeknight revenue. Sound warm, urgent, and factual.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "business"
+          ]
+        },
+        {
+          "text": "Sell classmates in a course you're taking on picking the harder project option. They care about their grades. Bring conviction without dismissing the risk.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Sell leadership on giving the team one free week a year to chase its own ideas. They care about the planned schedule. Let urgency come from timing, not exaggeration.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Sell your neighbors on a street cleanup day. They care about their Saturday. Be warm and specific about what one hour buys.",
+          "difficulty": "core",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "Sell a colleague on presenting at the next all-hands. They care about looking polished. Be encouraging and honest about the prep.",
+          "difficulty": "core",
+          "tags": [
+            "people"
+          ]
+        },
+        {
+          "text": "Sell a book club on a genre it always skips. Members care about their limited reading time. Enthuse without overpromising.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Sell a business owner on sponsoring one apprenticeship. They care about hiring costs. Make the urgency real and the numbers honest.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "people"
+          ]
+        }
       ]
     },
     {
       "dimension": "conciseness",
       "application": "persuasion",
-      "application_skills": ["clear_ask", "calibrated_urgency"],
+      "application_skills": [
+        "clear_ask",
+        "calibrated_urgency"
+      ],
       "name": "The Unflinching Ask",
       "rule": "One direct ask. No hedging, no padding.",
       "why": "Most asks die in the softeners around them — a request stated once, plainly, is easier to grant than one buried in apology.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train asking for buy-in with one direct, specific request — scoped tightly, stated without hedging or apologetic wind-up, and followed by silence rather than backpedaling.",
-      "hidden_skills": ["hedging_awareness", "response_scoping"],
+      "hidden_skills": [
+        "hedging_control",
+        "directness",
+        "end_discipline"
+      ],
       "scoring_lens": "The evaluator should primarily look for whether the ask is specific, stated exactly once, and free of hedges, softeners, and padding. Strong execution earns the ask briefly and then makes it cleanly; weak execution buries the request in apology, restates it in weaker forms, or trails off after asking.",
       "coach_insight": "Earn the ask in a sentence or two, make it once, and let silence do the closing. The trap is talking past the ask — every softener or restatement after it hands the other person a smaller version of your request to grant.",
-      "secondary_core_skills": ["clarity", "tone"],
+      "secondary_core_skills": [
+        "clarity",
+        "tone"
+      ],
       "common_failure_modes": [
         "Wraps the ask in hedges and softeners ('just', 'maybe', 'if it's not too much trouble')",
         "Spends a long apologetic wind-up before the request finally lands",
@@ -192,39 +614,146 @@
       "scoring_emphasis": "Weight what happens after the ask: whether the response ends within a breath of the request or keeps talking, and whether the ask itself carries the concrete number, time, or commitment the situation calls for.",
       "retry_objective": "On the second attempt, cut every hedge and softener, state the ask in one sentence, and end there.",
       "prompt_rules": "Every prompt names the person being asked, makes explicit what they care about or protect, and specifies the exact commitment being requested. The ask must be concrete enough to grant or refuse on the spot. Vary the social cost of asking across prompts. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["time", "none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "time",
+        "none"
+      ],
       "prompts": [
-        { "text": "Ask your manager, who cares about coverage, to approve two weeks of leave in the busy season. End on the ask, without hedging.", "difficulty": "core", "tags": ["people", "personal"] },
-        { "text": "Ask a senior engineer, who guards their calendar, to mentor you for 30 minutes a week. Make the ask once and make it plain.", "difficulty": "intro", "tags": ["tech", "people"] },
-        { "text": "Ask your team, tired of process changes, to commit to one week of daily standups. State the ask cleanly and stop.", "difficulty": "intro", "tags": ["ops", "leadership"] },
-        { "text": "Ask a professor who values initiative to sponsor your independent study. One clear ask, no apologetic wind-up.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Ask a customer who values candor for a referral to one peer company. Keep the ask direct and unpadded.", "difficulty": "core", "tags": ["sales", "business"] },
-        { "text": "Ask your director, who cares about visibility, to let you present the results to leadership yourself. Ask plainly, then stop talking.", "difficulty": "core", "tags": ["leadership", "people"] },
-        { "text": "Ask a friend who hates flaking to commit to a weekly gym slot. Direct ask, no softeners.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Ask your landlord, who cares about long-term tenants, to hold the rent flat for a year at renewal. One ask, stated once.", "difficulty": "core", "tags": ["personal", "finance"] },
-        { "text": "Ask the finance lead, who cares about clean books, for a $2,000 budget line for team training. Name the number without flinching.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Ask a conference organizer who values fresh voices to give you a lightning-talk slot. Make it one crisp ask.", "difficulty": "core", "tags": ["community", "creative"] },
-        { "text": "Ask your co-founder, who cares about focus, to drop one of your shared side projects. Direct ask, no cushioning.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Ask a busy VP who values preparation for 15 minutes to pressure-test your proposal before Friday. One ask, one time.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Ask your neighbor, who prizes quiet, to okay a one-evening backyard gathering. Ask straight, without over-apologizing.", "difficulty": "core", "tags": ["community", "personal"] }
+        {
+          "text": "Ask your manager, who cares about coverage, to approve two weeks of leave in the busy season. End on the ask, without hedging.",
+          "difficulty": "core",
+          "tags": [
+            "people",
+            "personal"
+          ]
+        },
+        {
+          "text": "Ask an experienced colleague, who guards their calendar, to mentor you for 30 minutes a week. Make the ask once and make it plain.",
+          "difficulty": "intro",
+          "tags": [
+            "people",
+            "business"
+          ]
+        },
+        {
+          "text": "Ask your team, tired of process changes, to commit to one week of brief daily check-ins. State the ask cleanly and stop.",
+          "difficulty": "intro",
+          "tags": [
+            "ops",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Ask an instructor who values initiative to sponsor an independent project you want to take on. One clear ask, no apologetic wind-up.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Ask a well-connected acquaintance who values candor to introduce you to one person in their network. Keep the ask direct and unpadded.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "people"
+          ]
+        },
+        {
+          "text": "Ask your director, who cares about visibility, to let you present the results to leadership yourself. Ask plainly, then stop talking.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "people"
+          ]
+        },
+        {
+          "text": "Ask a friend who hates flaking to commit to a weekly gym slot. Direct ask, no softeners.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Ask a service provider you've used for years, who values loyal customers, to hold their price flat for another year. One ask, stated once.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "finance"
+          ]
+        },
+        {
+          "text": "Ask the finance lead, who cares about clean books, for a $2,000 budget line for team training. Name the number without flinching.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Ask a conference organizer who values fresh voices to give you a lightning-talk slot. Make it one crisp ask.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "creative"
+          ]
+        },
+        {
+          "text": "Ask a longtime collaborator, who cares about focus, to shelve one of the projects you share. Direct ask, no cushioning.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Ask a busy VP who values preparation for 15 minutes to pressure-test your proposal before Friday. One ask, one time.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Ask your neighbor, who prizes quiet, to okay a one-evening backyard gathering. Ask straight, without over-apologizing.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "personal"
+          ]
+        }
       ]
     },
     {
       "dimension": "structure",
       "application": "persuasion",
-      "application_skills": ["building_credibility", "framing_recommendation"],
+      "application_skills": [
+        "building_credibility",
+        "framing_recommendation"
+      ],
       "name": "Build the Case",
       "rule": "Claim, then evidence in descending order of strength.",
       "why": "A case persuades when the listener can feel the reasons were ranked, not dumped — your strongest proof earns attention for the rest.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train making the case for a position by stating the claim, then delivering deliberately ordered evidence — strongest first, each reason chosen for the audience — so the argument feels built rather than assembled on the fly.",
-      "hidden_skills": ["argument_hierarchy", "coherence"],
+      "hidden_skills": [
+        "argument_hierarchy",
+        "pyramid_thinking",
+        "evidence_relevance"
+      ],
       "scoring_lens": "The evaluator should primarily look for a clear claim followed by evidence in a deliberate, descending order of strength, with each reason tied to the audience's stated priority. Strong execution feels ranked and cumulative; weak execution lists reasons in the order they came to mind or leads with the weakest point.",
       "coach_insight": "A ranked case sounds built; a dumped one sounds like brainstorming out loud. Lead with the one reason this audience can't dismiss and let each reason after it carry less weight. The trap: saving your best for last — listeners decide early.",
-      "secondary_core_skills": ["thinking_quality", "clarity"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Delivers reasons in the order they came to mind, with no audible ranking",
         "Leads with a weak or generic reason and buries the strongest one late",
@@ -234,39 +763,145 @@
       "scoring_emphasis": "Weight the ordering decision itself: whether the first reason offered is genuinely the strongest one for this audience's stated priority, and whether the sequence descends deliberately rather than wandering.",
       "retry_objective": "On the second attempt, re-rank the evidence so the single strongest reason comes first and cut the weakest one entirely.",
       "prompt_rules": "Every prompt names the audience, makes explicit what they care about, and names the position to argue for. Positions must admit multiple plausible reasons so ranking is a real choice, and the audience priority must make some evidence clearly stronger than others. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 90, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 90,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Make the case to your VP, who cares about churn, that support response time is the metric to fix this quarter. Lead with your strongest evidence.", "difficulty": "core", "tags": ["business", "product"] },
-        { "text": "Make the case to the city council, which cares about safety, for a protected bike lane on one street. Order your reasons by weight.", "difficulty": "stretch", "tags": ["community"] },
-        { "text": "Make the case to your manager, who cares about quality, that the team needs a real staging environment. Strongest proof first.", "difficulty": "core", "tags": ["tech", "ops"] },
-        { "text": "Make the case to a hiring panel that values fairness for structured interviews over gut feel. Rank your evidence.", "difficulty": "core", "tags": ["people", "leadership"] },
-        { "text": "Make the case to your family, which cares about togetherness, for one screen-free dinner a week. Put your best reason first.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Make the case to the PTA, which cares about learning outcomes, for later school start times. Lead with the evidence they can't ignore.", "difficulty": "core", "tags": ["education", "community"] },
-        { "text": "Make the case to a small-business owner who cares about cash flow for invoicing weekly instead of monthly. Sequence reasons by impact.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Make the case to your team, which cares about credit, for public shout-outs in sprint reviews. Strongest reason up front.", "difficulty": "intro", "tags": ["people", "ops"] },
-        { "text": "Make the case to an events committee that cares about turnout for moving the annual gala online. Order the evidence deliberately.", "difficulty": "core", "tags": ["community", "ops"] },
-        { "text": "Make the case to your product lead, who cares about activation, that onboarding needs one fewer step. Best data point first.", "difficulty": "core", "tags": ["product", "tech"] },
-        { "text": "Make the case to a budget-minded IT director for paying down one security gap before adding features. Rank your reasons.", "difficulty": "stretch", "tags": ["tech", "finance"] },
-        { "text": "Make the case to a results-driven sales chief that ride-alongs beat call scripts for training. Lead with what moves them.", "difficulty": "core", "tags": ["sales", "people"] },
-        { "text": "Make the case to your mentor, who values honesty, that you should turn down a promotion this cycle. Strongest reason first.", "difficulty": "stretch", "tags": ["personal", "leadership"] }
+        {
+          "text": "Make the case to a department head who cares about losing customers that complaint response time is the metric to fix this quarter. Lead with your strongest evidence.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "ops"
+          ]
+        },
+        {
+          "text": "Make the case to the city council, which cares about safety, for a protected bike lane on one street. Order your reasons by weight.",
+          "difficulty": "stretch",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "Make the case to your manager, who cares about quality, that the team needs a way to test changes before customers see them. Strongest proof first.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "ops"
+          ]
+        },
+        {
+          "text": "Make the case to a hiring panel that values fairness for structured interviews over gut feel. Rank your evidence.",
+          "difficulty": "core",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make the case to your family, which cares about togetherness, for one screen-free dinner a week. Put your best reason first.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Make the case to the PTA, which cares about learning outcomes, for later school start times. Lead with the evidence they can't ignore.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "community"
+          ]
+        },
+        {
+          "text": "Make the case to a small-business owner who cares about cash flow for invoicing weekly instead of monthly. Sequence reasons by impact.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Make the case to your team, which cares about credit, for public shout-outs in the weekly team meeting. Strongest reason up front.",
+          "difficulty": "intro",
+          "tags": [
+            "people",
+            "ops"
+          ]
+        },
+        {
+          "text": "Make the case to an events committee that cares about turnout for moving the annual gala online. Order the evidence deliberately.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "ops"
+          ]
+        },
+        {
+          "text": "Make the case to an app's product team, which cares about new users giving up, that sign-up needs one fewer step. Best data point first.",
+          "difficulty": "core",
+          "tags": [
+            "product",
+            "tech"
+          ]
+        },
+        {
+          "text": "Make the case to a budget-minded IT director for paying down one security gap before adding features. Rank your reasons.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "finance"
+          ]
+        },
+        {
+          "text": "Make the case to a results-driven sales chief that ride-alongs beat call scripts for training. Lead with what moves them.",
+          "difficulty": "core",
+          "tags": [
+            "sales",
+            "people"
+          ]
+        },
+        {
+          "text": "Make the case to a trusted friend, who values honesty, that turning down a promotion can be the right career move. Strongest reason first.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "leadership"
+          ]
+        }
       ]
     },
     {
       "dimension": "conciseness",
       "application": "persuasion",
-      "application_skills": ["selective_evidence", "audience_priorities"],
+      "application_skills": [
+        "selective_evidence",
+        "audience_priorities"
+      ],
       "name": "Evidence on a Budget",
       "rule": "Make your case with your two strongest proofs. Cut the rest.",
       "why": "Two proofs chosen for this listener outpersuade ten dumped on them — every extra point hands the skeptic your weakest one to attack.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train persuading with deliberately selected evidence — picking the one or two proof points this audience finds most credible, making the case on those alone, and leaving the rest of the pile unspoken.",
-      "hidden_skills": ["response_scoping", "editing_in_real_time"],
+      "hidden_skills": [
+        "priority_selection",
+        "example_economy",
+        "evidence_relevance"
+      ],
       "scoring_lens": "The evaluator should primarily look for a case that rests on at most two proof points, each clearly chosen for what this audience finds credible, delivered without the rest of the available evidence. Constraint: piling on proof points beyond the two strongest, or choosing evidence the stated audience would not weigh, MUST drag the conciseness score.",
       "coach_insight": "Selection is the persuasion move: the proof you leave out tells the listener you know what they trust. The trap is the 'one more thing' reflex — a third proof point adds no weight, it just hands the skeptic your weakest target.",
-      "secondary_core_skills": ["thinking_quality", "structure"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "structure"
+      ],
       "common_failure_modes": [
         "Piles on three or more proof points despite the surplus being a selection test",
         "Picks evidence the prompt says this audience doesn't trust (e.g., stories for a numbers person)",
@@ -276,38 +911,138 @@
       "scoring_emphasis": "Weight the match between the chosen proofs and the trust profile the prompt names — the right two proofs for this specific listener count for more than the general strength of anything left in the pile.",
       "retry_objective": "On the second attempt, keep only the single proof this audience trusts most, add one backup at most, and cut everything else.",
       "prompt_rules": "Every prompt names the audience, states what kind of evidence that audience trusts, and supplies a surplus of available proof points — always more than should be used — so selection is a real choice. The two-proof limit is the exercise rule and never appears in the prompt text. Vary contexts across work, community, and personal life. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Convince your budget-minded roommate to split a streaming bundle. You could cite price math, shows they love, cancel-anytime terms, and what friends pay. They trust numbers.", "difficulty": "intro", "tags": ["personal", "finance"] },
-        { "text": "Persuade a friend to try a personal trainer. You have transformation stories, injury stats, price-per-session math, and your own results. They trust stories from people like them.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Pitch your book club on a nonfiction pick. You could cite reviews, awards, the author's talks, and a member's rave. The club trusts firsthand takes from its own people.", "difficulty": "intro", "tags": ["personal", "creative"] },
-        { "text": "Convince a neighbor to join the block's solar group buy. You have payback math, tax credits, three vendor quotes, and two houses already signed up. They trust what neighbors did.", "difficulty": "intro", "tags": ["community"] },
-        { "text": "Persuade your CFO to renew the analytics tool. You have usage dashboards, three team testimonials, a competitor comparison, and cost-per-seat math. She trusts hard numbers.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Pitch a skeptical client on a site redesign. You have conversion data, heatmaps, design awards, user quotes, and competitor screenshots. This client trusts their own customers' words.", "difficulty": "core", "tags": ["sales", "product"] },
-        { "text": "Convince your engineering director to fund test automation. You have bug-escape counts, on-call hours, exit-interview notes, and an industry report. He trusts internal data.", "difficulty": "core", "tags": ["tech", "ops"] },
-        { "text": "Persuade the school board to keep the arts budget. You have attendance figures, an admissions study, parent letters, and a student showcase video. The board trusts local outcomes.", "difficulty": "core", "tags": ["education", "community"] },
-        { "text": "Pitch a boutique owner on stocking your product line. You have margin math, sell-through rates at similar shops, press clippings, and material certifications. She trusts what sold nearby.", "difficulty": "core", "tags": ["sales", "business"] },
-        { "text": "Persuade a hospital committee to pilot your scheduling software. You have trial results, uptime stats, peer-hospital references, security audits, and pricing tiers. They trust peers.", "difficulty": "stretch", "tags": ["healthcare", "tech"] },
-        { "text": "Convince the exec team to enter a new market. You have market sizing, discovery calls, a rival's earnings note, churn projections, and one signed pilot. They trust committed customers.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Make the case to a flooded-inbox investor for a second meeting. You have growth curves, a customer quote, press hits, retention cohorts, and advisor names. She trusts retention.", "difficulty": "stretch", "tags": ["business", "finance"] }
+        {
+          "text": "Convince a budget-minded sibling to split a streaming bundle. You could cite price math, shows they love, cancel-anytime terms, and what friends pay. They trust numbers.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "finance"
+          ]
+        },
+        {
+          "text": "Persuade a friend to try a personal trainer. You have transformation stories, injury stats, price-per-session math, and another friend's results. They trust stories from people like them.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Pitch a book club on a nonfiction pick. You could cite reviews, awards, the author's talks, and a member's rave. The club trusts firsthand takes from its own people.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Convince a neighbor to join the block's solar group buy. You have payback math, tax credits, three vendor quotes, and two houses already signed up. They trust what neighbors did.",
+          "difficulty": "intro",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "Persuade the finance lead to renew a tool your team relies on. You have usage dashboards, three team testimonials, a competitor comparison, and cost-per-seat math. She trusts hard numbers.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Pitch a small-business owner on refreshing their dated website. You have sales data, customer complaints, design awards, user quotes, and rival sites. The owner trusts their customers' words.",
+          "difficulty": "core",
+          "tags": [
+            "sales",
+            "business"
+          ]
+        },
+        {
+          "text": "Convince an operations director to fund fixing chronic errors before new work. You have error counts, overtime logs, exit-interview notes, and an industry report. He trusts internal data.",
+          "difficulty": "core",
+          "tags": [
+            "ops",
+            "business"
+          ]
+        },
+        {
+          "text": "Persuade the school board to keep the arts budget. You have attendance figures, an admissions study, parent letters, and a student showcase video. The board trusts local outcomes.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "community"
+          ]
+        },
+        {
+          "text": "Pitch a boutique owner on stocking a friend's handmade goods. You have margin math, sell-through rates at similar shops, press clippings, and material certifications. She trusts what sold nearby.",
+          "difficulty": "core",
+          "tags": [
+            "sales",
+            "business"
+          ]
+        },
+        {
+          "text": "Persuade a hospital committee to pilot a new scheduling system. You have trial results, uptime stats, peer-hospital references, security audits, and pricing tiers. They trust peers.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "tech"
+          ]
+        },
+        {
+          "text": "Convince a company's leaders to expand into a new city. You have market sizing, customer interviews, a rival's results, cost projections, and one committed buyer. They trust committed customers.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Persuade a busy grant officer to give a community project you back a second meeting. You have growth curves, a member's quote, press hits, retention numbers, and advisor names. She trusts retention.",
+          "difficulty": "stretch",
+          "tags": [
+            "community",
+            "finance"
+          ]
+        }
       ]
     },
     {
       "dimension": "tone",
       "application": "persuasion",
-      "application_skills": ["warmth_and_conviction", "handling_objections"],
+      "application_skills": [
+        "warmth_and_conviction",
+        "handling_objections"
+      ],
       "name": "Warm Steel",
       "rule": "Hold your position without hardening toward the person.",
       "why": "Persuasion's rarest register holds firm and warm at once — soften the position and you lose the point, cool toward the person and you lose them.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train holding a recommendation under pushback from someone who matters — keeping the position intact and stated with conviction while the care for the person stays audible, genuine, and specific to them.",
-      "hidden_skills": ["warmth", "emotional_authenticity", "downward_inflection"],
+      "hidden_skills": [
+        "warmth_authority_balance",
+        "assertiveness",
+        "emotional_control",
+        "nondefensiveness"
+      ],
       "scoring_lens": "The evaluator should primarily look for firmness and warmth held simultaneously: the recommendation survives the exchange stated with settled conviction, while care for the person stays audible and genuine rather than performed. Constraint: capitulating on the position, or going cold, clipped, or lecturing toward the person, MUST drag the tone score.",
       "coach_insight": "Decide before you speak that the answer isn't moving — then spend your words on the person, not on re-arguing the case. The trap is softening the position to protect the relationship; a warm maybe hurts them more than a warm no.",
-      "secondary_core_skills": ["thinking_quality", "pacing"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Caves partway ('maybe next time', 'let me think about it') to ease the tension",
         "Turns clipped, cold, or formal the moment the pushback lands",
@@ -317,21 +1052,106 @@
       "scoring_emphasis": "Weight the moment after the pushback lands: whether the position is restated at full strength rather than quietly diluted, and whether the warmth references this person's actual circumstances instead of generic empathy phrases.",
       "retry_objective": "On the second attempt, restate the position without softening it a notch, and make the care for the person explicit in your first sentence.",
       "prompt_rules": "Every prompt names a person who genuinely deserves care, gives them a sympathetic reason to push, and hands the user a position worth holding. The tension between the relationship and the recommendation must be real enough that neither steamrolling nor caving feels comfortable. Holding firm while staying warm is the exercise rule and never appears in the prompt text. Never require the user to claim credentials they do not have.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Your younger brother, having a rough month, asks to borrow your car the same week you need it for work. You've decided the answer is no, and he sounds hurt.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A close friend keeps inviting you to invest in her new café. You love her, you've run the numbers, and it's a no for you. She's asking one more time over dinner.", "difficulty": "intro", "tags": ["personal", "finance"] },
-        { "text": "Your mom wants to host the family holiday again this year. You and your partner already committed to hosting it yourselves. She's disappointed. Give her your decision.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "A teammate you mentor asks you to back a third deadline extension. He's stretched thin at home, but the client date can't move. Respond to his request.", "difficulty": "intro", "tags": ["people", "leadership"] },
-        { "text": "Your best engineer, burned out and open about it, asks to skip on-call this quarter. Coverage collapses without her. She's waiting for your answer.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "A longtime client you genuinely like wants to cut the testing phase to hit a launch date. You believe shipping untested will hurt them. They ask you to reconsider one last time.", "difficulty": "core", "tags": ["sales", "business"] },
-        { "text": "Your co-founder, your closest friend for a decade, wants to hire his sister for the ops role. You've interviewed her and she isn't the strongest candidate. He asks where you stand.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "A volunteer who gives the shelter every weekend wants to adopt a dog the vet flagged as wrong for her small apartment. She's in love with him. Give her the shelter's decision.", "difficulty": "core", "tags": ["community"] },
-        { "text": "Your dad, proud and independent at 78, wants to keep driving at night after two near-misses. The family agreed the keys stay home after dark. It's your turn to talk with him.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "Your VP, who championed your promotion, asks you to publicly back her reorg plan tomorrow. You think it buries the customer team. She asks for your support directly.", "difficulty": "stretch", "tags": ["leadership", "business"] },
-        { "text": "A grieving colleague back from leave insists he's ready to lead the biggest account. You're his manager and believe he needs one more quarter. He's sitting across from you.", "difficulty": "stretch", "tags": ["people", "leadership"] },
-        { "text": "Your business partner of five years wants to accept a buyout you're convinced undervalues the company. Retirement is calling her. She asks you to say yes with her.", "difficulty": "stretch", "tags": ["business", "finance"] }
+        {
+          "text": "Your younger brother, having a rough month, asks to borrow your car the same week you need it for work. You've decided the answer is no, and he sounds hurt.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "A close friend keeps inviting you to invest in her new café. You love her, you've run the numbers, and it's a no for you. She's asking one more time over dinner.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "finance"
+          ]
+        },
+        {
+          "text": "Your mom wants to host the family holiday again this year. You've already committed to hosting it yourself. She's disappointed. Give her your decision.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "A teammate you mentor asks you to back a third deadline extension. He's stretched thin at home, but the client date can't move. Respond to his request.",
+          "difficulty": "intro",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Your team's strongest member, burned out and open about it, asks to skip the after-hours duty rotation this quarter. Coverage collapses without her. She's waiting for your answer.",
+          "difficulty": "core",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A neighbor you've been helping fix up her house wants to skip the electrical inspection to move in sooner. You believe it puts her at risk. She asks you to reconsider one last time.",
+          "difficulty": "core",
+          "tags": [
+            "community",
+            "personal"
+          ]
+        },
+        {
+          "text": "Your closest friend on the team wants you to recommend his sister for the open role. You've interviewed her and she isn't the strongest candidate. He asks where you stand.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A volunteer who gives the shelter every weekend wants to adopt a dog the vet flagged as wrong for her small apartment. She's in love with him. Give her the shelter's decision.",
+          "difficulty": "core",
+          "tags": [
+            "community"
+          ]
+        },
+        {
+          "text": "Your dad, proud and independent at 78, wants to keep driving at night after two near-misses. The family agreed the keys stay home after dark. It's your turn to talk with him.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Your manager, who championed your last promotion, asks you to publicly back her reorg plan tomorrow. You think it buries the customer team. She asks for your support directly.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "A grieving colleague back from leave insists he's ready to lead the biggest account. You're his manager and believe he needs one more quarter. He's sitting across from you.",
+          "difficulty": "stretch",
+          "tags": [
+            "people",
+            "leadership"
+          ]
+        },
+        {
+          "text": "A relative wants to sell the family's longtime home for a quick offer you're convinced is under market. Downsizing is calling her. She asks you to get on board.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "finance"
+          ]
+        }
       ]
     }
   ]

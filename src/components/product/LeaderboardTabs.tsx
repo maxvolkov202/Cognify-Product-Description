@@ -87,10 +87,10 @@ export function LeaderboardTabs({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
           Leaderboard
         </p>
-        <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
+        <h1 className="text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl dark:text-white">
           {title}
         </h1>
-        <p className="mt-1 max-w-2xl text-lg text-ink-600">{subtitle}</p>
+        <p className="mt-1 max-w-2xl text-lg text-ink-600 dark:text-ink-300">{subtitle}</p>
       </div>
 
       <div className="mt-8 flex flex-wrap gap-2">
@@ -109,7 +109,7 @@ export function LeaderboardTabs({
         <EmptyState scope={scope} userInTeam={userInTeam} />
       ) : (
         <>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:grid-cols-3 md:items-end">
             {top3.map((entry, i) => (
               <PodiumCard key={entry.userId} entry={entry} position={i} />
             ))}
@@ -155,12 +155,12 @@ export function LeaderboardTabs({
               !activeBoard.entries.some(
                 (e) => e.userId === activeBoard.selfEntry!.userId,
               ) && (
-                <div className="mt-5 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-4">
+                <div className="mt-5 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-4 dark:bg-brand-purple/10">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-purple">
                     Your rank
                   </p>
-                  <p className="mt-1 text-sm text-ink-700">
-                    <strong className="text-ink-900">
+                  <p className="mt-1 text-sm text-ink-700 dark:text-ink-300">
+                    <strong className="text-ink-900 dark:text-white">
                       #{activeBoard.selfEntry.rank}
                     </strong>{" "}
                     · composite {activeBoard.selfEntry.composite} ·{" "}
@@ -193,7 +193,7 @@ function FilterChip({
       className={
         active
           ? "brand-gradient rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm"
-          : "rounded-full border border-ink-200 bg-white px-4 py-1.5 text-xs font-semibold text-ink-600 hover:border-ink-300"
+          : "rounded-full border border-ink-200 bg-white px-4 py-1.5 text-xs font-semibold text-ink-600 hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-300 dark:hover:border-ink-600"
       }
     >
       {children}
@@ -208,28 +208,43 @@ function PodiumCard({
   entry: { rank: number; name: string; team: string; composite: number };
   position: number;
 }) {
-  const heights = ["h-44", "h-40", "h-36"];
-  const medals = ["🥇", "🥈", "🥉"];
+  const isFirst = position === 0;
+  const heights = ["h-52", "h-40", "h-36"];
+  // #1 sits in the middle column on desktop — classic podium arrangement.
+  const orders = ["md:order-2", "md:order-1", "md:order-3"];
+  const medals = [
+    { color: "#eab308", numeral: "1", label: "Gold — 1st place" },
+    { color: "#94a3b8", numeral: "2", label: "Silver — 2nd place" },
+    { color: "#b45309", numeral: "3", label: "Bronze — 3rd place" },
+  ];
+  const medal = medals[position] ?? medals[2]!;
   return (
     <div
-      className={`surface-card relative flex flex-col justify-end overflow-hidden p-6 ${heights[position] ?? "h-36"}`}
+      className={`surface-card relative flex flex-col justify-end overflow-hidden p-6 ${heights[position] ?? "h-36"} ${orders[position] ?? ""} ${isFirst ? "shadow-[var(--shadow-glow-md)]" : ""}`}
     >
       <div
-        className="brand-gradient absolute inset-x-0 top-0 h-1"
+        className={`brand-gradient absolute inset-x-0 top-0 ${isFirst ? "h-1.5" : "h-1"}`}
         aria-hidden="true"
       />
-      <div className="text-4xl">{medals[position]}</div>
+      <span
+        role="img"
+        aria-label={medal.label}
+        className={`grid place-items-center rounded-full font-extrabold text-white shadow-sm ${isFirst ? "size-11 text-lg" : "size-9 text-base"}`}
+        style={{ backgroundColor: medal.color }}
+      >
+        {medal.numeral}
+      </span>
       <div className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
         #{entry.rank} · {entry.team}
       </div>
-      <div className="mt-1 text-lg font-extrabold text-ink-900">
+      <div className="mt-1 text-lg font-extrabold text-ink-900 dark:text-white">
         {entry.name}
       </div>
       <div className="mt-3 flex items-baseline gap-3">
         <span className="brand-gradient-text text-3xl font-extrabold tabular-nums">
           {entry.composite}
         </span>
-        <span className="text-xs text-ink-500">composite</span>
+        <span className="text-xs text-ink-500 dark:text-ink-400">composite</span>
       </div>
     </div>
   );
@@ -255,7 +270,7 @@ function HighlightCard({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
           {label}
         </p>
-        <p className="mt-1 text-xl font-extrabold text-ink-900">{name}</p>
+        <p className="mt-1 text-xl font-extrabold text-ink-900 dark:text-white">{name}</p>
         <p className="brand-gradient-text text-lg font-extrabold">{value}</p>
       </div>
     </div>
@@ -279,10 +294,10 @@ function EmptyState({
             strokeWidth={2}
             aria-hidden="true"
           />
-          <h2 className="mt-4 text-2xl font-extrabold text-ink-900 md:text-3xl">
+          <h2 className="mt-4 text-2xl font-extrabold text-ink-900 md:text-3xl dark:text-white">
             You&rsquo;re not on a team yet.
           </h2>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
             Team rankings compare you against your coworkers or cohort —
             Cognify uses the team list from your org or university to show
             who&rsquo;s training hardest near you. Ask whoever runs your
@@ -302,14 +317,14 @@ function EmptyState({
           strokeWidth={2}
           aria-hidden="true"
         />
-        <h2 className="mt-4 text-2xl font-extrabold text-ink-900 md:text-3xl">
+        <h2 className="mt-4 text-2xl font-extrabold text-ink-900 md:text-3xl dark:text-white">
           {scope === "this_week"
             ? "No reps this week yet."
             : scope === "team"
               ? "No reps on your team yet this period."
               : "The board activates as users train."}
         </h2>
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600">
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
           {scope === "this_week"
             ? "Run a Daily Workout to put yourself on this week's board."
             : "Once a few users log reps in this period, rankings show up here."}

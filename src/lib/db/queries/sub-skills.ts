@@ -6,6 +6,7 @@ import { decodeDimensionSignals } from "@/lib/scoring/signals";
 import {
   ALL_SUB_SKILLS,
   SUB_SKILL_TO_DIMENSION,
+  canonicalizeSubSkillId,
   type SubSkillId,
 } from "@/types/sub-skills";
 import type { SkillDimension } from "@/types/domain";
@@ -95,11 +96,19 @@ export async function getSubSkillRunningAverages(
       if (!sub) continue;
       for (const [subSkillKey, score] of Object.entries(sub)) {
         if (typeof score !== "number") continue;
-        // Defend against on-disk drift: only accept sub-skills that map
-        // to the row's dimension (signal extractor mistakes shouldn't
-        // poison the running average).
-        const subSkill = subSkillKey as SubSkillId;
+        // Taxonomy v2 (D20): historical reps keep pre-v2 keys on disk —
+        // canonicalize them here (migration 0041's contract). For a
+        // renamed key we trust the migration map outright, including the
+        // two cross-dimension moves (pitch_variation/volume_control were
+        // stored under tone rows but fold into delivery skills).
+        const subSkill = canonicalizeSubSkillId(subSkillKey);
+        if (subSkill == null) continue;
+        const wasLegacyKey = subSkill !== subSkillKey;
+        // Defend against on-disk drift: only accept v2-keyed sub-skills
+        // that map to the row's dimension (signal extractor mistakes
+        // shouldn't poison the running average).
         if (
+          !wasLegacyKey &&
           SUB_SKILL_TO_DIMENSION[subSkill] !== (row.dimension as SkillDimension)
         ) {
           continue;

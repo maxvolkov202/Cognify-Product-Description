@@ -4,12 +4,12 @@ const modes = [
   {
     icon: Flame,
     title: "Daily Workout",
-    body: "The core habit. Four to five short reps every day targeting the six core communication skills. Fast, structured and frictionless. This is where the foundation gets built.",
+    body: "The core habit. Three focused exercises a day — each a first rep, targeted coaching, and a retry that locks the improvement in. This is where the foundation gets built.",
   },
   {
     icon: Beaker,
     title: "Skill Lab",
-    body: "Targeted practice. Choose a specific skill you want to sharpen and drill it with focused exercises until it clicks.",
+    body: "Applied practice. Train the real-world applications of communication — storytelling, presenting, teaching, interviewing, persuasion — until they click.",
   },
   {
     icon: Briefcase,

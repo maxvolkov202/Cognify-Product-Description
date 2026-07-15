@@ -13,6 +13,10 @@ type DayActivity = {
 
 type Props = {
   activity: DayActivity[];
+  /** Server-computed YYYY-MM-DD in the user's timezone. Without it the
+   *  client falls back to UTC, which rings tomorrow's cell for evening
+   *  users west of Greenwich. */
+  todayKey?: string;
 };
 
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
@@ -22,15 +26,16 @@ const DOW = ["S", "M", "T", "W", "T", "F", "S"];
  * brand-purple so the user always knows where they are; days with reps
  * fill brand-gradient and surface a check; empty days are neutral pills.
  */
-export function WeekCalendar({ activity }: Props) {
-  const todayKey = new Date().toISOString().slice(0, 10);
+export function WeekCalendar({ activity, todayKey: todayKeyProp }: Props) {
+  const todayKey = todayKeyProp ?? new Date().toISOString().slice(0, 10);
   const map = new Map(activity.map((d) => [d.date, d]));
   const cells: DayActivity[] = [];
-  const start = new Date();
-  start.setDate(start.getDate() - 6);
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
+  // Anchor the 7-day window on the user-local today key (UTC arithmetic
+  // on the key itself, so no second timezone shift).
+  const anchor = new Date(todayKey + "T00:00:00Z");
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(anchor);
+    d.setUTCDate(anchor.getUTCDate() - i);
     const key = d.toISOString().slice(0, 10);
     cells.push(map.get(key) ?? { date: key, count: 0, composite: 0 });
   }

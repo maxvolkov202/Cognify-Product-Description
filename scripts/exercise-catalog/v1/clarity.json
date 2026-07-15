@@ -8,12 +8,22 @@
       "why": "Forces concrete language; surfaces hidden jargon.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to explain ideas using only language the listener already has.",
-      "hidden_skills": ["word_choice", "audience_awareness", "concreteness"],
+      "hidden_skills": [
+        "plain_english_conversion",
+        "audience_calibration",
+        "jargon_translation",
+        "vocabulary_precision"
+      ],
       "scoring_lens": "Constraint: any word a 12-year-old wouldn't recognize counts as jargon. Clarity score MUST reflect jargon density.",
       "coach_insight": "Great reps sound like you're telling a story to a smart kid — short words, familiar objects, one step at a time. The trap: swapping one big word for another big word and calling it simple.",
-      "secondary_core_skills": ["conciseness", "tone"],
+      "secondary_core_skills": [
+        "conciseness",
+        "tone"
+      ],
       "common_failure_modes": [
         "Swapping one technical term for another the listener still wouldn't know",
         "Opening with a textbook definition instead of a familiar object or scene",
@@ -23,25 +33,137 @@
       "scoring_emphasis": "Weight whether the simple words still add up to a correct, complete explanation — simplicity that loses the actual mechanism counts against the rep.",
       "retry_objective": "If jargon slipped in, retry with every technical term replaced by a plain-language equivalent.",
       "prompt_rules": "Every prompt names one concrete topic to explain and fixes the listener as a curious 12-year-old with zero background knowledge. The topic varies freely across domains; the vocabulary ceiling and the plain-language training objective never change.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain how OAuth works.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain what compound interest is.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain what mRNA vaccines do.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain how a mortgage actually works.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain what an API is.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Explain how the stock market sets a company's price.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain how machine learning models actually learn.", "difficulty": "core", "tags": ["tech", "science"] },
-        { "text": "Explain what insurance companies do behind the scenes.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain how encryption keeps your messages private.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain why antibiotics stop working over time.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain how a recession happens.", "difficulty": "stretch", "tags": ["finance", "current events"] },
-        { "text": "Explain how a quantum computer is different from a regular one.", "difficulty": "stretch", "tags": ["tech", "science"] },
-        { "text": "Explain how anesthesia works during surgery.", "difficulty": "stretch", "tags": ["healthcare", "science"] },
-        { "text": "Explain what a venture capital firm actually does.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain how the electoral college decides a president.", "difficulty": "core", "tags": ["current events", "education"] },
-        { "text": "Explain why your phone battery dies faster as it ages.", "difficulty": "intro", "tags": ["tech", "science"] }
+        {
+          "text": "Explain how OAuth works.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain what compound interest is.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what mRNA vaccines do.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how a mortgage actually works.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what an API is.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain how the stock market sets a company's price.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how machine learning models actually learn.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain what insurance companies do behind the scenes.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how encryption keeps your messages private.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain why antibiotics stop working over time.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how a recession happens.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "current events"
+          ]
+        },
+        {
+          "text": "Explain how a quantum computer is different from a regular one.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how anesthesia works during surgery.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain what a venture capital firm actually does.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how the electoral college decides a president.",
+          "difficulty": "core",
+          "tags": [
+            "current events",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain why your phone battery dies faster as it ages.",
+          "difficulty": "intro",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        }
       ]
     },
     {
@@ -51,12 +173,22 @@
       "why": "Builds the muscle to lead with the point, not the warmup.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to deliver the complete answer in the first sentence, before any context or buildup.",
-      "hidden_skills": ["logical_sequencing", "precision"],
+      "hidden_skills": [
+        "takeaway_clarity",
+        "listener_first_sequencing",
+        "bluf_fluency",
+        "answer_first_compression"
+      ],
       "scoring_lens": "Constraint: if sentence 1 does not carry the thesis, clarity feedback MUST call it out and the clarity score MUST reflect a failure to lead with the point.",
       "coach_insight": "Deliver the verdict as if it's the only sentence you get — 'Yes, ship Friday.' Support comes after. The trap is the warm-up lap: context, caveats, and 'it depends' before the answer lands.",
-      "secondary_core_skills": ["structure", "conciseness"],
+      "secondary_core_skills": [
+        "structure",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Opening with background or context before stating the answer",
         "Sentence one hedges ('it depends') with the real verdict buried later",
@@ -66,25 +198,137 @@
       "scoring_emphasis": "After sentence one, weight whether everything that follows actually supports the stated headline rather than drifting into new territory or quietly walking it back.",
       "retry_objective": "If the answer arrived late, retry by stating the full conclusion in sentence one and using everything after it only as support.",
       "prompt_rules": "Every prompt is a direct decision or verdict question from a stakeholder who needs the answer now. The topic and stakes vary; the constant is that the question invites a full answer that must land in sentence one.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Should we ship the feature on Friday?", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Was last quarter a success?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Did the new onboarding flow work?", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Should we hire two engineers or one senior?", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "Is the candidate the right fit for the role?", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Did the marketing campaign pay for itself?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Should the patient start the new medication?", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "Was the experiment a success?", "difficulty": "core", "tags": ["science", "tech"] },
-        { "text": "Should we accept the acquisition offer?", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "Is the new curriculum improving outcomes?", "difficulty": "core", "tags": ["education"] },
-        { "text": "Should I take the job in Austin?", "difficulty": "intro", "tags": ["personal/relationships"] },
-        { "text": "Did the team meet its OKRs this quarter?", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "Is the prototype ready to show the client?", "difficulty": "core", "tags": ["creative", "business"] },
-        { "text": "Should we delay the launch by two weeks?", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Was the surgery a success?", "difficulty": "intro", "tags": ["healthcare"] },
-        { "text": "Should the board approve the new compensation plan?", "difficulty": "stretch", "tags": ["leadership", "business"] }
+        {
+          "text": "Should we ship the feature on Friday?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Was last quarter a success?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Did the new onboarding flow work?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Should we hire two engineers or one senior?",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Is the candidate the right fit for the role?",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Did the marketing campaign pay for itself?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Should the patient start the new medication?",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Was the experiment a success?",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "tech"
+          ]
+        },
+        {
+          "text": "Should we accept the acquisition offer?",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Is the new curriculum improving outcomes?",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Should I take the job in Austin?",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Did the team meet its OKRs this quarter?",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Is the prototype ready to show the client?",
+          "difficulty": "core",
+          "tags": [
+            "creative",
+            "business"
+          ]
+        },
+        {
+          "text": "Should we delay the launch by two weeks?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Was the surgery a success?",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Should the board approve the new compensation plan?",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -94,12 +338,21 @@
       "why": "Teaches you to make abstract ideas tangible fast.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to make an abstract idea instantly tangible through one everyday analogy that carries the full explanation.",
-      "hidden_skills": ["concreteness", "audience_awareness"],
+      "hidden_skills": [
+        "analogy_selection",
+        "abstraction_laddering",
+        "common_ground_creation"
+      ],
       "scoring_lens": "Constraint: the explanation must ride on one everyday analogy strong enough to carry the idea on its own. A missing, decorative, or mixed analogy MUST drag the clarity score.",
       "coach_insight": "Pick one comparison from everyday life and drive the whole explanation through it — the fridge, the post office, the lunch line. The trap: mentioning an analogy once, then abandoning it for a technical walkthrough.",
-      "secondary_core_skills": ["thinking_quality", "structure"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "structure"
+      ],
       "common_failure_modes": [
         "Naming an analogy once, then explaining in technical terms anyway",
         "Stacking two or three analogies instead of committing to one",
@@ -109,25 +362,134 @@
       "scoring_emphasis": "Weight how faithfully the chosen analogy maps to the concept's real mechanism — reward a comparison that would survive a follow-up question, not just a catchy image.",
       "retry_objective": "If the analogy was missing or merely decorative, retry with one everyday comparison strong enough to explain the idea by itself.",
       "prompt_rules": "Every prompt names one abstract or technical concept to explain to a listener with no domain background. Topics vary widely across fields; the constant objective is a single everyday analogy that carries the entire explanation.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain how database indexing works.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain how inflation eats away at savings.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Explain how the immune system fights an infection.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain how a neural network learns.", "difficulty": "stretch", "tags": ["tech", "science"] },
-        { "text": "Explain what a hedge fund actually does.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain why managers do one-on-ones.", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Explain how a good headline pulls readers in.", "difficulty": "intro", "tags": ["creative", "business"] },
-        { "text": "Explain how a startup burns through its funding.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Explain how the body builds muscle.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain how cache memory speeds up a computer.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain how supply and demand set a price.", "difficulty": "intro", "tags": ["finance", "education"] },
-        { "text": "Explain what a derivative is in finance.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Explain how a vaccine trains your body.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain how a screenplay's three-act structure works.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "Explain how compound interest builds wealth.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain how a black hole bends light.", "difficulty": "stretch", "tags": ["science"] }
+        {
+          "text": "Explain how database indexing works.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain how inflation eats away at savings.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain how the immune system fights an infection.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how a neural network learns.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain what a hedge fund actually does.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain why managers do one-on-ones.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain how a good headline pulls readers in.",
+          "difficulty": "intro",
+          "tags": [
+            "creative",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how a startup burns through its funding.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain how the body builds muscle.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how cache memory speeds up a computer.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain how supply and demand set a price.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a derivative is in finance.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain how a vaccine trains your body.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain how a screenplay's three-act structure works.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Explain how compound interest builds wealth.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain how a black hole bends light.",
+          "difficulty": "stretch",
+          "tags": [
+            "science"
+          ]
+        }
       ]
     },
     {
@@ -137,12 +499,21 @@
       "why": "Trains you to translate, not parrot, your domain.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to translate insider terminology into plain language in real time while speaking.",
-      "hidden_skills": ["word_choice", "audience_awareness"],
+      "hidden_skills": [
+        "jargon_translation",
+        "plain_english_conversion",
+        "vocabulary_precision"
+      ],
       "scoring_lens": "Constraint: every insider term, acronym, or industry phrase must be replaced with plain language in real time. Unreplaced jargon MUST drag the clarity score.",
       "coach_insight": "Translate as you go: the moment an insider term is about to leave your mouth, say what it means in plain words instead. The trap: defining jargon with more jargon, or naming the term as if saying it were explaining it.",
-      "secondary_core_skills": ["tone", "pacing"],
+      "secondary_core_skills": [
+        "tone",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Defining one insider term with another undefined term",
         "Saying the jargon first, then bolting on a translation afterward",
@@ -152,25 +523,136 @@
       "scoring_emphasis": "Weight the quality of each translation, not just its presence — the plain-language swap must preserve the term's actual meaning for the specific listener named in the prompt.",
       "retry_objective": "If insider terms slipped through untranslated, retry with each one swapped for what it actually means in plain language.",
       "prompt_rules": "Every prompt pairs a jargon-heavy topic from a professional domain with a specific non-expert listener (a relative, a new hire, a worried patient). Topic and listener vary; the real-time translation objective stays constant.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain Kubernetes to a non-engineer.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain what a CDO is to your aunt.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Explain agile development to a new client.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Explain a stent procedure to a worried patient.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain SEO to a small business owner.", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "Explain EBITDA to a junior salesperson.", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Explain how a CRM works to a new hire.", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "Explain blockchain to your grandparents.", "difficulty": "stretch", "tags": ["tech", "finance"] },
-        { "text": "Explain a PR pull request to a marketing teammate.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain what a clinical endpoint means to a patient.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Explain technical debt to a non-technical founder.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Explain a securitization to a graduate student.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Explain CRISPR to a high school class.", "difficulty": "core", "tags": ["science", "education"] },
-        { "text": "Explain a P/E ratio to someone new to investing.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain UX research methods to a sales team.", "difficulty": "core", "tags": ["creative", "business"] },
-        { "text": "Explain herd immunity to a skeptical parent.", "difficulty": "core", "tags": ["healthcare", "current events"] }
+        {
+          "text": "Explain Kubernetes to a non-engineer.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain what a hedge fund does to a curious teenager.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain agile development to a new client.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain a stent procedure to a worried patient.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain SEO to a small business owner.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain EBITDA to a junior salesperson.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how a CRM works to a new hire.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain blockchain to an elderly neighbor.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what a pull request is to a marketing teammate.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain what a clinical endpoint means to a patient.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain technical debt to a non-technical founder.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how the Federal Reserve moves interest rates to a graduate student.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain CRISPR to a high school class.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain a P/E ratio to someone new to investing.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain UX research methods to a sales team.",
+          "difficulty": "core",
+          "tags": [
+            "creative",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain herd immunity to a skeptical parent.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "current events"
+          ]
+        }
       ]
     },
     {
@@ -180,12 +662,21 @@
       "why": "Stops handwaving; grounds abstraction in evidence.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to anchor every abstract claim with a concrete detail the listener can picture.",
-      "hidden_skills": ["concreteness", "precision"],
+      "hidden_skills": [
+        "concreteness",
+        "example_grounding",
+        "lexical_specificity"
+      ],
       "scoring_lens": "Constraint: every claim must be followed by a concrete detail, example, or number in the same breath. Unanchored abstractions MUST drag the clarity score.",
       "coach_insight": "Every time you state a claim, hand the listener something they can picture in the next breath — a number, a scene, a named example. The trap: 'proving' one abstraction with another, like 'it builds trust, which improves culture.'",
-      "secondary_core_skills": ["thinking_quality", "conciseness"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Supporting an abstract claim with another abstraction",
         "Using vague quantifiers ('a lot', 'significantly') where a real number or scenario belongs",
@@ -195,25 +686,135 @@
       "scoring_emphasis": "Weight the pairing rhythm — each individual claim should have its own anchor right beside it, not one example stretched to cover the whole argument.",
       "retry_objective": "If claims floated without grounding, retry by pairing each one with a specific example, number, or scenario the listener can picture.",
       "prompt_rules": "Every prompt is a 'why' question that tempts abstract handwaving, addressed to a listener who needs to be convinced. The topic varies across domains; the constant is that each claim must be grounded in a concrete detail.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Why does diversification reduce risk?", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Why is psychological safety important for teams?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Why does sleep affect cognitive performance?", "difficulty": "intro", "tags": ["healthcare", "science"] },
-        { "text": "Why do startups fail in their first three years?", "difficulty": "core", "tags": ["business"] },
-        { "text": "Why does code review improve software quality?", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Why does early childhood education matter so much?", "difficulty": "core", "tags": ["education"] },
-        { "text": "Why is customer retention more profitable than acquisition?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Why does exercise improve mental health?", "difficulty": "intro", "tags": ["healthcare"] },
-        { "text": "Why do interest rate changes affect home prices?", "difficulty": "stretch", "tags": ["finance", "current events"] },
-        { "text": "Why is feedback hard to give well?", "difficulty": "core", "tags": ["leadership", "personal/relationships"] },
-        { "text": "Why do good story openings hook readers?", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Why does monoculture farming hurt the environment?", "difficulty": "stretch", "tags": ["science", "current events"] },
-        { "text": "Why do brand reputations take years to build?", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Why does meditation change the brain?", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Why do remote teams need more written communication?", "difficulty": "core", "tags": ["leadership", "tech"] },
-        { "text": "Why is regulatory capture dangerous?", "difficulty": "stretch", "tags": ["current events", "business"] }
+        {
+          "text": "Why does diversification reduce risk?",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Why is psychological safety important for teams?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Why does sleep affect cognitive performance?",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Why do startups fail in their first three years?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Why does code review improve software quality?",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Why does early childhood education matter so much?",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Why is customer retention more profitable than acquisition?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Why does exercise improve mental health?",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Why do interest rate changes affect home prices?",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "current events"
+          ]
+        },
+        {
+          "text": "Why is feedback hard to give well?",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Why do good story openings hook readers?",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Why does monoculture farming hurt the environment?",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "current events"
+          ]
+        },
+        {
+          "text": "Why do brand reputations take years to build?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Why does meditation change the brain?",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Why do remote teams need more written communication?",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Why is it dangerous when regulators get too close to the industries they oversee?",
+          "difficulty": "stretch",
+          "tags": [
+            "current events",
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -223,12 +824,21 @@
       "why": "Trains discipline — one clear point beats three muddled ones.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to build an entire response around a single central idea and let nothing stray from it.",
-      "hidden_skills": ["idea_isolation"],
+      "hidden_skills": [
+        "idea_isolation",
+        "signal_to_noise_control",
+        "one_point_discipline"
+      ],
       "scoring_lens": "Constraint: the response must serve one central idea from start to finish. Any sentence that introduces a second idea MUST drag the clarity score.",
       "coach_insight": "Choose your one idea before you speak, say it plainly, and treat every sentence after as its bodyguard. The trap is the 'and also' reflex — a second good point that splits the listener's attention and weakens both.",
-      "secondary_core_skills": ["structure", "conciseness"],
+      "secondary_core_skills": [
+        "structure",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Smuggling in a second point as an 'and also' or 'one more thing'",
         "Listing several causes instead of committing to the biggest one",
@@ -238,25 +848,134 @@
       "scoring_emphasis": "Weight commitment — whether the speaker names one idea outright and whether every later sentence demonstrably advances it, not merely avoids contradicting it.",
       "retry_objective": "If a second idea crept in, retry by naming the one central point up front and cutting every sentence that doesn't serve it.",
       "prompt_rules": "Every prompt asks for the single reason, risk, or lesson behind a situation, addressed to a listener who needs one takeaway. The scenario varies; the discipline of choosing and serving one central idea never does.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Why did our team's velocity drop this sprint?", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "What's the single biggest risk to next year's plan?", "difficulty": "core", "tags": ["business"] },
-        { "text": "Why did the customer churn?", "difficulty": "core", "tags": ["business"] },
-        { "text": "Why is this candidate the right hire?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "What's the one thing we need to change about the product?", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Why should the board approve the budget increase?", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "What's the most important lesson from last quarter?", "difficulty": "intro", "tags": ["business", "leadership"] },
-        { "text": "Why did the patient's recovery take longer than expected?", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "What's the single biggest reason readers love this book?", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Why did the prototype fail user testing?", "difficulty": "core", "tags": ["tech", "creative"] },
-        { "text": "What's the one reason this market is worth entering?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Why is our team's morale slipping?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "What's the one habit that improved your career?", "difficulty": "intro", "tags": ["personal/relationships"] },
-        { "text": "Why is climate change accelerating faster than predicted?", "difficulty": "stretch", "tags": ["science", "current events"] },
-        { "text": "Why did the merger underperform?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "What's the single thing students need to succeed in college?", "difficulty": "core", "tags": ["education"] }
+        {
+          "text": "Why did our team's velocity drop this sprint?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's the single biggest risk to next year's plan?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Why did the customer churn?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Why is this candidate the right hire?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's the one thing we need to change about the product?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Why should the board approve the budget increase?",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "What's the most important lesson from last quarter?",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Why did the patient's recovery take longer than expected?",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "What's the single biggest reason readers love this book?",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Why did the prototype fail user testing?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "creative"
+          ]
+        },
+        {
+          "text": "What's the one reason this market is worth entering?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Why is our team's morale slipping?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's the one habit that has improved your life the most?",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Why is climate change accelerating faster than predicted?",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "current events"
+          ]
+        },
+        {
+          "text": "Why did the merger underperform?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "What's the single thing students need to succeed in college?",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        }
       ]
     },
     {
@@ -266,12 +985,22 @@
       "why": "Forces you to model the listener, not just deliver.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to anticipate where a listener actually gets confused and resolve that confusion head-on.",
-      "hidden_skills": ["audience_awareness", "precision"],
+      "hidden_skills": [
+        "assumption_checking",
+        "mental_model_matching",
+        "question_fidelity",
+        "ambiguity_reduction"
+      ],
       "scoring_lens": "Constraint: the response must answer the question a confused listener would actually ask, not just recite facts. Failing to address the likely point of confusion MUST drag the clarity score.",
       "coach_insight": "Start where the listener is stuck — name the mix-up out loud, then untangle it head-on. The trap: reciting two correct definitions side by side without ever touching why people confuse them in the first place.",
-      "secondary_core_skills": ["thinking_quality", "tone"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "tone"
+      ],
       "common_failure_modes": [
         "Reciting parallel definitions without addressing why the two get confused",
         "Never naming the misconception the listener actually holds",
@@ -281,25 +1010,132 @@
       "scoring_emphasis": "Weight whether the likely misunderstanding is named explicitly and dismantled — a technically accurate answer that ignores the confusion should score below a simpler one that resolves it.",
       "retry_objective": "If the response explained around the confusion instead of resolving it, retry by naming the likely misunderstanding first and answering it directly.",
       "prompt_rules": "Every prompt targets a commonly confused pair of concepts or a popular misconception, with an earnest listener who half-understands it. Topics vary; the constant objective is modeling the listener's confusion and answering the question they would actually ask.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["complexity"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain the difference between revenue and profit.", "difficulty": "intro", "tags": ["finance", "business"] },
-        { "text": "Explain the difference between weather and climate.", "difficulty": "intro", "tags": ["science"] },
-        { "text": "Explain why correlation isn't causation.", "difficulty": "core", "tags": ["science", "education"] },
-        { "text": "Explain the difference between a recession and a depression.", "difficulty": "core", "tags": ["finance", "current events"] },
-        { "text": "Explain the difference between bacteria and viruses.", "difficulty": "intro", "tags": ["healthcare", "science"] },
-        { "text": "Explain the difference between a stock and a bond.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Explain the difference between marketing and sales.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain the difference between leadership and management.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Explain the difference between RAM and storage.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain why interest rates and bond prices move opposite ways.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Explain the difference between empathy and sympathy.", "difficulty": "core", "tags": ["personal/relationships"] },
-        { "text": "Explain why a generic drug works the same as the brand name.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain the difference between a startup and a small business.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain why your tax refund isn't free money.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Explain the difference between machine learning and AI.", "difficulty": "stretch", "tags": ["tech", "science"] },
-        { "text": "Explain why a college degree isn't a guarantee of a job.", "difficulty": "stretch", "tags": ["education", "current events"] }
+        {
+          "text": "Explain the difference between revenue and profit.",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain the difference between weather and climate.",
+          "difficulty": "intro",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "Explain why correlation isn't causation.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain the difference between a recession and a depression.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "current events"
+          ]
+        },
+        {
+          "text": "Explain the difference between bacteria and viruses.",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain the difference between a stock and a bond.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain the difference between marketing and sales.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain the difference between leadership and management.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain the difference between RAM and storage.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain why interest rates and bond prices move opposite ways.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain the difference between empathy and sympathy.",
+          "difficulty": "core",
+          "tags": [
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain why a generic drug works the same as the brand name.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain the difference between a startup and a small business.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain why your tax refund isn't free money.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain the difference between machine learning and AI.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Explain why a college degree isn't a guarantee of a job.",
+          "difficulty": "stretch",
+          "tags": [
+            "education",
+            "current events"
+          ]
+        }
       ]
     },
     {
@@ -309,12 +1145,21 @@
       "why": "Builds the habit of carrying evidence, not just opinion.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to attach proof to every claim in the same breath the claim is made.",
-      "hidden_skills": ["precision", "concreteness"],
+      "hidden_skills": [
+        "example_grounding",
+        "claim_support",
+        "evidence_relevance"
+      ],
       "scoring_lens": "Constraint: every claim must be paired with proof — a reason, number, or specific example — in the same breath. Unsupported assertions MUST drag the clarity score.",
       "coach_insight": "Speak in claim-proof pairs: make the assertion, then immediately give the number, example, or reason a skeptic can't wave away. The trap: stacking three confident claims and saving all the evidence for a finale that never comes.",
-      "secondary_core_skills": ["thinking_quality", "structure"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "structure"
+      ],
       "common_failure_modes": [
         "Making several claims in a row before any evidence appears",
         "Backing a claim with the same opinion restated in different words",
@@ -324,25 +1169,136 @@
       "scoring_emphasis": "Weight the strength of each proof against its claim — evidence a skeptic could dismiss with one question counts barely more than no evidence at all.",
       "retry_objective": "If any claim went out unsupported, retry by following each assertion immediately with one specific piece of evidence.",
       "prompt_rules": "Every prompt is a 'Tell me why...' persuasion ask from a skeptical listener. Topic and stakes vary; the constant is that every claim must arrive with its proof in the same breath.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Tell me why remote work is better.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Tell me why your product is worth the price.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Tell me why the new strategy is the right one.", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "Tell me why this drug should get FDA approval.", "difficulty": "stretch", "tags": ["healthcare", "science"] },
-        { "text": "Tell me why your team deserves the bigger budget.", "difficulty": "core", "tags": ["leadership", "finance"] },
-        { "text": "Tell me why this candidate is better than the other finalist.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Tell me why we should rewrite this codebase.", "difficulty": "stretch", "tags": ["tech"] },
-        { "text": "Tell me why early retirement is a realistic goal.", "difficulty": "core", "tags": ["finance", "personal/relationships"] },
-        { "text": "Tell me why this novel deserves the award.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Tell me why nuclear power is part of the climate answer.", "difficulty": "stretch", "tags": ["science", "current events"] },
-        { "text": "Tell me why this startup will be a unicorn.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Tell me why college is still worth it.", "difficulty": "core", "tags": ["education", "finance"] },
-        { "text": "Tell me why meditation belongs in your morning.", "difficulty": "intro", "tags": ["healthcare", "personal/relationships"] },
-        { "text": "Tell me why the marketing budget should double next year.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Tell me why this design is the strongest of the three.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "Tell me why you'd choose this co-founder.", "difficulty": "intro", "tags": ["personal/relationships", "business"] }
+        {
+          "text": "Tell me why remote work is better.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell me why your product is worth the price.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell me why the new strategy is the right one.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Tell me why this drug should get FDA approval.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Tell me why your team deserves the bigger budget.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell me why this candidate is better than the other finalist.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell me why we should rewrite this codebase.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Tell me why early retirement is a realistic goal.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Tell me why this novel deserves the award.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Tell me why nuclear power is part of the climate answer.",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "current events"
+          ]
+        },
+        {
+          "text": "Tell me why this startup will be a unicorn.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell me why college is still worth it.",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell me why meditation belongs in your morning.",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Tell me why the marketing budget should double next year.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell me why this design is the strongest of the three.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Tell me why you'd choose this co-founder.",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships",
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -352,12 +1308,22 @@
       "why": "Forces ruthless prioritization at the sentence level.",
       "default_difficulty": "core",
       "ordering": 9,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the user to prioritize ruthlessly enough to land a complete point inside a strict 30-word budget.",
-      "hidden_skills": ["word_choice", "precision", "idea_isolation"],
+      "hidden_skills": [
+        "takeaway_clarity",
+        "compression",
+        "priority_selection",
+        "information_density"
+      ],
       "scoring_lens": "Constraint: if the transcript exceeds 30 words, the primary clarity feedback MUST call it out and the conciseness score MUST reflect the budget violation.",
       "coach_insight": "Decide the one indispensable point, spend your words on it first, and stop when it's said — a great rep sounds finished at word 25. The trap: talking normally and just stopping early, leaving the point half-delivered.",
-      "secondary_core_skills": ["conciseness", "structure"],
+      "secondary_core_skills": [
+        "conciseness",
+        "structure"
+      ],
       "common_failure_modes": [
         "Running past the 30-word ceiling",
         "Stopping mid-thought at the limit, leaving the point incomplete",
@@ -367,25 +1333,132 @@
       "scoring_emphasis": "Weight completeness inside the ceiling — the winning rep is judged on whether the point is whole at the final word, not merely on staying under budget.",
       "retry_objective": "If the budget was blown, retry by cutting every non-essential word until the complete point fits inside 30 words.",
       "prompt_rules": "Every prompt asks for one complete brief — a pitch, summary, or update — for a busy, named audience. Topic varies; the 30-word ceiling and the ruthless-prioritization objective are fixed in every generated prompt.",
-      "response_window": { "min_sec": 20, "max_sec": 45 },
-      "constraint_types": ["time", "complexity"],
+      "response_window": {
+        "min_sec": 20,
+        "max_sec": 45
+      },
+      "constraint_types": [
+        "time",
+        "complexity"
+      ],
       "prompts": [
-        { "text": "Explain your team's roadmap.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Pitch your company in an elevator.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Summarize last quarter's results for the board.", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "Describe your career so far.", "difficulty": "intro", "tags": ["personal/relationships"] },
-        { "text": "Explain your investment thesis.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Sum up the plot of your favorite movie.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Describe your ideal customer.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain why your team missed its deadline.", "difficulty": "core", "tags": ["leadership", "tech"] },
-        { "text": "Summarize the patient's condition for the next shift.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Describe the biggest risk facing your business.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain what your product does.", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "Sum up the news story everyone's talking about.", "difficulty": "core", "tags": ["current events"] },
-        { "text": "Describe your leadership style.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Explain the one thing this experiment proved.", "difficulty": "core", "tags": ["science"] },
-        { "text": "Pitch a new course to a curious student.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Brief the CEO on a brewing PR crisis.", "difficulty": "stretch", "tags": ["leadership", "current events"] }
+        {
+          "text": "Brief a busy new executive on your team's roadmap.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Pitch your company in an elevator.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Summarize last quarter's results for the board.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Describe your path so far to a busy recruiter.",
+          "difficulty": "intro",
+          "tags": [
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "You're a fund manager. Explain your investment thesis to a busy client.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Sum up the plot of your favorite movie for a friend rushing out the door.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Describe your ideal customer to a new sales hire on day one.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to a busy VP why your team missed its deadline.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Summarize the patient's condition for the next shift.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Tell a busy investor the biggest risk facing your business.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You meet a stranger at an event. Explain what your product does.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Sum up a news story everyone's talking about for a friend who missed it.",
+          "difficulty": "core",
+          "tags": [
+            "current events"
+          ]
+        },
+        {
+          "text": "Describe your leadership style to an interviewer who's short on time.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Brief a busy lab director on the one thing your latest experiment proved.",
+          "difficulty": "core",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "Pitch a new course to a curious student.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Brief the CEO on a brewing PR crisis.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "current events"
+          ]
+        }
       ]
     }
   ]

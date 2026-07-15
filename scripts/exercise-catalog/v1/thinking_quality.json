@@ -8,12 +8,21 @@
       "why": "Builds the habit of carrying evidence with assertion.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train the habit of pairing every assertion with immediate evidence, a reason, or a specific example.",
-      "hidden_skills": ["claim_support", "depth_of_analysis"],
+      "hidden_skills": [
+        "claim_support",
+        "evidence_relevance",
+        "claim_clarity"
+      ],
       "scoring_lens": "Constraint: every claim must be paired with evidence in the same breath. Unsupported claims drag thinking_quality.",
       "coach_insight": "Great answers sound like 'X — and here's how I know.' The trap is stacking three claims and promising proof later — later never comes. Weld each claim to one specific number, example, or moment before starting the next sentence.",
-      "secondary_core_skills": ["structure", "clarity"],
+      "secondary_core_skills": [
+        "structure",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Stacks several claims up front, then back-fills evidence for only the first one",
         "Leans on generic appeals ('studies show', 'everyone knows') instead of a specific example or number",
@@ -23,25 +32,135 @@
       "scoring_emphasis": "Weight the specificity and proximity of each proof — a concrete example delivered in the same breath outranks a stronger claim proven late or generically.",
       "retry_objective": "Attach proof in the same breath to the claims that floated unsupported in the first attempt.",
       "prompt_rules": "Generate arguable, position-taking prompts with a clear audience and stakes that invite multiple assertions, so unsupported claims become visible. Each prompt must suit a 75-120 second spoken response and train claim support only — no stacked constraints.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Argue why our hiring process is broken.", "difficulty": "intro", "tags": ["business", "leadership"] },
-        { "text": "Make the case that remote work hurts junior employees the most.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue why startups should never raise from VCs in their first year.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Convince me the four-day workweek improves output, not just morale.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Argue that index funds beat active managers over twenty years.", "difficulty": "intro", "tags": ["finance"] },
-        { "text": "Make the case that your team's last shipped feature was actually a failure.", "difficulty": "stretch", "tags": ["tech", "leadership"] },
-        { "text": "Argue that most code reviews don't catch real bugs.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Convince me strength training matters more than cardio for longevity.", "difficulty": "intro", "tags": ["healthcare", "personal"] },
-        { "text": "Argue why standardized testing predicts college success better than GPA.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Make the case that your company's last reorg destroyed more value than it created.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Argue that microservices were the wrong choice for most teams that adopted them.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Convince me that ozempic is reshaping the food industry, not just healthcare.", "difficulty": "core", "tags": ["healthcare", "business"] },
-        { "text": "Argue that your favorite novel is overrated.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Make the case that nuclear power is the only realistic path to decarbonization.", "difficulty": "stretch", "tags": ["science", "ethics"] },
-        { "text": "Argue that the founder should be replaced once a company hits 200 employees.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Convince me that a recession will arrive in the next 18 months.", "difficulty": "core", "tags": ["finance"] }
+        {
+          "text": "Argue why our hiring process is broken.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make the case that remote work hurts junior employees the most.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue why startups should never raise from VCs in their first year.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Convince me the four-day workweek improves output, not just morale.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue that index funds beat active managers over twenty years.",
+          "difficulty": "intro",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Imagine you led the team that just shipped a big feature. Make the case to your peers that it was actually a failure.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue that most code reviews don't catch real bugs.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Convince me strength training matters more than cardio for longevity.",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "personal"
+          ]
+        },
+        {
+          "text": "Argue why standardized testing predicts college success better than GPA.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Imagine your company just finished a reorg. Make the case to leadership that it destroyed more value than it created.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue that microservices were the wrong choice for most teams that adopted them.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Convince me that ozempic is reshaping the food industry, not just healthcare.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "business"
+          ]
+        },
+        {
+          "text": "Pick a book or movie everyone seems to love and argue to a fan that it's overrated.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Make the case that nuclear power is the only realistic path to decarbonization.",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Argue that the founder should be replaced once a company hits 200 employees.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Convince me that a recession will arrive in the next 18 months.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        }
       ]
     },
     {
@@ -51,12 +170,22 @@
       "why": "Forces honest engagement with the other side, not strawmen.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train honest engagement with opposing views by articulating the strongest version of the other side before your own.",
-      "hidden_skills": ["counterargument_awareness", "intellectual_honesty", "perspective_taking"],
+      "hidden_skills": [
+        "steel_manning",
+        "counterargument_awareness",
+        "perspective_taking",
+        "intellectual_honesty"
+      ],
       "scoring_lens": "Constraint: the response must seriously engage the strongest opposing view before its own. Strawman framing drags thinking_quality.",
       "coach_insight": "Argue the other side so well a true believer would say 'exactly.' The trap is a polite one-line summary followed by 'but obviously...' — that's a strawman in a suit. Give their best point real airtime and let it land before you answer it.",
-      "secondary_core_skills": ["tone", "structure"],
+      "secondary_core_skills": [
+        "tone",
+        "structure"
+      ],
       "common_failure_modes": [
         "Compresses the opposing view into one dismissive sentence before pivoting to their own side",
         "Presents the opposition's weakest or most extreme version instead of its best argument",
@@ -66,25 +195,135 @@
       "scoring_emphasis": "Weight whether the opposing case would satisfy an actual proponent — judge its strength and airtime before assessing the speaker's own rebuttal.",
       "retry_objective": "Rebuild the opposing case at full strength — no strawman — before restating your own position.",
       "prompt_rules": "Generate genuinely two-sided debate prompts where a strong opposing case exists and the user likely holds a position. Frame the ask as arguing the side the user probably opposes first; each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Make the strongest case AGAINST remote work — even if you support it.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Steel man the argument that AI development should be paused for six months.", "difficulty": "core", "tags": ["tech", "ethics"] },
-        { "text": "Build the strongest case for raising the retirement age to 70.", "difficulty": "core", "tags": ["business", "ethics"] },
-        { "text": "Make the case for banning short-form video for anyone under 16.", "difficulty": "stretch", "tags": ["ethics", "current-events"] },
-        { "text": "Steel man someone who thinks crypto is a net negative for society.", "difficulty": "core", "tags": ["finance", "tech"] },
-        { "text": "Build the best argument against the company strategy you currently advocate for.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Steel man the position that college isn't worth it for most students today.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Argue convincingly that your favorite product should not exist.", "difficulty": "stretch", "tags": ["business", "personal"] },
-        { "text": "Make the strongest case for keeping a poor performer who's a culture pillar.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Steel man the view that index investing has gone too far.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Build the strongest case against using LLMs at work.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Argue that single-payer healthcare is a mistake — from the patient's perspective.", "difficulty": "core", "tags": ["healthcare", "ethics"] },
-        { "text": "Steel man the case for keeping the legacy system instead of rewriting.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Make the strongest argument for arranged marriage.", "difficulty": "stretch", "tags": ["personal", "ethics"] },
-        { "text": "Steel man the argument that startups should never have an HR department.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Argue that fasting is mostly placebo — even if you fast yourself.", "difficulty": "core", "tags": ["healthcare", "personal"] }
+        {
+          "text": "Make the strongest case AGAINST remote work — even if you support it.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Steel man the argument that AI development should be paused for six months.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Build the strongest case for raising the retirement age to 70.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Make the case for banning short-form video for anyone under 16.",
+          "difficulty": "stretch",
+          "tags": [
+            "ethics",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Steel man someone who thinks crypto is a net negative for society.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine you've been championing your company's current strategy. Build the best argument against it.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Steel man the position that college isn't worth it for most students today.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Argue convincingly that your favorite product should not exist.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "Make the strongest case for keeping a poor performer who's a culture pillar.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Steel man the view that index investing has gone too far.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Build the strongest case against using LLMs at work.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Argue that single-payer healthcare is a mistake — from the patient's perspective.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Steel man the case for keeping the legacy system instead of rewriting.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Make the strongest argument for arranged marriage.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Steel man the argument that startups should never have an HR department.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue that fasting is mostly placebo — even if you fast yourself.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -94,12 +333,21 @@
       "why": "Bypasses inherited assumptions; reveals what you actually believe.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train rebuilding an answer from fundamentals instead of repeating inherited assumptions.",
-      "hidden_skills": ["first_principles_reasoning", "depth_of_analysis"],
+      "hidden_skills": [
+        "first_principles_reasoning",
+        "mechanism_explanation",
+        "reasoning_chain_logic"
+      ],
       "scoring_lens": "Constraint: the answer must be rebuilt from fundamentals, not recited convention. Textbook answers and inherited assumptions presented as reasoning drag thinking_quality.",
       "coach_insight": "Real thinking shows when you question the obvious answer out loud — 'we say schools teach, but look at what they actually reward.' The trap is a polished textbook definition; smoothness here usually means the answer is borrowed.",
-      "secondary_core_skills": ["clarity", "structure"],
+      "secondary_core_skills": [
+        "clarity",
+        "structure"
+      ],
       "common_failure_modes": [
         "Recites the standard textbook answer with fluent confidence and never examines it",
         "Lists surface functions of the thing without asking which one is fundamental",
@@ -109,25 +357,134 @@
       "scoring_emphasis": "Reward visible reasoning-in-motion — moments where the speaker tests or discards a conventional answer — over how polished the final definition sounds.",
       "retry_objective": "Strip out the borrowed or conventional reasoning flagged in feedback and rebuild the answer from what is fundamentally true.",
       "prompt_rules": "Generate deceptively simple 'why does X exist / what is X for' questions about familiar institutions and practices, where the textbook answer is easy and the first-principles answer requires real thought. Keep prompts short and open; each must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Why do companies have org charts?", "difficulty": "intro", "tags": ["business", "leadership"] },
-        { "text": "What is a school for, actually?", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Why do we pay engineers more than teachers?", "difficulty": "core", "tags": ["business", "ethics"] },
-        { "text": "What is money? Answer without using the word currency.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Why does your company exist? Not the mission statement — the actual reason.", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "What's the point of a performance review? Build the answer from scratch.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Why do hospitals look the way they do?", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "What is code review really for? Not the textbook answer.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Why do we use email at work?", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "What is a board of directors fundamentally supposed to do?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Why do humans form romantic pairs at all?", "difficulty": "stretch", "tags": ["personal", "science"] },
-        { "text": "What is a brand, stripped of marketing jargon?", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Why do countries have borders? Build the answer from zero.", "difficulty": "stretch", "tags": ["ethics", "current-events"] },
-        { "text": "What is a meeting for? Define it from first principles.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Why do we have intellectual property law?", "difficulty": "core", "tags": ["ethics", "business"] },
-        { "text": "What is a unit test, fundamentally? Forget the framework.", "difficulty": "core", "tags": ["tech"] }
+        {
+          "text": "Why do companies have org charts?",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "What is a school for, actually?",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Why do we pay engineers more than teachers?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "ethics"
+          ]
+        },
+        {
+          "text": "What is money? Answer without using the word currency.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Why does your company exist? Not the mission statement — the actual reason.",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "What's the point of a performance review? Build the answer from scratch.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Why do hospitals look the way they do?",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "What is code review really for? Not the textbook answer.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Why do we use email at work?",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "What is a board of directors fundamentally supposed to do?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Why do humans form romantic pairs at all?",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "science"
+          ]
+        },
+        {
+          "text": "What is a brand, stripped of marketing jargon?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Why do countries have borders? Build the answer from zero.",
+          "difficulty": "stretch",
+          "tags": [
+            "ethics",
+            "current-events"
+          ]
+        },
+        {
+          "text": "What is a meeting for? Define it from first principles.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Why do we have intellectual property law?",
+          "difficulty": "core",
+          "tags": [
+            "ethics",
+            "business"
+          ]
+        },
+        {
+          "text": "What is a unit test, fundamentally? Forget the framework.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        }
       ]
     },
     {
@@ -137,12 +494,21 @@
       "why": "Surfaces stakes — every claim earns its place in the answer.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train developing every point to its implication so no statement is left without stakes.",
-      "hidden_skills": ["depth_of_analysis", "claim_support"],
+      "hidden_skills": [
+        "implication_drawing",
+        "depth_of_analysis",
+        "relevance_discipline"
+      ],
       "scoring_lens": "Constraint: every point must answer 'so what' before moving on. Listings without stakes drag thinking_quality.",
       "coach_insight": "After each point, answer the question your listener is silently asking: 'and that matters because...?' The trap is a tidy list that ends where the thinking should start — if a point changes nothing and demands nothing, push it or cut it.",
-      "secondary_core_skills": ["structure", "conciseness"],
+      "secondary_core_skills": [
+        "structure",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Delivers a flat inventory of facts or events with no stakes attached to any item",
         "Attaches an implication to the first point only, then reverts to bare listing",
@@ -152,25 +518,132 @@
       "scoring_emphasis": "Weight the depth of implications over the completeness of the recap — three points pushed to consequences beat six points merely reported.",
       "retry_objective": "Take the points that stopped at 'what' and push each one to 'so what' — the implication or action it demands.",
       "prompt_rules": "Generate recap, list, and summary-style prompts that tempt the user into flat listing without stakes — the trap is the prompt itself. Everyday professional reporting contexts work best; each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "List three things that went well this quarter.", "difficulty": "intro", "tags": ["business", "leadership"] },
-        { "text": "Walk me through your team's latest product launch.", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "Describe the features in your most recent release.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Recap the key takeaways from the last industry conference you attended.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Summarize your company's Q3 financial results.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Tell me about the new hires you made this year.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Walk through the patient outcomes from your hospital's last initiative.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "List the customer feedback themes from this month.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Describe what your team accomplished in the last sprint.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Summarize the curriculum changes at your school this year.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Walk me through the changes in your marketing strategy.", "difficulty": "core", "tags": ["business"] },
-        { "text": "List the AI tools your company has adopted in the last 12 months.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Describe how you spent your weekend working on your side project.", "difficulty": "stretch", "tags": ["personal", "creative"] },
-        { "text": "Recap the regulatory changes affecting your industry this year.", "difficulty": "stretch", "tags": ["business", "current-events"] },
-        { "text": "Tell me three things you read this week.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Summarize the user research interviews you ran last month.", "difficulty": "core", "tags": ["business", "tech"] }
+        {
+          "text": "List three things that went well this quarter.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine you're briefing an exec. Walk them through your team's latest product launch.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe the newest features in an app you use every day.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Recap the key takeaways from the last work-related talk or presentation you watched.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Imagine you're the CFO. Summarize your company's quarterly results for the board.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Imagine you run a team. Tell me about the new hires you made this year.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine you're a hospital administrator. Walk through the patient outcomes from your latest initiative.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Imagine you own customer support. List this month's feedback themes for your team.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Imagine you're a tech lead. Describe what your team accomplished in the last sprint.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine you're a teacher. Summarize this year's curriculum changes for a parent.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Imagine you lead marketing. Walk me through this year's changes to your strategy.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "List the AI tools your company has adopted in the last 12 months.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Describe how you spent your last free weekend.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Recap the regulatory changes affecting your industry this year.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Tell me three things you read this week.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Imagine you're a product researcher. Summarize last month's user interviews for your team.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        }
       ]
     },
     {
@@ -180,12 +653,21 @@
       "why": "Builds the muscle to inhabit another viewpoint, not just attack it.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train genuinely inhabiting a viewpoint that is not your own and extracting the insight it reveals.",
-      "hidden_skills": ["perspective_taking", "intellectual_honesty"],
+      "hidden_skills": [
+        "perspective_taking",
+        "steel_manning",
+        "synthesis"
+      ],
       "scoring_lens": "Constraint: the response must argue from inside the assigned perspective, not comment on it from the speaker's own seat. Breaking character or caricaturing the lens drags thinking_quality.",
       "coach_insight": "Speak as 'I', not 'they' — the CFO says 'I froze hiring because I watch our cash every day,' not 'the CFO probably worries about cash.' The trap is narrating the role from your own seat; commit to the chair and let its real pressures talk.",
-      "secondary_core_skills": ["tone", "clarity"],
+      "secondary_core_skills": [
+        "tone",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Describes the perspective in third person ('they would argue...') instead of speaking from inside it",
         "Breaks character mid-response to editorialize or signal personal disagreement",
@@ -195,25 +677,136 @@
       "scoring_emphasis": "Weight sustained immersion — whether the assigned seat's specific pressures and language hold from the first sentence to the last, not just in the opening.",
       "retry_objective": "Re-enter the assigned perspective fully — argue from inside it instead of commenting on it from your own seat.",
       "prompt_rules": "Generate prompts that name an explicit perspective the user must argue from — a role, seat, or worldview plausibly opposed to their own. The assigned lens should create real friction with the user's likely view; each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Defend the CFO's decision to freeze hiring — from the CFO's chair.", "difficulty": "core", "tags": ["finance", "leadership"] },
-        { "text": "Argue as the engineer being asked to ship before it's ready.", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Defend the customer who just churned — from their perspective.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue as the teacher whose classroom you'd never want to teach in.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Defend a return-to-office mandate — from the CEO's seat.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Argue as the nurse on a 12-hour shift, defending the slow process you'd reform.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Defend the journalist who wrote the story you hated.", "difficulty": "stretch", "tags": ["ethics", "current-events"] },
-        { "text": "Argue as a regulator pushing the rule your industry is fighting.", "difficulty": "core", "tags": ["business", "ethics"] },
-        { "text": "Defend the founder who took the acquisition you'd have refused.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Argue as the parent of the student whose teacher you'd fire.", "difficulty": "stretch", "tags": ["education", "personal"] },
-        { "text": "Defend the doctor who recommended the procedure you wouldn't have chosen.", "difficulty": "core", "tags": ["healthcare", "ethics"] },
-        { "text": "Argue as the politician you most disagree with — make their best speech.", "difficulty": "stretch", "tags": ["ethics", "current-events"] },
-        { "text": "Defend the artist whose work you can't stand.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Argue as the PM who killed the feature your team built.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Defend your partner's side of the last fight you had.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Argue as the investor who passed on your company.", "difficulty": "intro", "tags": ["business", "finance"] }
+        {
+          "text": "Defend the CFO's decision to freeze hiring — from the CFO's chair.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue as the engineer being asked to ship before it's ready.",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine a longtime customer just canceled your product. Defend their decision — from their seat.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue as the teacher whose classroom you'd never want to teach in.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Defend a return-to-office mandate — from the CEO's seat.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue as the nurse on a 12-hour shift, defending the slow process you'd reform.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Defend the journalist who wrote the story you hated.",
+          "difficulty": "stretch",
+          "tags": [
+            "ethics",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Argue as a regulator pushing the rule your industry is fighting.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Defend the founder who took the acquisition you'd have refused.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Imagine a teacher you'd want fired. Argue as a parent who insists that teacher should stay.",
+          "difficulty": "stretch",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "Defend the doctor who recommended the procedure you wouldn't have chosen.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Argue as the politician you most disagree with — make their best speech.",
+          "difficulty": "stretch",
+          "tags": [
+            "ethics",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Defend the artist whose work you can't stand.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Imagine a PM just killed the feature your team spent months building. Argue their side — as the PM.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Think of a recent disagreement with someone close to you. Defend their side as if it were your own.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Imagine you pitched a startup you believe in. Argue as the investor who passed on it.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        }
       ]
     },
     {
@@ -223,12 +816,21 @@
       "why": "Calibrated confidence — saying where you stop knowing is a power move.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train calibrated confidence by stating explicitly where your argument or prediction stops being reliable.",
-      "hidden_skills": ["intellectual_honesty", "claim_support"],
+      "hidden_skills": [
+        "scope_control",
+        "epistemic_humility",
+        "intellectual_honesty"
+      ],
       "scoring_lens": "Constraint: the response must state explicitly where its confidence ends. Predictions delivered without a named limit or uncertainty drag thinking_quality.",
       "coach_insight": "Strong forecasters split the answer: 'here's what I'm confident about, here's where I'm guessing.' The trap is hedging everything or hedging nothing — one named boundary ('past two years, I'm speculating') beats ten scattered maybes.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Delivers the whole prediction with uniform confidence and never marks where knowledge ends",
         "Sprinkles reflexive hedges ('maybe', 'I guess') throughout instead of drawing one clear boundary",
@@ -238,25 +840,133 @@
       "scoring_emphasis": "Weight the precision and placement of the confidence boundary — a specific, located limit counts more than generic disclaimers or the boldness of the forecast itself.",
       "retry_objective": "Restate the prediction with an explicit confidence boundary — what you know, what you are guessing, and where the line sits.",
       "prompt_rules": "Generate forecast and prediction prompts with genuine uncertainty — future-dated, partly unknowable questions where overconfidence is the natural failure. Each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Will AI replace software engineers in the next decade?", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Where will interest rates be in 18 months?", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Will your company exist in five years? Where does your confidence end?", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "Predict whether remote work share rises or falls by 2030.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Will electric vehicles cross 50% of new car sales in the US by 2032?", "difficulty": "core", "tags": ["business", "current-events"] },
-        { "text": "Forecast the next major shift in social media platforms.", "difficulty": "core", "tags": ["tech", "current-events"] },
-        { "text": "Will quantum computing meaningfully impact business by 2035?", "difficulty": "stretch", "tags": ["tech", "science"] },
-        { "text": "Predict the next big healthcare breakthrough.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Will the four-day workweek be standard by 2035?", "difficulty": "core", "tags": ["business"] },
-        { "text": "Forecast which industry will be most disrupted by AI agents in three years.", "difficulty": "stretch", "tags": ["tech", "business"] },
-        { "text": "Will universal basic income exist in any G7 country within 15 years?", "difficulty": "stretch", "tags": ["ethics", "current-events"] },
-        { "text": "Predict your own career trajectory five years out.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Will the next iPhone be a meaningful upgrade?", "difficulty": "intro", "tags": ["tech"] },
-        { "text": "Forecast whether your industry consolidates or fragments over the next decade.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Will K-12 schools still grade students by 2040?", "difficulty": "core", "tags": ["education"] },
-        { "text": "Predict the next recession's trigger.", "difficulty": "stretch", "tags": ["finance"] }
+        {
+          "text": "Will AI replace software engineers in the next decade?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Where will interest rates be in 18 months?",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Will your company exist in five years? Where does your confidence end?",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Predict whether remote work share rises or falls by 2030.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Will electric vehicles cross 50% of new car sales in the US by 2032?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Forecast the next major shift in social media platforms.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Will quantum computing meaningfully impact business by 2035?",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Predict the next big healthcare breakthrough.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Will the four-day workweek be standard by 2035?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Forecast which industry will be most disrupted by AI agents in three years.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Will universal basic income exist in any G7 country within 15 years?",
+          "difficulty": "stretch",
+          "tags": [
+            "ethics",
+            "current-events"
+          ]
+        },
+        {
+          "text": "Predict your own career trajectory five years out.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Will the next iPhone be a meaningful upgrade?",
+          "difficulty": "intro",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Forecast whether your industry consolidates or fragments over the next decade.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Will K-12 schools still grade students by 2040?",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Predict the next recession's trigger.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        }
       ]
     },
     {
@@ -266,12 +976,21 @@
       "why": "Most disagreements are about assumptions, not conclusions. Surface them.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train surfacing the load-bearing assumption underneath a recommendation before delivering the conclusion.",
-      "hidden_skills": ["first_principles_reasoning", "intellectual_honesty"],
+      "hidden_skills": [
+        "assumption_transparency",
+        "first_principles_reasoning",
+        "reasoning_chain_logic"
+      ],
       "scoring_lens": "Constraint: the load-bearing assumption must be surfaced before the conclusion. Recommendations whose assumptions stay hidden drag thinking_quality.",
       "coach_insight": "Say the bet out loud before the pitch: 'this only works if enterprise buyers behave like our SMB customers do.' The trap is selling benefits — the pitch is the easy part; naming the one assumption that could sink it is the exercise.",
-      "secondary_core_skills": ["structure", "clarity"],
+      "secondary_core_skills": [
+        "structure",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Argues the recommendation's benefits and never surfaces any assumption at all",
         "Names a trivial or safe assumption while the real load-bearing bet stays hidden",
@@ -281,25 +1000,132 @@
       "scoring_emphasis": "Weight whether the surfaced assumption is genuinely load-bearing — the one the conclusion collapses without — and whether it arrives before the pitch, not after.",
       "retry_objective": "Name the hidden assumption the first attempt built on, then show how the conclusion depends on it.",
       "prompt_rules": "Generate recommendation and advocacy prompts ('argue we should X') whose case silently rests on one or two big assumptions — market, people, or timing bets the user must surface. Each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "Argue we should expand to Europe next year.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Make the case for rewriting the codebase in a new language.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Argue that your team needs to double headcount.", "difficulty": "intro", "tags": ["business", "leadership"] },
-        { "text": "Make the case to acquire your top competitor.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Argue that the company should go public next year.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Make the case for switching the company's pricing model to usage-based.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue we should sunset our most-used legacy feature.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Make the case for moving your headquarters out of the city.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue that your school should drop letter grades entirely.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Make the case for a hospital to adopt AI-led triage.", "difficulty": "stretch", "tags": ["healthcare", "tech"] },
-        { "text": "Argue we should kill the marketing team and replace it with content creators.", "difficulty": "stretch", "tags": ["business", "creative"] },
-        { "text": "Make the case to invest your company's cash reserves in equities.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Argue that your product needs to be free for the first year.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Make the case to merge two teams that have always operated separately.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Argue we should outsource customer support to AI agents this year.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Make the case for moving in with your partner after six months.", "difficulty": "intro", "tags": ["personal"] }
+        {
+          "text": "Argue we should expand to Europe next year.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case for rewriting the codebase in a new language.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Argue that your team needs to double headcount.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make the case to acquire your top competitor.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Argue that the company should go public next year.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Make the case for switching the company's pricing model to usage-based.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue we should sunset our most-used legacy feature.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case for moving your headquarters out of the city.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue that schools should drop letter grades entirely.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Make the case for a hospital to adopt AI-led triage.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "tech"
+          ]
+        },
+        {
+          "text": "Argue we should kill the marketing team and replace it with content creators.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Make the case to invest your company's cash reserves in equities.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Argue that a new product should be free for its entire first year.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case to merge two teams that have always operated separately.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue we should outsource customer support to AI agents this year.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case for moving in with a partner after only six months together.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -309,12 +1135,21 @@
       "why": "Proof you've actually thought about the other side, not just dismissed it.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train falsifiable thinking by stating concretely what evidence would change your mind.",
-      "hidden_skills": ["intellectual_honesty", "counterargument_awareness"],
+      "hidden_skills": [
+        "intellectual_honesty",
+        "epistemic_humility",
+        "counterargument_awareness"
+      ],
       "scoring_lens": "Constraint: the response must name concrete, observable evidence that would change the speaker's mind. Vague or unfalsifiable disconfirmers drag thinking_quality.",
       "coach_insight": "Name evidence you could actually see: 'if churn rises two quarters straight after we go remote, I'm wrong.' The trap is defending the belief or vague outs like 'strong evidence would sway me' — that's a test nothing can fail.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Spends the response defending the belief instead of naming what would disprove it",
         "Offers unfalsifiable disconfirmers ('if it stopped working', 'overwhelming evidence') no observation could trigger",
@@ -324,25 +1159,133 @@
       "scoring_emphasis": "Weight how observable and realistic the disconfirming evidence is — could a third party check it and call the flip — rather than how well the belief itself is argued.",
       "retry_objective": "Replace vague disconfirmers with specific, observable evidence that would actually flip the belief.",
       "prompt_rules": "Generate 'you believe X — what would prove you wrong?' prompts anchored in beliefs the user plausibly holds about work, money, or life. The prompt must demand disconfirming evidence, not a defense of the belief; each prompt must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "You believe remote work makes teams more productive — what would prove you wrong?", "difficulty": "core", "tags": ["business"] },
-        { "text": "You think your company's strategy is the right one. What evidence would flip you?", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You believe LLMs will keep getting smarter. What would make you stop believing that?", "difficulty": "core", "tags": ["tech"] },
-        { "text": "You think your best engineer is irreplaceable. What would change your mind?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "You believe index funds beat active managers. What data would shake that?", "difficulty": "core", "tags": ["finance"] },
-        { "text": "You think a college degree is worth the cost. What would convince you it isn't?", "difficulty": "intro", "tags": ["education"] },
-        { "text": "You believe your hiring bar is high enough. What would prove it isn't?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "You think your relationship is healthy. What would tell you it isn't?", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "You believe nuclear power is safe. What event or finding would change that?", "difficulty": "core", "tags": ["science", "ethics"] },
-        { "text": "You think your product is loved by users. What would tell you it isn't?", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "You believe the housing market in your city is overvalued. What would prove you wrong?", "difficulty": "core", "tags": ["finance"] },
-        { "text": "You think you'd be a good founder. What evidence would tell you you wouldn't?", "difficulty": "stretch", "tags": ["personal", "business"] },
-        { "text": "You believe your parenting approach is working. What would tell you it's not?", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "You think AI is a bubble. What would tell you it's not?", "difficulty": "core", "tags": ["tech", "finance"] },
-        { "text": "You believe your favorite leader is the right one for the country. What would change that?", "difficulty": "stretch", "tags": ["current-events", "ethics"] },
-        { "text": "You think your diet is healthy. What evidence would make you change it?", "difficulty": "intro", "tags": ["healthcare", "personal"] }
+        {
+          "text": "You believe remote work makes teams more productive — what would prove you wrong?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You think your company's strategy is the right one. What evidence would flip you?",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You believe LLMs will keep getting smarter. What would make you stop believing that?",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You think your team's star performer is irreplaceable. What would change your mind?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You believe index funds beat active managers. What data would shake that?",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "You think a college degree is worth the cost. What would convince you it isn't?",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "You believe your team's hiring bar is high enough. What would prove it isn't?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You think a close relationship in your life is healthy. What would tell you it isn't?",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You believe nuclear power is safe. What event or finding would change that?",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "ethics"
+          ]
+        },
+        {
+          "text": "Imagine you've built a product you believe users love. What would tell you they don't?",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "You believe the housing market in your city is overvalued. What would prove you wrong?",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "You think you'd be a good founder. What evidence would tell you you wouldn't?",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "business"
+          ]
+        },
+        {
+          "text": "You believe the way you were raised was good parenting. What would tell you it wasn't?",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You think AI is a bubble. What would tell you it's not?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "finance"
+          ]
+        },
+        {
+          "text": "You believe your favorite leader is the right one for the country. What would change that?",
+          "difficulty": "stretch",
+          "tags": [
+            "current-events",
+            "ethics"
+          ]
+        },
+        {
+          "text": "You think your diet is healthy. What evidence would make you change it?",
+          "difficulty": "intro",
+          "tags": [
+            "healthcare",
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -352,12 +1295,21 @@
       "why": "Forces real estimation. Vague quantifiers are a thinking-quality tell.",
       "default_difficulty": "core",
       "ordering": 9,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train committing to a concrete numerical estimate and showing the reasoning path behind it.",
-      "hidden_skills": ["first_principles_reasoning", "claim_support"],
+      "hidden_skills": [
+        "probabilistic_thinking",
+        "reasoning_chain_logic",
+        "lexical_specificity"
+      ],
       "scoring_lens": "Constraint: the response must commit to a specific number and show the estimation path. Vague quantifiers (many, some, a lot) drag thinking_quality.",
       "coach_insight": "Commit to a number early, then show your math out loud: 'call it 40 engineers — roughly one per million of ARR, plus a platform team.' The trap is talking around it; 'it depends' and 'quite a few' are exactly what this rep exists to kill.",
-      "secondary_core_skills": ["conciseness", "clarity"],
+      "secondary_core_skills": [
+        "conciseness",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Never commits to a number, hiding behind 'it depends' or vague quantifiers like 'a lot'",
         "States a number with no visible estimation path — a guess dressed up as an answer",
@@ -367,25 +1319,134 @@
       "scoring_emphasis": "Weight the reasoning chain from anchor to answer — a defensible path to an imperfect number scores above a lucky number with no visible path.",
       "retry_objective": "Replace the vague quantifiers with a committed number and walk the estimation steps that produce it.",
       "prompt_rules": "Generate 'how many / how much' estimation questions with no easily lookup-able answer, where a defensible order-of-magnitude number must be reasoned out loud. Prompts should be answerable only by committing to a number, never by 'it depends' alone; each must suit a 75-120 second spoken response.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "How many engineers does a company need to ship and maintain a SaaS product at $50M ARR?", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "How much should a Series A startup spend on marketing in year one?", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "How many hours per week does your average knowledge worker actually focus?", "difficulty": "intro", "tags": ["business"] },
-        { "text": "How big a market does an early-stage VC need to see to invest?", "difficulty": "core", "tags": ["finance"] },
-        { "text": "How many users does a consumer app need before it's worth monetizing?", "difficulty": "intro", "tags": ["tech", "business"] },
-        { "text": "How much should a hospital spend on cybersecurity per bed per year?", "difficulty": "stretch", "tags": ["healthcare", "tech"] },
-        { "text": "How many students per teacher is the right ratio in a public high school?", "difficulty": "intro", "tags": ["education"] },
-        { "text": "How many parameters does an LLM need to be useful for a business?", "difficulty": "core", "tags": ["tech"] },
-        { "text": "How much runway should a startup keep before raising again?", "difficulty": "intro", "tags": ["business", "finance"] },
-        { "text": "How long does it take a new exec to become net positive?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "How many one-on-ones should a manager run per week before burning out?", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "How much electricity does a single ChatGPT query use compared to a Google search?", "difficulty": "stretch", "tags": ["tech", "science"] },
-        { "text": "How many doctors does a city of one million people actually need?", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "How much should you save by age 40 to retire at 65?", "difficulty": "core", "tags": ["finance", "personal"] },
-        { "text": "How many product features should ship in a year for a 50-person startup?", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "How many dates before you know if it's a real relationship?", "difficulty": "intro", "tags": ["personal"] }
+        {
+          "text": "How many engineers does a company need to ship and maintain a SaaS product at $50M ARR?",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "How much should a Series A startup spend on marketing in year one?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "How many hours per week does your average knowledge worker actually focus?",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "How big a market does an early-stage VC need to see to invest?",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "How many users does a consumer app need before it's worth monetizing?",
+          "difficulty": "intro",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "How much should a hospital spend on cybersecurity per bed per year?",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "tech"
+          ]
+        },
+        {
+          "text": "How many students per teacher is the right ratio in a public high school?",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "How many parameters does an LLM need to be useful for a business?",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "How much runway should a startup keep before raising again?",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "How long does it take a new exec to become net positive?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "How many one-on-ones should a manager run per week before burning out?",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "How much electricity does a single ChatGPT query use compared to a Google search?",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "How many doctors does a city of one million people actually need?",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "How much should you save by age 40 to retire at 65?",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal"
+          ]
+        },
+        {
+          "text": "How many product features should ship in a year for a 50-person startup?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "How many dates before you know if it's a real relationship?",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     }
   ]

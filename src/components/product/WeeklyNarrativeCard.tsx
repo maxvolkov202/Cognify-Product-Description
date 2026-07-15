@@ -116,16 +116,16 @@ export function WeeklyNarrativeCard() {
   if (loading && !payload) {
     return (
       <div className="surface-card animate-pulse p-5">
-        <div className="h-3 w-24 rounded bg-ink-100" />
-        <div className="mt-3 h-4 w-3/4 rounded bg-ink-100" />
-        <div className="mt-2 h-4 w-1/2 rounded bg-ink-100" />
+        <div className="h-3 w-24 rounded bg-ink-100 dark:bg-ink-800" />
+        <div className="mt-3 h-4 w-3/4 rounded bg-ink-100 dark:bg-ink-800" />
+        <div className="mt-2 h-4 w-1/2 rounded bg-ink-100 dark:bg-ink-800" />
       </div>
     );
   }
   if (!payload) {
     return (
       <div className="surface-card p-5">
-        <p className="text-sm text-ink-500">
+        <p className="text-sm text-ink-500 dark:text-ink-400">
           Weekly recap unavailable.{" "}
           <button
             type="button"
@@ -151,7 +151,7 @@ export function WeeklyNarrativeCard() {
             <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-purple">
               This week · {formatRange(summary.weekStartISO, summary.weekEndISO)}
             </p>
-            <h2 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900 md:text-2xl">
+            <h2 className="mt-2 text-xl font-extrabold tracking-tight text-ink-900 md:text-2xl dark:text-white">
               <Sparkles
                 className="-mt-1 mr-1.5 inline-block size-4 text-brand-purple"
                 aria-hidden="true"
@@ -164,7 +164,7 @@ export function WeeklyNarrativeCard() {
             onClick={() => fetchNarrative(true)}
             disabled={loading}
             aria-label="Regenerate weekly narrative"
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-500 transition hover:border-ink-300 hover:text-ink-900 disabled:opacity-40"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-500 transition hover:border-ink-300 hover:text-ink-900 disabled:opacity-40 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-400 dark:hover:border-ink-600 dark:hover:text-white"
           >
             <RefreshCw
               className={cn("size-3.5", loading && "animate-spin")}
@@ -172,30 +172,32 @@ export function WeeklyNarrativeCard() {
             />
           </button>
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-ink-800">
+        <p className="mt-4 text-sm leading-relaxed text-ink-800 dark:text-ink-200">
           {narrative.paragraph}
         </p>
 
         {summary.repCount > 0 && (
-          <div className="mt-5 flex flex-wrap gap-3 border-t border-ink-200/70 pt-4">
+          <div className="mt-5 flex flex-wrap gap-3 border-t border-ink-200/70 pt-4 dark:border-ink-700/70">
             {summary.dimensions
               .filter((d) => d.avg !== null)
               .map((d) => (
                 <div
                   key={d.dimension}
-                  className="flex items-baseline gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-[11px]"
+                  className="flex items-baseline gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-[11px] dark:bg-ink-800"
                 >
-                  <span className="font-semibold text-ink-700">
+                  <span className="font-semibold text-ink-700 dark:text-ink-300">
                     {DIMENSION_LABELS[d.dimension]}
                   </span>
-                  <span className="font-mono tabular-nums text-ink-900">
+                  <span className="font-mono tabular-nums text-ink-900 dark:text-white">
                     {d.avg}
                   </span>
                   {d.delta !== null && d.delta !== 0 && (
                     <span
                       className={cn(
                         "font-mono text-[10px] tabular-nums",
-                        d.delta > 0 ? "text-emerald-600" : "text-rose-600",
+                        d.delta > 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400",
                       )}
                     >
                       {d.delta > 0 ? `+${d.delta}` : d.delta}
@@ -206,9 +208,9 @@ export function WeeklyNarrativeCard() {
           </div>
         )}
 
-        <div className="mt-5 flex items-start gap-2 rounded-xl bg-brand-purple/5 px-4 py-3">
+        <div className="mt-5 flex items-start gap-2 rounded-xl bg-brand-purple/5 px-4 py-3 dark:bg-brand-purple/10">
           <ArrowRight className="mt-0.5 size-4 shrink-0 text-brand-purple" />
-          <p className="text-sm font-semibold text-ink-800">
+          <p className="text-sm font-semibold text-ink-800 dark:text-ink-200">
             {narrative.nextFocus}
           </p>
         </div>

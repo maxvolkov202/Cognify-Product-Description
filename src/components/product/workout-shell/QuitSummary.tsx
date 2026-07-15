@@ -10,6 +10,8 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
 
 export type QuitSummaryProps = {
@@ -44,6 +46,8 @@ export default function QuitSummary({
 }: QuitSummaryProps) {
   const dimLabel = dimension ? MUSCLE_GROUP_LABELS[dimension] : null;
   const tip = dimension ? REAL_LIFE_TIPS[dimension] : null;
+  // Quiet Cognify accent — one dim-gradient hairline on the tip card.
+  const theme = dimension ? DIM_THEMES[dimension] : null;
 
   return (
     <div
@@ -63,7 +67,16 @@ export default function QuitSummary({
       </p>
 
       {tip && (
-        <div className="mt-1 rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4 max-w-md">
+        <div className="relative overflow-hidden mt-1 rounded-xl border border-purple-200 dark:border-brand-lavender/30 bg-purple-50/60 dark:bg-ink-800 p-4 max-w-md">
+          {theme && (
+            <div
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r opacity-80",
+                theme.tile,
+              )}
+            />
+          )}
           <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-brand-lavender mb-1">
             Take it into the real world
           </div>
@@ -73,7 +86,11 @@ export default function QuitSummary({
 
       <Link
         href="/dashboard"
-        className="mt-2 min-h-[44px] px-5 py-2.5 rounded-xl font-semibold bg-pink-500 hover:bg-pink-400 text-white inline-flex items-center"
+        className={cn(
+          "mt-2 min-h-[44px] px-5 py-2.5 rounded-xl font-semibold inline-flex items-center",
+          "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
+        )}
       >
         Back to dashboard
       </Link>

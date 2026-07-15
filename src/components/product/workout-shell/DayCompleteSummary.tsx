@@ -7,13 +7,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -21,6 +15,8 @@ import {
   Mic,
   Sparkles,
 } from "lucide-react";
+import CelebrationSparkles from "./CelebrationSparkles";
+import CountUpScore from "./CountUpScore";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { softenScoreDelta } from "@/lib/ai/coach-focus";
 import {
@@ -28,6 +24,7 @@ import {
   type ApplicationId,
 } from "@/types/application-skills";
 import { cn } from "@/lib/utils/cn";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import {
   DIMENSION_LABELS,
   MUSCLE_GROUP_LABELS,
@@ -106,15 +103,27 @@ export default function DayCompleteSummary({
   const gradReps = reps.filter((r) => r.isGraduationRep);
   const legacyReps = reps.filter((r) => !r.exerciseId && !r.isGraduationRep);
 
+  // Cognify treatment — single source for the day's dim identity.
+  const theme = DIM_THEMES[dim];
+
   return (
-    <div className="space-y-5">
+    // Ambient dim-tinted glow painted as the container's own background so
+    // it sits beneath every card without touching stacking or layout.
+    <div className="space-y-5" style={{ backgroundImage: theme.ambient }}>
       {/* Hero — celebratory framing per PRD §5.7 + Hunter C16. */}
       <div className="relative text-center">
         <CelebrationSparkles />
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender">
           🎉 {MUSCLE_GROUP_LABELS[dim]} day complete
         </div>
-        <div className="mt-2 text-6xl sm:text-7xl font-extrabold text-slate-900 dark:text-white leading-none tabular-nums">
+        {/* Gradient hero score — the one bg-clip-text headline on screen. */}
+        <div
+          className={cn(
+            "mt-2 text-6xl sm:text-7xl font-extrabold leading-none tabular-nums",
+            "bg-gradient-to-br bg-clip-text text-transparent",
+            theme.scoreGradient,
+          )}
+        >
           {composite != null ? <CountUpScore value={Math.round(composite)} /> : "—"}
         </div>
         <div className="mt-1 text-xs text-slate-500 dark:text-ink-400 uppercase tracking-wider">
@@ -195,7 +204,15 @@ export default function DayCompleteSummary({
           exercise; reps with no exercise (legacy data) keep the flat
           mini-bars. */}
       {reps.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          {/* Dim-gradient hairline across the card top. */}
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+              theme.tile,
+            )}
+          />
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-3">
             Today&apos;s reps
           </div>
@@ -255,7 +272,15 @@ export default function DayCompleteSummary({
 
       {/* Per-dim trend line */}
       {reps.length >= 2 && (
-        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          {/* Dim-gradient hairline across the card top. */}
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+              theme.tile,
+            )}
+          />
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-2">
             Per-dimension trend
           </div>
@@ -318,12 +343,17 @@ export default function DayCompleteSummary({
       {/* §5.7 — Reps Earned is the completion structure's FINAL element
           (C17: with all-time reps + streak). */}
       <div className="flex justify-center gap-3 text-center">
-        <StatPill label="Reps today" value={reps.length} />
+        <StatPill label="Reps today" value={reps.length} tile={theme.tile} />
         {lifetimeReps != null && (
-          <StatPill label="All-time reps" value={lifetimeReps} />
+          <StatPill label="All-time reps" value={lifetimeReps} tile={theme.tile} />
         )}
         {streakDays != null && streakDays > 0 && (
-          <StatPill label="Day streak" value={streakDays} emoji="🔥" />
+          <StatPill
+            label="Day streak"
+            value={streakDays}
+            emoji="🔥"
+            tile={theme.tile}
+          />
         )}
       </div>
 
@@ -353,70 +383,6 @@ export default function DayCompleteSummary({
           Back to dashboard
         </Link>
       </div>
-    </div>
-  );
-}
-
-/** Final Communication Score count-up (§5.7 celebration). Mirrors the
- *  CompositeScore idiom: motion value + rounded transform, instant when
- *  the user prefers reduced motion. */
-function CountUpScore({ value }: { value: number }) {
-  const reduced = useReducedMotion();
-  const motionValue = useMotionValue(reduced ? value : 0);
-  const rounded = useTransform(motionValue, (v) => Math.round(v));
-
-  useEffect(() => {
-    if (reduced) {
-      motionValue.set(value);
-      return;
-    }
-    const controls = animate(motionValue, value, {
-      duration: 0.9,
-      ease: [0.32, 0.72, 0, 1],
-    });
-    return controls.stop;
-  }, [value, motionValue, reduced]);
-
-  return <motion.span>{rounded}</motion.span>;
-}
-
-/** One-time floating sparkles behind the hero score. Pure CSS animation
- *  (.animate-sparkle plays once, forwards); the reduced-motion guard in
- *  globals.css keeps them invisible when motion is off. Brand palette
- *  only — no new colors. */
-const SPARKLES: {
-  left: string;
-  top: string;
-  size: number;
-  delay: number;
-  color: string;
-}[] = [
-  { left: "18%", top: "38%", size: 6, delay: 0.1, color: "var(--color-brand-lavender)" },
-  { left: "30%", top: "62%", size: 4, delay: 0.45, color: "var(--color-brand-blue)" },
-  { left: "40%", top: "24%", size: 5, delay: 0.8, color: "var(--color-brand-magenta)" },
-  { left: "58%", top: "20%", size: 4, delay: 0.3, color: "var(--color-brand-purple)" },
-  { left: "68%", top: "58%", size: 6, delay: 0.6, color: "var(--color-brand-lavender)" },
-  { left: "78%", top: "34%", size: 4, delay: 0.15, color: "var(--color-brand-magenta)" },
-  { left: "86%", top: "56%", size: 5, delay: 0.95, color: "var(--color-brand-blue)" },
-];
-
-function CelebrationSparkles() {
-  return (
-    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      {SPARKLES.map((s, i) => (
-        <span
-          key={i}
-          className="animate-sparkle absolute rounded-full"
-          style={{
-            left: s.left,
-            top: s.top,
-            width: s.size,
-            height: s.size,
-            backgroundColor: s.color,
-            animationDelay: `${s.delay}s`,
-          }}
-        />
-      ))}
     </div>
   );
 }
@@ -701,13 +667,25 @@ function StatPill({
   label,
   value,
   emoji,
+  tile,
 }: {
   label: string;
   value: number;
   emoji?: string;
+  /** Dim-gradient hairline classes (decorative, from DIM_THEMES). */
+  tile?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 shadow-sm">
+    <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 shadow-sm">
+      {tile && (
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r opacity-80",
+            tile,
+          )}
+        />
+      )}
       <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums leading-tight">
         {emoji ? `${emoji} ` : ""}
         {value.toLocaleString()}

@@ -9,6 +9,7 @@ import {
   type SkillScenario,
 } from "@/content/skill-scenarios";
 import { MUSCLE_GROUP_LABELS, type MuscleGroupId } from "@/types/domain";
+import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -33,6 +34,7 @@ type Props = {
 export default function SkillScenariosCard({ dim }: Props) {
   const scenarios = SKILL_SCENARIOS[dim] ?? [];
   const dimLabel = MUSCLE_GROUP_LABELS[dim];
+  const theme = DIM_THEMES[dim];
   // Always start collapsed — the card is opt-in regardless of whether
   // the user has seen it before. localStorage only controls the label
   // copy (first-time nudge vs. familiar phrasing).
@@ -81,6 +83,7 @@ export default function SkillScenariosCard({ dim }: Props) {
         onClick={toggle}
         className={cn(
           "flex w-full min-h-[44px] items-center gap-2 rounded-2xl border px-4 py-2.5 text-left transition-colors",
+          "hover:shadow-md motion-safe:transition-[color,background-color,border-color,box-shadow,translate] motion-safe:hover:-translate-y-0.5",
           open
             ? "border-brand-purple/40 bg-brand-purple/5 dark:border-brand-purple/50 dark:bg-brand-purple/15"
             : "border-ink-200 bg-white hover:border-ink-300 dark:border-ink-700 dark:bg-ink-900 dark:hover:border-ink-600",
@@ -114,9 +117,23 @@ export default function SkillScenariosCard({ dim }: Props) {
             transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-2 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm dark:border-ink-700 dark:bg-ink-900">
+            <div className="relative mt-2 overflow-hidden rounded-2xl border border-ink-200 bg-white p-5 shadow-sm dark:border-ink-700 dark:bg-ink-900">
+              {/* Dim-gradient hairline across the card top. */}
+              <div
+                aria-hidden
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r",
+                  theme.tile,
+                )}
+              />
               <div className="flex items-start gap-3">
-                <div className="brand-gradient grid size-9 shrink-0 place-items-center rounded-xl">
+                <div
+                  className={cn(
+                    "grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br shadow-md",
+                    theme.tile,
+                    theme.glow,
+                  )}
+                >
                   <Sparkles
                     className="size-4 text-white"
                     strokeWidth={2.5}

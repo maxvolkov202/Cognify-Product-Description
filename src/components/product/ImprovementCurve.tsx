@@ -69,12 +69,12 @@ export function ImprovementCurve({
     return (
       <div className="surface-card p-8">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-extrabold text-ink-900">
+          <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">
             Improvement curve
           </h2>
           <RangeTabs range={range} onChange={setRange} />
         </div>
-        <p className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center text-sm text-ink-500">
+        <p className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center text-sm text-ink-500 dark:border-ink-700 dark:text-ink-400">
           Needs at least 2 days of reps. Keep training — the curve fills in.
         </p>
       </div>
@@ -142,10 +142,10 @@ export function ImprovementCurve({
       <div className="p-8">
         <div className="flex items-baseline justify-between">
           <div>
-            <h2 className="text-xl font-extrabold text-ink-900">
+            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">
               Improvement curve
             </h2>
-            <p className="mt-1 text-xs text-ink-500">
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
               Daily composite score · all reps, all dimensions averaged
             </p>
           </div>
@@ -202,7 +202,7 @@ export function ImprovementCurve({
                 y1={yAt(g)}
                 y2={yAt(g)}
                 stroke="currentColor"
-                className="text-ink-100"
+                className="text-ink-100 dark:text-ink-800"
                 strokeWidth={1}
               />
               <text
@@ -225,7 +225,7 @@ export function ImprovementCurve({
                 y1={yAt(baselineComposite)}
                 y2={yAt(baselineComposite)}
                 stroke="currentColor"
-                className="text-ink-300"
+                className="text-ink-300 dark:text-ink-600"
                 strokeWidth={1.5}
                 strokeDasharray="4 3"
               />
@@ -233,7 +233,7 @@ export function ImprovementCurve({
                 x={W - PAD_R}
                 y={yAt(baselineComposite) - 4}
                 textAnchor="end"
-                className="fill-ink-500 text-[10px] font-semibold"
+                className="fill-ink-500 text-[10px] font-semibold dark:fill-ink-400"
               >
                 baseline {baselineComposite}
               </text>
@@ -243,8 +243,8 @@ export function ImprovementCurve({
           {/* Area fill under the line */}
           <defs>
             <linearGradient id="ic-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgb(139 92 246)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="rgb(139 92 246)" stopOpacity="0" />
+              <stop offset="0%" stopColor="#b072ff" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#b072ff" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path d={areaPath} fill="url(#ic-fill)" />
@@ -253,7 +253,7 @@ export function ImprovementCurve({
           <path
             d={linePath}
             fill="none"
-            stroke="rgb(139 92 246)"
+            stroke="#b072ff"
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -263,7 +263,7 @@ export function ImprovementCurve({
           {ciBandPath && (
             <path
               d={ciBandPath}
-              fill="rgb(236 72 153)"
+              fill="#e77cf0"
               fillOpacity={0.12}
               stroke="none"
             />
@@ -275,7 +275,7 @@ export function ImprovementCurve({
             y1={trendStart.y}
             x2={trendEnd.x}
             y2={trendEnd.y}
-            stroke="rgb(236 72 153)"
+            stroke="#e77cf0"
             strokeWidth={1.8}
             strokeDasharray="5 4"
             opacity={0.75}
@@ -288,8 +288,9 @@ export function ImprovementCurve({
               cx={xAt(i)}
               cy={yAt(p.composite)}
               r={i === peakIdx ? 5 : 3}
-              fill={i === peakIdx ? "rgb(236 72 153)" : "white"}
-              stroke="rgb(139 92 246)"
+              fill={i === peakIdx ? "#e77cf0" : "currentColor"}
+              className={i === peakIdx ? undefined : "text-white dark:text-ink-900"}
+              stroke="#b072ff"
               strokeWidth={1.5}
             >
               <title>
@@ -306,14 +307,14 @@ export function ImprovementCurve({
               x2={xAt(peakIdx)}
               y1={yAt(peakPoint.composite) - 14}
               y2={yAt(peakPoint.composite) - 6}
-              stroke="rgb(236 72 153)"
+              stroke="#e77cf0"
               strokeWidth={1.2}
             />
             <text
               x={xAt(peakIdx)}
               y={yAt(peakPoint.composite) - 18}
               textAnchor="middle"
-              className="fill-pink-600 text-[10px] font-bold"
+              className="fill-[#e77cf0] text-[10px] font-bold"
             >
               peak {peakPoint.composite}
             </text>
@@ -335,7 +336,7 @@ export function ImprovementCurve({
           )}
         </svg>
 
-        <p className="mt-4 text-[11px] leading-relaxed text-ink-500">
+        <p className="mt-4 text-[11px] leading-relaxed text-ink-500 dark:text-ink-400">
           Solid line = daily avg composite. Dashed pink = fitted trajectory.
           Pink band = 95% confidence interval on that trajectory — narrow
           band means your improvement is steady; wide band means your
@@ -361,7 +362,7 @@ function RangeTabs({
   onChange: (r: 30 | 60 | 90) => void;
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-ink-50 p-1">
+    <div className="inline-flex items-center gap-1 rounded-full bg-ink-50 p-1 dark:bg-ink-800">
       {([30, 60, 90] as const).map((r) => (
         <button
           key={r}
@@ -370,7 +371,7 @@ function RangeTabs({
           className={
             r === range
               ? "brand-gradient rounded-full px-3 py-1 text-[11px] font-bold text-white"
-              : "rounded-full px-3 py-1 text-[11px] font-semibold text-ink-500 hover:text-ink-900"
+              : "rounded-full px-3 py-1 text-[11px] font-semibold text-ink-500 hover:text-ink-900 dark:text-ink-400 dark:hover:text-white"
           }
         >
           {r}d
@@ -391,10 +392,10 @@ function Stat({
 }) {
   const color =
     accent === "positive"
-      ? "text-emerald-700"
+      ? "text-emerald-700 dark:text-emerald-400"
       : accent === "warn"
-        ? "text-amber-700"
-        : "text-ink-900";
+        ? "text-amber-700 dark:text-amber-400"
+        : "text-ink-900 dark:text-white";
   return (
     <div>
       <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">

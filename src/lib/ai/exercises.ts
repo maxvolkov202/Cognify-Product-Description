@@ -67,7 +67,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Strip the jargon, name a concrete picture.",
     description:
       "Take any concept and explain it to a smart 12-year-old. Forces concrete language, audience-appropriate vocabulary, and clean pronoun resolution.",
-    targetSubSkills: ["audience_awareness", "word_choice"],
+    targetSubSkills: ["audience_calibration", "vocabulary_precision"],
     dimension: "clarity",
   },
   one_idea_only: {
@@ -76,7 +76,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Land one thing — no second thoughts allowed.",
     description:
       "Give a 60-second answer that contains exactly one idea. Anytime you start to introduce a second, redirect back to the first.",
-    targetSubSkills: ["idea_isolation", "logical_sequencing"],
+    targetSubSkills: ["idea_isolation", "listener_first_sequencing"],
     dimension: "clarity",
   },
   concrete_swap: {
@@ -85,7 +85,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Every abstract noun gets a real example.",
     description:
       "Whenever you say an abstract noun (innovation, alignment, growth), follow it within one sentence with a specific concrete example.",
-    targetSubSkills: ["concreteness", "precision"],
+    targetSubSkills: ["concreteness", "lexical_specificity"],
     dimension: "clarity",
   },
 
@@ -125,7 +125,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Same point. Half the runtime.",
     description:
       "Take a topic you'd normally talk about for 60 seconds. Land it in 30. Cut anything that doesn't move the argument.",
-    targetSubSkills: ["response_scoping", "editing_in_real_time"],
+    targetSubSkills: ["response_scoping", "real_time_editing"],
     dimension: "conciseness",
   },
   filler_diet: {
@@ -134,7 +134,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Zero ums, zero likes, for the whole rep.",
     description:
       "60 seconds with no fillers — no um, uh, like, you know, basically. Pause silently instead. Repetition rewires the reflex.",
-    targetSubSkills: ["filler_elimination"],
+    targetSubSkills: ["filler_reduction"],
     dimension: "conciseness",
   },
   no_hedge_minute: {
@@ -143,7 +143,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Drop the I think / I guess / kind of.",
     description:
       "60 seconds with no hedge words — no I think, I guess, kind of, sort of, maybe. State claims directly. Repetition trains conviction.",
-    targetSubSkills: ["hedging_awareness"],
+    targetSubSkills: ["hedging_control"],
     dimension: "conciseness",
   },
 
@@ -201,7 +201,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Last 10 seconds: rate steady, voice grounded.",
     description:
       "Many speakers rush or trail off in the final quartile. This drill targets the close — same WPM as the open, voice landing fully on the last word.",
-    targetSubSkills: ["pressure_management", "filler_word_control"],
+    targetSubSkills: ["pressure_pacing", "filler_to_pause_substitution"],
     dimension: "delivery",
   },
 
@@ -212,7 +212,7 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Every statement ends with downward pitch.",
     description:
       "Train the muscle that signals certainty: pitch drops on the final syllable of every declarative sentence. The opposite of upspeak.",
-    targetSubSkills: ["downward_inflection", "vocal_presence"],
+    targetSubSkills: ["confidence", "gravitas"],
     dimension: "tone",
   },
   pitch_ladder: {
@@ -221,7 +221,9 @@ export const EXERCISES: Record<ExerciseId, Exercise> = {
     tagline: "Three intentional pitch shifts per minute.",
     description:
       "Mark at least three sentences where you intentionally vary pitch — go higher to flag a question, lower to land a verdict. Builds the variation muscle that monotone speakers lack.",
-    targetSubSkills: ["pitch_variation", "emotional_authenticity"],
+    // Taxonomy v2: prosodic mechanics moved to `delivery`; the tone-side
+    // lever this drill trains is congruence (voice matching meaning).
+    targetSubSkills: ["congruence", "emotional_authenticity"],
     dimension: "tone",
   },
   warmth_open: {
@@ -313,7 +315,7 @@ export function getExerciseById(id: string): Exercise | undefined {
  * the lookup updates with no separate hand-curated table to drift.
  *
  * Some sub-skills are listed by multiple exercises (e.g.
- * filler_word_control is in `pressure_close`; `filler_diet` already
+ * filler_to_pause_substitution is in `pressure_close`; `filler_diet` already
  * owns its dim's filler-related sub-skill). The `find()` call returns
  * the first exercise in dim order — deterministic and stable.
  */

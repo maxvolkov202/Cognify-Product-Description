@@ -349,6 +349,25 @@ Remaining ledger: F-1 🟡 (generated-prompt register — accepted, revisit at A
 | 2026-07-06 (2) | Phase 5 BUILT: migrations 0032/0033 (prep tables + build_a_rep mode, applied to dev); plan + readiness-review generators w/ deterministic fallbacks; context uploads (unpdf/mammoth, Supabase prep-context bucket, /api/prep-context); prep-events actions (create/regenerate/edit-plan/practice/finish); PrepHome intake + PrepEventClient (plan editor, guided moment loop on the engine, Full Simulation w/ framework sidebar, Readiness Review screen); score caps raised for long sims (48k chars/25min); entitlement hook (C7); flag-branched /build-a-rep. 14 suites + 9 e2e green. FOUND: orphaned dev server (dead stdout pipe) caused EPIPE WorkerErrors on new routes — restart fixed; not a code issue. NEXT: Phase 6 (Rank ladder, challenges, unified celebration). |
 | 2026-07-06 | Phase 4 COMPLETED (D9: Max chose drills → Daily Workout extras + PRD-pure Skill Lab). Flag fixed to FF_SKILL_LAB_APPS; per-Application-Skill EMA tracking in profile (server-derived from exercise rows); Lab Personalization Engine (selection.ts, 14 tests) wired into session start; §6.8 Session Complete (app score, most-improved app skill, core breakdown, coach recommendation, all-time reps); routes: [dimension]→[slug] rename (exemplar URLs unchanged), /skill-lab/[slug] session page, applications hub w/ score chips, /drills relocation + redirects both flag states, DayCompleteSummary "Extra reps" CTA, dashboard/hero/theme-script integration. e2e: skill-lab-v2.spec.ts (6/6) + tap-target audit extended (fails on pre-existing shell chrome only). typecheck/lint/13 suites green; seed idempotent; backfill re-run on dev. NEXT: Max eyes-on Phases 1–4 on dev (:3333), calibration replay, prod promotion checklist (0028–0031 + seed + backfill), then Phase 5 (Build a Rep event prep — needs doc upload + async long-rep pipeline). |
 
+### 2026-07-07 — Lab prompt doc-alignment + hub theming (Max screenshots)
+
+- Max flagged prompts presuming user life facts ("your band disbanded") vs the doc's universal examples. Root causes: (1) prompt-gen had NO answerability rule — 940 weak-rule generations cached into the bank; (2) ~150 seeded application prompts presumed possessions/hobbies/biography.
+- prompt-gen systemPrompt: UNIVERSALLY ANSWERABLE hard rule + doc Lab Engine rules (one challenge, authenticity, transfer, retryable).
+- 5 parallel agents rewrote applications/*.json: 152/486 prompts + 2 prompt_rules (interviewing 15, presenting 22, storytelling 34 incl. all 12 Two-Sentence Runway, teaching 34+1 deleted, persuasion 47). Reseeded (153 new rows, 2 exercises updated).
+- scripts/prune-stale-prompts.mjs (NEW): --generated deactivates weak-rule generations; --orphaned --dir X deactivates rows whose prompt_id left the catalog (seed never retires). Classifier blocks the bulk UPDATE in auto mode — Max runs: node scripts/prune-stale-prompts.mjs --generated --orphaned --dir applications
+- Skill Lab hub themed: per-application gradient identities, gradient icon tiles, hover washes, brand-gradient hero, ambient glow.
+- Slate stays 5 per Max's own D10 decision (doc says 4 AND 6 — inconsistent); flagged for his call.
+- REMAINING (fresh-session audit): core-dim + general/ + vertical/ catalogs (~6,250 prompts) share the presumption/incoherence problem (Max's bottom-line screenshot).
+
+### 2026-07-07 — FLAG CORRUPTION FIX + PRs MERGED — v3 actually live
+
+- Max's screenshot showed legacy Skill Lab in prod: every env var set via stdin piping carried a trailing newline (FF_SKILL_LAB_APPS="true
+"), failing flags.ts strict equality — ALL five v3 flags were silently OFF in production. 19 vars corrupted; the 11 non-secret config vars re-set clean (secrets left alone — their consumers trim and all were verified working live).
+- Redeployed; live Playwright proof as demo user: /skill-lab renders the applications hub (all 5 applications, zero legacy markers); /workout /dashboard /build-a-rep /drills authed 200.
+- Review gate on the merged tree: all unit suites, 43/43 contracts, lint clean, junk-file scan clean, risk-hunk diff read (I-9 fold, saveRep). PR #1 merged 02:19Z, PR #2 retargeted to main + merged 02:20Z. Uptime workflow now active on main.
+- LESSON: post-deploy smoke must include a FLAG-DEPENDENT surface — health + routes-200 look identical with flags off.
+- Max decided: NO Vercel Pro — crons stay daily.
+
 ### 2026-07-07 — Launch services provisioned + hardening redeploy
 
 - Upstash Redis (cognify-ratelimit) + Resend (cognify-email, domain cognifygym.com) provisioned via Vercel Marketplace and connected to cognify-v2; `KV_REST_API_*` aliased to `UPSTASH_REDIS_REST_*` so the existing ratelimit contract activates unchanged.
@@ -357,6 +376,27 @@ Remaining ledger: F-1 🟡 (generated-prompt register — accepted, revisit at A
 - Redeployed prod; smoke: 9 routes 200, detailed health (db 95ms, 0 write failures, breakers closed), Upstash PONG, live Playwright login as demo user → /workout + /dashboard authed 200.
 - Docx re-audit: `Cognify System Change.docx` is content-identical to plans/prd/cognify-system-change-prd.md (0/1532 paragraphs missing) — no new requirements; open items are only the tracked deferrals (legacy-engine retirement post-promotion, 8.2 bank expansion run, 8.4 frameworks after content review, 9.1 badge assets, 9.4 perf after traffic, P-7 branded ids, I-10).
 - Still human-only: PR #1/#2 merges (auto-mode classifier enforces review rule), Vercel Pro (billing), Resend DNS records for cognifygym.com, CALIBRATION_ALERT_WEBHOOK_URL destination, Anthropic re-up revert.
+
+### 2026-07-08 — Workout-bank alignment CLOSED OUT + platform-wide review & visual wave (Max: "build what's left, code review, make it more visually appealing")
+
+**Closed the interrupted 07-07 session** (commit 0d973587 rewrote all core/general/vertical catalogs but was never reseeded):
+- Reseeded ALL banks to dev: seed-exercise-catalog (163 new), seed-general-prompts (+118), seed-vertical-prompts (+172). Pruned with the new combined run: `--generated` (940 weak-rule generations) + `--orphaned root,general,vertical,applications` → **31,731 stale rows deactivated** (vertical alone carried 30,356 orphans accumulated across historical reseeds — prompt_id embeds content hash + exercise uuid, so every rewrite/exercise-recreate minted new rows and never retired old ones). Post-prune: **6,714 active prompts = exactly the doc-aligned catalog**, min 12 per exercise, 43/43 contracts green. **PROD still carries the stale banks** — reseed+prune is now a promotion step (see PR).
+- prune-stale-prompts.mjs hardened after review: now requires `--apply` like every seeder (was destructive-by-default), refuses `--dir general` if doc.dimension drifts from filename (would have mass-deactivated a dim's bank).
+
+**5-agent review wave (2 code, 3 visual) + 20-screenshot live tour.** Confirmed + FIXED:
+- 🔴 tagWorkoutRep self-heal used jsonb `->>` on the native uuid[] planned_exercise_ids (42883 abort — dead-on-arrival for exactly the degraded reps it rescues) + 0-vs-1 array indexing; fixed + verified against dev DB.
+- 🔴 Pricing page CTAs linked to nonexistent `/signup` (404 on the two highest-intent buttons) → `/signin?mode=signup`.
+- 🔴 Light-mode contrast collapse on dim-gradient scores (pacing/tone ~1.7:1 on white): DIM_THEMES gains `scoreGradient` (deep light stops + `dark:` bright) and `chipLight`; DayCompleteSummary hero, ImprovementReview retry score, InsightScreen constraint chip migrated.
+- 🔴 Dark mode fully broken on /progress + /leaderboard (9 components, zero `dark:` classes) → full sweep + brand-token chart colors (ImprovementCurve #b072ff/#e77cf0, StreakHeatmap brand-purple ramp, single legend, SkillRadar/SkillTrendChart currentColor grids) + real y-domain and area fill on SkillTrendChart.
+- 🟠 ScoreHero dark-mode headline near-invisible; OG card still sold "Scenario Training"; metadataBase localhost fallback; "Longest streak" faked as current (now getCalendarHistory); WeekCalendar today-ring keyed UTC (now server tz todayKey); getActiveWorkoutSession UTC day key; createValidation missing rep-ownership gate; stale copy sweep ("Four reps"/"Four to five" → 3-exercise loop, Skill Lab mode card described the retired dimension-drill product); manifest slate colors → brand; onboarding "Step 4 of 4" contradiction; LeaderboardTable clipped (overflow-x-auto); LengthPick 390px overflow; email gradient off-brand fuchsia → real 4-stop brand gradient.
+- Marketing funnel: hero + FinalCTA now lead with the existing no-signup `/try` demo (was buried in a signin footnote); secondary CTA = create account.
+
+**Visual wave (3 build agents, all typecheck/lint clean):**
+- Emotional moments: ImprovementReview animated reveal (fade → arrow → CountUpScore → badge-pop delta chip, sparkles on celebrate; reduced-motion safe); Skill Lab SessionComplete at parity (count-up + sparkles + application-accent hairline); DayComplete loading → celebratory skeleton; "walking to next station" spinner → dim-washed transition card; CountUpScore/CelebrationSparkles extracted shared; APPLICATION_ACCENTS extracted to lib.
+- Brand cohesion: ALL flat-pink primary CTAs in the training loop → brand-gradient + glow + `--ring` focus (InsightScreen, ImprovementReview, RepControls, QuitSummary, AppSessionClient); StartCard on real tokens (`--radius-hero`, glow shadows, animate-sheen); PromptPicker real 5-card skeleton + staggered slate entrance.
+- Identity: RankBadge rebuilt (per-tier 2-stop gradients, bevel, specular, Inter numerals, useId-safe, glow ≥44px); PrepHome ambient glow + tiered readiness chips (rose/amber/emerald) + fixed chip proportions; PrepEventClient staged readiness-review loading; AppNav active-route state (gradient underline/pill + aria-current).
+
+Validated: typecheck ✅ lint ✅ all unit suites ✅ 43/43 contracts ✅ + authed screenshot tour. NEXT (visual roadmap, ranked in PR/report): Communication Score hero ring + dashboard zoning, dim-color unification (dim-theme as single source), slate→ink shell sweep, PersonalBestToast/LevelUpCelebration wiring (both still orphaned), landing social proof, onboarding selection-state consistency + done-page moment, LoginDialog dedup, signin restyle.
 
 ### 2026-07-07 — PRODUCTION DEPLOY COMPLETE
 

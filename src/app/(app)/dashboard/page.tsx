@@ -38,6 +38,7 @@ import {
 } from "@/lib/db/queries/leagues";
 import { anonymousHandle } from "@/lib/engagement/leagues";
 import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
+import { getCalendarHistory } from "@/lib/db/queries/calendar-history";
 import {
   bucketByDimension,
   getSubSkillRunningAverages,
@@ -130,15 +131,20 @@ export default async function DashboardPage() {
   // cohort depends on leagueMember.leagueId, but baselineRep and the
   // muscle-group suggestion don't depend on each other. Wrapped in
   // Promise.all so they stack instead of serializing.
-  const [cohort, baselineRep, todaysWorkout] = await Promise.all([
-    leagueMember
-      ? getCohortLeaderboard(leagueMember.leagueId)
-      : Promise.resolve([]),
-    profile?.baselineRepId
-      ? getRepById(profile.baselineRepId)
-      : Promise.resolve(null),
-    user ? suggestTodaysMuscleGroup() : Promise.resolve(null),
-  ]);
+  const [cohort, baselineRep, todaysWorkout, calendarHistory] =
+    await Promise.all([
+      leagueMember
+        ? getCohortLeaderboard(leagueMember.leagueId)
+        : Promise.resolve([]),
+      profile?.baselineRepId
+        ? getRepById(profile.baselineRepId)
+        : Promise.resolve(null),
+      user ? suggestTodaysMuscleGroup() : Promise.resolve(null),
+      // Real longest-streak for LevelStreakCard — the card used to mirror
+      // the current streak into "Longest", which read as a bug the moment
+      // a streak broke.
+      user ? getCalendarHistory(user.id) : Promise.resolve(null),
+    ]);
 
   // PRD v3 Phase 7.4 — Overall Communication Score display (was deferred
   // from Phase 3.2). Profile EMA, null until ≥3 core skills measured.
@@ -229,7 +235,7 @@ export default async function DashboardPage() {
               Day 1 of becoming someone who never loses the room.
             </h1>
             <p className="mt-3 text-base text-ink-600 dark:text-ink-300 md:text-lg">
-              Five minutes. Four reps. Instant feedback. Your first rep becomes the baseline every future rep gets measured against.
+              Six minutes. Three exercises, each with a focused retry. Your first rep becomes the baseline every future rep gets measured against.
             </p>
             <DayDotsPreview className="mt-7" />
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -346,7 +352,7 @@ export default async function DashboardPage() {
       {/* 7-day activity heatmap. The 30-day StreakCalendar was redundant
           with this + the streak pill in DashboardHero — removed to cut
           length. */}
-      <WeekCalendar activity={sevenDayActivity} />
+      <WeekCalendar activity={sevenDayActivity} todayKey={todayISO} />
 
       {/* Engagement loop */}
       {profile && (
@@ -354,7 +360,10 @@ export default async function DashboardPage() {
           level={profile.level}
           xp={profile.xp}
           currentStreakDays={streakStatus.streakDays}
-          longestStreakDays={streakStatus.streakDays}
+          longestStreakDays={Math.max(
+            calendarHistory?.longestStreak ?? 0,
+            streakStatus.streakDays,
+          )}
           showRank={isRankSystemEnabled()}
         />
       )}

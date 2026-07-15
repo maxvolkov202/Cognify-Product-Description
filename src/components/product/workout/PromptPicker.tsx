@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 import { Loader2, RefreshCcw } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   fetchPromptCandidates,
   logPromptSelection,
@@ -68,6 +69,7 @@ export default function PromptPicker({
   const [state, dispatch] = useReducer(pickerReducer, undefined, initialPickerState);
   const [isLoading, setIsLoading] = useState(true);
   const [isCycling, setIsCycling] = useState(false);
+  const reduced = useReducedMotion();
   const cardStackRef = useRef<HTMLDivElement | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   // PRD v3 Phase 2.6 (PRD §9.4.2) — prompt ids already shown during THIS
@@ -205,18 +207,30 @@ export default function PromptPicker({
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          {state.shuffleCandidates.map((c) => (
-            <PromptCard
+          {/* Stagger entrance per slate — cards remount on new prompt ids
+              (INIT/RESHUFFLE), so the cascade replays on every cycle. */}
+          {state.shuffleCandidates.map((c, i) => (
+            <motion.div
               key={c.id}
-              prompt={c}
-              onPick={() =>
-                persistAndAdvance({
-                  promptId: c.id,
-                  promptText: c.text,
-                  mode: "shuffle",
-                })
-              }
-            />
+              initial={reduced ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: i * 0.04,
+                duration: 0.3,
+                ease: [0.32, 0.72, 0, 1],
+              }}
+            >
+              <PromptCard
+                prompt={c}
+                onPick={() =>
+                  persistAndAdvance({
+                    promptId: c.id,
+                    promptText: c.text,
+                    mode: "shuffle",
+                  })
+                }
+              />
+            </motion.div>
           ))}
         </div>
       )}
@@ -272,10 +286,21 @@ export default function PromptPicker({
 }
 
 function LoadingSkeleton() {
+  // Card-shaped placeholders approximating PromptCard (min-h-[56px],
+  // rounded-xl, p-4) so the slate doesn't reflow when prompts land.
   return (
-    <div className="flex items-center justify-center min-h-[160px] text-slate-600 dark:text-ink-300 gap-2">
-      <Loader2 className="w-4 h-4 animate-spin" />
-      Loading prompts…
+    <div className="flex flex-col gap-2" role="status" aria-live="polite">
+      <span className="sr-only">Loading prompts…</span>
+      {Array.from({ length: CANDIDATES_PER_CYCLE }).map((_, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="min-h-[56px] w-full animate-pulse rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm"
+        >
+          <div className="h-3.5 w-3/4 rounded bg-slate-100 dark:bg-ink-800" />
+          <div className="mt-2 h-3.5 w-1/2 rounded bg-slate-100 dark:bg-ink-800" />
+        </div>
+      ))}
     </div>
   );
 }

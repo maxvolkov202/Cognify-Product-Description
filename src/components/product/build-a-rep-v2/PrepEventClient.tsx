@@ -8,7 +8,7 @@
 // §7.7), Full Simulation (uninterrupted long rep with framework
 // sidebar, §7.8), and the Readiness Review (§7.9).
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -354,14 +354,7 @@ export default function PrepEventClient({
   }
 
   if (view.kind === "finishing") {
-    return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
-        <p className="text-sm text-slate-500 dark:text-ink-400">
-          Your coach is writing your Readiness Review…
-        </p>
-      </div>
-    );
+    return <FinishingCard />;
   }
 
   if (view.kind === "moment" || view.kind === "moment-review") {
@@ -610,6 +603,83 @@ export default function PrepEventClient({
         router.push("/build-a-rep");
       }}
     />
+  );
+}
+
+// ── Finishing wait (staged loading card) ────────────────────────────────
+
+/** The multi-second Readiness Review AI call gets a staged wait instead
+ *  of a bare spinner. Steps activate on a 2.5s timer (capped at the last
+ *  — the real work finishes when finishPrepSession resolves and swaps
+ *  the view). Purely presentational: same state machine, no props. */
+const FINISHING_STEPS = [
+  "Reading your event context",
+  "Identifying the critical moments",
+  "Writing your Readiness Review",
+] as const;
+
+function FinishingCard() {
+  const [activeStep, setActiveStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(
+      () => setActiveStep((s) => Math.min(s + 1, FINISHING_STEPS.length - 1)),
+      2500,
+    );
+    return () => clearInterval(id);
+  }, []);
+  // Never claims done — the last slice stays open until the view swaps.
+  const widthPct = Math.round(
+    ((activeStep + 1) / (FINISHING_STEPS.length + 1)) * 100,
+  );
+
+  return (
+    <div className="mx-auto max-w-md py-16">
+      <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 shadow-sm">
+        <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
+          Readiness Review
+        </div>
+        <h2 className="mt-2 text-lg font-extrabold text-slate-900 dark:text-white">
+          Your coach is writing your Readiness Review…
+        </h2>
+        <ul className="mt-4 space-y-2.5">
+          {FINISHING_STEPS.map((label, i) => {
+            const state =
+              i < activeStep ? "done" : i === activeStep ? "active" : "pending";
+            return (
+              <li key={label} className="flex items-center gap-2.5 text-sm">
+                {state === "done" ? (
+                  <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+                    <Check className="w-3 h-3" />
+                  </span>
+                ) : state === "active" ? (
+                  <Loader2 className="w-5 h-5 shrink-0 animate-spin text-purple-500 motion-reduce:animate-none" />
+                ) : (
+                  <span className="grid size-5 shrink-0 place-items-center">
+                    <span className="size-1.5 rounded-full bg-slate-300 dark:bg-ink-600" />
+                  </span>
+                )}
+                <span
+                  className={cn(
+                    "transition-colors",
+                    state === "pending"
+                      ? "text-slate-400 dark:text-ink-500"
+                      : "font-semibold text-slate-800 dark:text-ink-100",
+                  )}
+                >
+                  {label}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800">
+          <div
+            className="h-full rounded-full brand-gradient transition-[width] duration-[2000ms] ease-out motion-reduce:transition-none"
+            style={{ width: `${widthPct}%` }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

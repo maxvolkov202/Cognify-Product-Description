@@ -10,7 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3333"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ??
+      (process.env.NODE_ENV === "production"
+        ? "https://cognify-v2-neon.vercel.app"
+        : "http://localhost:3333"),
+  ),
   // Always show just "Cognify" in the tab. template with a literal (no %s)
   // causes Next.js to ignore any page-level title field and render this value.
   title: {

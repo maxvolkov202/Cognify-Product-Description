@@ -381,7 +381,9 @@ export const communicationProfile = cognifyV2Schema.table(
       .$type<Record<string, { score: number; sampleCount: number; updatedAt: string }>>()
       .notNull()
       .default({}),
-    /** { [subSkillId]: { score, sampleCount } } — 36 Hidden Skills. */
+    /** { [subSkillId]: { score, sampleCount } } — Hidden Skill Taxonomy
+     *  v2 keys (148 skills, PRD §5.5 / D20). Old 34-id keys migrated by
+     *  drizzle/migrations/0041_hidden_skills_taxonomy_v2.sql. */
     hiddenSkills: jsonb("hidden_skills")
       .$type<Record<string, { score: number; sampleCount: number }>>()
       .notNull()

@@ -76,10 +76,15 @@ export default function MissedDayModal() {
     >
       <div
         className={cn(
-          "w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900",
+          "relative overflow-hidden w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900",
           "p-5 shadow-2xl",
         )}
       >
+        {/* Quiet brand-gradient hairline across the modal top. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-blue via-brand-lavender to-brand-magenta opacity-60"
+        />
         <div className="flex items-start gap-3">
           <div className="mt-0.5">{icon}</div>
           <div className="flex-1 min-w-0">
