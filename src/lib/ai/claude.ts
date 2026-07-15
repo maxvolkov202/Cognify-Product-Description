@@ -109,6 +109,16 @@ const OPENAI_TIMEOUT_MS = parseInt(
   process.env.SCORING_OPENAI_TIMEOUT_MS ?? "15000",
   10,
 );
+/** When OpenAI is the PRIMARY provider (AI_PROVIDER=openai), the 15s
+ *  fallback budget is too tight: gpt-4o serves the full scoring payload
+ *  in ~14-22s, so primary calls were timing out at the boundary and
+ *  cascading to a dead Anthropic fallback → mock scores (observed on
+ *  prod 2026-07-15). Primary role gets a wider budget; both scoring
+ *  routes run with maxDuration=120 so 45s leaves ample headroom. */
+const OPENAI_PRIMARY_TIMEOUT_MS = parseInt(
+  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "45000",
+  10,
+);
 
 if (!apiKey && process.env.NODE_ENV !== "test") {
   console.warn("[ai] ANTHROPIC_API_KEY is not set. Claude calls will fail.");
@@ -658,6 +668,7 @@ async function messagesCreateWithMetrics(
       const { response: r, durationMs } = await callOpenAIOnce(
         params,
         "primary",
+        OPENAI_PRIMARY_TIMEOUT_MS,
       );
       response = r;
       openaiDurationMs = durationMs;

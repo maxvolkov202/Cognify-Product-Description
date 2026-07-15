@@ -84,9 +84,15 @@ async function scoreOne(rep) {
     durationMs: rep.durationMs,
   };
   if (rep.audioUrl) body.audioUrl = rep.audioUrl;
+  // /api/score requires a user since the full-app audit closed the
+  // anonymous-curl vector. A guest cookie satisfies it: pass
+  // CALIBRATION_GUEST_ID (any uuid; ensureGuestUser creates the row).
+  const guestCookie = process.env.CALIBRATION_GUEST_ID
+    ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+    : {};
   const res = await fetch(`${BASE_URL}/api/score`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...guestCookie },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
