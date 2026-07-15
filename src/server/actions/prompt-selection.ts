@@ -25,6 +25,7 @@ import { log, serializeErr } from "@/lib/log";
 import { pickPromptCandidates } from "@/server/lib/workout/assignment";
 import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
 import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
+import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
 
 export type PromptCandidate = {
   id: string;
@@ -45,28 +46,6 @@ const PROMPT_BIAS_WINDOW = 30;
  *  than this many prompts. Matches the Shuffle candidate count (k=5) so we
  *  never lock onto a too-thin bank when a wider one would give real rotation. */
 const MIN_BANK_SIZE = 5; // tracks the D10 slate size
-
-/**
- * Legacy tag map — the original 864 vertical-flavored prompts (Phase 2 seed)
- * were tagged with single keys like "finance", "business", "leadership",
- * "healthcare", "science". The Wave 1 vertical bank (4,320 prompts) uses the
- * vertical id itself as the first tag ("sales", "leadership", etc.) plus
- * persona + goal ids. The vertical filter unions both schemes so the legacy
- * bank stays in rotation.
- *
- * "other" maps to an empty array; vertical filtering for "other" users
- * relies entirely on the new vertical-id tag.
- */
-const LEGACY_VERTICAL_TAGS: Record<string, string[]> = {
-  sales: ["business", "leadership"],
-  consulting: ["business", "leadership"],
-  finance: ["finance", "business"],
-  healthcare: ["healthcare", "science"],
-  law: ["business", "current events"],
-  education: ["education", "science"],
-  leadership: ["leadership", "business"],
-  other: [],
-};
 
 export async function fetchPromptCandidates(input: {
   exerciseId: string;

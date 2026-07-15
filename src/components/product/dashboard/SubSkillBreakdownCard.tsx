@@ -10,7 +10,6 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import { DIMENSION_ACCENTS } from "@/lib/skill-lab/mode-theme";
-import { DRILLABLE_DIMENSIONS } from "@/lib/ai/prompts/drills";
 import type { SubSkillBreakdown } from "@/lib/db/queries/sub-skills";
 import { cn } from "@/lib/utils/cn";
 
@@ -108,9 +107,9 @@ function DimensionRow({
   bucket: SubSkillBreakdown[SkillDimension] | null;
 }) {
   const accent = DIMENSION_ACCENTS[dimension];
-  const drillable = (DRILLABLE_DIMENSIONS as readonly SkillDimension[]).includes(
-    dimension,
-  );
+  // Phase 2B.3: every dimension is drillable from the DB catalog (the
+  // legacy drill banks covered only 3 dims).
+  const drillable = true;
   const totalSamples = bucket?.sampleSize ?? 0;
   const weakest = bucket?.weakest ?? null;
   const subSkills = bucket?.subSkills ?? [];

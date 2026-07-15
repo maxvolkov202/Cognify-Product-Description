@@ -1,15 +1,26 @@
 /**
- * Session type orchestrator tests — WS-6 invariants for Focus + Flow.
+ * Lab session plan tests — Phase 2B.3 (D23) invariants for the pure
+ * catalog-backed plan builders (src/lib/workout/lab-plan.ts). The DB
+ * side (exercise choice, slates) lives in the planLabSession server
+ * action and is exercised by dev smokes; these tests pin the pure
+ * assembly: rep-type synthesis, framework rotation, budgets, focus
+ * contexts, session typing.
  *
  * Run: npx tsx tests/session-types.test.ts
  */
 
 import {
-  planTodaysWorkout,
-  planFocusWorkout,
-  planFlowSession,
-} from "@/lib/ai/workout-prompts";
-import { PRESSURE_ARCHETYPE_IDS } from "@/lib/ai/pressure-archetypes";
+  buildCatalogRepType,
+  buildLabSessionPlan,
+  focusForFocusMode,
+  focusForMixedRep0,
+  focusForPressureRep,
+  DIMENSION_BASE_REP_TYPE,
+  type LabCatalogExercise,
+  type LabSlotSeed,
+} from "@/lib/workout/lab-plan";
+import { getRepType } from "@/lib/ai/rep-types";
+import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
 import { SKILL_DIMENSIONS } from "@/types/domain";
 
 let pass = 0;
@@ -30,114 +41,220 @@ function section(label: string): void {
   console.log(`\n── ${label} ──`);
 }
 
-// ————————————————————————————————————————————————————————————————
-// COMBINED (default planTodaysWorkout) tags sessionType correctly
-// ————————————————————————————————————————————————————————————————
-section("Combined session is tagged sessionType='combined'");
+function fakeExercise(
+  overrides: Partial<LabCatalogExercise> & {
+    dimension: LabCatalogExercise["dimension"];
+  },
+): LabCatalogExercise {
+  return {
+    id: `ex-${overrides.dimension}-${overrides.slug ?? "a"}`,
+    slug: "explain-like-im-12",
+    name: "Explain Like I'm 12",
+    rule: "No word a 12-year-old wouldn't recognize.",
+    secondaryCoreSkills: null,
+    responseWindow: null,
+    hiddenSkills: null,
+    ...overrides,
+  };
+}
 
-const combined = planTodaysWorkout({ count: 4 });
-assert(combined.sessionType === "combined", "planTodaysWorkout returns sessionType='combined'");
-assert(combined.focusDimension === undefined, "combined has no focusDimension");
+function slotSeed(
+  exercise: LabCatalogExercise,
+  extra?: Partial<LabSlotSeed>,
+): LabSlotSeed {
+  return {
+    exercise,
+    prompts: ["Prompt one?", "Prompt two?", "Prompt three?"],
+    promptIds: ["p1", "p2", "p3"],
+    focus: null,
+    ...extra,
+  };
+}
 
 // ————————————————————————————————————————————————————————————————
-// FOCUS orchestrator
-// ————————————————————————————————————————————————————————————————
-section("Focus session tags sessionType + focusDimension");
+section("buildCatalogRepType overlays exercise identity on the base rep type");
 
 for (const dim of SKILL_DIMENSIONS) {
-  const plan = planFocusWorkout({ focusDimension: dim, count: 4 });
+  const ex = fakeExercise({
+    dimension: dim,
+    name: `Test ${dim}`,
+    rule: "The rule.",
+  });
+  const rt = buildCatalogRepType(ex);
+  assert(rt.name === `Test ${dim}`, `${dim}: name comes from the exercise`);
   assert(
-    plan.sessionType === "focus",
-    `Focus session for ${dim} has sessionType='focus'`,
+    rt.displayTitle === `Test ${dim}`,
+    `${dim}: displayTitle comes from the exercise`,
+  );
+  assert(rt.behavior === "The rule.", `${dim}: behavior is the exercise rule`);
+  assert(
+    rt.primaryDimension === dim,
+    `${dim}: primaryDimension is the exercise dimension`,
+  );
+  const base = getRepType(DIMENSION_BASE_REP_TYPE[dim]);
+  assert(
+    rt.timeBudgetSec === base.timeBudgetSec,
+    `${dim}: budget falls back to base rep type`,
   );
   assert(
-    plan.focusDimension === dim,
-    `Focus session for ${dim} has focusDimension=${dim}`,
-  );
-}
-
-section("Focus session non-pressure reps touch the focus dimension");
-
-// For each dim, ensure non-pressure reps all have focus dim as primary OR secondary
-for (const dim of SKILL_DIMENSIONS) {
-  const plan = planFocusWorkout({ focusDimension: dim, count: 4 });
-  const nonPressure = plan.reps.filter((r) => r.pressureArchetype === undefined);
-  const hits = nonPressure.filter(
-    (r) =>
-      r.repType.primaryDimension === dim ||
-      r.repType.secondaryDimensions.includes(dim),
-  );
-  // Some dims have narrow coverage — allow at least half to match
-  const matchRatio = nonPressure.length === 0 ? 1 : hits.length / nonPressure.length;
-  assert(
-    matchRatio >= 0.5,
-    `Focus on ${dim}: at least 50% of non-pressure reps touch ${dim} (got ${hits.length}/${nonPressure.length})`,
+    rt.framework === base.framework,
+    `${dim}: framework scaffold comes from the base`,
   );
 }
 
-section("Focus session still has pressure rep at N-1");
+section("buildCatalogRepType respects response window + secondary dims + pacing alias");
 
-for (const dim of SKILL_DIMENSIONS) {
-  const plan = planFocusWorkout({ focusDimension: dim, count: 4 });
-  const pressureIdx = plan.reps.findIndex((r) => r.pressureArchetype !== undefined);
+{
+  const ex = fakeExercise({
+    dimension: "tone",
+    responseWindow: { minSec: 45, maxSec: 90 },
+    secondaryCoreSkills: ["pacing", "clarity", "tone"] as never,
+  });
+  const rt = buildCatalogRepType(ex);
+  assert(rt.timeBudgetSec === 90, "response window max drives the budget");
   assert(
-    pressureIdx === 2,
-    `Focus on ${dim}: pressure rep at index 2 (got ${pressureIdx})`,
+    rt.secondaryDimensions.includes("delivery") &&
+      rt.secondaryDimensions.includes("clarity"),
+    "legacy 'pacing' secondary aliases to 'delivery'",
+  );
+  assert(
+    !rt.secondaryDimensions.includes("tone"),
+    "primary dimension is filtered out of secondaries",
   );
 }
 
 // ————————————————————————————————————————————————————————————————
-// FLOW orchestrator
-// ————————————————————————————————————————————————————————————————
-section("Flow session is always 5 reps, all pressure");
+section("Focus plan typing");
 
-const flow = planFlowSession();
-assert(flow.sessionType === "flow", "Flow session has sessionType='flow'");
-assert(flow.reps.length === 5, `Flow session has exactly 5 reps (got ${flow.reps.length})`);
-assert(
-  flow.reps.every((r) => r.pressureArchetype !== undefined),
-  "Every Flow rep has a pressureArchetype",
-);
-
-section("Flow session uses all 5 archetypes exactly once");
-
-const archetypesUsed = new Set(flow.reps.map((r) => r.pressureArchetype?.id));
-assert(archetypesUsed.size === 5, `Flow uses 5 distinct archetypes (got ${archetypesUsed.size})`);
-for (const id of PRESSURE_ARCHETYPE_IDS) {
-  assert(archetypesUsed.has(id), `Flow includes ${id} archetype`);
-}
-
-section("Flow archetype order matches the design ramp (time → audience → pushback → interrupt → stakes)");
-
-const expectedOrder = [
-  "time_compression",
-  "audience_switch",
-  "pushback",
-  "clarifying_interrupt",
-  "stakes_raise",
-];
-for (let i = 0; i < expectedOrder.length; i++) {
+{
+  const slots = Array.from({ length: 4 }, (_, i) =>
+    slotSeed(
+      fakeExercise({ dimension: "clarity", slug: `s${i}`, id: `id-${i}` }),
+      { focus: focusForFocusMode("clarity") },
+    ),
+  );
+  const plan = buildLabSessionPlan({
+    slots,
+    sessionType: "focus",
+    focusDimension: "clarity",
+    planId: "test-focus",
+  });
+  assert(plan.sessionType === "focus", "sessionType='focus'");
+  assert(plan.focusDimension === "clarity", "focusDimension set");
+  assert(plan.id === "test-focus", "injected planId respected");
   assert(
-    flow.reps[i]?.pressureArchetype?.id === expectedOrder[i],
-    `Flow rep ${i + 1} is ${expectedOrder[i]} (got ${flow.reps[i]?.pressureArchetype?.id})`,
+    plan.reps.every((r) => r.repType.primaryDimension === "clarity"),
+    "every rep trains the focus dimension",
+  );
+  assert(
+    plan.reps.every((r) => r.exerciseId != null),
+    "every rep carries its catalog exerciseId",
+  );
+  assert(
+    plan.reps.every((r) => r.focus?.source === "session_intent"),
+    "focus reps carry session_intent focus context",
   );
 }
 
-section("Flow session estimated duration is reasonable (≤ 10 min)");
+section("Framework rotation across repeat slots of the same dimension");
 
-// Flow should be short per Direction.md (<10 min). 5 reps × ~45s each + 5s feedback
-// Max expected: 5 × (60 + 5) = 325s ≈ 5.5 min
-assert(
-  flow.estimatedDurationSec <= 600,
-  `Flow estimated duration ≤ 10 min (got ${flow.estimatedDurationSec}s)`,
-);
-assert(
-  flow.estimatedDurationSec >= 60,
-  `Flow estimated duration ≥ 1 min sanity check (got ${flow.estimatedDurationSec}s)`,
-);
+{
+  const slots = Array.from({ length: 3 }, (_, i) =>
+    slotSeed(
+      fakeExercise({ dimension: "structure", slug: `s${i}`, id: `id-${i}` }),
+    ),
+  );
+  const plan = buildLabSessionPlan({
+    slots,
+    sessionType: "focus",
+    focusDimension: "structure",
+  });
+  const names = plan.reps.map((r) => r.framework.name);
+  assert(
+    new Set(names.slice(0, 2)).size === 2,
+    `first two structure slots rotate frameworks (got ${names.join(" | ")})`,
+  );
+}
 
 // ————————————————————————————————————————————————————————————————
-// Summary
+section("Mixed plan typing + rep-0 focus");
+
+{
+  const slots = [
+    slotSeed(fakeExercise({ dimension: "clarity" }), {
+      focus: focusForMixedRep0("clarity"),
+    }),
+    slotSeed(fakeExercise({ dimension: "tone" })),
+  ];
+  const plan = buildLabSessionPlan({ slots, sessionType: "combined" });
+  assert(plan.sessionType === "combined", "mixed plan is 'combined'");
+  assert(
+    plan.focusDimension === undefined,
+    "mixed plan has no focusDimension",
+  );
+  assert(
+    plan.reps[0]!.focus?.bannerText.includes("mixed set"),
+    "rep 0 carries the mixed-set banner",
+  );
+  assert(plan.reps[1]!.focus === null, "later mixed reps have no focus context");
+}
+
+// ————————————————————————————————————————————————————————————————
+section("Pressure slots: archetype, budget delta, focus");
+
+{
+  const archetype = getPressureArchetype("time_compression");
+  const ex = fakeExercise({
+    dimension: "conciseness",
+    responseWindow: { minSec: 30, maxSec: 60 },
+  });
+  const plan = buildLabSessionPlan({
+    slots: [
+      slotSeed(ex, {
+        focus: focusForPressureRep(archetype),
+        pressureArchetype: archetype,
+      }),
+    ],
+    sessionType: "flow",
+  });
+  const rep = plan.reps[0]!;
+  assert(
+    rep.pressureArchetype?.id === "time_compression",
+    "archetype carried onto the slot",
+  );
+  assert(
+    rep.timeBudgetMs === Math.max(15, 60 + archetype.durationDeltaSec) * 1000,
+    `pressure budget = window max + durationDeltaSec (got ${rep.timeBudgetMs})`,
+  );
+  assert(
+    rep.focus?.bannerText.toLowerCase().startsWith("pressure:"),
+    "pressure focus banner names the mechanism",
+  );
+  assert(plan.sessionType === "flow", "pressure plan is 'flow'");
+}
+
+section("Duration estimate scales with slots");
+
+{
+  const one = buildLabSessionPlan({
+    slots: [slotSeed(fakeExercise({ dimension: "clarity" }))],
+    sessionType: "focus",
+    focusDimension: "clarity",
+  });
+  const three = buildLabSessionPlan({
+    slots: Array.from({ length: 3 }, (_, i) =>
+      slotSeed(fakeExercise({ dimension: "clarity", id: `id-${i}` })),
+    ),
+    sessionType: "focus",
+    focusDimension: "clarity",
+  });
+  assert(
+    three.estimatedDurationSec === one.estimatedDurationSec * 3,
+    "estimate is linear in identical slots",
+  );
+  assert(one.estimatedDurationSec >= 60, "single-rep estimate ≥ 1 min sanity");
+}
+
 // ————————————————————————————————————————————————————————————————
 console.log(`\n${"═".repeat(60)}`);
 console.log(`  Passed: ${pass}   Failed: ${fail}`);

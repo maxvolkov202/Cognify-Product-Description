@@ -11,7 +11,7 @@ import { ModeBadge, ModeSeam } from "./ModeBadge";
 import { bumpCompletedRepCount } from "./InstallPrompt";
 import type { RepScore, SkillDimension } from "@/types/domain";
 import { DIMENSION_LABELS, SKILL_DIMENSION_GROUPS } from "@/types/domain";
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 import type { PreviousRepSummary } from "./feedback";
 
 type Phase = "countdown" | "prompt-select" | "rep" | "done";
@@ -187,6 +187,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
         <WorkoutPromptSelect
           key={currentIndex}
           repType={currentRep.repType}
+          exerciseId={currentRep.exerciseId}
           initialPrompts={currentRep.prompts}
           initialPromptIds={currentRep.promptIds}
           excludePromptIds={seenPromptIds}
@@ -220,6 +221,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
       <RepSurface
         key={currentIndex}
         prompt={activePrompt}
+        exerciseId={currentRep.exerciseId}
         mode="skill_lab"
         topic={
           currentRep.pressureArchetype

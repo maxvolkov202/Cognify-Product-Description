@@ -91,6 +91,12 @@ const APPLICATION_SKILLS = {
   teaching: ["simplifying_complexity", "explaining_with_analogy", "known_to_unknown", "anticipating_confusion", "defining_terms", "examples_and_nonexamples", "teaching_for_application", "adjusting_depth"],
   interviewing: ["evidence_based_answers", "concise_personal_examples", "self_awareness", "explaining_motivation", "handling_weakness_questions", "connecting_to_fit", "judgment_under_pressure", "credible_specifics"],
   persuasion: ["framing_recommendation", "handling_objections", "audience_priorities", "building_credibility", "selective_evidence", "calibrated_urgency", "warmth_and_conviction", "clear_ask"],
+  // Phase 2B.3 (D23) — relocated System A pressure bank. One exercise per
+  // pressure archetype (src/lib/ai/pressure-archetypes.ts); application
+  // 'pressure' keeps these out of Daily Workout (application IS NULL) and
+  // Skill Lab (application = one of the five apps) queries. The lab
+  // planner looks them up by archetype id via application_skills.
+  pressure: ["pushback", "time_compression", "audience_switch", "clarifying_interrupt", "stakes_raise"],
 };
 /** Application prompt banks may start slimmer than the core catalogs. */
 const APP_PROMPT_MIN = 12;

@@ -3,7 +3,7 @@ import { BuildARepFlow } from "@/components/product/BuildARepFlow";
 import PrepHome from "@/components/product/build-a-rep-v2/PrepHome";
 import { currentUser } from "@/lib/session/current-user";
 import { getUserProfile } from "@/lib/db/queries/user";
-import { pickVerticalPromptObjects } from "@/lib/ai/prompts/verticals";
+import { pickVerticalPrompts } from "@/server/actions/vertical-prompts";
 import { getSeenPromptIds } from "@/lib/db/queries/prompt-history";
 import { VERTICALS, type VerticalId } from "@/lib/onboarding/constants";
 import { isBuildARepV2Enabled } from "@/lib/flags";
@@ -37,9 +37,10 @@ export default async function BuildARepPage() {
   const verticalLabel =
     VERTICALS.find((v) => v.id === vertical)?.label ?? "General";
   const seenIds = user ? await getSeenPromptIds(user.id) : [];
-  const excludeSet = new Set(seenIds);
-  const initialPicked = pickVerticalPromptObjects(vertical, 5, {
-    excludeIds: excludeSet,
+  const initialPicked = await pickVerticalPrompts({
+    vertical,
+    count: 5,
+    excludePromptIds: seenIds,
   });
   const personas = profile?.personas ?? [];
 

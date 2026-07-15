@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { ArrowRight, Clock3, Dumbbell, Flame, Lock, RotateCcw } from "lucide-react";
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 import { DIMENSION_LABELS } from "@/types/domain";
 
 type Props = {

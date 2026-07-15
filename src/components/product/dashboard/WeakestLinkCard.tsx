@@ -7,7 +7,6 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import { DIMENSION_ACCENTS } from "@/lib/skill-lab/mode-theme";
-import { DRILLABLE_DIMENSIONS } from "@/lib/ai/prompts/drills";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -81,9 +80,9 @@ export function WeakestLinkCard({
 
   const { dimension, averageScore } = weakest;
   const accent = DIMENSION_ACCENTS[dimension];
-  const drillable = (DRILLABLE_DIMENSIONS as readonly SkillDimension[]).includes(
-    dimension,
-  );
+  // Phase 2B.3: every dimension is drillable from the DB catalog (the
+  // legacy drill banks covered only 3 dims).
+  const drillable = true;
   const drillHref = weakestSubSkill
     ? `/skill-lab?focus=${dimension}&subSkill=${weakestSubSkill.id}`
     : `/skill-lab?focus=${dimension}`;

@@ -14,7 +14,7 @@ import {
   Flame,
   Mic,
 } from "lucide-react";
-import { pickVerticalPromptObjects } from "@/lib/ai/prompts/verticals";
+import { pickVerticalPrompts } from "@/server/actions/vertical-prompts";
 import { RepSurface } from "./RepSurface";
 import { TalkingPointsSidebar } from "./TalkingPointsSidebar";
 import { PressureRepIndicator } from "./PressureRepIndicator";
@@ -152,10 +152,14 @@ export function BuildARepFlow({
 
   // ——— Handlers ——————————————————————————————————————
 
-  function handleRefresh() {
-    const refreshed = pickVerticalPromptObjects(vertical, 5, {
-      excludeIds: seenPromptIds,
+  async function handleRefresh() {
+    // Phase 2B.3 (D23): re-slate from the DB catalog's vertical bank.
+    const refreshed = await pickVerticalPrompts({
+      vertical,
+      count: 5,
+      excludePromptIds: [...seenPromptIds, ...promptIds],
     });
+    if (refreshed.length === 0) return; // keep current slate on failure
     // Telemetry: refreshed_past on the prompts we're dropping.
     if (promptIds.length > 0) {
       void fetch("/api/prompt-events", {

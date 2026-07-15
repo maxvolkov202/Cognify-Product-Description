@@ -18,15 +18,9 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { SKILL_DIMENSIONS, DIMENSION_LABELS } from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
-import {
-  planFocusWorkout,
-  planMixedSession,
-  planPressureSession,
-  type WorkoutSessionPlan,
-} from "@/lib/ai/workout-prompts";
-import type { ImprovementGoalId } from "@/lib/onboarding/constants";
+import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
+import { planLabSession } from "@/server/actions/lab-session";
 import { SUB_SKILL_LABELS, type SubSkillId } from "@/types/sub-skills";
-import { primaryExerciseFor } from "@/lib/ai/exercises";
 import { SkillLabSession } from "./SkillLabSession";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -41,17 +35,15 @@ type RepCountChoice = 1 | 3 | 5 | 999; // 999 = unlimited / full sequence
 
 type Props = {
   currentScores: Partial<Record<SkillDimension, number | null>>;
-  improvementGoals?: readonly ImprovementGoalId[];
   /** Ch.12 — when set, opens directly into focus-reps for this dim
    *  (skipping the lobby + skill picker). Drives the "drill this
    *  sub-skill" routing from the dashboard's WeakestLinkCard /
    *  SubSkillBreakdownCard. */
   initialFocus?: SkillDimension;
   /** Ch.12 — accompanying sub-skill id from the routing query param.
-   *  Currently surface-only: rendered as a "Focusing on {label}" pill
-   *  in the rep-count step. Slate-bias is a follow-up — requires
-   *  adding `preferSubSkills` plumbing through `planFocusWorkout`,
-   *  which today selects rep types by primary dimension only. */
+   *  Rendered as a "Focusing on {label}" pill in the rep-count step and
+   *  forwarded to planLabSession, which leads the exercise rotation
+   *  with catalog exercises tagged with that hidden skill. */
   initialSubSkill?: SubSkillId;
 };
 
@@ -84,7 +76,6 @@ type Phase =
  */
 export function SkillLabClient({
   currentScores,
-  improvementGoals = [],
   initialFocus,
   initialSubSkill,
 }: Props) {
@@ -117,55 +108,65 @@ export function SkillLabClient({
   }, []);
 
   // ——— Session start ————————————————————————————————————————
+  // Phase 2B.3 (D23): plans come from the DB catalog via the
+  // planLabSession server action — the hardcoded banks are retired.
+  // isPlanning gates double-submits; planError renders a retry notice.
+
+  const [isPlanning, setIsPlanning] = useState(false);
+  const [planError, setPlanError] = useState(false);
+
+  async function launchSession(
+    style: Style,
+    label: string,
+    input: Parameters<typeof planLabSession>[0],
+  ) {
+    if (isPlanning) return;
+    setIsPlanning(true);
+    setPlanError(false);
+    try {
+      const plan = await planLabSession(input);
+      if (!plan) {
+        setPlanError(true);
+        return;
+      }
+      setPhase({ kind: "session", style, label, planSeed: plan });
+    } catch {
+      setPlanError(true);
+    } finally {
+      setIsPlanning(false);
+    }
+  }
 
   function startFocus(dim: SkillDimension, reps: RepCountChoice) {
     const count = reps === 999 ? 6 : reps;
     // Ch.16b — when the user reached this step via a deep-link with a
-    // sub-skill query param (initialSubSkill), forward that bias to
-    // planFocusWorkout. The planner routes through the drill bank for
-    // drillable dims so the slate is biased toward prompts targeting
-    // that specific sub-skill. Non-drillable dims ignore the bias.
+    // sub-skill query param (initialSubSkill), forward that bias so the
+    // exercise rotation leads with exercises targeting that sub-skill.
     const planSubSkill =
       initialFocus === dim && initialSubSkill ? initialSubSkill : undefined;
-    const plan = planFocusWorkout({
-      focusDimension: dim,
-      count,
-      goals: improvementGoals,
-      excludePromptIds: seenPromptIds,
-      ...(planSubSkill ? { preferSubSkill: planSubSkill } : {}),
-    });
-    setPhase({
-      kind: "session",
+    void launchSession("focus", `Focus · ${DIMENSION_LABELS[dim]}`, {
       style: "focus",
-      label: `Focus · ${DIMENSION_LABELS[dim]}`,
-      planSeed: plan,
+      dimension: dim,
+      count,
+      excludePromptIds: [...seenPromptIds],
+      ...(planSubSkill ? { preferSubSkill: planSubSkill } : {}),
     });
   }
 
   function startMixed(skillReps: { dimension: SkillDimension; reps: number }[]) {
-    const plan = planMixedSession({
-      skillReps,
-      excludePromptIds: seenPromptIds,
-    });
-    setPhase({
-      kind: "session",
+    void launchSession("mixed", "Mixed session", {
       style: "mixed",
-      label: "Mixed session",
-      planSeed: plan,
+      skillReps,
+      excludePromptIds: [...seenPromptIds],
     });
   }
 
   function startPressure(reps: RepCountChoice) {
     const count = reps === 999 ? 5 : reps;
-    const plan = planPressureSession({
-      count,
-      excludePromptIds: seenPromptIds,
-    });
-    setPhase({
-      kind: "session",
+    void launchSession("pressure", "Pressure training", {
       style: "pressure",
-      label: "Pressure training",
-      planSeed: plan,
+      count,
+      excludePromptIds: [...seenPromptIds],
     });
   }
 
@@ -188,6 +189,24 @@ export function SkillLabClient({
 
   return (
     <LabShell phase={phase} onLeave={backToLobby}>
+      {isPlanning && (
+        <div
+          className="mb-4 flex items-center gap-2 rounded-xl border border-brand-purple/30 bg-brand-purple/5 px-4 py-3 text-sm text-ink-700"
+          role="status"
+        >
+          <span className="size-2 animate-pulse rounded-full bg-brand-purple" />
+          Building your session…
+        </div>
+      )}
+      {planError && !isPlanning && (
+        <div
+          className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          role="alert"
+        >
+          Couldn&apos;t build your session — check your connection and try
+          again.
+        </div>
+      )}
       {phase.kind === "lobby" && (
         <Lobby onPick={(s) => setPhase(stylePhase(s))} />
       )}
@@ -198,36 +217,22 @@ export function SkillLabClient({
           onPick={(dim) => setPhase({ kind: "focus-reps", dim })}
         />
       )}
-      {phase.kind === "focus-reps" && (() => {
-        // Ch.16 — surface today's named exercise above the rep-count
-        // step. Bias toward the exercise that targets the deep-linked
-        // sub-skill when present; otherwise pick the dim's primary
-        // exercise. Pure surface — exerciseId isn't yet plumbed
-        // through to the prompt picker (per-prompt tagging is the
-        // Ch.16 follow-up that wires this data into selection).
-        const exercise = primaryExerciseFor(
-          phase.dim,
-          initialFocus === phase.dim ? initialSubSkill : undefined,
-        );
-        return (
-          <RepCountStep
-            title={`Drill ${DIMENSION_LABELS[phase.dim]}`}
-            subtitle={
-              initialSubSkill && initialFocus === phase.dim
-                ? `Focusing on ${SUB_SKILL_LABELS[initialSubSkill]}. How many reps today?`
-                : "How many reps today?"
-            }
-            exerciseLabel={`Today's exercise: ${exercise.name}`}
-            exerciseTagline={exercise.tagline}
-            onBack={
-              initialFocus === phase.dim
-                ? backToLobby
-                : () => setPhase({ kind: "focus-skill" })
-            }
-            onPick={(reps) => startFocus(phase.dim, reps)}
-          />
-        );
-      })()}
+      {phase.kind === "focus-reps" && (
+        <RepCountStep
+          title={`Drill ${DIMENSION_LABELS[phase.dim]}`}
+          subtitle={
+            initialSubSkill && initialFocus === phase.dim
+              ? `Focusing on ${SUB_SKILL_LABELS[initialSubSkill]}. How many reps today?`
+              : "How many reps today?"
+          }
+          onBack={
+            initialFocus === phase.dim
+              ? backToLobby
+              : () => setPhase({ kind: "focus-skill" })
+          }
+          onPick={(reps) => startFocus(phase.dim, reps)}
+        />
+      )}
       {phase.kind === "mixed-skills" && (
         <MixedSkillStep
           currentScores={currentScores}
