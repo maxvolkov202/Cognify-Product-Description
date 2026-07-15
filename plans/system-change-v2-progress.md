@@ -247,5 +247,13 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   count is 148 (Thinking Quality table has 28 rows, not 29). Dev DB migrated (profiles + 94
   re-tagged exercises). Two external blockers logged: (1) calibration replay pending API credits
   (see Phase 1 guardrail note), (2) exercise re-tag proposals authored in-session instead of via
-  API for the same reason. Next: Phase 2 (prompt architecture overhaul, D21+D23) in a fresh
-  session.
+  API for the same reason. `/code-review` high (8 finder angles + adversarial verify) surfaced 10
+  verified findings — 9 fixed in commit 300843e1, headline items: legacy-id canonicalization was
+  missing at every historical read boundary (sub-skill averages window, OutcomeCard chips, retry
+  context, prompt-gen, scoring normalizer), the ACTIVE two-stage dev scoring path had no
+  sub-skill reference/normalization at all, degenerate recordings could inject junk deterministic
+  scores into the profile, calibrate-prosody could never pass post-v2, and 10 tone drills were
+  tagged with unreachable delivery skills. PR #5 opened; merge = Max (review required). Deferred
+  cleanup (not bugs): consolidate the 3 script-side taxonomy loaders/validators + pacing→delivery
+  alias maps into one shared scripts/taxonomy lib — fold into Phase 2's tooling rewrite. Next:
+  Phase 2 (prompt architecture overhaul, D21+D23) in a fresh session.
