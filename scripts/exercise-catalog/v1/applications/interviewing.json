@@ -4,18 +4,30 @@
     {
       "dimension": "thinking_quality",
       "application": "interviewing",
-      "application_skills": ["credible_specifics", "evidence_based_answers"],
+      "application_skills": [
+        "credible_specifics",
+        "evidence_based_answers"
+      ],
       "name": "The Proof Point Answer",
       "rule": "Prove the trait with one specific moment, not a claim.",
       "why": "Interviewers discount adjectives. A concrete moment with your role, action, and result is the only evidence they can score.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to answer behavioral interview questions by proving the target trait with one specific, evidence-rich moment instead of asserting it.",
-      "hidden_skills": ["claim_support", "depth_of_analysis"],
+      "hidden_skills": [
+        "claim_support",
+        "evidence_relevance",
+        "example_validity"
+      ],
       "scoring_lens": "Constraint: claimed traits without a concrete example MUST drag thinking_quality. Reward answers where the specific action and result make the trait believable on their own.",
       "coach_insight": "Pick one moment and tell it so specifically the interviewer could retell it — where you were, what you did, what changed. The trap is pluralizing: \"I always\" and \"I often\" turn evidence back into a claim.",
-      "secondary_core_skills": ["structure", "clarity"],
+      "secondary_core_skills": [
+        "structure",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Asserts the trait ('I'm very proactive') without a single specific moment to back it",
         "Describes what the team or company did instead of the speaker's own actions",
@@ -25,38 +37,136 @@
       "scoring_emphasis": "Weight the specificity and ownership of the single chosen moment — whether the actions are unmistakably the speaker's and the result is checkable — over the overall polish of the delivery.",
       "retry_objective": "Replace every general self-description from the first attempt with a specific action, number, or result.",
       "prompt_rules": "Generate behavioral interview questions that name a role and setting with real stakes and target one evaluable trait, so unproven claims become visible. Each prompt must suit a 75-120 second spoken STAR-style answer drawn from the user's real experience.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you took initiative without being asked.\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're in a final round for a consulting role. Answer: \"Tell me about a time you influenced someone senior to change course.\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for your first full-time job. Answer: \"Tell me about a time you had to learn something quickly under pressure.\"", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "You're interviewing for a research assistant position. Answer: \"Tell me about a time your attention to detail actually mattered.\"", "difficulty": "core", "tags": ["science", "education"] },
-        { "text": "You're interviewing at a startup. Answer: \"Tell me about a time you delivered with almost no direction or resources.\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're in a promotion panel at your company. Answer: \"Tell me about a time you took ownership of a problem outside your role.\"", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"Tell me about a time you responded well to tough feedback.\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a team lead role. Answer: \"Tell me about a time you kept a group on track when motivation dipped.\"", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "You're interviewing for a customer-facing role. Answer: \"Tell me about a time you turned an unhappy person into an advocate.\"", "difficulty": "core", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for a data analyst job. Answer: \"Tell me about a time the numbers told you something nobody wanted to hear.\"", "difficulty": "stretch", "tags": ["tech", "finance"] },
-        { "text": "You're interviewing for a scholarship. Answer: \"Tell me about a commitment you kept when it would have been easier to quit.\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for an operations role. Answer: \"Tell me about a time you improved a process everyone else had accepted.\"", "difficulty": "core", "tags": ["business"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you took initiative without being asked.\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a final round for a consulting role. Answer: \"Tell me about a time you influenced someone senior to change course.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first full-time job. Answer: \"Tell me about a time you had to learn something quickly under pressure.\"",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a research assistant position. Answer: \"Tell me about a time your attention to detail actually mattered.\"",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "You're interviewing at a startup. Answer: \"Tell me about a time you delivered with almost no direction or resources.\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're in a promotion panel at your company. Answer: \"Tell me about a time you took ownership of a problem outside your role.\"",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"Tell me about a time you responded well to tough feedback.\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a team lead role. Answer: \"Tell me about a time you kept a group on track when motivation dipped.\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a customer-facing role. Answer: \"Tell me about a time you turned an unhappy person into an advocate.\"",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a data analyst job. Answer: \"Tell me about a time the numbers told you something nobody wanted to hear.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "finance"
+          ]
+        },
+        {
+          "text": "You're interviewing for a scholarship. Answer: \"Tell me about a commitment you kept when it would have been easier to quit.\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for an operations role. Answer: \"Tell me about a time you improved a process everyone else had accepted.\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        }
       ]
     },
     {
       "dimension": "structure",
       "application": "interviewing",
-      "application_skills": ["handling_weakness_questions", "self_awareness", "concise_personal_examples"],
+      "application_skills": [
+        "handling_weakness_questions",
+        "self_awareness",
+        "concise_personal_examples"
+      ],
       "name": "The Failure Debrief",
       "rule": "Name the failure, own it, show what changed.",
       "why": "Failure questions test honesty and arc. Interviewers listen for whether you bury the mistake, blame others, or land a real lesson.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to walk a failure story through a clean arc — context, mistake, response, change — without burying the failure or the lesson.",
-      "hidden_skills": ["narrative_arc", "coherence"],
+      "hidden_skills": [
+        "narrative_arc",
+        "star_fluency",
+        "intellectual_honesty"
+      ],
       "scoring_lens": "Constraint: the answer must move through context, failure, response, and change in order. A buried mistake, deflected blame, or missing final lesson MUST drag structure.",
       "coach_insight": "Say \"I\" at the mistake and get there fast — then spend more time on what you changed than on how it went wrong. The trap is over-explaining the setup to delay the confession; interviewers hear the stall.",
-      "secondary_core_skills": ["thinking_quality", "conciseness"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Spends most of the answer on setup and only glances at the actual mistake",
         "Frames the failure as bad luck or someone else's fault",
@@ -66,38 +176,133 @@
       "scoring_emphasis": "Weight ownership language and the specificity of the change enacted afterward more heavily than the drama or scale of the failure itself.",
       "retry_objective": "Tighten the arc: name the failure within the first two sentences and land the lesson as the final beat.",
       "prompt_rules": "Generate failure-question interview prompts that name a role and setting where the stakes of admitting a mistake are real. Each prompt must invite one specific failure from the user's own experience and suit a 75-120 second spoken answer with a clear story arc.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you failed at something that mattered to you.\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're in a final round at a startup. Answer: \"Tell me about a project of yours that didn't work out. What happened?\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"Describe a time you missed a goal you set for yourself.\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a team lead role. Answer: \"Tell me about a decision you got wrong and what it cost.\"", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "You're interviewing for an engineering job. Answer: \"Tell me about a time something you built or set up failed at the worst possible moment.\"", "difficulty": "core", "tags": ["tech"] },
-        { "text": "You're in a promotion conversation with your director. Answer: \"Tell me about your biggest miss in the last year.\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for a consulting role. Answer: \"Tell me about a recommendation you made that turned out to be wrong.\"", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "You're interviewing for a nonprofit role. Answer: \"Tell me about a time you overcommitted and let someone down.\"", "difficulty": "core", "tags": ["personal", "ethics"] },
-        { "text": "You're interviewing for your first job. Answer: \"Tell me about a time you were unprepared. What did you do next?\"", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "You're interviewing for a sales role. Answer: \"Tell me about a time you failed to win someone over when it really mattered.\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're interviewing for a fellowship. Answer: \"Describe a failure that changed how you approach your work.\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a product role. Answer: \"Tell me about a launch or deadline you missed and what you changed after.\"", "difficulty": "core", "tags": ["tech", "business"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you failed at something that mattered to you.\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a final round at a startup. Answer: \"Tell me about a project of yours that didn't work out. What happened?\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"Describe a time you missed a goal you set for yourself.\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a team lead role. Answer: \"Tell me about a decision you got wrong and what it cost.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for an engineering job. Answer: \"Tell me about a time something you built or set up failed at the worst possible moment.\"",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You're in a promotion conversation with your director. Answer: \"Tell me about your biggest miss in the last year.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a consulting role. Answer: \"Tell me about a recommendation you made that turned out to be wrong.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a nonprofit role. Answer: \"Tell me about a time you overcommitted and let someone down.\"",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "ethics"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first job. Answer: \"Tell me about a time you were unprepared. What did you do next?\"",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a sales role. Answer: \"Tell me about a time you failed to win someone over when it really mattered.\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a fellowship. Answer: \"Describe a failure that changed how you approach your work.\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a product role. Answer: \"Tell me about a launch or deadline you missed and what you changed after.\"",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "interviewing",
-      "application_skills": ["evidence_based_answers", "self_awareness"],
+      "application_skills": [
+        "evidence_based_answers",
+        "self_awareness"
+      ],
       "name": "Across the Table",
       "rule": "State their side fairly before you defend yours.",
       "why": "Conflict questions measure maturity, not victory. Representing the other person fairly proves judgment; villainizing them proves the opposite.",
       "default_difficulty": "stretch",
       "ordering": 3,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to answer conflict questions by representing the other side fairly before explaining their own actions and the resolution.",
-      "hidden_skills": ["perspective_taking", "intellectual_honesty"],
+      "hidden_skills": [
+        "steel_manning",
+        "perspective_taking",
+        "nondefensiveness"
+      ],
       "scoring_lens": "Constraint: the other party's view must be stated fairly before the user's own case. Villainizing, flattening, or skipping the other side MUST drag thinking_quality.",
       "coach_insight": "Make their case sound so fair they'd nod if they heard it — then show what you did and how it resolved. The trap is the token nod: \"I see their point, but...\" used as a runway for your own victory lap.",
-      "secondary_core_skills": ["tone", "structure"],
+      "secondary_core_skills": [
+        "tone",
+        "structure"
+      ],
       "common_failure_modes": [
         "Gives the other side one throwaway sentence before pivoting to self-defense",
         "Paints the other person as unreasonable, political, or incompetent",
@@ -107,38 +312,135 @@
       "scoring_emphasis": "Weight how much genuine strength the speaker grants the opposing view and whether the resolution shows movement on their own side, rather than adjudicating who was right.",
       "retry_objective": "Restate the other person's position at full strength before defending your own, and name one thing you would do differently.",
       "prompt_rules": "Generate conflict-question interview prompts naming a role and setting where a real disagreement with a specific person is expected. Each prompt must draw on the user's own experience, make the other party's perspective essential to a good answer, and suit 75-120 seconds spoken.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you disagreed with a teammate. How did it end?\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a team lead role. Answer: \"Tell me about a time you and the person in charge saw a problem differently.\"", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "You're interviewing for a consulting role. Answer: \"Tell me about a time someone you were doing work for pushed back hard on you.\"", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"Describe working closely with someone whose style clashed with yours.\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing at a startup. Answer: \"Tell me about a time you had to commit to a decision you argued against.\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for a project manager job. Answer: \"Tell me about a time two people on your team were in conflict and you stepped in.\"", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "You're interviewing for a research role. Answer: \"Tell me about a time your interpretation of the evidence was challenged.\"", "difficulty": "core", "tags": ["science"] },
-        { "text": "You're interviewing for a customer success role. Answer: \"Tell me about a time you had to say no to someone important.\"", "difficulty": "core", "tags": ["business", "personal"] },
-        { "text": "You're in a promotion panel. Answer: \"Tell me about your hardest working relationship and what you did about it.\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for a volunteer leadership role. Answer: \"Tell me about a time you changed your mind during a disagreement.\"", "difficulty": "core", "tags": ["personal", "ethics"] },
-        { "text": "You're interviewing for an engineering job. Answer: \"Tell me about a debate over the right way to do something that you lost. Was the outcome right?\"", "difficulty": "core", "tags": ["tech"] },
-        { "text": "You're interviewing for a teaching position. Answer: \"Tell me about a time someone criticized your approach in front of others.\"", "difficulty": "stretch", "tags": ["education", "personal"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"Tell me about a time you disagreed with a teammate. How did it end?\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a team lead role. Answer: \"Tell me about a time you and the person in charge saw a problem differently.\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a consulting role. Answer: \"Tell me about a time someone you were doing work for pushed back hard on you.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"Describe working closely with someone whose style clashed with yours.\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing at a startup. Answer: \"Tell me about a time you had to commit to a decision you argued against.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a project manager job. Answer: \"Tell me about a time two people on your team were in conflict and you stepped in.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a research role. Answer: \"Tell me about a time your interpretation of the evidence was challenged.\"",
+          "difficulty": "core",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "You're interviewing for a customer success role. Answer: \"Tell me about a time you had to say no to someone important.\"",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a promotion panel. Answer: \"Tell me about your hardest working relationship and what you did about it.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a volunteer leadership role. Answer: \"Tell me about a time you changed your mind during a disagreement.\"",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "ethics"
+          ]
+        },
+        {
+          "text": "You're interviewing for an engineering job. Answer: \"Tell me about a debate over the right way to do something that you lost. Was the outcome right?\"",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You're interviewing for a teaching position. Answer: \"Tell me about a time someone criticized your approach in front of others.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        }
       ]
     },
     {
       "dimension": "clarity",
       "application": "interviewing",
-      "application_skills": ["connecting_to_fit", "self_awareness"],
+      "application_skills": [
+        "connecting_to_fit",
+        "self_awareness"
+      ],
       "name": "Why This, Why You",
       "rule": "Give one specific reason only you could give.",
       "why": "Motivation answers fail by being interchangeable. One concrete, personal reason tied to this role beats five reasons anyone could recite.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to answer motivation questions with one specific, personal reason made concrete — not a resume summary or generic praise for the organization.",
-      "hidden_skills": ["concreteness", "idea_isolation", "audience_awareness"],
+      "hidden_skills": [
+        "concreteness",
+        "example_grounding",
+        "one_point_discipline"
+      ],
       "scoring_lens": "Constraint: the motivation must be one concrete, personal reason the listener could repeat back. Generic praise, stacked vague reasons, or a resume recap MUST drag clarity.",
       "coach_insight": "Give the one reason with your fingerprints on it — a moment or detail no other candidate could borrow, tied to this exact role. The trap is stacking three safe reasons; together they say nothing about you.",
-      "secondary_core_skills": ["conciseness", "thinking_quality"],
+      "secondary_core_skills": [
+        "conciseness",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Lists multiple interchangeable reasons instead of committing to one",
         "Praises the organization in phrases that could be lifted from its website",
@@ -148,38 +450,135 @@
       "scoring_emphasis": "Weight whether the single reason is unmistakably this speaker's — anchored in a lived moment and this specific opportunity — over how enthusiastic or comprehensive the answer sounds.",
       "retry_objective": "Cut to one reason and anchor it in a specific moment or detail only you could supply.",
       "prompt_rules": "Generate motivation-question interview prompts naming a role and setting where the interviewer is testing genuine intent. Each prompt must push the user toward one personal, concrete reason from their own life and suit a 60-90 second spoken answer with no stacked constraints.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"Why do you want this internship, and why now?\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're in a final round at a startup. Answer: \"Why us instead of a bigger, safer company?\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"Why this field? Trace the moment it became your plan.\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a role in a field new to you. Answer: \"Why step into something new instead of building on what you already know?\"", "difficulty": "stretch", "tags": ["personal", "business"] },
-        { "text": "You're interviewing for a nonprofit job. Answer: \"Why this mission, and what have you already done about it?\"", "difficulty": "core", "tags": ["ethics", "personal"] },
-        { "text": "You're interviewing for a consulting role. Answer: \"Why consulting — beyond the answer everyone gives?\"", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "You're interviewing for a teaching fellowship. Answer: \"Why do you want to teach, and why these students?\"", "difficulty": "core", "tags": ["education"] },
-        { "text": "You're interviewing for a scholarship. Answer: \"What do you want to build with this, five years out?\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for your first job. Answer: \"What kind of work makes you lose track of time, and why?\"", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "You're in a promotion conversation. Answer: \"Why do you want this role instead of staying where you're strong?\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for a research position. Answer: \"Why this question? Why does it deserve years of your life?\"", "difficulty": "stretch", "tags": ["science", "personal"] },
-        { "text": "You're interviewing at a company you admire. Answer: \"What specifically about our work made you apply?\"", "difficulty": "intro", "tags": ["business", "personal"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"Why do you want this internship, and why now?\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a final round at a startup. Answer: \"Why us instead of a bigger, safer company?\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"Why this field? Trace the moment it became your plan.\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a role in a field new to you. Answer: \"Why step into something new instead of building on what you already know?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a nonprofit job. Answer: \"Why this mission, and what have you already done about it?\"",
+          "difficulty": "core",
+          "tags": [
+            "ethics",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a consulting role. Answer: \"Why consulting — beyond the answer everyone gives?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a teaching fellowship. Answer: \"Why do you want to teach, and why these students?\"",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "You're interviewing for a scholarship. Answer: \"What do you want to build with this, five years out?\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first job. Answer: \"What kind of work makes you lose track of time, and why?\"",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a promotion conversation. Answer: \"Why do you want this role instead of staying where you're strong?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a research position. Answer: \"Why this question? Why does it deserve years of your life?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing at a company you admire. Answer: \"What specifically about our work made you apply?\"",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        }
       ]
     },
     {
       "dimension": "conciseness",
       "application": "interviewing",
-      "application_skills": ["concise_personal_examples", "credible_specifics"],
+      "application_skills": [
+        "concise_personal_examples",
+        "credible_specifics"
+      ],
       "name": "One Strength, One Proof",
       "rule": "One strength, one proof, then stop talking.",
       "why": "Strength answers die by accumulation. A single claim backed by one sharp example lands; a list of adjectives cancels itself out.",
       "default_difficulty": "intro",
       "ordering": 5,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to deliver a strength answer as one claim and one concrete proof, then stop — no stacked strengths or trailing qualifiers.",
-      "hidden_skills": ["response_scoping", "editing_in_real_time"],
+      "hidden_skills": [
+        "one_point_discipline",
+        "example_economy",
+        "end_discipline"
+      ],
       "scoring_lens": "Constraint: one strength, one concrete proof, a clean stop. Stacked strengths, trailing qualifiers, or restating the point after the proof lands MUST drag conciseness.",
       "coach_insight": "Claim in one sentence, one vivid proof, then a full stop — the silence after the example does the selling. The trap is the nervous coda: \"and I'm also...\" quietly refunds everything you just earned.",
-      "secondary_core_skills": ["clarity", "thinking_quality"],
+      "secondary_core_skills": [
+        "clarity",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Names two or more strengths, weakening each",
         "Keeps the proof habitual ('in every project I...') instead of one specific moment",
@@ -189,38 +588,134 @@
       "scoring_emphasis": "Weight what happens after the proof — whether the speaker actually stops — and how tightly the example demonstrates the exact strength claimed, more than how impressive the strength itself is.",
       "retry_objective": "Keep the strongest claim-proof pair from the first attempt and cut everything after the proof lands.",
       "prompt_rules": "Generate strength-question interview prompts naming a role and setting where one relevant strength is enough. Each prompt must invite a single claim backed by one specific example from the user's experience and suit a 60-90 second spoken answer that rewards stopping early.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"What's your greatest strength?\" One strength, one example, done.", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a team lead role. Answer: \"What would your teammates say you're best at?\"", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "You're interviewing for a sales role. Answer: \"What makes you good at winning people over? Prove it fast.\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"What one ability will carry you through this program?\"", "difficulty": "intro", "tags": ["education"] },
-        { "text": "You're in a final round at a startup. Answer: \"What do you do better than most people at your level?\"", "difficulty": "core", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for an analyst role. Answer: \"What's your sharpest skill, and when did it last change an outcome?\"", "difficulty": "core", "tags": ["finance", "tech"] },
-        { "text": "You're interviewing for a customer-facing job. Answer: \"What's your superpower with difficult people?\"", "difficulty": "intro", "tags": ["business", "personal"] },
-        { "text": "You're in a promotion panel. Answer: \"What strength justifies giving you more responsibility?\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for your first job. Answer: \"What's one thing we'd notice about your work in the first month?\"", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "You're interviewing for a fellowship. Answer: \"What strength shows up in everything you've done so far?\"", "difficulty": "core", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for an engineering role. Answer: \"What part of this job will you be immediately strong at?\"", "difficulty": "core", "tags": ["tech"] },
-        { "text": "You're interviewing for a leadership program. Answer: \"Name the strength you're known for. Give the moment that proves it.\"", "difficulty": "stretch", "tags": ["leadership", "personal"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"What's your greatest strength?\" One strength, one example, done.",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a team lead role. Answer: \"What would your teammates say you're best at?\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a sales role. Answer: \"What makes you good at winning people over? Prove it fast.\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"What one ability will carry you through this program?\"",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "You're in a final round at a startup. Answer: \"What do you do better than most people at your level?\"",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for an analyst role. Answer: \"What's your sharpest skill, and when did it last change an outcome?\"",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "tech"
+          ]
+        },
+        {
+          "text": "You're interviewing for a customer-facing job. Answer: \"What's your superpower with difficult people?\"",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a promotion panel. Answer: \"What strength justifies giving you more responsibility?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first job. Answer: \"What's one thing we'd notice about your work in the first month?\"",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a fellowship. Answer: \"What strength shows up in everything you've done so far?\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for an engineering role. Answer: \"What part of this job will you be immediately strong at?\"",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You're interviewing for a leadership program. Answer: \"Name the strength you're known for. Give the moment that proves it.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "personal"
+          ]
+        }
       ]
     },
     {
       "dimension": "conciseness",
       "application": "interviewing",
-      "application_skills": ["handling_weakness_questions", "self_awareness"],
+      "application_skills": [
+        "handling_weakness_questions",
+        "self_awareness"
+      ],
       "name": "The Unhedged Weakness",
       "rule": "A real weakness, no hedging, plus the fix underway.",
       "why": "Hedged weakness answers read as evasive. Naming a real gap plainly, then showing the fix in motion, is what builds trust.",
       "default_difficulty": "stretch",
       "ordering": 6,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to name a real weakness plainly, without hedging or humblebragging, and show the concrete fix already in motion.",
-      "hidden_skills": ["hedging_awareness", "response_scoping"],
+      "hidden_skills": [
+        "hedging_control",
+        "qualifier_discipline",
+        "accountability"
+      ],
       "scoring_lens": "Constraint: the weakness must be real and stated without hedges or disguised strengths. Softeners like \"sometimes maybe\", perfectionism cliches, and humblebrags MUST drag conciseness.",
       "coach_insight": "Name a gap a former teammate would instantly recognize, in one plain sentence, then show the fix already in motion. The trap is the costume: a strength dressed as a weakness reads as evasion, not modesty.",
-      "secondary_core_skills": ["tone", "thinking_quality"],
+      "secondary_core_skills": [
+        "tone",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Offers a disguised strength ('I'm a perfectionist', 'I care too much')",
         "Softens the gap with hedges like 'sometimes', 'a little', or 'maybe'",
@@ -230,38 +725,133 @@
       "scoring_emphasis": "Weight the plainness of the admission and the specificity of the in-progress fix; a genuinely risky weakness owned cleanly should outscore a safe one wrapped in caveats.",
       "retry_objective": "State the weakness in one unhedged sentence, then spend the saved time on the concrete fix underway.",
       "prompt_rules": "Generate weakness-question interview prompts naming a role and setting where honesty carries real risk. Each prompt must push the user to name a genuine gap from their own experience plus an active fix, and suit a 60-90 second spoken answer with no room for hedging.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a competitive internship. Answer: \"What's your biggest weakness?\" No fake weaknesses allowed.", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're in a final round at a startup. Answer: \"What would the last person who oversaw your work say you need to work on?\"", "difficulty": "core", "tags": ["business"] },
-        { "text": "You're interviewing for a team lead role. Answer: \"What feedback have you gotten more than once?\"", "difficulty": "core", "tags": ["leadership", "personal"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"What part of this program will be hardest for you?\"", "difficulty": "core", "tags": ["education"] },
-        { "text": "You're interviewing for a consulting role. Answer: \"Where do you fall short under pressure?\"", "difficulty": "stretch", "tags": ["business"] },
-        { "text": "You're in a promotion conversation. Answer: \"What would hold you back in this role, honestly?\"", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "You're interviewing for your first job. Answer: \"What skill are you actively working on right now, and how?\"", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "You're interviewing for a research position. Answer: \"What's a habit that has hurt your work, and what replaced it?\"", "difficulty": "core", "tags": ["science", "personal"] },
-        { "text": "You're interviewing for a customer success role. Answer: \"What kind of situation still throws you off?\"", "difficulty": "core", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for an engineering job. Answer: \"What's a real gap in your skills for this role?\"", "difficulty": "core", "tags": ["tech"] },
-        { "text": "You're interviewing for a fellowship. Answer: \"Tell me something you tried to improve and are still not good at.\"", "difficulty": "stretch", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for a project manager role. Answer: \"When did your weakness last cost your team something?\"", "difficulty": "stretch", "tags": ["leadership"] }
+        {
+          "text": "You're interviewing for a competitive internship. Answer: \"What's your biggest weakness?\" No fake weaknesses allowed.",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're in a final round at a startup. Answer: \"What would the last person who oversaw your work say you need to work on?\"",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a team lead role. Answer: \"What feedback have you gotten more than once?\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"What part of this program will be hardest for you?\"",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "You're interviewing for a consulting role. Answer: \"Where do you fall short under pressure?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're in a promotion conversation. Answer: \"What would hold you back in this role, honestly?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first job. Answer: \"What skill are you actively working on right now, and how?\"",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a research position. Answer: \"What's a habit that has hurt your work, and what replaced it?\"",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a customer success role. Answer: \"What kind of situation still throws you off?\"",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for an engineering job. Answer: \"What's a real gap in your skills for this role?\"",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You're interviewing for a fellowship. Answer: \"Tell me something you tried to improve and are still not good at.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a project manager role. Answer: \"When did your weakness last cost your team something?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
       "dimension": "thinking_quality",
       "application": "interviewing",
-      "application_skills": ["explaining_motivation", "self_awareness"],
+      "application_skills": [
+        "explaining_motivation",
+        "self_awareness"
+      ],
       "name": "The Honest Why",
       "rule": "Give the real reason, then the proof you acted on it.",
       "why": "Interviewers discount polished motives. The reason that survives follow-up is the real one, backed by something you have already done about it.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to explain why they want something or chose something with their real, defensible motive — honestly traced, mixed feelings included — and backed by action already taken, not borrowed platitudes.",
-      "hidden_skills": ["intellectual_honesty", "claim_support"],
+      "hidden_skills": [
+        "intellectual_honesty",
+        "claim_support",
+        "emotional_authenticity"
+      ],
       "scoring_lens": "Constraint: the stated motive must be honest and defensible under follow-up. Borrowed platitudes, suspiciously tidy motives, or reasons unbacked by any prior action MUST drag thinking_quality.",
       "coach_insight": "Give the reason that would survive two more \"whys\" — mixed feelings included — plus one thing you've already done that proves it. The trap is the answer you think they want; borrowed motives collapse on the first follow-up.",
-      "secondary_core_skills": ["tone", "clarity"],
+      "secondary_core_skills": [
+        "tone",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Recites a borrowed platitude ('I'm passionate about impact') as the motive",
         "Tells a suspiciously tidy origin story with no trade-offs or mixed feelings",
@@ -271,38 +861,138 @@
       "scoring_emphasis": "Weight whether the stated motive is corroborated by actions already taken and honest about trade-offs, over how inspiring or role-appropriate the motive sounds.",
       "retry_objective": "Swap any polished or borrowed reason for the truer one, and name one thing you have already done that proves it.",
       "prompt_rules": "Generate why-questions about motivations and past choices, naming a role and setting where the interviewer will probe the answer for authenticity. Each prompt must invite the user's real reasoning about their own decisions and suit a 75-120 second spoken answer.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["structure"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "structure"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a marketing internship. Answer: \"Out of everything you could have applied to, why this?\"", "difficulty": "intro", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for your first full-time job. Answer: \"Why did you pick what you've spent the last few years learning or doing?\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're interviewing at a small nonprofit. Answer: \"Why do you care about this cause?\"", "difficulty": "intro", "tags": ["ethics", "personal"] },
-        { "text": "You're interviewing for a retail management job. Answer: \"Why this industry? Most people just fall into it.\"", "difficulty": "intro", "tags": ["business"] },
-        { "text": "You're in a final round at a fintech startup. Answer: \"You have safer options than this. Walk me through why you're here.\"", "difficulty": "core", "tags": ["finance", "personal"] },
-        { "text": "You're interviewing for a graduate program. Answer: \"Plenty of programs cover this. Why ours, really?\"", "difficulty": "core", "tags": ["education"] },
-        { "text": "You're in a promotion panel. Answer: \"Why do you want to manage people instead of staying where you're strongest?\"", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "You're interviewing for a nurse practitioner role. Answer: \"Why choose work like this over paths that pay more?\"", "difficulty": "core", "tags": ["healthcare", "personal"] },
-        { "text": "You're interviewing with a nonprofit board for an executive director post. Answer: \"Why take this on now, at this point in your career?\"", "difficulty": "core", "tags": ["leadership", "ethics"] },
-        { "text": "You're in a final round for a consulting job. Answer: \"Parts of your background point in different directions. Which is the real you, and why are you here?\"", "difficulty": "stretch", "tags": ["business", "personal"] },
-        { "text": "You're interviewing to rejoin a team you once left. Answer: \"Why come back? And why should we believe it will stick?\"", "difficulty": "stretch", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for a PhD program. Answer: \"Is this a calling or an escape from the job market? Convince me you know the difference.\"", "difficulty": "stretch", "tags": ["education", "science"] }
+        {
+          "text": "You're interviewing for a marketing internship. Answer: \"Out of everything you could have applied to, why this?\"",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for your first full-time job. Answer: \"Why did you pick what you've spent the last few years learning or doing?\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing at a small nonprofit. Answer: \"Why do you care about this cause?\"",
+          "difficulty": "intro",
+          "tags": [
+            "ethics",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a retail management job. Answer: \"Why this industry? Most people just fall into it.\"",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "You're in a final round at a fintech startup. Answer: \"You have safer options than this. Walk me through why you're here.\"",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a graduate program. Answer: \"Plenty of programs cover this. Why ours, really?\"",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "You're in a promotion panel. Answer: \"Why do you want to manage people instead of staying where you're strongest?\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a nurse practitioner role. Answer: \"Why choose work like this over paths that pay more?\"",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing with a nonprofit board for an executive director post. Answer: \"Why take this on now, at this point in your career?\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "ethics"
+          ]
+        },
+        {
+          "text": "You're in a final round for a consulting job. Answer: \"Parts of your background point in different directions. Which is the real you, and why are you here?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing to rejoin a team you once left. Answer: \"Why come back? And why should we believe it will stick?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a PhD program. Answer: \"Is this a calling or an escape from the job market? Convince me you know the difference.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "education",
+            "science"
+          ]
+        }
       ]
     },
     {
       "dimension": "pacing",
       "application": "interviewing",
-      "application_skills": ["judgment_under_pressure", "evidence_based_answers"],
+      "application_skills": [
+        "judgment_under_pressure",
+        "evidence_based_answers"
+      ],
       "name": "The Composed Curveball",
       "rule": "Pause, name your approach, then reason aloud at a steady pace.",
       "why": "Curveball questions test composure before content. A beat of silence and a steady, step-by-step answer reads as judgment; a rushed scramble reads as panic.",
       "default_difficulty": "stretch",
       "ordering": 8,
-      "tags": ["skill-lab-v1"],
+      "tags": [
+        "skill-lab-v1"
+      ],
       "objective": "Train the user to meet curveball, hypothetical, and trade-off questions with a deliberate pause, a named approach, and steady structured reasoning aloud toward a defensible call.",
-      "hidden_skills": ["pressure_management", "strategic_pausing", "filler_word_control"],
+      "hidden_skills": [
+        "pressure_pacing",
+        "strategic_pausing",
+        "recovery_pacing",
+        "reasoning_chain_logic"
+      ],
       "scoring_lens": "Constraint: the answer must open with a deliberate pause and hold a steady rate while reasoning aloud. A rushed start, a filler-flooded scramble, or an accelerating panic MUST drag pacing.",
       "coach_insight": "Take a real two-second pause, say how you'll approach it, then walk steady steps to one call. The trap is filling the silence — \"um, great question\" — and speeding up as confidence drops; the rush reads as panic.",
-      "secondary_core_skills": ["thinking_quality", "structure"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "structure"
+      ],
       "common_failure_modes": [
         "Starts talking instantly, plugging the silence with fillers instead of a real pause",
         "Speeds up or turns breathless as the answer progresses",
@@ -312,21 +1002,110 @@
       "scoring_emphasis": "Weight the opening seconds and rate stability across the whole answer — the pause, the named approach, the held tempo — more than whether the final call is the optimal one.",
       "retry_objective": "Take a full two-second pause before speaking, and hold one steady pace from your first reasoning step to your final call.",
       "prompt_rules": "Generate curveball, hypothetical, and trade-off interview questions naming a role and setting where no rehearsed answer exists. Each prompt must force live reasoning toward a defensible choice and suit a 75-120 second spoken answer delivered at a composed pace.",
-      "response_window": { "min_sec": 75, "max_sec": 120 },
-      "constraint_types": ["time"],
+      "response_window": {
+        "min_sec": 75,
+        "max_sec": 120
+      },
+      "constraint_types": [
+        "time"
+      ],
       "prompts": [
-        { "text": "You're interviewing for a campus tour guide job. Answer: \"A parent asks you something you don't know. What do you do, and what makes that the right call?\"", "difficulty": "intro", "tags": ["education", "personal"] },
-        { "text": "You're interviewing for an operations job. Answer: \"Would you rather ship a day late or ship with one known small bug? Pick one.\"", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "You're interviewing for a retail lead role. Answer: \"Two customers need you at once and you're alone on the floor. Who gets you first?\"", "difficulty": "intro", "tags": ["business", "personal"] },
-        { "text": "You're interviewing for a junior analyst job. Answer: \"Rough guess: how many coffee shops does this city need? Reason it out for me.\"", "difficulty": "intro", "tags": ["finance", "business"] },
-        { "text": "You're interviewing for a product manager role. Answer: \"You can stop customers from leaving or bring in new ones this quarter, not both. Which one, and why?\"", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "You're in a promotion panel for engineering manager. Answer: \"Your best engineer wants to quit the day before a launch. What's your first move?\"", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "You're interviewing for a hospital administrator role. Answer: \"Budget forces a cut: staff training or new equipment. Choose.\"", "difficulty": "core", "tags": ["healthcare", "leadership"] },
-        { "text": "You're interviewing for an MBA program. Answer: \"Your team's startup idea is failing mid-semester. Pivot or push on? How would you decide?\"", "difficulty": "core", "tags": ["education", "business"] },
-        { "text": "You're interviewing for a chief of staff job. Answer: \"Your CEO is about to announce a number you think is wrong. You have sixty seconds with her. Go.\"", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "You're in a board interview for a director seat. Answer: \"The CEO is beloved but underperforming. What does the board do, and when?\"", "difficulty": "stretch", "tags": ["leadership", "finance"] },
-        { "text": "You're in a final round for a strategy role. Answer: \"Our biggest client, 40% of revenue, demands a discount that erases the margin. Walk me through your call.\"", "difficulty": "stretch", "tags": ["business", "finance"] },
-        { "text": "You're interviewing for a research director post. Answer: \"Halfway through, the data contradicts the hypothesis your funding depends on. What now?\"", "difficulty": "stretch", "tags": ["science", "ethics"] }
+        {
+          "text": "You're interviewing for a campus tour guide job. Answer: \"A parent asks you something you don't know. What do you do, and what makes that the right call?\"",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for an operations job. Answer: \"Would you rather ship a day late or ship with one known small bug? Pick one.\"",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "You're interviewing for a retail lead role. Answer: \"Two customers need you at once and you're alone on the floor. Who gets you first?\"",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "You're interviewing for a junior analyst job. Answer: \"Rough guess: how many coffee shops does this city need? Reason it out for me.\"",
+          "difficulty": "intro",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a product manager role. Answer: \"You can stop customers from leaving or bring in new ones this quarter, not both. Which one, and why?\"",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "You're in a promotion panel for engineering manager. Answer: \"Your best engineer wants to quit the day before a launch. What's your first move?\"",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for a hospital administrator role. Answer: \"Budget forces a cut: staff training or new equipment. Choose.\"",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "leadership"
+          ]
+        },
+        {
+          "text": "You're interviewing for an MBA program. Answer: \"Your team's startup idea is failing mid-semester. Pivot or push on? How would you decide?\"",
+          "difficulty": "core",
+          "tags": [
+            "education",
+            "business"
+          ]
+        },
+        {
+          "text": "You're interviewing for a chief of staff job. Answer: \"Your CEO is about to announce a number you think is wrong. You have sixty seconds with her. Go.\"",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "You're in a board interview for a director seat. Answer: \"The CEO is beloved but underperforming. What does the board do, and when?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "finance"
+          ]
+        },
+        {
+          "text": "You're in a final round for a strategy role. Answer: \"Our biggest client, 40% of revenue, demands a discount that erases the margin. Walk me through your call.\"",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "You're interviewing for a research director post. Answer: \"Halfway through, the data contradicts the hypothesis your funding depends on. What now?\"",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "ethics"
+          ]
+        }
       ]
     }
   ]

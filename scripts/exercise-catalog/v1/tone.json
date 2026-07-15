@@ -8,12 +8,20 @@
       "why": "Monotone reads as disengaged — variance is the signal of presence.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train automatic pitch and volume variation so every sentence sounds different from the one before it.",
-      "hidden_skills": ["pitch_variation", "volume_control"],
+      "hidden_skills": [
+        "congruence",
+        "prosodic_alignment",
+        "monotony_avoidance"
+      ],
       "scoring_lens": "Constraint: pitch/volume variance across sentences is the signal. Flat monotone drags tone score.",
       "coach_insight": "Pick one thing to change at every period — go higher, lower, louder, or softer — and make the shift big enough that a listener could mark it. The trap: starting varied, then sliding back into your default register by sentence three.",
-      "secondary_core_skills": ["pacing"],
+      "secondary_core_skills": [
+        "pacing"
+      ],
       "common_failure_modes": [
         "Strong variation in the first two sentences, then a slide into one flat register for the rest",
         "Varying volume only while pitch stays fixed, so consecutive sentences still blur together",
@@ -23,24 +31,119 @@
       "scoring_emphasis": "Weight sentence-to-sentence contrast sustained through the middle of the rep, not just the presence of variation somewhere in it.",
       "retry_objective": "Exaggerate the pitch or volume shift at every sentence boundary until no two consecutive sentences share a register.",
       "prompt_rules": "Generate explanatory or update-style prompts with a clear listener (a team, a client, a new hire) where flat delivery is the natural failure mode. Topics should be familiar enough that all attention can go to varying pitch and volume sentence by sentence.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Walk me through what you did at work yesterday.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Explain how your morning routine usually goes.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Give me a status update on your top three projects.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Describe the last meeting you sat through.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Explain to a new teammate how logging into an app works behind the scenes, as best you understand it.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Explain to a new coworker how a subscription service you use structures its pricing tiers.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Run through last quarter's financial highlights.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Walk a friend through what happens at a doctor's visit, from check-in to walking out.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Describe for a new hire how a typical sale moves from first conversation to signed deal.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain how you'd sequence a course to teach a beginner something you know well.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Explain how a software update gets from a developer's laptop to users' phones, as best you can.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Brief the team on this week's incident postmortem.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Deliver a deliberately dry quarterly compliance update to the team, inventing the details.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Deliver the opening minute of a technical onboarding to a new hire.", "difficulty": "stretch", "tags": ["tech"] },
-        { "text": "You're delivering a weekly report to a board. Walk them through this week's highlights and lowlights.", "difficulty": "stretch", "tags": ["leadership"] }
+        {
+          "text": "Walk me through what you did at work yesterday.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Explain how your morning routine usually goes.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Give me a status update on your top three projects.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Describe the last meeting you sat through.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain to a new teammate how logging into an app works behind the scenes, as best you understand it.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain to a new coworker how a subscription service you use structures its pricing tiers.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Run through last quarter's financial highlights.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Walk a friend through what happens at a doctor's visit, from check-in to walking out.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Describe for a new hire how a typical sale moves from first conversation to signed deal.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how you'd sequence a course to teach a beginner something you know well.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Explain how a software update gets from a developer's laptop to users' phones, as best you can.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Brief the team on this week's incident postmortem.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Deliver a deliberately dry quarterly compliance update to the team, inventing the details.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Deliver the opening minute of a technical onboarding to a new hire.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "You're delivering a weekly report to a board. Walk them through this week's highlights and lowlights.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
@@ -50,12 +153,21 @@
       "why": "Trains conscious dynamics — volume is a tool, not an accident.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train conscious volume dynamics — opening quiet, building to a peak, and landing soft.",
-      "hidden_skills": ["volume_control", "vocal_presence"],
+      "hidden_skills": [
+        "gravitas",
+        "emphasis_timing",
+        "prosodic_alignment"
+      ],
       "scoring_lens": "Constraint: the rep must open quiet, build to a peak, and land soft. Flat dynamics across the arc drag tone score; without prosody, judge whether the transcript's intensity builds to a clear peak and resolves.",
       "coach_insight": "Give yourself three gears: open at near-whisper intimacy, let each beat climb, and drop below your opening volume for the last line. The trap is peaking too early — if you're loud by sentence two, you have nowhere left to go.",
-      "secondary_core_skills": ["structure", "pacing"],
+      "secondary_core_skills": [
+        "structure",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Opening at full volume so the build has no headroom",
         "A flat middle with no rising intensity, then a sudden jump right at the end",
@@ -65,24 +177,119 @@
       "scoring_emphasis": "Weight the shape of the whole arc — where the peak lands and whether the close resolves quieter than the open — over any single loud or soft moment.",
       "retry_objective": "Rebuild the arc deliberately — start noticeably quieter, hit one clear peak, and drop the volume on the final sentence.",
       "prompt_rules": "Generate narrative prompts with a named audience and emotional stakes (a wedding toast, an origin story, a keynote) whose story shape naturally supports a quiet open, a rising middle, and a soft close. The arc should be invited by the content, not forced onto it.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Tell the story of how you ended up in your current job.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Recap the most memorable trip you've ever taken.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Walk me through your favorite meal, start to finish.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Tell me about a hobby that has slowly taken over your life.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Pitch our company in 90 seconds.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Imagine you founded a company: tell its origin story to a room of new hires.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Describe a turning point in your career arc.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Walk a client through the case for our flagship product.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Imagine you're a dealmaker: tell a client the story of a deal that nearly collapsed and how it closed.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Tell a friend the story of a health scare — yours or someone else's — that ended nothing like anyone expected.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Tell the story of the hardest thing you've ever helped build or launch, and the moment it finally worked.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Describe a time a group you were part of finally clicked, and the moment you could feel it.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Deliver a toast at your closest friend's wedding.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Deliver a short eulogy for someone who shaped who you are.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Give a keynote about why your industry has to change — now.", "difficulty": "stretch", "tags": ["leadership"] }
+        {
+          "text": "Tell the story of how you ended up in your current job.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Recap the most memorable trip you've ever taken.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Walk me through your favorite meal, start to finish.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Tell me about a hobby that has slowly taken over your life.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Pitch our company in 90 seconds.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Imagine you founded a company: tell its origin story to a room of new hires.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Describe a turning point in your career arc.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Walk a client through the case for our flagship product.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Imagine you're a dealmaker: tell a client the story of a deal that nearly collapsed and how it closed.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell a friend the story of a health scare — yours or someone else's — that ended nothing like anyone expected.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Tell the story of the hardest thing you've ever helped build or launch, and the moment it finally worked.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe a time a group you were part of finally clicked, and the moment you could feel it.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Deliver a toast at your closest friend's wedding.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Deliver a short eulogy for someone who shaped who you are.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Give a keynote about why your industry has to change — now.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
@@ -92,12 +299,21 @@
       "why": "Warmth in voice is what makes people-talk land as people-talk.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train audible warmth so people-related content sounds engaged and invested rather than clinical or detached.",
-      "hidden_skills": ["warmth", "emotional_authenticity"],
+      "hidden_skills": [
+        "warmth",
+        "emotional_authenticity",
+        "congruence"
+      ],
       "scoring_lens": "Constraint: audible warmth on every people-related sentence is the rule. Clinical or detached delivery drags tone score; in text, transactional phrasing about people implies the same failure.",
       "coach_insight": "When a person enters the sentence, let your voice change — slow slightly, soften your edges, and smile as you speak; listeners can hear a smile. The trap: describing people in the same voice you'd use for a spreadsheet.",
-      "secondary_core_skills": ["pacing", "thinking_quality"],
+      "secondary_core_skills": [
+        "pacing",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Résumé mode — listing a person's skills and outputs with no audible investment",
         "Warmth on the first person mentioned, then clinical delivery for everyone after",
@@ -107,24 +323,121 @@
       "scoring_emphasis": "Weight the people-sentences specifically — whether delivery and word choice audibly shift when a human is the subject — rather than the overall pleasantness of the rep.",
       "retry_objective": "Deliver every people-related sentence as if the person were in the room — slower, softer, and personally invested.",
       "prompt_rules": "Generate prompts about specific people (a teammate, a mentor, a patient, a recruit) with a stated listener who cares about them, so warmth is the register the situation demands. The emotional context must be explicit — introduction, farewell, gratitude, or comfort.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Tell me about your team.", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Describe a coworker who quietly carries the team.", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Tell me about someone who shaped how you work.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell me about the friend you've known the longest, and what's kept you connected.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Imagine you manage a small team: introduce each person to a new exec joining the company.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Tell a customer about the engineer who built their feature.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Walk a recruit through what it's like to join your team.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Tell me about a nurse, doctor, or caregiver who made a real difference for you or someone you love.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Talk about someone you once helped learn something, and what teaching them taught you.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Introduce the best work partner you've ever had to a room of investors, like the deal depends on it.", "difficulty": "core", "tags": ["finance", "leadership"] },
-        { "text": "Tell me about the client relationship you're proudest of.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Describe someone who mentored you — formally or not — and what they taught you.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "Deliver a goodbye message to a teammate who's leaving the company.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Comfort a friend who just lost their parent.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Welcome a family whose loved one is starting hospice care.", "difficulty": "stretch", "tags": ["healthcare"] }
+        {
+          "text": "Tell me about your team.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Describe a coworker who quietly carries the team.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell me about someone who shaped how you work.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell me about the friend you've known the longest, and what's kept you connected.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Imagine you manage a small team: introduce each person to a new exec joining the company.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell a customer about the engineer who built their feature.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Walk a recruit through what it's like to join your team.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell me about a nurse, doctor, or caregiver who made a real difference for you or someone you love.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Talk about someone you once helped learn something, and what teaching them taught you.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Introduce the best work partner you've ever had to a room of investors, like the deal depends on it.",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell me about the client relationship you're proudest of.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Describe someone who mentored you — formally or not — and what they taught you.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Deliver a goodbye message to a teammate who's leaving the company.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Comfort a friend who just lost their parent.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Welcome a family whose loved one is starting hospice care.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        }
       ]
     },
     {
@@ -134,12 +447,21 @@
       "why": "Authority lives in the floor of your voice, not the ceiling.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train convicted delivery so every claim of fact lands on a low, steady vocal floor with no apologetics.",
-      "hidden_skills": ["downward_inflection", "vocal_presence"],
+      "hidden_skills": [
+        "authority",
+        "confidence",
+        "credibility_through_restraint"
+      ],
       "scoring_lens": "Constraint: tone score reflects the audible 'floor' under claims of fact. Upward inflection on claims drags tone.",
       "coach_insight": "Before each fact, take a small breath and let the sentence sit on your lowest comfortable pitch — set the last word down, don't toss it up. The trap: an 'I think' or a rising lilt that begs permission for your own facts.",
-      "secondary_core_skills": ["conciseness", "thinking_quality"],
+      "secondary_core_skills": [
+        "conciseness",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Hedges welded to claims — 'I think', 'sort of', 'probably' — undercutting stated facts",
         "Rising terminals on the key claims while throwaway sentences land fine",
@@ -149,24 +471,121 @@
       "scoring_emphasis": "Weight the delivery of the load-bearing claims — the sentences a skeptical audience would push back on — more than the connective tissue around them.",
       "retry_objective": "Strip every hedge and trailing ending — restate each claim of fact with dropped pitch and full commitment.",
       "prompt_rules": "Generate high-stakes declarative prompts before a skeptical or senior audience (a board, a regulator, the press) where the speaker must assert or defend facts. The stakes must make apologetic delivery costly and conviction the clear target register.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "State what you're best at, in one sentence, three times.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell me three things you know for certain about your craft.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Declare your role and what you own at the company.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "List five facts about a product you know inside out — facts you'd stake your reputation on.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Tell the board the rebrand is working.", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "Defend this quarter's hiring plan against pushback.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Tell the team we are not pivoting and explain why.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Brief the press on the recall — what happened, what's fixed.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Walk the audit committee through why our numbers are correct.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Deliver a diagnosis and treatment plan to the patient's family.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain to a skeptical client why your recommendation stands.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Tell engineering the architecture decision is final.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "Address the all-hands the day after a public misstep.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Testify in front of a regulator about your firm's controls.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Tell a roomful of doctors why your trial data is conclusive.", "difficulty": "stretch", "tags": ["healthcare"] }
+        {
+          "text": "State what you're best at, in one sentence, three times.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell me three things you know for certain about your craft.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Declare your role and what you own at the company.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "List five facts about a product you know inside out — facts you'd stake your reputation on.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell the board the rebrand is working.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Defend this quarter's hiring plan against pushback.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell the team we are not pivoting and explain why.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Brief the press on the recall — what happened, what's fixed.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Walk the audit committee through why our numbers are correct.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Deliver a diagnosis and treatment plan to the patient's family.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain to a skeptical client why your recommendation stands.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell engineering the architecture decision is final.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Address the all-hands the day after a public misstep.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Testify in front of a regulator about your firm's controls.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell a roomful of doctors why your trial data is conclusive.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        }
       ]
     },
     {
@@ -176,12 +595,21 @@
       "why": "Rising terminals turn statements into questions. Land them flat or down.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Train falling terminal intonation so every statement lands like a period, not a question.",
-      "hidden_skills": ["downward_inflection"],
+      "hidden_skills": [
+        "confidence",
+        "authority",
+        "directness"
+      ],
       "scoring_lens": "Constraint: every statement must end with falling intonation. Rising terminals on claims of fact drag tone score.",
       "coach_insight": "Treat the last word of every sentence as a step down — physically lower your pitch on it, like putting the period in the air. The trap is list rhythm: reciting items lets upspeak creep onto every line ending without you noticing.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Upspeak on list items — each entry rising as if asking whether it's okay",
         "Falling endings on easy sentences but rising ones wherever content gets uncertain",
@@ -191,24 +619,120 @@
       "scoring_emphasis": "Weight sentence endings above everything else — especially list items and the final sentence, where rising or trailing terminals concentrate.",
       "retry_objective": "Land every sentence down — consciously drop pitch on the final word of each statement.",
       "prompt_rules": "Generate factual recap or briefing prompts with a defined listener (an auditor, a new PM, an exec team) built from declarative, list-like statements, each a natural place to land the pitch down. Neutral-to-serious contexts work best so upspeak is an obvious mismatch.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Describe what your job actually involves day-to-day.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell me three things you did last weekend.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "List the cities you've lived in and one detail about each.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "State your name, your role, and what you're working on this week.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Summarize what your company does in five sentences.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Recap last week's standup decisions for someone who missed it.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Lay out the four pillars of your product strategy.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Walk a new patient through what happens at a routine checkup, step by step.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Explain how you evaluate a new investment opportunity.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Outline for a colleague how you'd teach a one-hour lesson on something you know well.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Brief the new PM on the three workstreams under their area.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "You just closed a big deal: recap its key terms for your team, point by point.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Walk an outside auditor through how revenue recognition works here.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Deliver findings from a security incident to the exec team.", "difficulty": "stretch", "tags": ["tech", "leadership"] },
-        { "text": "Announce the layoff impacts to the company at an all-hands, one item at a time.", "difficulty": "stretch", "tags": ["leadership"] }
+        {
+          "text": "Describe what your job actually involves day-to-day.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell me three things you did last weekend.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "List the cities you've lived in and one detail about each.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "State your name, your role, and what you're working on this week.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Summarize what your company does in five sentences.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Recap last week's standup decisions for someone who missed it.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Lay out the four pillars of your product strategy.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Walk a new patient through what happens at a routine checkup, step by step.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain how you evaluate a new investment opportunity.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Outline for a colleague how you'd teach a one-hour lesson on something you know well.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Brief the new PM on the three workstreams under their area.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "You just closed a big deal: recap its key terms for your team, point by point.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Walk an outside auditor through how revenue recognition works here.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Deliver findings from a security incident to the exec team.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Announce the layoff impacts to the company at an all-hands, one item at a time.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
@@ -218,12 +742,21 @@
       "why": "Curiosity tone invites the listener in; pre-decided tone shuts them out.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train an open, exploratory register that ends thoughts lifted — inviting the listener in instead of shutting them out.",
-      "hidden_skills": ["pitch_variation", "emotional_authenticity"],
+      "hidden_skills": [
+        "curiosity",
+        "enthusiasm",
+        "emotional_authenticity"
+      ],
       "scoring_lens": "Constraint: thoughts must end lifted and exploratory, as if still being discovered. Pre-decided, closed-off delivery drags tone score; in text, verdict-style phrasing where wondering language belongs implies the same failure.",
       "coach_insight": "Let each thought end floating upward and unresolved, like you're mid-discovery — an audible 'what if' rather than a closing gavel. The trap: performing curiosity on top of pre-baked conclusions delivered in verdict tone.",
-      "secondary_core_skills": ["thinking_quality", "pacing"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Verdict delivery — conclusions stated with closed, final intonation where wondering belongs",
         "A scripted-sounding list of ideas with no audible discovery between them",
@@ -233,24 +766,122 @@
       "scoring_emphasis": "Weight whether the exploration sounds genuinely unfinished — open phrasing, questions raised and left live — over the polish or completeness of the ideas.",
       "retry_objective": "End each thought genuinely open — lift the final phrase and leave audible room for the idea to keep going.",
       "prompt_rules": "Generate open-ended brainstorm or speculation prompts (unsolved problems, futures, half-formed ideas) with a collaborative audience — a teammate, a co-founder, a curious friend. The context must reward thinking out loud, not delivering conclusions.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "What's a question you've been chewing on lately?", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Talk about a book or idea that's stuck with you this month.", "difficulty": "intro", "tags": ["personal", "creative"] },
-        { "text": "Wonder out loud about something in your field you don't yet understand.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Describe a hobby you keep meaning to start and why.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Brainstorm three new product ideas, thinking out loud.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Walk through a customer problem you don't yet have an answer for.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Talk through the tradeoffs you'd weigh in designing an app to fix an everyday annoyance.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Speculate about where your industry will be in ten years.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Wonder out loud why the same treatment can work for one person and fail for another.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Think out loud about a market you've never invested in before.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Reflect out loud on why two people can learn the same thing in completely different ways.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Open a brainstorm about how to fix your team's biggest blocker.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Riff on a creative direction for the next campaign — no commitments.", "difficulty": "stretch", "tags": ["creative", "business"] },
-        { "text": "Explore a belief you used to hold that you're starting to doubt.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Speculate on what your competitor is about to do, and why.", "difficulty": "stretch", "tags": ["business"] }
+        {
+          "text": "What's a question you've been chewing on lately?",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Talk about a book or idea that's stuck with you this month.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Wonder out loud about something in your field you don't yet understand.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Describe a hobby you keep meaning to start and why.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Brainstorm three new product ideas, thinking out loud.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Walk through a customer problem you don't yet have an answer for.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Talk through the tradeoffs you'd weigh in designing an app to fix an everyday annoyance.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Speculate about where your industry will be in ten years.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Wonder out loud why the same treatment can work for one person and fail for another.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Think out loud about a market you've never invested in before.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Reflect out loud on why two people can learn the same thing in completely different ways.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Open a brainstorm about how to fix your team's biggest blocker.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Riff on a creative direction for the next campaign — no commitments.",
+          "difficulty": "stretch",
+          "tags": [
+            "creative",
+            "business"
+          ]
+        },
+        {
+          "text": "Explore a belief you used to hold that you're starting to doubt.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Speculate on what your competitor is about to do, and why.",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -260,12 +891,21 @@
       "why": "Builds the audible floor under your beliefs — listeners hear you mean it.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train an audible floor under stated beliefs so listeners hear that the speaker means every claim.",
-      "hidden_skills": ["downward_inflection", "vocal_presence"],
+      "hidden_skills": [
+        "confidence",
+        "authority",
+        "credibility_through_restraint"
+      ],
       "scoring_lens": "Constraint: no rising terminals on any claim of fact. Hedging or apologetic phrasing (might, maybe, I guess) implies the same failure in text and drags tone score.",
       "coach_insight": "Plant every claim: slow slightly, drop your pitch, and stop cleanly at the period — silence after a claim reads as confidence. The trap: softening your boldest sentence with a 'maybe' or a small laugh right when it needs the most floor.",
-      "secondary_core_skills": ["thinking_quality", "conciseness"],
+      "secondary_core_skills": [
+        "thinking_quality",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Hedge words on the core belief — 'I guess', 'kind of', 'maybe' — exactly where conviction is required",
         "Self-deprecating asides or nervous qualifiers after a strong claim, taking it back",
@@ -275,24 +915,120 @@
       "scoring_emphasis": "Weight the one or two boldest claims in the rep — whether they stand unhedged and land down — more than the average delivery across all sentences.",
       "retry_objective": "Restate the belief without a single hedge, landing every claim flat or down.",
       "prompt_rules": "Generate belief-staking prompts before a skeptical or resistant audience (a panel that disagrees, a team losing its favorite project, a longtime client) where the speaker defends a position they genuinely hold. The pushback context must make wavering delivery visibly costly.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Tell me one thing you believe that most of your peers don't.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "State the principle that guides how you do your work.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Name the rule you refuse to break, and why.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell me the one piece of advice you'd give anyone starting a new job.", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Why is product-market fit the only thing that matters in early stage?", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue for the single metric your team should be judged on.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Make the case for shipping less, more carefully.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Defend a health choice you've made that others questioned — and why you'd make it again.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Tell investors why this is the right fund, the right vintage, the right time.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Make the case that grading destroys real learning.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Tell the team why you're killing their favorite project.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Argue for a hiring bar that everyone on your team thinks is too high.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Defend your refusal to take a meeting that everyone says you should take.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Stake your position in front of a panel of people who disagree with you.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Tell a longtime client you're firing them, and why it's the right call.", "difficulty": "stretch", "tags": ["business"] }
+        {
+          "text": "Tell me one thing you believe that most of your peers don't.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "State the principle that guides how you do your work.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Name the rule you refuse to break, and why.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell me the one piece of advice you'd give anyone starting a new job.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Why is product-market fit the only thing that matters in early stage?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue for the single metric your team should be judged on.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make the case for shipping less, more carefully.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Defend a health choice you've made that others questioned — and why you'd make it again.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Tell investors why this is the right fund, the right vintage, the right time.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Make the case that grading destroys real learning.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Tell the team why you're killing their favorite project.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue for a hiring bar that everyone on your team thinks is too high.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Defend your refusal to take a meeting that everyone says you should take.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Stake your position in front of a panel of people who disagree with you.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell a longtime client you're firing them, and why it's the right call.",
+          "difficulty": "stretch",
+          "tags": [
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -302,12 +1038,21 @@
       "why": "Tone shift handles transitions that 'so anyway' and 'okay' do clumsily.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train tonal shifts as the transition signal between topics, replacing filler-word pivots.",
-      "hidden_skills": ["pitch_variation", "volume_control"],
+      "hidden_skills": [
+        "congruence",
+        "transition_pacing",
+        "prosodic_alignment"
+      ],
       "scoring_lens": "Constraint: topic changes must be signaled by a tonal shift, not a filler word. Transitions carried by 'so anyway' / 'okay' / 'moving on' drag tone score; with prosody, a flat register across topic boundaries drags it further.",
       "coach_insight": "At each topic boundary, pause a beat, then re-enter in a different gear — new pitch and energy matched to the new content's weight. The trap: reaching for 'so anyway' or 'okay, next' to do the work your voice should be doing.",
-      "secondary_core_skills": ["structure", "pacing"],
+      "secondary_core_skills": [
+        "structure",
+        "pacing"
+      ],
       "common_failure_modes": [
         "Filler pivots — 'so anyway', 'okay', 'moving on' — carrying every transition",
         "One unchanged register across all three topics regardless of their emotional weight",
@@ -317,24 +1062,121 @@
       "scoring_emphasis": "Weight the topic boundaries specifically — how each transition is executed — rather than the delivery quality within any single segment.",
       "retry_objective": "Cut the filler pivots and mark each topic boundary with a deliberate change in pitch, volume, or energy.",
       "prompt_rules": "Generate multi-topic briefing prompts with a defined listener (a board, a team, a partner) covering exactly three segments of differing emotional weight — a win, a risk, a change — so each boundary demands a tonal shift. Name the segments explicitly in the prompt.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Tell me about your morning, your afternoon, and your evening.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Update me on the three things on your plate right now.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Cover what you ate, what you read, and what you watched yesterday.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Walk through your week: work, family, and personal goals.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Brief me on product, then on engineering, then on go-to-market.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Give updates on hiring, churn, and burn — in that order.", "difficulty": "core", "tags": ["leadership", "finance"] },
-        { "text": "Imagine you're a doctor on rounds: cover three patients — one improving, one stable, one declining.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Move through last week's wins, this week's risks, and next week's focus.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Pitch the deal, then walk the diligence, then close on the ask.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Talk through a launch plan: messaging, channels, then measurement.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Cover three classroom incidents, each with a different tone.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Brief the team on the new feature, the deprecation, and the outage.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Move through good news, hard news, and the path forward.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Cover a celebration, a layoff, and a strategy reset in one all-hands.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Update the board on growth, on a lawsuit, and on a CFO departure.", "difficulty": "stretch", "tags": ["leadership", "finance"] }
+        {
+          "text": "Tell me about your morning, your afternoon, and your evening.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Update me on the three things on your plate right now.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Cover what you ate, what you read, and what you watched yesterday.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Walk through your week: work, family, and personal goals.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Brief me on product, then on engineering, then on go-to-market.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Give updates on hiring, churn, and burn — in that order.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "finance"
+          ]
+        },
+        {
+          "text": "Imagine you're a doctor on rounds: cover three patients — one improving, one stable, one declining.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Move through last week's wins, this week's risks, and next week's focus.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Pitch the deal, then walk the diligence, then close on the ask.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Talk through a launch plan: messaging, channels, then measurement.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Cover three classroom incidents, each with a different tone.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Brief the team on the new feature, the deprecation, and the outage.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Move through good news, hard news, and the path forward.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Cover a celebration, a layoff, and a strategy reset in one all-hands.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Update the board on growth, on a lawsuit, and on a CFO departure.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "finance"
+          ]
+        }
       ]
     },
     {
@@ -344,12 +1186,21 @@
       "why": "Same words, different rooms — tone is how you actually adapt.",
       "default_difficulty": "core",
       "ordering": 9,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Train register adaptation — matching tone to a stated audience while the content stays constant.",
-      "hidden_skills": ["warmth", "emotional_authenticity", "pitch_variation"],
+      "hidden_skills": [
+        "formality_calibration",
+        "power_distance_calibration",
+        "audience_calibration"
+      ],
       "scoring_lens": "Constraint: tone must match the stated audience cue. A register mismatch — breezy delivery for a grieving friend, stiff formality for a close one — drags tone score even when the words are right.",
       "coach_insight": "Picture the listener before you speak and let their state set your dials — warmth, volume, formality, speed. The trap: one presentation voice for every room; if the board and a grieving friend get the same delivery, you read neither.",
-      "secondary_core_skills": ["clarity", "pacing"],
+      "secondary_core_skills": [
+        "clarity",
+        "pacing"
+      ],
       "common_failure_modes": [
         "One default register regardless of the stated audience",
         "Adapting the vocabulary but not the delivery — right words, wrong voice",
@@ -359,24 +1210,123 @@
       "scoring_emphasis": "Weight audience fit over absolute polish — a technically smooth rep in the wrong register should score below a rougher one that matches the stated room.",
       "retry_objective": "Re-run the rep with the audience held vividly in mind, adjusting warmth, pace, and register to what that specific room needs.",
       "prompt_rules": "Every prompt must name the audience and their emotional state explicitly (a skeptical board, a grieving friend, a curious eight-year-old), since the audience cue is the exercise itself. Favor two-audience variants that deliver the same content twice so the register shift is measurable.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["tone"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "tone"
+      ],
       "prompts": [
-        { "text": "Introduce yourself — to a new neighbor over the fence.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Describe your job — to a curious eight-year-old.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Explain your weekend plans — to your best friend, then to your boss.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell the story of your day — to a partner who's had a hard one.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Deliver the same product update — to engineering, then to sales.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Pitch the company — to a skeptical board.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Share quarterly results — to a team that just lost a deal.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Explain the diagnosis — to a patient, then to a fellow physician.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Walk through the investment thesis — to an LP, then to a junior analyst.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Brief the same incident — to engineers, then to legal.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Give the same lesson — to a kindergarten class, then to graduate students.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Announce the reorg — to senior leaders, then to the broader team.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Deliver the same condolence — to a friend who's grieving, then to a colleague you barely know.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Tell a hard truth — to a mentor, then to a direct report.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Defend the same decision — to a friendly reporter, then to a hostile one.", "difficulty": "stretch", "tags": ["leadership", "business"] }
+        {
+          "text": "Introduce yourself — to a new neighbor over the fence.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Describe your job — to a curious eight-year-old.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Explain your weekend plans — to your best friend, then to your boss.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell the story of your day — to a partner who's had a hard one.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Deliver the same product update — to engineering, then to sales.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Pitch the company — to a skeptical board.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Share quarterly results — to a team that just lost a deal.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain the diagnosis — to a patient, then to a fellow physician.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Walk through the investment thesis — to an LP, then to a junior analyst.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Brief the same incident — to engineers, then to legal.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Give the same lesson — to a kindergarten class, then to graduate students.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Announce the reorg — to senior leaders, then to the broader team.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Deliver the same condolence — to a friend who's grieving, then to a colleague you barely know.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell a hard truth — to a mentor, then to a direct report.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Defend the same decision — to a friendly reporter, then to a hostile one.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        }
       ]
     }
   ]

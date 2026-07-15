@@ -74,26 +74,45 @@ phase) → check the phase off here. Never commit to main directly.
 - **Exit criteria:** ✅ JSON validates (unique ids, counts match tables), every old id mapped.
 - **Verify after merge:** none user-facing (data-only).
 
-### Phase 1 — Hidden Skill Taxonomy v2 (D20) ⬜
+### Phase 1 — Hidden Skill Taxonomy v2 (D20) ✅ done 2026-07-15
 *PRD refs: §5.5, §8.3.5, §10.4. Fresh session. This underpins Phases 2–4 — do first.*
 
-- [ ] 1.1 Replace `src/types/sub-skills.ts` with generated types from `hidden-skills-v2.json`
-      (keep `SUB_SKILL_TO_DIMENSION`, `SUB_SKILL_LABELS`, add `SUB_SKILL_DEFINITIONS`).
-- [ ] 1.2 Profile migration: fold old `communication_profile.hiddenSkills` keys through the
-      migration map (script + drizzle migration; jsonb keys only, no enum changes).
-- [ ] 1.3 Exercise re-tagging: LLM-assisted script proposes `hiddenSkills` tags for all ~94 exercises
-      from the new taxonomy (2–4 skills each); human-reviewable diff (`--dry-run` → JSON) before
-      `--apply`. Update catalog JSON manifests too (source of truth).
-- [ ] 1.4 Update `renderSubSkillReference()` and every prompt that enumerates sub-skills to use
-      definitions (scoring, coaching attribution, prompt-gen). Token-budget check: don't dump all 149
-      into every call — render only the active dimension's skills.
-- [ ] 1.5 Update signal mapper `mapSignalsToSubSkillScores` for renamed ids; add deterministic
-      mappings only where signals genuinely measure the skill (filler→filler_reduction, wpm→rate
-      awareness, etc.). Everything else = LLM-attributed.
-- [ ] 1.6 Tests: taxonomy integrity (unique ids, dimension totals), migration-map round trip,
-      profile fold with new keys.
-- **Exit criteria:** typecheck + tests green; a scored dev rep attributes new-taxonomy skills in
-  feedback bullets; profile shows migrated hidden skills.
+- [x] 1.1 `src/types/sub-skills.ts` now derives everything from generated
+      `src/types/hidden-skills.generated.ts` (emitted by `scripts/taxonomy/generate-sub-skills.mjs`
+      from the JSON). Kept `SUB_SKILL_TO_DIMENSION`/`SUB_SKILL_LABELS`; added
+      `SUB_SKILL_DEFINITIONS`, `canonicalizeSubSkillId` (legacy-id bridge), per-dimension
+      `renderSubSkillReference(dims?)` + `renderSubSkillReferenceWithDefinitions(dim)`.
+- [x] 1.2 Profile migration applied to DEV (`drizzle/migrations/0041_hidden_skills_taxonomy_v2.sql`,
+      idempotent DO-block; verified 0 old keys remain across 7 profiles). Belt-and-suspenders:
+      `applyRepToProfile` canonicalizes legacy ids at fold time, so historical-rep evidence and
+      backfills keep working. **Run 0041 on PROD during Phase 6.**
+- [x] 1.3 `scripts/taxonomy/retag-exercises.mjs` (dry-run → `retag-proposals.json` → `--apply`,
+      validation: 2–4 valid ids, ≥1 from primary dim, secondary dims allowed). NOTE: both
+      Anthropic + OpenAI API keys were out of credits, so the 94 proposals were authored by Claude
+      in-session (source:"manual" in the proposals file — reviewable) instead of via API; the
+      script works once credits return. Manifests updated + `seed-exercise-catalog.mjs --apply`
+      ran on dev (94 exercises updated, 0 prompt changes). Seed-script validation now reads the
+      taxonomy JSON.
+- [x] 1.4 Scoring prompt keeps the all-dimension labels-only SUB-SKILL REFERENCE block (bullets
+      span dims) and adds a definitions block for ONLY the focus dimension in the MODE context;
+      prompt-gen renders `HIDDEN SKILLS TRAINED` as label — definition lines.
+- [x] 1.5 Mapper renamed to v2 ids; **dimension_fallback removed entirely** (D20: deterministic
+      only where measurable, everything else LLM-attributed — with 148 skills, fallback copies
+      would flood rep jsonb + profile). New genuine mappings: prosody fillerRatePerMinute →
+      `filler_reduction`, WPM band → `rate_awareness`. Hume voice skills now split
+      delivery (`prosodic_alignment`, `emphasis_timing`) / tone (`confidence`,
+      `emotional_authenticity`, `gravitas`, `warmth`). Legacy System A banks/hints/exercises
+      renamed in place (System A still dies in Phase 2).
+- [x] 1.6 `tests/taxonomy.test.ts` (30 asserts: integrity, JSON↔generated sync, migration
+      round-trip, profile fold incl. legacy keys + cross-dim moves, reference rendering) wired
+      into `npm test`. Full suite + typecheck + lint green.
+- **Exit criteria:** typecheck + tests green ✅; feedback-bullet attribution + profile check =
+  Max's verify list below.
+- **⚠️ Calibration guardrail:** the scoring prompt BYTES changed (new reference block + focus-dim
+  definitions). Calibration suite could NOT be re-run this session — both Anthropic and OpenAI
+  API keys are out of credits (retag hit the same wall). **Re-run
+  `scripts/calibrate-with-signals.mjs` as soon as a provider is re-upped, before trusting scores
+  for drift monitoring.** (Suite itself updated: dimension_fallback gate removed.)
 - **Verify after merge (Max):** complete one dev workout rep → feedback bullets name plausible
   hidden skills for the trained dimension; `/progress` unaffected.
 
@@ -224,3 +243,9 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   PRD v3; decisions D20–D23 confirmed with Max; this tracker created; new PRD imported to
   `plans/prd/cognify-system-change-v2-2026-07.md`. Next: Phase 0 remainder (taxonomy JSON extraction)
   — can run in a fresh session.
+- **2026-07-15 (session 2)** — Phases 0 + 1 shipped on `feat/system-change-v2`. Actual taxonomy
+  count is 148 (Thinking Quality table has 28 rows, not 29). Dev DB migrated (profiles + 94
+  re-tagged exercises). Two external blockers logged: (1) calibration replay pending API credits
+  (see Phase 1 guardrail note), (2) exercise re-tag proposals authored in-session instead of via
+  API for the same reason. Next: Phase 2 (prompt architecture overhaul, D21+D23) in a fresh
+  session.

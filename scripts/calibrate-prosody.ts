@@ -91,18 +91,7 @@ async function calibrateRep(rep: ReferenceRep, audioUrl: string): Promise<RepRes
   });
 
   // 7. Map to sub-skills with prosody.
-  const subSkillMap = mapSignalsToSubSkillScores(
-    textSignals,
-    {
-      clarity: 70,
-      structure: 70,
-      conciseness: 70,
-      thinking_quality: 70,
-      delivery: 70,
-      tone: 70,
-    },
-    prosodyFeatures,
-  );
+  const subSkillMap = mapSignalsToSubSkillScores(textSignals, prosodyFeatures);
 
   // 8. Pull Tone sub-skills.
   const toneSubSkillIds = SUB_SKILLS.tone;

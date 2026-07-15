@@ -8,12 +8,21 @@
       "why": "Builds an internal clock — listeners trust steady speakers more.",
       "default_difficulty": "core",
       "ordering": 1,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Hold one steady, deliberate speaking rate — the 150–160 WPM band — from the first word to the last.",
-      "hidden_skills": ["rate_awareness"],
+      "hidden_skills": [
+        "rate_awareness",
+        "words_per_minute_control",
+        "cadence_control"
+      ],
       "scoring_lens": "Constraint: feedback MUST cite the measured WPM against the 150–160 target band; the delivery score is deterministic from rate data, so the copy explains the number rather than re-judging it.",
       "coach_insight": "Set your tempo in the first sentence and let steady breathing hold it — one easy breath at each period. The trap: most speakers hold the pace for twenty seconds, then accelerate the moment the material feels familiar.",
-      "secondary_core_skills": ["structure", "clarity"],
+      "secondary_core_skills": [
+        "structure",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Starts near target then accelerates past 170 WPM once the material gets familiar",
         "Drags the open below 140 WPM, then surges mid-rep to compensate",
@@ -23,26 +32,141 @@
       "scoring_emphasis": "Weight within-rep rate variance — where the tempo drifted and when — over the average WPM alone.",
       "retry_objective": "Flatten the rate swings the first attempt showed — same content, one steady tempo from open to close.",
       "prompt_rules": "Generate walkthrough or explanation prompts with enough sequential material — processes, timelines, systems — to sustain 60–90 seconds of continuous speech. Name the audience and situation in one sentence. Never make the topic itself the challenge; the rate discipline is the exercise.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Walk me through how you'd plan a week of work for a small team, from goals to task list.", "difficulty": "intro", "tags": ["business", "tech"] },
-        { "text": "Describe your morning routine from alarm to first meeting.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Walk me through your weekend.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Explain how you'd onboard a new hire over their first two weeks.", "difficulty": "intro", "tags": ["leadership", "business"] },
-        { "text": "Talk through how a mortgage works for a first-time buyer.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Pick a tool or app you use every day and explain how it works under the hood, step by step.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Walk me through how you'd run a quarterly review meeting from intro to close.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Explain how an MRI scan actually produces an image.", "difficulty": "core", "tags": ["healthcare", "science"] },
-        { "text": "Take me through how you'd grade a stack of student essays, from first read to final marks.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Describe the play-by-play of the last close game you watched.", "difficulty": "core", "tags": ["sports"] },
-        { "text": "Walk through how you'd handle a major outage from first alert to all-clear.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "Explain how a bill becomes law.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Talk through the plot of a film you saw recently.", "difficulty": "intro", "tags": ["creative", "personal"] },
-        { "text": "Walk a junior colleague through how you'd plan a typical work week, day by day.", "difficulty": "core", "tags": ["leadership", "business"] },
-        { "text": "Explain how a hiring decision typically moves from first phone screen to final offer.", "difficulty": "stretch", "tags": ["leadership", "business"] },
-        { "text": "Take me through a layoff conversation you'd have to deliver tomorrow.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Walk me through the most complicated purchase or negotiation you've ever handled, start to finish.", "difficulty": "stretch", "tags": ["finance", "business"] }
+        {
+          "text": "Walk me through how you'd plan a week of work for a small team, from goals to task list.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe your morning routine from alarm to first meeting.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Walk me through your weekend.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Explain how you'd onboard a new hire over their first two weeks.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Talk through how a mortgage works for a first-time buyer.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Pick a tool or app you use every day and explain how it works under the hood, step by step.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Walk me through how you'd run a quarterly review meeting from intro to close.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how an MRI scan actually produces an image.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Take me through how you'd grade a stack of student essays, from first read to final marks.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Describe the play-by-play of the last close game you watched.",
+          "difficulty": "core",
+          "tags": [
+            "sports"
+          ]
+        },
+        {
+          "text": "Walk through how you'd handle a major outage from first alert to all-clear.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain how a bill becomes law.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Talk through the plot of a film you saw recently.",
+          "difficulty": "intro",
+          "tags": [
+            "creative",
+            "personal"
+          ]
+        },
+        {
+          "text": "Walk a junior colleague through how you'd plan a typical work week, day by day.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain how a hiring decision typically moves from first phone screen to final offer.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Take me through a layoff conversation you'd have to deliver tomorrow.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Walk me through the most complicated purchase or negotiation you've ever handled, start to finish.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        }
       ]
     },
     {
@@ -52,12 +176,21 @@
       "why": "Silence is signal — it tells listeners the next thing matters.",
       "default_difficulty": "core",
       "ordering": 2,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Use deliberate silence before and after the key point so the most important moment sounds like the most important moment.",
-      "hidden_skills": ["strategic_pausing"],
+      "hidden_skills": [
+        "strategic_pausing",
+        "pause_placement",
+        "emphasis_timing"
+      ],
       "scoring_lens": "Constraint: pacing/prosody signals MUST reach the score. Deliberate pauses at beat boundaries lift delivery; rushed-through claims drag it.",
       "coach_insight": "Decide your key sentence before you start, then earn it: a full breath of silence before it, a still mouth after it. The trap is filling that gap with 'so' or 'right?' — the pause only reads as confidence if you don't flinch.",
-      "secondary_core_skills": ["structure", "tone"],
+      "secondary_core_skills": [
+        "structure",
+        "tone"
+      ],
       "common_failure_modes": [
         "Pauses land at random spots rather than before the key point",
         "Bridges the intended silence with 'so', 'and', or 'you know'",
@@ -67,25 +200,132 @@
       "scoring_emphasis": "Weight the placement of silence relative to the single most important sentence — one well-placed pause outweighs several scattered ones.",
       "retry_objective": "Place the two pauses the first attempt skipped — one before the key point to build anticipation, one after to let it land.",
       "prompt_rules": "Generate pitch or opening prompts where one sentence clearly matters more than the rest, so there is an obvious beat to pause around. State the audience and stakes in one sentence. Vary the topic, never the pausing objective.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Pitch our product to a board member you just met.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Make the case for hiring two more engineers this quarter.", "difficulty": "core", "tags": ["leadership", "tech"] },
-        { "text": "Open a sales call with a CFO who has five minutes.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Introduce yourself at a panel before answering the first question.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Pitch a friend on the book you couldn't put down.", "difficulty": "intro", "tags": ["personal", "creative"] },
-        { "text": "Recommend a treatment plan to a patient who looks scared.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Brief the executive team on a missed quarter.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Open a town hall after a big company change.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Pitch a new course design to your department head.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Make the case for switching cloud providers.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Sell a skeptical investor on your fund's thesis.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Open a wedding toast for someone you've known fifteen years.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "Pitch your team on a new design direction they didn't ask for.", "difficulty": "core", "tags": ["creative", "leadership"] },
-        { "text": "Open a postmortem to a room that wants to assign blame.", "difficulty": "stretch", "tags": ["tech", "leadership"] },
-        { "text": "Introduce your startup at a demo day in 60 seconds.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Pitch a coach on a tactical change before a championship game.", "difficulty": "core", "tags": ["sports"] }
+        {
+          "text": "Pitch our product to a board member you just met.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case for hiring two more engineers this quarter.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Open a sales call with a CFO who has five minutes.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Introduce yourself at a panel before answering the first question.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Pitch a friend on the book you couldn't put down.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Recommend a treatment plan to a patient who looks scared.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Brief the executive team on a missed quarter.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Open a town hall after a big company change.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Pitch a new course design to your department head.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Make the case for switching cloud providers.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Sell a skeptical investor on your fund's thesis.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Open a wedding toast for someone you've known fifteen years.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Pitch your team on a new design direction they didn't ask for.",
+          "difficulty": "core",
+          "tags": [
+            "creative",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Open a postmortem to a room that wants to assign blame.",
+          "difficulty": "stretch",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Introduce your startup at a demo day in 60 seconds.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Pitch a coach on a tactical change before a championship game.",
+          "difficulty": "core",
+          "tags": [
+            "sports"
+          ]
+        }
       ]
     },
     {
@@ -95,12 +335,21 @@
       "why": "Trains comfort with the gap. Silence reads as confidence.",
       "default_difficulty": "core",
       "ordering": 3,
-      "tags": ["dna-v1"],
+      "tags": [
+        "dna-v1"
+      ],
       "objective": "Replace every filler-word impulse with silence, training comfort with the gap instead of filling it.",
-      "hidden_skills": ["filler_word_control", "strategic_pausing"],
+      "hidden_skills": [
+        "filler_to_pause_substitution",
+        "silence_tolerance",
+        "filler_reduction"
+      ],
       "scoring_lens": "Constraint: replacing filler with silence is the rule. Filler rate above 2/min and short pauses < 200ms drag delivery.",
       "coach_insight": "When you feel a filler coming, close your lips and let the beat sit — the gap feels twice as long to you as it does to the listener. Watch the handoffs between thoughts; that's where 'um' sneaks back in.",
-      "secondary_core_skills": ["conciseness", "thinking_quality"],
+      "secondary_core_skills": [
+        "conciseness",
+        "thinking_quality"
+      ],
       "common_failure_modes": [
         "Fillers cluster at transitions between thoughts, right where a pause belonged",
         "Swaps 'um' for softer fillers like 'so', 'like', or 'I mean'",
@@ -110,26 +359,141 @@
       "scoring_emphasis": "Weight where fillers occur and what replaced them — a clean silent gap at an uncomfortable moment counts for more than the raw filler count.",
       "retry_objective": "Cut the specific fillers the first attempt measured by closing the mouth and pausing at each spot where one appeared.",
       "prompt_rules": "Generate mildly uncomfortable prompts — mistakes, regrets, uncertainty — because filler spikes when speakers reach for words. One sentence with audience and situation. Keep the topic answerable without research; the discomfort supplies the filler pressure, not the difficulty.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Tell me about a time you were wrong.", "difficulty": "stretch", "tags": ["personal", "leadership"] },
-        { "text": "Explain a decision you regret making at work.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Describe the worst feedback you've ever received.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Describe a time you broke something while trying to fix or set it up, and what happened next.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Tell me about a negotiation that didn't go your way — a price, a raise, a plan — and why.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "Describe a time you brushed off a health concern that turned out to matter.", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "Imagine you have to tell someone tomorrow that they're losing their job. Talk through how you'd handle it.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Talk about a relationship that ended badly.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Explain a topic outside your expertise — like quantum computing.", "difficulty": "core", "tags": ["tech", "science"] },
-        { "text": "Describe what you'd change about your last performance review.", "difficulty": "core", "tags": ["business", "personal"] },
-        { "text": "Tell me about a time something you promised took far longer than planned, and why.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Explain your team's biggest blind spot.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Imagine your boss asks you to explain a number you don't fully understand. Talk through what you'd say.", "difficulty": "stretch", "tags": ["finance", "business"] },
-        { "text": "Describe a moment you froze in front of a class.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Talk about a game where you choked under pressure.", "difficulty": "core", "tags": ["sports", "personal"] },
-        { "text": "Explain what's most uncertain about your roadmap right now.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Describe a creative project that didn't land.", "difficulty": "intro", "tags": ["creative"] }
+        {
+          "text": "Tell me about a time you were wrong.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Explain a decision you regret making at work.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Describe the worst feedback you've ever received.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Describe a time you broke something while trying to fix or set it up, and what happened next.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Tell me about a negotiation that didn't go your way — a price, a raise, a plan — and why.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "Describe a time you brushed off a health concern that turned out to matter.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Imagine you have to tell someone tomorrow that they're losing their job. Talk through how you'd handle it.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Talk about a relationship that ended badly.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Explain a topic outside your expertise — like quantum computing.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "science"
+          ]
+        },
+        {
+          "text": "Describe what you'd change about your last performance review.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell me about a time something you promised took far longer than planned, and why.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain your team's biggest blind spot.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine your boss asks you to explain a number you don't fully understand. Talk through what you'd say.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Describe a moment you froze in front of a class.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Talk about a game where you choked under pressure.",
+          "difficulty": "core",
+          "tags": [
+            "sports",
+            "personal"
+          ]
+        },
+        {
+          "text": "Explain what's most uncertain about your roadmap right now.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe a creative project that didn't land.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        }
       ]
     },
     {
@@ -139,12 +503,21 @@
       "why": "Gives weight to claims — rushing past them tells the listener they don't matter.",
       "default_difficulty": "core",
       "ordering": 4,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Give every claim its weight by holding two beats of silence after it before moving to the next point.",
-      "hidden_skills": ["strategic_pausing", "rhythm_variation"],
+      "hidden_skills": [
+        "strategic_pausing",
+        "processing_space_creation",
+        "emphasis_timing"
+      ],
       "scoring_lens": "Constraint: feedback MUST reference measured post-claim pause placement; the delivery score is deterministic from pause data. Claims followed by pauses < 400ms drag delivery — name the rushed claim in the copy.",
       "coach_insight": "After each claim, silently count 'one, two' before your next word — it feels theatrical from the inside and lands as decisive from the outside. The trap: nailing the first landing, then steamrolling the rest as momentum builds.",
-      "secondary_core_skills": ["structure", "clarity"],
+      "secondary_core_skills": [
+        "structure",
+        "clarity"
+      ],
       "common_failure_modes": [
         "Lands the first claim, then rushes each later one as momentum builds",
         "Pauses mid-sentence instead of after the completed claim",
@@ -154,25 +527,134 @@
       "scoring_emphasis": "Weight consistency of landings across every claim, not just the presence of pauses — the last claim's hold matters as much as the first.",
       "retry_objective": "Add the two-beat hold after each claim the first attempt rushed past.",
       "prompt_rules": "Generate argument or defense prompts that force multiple discrete claims, each needing to land. One sentence with audience and stakes. Keep the claims countable so post-claim pauses have obvious slots.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Make the case for our pricing change.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Argue why your team should own the new platform.", "difficulty": "core", "tags": ["leadership", "tech"] },
-        { "text": "Defend the budget cut you just announced.", "difficulty": "stretch", "tags": ["finance", "leadership"] },
-        { "text": "Make three arguments for adopting a new framework.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Convince a parent to switch their child to your school.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Argue why this drug should get FDA approval.", "difficulty": "stretch", "tags": ["healthcare", "science"] },
-        { "text": "Defend the trade-off you made on the last release.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Make the case for hiring senior over junior this year.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Argue your startup is worth the valuation you're asking for.", "difficulty": "stretch", "tags": ["finance", "business"] },
-        { "text": "Defend a marketing budget you tripled.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Pitch why your novel deserves a publisher.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "Make the case for benching your star player.", "difficulty": "core", "tags": ["sports", "leadership"] },
-        { "text": "Argue why a four-day workweek would work for your org.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Make three claims about what your product does best.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "Convince a teammate to take on a stretch project.", "difficulty": "intro", "tags": ["leadership"] },
-        { "text": "Defend why you're the right person to lead this initiative.", "difficulty": "stretch", "tags": ["leadership", "personal"] }
+        {
+          "text": "Make the case for our pricing change.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Argue why your team should own the new platform.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Defend the budget cut you just announced.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make three arguments for adopting a new framework.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Convince a parent to switch their child to your school.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Argue why this drug should get FDA approval.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare",
+            "science"
+          ]
+        },
+        {
+          "text": "Defend the trade-off you made on the last release.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Make the case for hiring senior over junior this year.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue your startup is worth the valuation you're asking for.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Defend a marketing budget you tripled.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Pitch why your novel deserves a publisher.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Make the case for benching your star player.",
+          "difficulty": "core",
+          "tags": [
+            "sports",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Argue why a four-day workweek would work for your org.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Make three claims about what your product does best.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Convince a teammate to take on a stretch project.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Defend why you're the right person to lead this initiative.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -182,12 +664,20 @@
       "why": "Trains presence — speed often masks lack of conviction.",
       "default_difficulty": "core",
       "ordering": 5,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Deliver a high-pressure story at 70% of normal speed without losing energy or conviction.",
-      "hidden_skills": ["rate_awareness", "pressure_management"],
+      "hidden_skills": [
+        "words_per_minute_control",
+        "pressure_pacing",
+        "emotional_tempo"
+      ],
       "scoring_lens": "Constraint: the rep targets roughly 70% of a normal conversational rate. Feedback MUST cite the measured WPM against that target; the delivery score is deterministic from rate data, so the copy explains the number, not the vibe.",
       "coach_insight": "Slow the words, not the voltage — keep full vocal energy on every word and stretch the space between phrases instead. If the pace feels uncomfortably slow to you, you're close; the trap is letting slow slide into flat.",
-      "secondary_core_skills": ["tone"],
+      "secondary_core_skills": [
+        "tone"
+      ],
       "common_failure_modes": [
         "Opens slow but snaps back to normal speed once the story gets tense",
         "Hits the slower rate but drops energy, turning deliberate into monotone",
@@ -197,25 +687,131 @@
       "scoring_emphasis": "Weight whether energy and conviction survived the slower rate — a rep that hits the WPM target but goes flat has missed the point.",
       "retry_objective": "Bring the measured WPM down to the 70% target the first attempt overshot while keeping the same energy.",
       "prompt_rules": "Generate high-adrenaline scenario prompts — outages, escalations, crises — where the speaker's instinct is to rush. One sentence with audience and situation. The urgency of the topic is the resistance the 70% pace works against.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Imagine a major system outage just ended. Walk your team through how it was handled, start to finish.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Imagine you're mid-launch and realize it's failing. Walk through that moment and what you do next.", "difficulty": "stretch", "tags": ["business", "tech"] },
-        { "text": "Describe a health scare — yours or someone else's — and how those first hours unfolded.", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "The market just dropped 8% in a day. Talk a panicking friend through what it means for them.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Imagine you have to tell the CEO the team missed its target. Talk through how you break the news.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "Imagine a security breach was just contained. Walk me through it from detection to all-clear.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Imagine you're a coach whose team is collapsing in the final quarter. Talk through what you say in the huddle.", "difficulty": "core", "tags": ["sports", "leadership"] },
-        { "text": "Imagine a student breaks down during a class you're leading. Talk through how you handle the next ten minutes.", "difficulty": "stretch", "tags": ["education"] },
-        { "text": "Describe a time someone was furious with you and how you handled the next five minutes.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Imagine you're a doctor who must deliver a difficult diagnosis by phone. Walk through the call.", "difficulty": "stretch", "tags": ["healthcare"] },
-        { "text": "Describe the last creative deadline you nearly missed.", "difficulty": "intro", "tags": ["creative"] },
-        { "text": "Imagine a competitor announces tomorrow and your team must ship first. Talk through the final push.", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Imagine your company just announced sudden layoffs. Talk through how you'd steady your team that day.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "Imagine a company you invested in just missed payroll. Walk through your first day of response.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Describe the moment a key teammate quit during crunch.", "difficulty": "core", "tags": ["leadership", "tech"] },
-        { "text": "Talk through how you packed for an unexpected trip in an hour.", "difficulty": "intro", "tags": ["personal"] }
+        {
+          "text": "Imagine a major system outage just ended. Walk your team through how it was handled, start to finish.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine you're mid-launch and realize it's failing. Walk through that moment and what you do next.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe a health scare — yours or someone else's — and how those first hours unfolded.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "The market just dropped 8% in a day. Talk a panicking friend through what it means for them.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Imagine you have to tell the CEO the team missed its target. Talk through how you break the news.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine a security breach was just contained. Walk me through it from detection to all-clear.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine you're a coach whose team is collapsing in the final quarter. Talk through what you say in the huddle.",
+          "difficulty": "core",
+          "tags": [
+            "sports",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine a student breaks down during a class you're leading. Talk through how you handle the next ten minutes.",
+          "difficulty": "stretch",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Describe a time someone was furious with you and how you handled the next five minutes.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Imagine you're a doctor who must deliver a difficult diagnosis by phone. Walk through the call.",
+          "difficulty": "stretch",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Describe the last creative deadline you nearly missed.",
+          "difficulty": "intro",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Imagine a competitor announces tomorrow and your team must ship first. Talk through the final push.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Imagine your company just announced sudden layoffs. Talk through how you'd steady your team that day.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Imagine a company you invested in just missed payroll. Walk through your first day of response.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Describe the moment a key teammate quit during crunch.",
+          "difficulty": "core",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Talk through how you packed for an unexpected trip in an hour.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -225,12 +821,21 @@
       "why": "Breath sets the punctuation. Listeners hear what you breathe.",
       "default_difficulty": "core",
       "ordering": 6,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Speak in complete sentences punctuated by breath — one breath per sentence boundary, no run-ons.",
-      "hidden_skills": ["strategic_pausing", "rhythm_variation"],
+      "hidden_skills": [
+        "thought_group_chunking",
+        "pause_placement",
+        "cadence_control"
+      ],
       "scoring_lens": "Constraint: pause cadence at sentence boundaries is the signal. Feedback MUST reference the measured pause distribution; long stretches without a boundary pause drag delivery — quote the run-on stretch.",
       "coach_insight": "Finish each sentence completely — let the pitch drop, take one full breath, then start the next. The trap is stitching sentences together with 'and' or 'so'; if you can't remember your last breath, you're already in a run-on.",
-      "secondary_core_skills": ["clarity", "conciseness"],
+      "secondary_core_skills": [
+        "clarity",
+        "conciseness"
+      ],
       "common_failure_modes": [
         "Chains sentences with 'and', 'so', or 'which' instead of ending them",
         "Takes shallow catch-breaths mid-sentence rather than full breaths at boundaries",
@@ -240,25 +845,130 @@
       "scoring_emphasis": "Weight the longest unbroken stretch of speech — one sixty-word run-on reveals more than the average pause rate does.",
       "retry_objective": "Break the run-on stretches from the first attempt with one full breath at every sentence boundary.",
       "prompt_rules": "Generate narrative prompts with natural long arcs — careers, origin stories, seasons — that tempt run-on delivery. One sentence with a clear audience. The story's length creates the breathing challenge; keep the topic itself easy.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Tell me about your career so far.", "difficulty": "core", "tags": ["personal", "business"] },
-        { "text": "Walk me through how you got into this field.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Tell the founding story of a company you know well, from first idea to today.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Tell the story of a medical moment — yours or a loved one's — that changed how you see healthcare.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Tell me about the longest project you've ever worked on, from start to finish.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "Walk me through how your thinking about money has changed from your first paycheck to today.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "Tell the story of a teacher or mentor who changed the way you think.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "Describe how your team came together over the last year.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "Tell me the story of the most memorable game or match you've ever watched.", "difficulty": "core", "tags": ["sports"] },
-        { "text": "Walk me through how you'd take a piece of writing from blank page to finished draft.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "Tell me about a friendship that changed how you think.", "difficulty": "intro", "tags": ["personal"] },
-        { "text": "Describe your relationship with your first manager.", "difficulty": "core", "tags": ["personal", "leadership"] },
-        { "text": "Walk me through the year you almost gave up.", "difficulty": "stretch", "tags": ["personal"] },
-        { "text": "Tell the origin story of something you've made or built that you're proud of.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Tell the story of a scientific discovery you find fascinating, from first hunch to acceptance.", "difficulty": "stretch", "tags": ["science"] },
-        { "text": "Tell me about a city you lived in that changed you.", "difficulty": "intro", "tags": ["personal"] }
+        {
+          "text": "Tell me about your career so far.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "business"
+          ]
+        },
+        {
+          "text": "Walk me through how you got into this field.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell the founding story of a company you know well, from first idea to today.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Tell the story of a medical moment — yours or a loved one's — that changed how you see healthcare.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Tell me about the longest project you've ever worked on, from start to finish.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "Walk me through how your thinking about money has changed from your first paycheck to today.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell the story of a teacher or mentor who changed the way you think.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Describe how your team came together over the last year.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "Tell me the story of the most memorable game or match you've ever watched.",
+          "difficulty": "core",
+          "tags": [
+            "sports"
+          ]
+        },
+        {
+          "text": "Walk me through how you'd take a piece of writing from blank page to finished draft.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Tell me about a friendship that changed how you think.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Describe your relationship with your first manager.",
+          "difficulty": "core",
+          "tags": [
+            "personal",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Walk me through the year you almost gave up.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Tell the origin story of something you've made or built that you're proud of.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Tell the story of a scientific discovery you find fascinating, from first hunch to acceptance.",
+          "difficulty": "stretch",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "text": "Tell me about a city you lived in that changed you.",
+          "difficulty": "intro",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     },
     {
@@ -268,12 +978,21 @@
       "why": "Stress through duration — the word the listener remembers.",
       "default_difficulty": "core",
       "ordering": 7,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Use word duration as emphasis — stretch the single most important word so it is the one the listener remembers.",
-      "hidden_skills": ["rhythm_variation", "rate_awareness"],
+      "hidden_skills": [
+        "emphasis_timing",
+        "prosodic_alignment",
+        "rhythm_variation"
+      ],
       "scoring_lens": "Constraint: word-level duration is the signal. Feedback MUST name the stretched word — or its absence — from the word-timing data; uniform word durations across the rep drag delivery.",
       "coach_insight": "Choose your word before you open your mouth, then lean into its vowel and let it take up space. A real stretch feels exaggerated from the inside and lands as conviction; the trap is a hedged half-stretch nobody hears.",
-      "secondary_core_skills": ["clarity", "tone"],
+      "secondary_core_skills": [
+        "clarity",
+        "tone"
+      ],
       "common_failure_modes": [
         "Delivers every word at uniform duration with no audible emphasis anywhere",
         "Stretches a filler or minor word instead of the one carrying the point",
@@ -283,25 +1002,134 @@
       "scoring_emphasis": "Weight whether the stretched word matches the sentence's actual point — emphasis on the wrong word scores like no emphasis at all.",
       "retry_objective": "Pick the key word before speaking and hold it 30% longer — the one the first attempt threw away at normal speed.",
       "prompt_rules": "Generate superlative prompts — 'the most important', 'the single best', 'the biggest risk' — so each response has one obvious word or phrase worth stretching. One sentence with a named audience. The superlative framing creates the emphasis target; vary only the topic.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "What's the most important thing you learned this year?", "difficulty": "core", "tags": ["personal"] },
-        { "text": "Describe the single best teammate or collaborator you've ever worked with.", "difficulty": "core", "tags": ["leadership"] },
-        { "text": "What's the riskiest bet your company has placed?", "difficulty": "core", "tags": ["business"] },
-        { "text": "If you had to pick one number that defines success for a business, what is it and why?", "difficulty": "core", "tags": ["finance", "business"] },
-        { "text": "Describe the most memorable experience you've ever had with a doctor or hospital.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "What's the most surprising scientific fact you've ever learned?", "difficulty": "core", "tags": ["science", "tech"] },
-        { "text": "Tell me about the proudest moment you've had coaching, teaching, or helping someone improve.", "difficulty": "intro", "tags": ["sports", "leadership"] },
-        { "text": "What's the most dangerous assumption your team is making?", "difficulty": "stretch", "tags": ["leadership", "tech"] },
-        { "text": "Describe the best lesson someone younger than you ever taught you.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "What's the one feature that makes your favorite app or product worth using?", "difficulty": "core", "tags": ["business", "tech"] },
-        { "text": "Tell me the most important book you've ever read.", "difficulty": "intro", "tags": ["personal", "creative"] },
-        { "text": "Describe the worst mistake you've watched a peer make.", "difficulty": "stretch", "tags": ["leadership", "personal"] },
-        { "text": "What's the single biggest financial risk in your life right now, and why?", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Tell me the most underrated skill in your industry.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Describe the most beautifully designed tool, app, or object you've ever used.", "difficulty": "core", "tags": ["tech", "creative"] },
-        { "text": "What's the one thing you'd never compromise on as a leader?", "difficulty": "stretch", "tags": ["leadership"] }
+        {
+          "text": "What's the most important thing you learned this year?",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "Describe the single best teammate or collaborator you've ever worked with.",
+          "difficulty": "core",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's the riskiest bet your company has placed?",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "If you had to pick one number that defines success for a business, what is it and why?",
+          "difficulty": "core",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Describe the most memorable experience you've ever had with a doctor or hospital.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "What's the most surprising scientific fact you've ever learned?",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "tech"
+          ]
+        },
+        {
+          "text": "Tell me about the proudest moment you've had coaching, teaching, or helping someone improve.",
+          "difficulty": "intro",
+          "tags": [
+            "sports",
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's the most dangerous assumption your team is making?",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "tech"
+          ]
+        },
+        {
+          "text": "Describe the best lesson someone younger than you ever taught you.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "What's the one feature that makes your favorite app or product worth using?",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "tech"
+          ]
+        },
+        {
+          "text": "Tell me the most important book you've ever read.",
+          "difficulty": "intro",
+          "tags": [
+            "personal",
+            "creative"
+          ]
+        },
+        {
+          "text": "Describe the worst mistake you've watched a peer make.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "personal"
+          ]
+        },
+        {
+          "text": "What's the single biggest financial risk in your life right now, and why?",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Tell me the most underrated skill in your industry.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Describe the most beautifully designed tool, app, or object you've ever used.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "creative"
+          ]
+        },
+        {
+          "text": "What's the one thing you'd never compromise on as a leader?",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
@@ -311,12 +1139,21 @@
       "why": "Dynamic pacing keeps attention; flat tempo loses it.",
       "default_difficulty": "core",
       "ordering": 8,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Guide listener attention with a deliberate tempo arc — slow open, accelerated proof, decelerated close.",
-      "hidden_skills": ["rhythm_variation", "rate_awareness"],
+      "hidden_skills": [
+        "rhythm_variation",
+        "acceleration_control",
+        "emotional_tempo",
+        "transition_pacing"
+      ],
       "scoring_lens": "Constraint: segment-level WPM must move — slower open, faster middle, slowest close. Feedback MUST cite the measured per-segment rates; a flat tempo across segments drags delivery.",
       "coach_insight": "Plan your three gears before you speak: a measured open, a quicker run through the evidence, then a hard downshift so the close is your slowest line. The trap is one long acceleration — speeding up and never coming back down.",
-      "secondary_core_skills": ["structure"],
+      "secondary_core_skills": [
+        "structure"
+      ],
       "common_failure_modes": [
         "Holds one flat tempo through all three segments",
         "Accelerates into the proof but never decelerates for the close",
@@ -326,25 +1163,135 @@
       "scoring_emphasis": "Weight the close hardest — the deceleration into the final segment is the arc's most-skipped and most audible move.",
       "retry_objective": "Restore the tempo arc the first attempt flattened: open slower, accelerate through the proof, land the close at the slowest rate of the rep.",
       "prompt_rules": "Generate briefing or presentation prompts with a natural open-proof-close arc so the tempo has somewhere to move. One sentence naming the audience and setting. Vary topic and stakes, never the tempo-arc objective.",
-      "response_window": { "min_sec": 60, "max_sec": 90 },
-      "constraint_types": ["none"],
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
       "prompts": [
-        { "text": "Brief the team on next quarter's goals.", "difficulty": "core", "tags": ["business", "leadership"] },
-        { "text": "Present your design proposal to a skeptical stakeholder.", "difficulty": "core", "tags": ["creative", "business"] },
-        { "text": "Walk leadership through your security roadmap.", "difficulty": "core", "tags": ["tech"] },
-        { "text": "Present this quarter's earnings to the board.", "difficulty": "stretch", "tags": ["finance", "business"] },
-        { "text": "Brief your team on a strategy reset after a tough quarter.", "difficulty": "stretch", "tags": ["leadership", "business"] },
-        { "text": "Present your research findings at a conference keynote.", "difficulty": "stretch", "tags": ["science", "education"] },
-        { "text": "Open a parent-teacher night with your year's plan.", "difficulty": "core", "tags": ["education"] },
-        { "text": "Brief the coaching staff on tomorrow's game plan.", "difficulty": "core", "tags": ["sports", "leadership"] },
-        { "text": "Pitch your new product line at the all-hands.", "difficulty": "core", "tags": ["business"] },
-        { "text": "Walk a new patient through their treatment journey.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "Present a quarterly portfolio update to your fund's investors.", "difficulty": "stretch", "tags": ["finance"] },
-        { "text": "Brief a journalist on your company's biggest story this year.", "difficulty": "core", "tags": ["business", "creative"] },
-        { "text": "Open a workshop on a topic you know inside and out.", "difficulty": "intro", "tags": ["education", "business"] },
-        { "text": "Present your team's roadmap to the engineering org.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "Pitch a documentary idea to a production company.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "Brief the rest of your team after a strategy off-site.", "difficulty": "intro", "tags": ["leadership"] }
+        {
+          "text": "Brief the team on next quarter's goals.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Present your design proposal to a skeptical stakeholder.",
+          "difficulty": "core",
+          "tags": [
+            "creative",
+            "business"
+          ]
+        },
+        {
+          "text": "Walk leadership through your security roadmap.",
+          "difficulty": "core",
+          "tags": [
+            "tech"
+          ]
+        },
+        {
+          "text": "Present this quarter's earnings to the board.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance",
+            "business"
+          ]
+        },
+        {
+          "text": "Brief your team on a strategy reset after a tough quarter.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership",
+            "business"
+          ]
+        },
+        {
+          "text": "Present your research findings at a conference keynote.",
+          "difficulty": "stretch",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "Open a parent-teacher night with your year's plan.",
+          "difficulty": "core",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "Brief the coaching staff on tomorrow's game plan.",
+          "difficulty": "core",
+          "tags": [
+            "sports",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Pitch your new product line at the all-hands.",
+          "difficulty": "core",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "Walk a new patient through their treatment journey.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Present a quarterly portfolio update to your fund's investors.",
+          "difficulty": "stretch",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "Brief a journalist on your company's biggest story this year.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "creative"
+          ]
+        },
+        {
+          "text": "Open a workshop on a topic you know inside and out.",
+          "difficulty": "intro",
+          "tags": [
+            "education",
+            "business"
+          ]
+        },
+        {
+          "text": "Present your team's roadmap to the engineering org.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "Pitch a documentary idea to a production company.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "Brief the rest of your team after a strategy off-site.",
+          "difficulty": "intro",
+          "tags": [
+            "leadership"
+          ]
+        }
       ]
     },
     {
@@ -354,12 +1301,21 @@
       "why": "Builds a wall-clock for delivery — useful for status, intros, pitches.",
       "default_difficulty": "core",
       "ordering": 9,
-      "tags": ["gap-fill"],
+      "tags": [
+        "gap-fill"
+      ],
       "objective": "Land a complete, self-contained response inside a fixed 45-second window — no more, no less.",
-      "hidden_skills": ["pressure_management", "rate_awareness"],
+      "hidden_skills": [
+        "time_management",
+        "pressure_pacing",
+        "time_box_awareness"
+      ],
       "scoring_lens": "Constraint: the rep should land between 35s and 55s. Outside that window, delivery score MUST reflect the timing breach.",
       "coach_insight": "Budget before you speak: about ten seconds to frame, twenty-five for substance, ten to close. Keep your normal pace — the trap is sprinting to cram everything in, when the real move is cutting material until 45 seconds fits.",
-      "secondary_core_skills": ["conciseness", "structure"],
+      "secondary_core_skills": [
+        "conciseness",
+        "structure"
+      ],
       "common_failure_modes": [
         "Rushes delivery to cram full content in, instead of cutting scope",
         "Runs long because no final line was planned, so the close never arrives",
@@ -369,25 +1325,133 @@
       "scoring_emphasis": "Weight how the speaker managed scope to fit the clock — a complete small answer beats a compressed or truncated big one.",
       "retry_objective": "Re-scope the same response — cut or add material, not speed — to land inside the 35–55s window the first attempt missed.",
       "prompt_rules": "Generate prompts prefixed with the 45-second frame that ask for a complete, self-contained deliverable — an intro, update, pitch, or toast. One sentence with audience and situation. The content must be plausibly completable in 45 seconds so the clock, not the topic, is the challenge.",
-      "response_window": { "min_sec": 35, "max_sec": 55 },
-      "constraint_types": ["time"],
+      "response_window": {
+        "min_sec": 35,
+        "max_sec": 55
+      },
+      "constraint_types": [
+        "time"
+      ],
       "prompts": [
-        { "text": "45 seconds: introduce yourself to a new team.", "difficulty": "intro", "tags": ["business", "personal"] },
-        { "text": "45 seconds: give your weekly status update.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "45 seconds: pitch your startup to an investor in an elevator.", "difficulty": "core", "tags": ["business", "finance"] },
-        { "text": "45 seconds: summarize the production outage for executives.", "difficulty": "core", "tags": ["tech", "leadership"] },
-        { "text": "45 seconds: brief a colleague before they cover for you.", "difficulty": "intro", "tags": ["business"] },
-        { "text": "45 seconds: present your patient's case to the attending.", "difficulty": "core", "tags": ["healthcare"] },
-        { "text": "45 seconds: open a town hall after big news.", "difficulty": "stretch", "tags": ["leadership"] },
-        { "text": "45 seconds: pitch a movie idea to a tired producer.", "difficulty": "core", "tags": ["creative"] },
-        { "text": "45 seconds: explain your investment approach to a brand-new investor.", "difficulty": "core", "tags": ["finance"] },
-        { "text": "45 seconds: introduce a guest speaker to your class.", "difficulty": "intro", "tags": ["education"] },
-        { "text": "45 seconds: brief the press after a tough loss.", "difficulty": "stretch", "tags": ["sports", "leadership"] },
-        { "text": "45 seconds: deliver a wedding toast that lands.", "difficulty": "core", "tags": ["personal"] },
-        { "text": "45 seconds: recap the quarter to your board chair.", "difficulty": "stretch", "tags": ["business", "leadership"] },
-        { "text": "45 seconds: pitch a feature cut to product leadership.", "difficulty": "core", "tags": ["tech", "business"] },
-        { "text": "45 seconds: explain your research to a smart non-expert.", "difficulty": "core", "tags": ["science", "education"] },
-        { "text": "45 seconds: give the eulogy intro you'd want delivered for you.", "difficulty": "stretch", "tags": ["personal"] }
+        {
+          "text": "45 seconds: introduce yourself to a new team.",
+          "difficulty": "intro",
+          "tags": [
+            "business",
+            "personal"
+          ]
+        },
+        {
+          "text": "45 seconds: give your weekly status update.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "45 seconds: pitch your startup to an investor in an elevator.",
+          "difficulty": "core",
+          "tags": [
+            "business",
+            "finance"
+          ]
+        },
+        {
+          "text": "45 seconds: summarize the production outage for executives.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "leadership"
+          ]
+        },
+        {
+          "text": "45 seconds: brief a colleague before they cover for you.",
+          "difficulty": "intro",
+          "tags": [
+            "business"
+          ]
+        },
+        {
+          "text": "45 seconds: present your patient's case to the attending.",
+          "difficulty": "core",
+          "tags": [
+            "healthcare"
+          ]
+        },
+        {
+          "text": "45 seconds: open a town hall after big news.",
+          "difficulty": "stretch",
+          "tags": [
+            "leadership"
+          ]
+        },
+        {
+          "text": "45 seconds: pitch a movie idea to a tired producer.",
+          "difficulty": "core",
+          "tags": [
+            "creative"
+          ]
+        },
+        {
+          "text": "45 seconds: explain your investment approach to a brand-new investor.",
+          "difficulty": "core",
+          "tags": [
+            "finance"
+          ]
+        },
+        {
+          "text": "45 seconds: introduce a guest speaker to your class.",
+          "difficulty": "intro",
+          "tags": [
+            "education"
+          ]
+        },
+        {
+          "text": "45 seconds: brief the press after a tough loss.",
+          "difficulty": "stretch",
+          "tags": [
+            "sports",
+            "leadership"
+          ]
+        },
+        {
+          "text": "45 seconds: deliver a wedding toast that lands.",
+          "difficulty": "core",
+          "tags": [
+            "personal"
+          ]
+        },
+        {
+          "text": "45 seconds: recap the quarter to your board chair.",
+          "difficulty": "stretch",
+          "tags": [
+            "business",
+            "leadership"
+          ]
+        },
+        {
+          "text": "45 seconds: pitch a feature cut to product leadership.",
+          "difficulty": "core",
+          "tags": [
+            "tech",
+            "business"
+          ]
+        },
+        {
+          "text": "45 seconds: explain your research to a smart non-expert.",
+          "difficulty": "core",
+          "tags": [
+            "science",
+            "education"
+          ]
+        },
+        {
+          "text": "45 seconds: give the eulogy intro you'd want delivered for you.",
+          "difficulty": "stretch",
+          "tags": [
+            "personal"
+          ]
+        }
       ]
     }
   ]

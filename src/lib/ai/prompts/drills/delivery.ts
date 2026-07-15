@@ -4,8 +4,8 @@ import type { DrillPrompt } from "../types";
  * Delivery drill bank — DNA Ch.6b.
  *
  * 30 prompts targeting the 5 Delivery sub-skills:
- *   rate_awareness, strategic_pausing, filler_word_control,
- *   rhythm_variation, pressure_management.
+ *   rate_awareness, strategic_pausing, filler_to_pause_substitution,
+ *   rhythm_variation, pressure_pacing.
  *
  * Each pairs a low-stakes topic with a SPEECH MECHANIC CONSTRAINT.
  * The topic is intentionally simple — the load is on the mechanic, not
@@ -86,41 +86,41 @@ export const DELIVERY_DRILLS: readonly DrillPrompt[] = [
       "Three-second pause before you say a single word. Then deliver the update slowly.",
     targetSubSkill: "strategic_pausing",
   },
-  // ——— filler_word_control (replace fillers with silence) ————
+  // ——— filler_to_pause_substitution (replace fillers with silence) ————
   {
     id: "dl_fw_001",
     topic: "Describe a recent project you worked on.",
     drillInstruction:
       "Speak for 60 seconds without using 'um,' 'uh,' or 'like.' If one slips out, finish the sentence and continue.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   {
     id: "dl_fw_002",
     topic: "Recommend a book or movie to someone.",
     drillInstruction:
       "Zero filler words. Pause instead. The pauses will feel long — that's the rep.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   {
     id: "dl_fw_003",
     topic: "Explain your job to a friend who doesn't know much about it.",
     drillInstruction:
       "Banned: 'um,' 'uh,' 'like,' 'you know,' 'basically.' Speak slowly enough to avoid them.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   {
     id: "dl_fw_004",
     topic: "Make the case for an idea you actually believe in.",
     drillInstruction:
       "Catch every filler before it leaves your mouth. Replace with a one-second pause.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   {
     id: "dl_fw_005",
     topic: "Walk through what you did this morning.",
     drillInstruction:
       "Speak for 90 seconds. Aim for fewer than 2 fillers total. Slow down whenever you feel one coming.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   // ——— rhythm_variation (vary tempo intentionally) ——————————
   {
@@ -158,41 +158,41 @@ export const DELIVERY_DRILLS: readonly DrillPrompt[] = [
       "Match tempo to emotion. Slow for weight, brisk for momentum, slow again for the punch.",
     targetSubSkill: "rhythm_variation",
   },
-  // ——— pressure_management (hold pace under load) ——————————
+  // ——— pressure_pacing (hold pace under load) ——————————
   {
     id: "dl_pm_001",
     topic: "Defend a controversial opinion you actually hold.",
     drillInstruction:
       "Inhale through the nose before you start. Keep your pace steady — don't let conviction speed you up.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
   {
     id: "dl_pm_002",
     topic: "Make a high-stakes ask to someone you respect.",
     drillInstruction:
       "First three words at half-speed. Don't accelerate as you go. Hold the steady pace through the whole rep.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
   {
     id: "dl_pm_003",
     topic: "Brief a senior person on something you're not 100% sure about.",
     drillInstruction:
       "When you feel the rate creeping up, pause. Reset. Continue at the slower pace. Catch and correct mid-rep.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
   {
     id: "dl_pm_004",
     topic: "Push back on a decision you disagree with.",
     drillInstruction:
       "Hold a steady, controlled pace even as the content gets pointed. Disagreement at speed reads as defensive.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
   {
     id: "dl_pm_005",
     topic: "Apologize for a mistake without over-explaining.",
     drillInstruction:
       "Slower than feels natural — pressure shrinks the time you think you have. Take it back deliberately.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
   // ——— Filler / variation grab-bag (extras for picker headroom) ——
   {
@@ -200,7 +200,7 @@ export const DELIVERY_DRILLS: readonly DrillPrompt[] = [
     topic: "Pitch your favorite hobby to someone who doesn't share it.",
     drillInstruction:
       "Zero fillers, normal tempo. The pitch should sound effortless even though the constraint isn't.",
-    targetSubSkill: "filler_word_control",
+    targetSubSkill: "filler_to_pause_substitution",
   },
   {
     id: "dl_sp_006",
@@ -228,6 +228,6 @@ export const DELIVERY_DRILLS: readonly DrillPrompt[] = [
     topic: "Respond to a hard question with a thoughtful answer.",
     drillInstruction:
       "Two-second pause before you start. Then steady tempo. Pressure rewards deliberation.",
-    targetSubSkill: "pressure_management",
+    targetSubSkill: "pressure_pacing",
   },
 ];

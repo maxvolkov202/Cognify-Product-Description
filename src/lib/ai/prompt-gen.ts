@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { anthropic, MODELS } from "./claude";
 import { resolveKnowledge, renderBlocks } from "./knowledge";
+import {
+  isSubSkillId,
+  SUB_SKILL_DEFINITIONS,
+  SUB_SKILL_LABELS,
+} from "@/types/sub-skills";
 
 /**
  * PRD v3 Phase 8.1 — runtime prompt generation (PRD §9, decision D3
@@ -155,7 +160,13 @@ export function buildGenUserPrompt(input: {
     ex.objective ? `COMMUNICATION OBJECTIVE: ${ex.objective}` : null,
     ex.promptRules ? `FRAMEWORK PROMPT RULES (follow exactly): ${ex.promptRules}` : null,
     ex.hiddenSkills?.length
-      ? `HIDDEN SKILLS TRAINED: ${ex.hiddenSkills.join(", ")}`
+      ? `HIDDEN SKILLS TRAINED (target these behaviors):\n${ex.hiddenSkills
+          .map((id) =>
+            isSubSkillId(id)
+              ? `- ${SUB_SKILL_LABELS[id]} — ${SUB_SKILL_DEFINITIONS[id]}`
+              : `- ${id.replace(/_/g, " ")}`,
+          )
+          .join("\n")}`
       : null,
     ex.responseWindow
       ? `RESPONSE WINDOW: ${ex.responseWindow.minSec}-${ex.responseWindow.maxSec} seconds — prompts must be answerable in that window.`

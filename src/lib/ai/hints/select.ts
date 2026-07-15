@@ -41,8 +41,8 @@ export function pickHintsForRep(
 
   // Build the candidate pool: weakest sub-skills first, then the rest of
   // the dimension's sub-skills. This way a user with a known Tone weakness
-  // on `downward_inflection` sees hints for that first, with `pitch_variation`
-  // / `volume_control` filling the second slot.
+  // on `confidence` sees hints for that first, with other tone skills
+  // filling the second slot.
   const dimensionSubSkills = SUB_SKILLS[input.dimension];
   const ordered: SubSkillId[] = [];
   for (const s of input.weakestSubSkills ?? []) {

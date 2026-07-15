@@ -65,18 +65,22 @@ const CANONICAL_DIMS = new Set([
 const DIFFICULTY_MAP = { intro: 1, core: 2, stretch: 3 };
 const VALID_DIFFICULTIES = new Set(Object.keys(DIFFICULTY_MAP));
 
-// PRD v3 Phase 2.2 — Exercise Framework validation constants.
-// Sub-skill lists mirror src/types/sub-skills.ts (the TS module is the
-// source of truth; keep in sync). The `pacing` muscle group maps to the
-// `delivery` scoring dimension's sub-skills.
-const SUB_SKILLS_BY_MUSCLE_GROUP = {
-  clarity: ["word_choice", "concreteness", "audience_awareness", "idea_isolation", "precision", "logical_sequencing"],
-  structure: ["opening_hook", "signposting", "argument_hierarchy", "bottom_line_discipline", "narrative_arc", "coherence"],
-  conciseness: ["filler_elimination", "hedging_awareness", "repetition_control", "response_scoping", "editing_in_real_time"],
-  thinking_quality: ["claim_support", "first_principles_reasoning", "counterargument_awareness", "depth_of_analysis", "intellectual_honesty", "perspective_taking"],
-  pacing: ["rate_awareness", "strategic_pausing", "filler_word_control", "rhythm_variation", "pressure_management"],
-  tone: ["pitch_variation", "volume_control", "downward_inflection", "emotional_authenticity", "vocal_presence", "warmth"],
-};
+// System Change v2 Phase 1 (D20) — Exercise Framework validation reads
+// the Hidden Skill Taxonomy v2 (148 skills) straight from the taxonomy
+// JSON, the same source src/types/sub-skills.ts is generated from. The
+// `pacing` muscle group maps to the `delivery` dimension's skills.
+// hidden_skills may draw from the exercise's PRIMARY dimension plus its
+// secondary_core_skills dimensions (mirrors scripts/taxonomy/
+// retag-exercises.mjs), and must include ≥1 primary-dimension skill.
+const TAXONOMY_V2 = JSON.parse(
+  readFileSync(resolve(__dirname, "taxonomy", "hidden-skills-v2.json"), "utf-8"),
+);
+const DIM_TO_SKILL_DIM = { pacing: "delivery" };
+const toSkillDim = (d) => DIM_TO_SKILL_DIM[d] ?? d;
+const SUB_SKILLS_BY_SKILL_DIM = {};
+for (const s of TAXONOMY_V2.skills) {
+  (SUB_SKILLS_BY_SKILL_DIM[s.dimension] ??= []).push(s.id);
+}
 const VALID_CONSTRAINT_TYPES = new Set(["time", "structure", "tone", "complexity", "none"]);
 
 // PRD v3 Phase 4 — Skill Lab applications. Mirrors
@@ -201,16 +205,30 @@ function validate(exercises) {
       errors.push(`${where}: objective must be a string`);
     }
     if (ex.hidden_skills != null) {
-      const valid = SUB_SKILLS_BY_MUSCLE_GROUP[ex.dimension] ?? [];
+      const allowedDims = [
+        toSkillDim(ex.dimension),
+        ...(ex.secondary_core_skills ?? []).map(toSkillDim),
+      ];
+      const valid = new Set(
+        allowedDims.flatMap((d) => SUB_SKILLS_BY_SKILL_DIM[d] ?? []),
+      );
+      const primary = new Set(
+        SUB_SKILLS_BY_SKILL_DIM[toSkillDim(ex.dimension)] ?? [],
+      );
       if (!Array.isArray(ex.hidden_skills) || ex.hidden_skills.length === 0) {
         errors.push(`${where}: hidden_skills must be a non-empty array`);
       } else {
         for (const s of ex.hidden_skills) {
-          if (!valid.includes(s)) {
+          if (!valid.has(s)) {
             errors.push(
-              `${where}: hidden_skill "${s}" not in ${ex.dimension}'s canonical set`,
+              `${where}: hidden_skill "${s}" not in taxonomy v2 for dims [${allowedDims.join(", ")}]`,
             );
           }
+        }
+        if (!ex.hidden_skills.some((s) => primary.has(s))) {
+          errors.push(
+            `${where}: hidden_skills has no skill from the primary dimension ${toSkillDim(ex.dimension)}`,
+          );
         }
       }
     }

@@ -4,8 +4,8 @@ import type { DrillPrompt } from "../types";
  * Tone drill bank — DNA Ch.6b.
  *
  * 30 prompts targeting the 6 Tone sub-skills:
- *   pitch_variation, volume_control, downward_inflection,
- *   emotional_authenticity, vocal_presence, warmth.
+ *   prosodic_alignment, emphasis_timing, confidence,
+ *   emotional_authenticity, gravitas, warmth.
  *
  * Each pairs a topic with a vocal-control constraint that demands
  * specific prosodic moves. Assumes Ch.3b prosody worker is wired (when
@@ -14,113 +14,113 @@ import type { DrillPrompt } from "../types";
  * mechanics fatigue fast and concentrated reps train better than long ones.
  */
 export const TONE_DRILLS: readonly DrillPrompt[] = [
-  // ——— pitch_variation (≥3 semitones range) ————————————————
+  // ——— prosodic_alignment (≥3 semitones range) ————————————————
   {
     id: "tn_pv_001",
     topic: "Read a one-paragraph product description as if you wrote it.",
     drillInstruction:
       "Vary your pitch by at least three semitones across the response. Avoid the flat-line.",
-    targetSubSkill: "pitch_variation",
+    targetSubSkill: "prosodic_alignment",
   },
   {
     id: "tn_pv_002",
     topic: "Tell a short anecdote with a clear punchline.",
     drillInstruction:
       "Build pitch into the setup, drop pitch on the punchline. Use pitch as a tool, not decoration.",
-    targetSubSkill: "pitch_variation",
+    targetSubSkill: "prosodic_alignment",
   },
   {
     id: "tn_pv_003",
     topic: "Describe three things that surprised you recently.",
     drillInstruction:
       "Each item gets its own pitch contour. Don't deliver them in the same melodic shape.",
-    targetSubSkill: "pitch_variation",
+    targetSubSkill: "prosodic_alignment",
   },
   {
     id: "tn_pv_004",
     topic: "Read a quote from someone you admire and react to it.",
     drillInstruction:
       "Quote in one register, your reaction in another. Make the shift audible.",
-    targetSubSkill: "pitch_variation",
+    targetSubSkill: "prosodic_alignment",
   },
   {
     id: "tn_pv_005",
     topic: "Walk through your favorite restaurant order.",
     drillInstruction:
       "Lift pitch on the verbs that carry pleasure. Drop on the connectors. Let your voice show what mattered.",
-    targetSubSkill: "pitch_variation",
+    targetSubSkill: "prosodic_alignment",
   },
-  // ——— volume_control (intentional emphasis variation) ————————
+  // ——— emphasis_timing (intentional emphasis variation) ————————
   {
     id: "tn_vc_001",
     topic: "Make a short pitch for an idea you believe in.",
     drillInstruction:
       "Raise your volume by ~30% on the verb that carries the meaning. Drop volume on the supporting clauses.",
-    targetSubSkill: "volume_control",
+    targetSubSkill: "emphasis_timing",
   },
   {
     id: "tn_vc_002",
     topic: "Recount a moment that taught you something.",
     drillInstruction:
       "Quiet on the setup, full volume on the moment of learning, quiet again on the reflection.",
-    targetSubSkill: "volume_control",
+    targetSubSkill: "emphasis_timing",
   },
   {
     id: "tn_vc_003",
     topic: "Deliver a series of three related claims.",
     drillInstruction:
       "Each claim gets a slight volume lift. The third one — the strongest — gets the loudest delivery.",
-    targetSubSkill: "volume_control",
+    targetSubSkill: "emphasis_timing",
   },
   {
     id: "tn_vc_004",
     topic: "State your conviction on a contested topic.",
     drillInstruction:
       "Volume drops to a near-whisper on the most important word. Force the listener to lean in.",
-    targetSubSkill: "volume_control",
+    targetSubSkill: "emphasis_timing",
   },
   {
     id: "tn_vc_005",
     topic: "Describe a moment of high tension you experienced.",
     drillInstruction:
       "Match volume to tension. Build it as the story builds, drop it when the tension breaks.",
-    targetSubSkill: "volume_control",
+    targetSubSkill: "emphasis_timing",
   },
-  // ——— downward_inflection (statements close on a falling note) ——
+  // ——— confidence (statements close on a falling note) ——
   {
     id: "tn_di_001",
     topic: "State three facts about your work, one at a time.",
     drillInstruction:
       "Every sentence ends with downward pitch. No statement may sound like a question.",
-    targetSubSkill: "downward_inflection",
+    targetSubSkill: "confidence",
   },
   {
     id: "tn_di_002",
     topic: "Make a recommendation to your team.",
     drillInstruction:
       "Land every claim with a falling pitch. Test the close: would it sound right at a podium?",
-    targetSubSkill: "downward_inflection",
+    targetSubSkill: "confidence",
   },
   {
     id: "tn_di_003",
     topic: "Brief a senior person on a decision you made.",
     drillInstruction:
       "Conviction in the close of every sentence. Falling pitch reads as authority — even on uncertain content.",
-    targetSubSkill: "downward_inflection",
+    targetSubSkill: "confidence",
   },
   {
     id: "tn_di_004",
     topic: "Walk through your reasoning on a recent call.",
     drillInstruction:
       "If a sentence rises at the end, restart it. The drill is catching upspeak in real time.",
-    targetSubSkill: "downward_inflection",
+    targetSubSkill: "confidence",
   },
   {
     id: "tn_di_005",
     topic: "Defend a strong position you actually hold.",
     drillInstruction:
       "Every assertion lands on a downward beat. Conviction is a vocal pattern, not just a content choice.",
-    targetSubSkill: "downward_inflection",
+    targetSubSkill: "confidence",
   },
   // ——— emotional_authenticity (let the content's weight come through) ——
   {
@@ -158,41 +158,41 @@ export const TONE_DRILLS: readonly DrillPrompt[] = [
       "If the answer matters to you, let your voice show it. If it doesn't, the rep is whether you can find one that does.",
     targetSubSkill: "emotional_authenticity",
   },
-  // ——— vocal_presence (project from the chest, hold the room) ——
+  // ——— gravitas (project from the chest, hold the room) ——
   {
     id: "tn_vp_001",
     topic: "Open a meeting with a single sentence that sets the tone.",
     drillInstruction:
       "Project from the chest. The voice should fill the room before the words do.",
-    targetSubSkill: "vocal_presence",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vp_002",
     topic: "Deliver one piece of news as if to a room of fifty.",
     drillInstruction:
       "Hold the back-of-the-room test. Even on solo recording, deliver as if presence is required.",
-    targetSubSkill: "vocal_presence",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vp_003",
     topic: "Make an opening statement you'd be willing to repeat publicly.",
     drillInstruction:
       "Energy holds from the first word to the last. No fade in the final third.",
-    targetSubSkill: "vocal_presence",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vp_004",
     topic: "Welcome a new team member.",
     drillInstruction:
       "Warmth + presence. The voice should sound generous AND grounded — neither timid nor performative.",
-    targetSubSkill: "vocal_presence",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vp_005",
     topic: "Make the case for the most important point of your week.",
     drillInstruction:
       "Speak from the diaphragm. Resonance over volume. Hold the same energy through to the close.",
-    targetSubSkill: "vocal_presence",
+    targetSubSkill: "gravitas",
   },
   // ——— warmth (approachability, generosity, connection) ————————
   {

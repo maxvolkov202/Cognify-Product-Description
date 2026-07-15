@@ -43,6 +43,7 @@ import {
   SUB_SKILL_LABELS,
   SUB_SKILLS,
   renderSubSkillReference,
+  renderSubSkillReferenceWithDefinitions,
   type SubSkillId,
 } from "@/types/sub-skills";
 import { createHash } from "node:crypto";
@@ -731,6 +732,15 @@ function renderModeBlock(ctx: ScoreRepModeContext | undefined): string | null {
   lines.push(`MODE: ${ctx.sessionType}`);
   if (ctx.sessionType === "focus" && ctx.focusDimension) {
     lines.push(`FOCUS DIMENSION: ${ctx.focusDimension}`);
+    // Taxonomy v2 (D20) — definitions for ONLY the focused dimension so
+    // sub-skill attribution inside the trained dimension is definition-
+    // guided. All 148 definitions would blow the token budget; the
+    // labels-only SUB-SKILL REFERENCE block still covers the other
+    // dimensions. Deterministic per focusDimension (calibration-safe).
+    lines.push(
+      `FOCUS DIMENSION HIDDEN SKILLS (prefer these for ${ctx.focusDimension} bullets' subSkill):`,
+      renderSubSkillReferenceWithDefinitions(ctx.focusDimension),
+    );
   }
   if (ctx.pressureArchetypeId) {
     const arch = getPressureArchetype(ctx.pressureArchetypeId);
@@ -1314,21 +1324,16 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     );
   }
 
-  // Ch.11c — attach per-sub-skill scores from the text-signal mapper.
-  // Runs ONLY when the FF gated SIGNALS block was rendered above
-  // (textSignals != null). Uses the post-deterministic dimensionMap so
-  // the dimension_fallback path inherits the FINAL dim score (Delivery
-  // override + Thinking blend already applied) rather than the raw LLM
-  // dim score. Audio-driven sub-skills (Delivery + Tone) all flow
-  // through dimension_fallback and inherit their dim's holistic score.
+  // Ch.11c — attach per-sub-skill scores from the signal mapper. Runs
+  // ONLY when the FF gated SIGNALS block was rendered above
+  // (textSignals != null).
   if (signalsFlagOn && textSignals) {
-    // Ch.S5: pass prosody features so the mapper can populate Tone
-    // sub-skills from Hume emotion vectors (or Praat raw DSP) when
-    // available; falls through to dimension_fallback when prosody is
-    // absent (text-only reps).
+    // Ch.S5: pass prosody features so the mapper can populate the
+    // voice-measured skills (filler/wpm DSP + Hume emotion vectors) when
+    // available. Taxonomy v2 (D20): only genuinely-measured skills get
+    // entries — no dimension_fallback copies.
     const subSkillMap = mapSignalsToSubSkillScores(
       textSignals,
-      dimensionMap,
       prosodyFeatures,
     );
     const allScores = toScoresOnly(subSkillMap);

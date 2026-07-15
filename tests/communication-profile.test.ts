@@ -142,22 +142,22 @@ section("coached attempts fold at half weight (Phase 15 I-9)");
   // Half weight applies to hidden skills and application estimates too.
   const hiddenPrior = applyRepToProfile(emptyProfile(), {
     dimensions: dims(70),
-    subSkillScores: { word_choice: 60 },
+    subSkillScores: { vocabulary_precision: 60 },
     applicationId: "storytelling",
     composite: 60,
     at: AT,
   });
   const hiddenRetry = applyRepToProfile(hiddenPrior, {
     dimensions: dims(70),
-    subSkillScores: { word_choice: 80 },
+    subSkillScores: { vocabulary_precision: 80 },
     applicationId: "storytelling",
     composite: 80,
     attemptKind: "retry",
     at: AT,
   });
   assert(
-    hiddenRetry.hiddenSkills.word_choice?.score === 65,
-    `hidden skill folds at half k (got ${hiddenRetry.hiddenSkills.word_choice?.score})`,
+    hiddenRetry.hiddenSkills.vocabulary_precision?.score === 65,
+    `hidden skill folds at half k (got ${hiddenRetry.hiddenSkills.vocabulary_precision?.score})`,
   );
   assert(
     hiddenRetry.applications.storytelling?.score === 65,
@@ -204,22 +204,22 @@ section("hidden skills");
   p = applyRepToProfile(p, {
     dimensions: dims(70),
     subSkillScores: {
-      word_choice: 65,
+      vocabulary_precision: 65,
       not_a_real_skill: 90,
     },
     at: AT,
   });
-  assert(p.hiddenSkills.word_choice?.score === 65, "valid hidden skill folded");
+  assert(p.hiddenSkills.vocabulary_precision?.score === 65, "valid hidden skill folded");
   assert(
     !("not_a_real_skill" in p.hiddenSkills),
     "invalid hidden skill id rejected",
   );
   p = applyRepToProfile(p, {
     dimensions: dims(70),
-    subSkillScores: { word_choice: 85 },
+    subSkillScores: { vocabulary_precision: 85 },
     at: AT,
   });
-  assert(p.hiddenSkills.word_choice?.score === 75, "hidden skill EMA (k=0.5)");
+  assert(p.hiddenSkills.vocabulary_precision?.score === 75, "hidden skill EMA (k=0.5)");
 }
 
 section("application performance (PRD §8.3.6)");

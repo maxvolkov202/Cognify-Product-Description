@@ -223,7 +223,7 @@ section("Ch.11a — extractAllTextSignals composer");
 }
 
 // ————————————————————————————————————————————————————————————————
-// Ch.11b — Sub-skill mapper covers every sub-skill, scores in [0,100]
+// Ch.11b — Sub-skill mapper: signal-driven only (D20), scores in [0,100]
 // ————————————————————————————————————————————————————————————————
 section("Ch.11b — sub-skill mapper coverage + bounds");
 
@@ -232,23 +232,47 @@ section("Ch.11b — sub-skill mapper coverage + bounds");
     transcript: STRONG_TRANSCRIPT,
     durationMs: STRONG_DURATION_MS,
   });
-  const dimMap = {
-    clarity: 80,
-    structure: 78,
-    conciseness: 75,
-    thinking_quality: 72,
-    delivery: 70,
-    tone: 70,
-  };
-  const map = mapSignalsToSubSkillScores(signals, dimMap);
+  const map = mapSignalsToSubSkillScores(signals);
 
-  // Every sub-skill in ALL_SUB_SKILLS is covered.
-  for (const subSkill of ALL_SUB_SKILLS) {
+  // Taxonomy v2 (D20): only signal-measured skills get entries — no
+  // dimension_fallback copies. The text extractors cover exactly these
+  // 20; prosody-driven skills need audio and are absent here.
+  const TEXT_DRIVEN = [
+    "vocabulary_precision",
+    "audience_calibration",
+    "lexical_specificity",
+    "concreteness",
+    "idea_isolation",
+    "listener_first_sequencing",
+    "signposting",
+    "opening_hook",
+    "argument_hierarchy",
+    "narrative_arc",
+    "coherence",
+    "hedging_control",
+    "repetition_control",
+    "response_scoping",
+    "real_time_editing",
+    "claim_support",
+    "counterargument_awareness",
+    "depth_of_analysis",
+    "intellectual_honesty",
+    "first_principles_reasoning",
+  ] as const;
+  for (const subSkill of TEXT_DRIVEN) {
     assert(
       map[subSkill] != null,
-      `sub-skill "${subSkill}" populated in mapper output`,
+      `text-driven sub-skill "${subSkill}" populated in mapper output`,
     );
   }
+  assert(
+    Object.keys(map).length === TEXT_DRIVEN.length,
+    `mapper emits ONLY signal-driven entries without prosody (got ${Object.keys(map).length}, expected ${TEXT_DRIVEN.length})`,
+  );
+  assert(
+    Object.values(map).every((v) => v!.signalSource !== "dimension_fallback"),
+    "no dimension_fallback entries (D20: unmeasured skills are LLM-attributed)",
+  );
 
   // Every score in [0, 100].
   for (const [k, v] of Object.entries(map)) {
@@ -262,8 +286,8 @@ section("Ch.11b — sub-skill mapper coverage + bounds");
   // toScoresOnly strips the signalSource trail.
   const slim = toScoresOnly(map);
   assert(
-    Object.keys(slim).length === ALL_SUB_SKILLS.length,
-    `toScoresOnly returns ${Object.keys(slim).length} entries (expected ${ALL_SUB_SKILLS.length})`,
+    Object.keys(slim).length === Object.keys(map).length,
+    `toScoresOnly returns ${Object.keys(slim).length} entries (expected ${Object.keys(map).length})`,
   );
 
   // Sub-skill values match the underlying mapper score.
@@ -281,14 +305,6 @@ section("Ch.11b — sub-skill mapper coverage + bounds");
 section("Ch.11b — mapper differentiates rep quality");
 
 {
-  const dimFallbacks = {
-    clarity: 50,
-    structure: 50,
-    conciseness: 50,
-    thinking_quality: 50,
-    delivery: 50,
-    tone: 50,
-  };
   const poorSignals = extractAllTextSignals({
     transcript: POOR_TRANSCRIPT,
     durationMs: POOR_DURATION_MS,
@@ -302,21 +318,21 @@ section("Ch.11b — mapper differentiates rep quality");
     durationMs: JARGON_STACK_DURATION_MS,
   });
 
-  const poorMap = mapSignalsToSubSkillScores(poorSignals, dimFallbacks);
-  const strongMap = mapSignalsToSubSkillScores(strongSignals, dimFallbacks);
-  const jargonMap = mapSignalsToSubSkillScores(jargonSignals, dimFallbacks);
+  const poorMap = mapSignalsToSubSkillScores(poorSignals);
+  const strongMap = mapSignalsToSubSkillScores(strongSignals);
+  const jargonMap = mapSignalsToSubSkillScores(jargonSignals);
 
-  // word_choice: jargon-stacked < poor < strong (since strong has 0 jargon
+  // vocabulary_precision: jargon-stacked < poor < strong (since strong has 0 jargon
   // and jargon-stacked has ~15/min).
   assert(
-    jargonMap.word_choice!.score < strongMap.word_choice!.score,
-    `word_choice: jargon-stacked (${jargonMap.word_choice!.score}) < strong (${strongMap.word_choice!.score})`,
+    jargonMap.vocabulary_precision!.score < strongMap.vocabulary_precision!.score,
+    `vocabulary_precision: jargon-stacked (${jargonMap.vocabulary_precision!.score}) < strong (${strongMap.vocabulary_precision!.score})`,
   );
 
-  // hedging_awareness: poor < strong (poor has 6.67/min hedges, strong 0).
+  // hedging_control: poor < strong (poor has 6.67/min hedges, strong 0).
   assert(
-    poorMap.hedging_awareness!.score < strongMap.hedging_awareness!.score,
-    `hedging_awareness: poor (${poorMap.hedging_awareness!.score}) < strong (${strongMap.hedging_awareness!.score})`,
+    poorMap.hedging_control!.score < strongMap.hedging_control!.score,
+    `hedging_control: poor (${poorMap.hedging_control!.score}) < strong (${strongMap.hedging_control!.score})`,
   );
 
   // claim_support: poor (0% support) < strong (≥0.5).
@@ -347,7 +363,7 @@ section("Ch.11c — encode/decode round-trip");
   );
 
   // Ch.11c path: object shape with both fields.
-  const subSkillScores = { word_choice: 80, signposting: 65 };
+  const subSkillScores = { vocabulary_precision: 80, signposting: 65 };
   const encodedNew = encodeDimensionSignals(narratives, subSkillScores);
   assert(
     !Array.isArray(encodedNew) && typeof encodedNew === "object",
@@ -356,7 +372,7 @@ section("Ch.11c — encode/decode round-trip");
   const decodedNew = decodeDimensionSignals(encodedNew);
   assert(
     decodedNew.subSkillScores != null &&
-      decodedNew.subSkillScores.word_choice === 80 &&
+      decodedNew.subSkillScores.vocabulary_precision === 80 &&
       decodedNew.subSkillScores.signposting === 65,
     "decode v3.1: subSkillScores preserved",
   );
@@ -483,10 +499,10 @@ section("Ch.16 — exercise catalog");
 
   // primaryExerciseFor with preferSubSkill returns the exercise that
   // targets it (when one exists).
-  const ex = primaryExerciseFor("clarity", "word_choice");
+  const ex = primaryExerciseFor("clarity", "vocabulary_precision");
   assert(
-    ex.targetSubSkills.includes("word_choice"),
-    `primaryExerciseFor("clarity", "word_choice") returns an exercise that targets word_choice (got ${ex.id})`,
+    ex.targetSubSkills.includes("vocabulary_precision"),
+    `primaryExerciseFor("clarity", "vocabulary_precision") returns an exercise that targets vocabulary_precision (got ${ex.id})`,
   );
 }
 
@@ -513,12 +529,12 @@ section("Ch.16b — getPrimaryExerciseForSubSkill");
   }
 
   // Sub-skills NOT listed by any exercise return undefined. From the
-  // catalog, volume_control / intellectual_honesty / repetition_control
+  // catalog, emphasis_timing / intellectual_honesty / repetition_control
   // aren't directly targeted by any exercise — they ride the dim's
   // holistic training. (If exercises change, this list can drift; the
   // test confirms the lookup table behaves correctly when it does.)
   const uncoveredCount = [
-    "volume_control",
+    "emphasis_timing",
     "intellectual_honesty",
     "repetition_control",
   ].filter(
@@ -527,7 +543,7 @@ section("Ch.16b — getPrimaryExerciseForSubSkill");
   ).length;
   assert(
     uncoveredCount >= 1,
-    `at least one of {volume_control, intellectual_honesty, repetition_control} is uncovered (got ${uncoveredCount})`,
+    `at least one of {emphasis_timing, intellectual_honesty, repetition_control} is uncovered (got ${uncoveredCount})`,
   );
 }
 
@@ -590,7 +606,7 @@ section("Ch.16b — planFocusWorkout preferSubSkill routes through drill bank");
   const claritySubSkill = planFocusWorkout({
     focusDimension: "clarity",
     count: 4,
-    preferSubSkill: "word_choice",
+    preferSubSkill: "vocabulary_precision",
   });
   const cIds = claritySubSkill.reps[0]?.promptIds ?? [];
   const cHasDrillIds = cIds.some((id) => /^(dl|tq|tn)_/.test(id));
@@ -603,7 +619,7 @@ section("Ch.16b — planFocusWorkout preferSubSkill routes through drill bank");
   const mismatched = planFocusWorkout({
     focusDimension: "delivery",
     count: 4,
-    preferSubSkill: "word_choice", // belongs to clarity, not delivery
+    preferSubSkill: "vocabulary_precision", // belongs to clarity, not delivery
   });
   const mIds = mismatched.reps[0]?.promptIds ?? [];
   const mHasDrillIds = mIds.every((id) => /^dl_/.test(id));
@@ -726,38 +742,24 @@ section("Ch.S1 — ideaDensity + wordPrecisionScore");
       "We need to ensure alignment, accountability, and resilience to drive innovation, productivity, and excellence across the entire organization with integrity and purpose.",
     durationMs: 12000,
   });
-  const concreteMap = mapSignalsToSubSkillScores(concreteAll, {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  });
-  const abstractMap = mapSignalsToSubSkillScores(abstractAll, {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  });
+  const concreteMap = mapSignalsToSubSkillScores(concreteAll);
+  const abstractMap = mapSignalsToSubSkillScores(abstractAll);
   assert(
-    (concreteMap.precision?.score ?? 0) > (abstractMap.precision?.score ?? 0),
-    `S1 precision sub-skill differentiates concrete (${concreteMap.precision?.score}) > abstract (${abstractMap.precision?.score})`,
+    (concreteMap.lexical_specificity?.score ?? 0) > (abstractMap.lexical_specificity?.score ?? 0),
+    `S1 precision sub-skill differentiates concrete (${concreteMap.lexical_specificity?.score}) > abstract (${abstractMap.lexical_specificity?.score})`,
   );
   assert(
-    concreteMap.precision?.signalSource?.startsWith("wordPrecisionScore"),
+    concreteMap.lexical_specificity?.signalSource?.startsWith("wordPrecisionScore"),
     `S1 precision sub-skill signalSource is wordPrecisionScore (was sentenceComplexityIndex pre-S1)`,
   );
 
-  // logical_sequencing now exists as a text-driven sub-skill (was
+  // listener_first_sequencing now exists as a text-driven sub-skill (was
   // dimension_fallback pre-S1).
   assert(
-    concreteMap.logical_sequencing?.signalSource?.startsWith(
+    concreteMap.listener_first_sequencing?.signalSource?.startsWith(
       "sentenceComplexityIndex",
     ),
-    `S1 logical_sequencing sub-skill signalSource is sentenceComplexityIndex`,
+    `S1 listener_first_sequencing sub-skill signalSource is sentenceComplexityIndex`,
   );
 
   // idea_isolation now exists as a text-driven sub-skill.
@@ -918,8 +920,8 @@ section("Ch.S2 — logicalFlowScore + coherenceIndex");
     delivery: 70,
     tone: 70,
   };
-  const connectedMap = mapSignalsToSubSkillScores(connectedAll, dims);
-  const driftedMap = mapSignalsToSubSkillScores(drifted, dims);
+  const connectedMap = mapSignalsToSubSkillScores(connectedAll);
+  const driftedMap = mapSignalsToSubSkillScores(drifted);
   assert(
     connectedMap.coherence != null,
     `S2 coherence sub-skill is text-driven (was dimension_fallback)`,
@@ -1112,7 +1114,7 @@ section("Ch.S3 — stoppingPointAccuracy");
     `S3 empty stoppingPointAccuracy=50 (not NaN)`,
   );
 
-  // Sub-skill rewiring: editing_in_real_time is now text-driven.
+  // Sub-skill rewiring: real_time_editing is now text-driven.
   const cleanAll = extractAllTextSignals({
     transcript:
       "We will ship the feature on Friday. The team is ready. The bottom line is, we are launching.",
@@ -1130,22 +1132,22 @@ section("Ch.S3 — stoppingPointAccuracy");
     delivery: 70,
     tone: 70,
   };
-  const cleanMap = mapSignalsToSubSkillScores(cleanAll, dimsS3);
-  const trailMap = mapSignalsToSubSkillScores(trailAll, dimsS3);
+  const cleanMap = mapSignalsToSubSkillScores(cleanAll);
+  const trailMap = mapSignalsToSubSkillScores(trailAll);
   assert(
-    cleanMap.editing_in_real_time != null,
-    `S3 editing_in_real_time sub-skill is text-driven`,
+    cleanMap.real_time_editing != null,
+    `S3 real_time_editing sub-skill is text-driven`,
   );
   assert(
-    (cleanMap.editing_in_real_time?.score ?? 0) >
-      (trailMap.editing_in_real_time?.score ?? 0),
-    `S3 editing_in_real_time differentiates clean (${cleanMap.editing_in_real_time?.score}) > trail (${trailMap.editing_in_real_time?.score})`,
+    (cleanMap.real_time_editing?.score ?? 0) >
+      (trailMap.real_time_editing?.score ?? 0),
+    `S3 real_time_editing differentiates clean (${cleanMap.real_time_editing?.score}) > trail (${trailMap.real_time_editing?.score})`,
   );
   assert(
-    cleanMap.editing_in_real_time?.signalSource?.startsWith(
+    cleanMap.real_time_editing?.signalSource?.startsWith(
       "stoppingPointAccuracy",
     ),
-    `S3 editing_in_real_time signalSource is stoppingPointAccuracy`,
+    `S3 real_time_editing signalSource is stoppingPointAccuracy`,
   );
 
   // SIGNALS-block field exposure.
@@ -1327,8 +1329,8 @@ section("Ch.S4 — originalityIndex + logicalConsistencyMarkers");
     delivery: 70,
     tone: 70,
   };
-  const vividMap = mapSignalsToSubSkillScores(vividAll, dimsS4);
-  const boilerMap = mapSignalsToSubSkillScores(boilerAll, dimsS4);
+  const vividMap = mapSignalsToSubSkillScores(vividAll);
+  const boilerMap = mapSignalsToSubSkillScores(boilerAll);
   assert(
     vividMap.first_principles_reasoning != null,
     `S4 first_principles_reasoning sub-skill is text-driven`,
@@ -1357,8 +1359,8 @@ section("Ch.S4 — originalityIndex + logicalConsistencyMarkers");
       "I think we grew thirty percent. My best guess for next quarter is twenty percent. I'm not certain on the exact number.",
     durationMs: 12000,
   });
-  const correctedMap = mapSignalsToSubSkillScores(correctedAll, dimsS4);
-  const cleanHonestMap = mapSignalsToSubSkillScores(cleanHonestAll, dimsS4);
+  const correctedMap = mapSignalsToSubSkillScores(correctedAll);
+  const cleanHonestMap = mapSignalsToSubSkillScores(cleanHonestAll);
   assert(
     (correctedMap.intellectual_honesty?.score ?? 100) <
       (cleanHonestMap.intellectual_honesty?.score ?? 0),
@@ -1568,30 +1570,22 @@ section("Ch.S5 — Hume prosody adapter + Tone sub-skill rewiring");
     prosodyProvider: "hume.ai" as const,
   };
 
-  const expressiveMap = mapSignalsToSubSkillScores(
-    allSig,
-    dimsS5,
-    expressiveProsody,
-  );
-  const monotoneMap = mapSignalsToSubSkillScores(
-    allSig,
-    dimsS5,
-    monotoneProsody,
-  );
-  const noProsodyMap = mapSignalsToSubSkillScores(allSig, dimsS5, null);
+  const expressiveMap = mapSignalsToSubSkillScores(allSig, expressiveProsody);
+  const monotoneMap = mapSignalsToSubSkillScores(allSig, monotoneProsody);
+  const noProsodyMap = mapSignalsToSubSkillScores(allSig, null);
 
-  // pitch_variation differentiates expressive vs monotone.
+  // prosodic_alignment differentiates expressive vs monotone.
   assert(
-    (expressiveMap.pitch_variation?.score ?? 0) >
-      (monotoneMap.pitch_variation?.score ?? 0),
-    `S5 pitch_variation: expressive (${expressiveMap.pitch_variation?.score}) > monotone (${monotoneMap.pitch_variation?.score})`,
+    (expressiveMap.prosodic_alignment?.score ?? 0) >
+      (monotoneMap.prosodic_alignment?.score ?? 0),
+    `S5 prosodic_alignment: expressive (${expressiveMap.prosodic_alignment?.score}) > monotone (${monotoneMap.prosodic_alignment?.score})`,
   );
 
-  // vocal_presence differentiates Determination/Pride vs absence.
+  // gravitas differentiates Determination/Pride vs absence.
   assert(
-    (expressiveMap.vocal_presence?.score ?? 0) >
-      (monotoneMap.vocal_presence?.score ?? 0),
-    `S5 vocal_presence: expressive (${expressiveMap.vocal_presence?.score}) > monotone (${monotoneMap.vocal_presence?.score})`,
+    (expressiveMap.gravitas?.score ?? 0) >
+      (monotoneMap.gravitas?.score ?? 0),
+    `S5 gravitas: expressive (${expressiveMap.gravitas?.score}) > monotone (${monotoneMap.gravitas?.score})`,
   );
 
   // warmth differentiates Calmness/Contentment vs absence.
@@ -1600,31 +1594,33 @@ section("Ch.S5 — Hume prosody adapter + Tone sub-skill rewiring");
     `S5 warmth: expressive (${expressiveMap.warmth?.score}) > monotone (${monotoneMap.warmth?.score})`,
   );
 
-  // No-prosody fallback: Tone sub-skills equal the dimension Tone score
-  // (70) via dimension_fallback (signalSource will be that string).
+  // Taxonomy v2 (D20): without prosody, voice-measured skills get NO
+  // entry — no dimension_fallback copies.
   assert(
-    noProsodyMap.pitch_variation?.signalSource === "dimension_fallback",
-    `S5 no-prosody falls back to dimension_fallback for Tone (got ${noProsodyMap.pitch_variation?.signalSource})`,
+    noProsodyMap.prosodic_alignment == null,
+    `S5 no-prosody leaves prosodic_alignment unpopulated (got ${noProsodyMap.prosodic_alignment?.signalSource})`,
   );
 
   // With prosody, signalSource starts with "hume" (not dimension_fallback).
   assert(
-    expressiveMap.pitch_variation?.signalSource?.startsWith("hume") ?? false,
-    `S5 with prosody, pitch_variation signalSource starts with 'hume' (got ${expressiveMap.pitch_variation?.signalSource})`,
+    expressiveMap.prosodic_alignment?.signalSource?.startsWith("hume") ?? false,
+    `S5 with prosody, prosodic_alignment signalSource starts with 'hume' (got ${expressiveMap.prosodic_alignment?.signalSource})`,
   );
 
   // Other (non-Tone) sub-skills are unaffected by prosody presence.
   assert(
-    expressiveMap.word_choice?.score === noProsodyMap.word_choice?.score,
-    `S5 prosody does NOT affect non-Tone sub-skills (word_choice equal)`,
+    expressiveMap.vocabulary_precision?.score === noProsodyMap.vocabulary_precision?.score,
+    `S5 prosody does NOT affect non-Tone sub-skills (vocabulary_precision equal)`,
   );
 
-  // All 6 Tone sub-skills are populated when Hume prosody present.
-  const toneIds = ["pitch_variation", "volume_control", "downward_inflection", "emotional_authenticity", "vocal_presence", "warmth"];
-  for (const id of toneIds) {
+  // All 6 Hume-driven voice skills are populated when prosody present
+  // (v2: prosodic_alignment + emphasis_timing live in delivery; the
+  // rest in tone).
+  const voiceIds = ["prosodic_alignment", "emphasis_timing", "confidence", "emotional_authenticity", "gravitas", "warmth"];
+  for (const id of voiceIds) {
     assert(
       expressiveMap[id as keyof typeof expressiveMap] != null,
-      `S5 Tone sub-skill ${id} populated when Hume prosody present`,
+      `S5 voice sub-skill ${id} populated when Hume prosody present`,
     );
   }
 

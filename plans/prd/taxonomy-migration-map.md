@@ -69,11 +69,12 @@ map; dimension membership is derived from the id).
 
 ## Coverage check
 
-- 34 old ids → 34 mappings (24 keep, 8 rename, 2 move+rename across dimension). No splits needed:
+- 34 old ids → 34 mappings (21 keep, 11 rename, 2 move+rename across dimension). No splits needed:
   no old id's historical signal genuinely spans two v2 skills tightly enough to justify duplicating
   its (score, sampleCount) evidence.
-- 148 − 32 distinct targets = 116 new skills start with no history and accrue evidence from
-  scoring attribution going forward (expected; the LLM attributes only skills it observed).
+- All 34 targets are distinct, so 148 − 34 = 114 new skills start with no history and accrue
+  evidence from scoring attribution going forward (expected; the LLM attributes only skills it
+  observed).
 
 ## Consumers that must apply this map
 
