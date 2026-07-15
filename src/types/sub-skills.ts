@@ -45,15 +45,16 @@ export const ALL_SUB_SKILLS: readonly SubSkillId[] = HIDDEN_SKILLS.map(
   (s) => s.id,
 );
 
-/** Per-dimension sub-skill arrays — exposed as `readonly` for safety. */
-export const SUB_SKILLS: Record<SkillDimension, readonly SubSkillId[]> = {
-  clarity: HIDDEN_SKILLS.filter((s) => s.dimension === "clarity").map((s) => s.id),
-  structure: HIDDEN_SKILLS.filter((s) => s.dimension === "structure").map((s) => s.id),
-  conciseness: HIDDEN_SKILLS.filter((s) => s.dimension === "conciseness").map((s) => s.id),
-  thinking_quality: HIDDEN_SKILLS.filter((s) => s.dimension === "thinking_quality").map((s) => s.id),
-  delivery: HIDDEN_SKILLS.filter((s) => s.dimension === "delivery").map((s) => s.id),
-  tone: HIDDEN_SKILLS.filter((s) => s.dimension === "tone").map((s) => s.id),
-};
+/** Per-dimension sub-skill arrays — exposed as `readonly` for safety.
+ *  Built in one pass so a dimension added to the taxonomy can never be
+ *  silently missing here. */
+export const SUB_SKILLS: Record<SkillDimension, readonly SubSkillId[]> = (() => {
+  const byDim = {} as Record<SkillDimension, SubSkillId[]>;
+  for (const row of HIDDEN_SKILLS) {
+    (byDim[row.dimension] ??= []).push(row.id);
+  }
+  return byDim;
+})();
 
 function buildLookup<V>(pick: (row: HiddenSkillRow) => V): Record<SubSkillId, V> {
   const out = {} as Record<SubSkillId, V>;

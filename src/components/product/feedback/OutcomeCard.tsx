@@ -3,7 +3,7 @@
 import { Check, X } from "lucide-react";
 import { motion } from "motion/react";
 import type { FeedbackBullet } from "@/types/domain";
-import { SUB_SKILL_LABELS, type SubSkillId } from "@/types/sub-skills";
+import { SUB_SKILL_LABELS, canonicalizeSubSkillId } from "@/types/sub-skills";
 import { cn } from "@/lib/utils/cn";
 import { useAudioControl } from "./AudioControlContext";
 
@@ -108,14 +108,23 @@ export function OutcomeCard({
                   <p className="text-[13px] leading-relaxed text-ink-700">
                     {b.text}
                   </p>
-                  {b.subSkill && (
-                    <span
-                      className="mt-1 inline-block rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-600"
-                      title={`Sub-skill: ${SUB_SKILL_LABELS[b.subSkill as SubSkillId]}`}
-                    >
-                      {SUB_SKILL_LABELS[b.subSkill as SubSkillId]}
-                    </span>
-                  )}
+                  {(() => {
+                    // Taxonomy v2 — historical bullets may carry pre-v2
+                    // ids; canonicalize, and hide the chip when the id
+                    // is unknown rather than rendering "undefined".
+                    const skillId = b.subSkill
+                      ? canonicalizeSubSkillId(b.subSkill)
+                      : null;
+                    if (!skillId) return null;
+                    return (
+                      <span
+                        className="mt-1 inline-block rounded-full border border-ink-200 bg-ink-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-600"
+                        title={`Sub-skill: ${SUB_SKILL_LABELS[skillId]}`}
+                      >
+                        {SUB_SKILL_LABELS[skillId]}
+                      </span>
+                    );
+                  })()}
                   {b.quote && (
                     <blockquote
                       className="mt-1.5 rounded-lg bg-ink-50 px-3 py-1.5 text-[12px] italic leading-relaxed text-ink-600"

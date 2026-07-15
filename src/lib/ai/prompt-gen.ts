@@ -2,7 +2,7 @@ import { z } from "zod";
 import { anthropic, MODELS } from "./claude";
 import { resolveKnowledge, renderBlocks } from "./knowledge";
 import {
-  isSubSkillId,
+  canonicalizeSubSkillId,
   SUB_SKILL_DEFINITIONS,
   SUB_SKILL_LABELS,
 } from "@/types/sub-skills";
@@ -161,11 +161,14 @@ export function buildGenUserPrompt(input: {
     ex.promptRules ? `FRAMEWORK PROMPT RULES (follow exactly): ${ex.promptRules}` : null,
     ex.hiddenSkills?.length
       ? `HIDDEN SKILLS TRAINED (target these behaviors):\n${ex.hiddenSkills
-          .map((id) =>
-            isSubSkillId(id)
-              ? `- ${SUB_SKILL_LABELS[id]} — ${SUB_SKILL_DEFINITIONS[id]}`
-              : `- ${id.replace(/_/g, " ")}`,
-          )
+          .map((id) => {
+            // Catalog rows on an unreseeded DB may carry pre-v2 ids —
+            // canonicalize so they still render label + definition.
+            const skillId = canonicalizeSubSkillId(id);
+            return skillId
+              ? `- ${SUB_SKILL_LABELS[skillId]} — ${SUB_SKILL_DEFINITIONS[skillId]}`
+              : `- ${id.replace(/_/g, " ")}`;
+          })
           .join("\n")}`
       : null,
     ex.responseWindow

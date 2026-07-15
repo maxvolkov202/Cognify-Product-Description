@@ -912,14 +912,6 @@ section("Ch.S2 — logicalFlowScore + coherenceIndex");
       "The pricing decision is hard. We had a great offsite. The mountain biking trail was new. Coffee in the kitchen tasted weird. The dog needs a walk.",
     durationMs: 12000,
   });
-  const dims: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  };
   const connectedMap = mapSignalsToSubSkillScores(connectedAll);
   const driftedMap = mapSignalsToSubSkillScores(drifted);
   assert(
@@ -1124,14 +1116,6 @@ section("Ch.S3 — stoppingPointAccuracy");
     transcript: "We will ship the feature soon. The team is mostly ready. So, yeah.",
     durationMs: 7000,
   });
-  const dimsS3: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  };
   const cleanMap = mapSignalsToSubSkillScores(cleanAll);
   const trailMap = mapSignalsToSubSkillScores(trailAll);
   assert(
@@ -1321,14 +1305,6 @@ section("Ch.S4 — originalityIndex + logicalConsistencyMarkers");
       "We are building the platform of the future. Our innovative team leverages cutting-edge technology to drive transformative customer outcomes at scale across the entire ecosystem.",
     durationMs: 14000,
   });
-  const dimsS4: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  };
   const vividMap = mapSignalsToSubSkillScores(vividAll);
   const boilerMap = mapSignalsToSubSkillScores(boilerAll);
   assert(
@@ -1505,14 +1481,6 @@ section("Ch.S5 — Hume prosody adapter + Tone sub-skill rewiring");
     transcript: STRONG_TRANSCRIPT,
     durationMs: STRONG_DURATION_MS,
   });
-  const dimsS5: Partial<Record<"clarity" | "structure" | "conciseness" | "thinking_quality" | "delivery" | "tone", number>> = {
-    clarity: 70,
-    structure: 70,
-    conciseness: 70,
-    thinking_quality: 70,
-    delivery: 70,
-    tone: 70,
-  };
 
   // Variety/expressive prosody: high Excitement/Determination/Joy
   // variance + Confidence (Determination/Pride) means.

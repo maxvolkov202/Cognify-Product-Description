@@ -56,7 +56,7 @@ function interpolate(value: number, anchors: readonly Anchor[]): number {
 // ——— Per-signal threshold curves —————————————————————————————
 
 /** Higher jargon rate → lower vocabulary_precision score. Saturates at ~10/min. */
-const JARGON_TO_WORD_CHOICE: readonly Anchor[] = [
+const JARGON_TO_VOCABULARY_PRECISION: readonly Anchor[] = [
   [0, 90],
   [1, 80],
   [2, 70],
@@ -80,7 +80,7 @@ const ASSUMED_CONTEXT_TO_AUDIENCE: readonly Anchor[] = [
  *  follow the SEQUENCE of ideas, which is what listener_first_sequencing
  *  measures. Curve unchanged from the prior precision mapping — just
  *  the destination sub-skill changes. */
-const COMPLEXITY_TO_LOGICAL_SEQ: readonly Anchor[] = [
+const COMPLEXITY_TO_LISTENER_FIRST_SEQ: readonly Anchor[] = [
   [0, 75],
   [1, 80],
   [1.5, 78],
@@ -93,7 +93,7 @@ const COMPLEXITY_TO_LOGICAL_SEQ: readonly Anchor[] = [
 /** Ch.S1 — Word precision (0-100, derived from concreteness lexicon)
  *  drives the precision sub-skill. Higher precision score = more
  *  concrete vocabulary = higher precision sub-skill. */
-const WORD_PRECISION_TO_PRECISION: readonly Anchor[] = [
+const WORD_PRECISION_TO_LEXICAL_SPECIFICITY: readonly Anchor[] = [
   [0, 25],
   [25, 40],
   [40, 55],
@@ -182,7 +182,7 @@ const COHERENCE_INDEX_TO_COHERENCE: readonly Anchor[] = [
 ];
 
 /** Hedge rate per minute → hedging_control. Saturates above 6/min. */
-const HEDGE_TO_HEDGING_AWARENESS: readonly Anchor[] = [
+const HEDGE_TO_HEDGING_CONTROL: readonly Anchor[] = [
   [0, 90],
   [1, 75],
   [2, 62],
@@ -215,7 +215,7 @@ const WPDI_TO_SCOPING: readonly Anchor[] = [
 ];
 
 /** Ch.S3 — stoppingPointAccuracy (0-100) → real_time_editing. */
-const STOPPING_TO_EDITING: readonly Anchor[] = [
+const STOPPING_TO_REAL_TIME_EDITING: readonly Anchor[] = [
   [0, 25],
   [25, 40],
   [50, 55],
@@ -288,7 +288,7 @@ const SELF_CORRECTION_TO_HONESTY: readonly Anchor[] = [
 /** Variance of Excitement+Determination+Joy across windows → prosodic_alignment.
  *  Higher variance = vocal variety. Hume emotion scores are 0-1 so
  *  variance ranges roughly 0-0.04 in practice; we scale up for the curve. */
-const HUME_VARIANCE_TO_PITCH_VARIATION: readonly Anchor[] = [
+const HUME_VARIANCE_TO_PROSODIC_ALIGNMENT: readonly Anchor[] = [
   [0, 30],
   [0.005, 50],
   [0.01, 65],
@@ -298,7 +298,7 @@ const HUME_VARIANCE_TO_PITCH_VARIATION: readonly Anchor[] = [
 
 /** 1 - (Anxiety_mean + Distress_mean) → emphasis_timing. Low anxiety
  *  reads as controlled vocal energy. */
-const HUME_CONTROL_TO_VOLUME_CONTROL: readonly Anchor[] = [
+const HUME_CONTROL_TO_EMPHASIS_TIMING: readonly Anchor[] = [
   [0, 30],
   [0.4, 50],
   [0.7, 70],
@@ -308,7 +308,7 @@ const HUME_CONTROL_TO_VOLUME_CONTROL: readonly Anchor[] = [
 
 /** 1 - (Doubt_mean + Confusion_mean) → confidence. Confident,
  *  declarative statements close downward; doubt/confusion close upward. */
-const HUME_CONFIDENCE_TO_DOWNWARD: readonly Anchor[] = [
+const HUME_CONFIDENCE_TO_CONFIDENCE: readonly Anchor[] = [
   [0, 25],
   [0.4, 50],
   [0.7, 70],
@@ -326,7 +326,7 @@ const HUME_AUTH_TO_AUTHENTICITY: readonly Anchor[] = [
 ];
 
 /** Determination + Pride + Triumph → gravitas. */
-const HUME_PRESENCE_TO_PRESENCE: readonly Anchor[] = [
+const HUME_PRESENCE_TO_GRAVITAS: readonly Anchor[] = [
   [0, 30],
   [0.2, 55],
   [0.4, 72],
@@ -415,7 +415,7 @@ export function mapSignalsToSubSkillScores(
 
   // Clarity
   map.vocabulary_precision = {
-    score: interpolate(c.jargonRatePerMinute, JARGON_TO_WORD_CHOICE),
+    score: interpolate(c.jargonRatePerMinute, JARGON_TO_VOCABULARY_PRECISION),
     signalSource: `jargonRatePerMinute=${c.jargonRatePerMinute}`,
   };
   map.audience_calibration = {
@@ -425,7 +425,7 @@ export function mapSignalsToSubSkillScores(
   // Ch.S1: precision is now driven by wordPrecisionScore (concreteness
   // lexicon); sentence complexity moves to listener_first_sequencing.
   map.lexical_specificity = {
-    score: interpolate(c.wordPrecisionScore, WORD_PRECISION_TO_PRECISION),
+    score: interpolate(c.wordPrecisionScore, WORD_PRECISION_TO_LEXICAL_SPECIFICITY),
     signalSource: `wordPrecisionScore=${c.wordPrecisionScore}`,
   };
   map.concreteness = {
@@ -433,7 +433,7 @@ export function mapSignalsToSubSkillScores(
     signalSource: `abstractionMarkerCount=${c.abstractionMarkerCount}`,
   };
   map.listener_first_sequencing = {
-    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_LOGICAL_SEQ),
+    score: interpolate(c.sentenceComplexityIndex, COMPLEXITY_TO_LISTENER_FIRST_SEQ),
     signalSource: `sentenceComplexityIndex=${c.sentenceComplexityIndex}`,
   };
   map.idea_isolation = {
@@ -484,7 +484,7 @@ export function mapSignalsToSubSkillScores(
 
   // Conciseness
   map.hedging_control = {
-    score: interpolate(cn.hedgeRatePerMinute, HEDGE_TO_HEDGING_AWARENESS),
+    score: interpolate(cn.hedgeRatePerMinute, HEDGE_TO_HEDGING_CONTROL),
     signalSource: `hedgeRatePerMinute=${cn.hedgeRatePerMinute}/min`,
   };
   map.repetition_control = {
@@ -496,7 +496,7 @@ export function mapSignalsToSubSkillScores(
     signalSource: `wordsPerDistinctIdea=${cn.wordsPerDistinctIdea}`,
   };
   map.real_time_editing = {
-    score: interpolate(cn.stoppingPointAccuracy, STOPPING_TO_EDITING),
+    score: interpolate(cn.stoppingPointAccuracy, STOPPING_TO_REAL_TIME_EDITING),
     signalSource: `stoppingPointAccuracy=${cn.stoppingPointAccuracy}`,
   };
 
@@ -539,7 +539,12 @@ export function mapSignalsToSubSkillScores(
   // Taxonomy v2 — prosody-measured skills (raw DSP features, no Hume
   // needed): filler rate and speaking rate genuinely measure
   // filler_reduction (conciseness) and rate_awareness (delivery).
-  if (prosody) {
+  // Evidence gate: inline prosody exists whenever ANY word timings do,
+  // so a near-silent 2-word recording would otherwise score
+  // filler_reduction=92 (0 fillers!) and persist junk into the profile.
+  // Require a real utterance before trusting the rates.
+  const MIN_PROSODY_WORDS = 20;
+  if (prosody && signals.meta.wordCount >= MIN_PROSODY_WORDS) {
     map.filler_reduction = {
       score: interpolate(
         prosody.fillerRatePerMinute,
@@ -566,7 +571,7 @@ export function mapSignalsToSubSkillScores(
       humeVariance(prosody, "Determination") +
       humeVariance(prosody, "Joy");
     map.prosodic_alignment = {
-      score: interpolate(pitchVarSig, HUME_VARIANCE_TO_PITCH_VARIATION),
+      score: interpolate(pitchVarSig, HUME_VARIANCE_TO_PROSODIC_ALIGNMENT),
       signalSource: `humeVariance(Excitement+Determination+Joy)=${pitchVarSig.toFixed(4)}`,
     };
 
@@ -576,7 +581,7 @@ export function mapSignalsToSubSkillScores(
       1 - humeMean(prosody, "Anxiety") - humeMean(prosody, "Distress"),
     );
     map.emphasis_timing = {
-      score: interpolate(ctrlSig, HUME_CONTROL_TO_VOLUME_CONTROL),
+      score: interpolate(ctrlSig, HUME_CONTROL_TO_EMPHASIS_TIMING),
       signalSource: `humeControl(1-Anxiety-Distress)=${ctrlSig.toFixed(3)}`,
     };
 
@@ -586,7 +591,7 @@ export function mapSignalsToSubSkillScores(
       1 - humeMean(prosody, "Doubt") - humeMean(prosody, "Confusion"),
     );
     map.confidence = {
-      score: interpolate(downSig, HUME_CONFIDENCE_TO_DOWNWARD),
+      score: interpolate(downSig, HUME_CONFIDENCE_TO_CONFIDENCE),
       signalSource: `humeConfident(1-Doubt-Confusion)=${downSig.toFixed(3)}`,
     };
 
@@ -609,7 +614,7 @@ export function mapSignalsToSubSkillScores(
       humeMean(prosody, "Pride") +
       humeMean(prosody, "Triumph");
     map.gravitas = {
-      score: interpolate(presSig, HUME_PRESENCE_TO_PRESENCE),
+      score: interpolate(presSig, HUME_PRESENCE_TO_GRAVITAS),
       signalSource: `humePresence(Determ+Pride+Triumph)=${presSig.toFixed(3)}`,
     };
 

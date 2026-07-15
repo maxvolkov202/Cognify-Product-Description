@@ -33,7 +33,10 @@ import { extractAllTextSignals, mapSignalsToSubSkillScores } from "../src/lib/sc
 import { extractInlineProsody } from "../src/lib/audio/prosody-inline.js";
 import { mergeProsody } from "../src/lib/audio/prosody-inline.js";
 import { transcribeAudio } from "../src/lib/audio/transcribe.js";
-import { SUB_SKILLS } from "../src/types/sub-skills.js";
+import {
+  canonicalizeSubSkillId,
+  type SubSkillId,
+} from "../src/types/sub-skills.js";
 
 const TONE_TOLERANCE = 10;
 
@@ -93,12 +96,30 @@ async function calibrateRep(rep: ReferenceRep, audioUrl: string): Promise<RepRes
   // 7. Map to sub-skills with prosody.
   const subSkillMap = mapSignalsToSubSkillScores(textSignals, prosodyFeatures);
 
-  // 8. Pull Tone sub-skills.
-  const toneSubSkillIds = SUB_SKILLS.tone;
+  // 8. Pull the Hume-driven voice sub-skills. Taxonomy v2 (D20): the
+  // mapper populates ONLY these six from prosody (four tone + two
+  // delivery — prosodic mechanics moved to the delivery dimension);
+  // iterating all of SUB_SKILLS.tone (30 v2 skills) would fail every
+  // rep on skills that are LLM-attributed by design.
+  const voiceSubSkillIds: readonly SubSkillId[] = [
+    "prosodic_alignment",
+    "emphasis_timing",
+    "confidence",
+    "emotional_authenticity",
+    "gravitas",
+    "warmth",
+  ];
   const toneSubSkills: Partial<Record<string, { actual: number; signalSource: string }>> = {};
   const failures: string[] = [];
 
-  for (const id of toneSubSkillIds) {
+  // Fixture keys may predate taxonomy v2 — canonicalize them once.
+  const expectedByV2Id: Record<string, number> = {};
+  for (const [key, val] of Object.entries(rep.expected?.subSkills ?? {})) {
+    const canon = canonicalizeSubSkillId(key);
+    if (canon != null && typeof val === "number") expectedByV2Id[canon] = val;
+  }
+
+  for (const id of voiceSubSkillIds) {
     const entry = subSkillMap[id];
     if (!entry) {
       failures.push(`${id}: not populated by mapper`);
@@ -109,8 +130,8 @@ async function calibrateRep(rep: ReferenceRep, audioUrl: string): Promise<RepRes
       signalSource: entry.signalSource,
     };
     // If the rep has expected sub-skill scores, compare.
-    if (rep.expected?.subSkills && rep.expected.subSkills[id] != null) {
-      const expected = rep.expected.subSkills[id]!;
+    if (expectedByV2Id[id] != null) {
+      const expected = expectedByV2Id[id]!;
       if (Math.abs(entry.score - expected) > TONE_TOLERANCE) {
         failures.push(
           `${id} drift: actual=${entry.score} expected=${expected} (>±${TONE_TOLERANCE})`,

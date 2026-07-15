@@ -208,8 +208,16 @@ async function proposeForFile(client, file, manifest) {
 
   return exercises.map((ex, i) => {
     const entry = parsed[i];
-    const proposed = entry?.skills ?? null;
-    const error = proposed ? validateProposal(ex, proposed) : "no proposal returned";
+    // Index alignment is not enough: a merged/omitted entry shifts every
+    // later proposal onto its neighbor, and shifted skills still pass
+    // per-dimension validation. Require the echoed name to match.
+    const nameMatches = entry?.name === ex.name;
+    const proposed = nameMatches ? (entry?.skills ?? null) : null;
+    const error = !nameMatches
+      ? `response misaligned: expected "${ex.name}", got "${entry?.name ?? "(missing)"}"`
+      : proposed
+        ? validateProposal(ex, proposed)
+        : "no proposal returned";
     const fallback = error ? legacyFallback(ex) : null;
     return {
       file,

@@ -3,9 +3,14 @@ import type { DrillPrompt } from "../types";
 /**
  * Tone drill bank — DNA Ch.6b.
  *
- * 30 prompts targeting the 6 Tone sub-skills:
- *   prosodic_alignment, emphasis_timing, confidence,
- *   emotional_authenticity, gravitas, warmth.
+ * 30 prompts targeting 5 Tone hidden skills (taxonomy v2):
+ *   congruence, gravitas, confidence, emotional_authenticity, warmth.
+ * Prosodic mechanics (pitch/volume) moved to the delivery dimension in
+ * v2, so the vocal-variety drills are tagged to the tone-side quality
+ * they build (congruence = voice matching meaning; gravitas =
+ * controlled presence) — the bank is keyed by dimension and a
+ * cross-dimension targetSubSkill would be unreachable by hint pools
+ * and preferSubSkill routing.
  *
  * Each pairs a topic with a vocal-control constraint that demands
  * specific prosodic moves. Assumes Ch.3b prosody worker is wired (when
@@ -20,35 +25,35 @@ export const TONE_DRILLS: readonly DrillPrompt[] = [
     topic: "Read a one-paragraph product description as if you wrote it.",
     drillInstruction:
       "Vary your pitch by at least three semitones across the response. Avoid the flat-line.",
-    targetSubSkill: "prosodic_alignment",
+    targetSubSkill: "congruence",
   },
   {
     id: "tn_pv_002",
     topic: "Tell a short anecdote with a clear punchline.",
     drillInstruction:
       "Build pitch into the setup, drop pitch on the punchline. Use pitch as a tool, not decoration.",
-    targetSubSkill: "prosodic_alignment",
+    targetSubSkill: "congruence",
   },
   {
     id: "tn_pv_003",
     topic: "Describe three things that surprised you recently.",
     drillInstruction:
       "Each item gets its own pitch contour. Don't deliver them in the same melodic shape.",
-    targetSubSkill: "prosodic_alignment",
+    targetSubSkill: "congruence",
   },
   {
     id: "tn_pv_004",
     topic: "Read a quote from someone you admire and react to it.",
     drillInstruction:
       "Quote in one register, your reaction in another. Make the shift audible.",
-    targetSubSkill: "prosodic_alignment",
+    targetSubSkill: "congruence",
   },
   {
     id: "tn_pv_005",
     topic: "Walk through your favorite restaurant order.",
     drillInstruction:
       "Lift pitch on the verbs that carry pleasure. Drop on the connectors. Let your voice show what mattered.",
-    targetSubSkill: "prosodic_alignment",
+    targetSubSkill: "congruence",
   },
   // ——— emphasis_timing (intentional emphasis variation) ————————
   {
@@ -56,35 +61,35 @@ export const TONE_DRILLS: readonly DrillPrompt[] = [
     topic: "Make a short pitch for an idea you believe in.",
     drillInstruction:
       "Raise your volume by ~30% on the verb that carries the meaning. Drop volume on the supporting clauses.",
-    targetSubSkill: "emphasis_timing",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vc_002",
     topic: "Recount a moment that taught you something.",
     drillInstruction:
       "Quiet on the setup, full volume on the moment of learning, quiet again on the reflection.",
-    targetSubSkill: "emphasis_timing",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vc_003",
     topic: "Deliver a series of three related claims.",
     drillInstruction:
       "Each claim gets a slight volume lift. The third one — the strongest — gets the loudest delivery.",
-    targetSubSkill: "emphasis_timing",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vc_004",
     topic: "State your conviction on a contested topic.",
     drillInstruction:
       "Volume drops to a near-whisper on the most important word. Force the listener to lean in.",
-    targetSubSkill: "emphasis_timing",
+    targetSubSkill: "gravitas",
   },
   {
     id: "tn_vc_005",
     topic: "Describe a moment of high tension you experienced.",
     drillInstruction:
       "Match volume to tension. Build it as the story builds, drop it when the tension breaks.",
-    targetSubSkill: "emphasis_timing",
+    targetSubSkill: "gravitas",
   },
   // ——— confidence (statements close on a falling note) ——
   {

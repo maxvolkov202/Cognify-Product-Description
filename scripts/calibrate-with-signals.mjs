@@ -180,6 +180,24 @@ function evaluateSubSkills(rep, score) {
       "no dimension carried subSkillScores — FF_DETERMINISTIC_SIGNALS may be off on the target deployment",
     );
   }
+  // Taxonomy v2: voice-measured skills come only from prosody. A rep
+  // WITH audio that produces zero delivery/tone sub-skill entries means
+  // the prosody→mapper wiring silently broke — text-driven dims would
+  // still populate, so anyDimHadSubSkills alone can't catch it.
+  if (rep.audioUrl) {
+    const voiceDims = new Set(["delivery", "tone"]);
+    const anyVoiceEntries = dims.some(
+      (d) =>
+        voiceDims.has(d.dimension) &&
+        d.subSkillScores &&
+        Object.keys(d.subSkillScores).length > 0,
+    );
+    if (!anyVoiceEntries) {
+      failures.push(
+        "rep has audio but no delivery/tone subSkillScores — prosody pipeline into the sub-skill mapper looks broken",
+      );
+    }
+  }
   return { failures, warnings };
 }
 
