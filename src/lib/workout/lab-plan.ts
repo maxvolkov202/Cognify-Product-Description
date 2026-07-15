@@ -28,6 +28,7 @@ import {
   type RepFocusContext,
   type SkillDimension,
 } from "@/types/domain";
+import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 
 /**
  * The three session types a user can run (WS-6):
@@ -106,15 +107,26 @@ export type LabCatalogExercise = {
  * copy, scaffold, budget) while the exercise defines the objective —
  * PRD §9.2: the Exercise Framework is the unit, the prompt is the topic.
  */
-export function buildCatalogRepType(ex: LabCatalogExercise): RepType {
-  const base = getRepType(DIMENSION_BASE_REP_TYPE[ex.dimension]);
+export function buildCatalogRepType(
+  ex: LabCatalogExercise,
+  opts?: { pressure?: boolean },
+): RepType {
+  // Pressure slots keep the dedicated handle_pressure scaffold
+  // (Acknowledge → Redirect → Land) — the dimension-default scaffold
+  // would contradict what the pressure exercise's rule/lens score.
+  // Unknown dims (a future enum append) fall back to clarity's base
+  // instead of crashing getRepType.
+  const baseId = opts?.pressure
+    ? ("handle_pressure" as RepTypeId)
+    : (DIMENSION_BASE_REP_TYPE[ex.dimension] ??
+      DIMENSION_BASE_REP_TYPE.clarity);
+  const base = getRepType(baseId);
   // Catalog rows use the DB enum's legacy 'pacing'; code dims use
-  // 'delivery' (D6). Alias before filtering so secondary dims survive.
+  // 'delivery' (D6). Alias via the canonical map before filtering so
+  // secondary dims survive.
   const secondary = (ex.secondaryCoreSkills ?? [])
-    .map((d) => (d === "pacing" ? "delivery" : d))
-    .filter(
-      (d): d is SkillDimension => d in DIMENSION_LABELS && d !== ex.dimension,
-    );
+    .map((d) => muscleGroupToSkillDim(d))
+    .filter((d): d is SkillDimension => d !== null && d !== ex.dimension);
   return {
     ...base,
     name: ex.name,
@@ -192,11 +204,17 @@ export function buildLabSessionPlan(input: {
 }): WorkoutSessionPlan {
   const frameworkCursor = new Map<RepTypeId, number>();
   const reps: WorkoutRepSlot[] = input.slots.map((seed) => {
-    const repType = buildCatalogRepType(seed.exercise);
+    const isPressure = Boolean(seed.pressureArchetype);
+    const repType = buildCatalogRepType(seed.exercise, {
+      pressure: isPressure,
+    });
     // Rotate the framework pool per BASE rep type: the second slot that
     // lands on the same scaffold family gets the next variant, exactly
     // like the legacy planners did across repeat rep types.
-    const baseId = DIMENSION_BASE_REP_TYPE[seed.exercise.dimension];
+    const baseId = isPressure
+      ? ("handle_pressure" as RepTypeId)
+      : (DIMENSION_BASE_REP_TYPE[seed.exercise.dimension] ??
+        DIMENSION_BASE_REP_TYPE.clarity);
     const pool = getFrameworkPool(getRepType(baseId).framework, baseId);
     const cursor = frameworkCursor.get(baseId) ?? 0;
     frameworkCursor.set(baseId, cursor + 1);

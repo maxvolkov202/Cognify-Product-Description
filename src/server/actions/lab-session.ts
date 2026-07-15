@@ -7,10 +7,11 @@
 // assembles a WorkoutSessionPlan for the legacy Skill Lab surfaces
 // (/drills Focus Drills under FF_SKILL_LAB_APPS, /skill-lab flag-off).
 //
-// Replaces the retired client-side planners planFocusWorkout /
-// planMixedSession / planPressureSession, whose prompts came from the
-// hardcoded System A banks.
+// The deterministic planning logic (interleave, pressure placement,
+// rotation, flow ramp) lives in src/server/lib/lab-session-planning.ts
+// (pure + unit-tested); this file owns only the DB reads and assembly.
 
+import { randomUUID } from "node:crypto";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { exercises } from "@/lib/db/schema";
@@ -18,10 +19,18 @@ import { safeDb } from "@/lib/db/safe";
 import { log } from "@/lib/log";
 import {
   PRESSURE_ARCHETYPES,
-  selectPressureArchetype,
   type PressureArchetype,
   type PressureArchetypeId,
 } from "@/lib/ai/pressure-archetypes";
+import { seededShuffle } from "@/server/lib/workout/assignment";
+import {
+  clampFocusCount,
+  interleaveMixedDims,
+  pressureArchetypeSequence,
+  pressureIndexFor,
+  rotateExercises,
+  FLOW_RAMP,
+} from "@/server/lib/lab-session-planning";
 import {
   buildLabSessionPlan,
   focusForFocusMode,
@@ -31,18 +40,13 @@ import {
   type LabSlotSeed,
   type WorkoutSessionPlan,
 } from "@/lib/workout/lab-plan";
+import {
+  muscleGroupToSkillDim,
+  skillDimToDbDimension,
+} from "@/lib/scoring/dimension-aliases";
 import type { SkillDimension } from "@/types/domain";
 import type { SubSkillId } from "@/types/sub-skills";
 import { fetchPromptCandidates } from "@/server/actions/prompt-selection";
-
-/** Code dim → DB enum value (the enum is append-only; 'pacing' is the
- *  legacy spelling of code 'delivery' — D6). */
-function toDbDimension(dim: SkillDimension): string {
-  return dim === "delivery" ? "pacing" : dim;
-}
-function fromDbDimension(dim: string): SkillDimension {
-  return (dim === "pacing" ? "delivery" : dim) as SkillDimension;
-}
 
 export type PlanLabSessionInput =
   | {
@@ -81,8 +85,8 @@ function toLabExercise(row: ExerciseRow): LabCatalogExercise {
     slug: row.slug,
     name: row.name,
     rule: row.description,
-    dimension: fromDbDimension(row.dimension),
-    secondaryCoreSkills: row.secondaryCoreSkills as SkillDimension[] | null,
+    dimension: muscleGroupToSkillDim(row.dimension) ?? "clarity",
+    secondaryCoreSkills: row.secondaryCoreSkills,
     responseWindow: row.responseWindow,
     hiddenSkills: row.hiddenSkills,
   };
@@ -100,34 +104,7 @@ const exerciseColumns = {
   applicationSkills: exercises.applicationSkills,
 } as const;
 
-function shuffle<T>(arr: T[]): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
-
-/** Pick `count` exercises for a dimension, rotating without repeats until
- *  the pool is exhausted. When `preferSubSkill` is set, exercises tagged
- *  with that hidden skill lead the rotation (deep-link "drill this
- *  sub-skill" routing). */
-function rotateExercises(
-  pool: LabCatalogExercise[],
-  count: number,
-  preferSubSkill?: SubSkillId,
-): LabCatalogExercise[] {
-  if (pool.length === 0) return [];
-  const preferred = preferSubSkill
-    ? pool.filter((e) => e.hiddenSkills?.includes(preferSubSkill))
-    : [];
-  const rest = shuffle(pool.filter((e) => !preferred.includes(e)));
-  const ordered = [...shuffle(preferred), ...rest];
-  const out: LabCatalogExercise[] = [];
-  for (let i = 0; i < count; i++) out.push(ordered[i % ordered.length]!);
-  return out;
-}
+const shuffle = <T,>(arr: T[]): T[] => seededShuffle(arr, randomUUID());
 
 /** Slate one slot's prompts from its exercise's catalog bank. Reuses the
  *  prompt-selection picker (tier cascade, difficulty bias, session
@@ -148,6 +125,73 @@ async function slateFor(
 }
 
 /**
+ * Slate every slot. Prompt ids are exercise-scoped (`${slug}-${sha8}`),
+ * so slates for DISTINCT exercises can never collide — fetch exercise
+ * groups in parallel and thread the exclusion list only WITHIN a group
+ * (repeat slots on the same exercise must not repeat prompts).
+ */
+async function slateSlots(
+  slotExercises: LabCatalogExercise[],
+  exclude: string[],
+): Promise<{ prompts: string[]; promptIds: string[] }[] | null> {
+  const groups = new Map<string, number[]>();
+  slotExercises.forEach((ex, i) => {
+    const list = groups.get(ex.id) ?? [];
+    list.push(i);
+    groups.set(ex.id, list);
+  });
+
+  const results: ({ prompts: string[]; promptIds: string[] } | null)[] =
+    new Array(slotExercises.length).fill(null);
+  await Promise.all(
+    [...groups.entries()].map(async ([exerciseId, slotIndexes]) => {
+      const seen = [...exclude];
+      for (const i of slotIndexes) {
+        const slate = await slateFor(exerciseId, seen);
+        if (slate.prompts.length === 0) return; // leaves results[i] null
+        seen.push(...slate.promptIds);
+        results[i] = slate;
+      }
+    }),
+  );
+  if (results.some((r) => r === null)) {
+    const missing = results.findIndex((r) => r === null);
+    log.warn({
+      event: "lab_session.empty_slate",
+      exerciseId: slotExercises[missing]?.id,
+    });
+    return null;
+  }
+  return results as { prompts: string[]; promptIds: string[] }[];
+}
+
+/** Look up the relocated pressure bank: catalog exercises with
+ *  application='pressure' keyed by archetype id in application_skills.
+ *  One query per plan. */
+async function loadPressureExercises(): Promise<
+  Map<PressureArchetypeId, LabCatalogExercise>
+> {
+  const rows = await db
+    .select(exerciseColumns)
+    .from(exercises)
+    .where(
+      and(
+        eq(exercises.application, "pressure"),
+        eq(exercises.isActive, true),
+      ),
+    );
+  const out = new Map<PressureArchetypeId, LabCatalogExercise>();
+  for (const row of rows) {
+    for (const key of row.applicationSkills ?? []) {
+      if (key in PRESSURE_ARCHETYPES) {
+        out.set(key as PressureArchetypeId, toLabExercise(row));
+      }
+    }
+  }
+  return out;
+}
+
+/**
  * Plan a lab session from the DB catalog. Returns null when the catalog
  * is unreachable or empty for the requested dimensions — the client
  * surfaces a retry state instead of a broken session.
@@ -156,29 +200,30 @@ export async function planLabSession(
   input: PlanLabSessionInput,
 ): Promise<WorkoutSessionPlan | null> {
   return safeDb<WorkoutSessionPlan | null>(async () => {
-    const exclude = (input.excludePromptIds ?? []).slice(0, 500);
+    const exclude = (input.excludePromptIds ?? []).slice(-500);
 
     if (input.style === "pressure") {
-      return planPressure(input.count, exclude);
+      return planPressure(clampFocusCount(input.count), exclude);
     }
 
     const dims =
       input.style === "focus"
-        ? Array.from({ length: input.count }, () => input.dimension)
-        : input.skillReps.flatMap((sr) =>
-            Array.from({ length: Math.max(0, sr.reps) }, () => sr.dimension),
-          );
+        ? Array.from(
+            { length: clampFocusCount(input.count) },
+            () => input.dimension,
+          )
+        : interleaveMixedDims(input.skillReps);
     if (dims.length === 0) return null;
 
-    // Build → Stress → Reinforce arc (WS-3): sessions of 4+ reps carry
-    // one pressure rep at position N-1, exactly like the retired
-    // planners. Shorter sessions skip it (the arc needs a build + a
-    // reinforce on either side).
-    const pressureIndex = dims.length >= 4 ? dims.length - 2 : -1;
+    const pressureIndex = pressureIndexFor(input.style, dims.length);
     const pressureArchetype =
-      pressureIndex >= 0 ? selectPressureArchetype() : null;
+      pressureIndex >= 0
+        ? PRESSURE_ARCHETYPES[
+            shuffle([...FLOW_RAMP])[0] ?? "pushback"
+          ]
+        : null;
 
-    const dbDims = [...new Set(dims.map(toDbDimension))];
+    const dbDims = [...new Set(dims.map(skillDimToDbDimension))];
     const rows = await db
       .select(exerciseColumns)
       .from(exercises)
@@ -198,74 +243,74 @@ export async function planLabSession(
     }
 
     // Per-dimension rotation so a 5-rep focus session sees 5 different
-    // exercises (bank permitting) and mixed sessions rotate within each
-    // of their dimensions. The pressure slot is excluded — its exercise
-    // comes from the pressure catalog (or a fallback pick below).
+    // exercises (bank permitting). The pressure slot is excluded — its
+    // exercise comes from the pressure catalog (or a same-dim fallback).
     const perDimCounts = new Map<SkillDimension, number>();
     dims.forEach((d, i) => {
       if (i === pressureIndex) return;
       perDimCounts.set(d, (perDimCounts.get(d) ?? 0) + 1);
     });
-    const perDimPicks = new Map<SkillDimension, LabCatalogExercise[]>();
+    const perDimQueues = new Map<SkillDimension, LabCatalogExercise[]>();
     for (const [dim, count] of perDimCounts) {
-      const picks = rotateExercises(
+      const { picks, preferredMatched } = rotateExercises(
         byDim.get(dim) ?? [],
         count,
+        shuffle,
         input.style === "focus" ? input.preferSubSkill : undefined,
       );
       if (picks.length === 0) {
         log.warn({ event: "lab_session.no_exercises", dimension: dim });
         return null;
       }
-      perDimPicks.set(dim, picks);
+      if (!preferredMatched) {
+        // Deep-linked sub-skill has no tagged exercise — session still
+        // runs, but the bias was a no-op. Loud so the gap is visible.
+        log.warn({
+          event: "lab_session.prefer_sub_skill_unmatched",
+          dimension: dim,
+          subSkill: input.style === "focus" ? input.preferSubSkill : null,
+        });
+      }
+      perDimQueues.set(dim, picks);
     }
 
-    const cursor = new Map<SkillDimension, number>();
-    const seen = [...exclude];
-    const slots: LabSlotSeed[] = [];
-    for (let i = 0; i < dims.length; i++) {
-      const dim = dims[i]!;
-      let exercise: LabCatalogExercise;
-      let slotArchetype: PressureArchetype | undefined;
+    const pressureByArchetype =
+      pressureArchetype !== null
+        ? await loadPressureExercises()
+        : new Map<PressureArchetypeId, LabCatalogExercise>();
+
+    const slotExercises: LabCatalogExercise[] = dims.map((dim, i) => {
       if (i === pressureIndex && pressureArchetype) {
-        slotArchetype = pressureArchetype;
-        exercise =
-          (await findPressureExercise(pressureArchetype.id)) ??
+        return (
+          pressureByArchetype.get(pressureArchetype.id) ??
           // Pressure catalog not seeded yet — fall back to the slot
           // dimension's own bank; the archetype framing still applies.
-          shuffle(byDim.get(dim) ?? [])[0]!;
-        if (!exercise) {
-          log.warn({ event: "lab_session.no_exercises", dimension: dim });
-          return null;
-        }
-      } else {
-        const idx = cursor.get(dim) ?? 0;
-        cursor.set(dim, idx + 1);
-        exercise = perDimPicks.get(dim)![idx]!;
+          shuffle(byDim.get(dim) ?? [])[0]!
+        );
       }
-      const { prompts, promptIds } = await slateFor(exercise.id, seen);
-      if (prompts.length === 0) {
-        log.warn({
-          event: "lab_session.empty_slate",
-          exerciseId: exercise.id,
-        });
-        return null;
-      }
-      seen.push(...promptIds);
-      slots.push({
+      return perDimQueues.get(dim)!.shift()!;
+    });
+    if (slotExercises.some((ex) => !ex)) return null;
+
+    const slates = await slateSlots(slotExercises, exclude);
+    if (!slates) return null;
+
+    const slots: LabSlotSeed[] = slotExercises.map((exercise, i) => {
+      const isPressure = i === pressureIndex && pressureArchetype !== null;
+      return {
         exercise,
-        prompts,
-        promptIds,
-        focus: slotArchetype
-          ? focusForPressureRep(slotArchetype)
+        prompts: slates[i]!.prompts,
+        promptIds: slates[i]!.promptIds,
+        focus: isPressure
+          ? focusForPressureRep(pressureArchetype!)
           : input.style === "focus"
             ? focusForFocusMode(input.dimension)
             : i === 0
               ? focusForMixedRep0(dims[0]!)
               : null,
-        ...(slotArchetype ? { pressureArchetype: slotArchetype } : {}),
-      });
-    }
+        ...(isPressure ? { pressureArchetype: pressureArchetype! } : {}),
+      };
+    });
 
     return buildLabSessionPlan({
       slots,
@@ -277,57 +322,46 @@ export async function planLabSession(
   }, null);
 }
 
-/** Look up the relocated pressure bank: a catalog exercise with
- *  application='pressure' keyed by archetype id in application_skills.
- *  Null when the pressure catalog hasn't been seeded. */
-async function findPressureExercise(
-  archetypeId: PressureArchetypeId,
-): Promise<LabCatalogExercise | null> {
-  const rows = await db
-    .select(exerciseColumns)
-    .from(exercises)
-    .where(
-      and(
-        eq(exercises.application, "pressure"),
-        eq(exercises.isActive, true),
-      ),
-    );
-  const row = rows.find((r) => r.applicationSkills?.includes(archetypeId));
-  return row ? toLabExercise(row) : null;
-}
-
-/** The flow ramp's designed archetype order (Direction.md): time pressure
- *  first, stakes last. Counts >5 cycle the ramp. */
-const FLOW_RAMP: readonly PressureArchetypeId[] = [
-  "time_compression",
-  "audience_switch",
-  "pushback",
-  "clarifying_interrupt",
-  "stakes_raise",
-];
-
-/** Pressure sessions ramp through the five archetypes in design order.
- *  Prompts come from the relocated pressure bank, falling back to the
- *  archetype's top stressed dimension's core bank when the pressure
- *  catalog hasn't been seeded yet. */
+/** Pressure sessions ramp through the five archetypes in design order,
+ *  entered at a rotating start (legacy behavior — consecutive short
+ *  sessions shouldn't replay the same intro archetype). Prompts come
+ *  from the relocated pressure bank, falling back to the archetype's
+ *  top stressed dimension's core bank when it hasn't been seeded. */
 async function planPressure(
   count: number,
   exclude: string[],
 ): Promise<WorkoutSessionPlan | null> {
-  const n = Math.max(1, Math.min(10, count));
+  const archetypeIds = pressureArchetypeSequence(
+    count,
+    Math.floor(Math.random() * FLOW_RAMP.length),
+  );
+  const pressureByArchetype = await loadPressureExercises();
 
   // Fallback pool (pressure catalog missing): core exercises across the
-  // stressed dimensions.
+  // archetypes' top stressed dimensions only.
   let fallbackByDim: Map<SkillDimension, LabCatalogExercise[]> | null = null;
   async function fallbackFor(
     archetype: PressureArchetype,
   ): Promise<LabCatalogExercise | null> {
     if (!fallbackByDim) {
+      const dbDims = [
+        ...new Set(
+          archetypeIds.map((id) =>
+            skillDimToDbDimension(
+              PRESSURE_ARCHETYPES[id].stressedDimensions[0] ?? "tone",
+            ),
+          ),
+        ),
+      ];
       const rows = await db
         .select(exerciseColumns)
         .from(exercises)
         .where(
-          and(eq(exercises.isActive, true), isNull(exercises.application)),
+          and(
+            inArray(exercises.dimension, dbDims as never[]),
+            eq(exercises.isActive, true),
+            isNull(exercises.application),
+          ),
         );
       fallbackByDim = new Map();
       for (const row of rows) {
@@ -339,17 +373,15 @@ async function planPressure(
     }
     const dim = archetype.stressedDimensions[0] ?? "tone";
     const pool = fallbackByDim.get(dim) ?? [];
-    return pool.length > 0 ? shuffle(pool)[0]! : null;
+    return pool.length > 0 ? (shuffle(pool)[0] ?? null) : null;
   }
 
-  const seen = [...exclude];
-  const slots: LabSlotSeed[] = [];
-  for (let i = 0; i < n; i++) {
-    const archetypeId = FLOW_RAMP[i % FLOW_RAMP.length]!;
+  const slotExercises: LabCatalogExercise[] = [];
+  const archetypes: PressureArchetype[] = [];
+  for (const archetypeId of archetypeIds) {
     const archetype = PRESSURE_ARCHETYPES[archetypeId];
     const exercise =
-      (await findPressureExercise(archetypeId)) ??
-      (await fallbackFor(archetype));
+      pressureByArchetype.get(archetypeId) ?? (await fallbackFor(archetype));
     if (!exercise) {
       log.warn({
         event: "lab_session.no_pressure_exercise",
@@ -357,17 +389,20 @@ async function planPressure(
       });
       return null;
     }
-    const { prompts, promptIds } = await slateFor(exercise.id, seen);
-    if (prompts.length === 0) return null;
-    seen.push(...promptIds);
-    slots.push({
-      exercise,
-      prompts,
-      promptIds,
-      focus: focusForPressureRep(archetype),
-      pressureArchetype: archetype,
-    });
+    slotExercises.push(exercise);
+    archetypes.push(archetype);
   }
+
+  const slates = await slateSlots(slotExercises, exclude);
+  if (!slates) return null;
+
+  const slots: LabSlotSeed[] = slotExercises.map((exercise, i) => ({
+    exercise,
+    prompts: slates[i]!.prompts,
+    promptIds: slates[i]!.promptIds,
+    focus: focusForPressureRep(archetypes[i]!),
+    pressureArchetype: archetypes[i]!,
+  }));
 
   return buildLabSessionPlan({ slots, sessionType: "flow" });
 }

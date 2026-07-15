@@ -1458,20 +1458,20 @@
       "dimension": "pacing",
       "name": "The Speed Shift",
       "rule": "Slow down hard on your single most important sentence.",
-      "why": "Pace is emphasis — the sentence you slow down on is the one they remember.",
+      "why": "Pace is emphasis: the sentence you slow down on is the one they remember.",
       "default_difficulty": "core",
       "ordering": 10,
       "tags": [
         "prd-v2"
       ],
-      "objective": "Use deliberate deceleration as emphasis — hold a normal controlled rate, then slow significantly on the one sentence that matters most.",
+      "objective": "Use deliberate deceleration as emphasis: hold a normal controlled rate, then slow significantly on the one sentence that matters most.",
       "hidden_skills": [
         "deceleration_for_complexity",
         "emphasis_timing",
         "rate_awareness"
       ],
       "scoring_lens": "Constraint: one sentence must be delivered markedly slower than the surrounding rate. Feedback MUST contrast the key sentence's measured rate against the rep's baseline; a flat rate profile with no clear slowdown drags delivery.",
-      "coach_insight": "Pick the sentence that matters most before you start, then cut your speed nearly in half when you reach it — everything else stays at normal pace. The trap: slowing everything down, which emphasizes nothing.",
+      "coach_insight": "Pick the sentence that matters most before you start, then cut your speed nearly in half when you reach it. Everything else stays at normal pace. The trap: slowing everything down, which emphasizes nothing.",
       "secondary_core_skills": [
         "clarity",
         "structure"
@@ -1482,7 +1482,7 @@
         "Slows a setup or throwaway line instead of the sentence carrying the point",
         "Drops energy along with speed, so the key sentence lands flat instead of weighty"
       ],
-      "scoring_emphasis": "Weight whether the slowed sentence is the one that actually carries the response's core point — a big slowdown on the wrong sentence scores like no slowdown at all.",
+      "scoring_emphasis": "Weight whether the slowed sentence is the one that actually carries the response's core point; a big slowdown on the wrong sentence scores like no slowdown at all.",
       "retry_objective": "Choose the single most important sentence before speaking and cut its pace sharply while holding everything else at normal speed.",
       "prompt_rules": "Generate opinion or advice prompts where one takeaway sentence clearly outranks the rest, so there is an obvious line to slow down on. One conversational sentence, answerable from any adult's real life within 3 seconds; vary the topic freely, never the slow-down objective.",
       "response_window": {
@@ -1598,7 +1598,7 @@
           ]
         },
         {
-          "text": "What should people worry about more than they do — and what less?",
+          "text": "What should people worry about more than they do, and what less?",
           "difficulty": "stretch",
           "tags": [
             "general",

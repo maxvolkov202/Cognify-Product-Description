@@ -43,14 +43,12 @@ const DIM = (() => {
 })();
 const BATCH_SIZE = 25;
 
-function normalizeText(t: string): string {
-  return t.toLowerCase().replace(/[^a-z0-9 ]+/g, "").replace(/\s+/g, " ").trim();
-}
-
 /** Normalized texts of every prompt in the curated manifests (core
  *  dimension files + application files — NOT the general/vertical wave
  *  dirs, which are exactly what this audit exists to screen). */
-async function loadCuratedTexts(): Promise<Set<string>> {
+async function loadCuratedTexts(
+  normalizeText: (t: string) => string,
+): Promise<Set<string>> {
   const { readFileSync, readdirSync } = await import("node:fs");
   const { resolve, dirname } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
@@ -81,8 +79,12 @@ async function main() {
   const { db } = await import("@/lib/db/client");
   const { exercises, exercisePrompts } = await import("@/lib/db/schema");
   const { and, eq, inArray } = await import("drizzle-orm");
-  const { verifyPromptsCanon } = await import("@/lib/ai/prompt-gen");
-  const curated = await loadCuratedTexts();
+  const { verifyPromptsCanon, normalizePromptText } = await import(
+    "@/lib/ai/prompt-gen"
+  );
+  // Same normalizer as the generator's dedupe — the exemption set must
+  // match with identical semantics or curated prompts stop matching.
+  const curated = await loadCuratedTexts(normalizePromptText);
 
   const rows = await db
     .select({
@@ -111,7 +113,7 @@ async function main() {
       continue;
     }
     if (DIM && row.dimension !== DIM && row.application !== DIM) continue;
-    if (curated.has(normalizeText(row.text))) {
+    if (curated.has(normalizePromptText(row.text))) {
       skippedCurated++;
       continue;
     }
@@ -135,7 +137,7 @@ async function main() {
     const ex = list[0]!;
     for (let i = 0; i < list.length; i += BATCH_SIZE) {
       const batch = list.slice(i, i + BATCH_SIZE);
-      let verdicts = await verifyPromptsCanon({
+      const judgeInput = {
         prompts: batch.map((b) => b.text),
         exercise: {
           name: ex.exerciseName,
@@ -144,21 +146,12 @@ async function main() {
           application: ex.application,
           responseWindow: ex.responseWindow,
         },
-      });
-      if (!verdicts) {
-        // One retry, then skip the batch (fail closed — never deactivate
-        // on judge failure).
-        verdicts = await verifyPromptsCanon({
-          prompts: batch.map((b) => b.text),
-          exercise: {
-            name: ex.exerciseName,
-            dimension: ex.dimension as string,
-            rule: ex.rule,
-            application: ex.application,
-            responseWindow: ex.responseWindow,
-          },
-        });
-      }
+      };
+      // One retry, then skip the batch (fail closed — never deactivate
+      // on judge failure).
+      const verdicts =
+        (await verifyPromptsCanon(judgeInput)) ??
+        (await verifyPromptsCanon(judgeInput));
       if (!verdicts) {
         skippedBatches++;
         console.warn(

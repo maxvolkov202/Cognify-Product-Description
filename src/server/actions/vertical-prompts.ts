@@ -11,6 +11,7 @@ import { db } from "@/lib/db/client";
 import { exercisePrompts } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
+import { textArrayLit } from "@/lib/db/sql-helpers";
 
 export type VerticalPromptPick = {
   /** exercise_prompts.prompt_id — stable string id for prompt-history +
@@ -18,12 +19,6 @@ export type VerticalPromptPick = {
   id: string;
   text: string;
 };
-
-const textArrayLit = (arr: readonly string[]) =>
-  drizzleSql`ARRAY[${drizzleSql.join(
-    arr.map((x) => drizzleSql`${x}`),
-    drizzleSql`, `,
-  )}]::text[]`;
 
 export async function pickVerticalPrompts(input: {
   vertical: string;
@@ -40,9 +35,12 @@ export async function pickVerticalPrompts(input: {
         ? drizzleSql`(jsonb_exists(${exercisePrompts.tags}, ${input.vertical}) OR jsonb_exists_any(${exercisePrompts.tags}, ${textArrayLit(legacy)}))`
         : drizzleSql`jsonb_exists(${exercisePrompts.tags}, ${input.vertical})`;
     const generalFilter = drizzleSql`jsonb_exists(${exercisePrompts.tags}, 'general')`;
+    /** Final safety net — any active prompt, matching the tier cascade
+     *  contract of fetchPromptCandidates (never empty on a seeded DB). */
+    const anyActiveFilter = drizzleSql`true`;
 
-    for (const filter of [verticalFilter, generalFilter]) {
-      const rows = await db
+    const query = (filter: ReturnType<typeof drizzleSql>, excluded: boolean) =>
+      db
         .select({
           id: exercisePrompts.promptId,
           text: exercisePrompts.promptText,
@@ -52,30 +50,30 @@ export async function pickVerticalPrompts(input: {
           and(
             eq(exercisePrompts.isActive, true),
             filter,
-            ...(exclude.length > 0
+            ...(excluded && exclude.length > 0
               ? [notInArray(exercisePrompts.promptId, exclude)]
               : []),
           ),
         )
         .orderBy(drizzleSql`random()`)
         .limit(count);
+
+    // Tier cascade: vertical → general → any active; within each tier
+    // try exclusions first, then relaxed (a tier ZEROED by exclusions is
+    // exactly when relaxing matters — heavy refreshers keep vertical
+    // topics instead of falling to general). Keep the best partial so a
+    // thin bank returns what exists rather than nothing.
+    let best: VerticalPromptPick[] = [];
+    for (const filter of [verticalFilter, generalFilter, anyActiveFilter]) {
+      const rows = await query(filter, true);
       if (rows.length >= count) return rows;
-      // Thin tier with exclusions applied — relax exclusions before
-      // widening to general, so heavy refreshers still get vertical
-      // topics when possible.
-      if (rows.length > 0 && exclude.length > 0) {
-        const relaxed = await db
-          .select({
-            id: exercisePrompts.promptId,
-            text: exercisePrompts.promptText,
-          })
-          .from(exercisePrompts)
-          .where(and(eq(exercisePrompts.isActive, true), filter))
-          .orderBy(drizzleSql`random()`)
-          .limit(count);
+      if (rows.length > best.length) best = rows;
+      if (exclude.length > 0) {
+        const relaxed = await query(filter, false);
         if (relaxed.length >= count) return relaxed;
+        if (relaxed.length > best.length) best = relaxed;
       }
     }
-    return [];
+    return best;
   }, []);
 }

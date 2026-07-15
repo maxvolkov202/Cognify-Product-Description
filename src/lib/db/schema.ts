@@ -160,8 +160,11 @@ export const users = cognifyV2Schema.table("users", {
   // don't see the same archetype back-to-back.
   lastPressureArchetypeId: pressureArchetypeEnum("last_pressure_archetype_id"),
   // WS-6 tomorrow's-focus bias: the weakest dim from the user's most
-  // recent session. Cached here so planTodaysWorkout doesn't have to
-  // re-scan progressSnapshots on every workout-page load.
+  // recent session, cached so planners don't re-scan progressSnapshots
+  // on every workout-page load. (The original consumer planTodaysWorkout
+  // was retired with System A in Phase 2B.3; the v2 assignment engine
+  // reads weakness signals from the communication profile instead —
+  // candidate for removal if no consumer materializes.)
   lastSessionWeakestDimension: dimensionEnum("last_session_weakest_dimension"),
   // WS-8 PWA install prompt gate — cross-device rep count (was
   // previously client-localStorage only).

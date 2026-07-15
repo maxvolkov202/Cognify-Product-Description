@@ -157,19 +157,6 @@ export function WorkoutPromptSelect({
     // exercise — same training objective, new topics (PRD §9.3/§9.4.2).
     if (!exerciseId || isRefreshing) return;
     setIsRefreshing(true);
-    // Telemetry: the just-shown ids that the user is dropping count as
-    // refreshed_past — strong negative engagement signal vs. low pick
-    // rate alone. Fire BEFORE swapping state so we catch them.
-    if (promptIds.length > 0) {
-      void fetch("/api/prompt-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "refreshed_past",
-          promptIds,
-        }),
-      }).catch(() => {});
-    }
     try {
       const seen = [
         ...(excludePromptIds ?? []),
@@ -181,6 +168,21 @@ export function WorkoutPromptSelect({
         sessionSeenPromptIds: seen,
       });
       if (result.candidates.length === 0) return;
+      // Telemetry: the just-shown ids the user is dropping count as
+      // refreshed_past — strong negative engagement signal vs. low pick
+      // rate alone. Fire only once the replacement slate actually
+      // arrived; a failed refresh keeps the old slate on screen and
+      // must not record it as dropped.
+      if (promptIds.length > 0) {
+        void fetch("/api/prompt-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "refreshed_past",
+            promptIds,
+          }),
+        }).catch(() => {});
+      }
       const nextPrompts = result.candidates.map((c) => c.text);
       const nextIds = result.candidates.map((c) => c.promptId);
       for (const id of nextIds) shownIdsRef.current.add(id);

@@ -21,6 +21,14 @@ import {
 } from "@/lib/workout/lab-plan";
 import { getRepType } from "@/lib/ai/rep-types";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
+import {
+  interleaveMixedDims,
+  pressureIndexFor,
+  pressureArchetypeSequence,
+  rotateExercises,
+  FLOW_RAMP,
+  MAX_MIXED_REPS,
+} from "@/server/lib/lab-session-planning";
 import { SKILL_DIMENSIONS } from "@/types/domain";
 
 let pass = 0;
@@ -268,6 +276,66 @@ section("Duration estimate scales with slots");
     "estimate is linear in identical slots",
   );
   assert(one.estimatedDurationSec >= 60, "single-rep estimate ≥ 1 min sanity");
+}
+
+// ————————————————————————————————————————————————————————————————
+section("Pure planning logic (lab-session-planning)");
+
+{
+  const interleaved = interleaveMixedDims([
+    { dimension: "clarity", reps: 3 },
+    { dimension: "tone", reps: 2 },
+  ]);
+  assert(
+    interleaved.join(",") === "clarity,tone,clarity,tone,clarity",
+    `mixed dims round-robin interleave (got ${interleaved.join(",")})`,
+  );
+  assert(
+    interleaveMixedDims([{ dimension: "clarity", reps: 999 }]).length ===
+      MAX_MIXED_REPS,
+    "mixed volume capped",
+  );
+
+  assert(pressureIndexFor("focus", 4) === 2, "focus 4-rep pressure at N-2");
+  assert(pressureIndexFor("focus", 3) === -1, "focus <4 reps skip pressure");
+  assert(
+    pressureIndexFor("mixed", 6) === -1,
+    "mixed sessions never inject pressure (legacy planMixedSession contract)",
+  );
+
+  const seq = pressureArchetypeSequence(7, 2);
+  assert(seq.length === 7, "ramp sequence length matches count");
+  assert(seq[0] === FLOW_RAMP[2], "ramp entered at the start offset");
+  assert(
+    new Set(seq.slice(0, 5)).size === 5,
+    "first five cover all archetypes regardless of offset",
+  );
+
+  const identity = <T,>(arr: T[]) => arr;
+  const pool = [
+    fakeExercise({ dimension: "clarity", id: "a", hiddenSkills: ["jargon_translation"] }),
+    fakeExercise({ dimension: "clarity", id: "b", hiddenSkills: null }),
+    fakeExercise({ dimension: "clarity", id: "c", hiddenSkills: null }),
+  ];
+  const { picks, preferredMatched } = rotateExercises(
+    pool,
+    3,
+    identity,
+    "jargon_translation" as never,
+  );
+  assert(preferredMatched, "tagged sub-skill reports matched");
+  assert(picks[0]!.id === "a", "preferred exercise leads the rotation");
+  assert(
+    new Set(picks.map((p) => p.id)).size === 3,
+    "rotation covers distinct exercises before repeating",
+  );
+  const none = rotateExercises(pool, 2, identity, "claim_support" as never);
+  assert(
+    !none.preferredMatched,
+    "untagged sub-skill reports unmatched (caller logs it)",
+  );
+  const wrap = rotateExercises(pool.slice(0, 2), 5, identity);
+  assert(wrap.picks.length === 5, "rotation wraps when pool < count");
 }
 
 // ————————————————————————————————————————————————————————————————

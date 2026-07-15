@@ -1339,14 +1339,14 @@
       "tags": [
         "prd-v2"
       ],
-      "objective": "Train emotional congruence — letting the voice's weight rise and lighten with the emotional weight of what is being said.",
+      "objective": "Train emotional congruence: letting the voice's weight rise and lighten with the emotional weight of what is being said.",
       "hidden_skills": [
         "congruence",
         "emotional_authenticity",
         "emotional_control"
       ],
-      "scoring_lens": "Constraint: vocal weight must track content weight — heavy ideas carry a grounded, slower register and light ones lift. A flat register across emotional shifts, or gravity delivered in a throwaway voice, drags tone score.",
-      "coach_insight": "Let the content set your voice: serious lines get slower and lower, light lines get air and lift. The trap is one all-purpose register — delivering something that matters in the same voice you'd use to order lunch.",
+      "scoring_lens": "Constraint: vocal weight must track content weight; heavy ideas carry a grounded, slower register and light ones lift. A flat register across emotional shifts, or gravity delivered in a throwaway voice, drags tone score.",
+      "coach_insight": "Let the content set your voice: serious lines get slower and lower, light lines get air and lift. The trap is one all-purpose register, delivering something that matters in the same voice you'd use to order lunch.",
       "secondary_core_skills": [
         "pacing",
         "thinking_quality"
@@ -1357,9 +1357,9 @@
         "Light or humorous moments delivered with the same gravity as the serious ones",
         "Performed emotion that overshoots the content and reads as theatrical"
       ],
-      "scoring_emphasis": "Weight the moments where the content's emotional weight shifts — whether the voice audibly moves with it — over the overall pleasantness of the delivery.",
+      "scoring_emphasis": "Weight the moments where the content's emotional weight shifts (whether the voice audibly moves with it) over the overall pleasantness of the delivery.",
       "retry_objective": "Mark where the content gets heavier or lighter before speaking, and let your voice change register at each of those points.",
-      "prompt_rules": "Generate prompts whose natural answer moves through both heavy and light territory — fears, funny failures, mixed days, things that matter — so the voice has real register shifts to make. One conversational sentence, answerable from any adult's real life within 3 seconds.",
+      "prompt_rules": "Generate prompts whose natural answer moves through both heavy and light territory (fears, funny failures, mixed days, things that matter) so the voice has real register shifts to make. One conversational sentence, answerable from any adult's real life within 3 seconds.",
       "response_window": {
         "min_sec": 60,
         "max_sec": 90
@@ -1481,7 +1481,7 @@
           ]
         },
         {
-          "text": "Tell me about saying goodbye to something — a place, a job, a chapter — you weren't ready to leave.",
+          "text": "Tell me about saying goodbye to something you weren't ready to leave: a place, a job, a chapter.",
           "difficulty": "stretch",
           "tags": [
             "general",
@@ -1500,26 +1500,26 @@
       "tags": [
         "prd-v2"
       ],
-      "objective": "Build the physical habit of chest resonance — a deep, steady, projected voice held from the first word to the last.",
+      "objective": "Build the physical habit of chest resonance: a deep, steady, projected voice held from the first word to the last.",
       "hidden_skills": [
         "gravitas",
         "confidence",
         "authority"
       ],
-      "scoring_lens": "Constraint: full chest resonance — deep, steady, projected — is the rule. A thin, high, or under-projected voice drags tone score; without prosody, hedged or tentative phrasing implies the same failure.",
-      "coach_insight": "Breathe low, drop your voice into your chest, and send every sentence to the back of the room. Most voices thin out under pressure or at sentence endings — if it feels slightly too deep from the inside, you're probably right.",
+      "scoring_lens": "Constraint: full chest resonance (deep, steady, projected) is the rule. A thin, high, or under-projected voice drags tone score; without prosody, hedged or tentative phrasing implies the same failure.",
+      "coach_insight": "Breathe low, drop your voice into your chest, and send every sentence to the back of the room. Most voices thin out under pressure or at sentence endings; if it feels slightly too deep from the inside, you're probably right.",
       "secondary_core_skills": [
         "pacing"
       ],
       "common_failure_modes": [
         "Starts resonant, then the voice thins and rises as the rep goes on",
         "Projection drops at the ends of sentences, so closings fade instead of landing",
-        "Volume without depth — pushing louder from the throat instead of lower from the chest",
+        "Volume without depth: pushing louder from the throat instead of lower from the chest",
         "Deep but breathy delivery that trades steadiness for rumble"
       ],
-      "scoring_emphasis": "Weight the steadiness of the resonant floor across the whole rep — especially sentence endings and the final line, where the voice most often thins out.",
+      "scoring_emphasis": "Weight the steadiness of the resonant floor across the whole rep, especially sentence endings and the final line, where the voice most often thins out.",
       "retry_objective": "Reset your breath, drop back into chest voice, and hold the same depth and projection through the sentences where the first attempt thinned out.",
-      "prompt_rules": "Generate declarative, conviction-friendly prompts — beliefs, cases, openings — where a deep projected voice is the natural register. One conversational sentence, answerable from any adult's real life within 3 seconds; the topic never matters more than the resonance.",
+      "prompt_rules": "Generate declarative, conviction-friendly prompts (beliefs, cases, openings) where a deep projected voice is the natural register. One conversational sentence, answerable from any adult's real life within 3 seconds; the topic never matters more than the resonance.",
       "response_window": {
         "min_sec": 60,
         "max_sec": 90
@@ -1633,7 +1633,7 @@
           ]
         },
         {
-          "text": "Argue that most people underestimate themselves — like the room needs convincing.",
+          "text": "Argue that most people underestimate themselves, like the room needs convincing.",
           "difficulty": "stretch",
           "tags": [
             "general",

@@ -512,7 +512,7 @@
         "relevance_discipline"
       ],
       "scoring_lens": "Constraint: every point must answer 'so what' before moving on. Listings without stakes drag thinking_quality.",
-      "coach_insight": "Most speakers stop at 'what' when the value lives at 'so what' — after each point, answer the question your listener is silently asking: 'and that matters because...?' If a point changes nothing and demands nothing, push it or cut it.",
+      "coach_insight": "Most speakers stop at 'what' when the value lives at 'so what'. After each point, answer the question your listener is silently asking: 'and that matters because...?' If a point changes nothing and demands nothing, push it or cut it.",
       "secondary_core_skills": [
         "structure",
         "conciseness"

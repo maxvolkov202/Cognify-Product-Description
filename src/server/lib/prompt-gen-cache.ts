@@ -127,25 +127,32 @@ export async function generateAndCachePrompts(input: {
     }
     if (vetted.length === 0) return [];
 
-    const out: CachedGeneratedPrompt[] = [];
-    for (const text of vetted) {
-      const promptId = `${ex.slug}-${sha8(text.trim().toLowerCase())}`;
-      const tags = ["general", "generated"];
-      const [row] = await db
-        .insert(exercisePrompts)
-        .values({
-          exerciseId: ex.id,
-          promptText: text,
-          promptId,
-          difficulty: 2,
-          tags,
-        })
-        .onConflictDoNothing({ target: exercisePrompts.promptId })
-        .returning({ id: exercisePrompts.id });
-      if (row) {
-        out.push({ id: row.id, promptId, text, difficulty: 2, tags });
-      }
-    }
+    const tags = ["general", "generated"];
+    const values = vetted.map((text) => ({
+      exerciseId: ex.id,
+      promptText: text,
+      promptId: `${ex.slug}-${sha8(text.trim().toLowerCase())}`,
+      difficulty: 2,
+      tags,
+    }));
+    // Single multi-row insert (this path is user-blocking — the caller
+    // is waiting on a refreshed slate). Conflicted rows are silently
+    // skipped, matching the old per-row onConflictDoNothing semantics.
+    const rows = await db
+      .insert(exercisePrompts)
+      .values(values)
+      .onConflictDoNothing({ target: exercisePrompts.promptId })
+      .returning({ id: exercisePrompts.id, promptId: exercisePrompts.promptId });
+    const byPromptId = new Map(rows.map((r) => [r.promptId, r.id]));
+    const out: CachedGeneratedPrompt[] = values
+      .filter((v) => byPromptId.has(v.promptId))
+      .map((v) => ({
+        id: byPromptId.get(v.promptId)!,
+        promptId: v.promptId,
+        text: v.promptText,
+        difficulty: 2,
+        tags,
+      }));
     if (out.length > 0) {
       log.info({
         event: "prompt_gen.cached",

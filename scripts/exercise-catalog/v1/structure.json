@@ -19,7 +19,7 @@
         "priority_selection"
       ],
       "scoring_lens": "Constraint: if the response does not present exactly three supporting points, structure score MUST reflect the breach.",
-      "coach_insight": "Pick your three before you open your mouth — if you can't narrow it to three, you haven't finished thinking. Close each one before the next; the trap is the sneaky fourth point, the 'oh, and also' that dilutes the three you chose.",
+      "coach_insight": "Pick your three before you open your mouth. If you can't narrow it to three, you haven't finished thinking. Close each one before the next; the trap is the sneaky fourth point, the 'oh, and also' that dilutes the three you chose.",
       "secondary_core_skills": [
         "conciseness",
         "thinking_quality"

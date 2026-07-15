@@ -171,6 +171,7 @@ export function SkillLabClient({
   }
 
   function backToLobby() {
+    setPlanError(false);
     setPhase({ kind: "lobby" });
   }
 
@@ -203,7 +204,7 @@ export function SkillLabClient({
           className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           role="alert"
         >
-          Couldn&apos;t build your session — check your connection and try
+          Couldn&apos;t build your session. Check your connection and try
           again.
         </div>
       )}
@@ -673,19 +674,12 @@ function FocusSkillStep({
 function RepCountStep({
   title,
   subtitle,
-  exerciseLabel,
-  exerciseTagline,
   onBack,
   onPick,
   unlimitedLabel = "Unlimited",
 }: {
   title: string;
   subtitle: string;
-  /** Ch.16 — when set, renders a "Today's exercise: X" pill above the
-   *  rep-count buttons. Lets the user see which named curriculum
-   *  exercise they're about to train, vs an anonymous prompt id. */
-  exerciseLabel?: string;
-  exerciseTagline?: string;
   onBack: () => void;
   onPick: (reps: RepCountChoice) => void;
   unlimitedLabel?: string;
@@ -704,18 +698,6 @@ function RepCountStep({
         subtitle={subtitle}
         onBack={onBack}
       />
-      {exerciseLabel && (
-        <div className="mb-5 flex flex-wrap items-baseline gap-2 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 px-4 py-3 dark:bg-brand-purple/15">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
-            {exerciseLabel}
-          </span>
-          {exerciseTagline && (
-            <span className="text-[12px] text-ink-600 dark:text-ink-300">
-              {exerciseTagline}
-            </span>
-          )}
-        </div>
-      )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {choices.map((c, i) => (
           <motion.button

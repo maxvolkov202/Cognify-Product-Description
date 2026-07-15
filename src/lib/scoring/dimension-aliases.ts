@@ -105,6 +105,17 @@ export function muscleGroupToSkillDim(mgId: string): SkillDimension | null {
 }
 
 /**
+ * Code dim → DB enum value for `cognify_v2.exercises.dimension`. The DB
+ * enum is append-only and keeps the legacy `pacing` spelling for code
+ * `delivery` (D6). Inverse of muscleGroupToSkillDim for the write/query
+ * direction — import BOTH from here rather than inlining the map (the
+ * pacing↔delivery alias must live in exactly one src module).
+ */
+export function skillDimToDbDimension(dim: SkillDimension): string {
+  return dim === "delivery" ? "pacing" : dim;
+}
+
+/**
  * Human-readable legacy dimension labels for rare surfaces that must
  * render old scores verbatim (debug / admin / compare views).
  */

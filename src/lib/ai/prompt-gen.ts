@@ -122,7 +122,9 @@ const APPLICATION_RULES: Record<string, string> = {
     "PERSUASION RULES: make the audience's priorities clear so the user can choose audience-relevant reasons. Imply decision-first framing with a concrete ask. The position argued must be supplied by the prompt or genuinely holdable by anyone.",
 };
 
-const systemPrompt = `You are Cognify's prompt architect. Cognify is a communication gym: focused speaking reps, immediate feedback, retry, measurable improvement. Given ONE exercise framework, generate speaking-prompt options that all train the SAME core skill, the SAME hidden behaviors, and the SAME communication objective while varying ONLY the topic (PRD: "The surface topic may change. The training objective must stay the same.").
+/** Shared generation-rules body — systemPrompt and packSystemPrompt
+ *  compose from this so the two can never drift. */
+const GENERATION_RULES = `You are Cognify's prompt architect. Cognify is a communication gym: focused speaking reps, immediate feedback, retry, measurable improvement. Given ONE exercise framework, generate speaking-prompt options that all train the SAME core skill, the SAME hidden behaviors, and the SAME communication objective while varying ONLY the topic (PRD: "The surface topic may change. The training objective must stay the same.").
 
 The generation unit you serve is: core skill → hidden behaviors → coach's insight → prompt options → scoring lens → retry instruction. The prompts you write must fit that whole arc: a user who follows the exercise's rule and the coach's insight should score well under the scoring lens, and be able to retry the same prompt after coaching.
 
@@ -138,13 +140,18 @@ ${CANON_RULES}
 
 TOPIC SPREAD (PRD §5.6, §9.4.1): unless the framework prompt rules pin the setting, spread the batch across DIFFERENT topic categories — ${TOPIC_CATEGORIES.join(", ")} — and across different conversation kinds (personal experience, workplace, everyday life, hypothetical, lighthearted, reflective). Prompts shown together should feel meaningfully different. Refreshing changes the topic, never the objective.
 
-Match the register of the exercise's existing prompts when examples are given. Do NOT reuse or lightly paraphrase the examples — produce genuinely fresh topics.
+Match the register of the exercise's existing prompts when examples are given. Do NOT reuse or lightly paraphrase the examples — produce genuinely fresh topics.`;
+
+const systemPrompt = `${GENERATION_RULES}
 
 OUTPUT: ONLY valid JSON: { "prompts": ["...", "..."] }`;
 
-function normalize(text: string): string {
+/** Normalize prompt text for dedupe/matching. Exported so offline
+ *  tooling (audit-canon-llm) matches with the exact same normalizer. */
+export function normalizePromptText(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9 ]+/g, "").replace(/\s+/g, " ").trim();
 }
+const normalize = normalizePromptText;
 
 /** Deterministic QA filter (shape, length, dupes). The canon-judgment QA
  *  lives in verifyPromptsCanon — this stage only rejects what regex can. */
@@ -357,7 +364,11 @@ const verifySchema = z.object({
       z.object({
         index: z.number().int().min(0),
         ok: z.boolean(),
-        violations: z.array(z.string()).max(6),
+        // The judge is instructed with 8 valid tags — cap above that so
+        // a maximally-tagged verdict can't zod-fail the whole batch
+        // (which would fail the runtime path OPEN and cache the very
+        // prompt the judge condemned).
+        violations: z.array(z.string()).max(10),
       }),
     )
     .min(1),
@@ -459,10 +470,8 @@ const packSchema = z.object({
   commonFailureModes: z.array(z.string().min(5).max(200)).min(2).max(5),
 });
 
-const packSystemPrompt = `${systemPrompt.replace(
-  'OUTPUT: ONLY valid JSON: { "prompts": ["...", "..."] }',
-  "",
-)}
+const packSystemPrompt = `${GENERATION_RULES}
+
 You are generating the FULL exercise unit, not just prompts (PRD Engine V1 output contract):
 
 - coachInsight: 1-2 sentences the user reads before speaking. Specific, memorable, immediately usable. Give a behavior to perform, not theory. Written like a communication coach, never an academic. No theory names.

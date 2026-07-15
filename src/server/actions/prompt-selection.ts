@@ -26,6 +26,7 @@ import { pickPromptCandidates } from "@/server/lib/workout/assignment";
 import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
 import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
 import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
+import { textArrayLit } from "@/lib/db/sql-helpers";
 
 export type PromptCandidate = {
   id: string;
@@ -175,18 +176,6 @@ export async function fetchPromptCandidates(input: {
     // placeholder when the same query also carries bound params from the
     // surrounding `and(eq(...), eq(...), ...)` builder. Function calls
     // sidestep that ambiguity and keep the cascade reliable.
-    // Postgres array literal helper — binds each element individually via
-    // drizzle's sql.join so the array renders as `ARRAY['a','b']::text[]`
-    // instead of being bound as a single composite/record value (which
-    // fails with "cannot cast type record to text[]"). Without this every
-    // personalized tier query throws and the cascade silently falls
-    // through to general — the exact dark-Wave-2 bug from 2026-05-23.
-    const textArrayLit = (arr: readonly string[]) =>
-      drizzleSql`ARRAY[${drizzleSql.join(
-        arr.map((x) => drizzleSql`${x}`),
-        drizzleSql`, `,
-      )}]::text[]`;
-
     const legacy = userVertical ? LEGACY_VERTICAL_TAGS[userVertical] ?? [] : [];
     const verticalFilter =
       input.personalize && userVertical
@@ -295,8 +284,11 @@ export async function fetchPromptCandidates(input: {
     // PRD v3 Phase 2.6 — hard in-session exclusion (distinct from the
     // soft cross-session recentPromptIds bias). Cap the incoming list
     // defensively; relax when exclusion would starve a full slate.
+    // Keep the LAST 500 — callers append in-session ids after the (long)
+    // cross-session history, and it's the most-recent ids that must
+    // survive the cap or a refresh can re-serve the slate just rejected.
     const sessionSeen = new Set(
-      (input.sessionSeenPromptIds ?? []).slice(0, 500),
+      (input.sessionSeenPromptIds ?? []).slice(-500),
     );
     let available = bankRows.map((b) => ({
       id: b.id,
