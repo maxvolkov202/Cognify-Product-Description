@@ -126,27 +126,62 @@ phase) → check the phase off here. Never commit to main directly.
 sessions.*
 
 **2.A — Generation engine rewrite**
-- [ ] 2A.1 Rewrite `src/lib/ai/prompt-gen.ts` to the doc's engine specs: generation unit = core skill
-      → hidden behaviors (from taxonomy v2) → coach's insight → 5 prompt options → scoring lens →
-      retry instruction. Per-application rules from Lab Engine V1 (audience/setting/stakes required,
-      structure implied, "theory implicitly never academically", no unrealistic roleplay, drawable
-      from real experience). Keep + strengthen the universality hard rule.
-- [ ] 2A.2 Prompt QA filter upgrade: add canon checks (no personas, no required setup, no jargon
-      walls, answerable-by-anyone) as an LLM verification pass, not just regex.
-- [ ] 2A.3 Regenerate/refresh exercise `coachInsight` / `scoringLens` / `retryObjective` where the
-      doc provides better ones (doc's workout banks) — catalog manifest updates.
+- [x] 2A.1 `src/lib/ai/prompt-gen.ts` rewritten to the doc's engine specs (session 4, 2026-07-15):
+      generation unit = core skill → hidden behaviors (taxonomy v2, labels + definitions) → coach's
+      insight → 5 prompt options (D21) → scoring lens → retry instruction, all rendered as
+      generation context when authored (conditional rendering — unauthored fields render nothing).
+      Per-application Lab Engine V1 rule blocks (storytelling/presenting/teaching/interviewing/
+      persuasion). Universality hard rule kept + merged with the canon (3-second test, no personas,
+      no jargon walls, one challenge, retryable) into a CANON_RULES block shared by generator AND
+      judge so they can't drift. New `generatePromptPack` emits the full unit for tooling.
+- [x] 2A.2 LLM canon verification pass: `verifyPromptsCanon` (same CANON_RULES; violation tags
+      required-setup/persona/not-universal/jargon-wall/mechanic-mismatch/exam-tone/
+      stacked-constraints/not-retryable). Wired into `generateAndCachePrompts` — runtime top-up
+      prompts are canon-screened before becoming permanent bank members (fail-open on judge outage
+      so a verify failure never empties a slate; unjudged indices fail closed).
+- [x] 2A.3 Coach-field refresh from the doc: 3 coach_insight updates (explain-like-im-12,
+      the-3-point-rule, the-so-what-test — doc's lines were more canonical); other 21 matched
+      exercises kept (catalog versions more behavioral). **Zero scoring_lens changes on existing
+      exercises** (doc lenses are academic dimension-level prose; catalog lenses are operator
+      constraints). ⚠️ calibration note: coach_insight byte-changes on those 3 exercises + 3 brand-new
+      exercises' lens blocks — no existing reference rep renders the new blocks; baselines already
+      unusable pending Phase 3 re-baseline.
 - **2.B — Bank content + legacy retirement**
-- [ ] 2B.1 Seed the doc's new bank content (Core Skills Workout Bank exercises + prompt lists that
-      aren't already in the catalog; doc's Clarity prompt bank has ~32 new "Explain Like I'm 12"
-      prompts etc.).
-- [ ] 2B.2 Universality audit of the ACTIVE catalog: LLM audit pass over all 6,714 active prompts
-      against the canon; deactivate violators (extend `prune-canon-violators.mjs`).
-- [ ] 2B.3 Retire System A: identify any legacy bank prompts worth keeping → migrate into catalog
-      manifests; delete `src/lib/ai/prompts/*`, rep-type planners in `workout-prompts.ts`, and dead
-      call sites (grep for `WORKOUT_PROMPTS`, `PRESSURE_PROMPTS`, `VERTICAL_PROMPTS`,
-      `planTodaysWorkout`). Keep pressure archetypes if the v2 engine still uses them (it does —
-      graduation reps); relocate their prompts into the catalog.
-- [ ] 2B.4 Reseed + prune on dev; record counts here.
+- [x] 2B.1 Doc bank content merged (session 4): 3 new exercises (pacing "The Speed Shift", tone
+      "The Emotional Dial" + "The Resonance Rep", full pack fields + 15 prompts each), 62 prompts
+      merged into matching exercises (ELI12 32, Analogy Bridge 18, No Jargon 1, One Point Only 3,
+      Word Budget 3 — 75-word suffix dropped to match the exercise's 30-word rule, flagged for Max —
+      Story Arc 1, Bottom Line First 2, Monroe's 1, Claim and Proof 1, interviewing "Why This, Why
+      You" 1). Skipped with reasons: teaching + persuasion workout one-liners (need supplied reading
+      material), six-word-story (no storytelling exercise has a delivery-pause mechanic), doc's
+      "Rhythm Check" (catalog "Tempo Shift" already covers the mechanic).
+- [x] 2B.2 LLM universality audit tooling: `scripts/audit-canon-llm.ts` (new — complements the
+      regex-only `prune-canon-violators.mjs` rather than extending it) runs `verifyPromptsCanon`
+      over every active prompt, deactivates violators (`is_active=false`), fail-closed on judge
+      failures, pressure-bank exempt (light-scenario genre, canon-screened at relocation).
+      **Run + counts recorded in 2B.4.**
+- [x] 2B.3 System A retired (D23): deleted `src/lib/ai/prompts/*` (~3,600 lines), rep-type planners
+      in `workout-prompts.ts`, `exercises.ts` named-drill registry, bank tooling
+      (generate-prompts/triage-prompts.mjs). Catalog-backed replacement: pure
+      `src/lib/workout/lab-plan.ts` + `planLabSession` server action (rotation, preferSubSkill bias,
+      pressure slot at N-1, flow ramp). Cutovers: /drills + /skill-lab (SkillLabClient async
+      planning), prompt-select Refresh (re-slates from the slot's catalog exercise via
+      fetchPromptCandidates — session exclusion + generated top-up now apply there too), /try,
+      legacy Build-a-Rep (catalog vertical tags via `pickVerticalPrompts`), dashboard drill CTAs
+      (all 6 dims drillable now). KEPT: rep-types.ts (framework scaffolds/budgets),
+      frameworks-rep-variants, pressure-archetypes (scoring weight profiles). Pressure prompt bank
+      relocated into the catalog as `v1/pressure.json` (application='pressure', one exercise per
+      archetype, keyed by archetype id in application_skills — invisible to Daily Workout/Skill Lab
+      queries). Tests rewritten against the pure builders (session-types, pressure-orchestrator;
+      dna-signals trimmed of deleted-registry sections).
+- [x] 2B.4 Reseed + audit on dev (= PROD DB — same Supabase instance), 2026-07-15 session 4:
+      seed --apply → 8 new exercises (3 core + 5 pressure), 3 updated (coach_insight), 222 new
+      prompts; catalog then 102 active exercises / 6,936 active prompts. LLM canon audit --apply
+      (gpt-4o-mini judge, curated-manifest + pressure exempt) deactivated **2,788 Wave-era
+      violators** (clarity 475, structure 406, conciseness 429, thinking_quality 496, pacing 555,
+      tone 427; top tags jargon-wall + not-universal + persona) → **4,148 active prompts**, zero
+      exercises below 8 active (slate floor is 5; FF_PROMPT_GEN top-up self-heals thin banks).
+      Deactivation is reversible (is_active=false; details in audit-canon-results-*.json).
 - **Exit criteria:** generator emits doc-conformant packs (spot-check 10 per dimension + 5 per
   application); zero legacy bank imports; dev catalog clean.
 - **Verify after merge (Max):** refresh prompt slates across 3 dimensions + 2 Lab applications on
@@ -278,3 +313,46 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   taxonomy-v2 mapper is evidence-gated so the old fallback-flooding risk is gone). Also worth a
   password rotation: the prod DATABASE_URL (incl. password) got echoed into a local session
   transcript by a node error during env plumbing.
+- **2026-07-15 (session 4) — Chore: prod FF_DETERMINISTIC_SIGNALS flip + Phase 2 (prompt
+  architecture overhaul, D21+D23) on `feat/prompt-architecture-v2`.**
+  - **Prod flag flip DONE + smoked:** two gotchas beyond the known newline one — (1) piping
+    `printf 'true'` (no trailing newline) into `vercel env add` stores an EMPTY value (CLI 56
+    readline discards a non-newline-terminated line); (2) stdin-piped adds are created as
+    write-only "Sensitive" vars, so `env pull` can't verify them. Reliable pattern:
+    `vercel env add NAME production --value true --no-sensitive --yes`, then env pull shows the
+    exact bytes. Smoke: POST /api/score with guest cookie → 4/4 bullets carry v2 subSkill ids
+    (~14s, gpt-4o). Note: `modelVersion` in score responses is a hardcoded constant
+    (MODEL_VERSIONS.scoring, claude-haiku id) — NOT the serving model; /api/score/health shows
+    the real provider.
+  - **Phase 2 shipped** (2A.1–2B.3 checked above; 2B.4 counts below). Legacy-planner behaviors
+    preserved on purpose: Build→Stress→Reinforce pressure slot at N-1 (4+ rep sessions), flow
+    ramp archetype order, framework rotation. Behavior changes to know about: Focus Drills
+    header now names the CATALOG exercise (was rep-type displayTitle); prompt-select Refresh is
+    async from the catalog (session exclusion + generated top-up now apply there); /try serves a
+    random intro conciseness catalog prompt; legacy BaR slates come from catalog vertical tags.
+    Smoked via direct server-action POSTs on dev: focus/clarity plan (exercise rotation +
+    doc-merged prompts in slates) and pressure plan (ramp order, relocated pressure exercises,
+    correct budgets) both green; /try serving varied catalog prompts.
+  - **Password rotation SKIPPED by Max's instruction this session** ("we don't need that yet") —
+    the leaked-credential rotation from session 3 stays open.
+  - Deferred/flagged: Word Budget doc prompts say "75 words max" but the exercise rule is 30
+    words — doc suffix dropped, needs Max ruling if 75-word variant wanted; six-word-story +
+    read-and-teach one-liners skipped (see 2B.1); SkillLabSession reps now record exerciseId
+    (was null for legacy Skill Lab reps).
+  - **/code-review high (8 finder angles + verify) → 10 verified findings, all fixed** in commit
+    6d2d2425. Headliners: unclamped planLabSession counts (public action, unbounded DB/LLM work);
+    canon-verdict schema capped below the judge's own tag count (a maximally-tagged verdict
+    failed the batch and the runtime path failed OPEN, caching condemned prompts); vertical
+    picker could return an empty Build-a-Rep slate; seen-ids cap kept FIRST 500 (heavy users got
+    repeat slates on refresh); mixed sessions lost interleaving and wrongly gained a pressure
+    rep; the pressure bank could create a phantom profile.applications['pressure']; pressure
+    slots rendered the wrong scaffold; pressure ramp always started at time_compression. Also:
+    pure planning logic extracted to src/server/lib/lab-session-planning.ts (+tests), slates
+    parallelized per exercise group, pacing↔delivery alias consolidated into
+    dimension-aliases.ts, em-dash copy fixed in new catalog content (reseeded: 3 new rows, 3
+    orphans deactivated — active count still 4,148).
+  - Known non-blockers: /try uses ORDER BY random() over the filtered intro-conciseness pool
+    (small set, marketing page); audit exemption matches curated manifests by normalized TEXT
+    (provenance tags would be sturdier — future improvement); stripFences is the codebase's 7th
+    fence-stripper (consolidation deferred); prompt-gen-cache still runs the canon judge
+    inline on the user-blocking top-up path (quality-over-latency, top-up is rare).
