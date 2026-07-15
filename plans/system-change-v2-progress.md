@@ -59,17 +59,19 @@ phase) → check the phase off here. Never commit to main directly.
 
 ## Phases
 
-### Phase 0 — Doc sync + taxonomy data ✅ planned / ⬜ done
+### Phase 0 — Doc sync + taxonomy data ✅ done 2026-07-15
 *PRD refs: whole doc; §5.5. Small phase, same session as planning is fine.*
 
-- [ ] 0.1 New PRD imported at `plans/prd/cognify-system-change-v2-2026-07.md` (done 2026-07-15)
-- [ ] 0.2 Extract §5.5 tables into structured data: `scripts/taxonomy/hidden-skills-v2.json`
-      (`{dimension, id(snake_case), label, definition}` × ~149). Verify counts per dimension against
-      the doc tables.
-- [ ] 0.3 Write `plans/prd/taxonomy-migration-map.md`: old 34 sub-skill ids → new ids (rename / keep /
-      split), so profile `hiddenSkills` data can migrate without losing history.
-- [ ] 0.4 Update `plans/prd/terminology-map.md` with D20–D23.
-- **Exit criteria:** JSON validates, every old id has a mapping, doc counts match.
+- [x] 0.1 New PRD imported at `plans/prd/cognify-system-change-v2-2026-07.md` (done 2026-07-15)
+- [x] 0.2 Extract §5.5 tables into structured data: `scripts/taxonomy/hidden-skills-v2.json`
+      (`{dimension, id(snake_case), label, definition}`). **Actual doc counts: Clarity 23,
+      Structure 23, Conciseness 22, Thinking Quality 28, Pacing 22, Tone 30 = 148 total** (the
+      "~149" in the planning notes was an estimate; Thinking Quality table has 28 rows).
+- [x] 0.3 `plans/prd/taxonomy-migration-map.md` written: 34 old ids → new ids (24 keep, 8 rename,
+      2 move across dimension — old Tone prosody skills fold into `delivery`). No splits.
+      Machine-readable copy: `scripts/taxonomy/migration-map.json`.
+- [x] 0.4 `plans/prd/terminology-map.md` updated with D20–D23 rulings table.
+- **Exit criteria:** ✅ JSON validates (unique ids, counts match tables), every old id mapped.
 - **Verify after merge:** none user-facing (data-only).
 
 ### Phase 1 — Hidden Skill Taxonomy v2 (D20) ⬜

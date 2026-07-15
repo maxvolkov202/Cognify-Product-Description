@@ -10,7 +10,7 @@ identifiers where no legacy identifier exists.
 | **Pacing** | `delivery` (rubric v3 canonical); muscle-group layer already `pacing` | enum has BOTH `pacing` (v1/mg) + `delivery` (v3) | UI label: **Pacing**. Scoring internals keep `delivery`. Bridge stays `src/lib/scoring/dimension-aliases.ts` (`muscleGroupToSkillDim`). No enum migration. |
 | Thinking Quality | `thinking_quality` | `thinking_quality` | aligned |
 | Clarity / Structure / Conciseness / Tone | same | same | aligned |
-| Hidden Skills (= Subskills = Hidden Behaviors = Underlying Behaviors, PRD terminology note) | "sub-skills", `src/types/sub-skills.ts` (36) | inside `dimension_scores.signals` jsonb | Internal-only per PRD. Retire `FF_SUBSKILL_UI` surfacing. Code keeps `subSkill*` identifiers; docs/comments may say Hidden Skills. |
+| Hidden Skills (= Subskills = Hidden Behaviors = Underlying Behaviors, PRD terminology note) | "sub-skills", `src/types/sub-skills.ts` — **148 ids, generated from `scripts/taxonomy/hidden-skills-v2.json` (D20)** | inside `dimension_scores.signals` jsonb + `communication_profile.hiddenSkills` | Internal-only per PRD. Code keeps `subSkill*` identifiers; docs/comments may say Hidden Skills. Old 34-id → new 148-id bridge: `plans/prd/taxonomy-migration-map.md`. |
 | Communication Score (per rep) | `compositeScore` / "composite" | `reps.composite_score` | UI label: "Communication Score". Code keeps composite. |
 | Overall Communication Score | — (net-new) | — (Phase 3) | new: `communication_profile.overall_score`; UI "Communication Score". |
 | Fundamental Scores | dimension running averages | `progress_snapshots` | UI: "Core Skills"; profile-backed from Phase 3. |
@@ -33,3 +33,12 @@ identifiers where no legacy identifier exists.
 
 Known copy debt to fix when touched: welcome email still lists v2 dimension names
 (`src/lib/email/send.ts`); "Daily score" labels become "Communication Score".
+
+## System Change v2 rulings (D20–D23, confirmed 2026-07-15)
+
+| Decision | Terminology / naming consequence |
+|---|---|
+| **D20 — full 148-skill taxonomy adoption** | PRD §5.5's six tables are the canonical Hidden Skills. Ids are snake_case of the doc's skill names, dimension keys use CODE names (PRD "Pacing" table → `delivery` ids). Source of truth: `scripts/taxonomy/hidden-skills-v2.json`; `src/types/sub-skills.ts` is generated from it. |
+| **D21 — prompt slate stays 5** | Doc's "4 prompt options" (Workout) / "6 options" (Lab) both read as "the slate"; code constant stays 5. |
+| **D22 — grading rethink** | "Grading"/"scoring" = single unified pass, OpenAI primary + Anthropic fallback. "Tone graded from audio" — Tone (and Pacing) scores must consume the recording, not the transcript alone. Design doc: `plans/prd/grading-v3-design.md` (Phase 3). |
+| **D23 — legacy prompt System A retired** | "Prompt system" means the DB catalog (`cognify_v2.exercises` / `exercise_prompts`) only. `src/lib/ai/prompts/*` + rep-type planners are legacy pending deletion (Phase 2); don't build against them. |
