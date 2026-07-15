@@ -18,6 +18,13 @@
  *   - application='pressure' exercises are skipped: the pressure genre
  *     intentionally carries a light scenario + interlocutor line (canon
  *     archetype C); those prompts were canon-screened at relocation time.
+ *   - Prompts whose text appears in the CURATED manifests (core
+ *     v1/*.json + applications/*.json) are skipped: that content is
+ *     doc-sourced / human-reviewed against the canon (Phase 2B.1) and is
+ *     authoritative over the LLM judge — the judge false-positives on
+ *     doc-canonical "Explain what X is" prompts. The audit targets the
+ *     unreviewed bulk: Wave-era general/vertical banks + runtime-
+ *     generated rows.
  *
  * Cost control: set OPENAI_FRAMEWORK_MODEL=gpt-4o-mini to run the judge
  * on the cheap tier (the judge role rides MODELS.framework). Requires
@@ -36,11 +43,46 @@ const DIM = (() => {
 })();
 const BATCH_SIZE = 25;
 
+function normalizeText(t: string): string {
+  return t.toLowerCase().replace(/[^a-z0-9 ]+/g, "").replace(/\s+/g, " ").trim();
+}
+
+/** Normalized texts of every prompt in the curated manifests (core
+ *  dimension files + application files — NOT the general/vertical wave
+ *  dirs, which are exactly what this audit exists to screen). */
+async function loadCuratedTexts(): Promise<Set<string>> {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const { resolve, dirname } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const dir = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "exercise-catalog",
+    "v1",
+  );
+  const out = new Set<string>();
+  const files = [
+    ...readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => resolve(dir, f)),
+    ...readdirSync(resolve(dir, "applications"))
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => resolve(dir, "applications", f)),
+  ];
+  for (const file of files) {
+    const manifest = JSON.parse(readFileSync(file, "utf8"));
+    for (const ex of manifest.exercises ?? []) {
+      for (const p of ex.prompts ?? []) out.add(normalizeText(p.text));
+    }
+  }
+  return out;
+}
+
 async function main() {
   const { db } = await import("@/lib/db/client");
   const { exercises, exercisePrompts } = await import("@/lib/db/schema");
   const { and, eq, inArray } = await import("drizzle-orm");
   const { verifyPromptsCanon } = await import("@/lib/ai/prompt-gen");
+  const curated = await loadCuratedTexts();
 
   const rows = await db
     .select({
@@ -62,12 +104,17 @@ async function main() {
 
   const byExercise = new Map<string, typeof rows>();
   let skippedPressure = 0;
+  let skippedCurated = 0;
   for (const row of rows) {
     if (row.application === "pressure") {
       skippedPressure++;
       continue;
     }
     if (DIM && row.dimension !== DIM && row.application !== DIM) continue;
+    if (curated.has(normalizeText(row.text))) {
+      skippedCurated++;
+      continue;
+    }
     const list = byExercise.get(row.exerciseId) ?? [];
     list.push(row);
     byExercise.set(row.exerciseId, list);
@@ -76,9 +123,7 @@ async function main() {
   const total = [...byExercise.values()].reduce((s, l) => s + l.length, 0);
   console.log(
     `[audit-canon] ${total} active prompts across ${byExercise.size} exercises` +
-      (skippedPressure > 0
-        ? ` (${skippedPressure} pressure-bank prompts exempt)`
-        : ""),
+      ` (exempt: ${skippedPressure} pressure-bank, ${skippedCurated} curated-manifest)`,
   );
 
   const violationCounts = new Map<string, number>();

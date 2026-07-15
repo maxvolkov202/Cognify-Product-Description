@@ -223,8 +223,23 @@ section("Pressure slots: archetype, budget delta, focus");
     "archetype carried onto the slot",
   );
   assert(
-    rep.timeBudgetMs === Math.max(15, 60 + archetype.durationDeltaSec) * 1000,
-    `pressure budget = window max + durationDeltaSec (got ${rep.timeBudgetMs})`,
+    rep.timeBudgetMs === 60_000,
+    `explicit response window wins over the archetype delta (got ${rep.timeBudgetMs})`,
+  );
+  const noWindow = buildLabSessionPlan({
+    slots: [
+      slotSeed(fakeExercise({ dimension: "conciseness" }), {
+        focus: focusForPressureRep(archetype),
+        pressureArchetype: archetype,
+      }),
+    ],
+    sessionType: "flow",
+  });
+  const baseBudget = noWindow.reps[0]!.repType.timeBudgetSec;
+  assert(
+    noWindow.reps[0]!.timeBudgetMs ===
+      Math.max(15, baseBudget + archetype.durationDeltaSec) * 1000,
+    `windowless pressure slot applies the archetype delta (got ${noWindow.reps[0]!.timeBudgetMs})`,
   );
   assert(
     rep.focus?.bannerText.toLowerCase().startsWith("pressure:"),

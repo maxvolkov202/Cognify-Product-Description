@@ -202,9 +202,14 @@ export function buildLabSessionPlan(input: {
     frameworkCursor.set(baseId, cursor + 1);
     const framework = pool[cursor % pool.length] ?? repType.framework;
 
-    const budgetSec =
-      repType.timeBudgetSec +
-      (seed.pressureArchetype?.durationDeltaSec ?? 0);
+    // The archetype's duration delta exists to compress/stretch the BASE
+    // rep-type budget. A pressure exercise's own response_window already
+    // encodes its time pressure (e.g. Time Compression's 20-45s), so the
+    // delta applies only when the exercise has no explicit window.
+    const budgetSec = seed.exercise.responseWindow
+      ? repType.timeBudgetSec
+      : repType.timeBudgetSec +
+        (seed.pressureArchetype?.durationDeltaSec ?? 0);
     return {
       repType,
       prompts: seed.prompts,
