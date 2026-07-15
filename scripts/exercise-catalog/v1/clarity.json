@@ -19,7 +19,7 @@
         "vocabulary_precision"
       ],
       "scoring_lens": "Constraint: any word a 12-year-old wouldn't recognize counts as jargon. Clarity score MUST reflect jargon density.",
-      "coach_insight": "Great reps sound like you're telling a story to a smart kid — short words, familiar objects, one step at a time. The trap: swapping one big word for another big word and calling it simple.",
+      "coach_insight": "Start with the version your listener can understand, not the version that proves how much you know. The trap: swapping one big word for another big word and calling it simple.",
       "secondary_core_skills": [
         "conciseness",
         "tone"
@@ -162,6 +162,262 @@
           "tags": [
             "tech",
             "science"
+          ]
+        },
+        {
+          "text": "Explain what a habit is and how it forms.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what anxiety feels like.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what culture shock is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what burnout is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what FOMO is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a flow state is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what stage fright is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what Instagram is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain how to drive a car.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a credit card is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain how a resume works.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what a lease is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what a password manager is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "tech"
+          ]
+        },
+        {
+          "text": "Explain what meal prepping is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what a savings account does.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what a hangover is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what intermittent fasting is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what a red flag is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a gap year is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a side effect is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "healthcare"
+          ]
+        },
+        {
+          "text": "Explain what a warranty is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what a background check is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what a guilty pleasure is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a stereotype is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a boundary is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a tab is at a bar.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what procrastination is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a budget is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "finance"
+          ]
+        },
+        {
+          "text": "Explain what an unwritten rule is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what a rite of passage is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a learning curve is.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what a milestone is.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
           ]
         }
       ]
@@ -489,6 +745,150 @@
           "tags": [
             "science"
           ]
+        },
+        {
+          "text": "Explain what it means to be in a flow state.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it feels like to be overwhelmed.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what momentum feels like.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be in your head.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be coachable.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "education"
+          ]
+        },
+        {
+          "text": "Explain what it feels like to peak too early.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to have good taste.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "creative"
+          ]
+        },
+        {
+          "text": "Explain what it means to be a people pleaser.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to have a poker face.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be ahead of your time.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "creative"
+          ]
+        },
+        {
+          "text": "Explain what it means to have a green thumb.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be a social butterfly.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be low maintenance.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it feels like to be caught off guard.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it feels like when something is overrated.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "creative"
+          ]
+        },
+        {
+          "text": "Explain what it means to be a homebody.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "Explain what it means to be ahead of the curve.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "business"
+          ]
+        },
+        {
+          "text": "Explain what it means to have a chip on your shoulder.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
         }
       ]
     },
@@ -651,6 +1051,14 @@
           "tags": [
             "healthcare",
             "current events"
+          ]
+        },
+        {
+          "text": "Explain what consulting is to a college freshman picking a major.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "business"
           ]
         }
       ]
@@ -974,6 +1382,30 @@
           "difficulty": "core",
           "tags": [
             "education"
+          ]
+        },
+        {
+          "text": "What makes someone a great listener?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "What makes a sports rivalry genuinely exciting?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "sports"
+          ]
+        },
+        {
+          "text": "What makes a flight feel bearable?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
           ]
         }
       ]
@@ -1457,6 +1889,30 @@
           "tags": [
             "leadership",
             "current events"
+          ]
+        },
+        {
+          "text": "Tell me about your day.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "What makes someone fun to travel with?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal/relationships"
+          ]
+        },
+        {
+          "text": "What makes a job worth turning down more money for?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "business"
           ]
         }
       ]

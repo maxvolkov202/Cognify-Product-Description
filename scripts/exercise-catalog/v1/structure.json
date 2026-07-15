@@ -19,7 +19,7 @@
         "priority_selection"
       ],
       "scoring_lens": "Constraint: if the response does not present exactly three supporting points, structure score MUST reflect the breach.",
-      "coach_insight": "Pick your three before you open your mouth, then close each one before starting the next. The trap is the sneaky fourth point — the 'oh, and also' that slips in near the end and dilutes the three you chose.",
+      "coach_insight": "Pick your three before you open your mouth — if you can't narrow it to three, you haven't finished thinking. Close each one before the next; the trap is the sneaky fourth point, the 'oh, and also' that dilutes the three you chose.",
       "secondary_core_skills": [
         "conciseness",
         "thinking_quality"
@@ -308,6 +308,14 @@
           "tags": [
             "leadership"
           ]
+        },
+        {
+          "text": "Tell me about a time you got lost somewhere and what happened.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
+          ]
         }
       ]
     },
@@ -464,6 +472,22 @@
           "tags": [
             "healthcare",
             "science"
+          ]
+        },
+        {
+          "text": "Is having a dog better than having a cat?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "Should people move abroad at least once in their life?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
           ]
         }
       ]
@@ -781,6 +805,14 @@
           "tags": [
             "leadership",
             "people"
+          ]
+        },
+        {
+          "text": "Convince someone to learn how to cook.",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
           ]
         }
       ]
