@@ -9,9 +9,9 @@
  *     full scoring pipeline works (not just /api/score/health).
  *   - You changed prompt rules in src/lib/ai/score.ts and want to spot
  *     voice drift.
- *   - You're verifying Phase 2 (modeContext / didWell / didntLand /
- *     nextRepFocus / primaryFocusDimension) and Phase 3 (headlineTone
- *     / nextRepHint) come back as expected.
+ *   - You're verifying the grading-v3 (v4) contract: coachFocus
+ *     (behavior/why/action), strongerVersion grounding, per-skill
+ *     feedback, headlineTone / nextRepHint.
  *
  * Usage:
  *   # against your local dev server:
@@ -89,7 +89,14 @@ async function main() {
   try {
     res = await fetch(`${BASE_URL}/api/score`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // /api/score requires an identity — same convention as the
+        // calibrate-* harnesses.
+        ...(process.env.CALIBRATION_GUEST_ID
+          ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+          : {}),
+      },
       body: JSON.stringify(PAYLOAD),
     });
   } catch (err) {
@@ -143,8 +150,8 @@ async function main() {
     `${score.dimensions?.length}`,
   );
   assert(
-    "callouts array is present",
-    Array.isArray(score.callouts) && score.callouts.length > 0,
+    "callouts array is present (empty on v4 reps)",
+    Array.isArray(score.callouts),
     `${score.callouts?.length}`,
   );
   assert(
@@ -173,46 +180,60 @@ async function main() {
     );
   }
 
-  console.log("\n=== Phase 2: didWell / didntLand / nextRepFocus ===");
+  console.log("\n=== Grading v3: coachFocus / strongerVersion / per-skill feedback ===");
   assert(
-    "didWell is an array",
-    Array.isArray(score.didWell),
-    `length ${score.didWell?.length ?? "missing"}`,
+    "coachFocus present with behavior/why/action",
+    score.coachFocus &&
+      typeof score.coachFocus.behavior === "string" &&
+      typeof score.coachFocus.why === "string" &&
+      typeof score.coachFocus.action === "string",
+    score.coachFocus ? score.coachFocus.dimension : "missing",
   );
   assert(
-    "didntLand is an array",
-    Array.isArray(score.didntLand),
-    `length ${score.didntLand?.length ?? "missing"}`,
+    "coachFocus.text composed for legacy consumers",
+    typeof score.coachFocus?.text === "string" &&
+      score.coachFocus.text.length > 0,
+    score.coachFocus?.text?.slice(0, 60),
   );
   assert(
-    "nextRepFocus is an array",
-    Array.isArray(score.nextRepFocus),
-    `length ${score.nextRepFocus?.length ?? "missing"}`,
+    "primaryFocusDimension mirrors coachFocus.dimension",
+    score.primaryFocusDimension === score.coachFocus?.dimension,
+    `${score.primaryFocusDimension} vs ${score.coachFocus?.dimension}`,
+  );
+  const dimsWithFeedback = (score.dimensions ?? []).filter(
+    (d) => typeof d.feedback === "string" && d.feedback.length > 0,
   );
   assert(
-    "primaryFocusDimension is a SkillDimension",
-    typeof score.primaryFocusDimension === "string",
-    score.primaryFocusDimension,
+    "per-skill feedback on ≥5 of 6 dimensions",
+    dimsWithFeedback.length >= 5,
+    `${dimsWithFeedback.length}/6`,
+  );
+  assert(
+    "callouts empty on v4 reps",
+    Array.isArray(score.callouts) && score.callouts.length === 0,
+    `length ${score.callouts?.length}`,
   );
 
-  // Anti-hallucination: every grounded bullet (quote !== null) must
-  // have its quote substring present in the transcript (case-insensitive).
+  // Anti-hallucination: the strongerVersion quote must be a verbatim
+  // transcript substring (this transcript is real content, so a null
+  // strongerVersion is a failure — null is only allowed for junk reps).
   const tLower = FAKE_TRANSCRIPT.toLowerCase().replace(/\s+/g, " ");
-  function checkGrounding(bullets, label) {
-    if (!Array.isArray(bullets)) return;
-    bullets.forEach((b, i) => {
-      if (b.quote == null) return;
-      const q = String(b.quote).toLowerCase().replace(/\s+/g, " ").trim();
-      const matches = q.length > 0 && tLower.includes(q);
-      assert(
-        `${label}[${i}].quote substring present in transcript`,
-        matches,
-        matches ? `"${b.quote.slice(0, 40)}…"` : `MISSING: "${b.quote}"`,
-      );
-    });
+  assert(
+    "strongerVersion present (non-junk rep)",
+    score.strongerVersion != null,
+    score.strongerVersion ? "present" : "null",
+  );
+  if (score.strongerVersion?.quote) {
+    const q = String(score.strongerVersion.quote)
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+    assert(
+      "strongerVersion.quote substring present in transcript",
+      q.length > 0 && tLower.includes(q),
+      `"${score.strongerVersion.quote.slice(0, 50)}…"`,
+    );
   }
-  checkGrounding(score.didWell, "didWell");
-  checkGrounding(score.didntLand, "didntLand");
 
   console.log("\n=== Phase 3: headlineTone + nextRepHint ===");
   assert(
@@ -261,23 +282,22 @@ async function main() {
   console.log(`headline: "${score.headline}"`);
   console.log(`tone:     ${score.headlineTone}`);
   if (score.nextRepHint) console.log(`hint:     "${score.nextRepHint}"`);
-  if (Array.isArray(score.didWell) && score.didWell.length > 0) {
-    console.log("\ndidWell:");
-    score.didWell.forEach((b, i) =>
-      console.log(`  ${i + 1}. ${b.text}${b.quote ? ` (quote: "${b.quote.slice(0, 60)}…")` : ""}`),
+  if (score.coachFocus) {
+    console.log("\ncoachFocus:");
+    console.log(`  behavior: ${score.coachFocus.behavior}`);
+    console.log(`  why:      ${score.coachFocus.why}`);
+    console.log(`  action:   ${score.coachFocus.action}`);
+    console.log(
+      `  dim:      ${score.coachFocus.dimension}${score.coachFocus.subSkill ? ` · ${score.coachFocus.subSkill}` : ""}`,
     );
   }
-  if (Array.isArray(score.didntLand) && score.didntLand.length > 0) {
-    console.log("\ndidntLand:");
-    score.didntLand.forEach((b, i) =>
-      console.log(`  ${i + 1}. ${b.text}${b.quote ? ` (quote: "${b.quote.slice(0, 60)}…")` : ""}`),
-    );
+  if (score.strongerVersion) {
+    console.log("\nstrongerVersion:");
+    console.log(`  quote:   "${score.strongerVersion.quote?.slice(0, 80)}"`);
+    console.log(`  rewrite: "${score.strongerVersion.rewrite.slice(0, 100)}"`);
   }
-  if (Array.isArray(score.nextRepFocus) && score.nextRepFocus.length > 0) {
-    console.log("\nnextRepFocus:");
-    score.nextRepFocus.forEach((b, i) =>
-      console.log(`  ${i + 1}. ${b.text}${b.exampleLine ? ` → "${b.exampleLine}"` : ""}`),
-    );
+  for (const d of score.dimensions ?? []) {
+    if (d.feedback) console.log(`  [${d.dimension} ${d.score}] ${d.feedback.slice(0, 90)}`);
   }
 
   console.log(

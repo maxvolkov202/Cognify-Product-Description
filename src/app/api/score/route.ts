@@ -371,12 +371,20 @@ function buildFallbackScore(
     modelVersion: "mock-fallback-v1",
     rubricVersion: RUBRIC_VERSION,
     headline: mockFallbackHeadline(compositeScore),
-    // Phase 2 fields are absent in mock mode — the FeedbackPanel falls
-    // back to Phase 1 client-side derivation from callouts. Empty arrays
-    // are intentional: don't manufacture bullets we can't ground.
-    didWell: [],
-    didntLand: [],
-    nextRepFocus: [],
+    // Grading v3 — a canned Coach's Focus so the feedback surface keeps
+    // its Score → Focus → Breakdown shape even in mock mode. saveRep
+    // skips the coaching-ledger write for mock scores, so this never
+    // pollutes coaching history. strongerVersion stays null — we can't
+    // ground a rewrite without a real model pass.
+    coachFocus: {
+      dimension: "clarity" as const,
+      subSkill: null,
+      behavior: "Scoring ran in offline mode, so this rep has no AI coaching.",
+      why: "The deterministic timing metrics below are real; the language dimensions are placeholders.",
+      action: "Re-record when scoring is back to get a real Coach's Focus.",
+      text: "Re-record when scoring is back to get a real Coach's Focus.",
+    },
+    strongerVersion: null,
     primaryFocusDimension: "clarity" as const,
     // Phase 3 calibration scaffold: pick the band that matches mock
     // composite. nextRepHint omitted — UI falls back to static copy.ts.

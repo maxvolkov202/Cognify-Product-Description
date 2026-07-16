@@ -441,8 +441,12 @@ export type RepScore = {
  *  - v2.1.0 adds `headlineTone` calibration scaffold and `nextRepHint`
  *    AI-generated banner tail.
  *  - v3.0.0 swaps Adaptability → Tone, locks DIMENSION_WEIGHTS and
- *    BAND_DEFINITIONS to DNA spec. */
-export const FEEDBACK_VERSION = "v3.0.0";
+ *    BAND_DEFINITIONS to DNA spec.
+ *  - v4.0.0 (grading v3, PRD §4.5-4.6 clean break): model emits
+ *    `coachFocus` (behavior/why/action) + `strongerVersion` + per-skill
+ *    `dimensions[].feedback`; callouts/didWell/didntLand/nextRepFocus
+ *    leave the model output (empty/absent on new reps, legacy-read only). */
+export const FEEDBACK_VERSION = "v4.0.0";
 
 export type FrameworkNode = {
   id: string;
