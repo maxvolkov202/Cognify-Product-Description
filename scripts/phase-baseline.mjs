@@ -159,7 +159,15 @@ async function scoreOne(rep, opts = {}) {
   const t0 = Date.now();
   const res = await fetch(`${BASE_URL}${SCORE_ENDPOINT}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      // /api/score requires an auth or guest identity (the open-curl
+      // vector was closed post-Phase-1) — same convention as the
+      // calibrate-* harnesses.
+      ...(process.env.CALIBRATION_GUEST_ID
+        ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+        : {}),
+    },
     body: JSON.stringify(body),
   });
   const clientLatencyMs = Date.now() - t0;
