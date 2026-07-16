@@ -281,7 +281,9 @@ async function main() {
     const latencies = armRuns.map((r) => r.latencyMs).sort((a, b) => a - b);
     const sanityArm = sanity.filter((s) => s.arm === arm);
     const sanityDeltas = sanityArm.map((s) => {
-      const composite = (s.dims.clarity + s.dims.structure + s.dims.conciseness + s.dims.thinking_quality + s.dims.delivery + s.dims.tone) / 6;
+      const composite =
+        ((s.dims.clarity ?? 0) + (s.dims.structure ?? 0) + (s.dims.conciseness ?? 0) +
+          (s.dims.thinking_quality ?? 0) + (s.dims.delivery ?? 0) + (s.dims.tone ?? 0)) / 6;
       return Math.abs(composite - s.expected);
     });
 

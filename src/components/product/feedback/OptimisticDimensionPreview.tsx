@@ -20,53 +20,18 @@ import { cn } from "@/lib/utils/cn";
  */
 
 type Props = {
-  /** Dim scores known so far. Phase 2 path: 2 deterministic dims
-   *  (delivery + thinking_quality). Phase 5 path: all 6 dims from
-   *  /api/score/stage1. Cards without a score render as shimmer. */
+  /** Dim scores known so far — the 2 deterministic dims (delivery +
+   *  thinking_quality) computed client-side from word timings. Cards
+   *  without a score render as shimmer. */
   optimisticDims: DimensionScore[];
-  /** Phase 5 — when stage 1 has landed, all 6 dims are populated so
-   *  we show a composite + "writing your feedback…" headline strip
-   *  above the grid. Optional so the Phase 2 path keeps its existing
-   *  shape (no header, just 2 cards + shimmer). */
-  stage1Header?: {
-    composite: number;
-    headlineTone: "blunt" | "directive" | "praise" | "celebratory";
-  };
 };
 
-export function OptimisticDimensionPreview({
-  optimisticDims,
-  stage1Header,
-}: Props) {
+export function OptimisticDimensionPreview({ optimisticDims }: Props) {
   const scoreByDim = new Map<SkillDimension, DimensionScore>();
   for (const d of optimisticDims) scoreByDim.set(d.dimension, d);
 
   return (
     <div className="space-y-4">
-      {stage1Header && (
-        <div className="rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-ink-400 dark:text-ink-500">
-                This rep
-              </div>
-              <div className="mt-0.5 text-2xl font-extrabold text-ink-900 dark:text-white">
-                {Math.round(stage1Header.composite)}
-                <span className="ml-1 text-base font-semibold text-ink-400 dark:text-ink-500">/100</span>
-              </div>
-            </div>
-            <div className="text-right text-xs text-ink-500 dark:text-ink-400">
-              <div className="inline-flex items-center gap-2 rounded-full bg-ink-50 dark:bg-ink-800 px-3 py-1 font-medium text-ink-700 dark:text-ink-200">
-                <span className="size-1.5 animate-pulse rounded-full bg-brand-purple" />
-                Writing your detailed feedback…
-              </div>
-              <div className="mt-1 text-[11px] text-ink-400 dark:text-ink-500">
-                Headline tone: {stage1Header.headlineTone}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
         {SKILL_DIMENSIONS.map((dim, i) => {
           const real = scoreByDim.get(dim);

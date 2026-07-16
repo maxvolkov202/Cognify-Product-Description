@@ -123,8 +123,8 @@ const nextRepFocusItemSchema = feedbackBulletSchema.extend({
   exampleLine: z.string().max(360).nullable(),
 });
 
-/** PRD v3 engine — the shared implementationReview schema (single-call
- *  path here + stage-2 in score-stages.ts). Present only on retry reps.
+/** PRD v3 engine — the implementationReview schema. Present only on
+ *  retry reps.
  *
  *  Phase 15 I-8 — `technique`: which coaching technique the coached
  *  focus used (taxonomy: CoachingTechnique in coach-focus.ts). LENIENT
@@ -815,8 +815,7 @@ export function renderRetryEvaluationBlock(
 }
 
 /** PRD v3 §7.5 — the EVENT CONTEXT block for Build a Rep preparation
- *  reps. Shared by the single-call path (via renderModeBlock) and the
- *  two-stage path (prepareContext in score-stages.ts), mirroring
+ *  reps (rendered via renderModeBlock), mirroring
  *  renderRetryEvaluationBlock exactly. Returns null when the rep isn't
  *  a prep rep, keeping non-prep prompts byte-identical — this is the
  *  calibration guardrail: reference runs never carry eventContext. */

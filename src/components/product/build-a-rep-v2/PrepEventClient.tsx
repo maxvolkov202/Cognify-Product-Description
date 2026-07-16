@@ -1254,8 +1254,8 @@ function SimulationView({
   onMomentTitleChange: (momentId: string, title: string) => void;
 }) {
   // L10 — the binding constraint on simulation length is the score
-  // routes' durationMs ceiling (1_500_000ms = 25 min in /api/score +
-  // /api/score/twostage bodySchema), NOT the plan schema's 30-min
+  // route's durationMs ceiling (1_500_000ms = 25 min in /api/score's
+  // bodySchema), NOT the plan schema's 30-min
   // recommendedDurationSec cap. Clamp everything to 25 min so a long
   // recommendation can't silently truncate mid-rep or fail scoring.
   const SIM_MAX_SEC = 1500; // 25 min — score-route durationMs ceiling

@@ -69,8 +69,8 @@ export default async function PerExerciseDriftPage() {
           <p className="text-sm text-ink-500">
             No scoring telemetry with an exercise_id in the last 30 days.
             This view populates once muscle-group reps start landing
-            through the staged scoring path (
-            <code className="rounded bg-ink-100 px-1">/api/score/twostage</code>
+            through the scoring path (
+            <code className="rounded bg-ink-100 px-1">/api/score</code>
             ).
           </p>
         </section>
