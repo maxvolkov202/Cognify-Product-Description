@@ -7,9 +7,12 @@ import {
   reps,
   dimensionScores,
   callouts as calloutsTable,
+  coachingEvents,
   progressSnapshots,
 } from "@/lib/db/schema";
 import { scoreRepWithMetrics } from "@/lib/ai/score";
+import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import { buildFeedbackDoc } from "@/lib/scoring/feedback-doc";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { encodeDimensionSignals } from "@/lib/scoring/signals";
 import {
@@ -149,8 +152,37 @@ export async function POST(req: Request) {
     // running averages defeats the calibration drift surface that's
     // supposed to catch this exact problem.
     const isMockFallback = score.modelVersion === "mock-fallback-v1";
+    // Grading v3 — async write parity with saveRep: persist the Coach's
+    // Focus + doc-shaped feedback on the rep row so async reps drive the
+    // retry flow and read back losslessly.
+    const coachFocus = isMockFallback ? null : deriveCoachFocus(score);
+    const feedbackDoc = buildFeedbackDoc(score);
     let calloutIds: string[] = [];
     await db.transaction(async (tx) => {
+      if (coachFocus || feedbackDoc) {
+        await tx
+          .update(reps)
+          .set({
+            ...(coachFocus
+              ? {
+                  coachFocus: {
+                    dimension: coachFocus.dimension,
+                    subSkill: coachFocus.subSkill,
+                    text: coachFocus.text,
+                    ...(coachFocus.behavior
+                      ? { behavior: coachFocus.behavior }
+                      : {}),
+                    ...(coachFocus.why ? { why: coachFocus.why } : {}),
+                    ...(coachFocus.action
+                      ? { action: coachFocus.action }
+                      : {}),
+                  },
+                }
+              : {}),
+            ...(feedbackDoc ? { feedback: feedbackDoc } : {}),
+          })
+          .where(eq(reps.id, body.repId));
+      }
       if (score.dimensions.length > 0) {
         await tx.insert(dimensionScores).values(
           score.dimensions.map((d) => ({
@@ -205,6 +237,29 @@ export async function POST(req: Request) {
         repId: body.repId,
         msg: "progressSnapshots write skipped",
       });
+    }
+
+    // Grading v3 — async retry-ledger parity with saveRep: one
+    // coaching_events row per delivered Coach's Focus. Best-effort
+    // (never fails the scoring response); guests/anonymous rows are
+    // skipped like the sync path.
+    if (coachFocus && rep.userId) {
+      try {
+        await db.insert(coachingEvents).values({
+          userId: rep.userId,
+          repId: body.repId,
+          dimension: coachFocus.dimension,
+          subSkill: coachFocus.subSkill,
+          focusText: coachFocus.text,
+          technique: coachFocus.technique ?? null,
+        });
+      } catch (err) {
+        log.warn({
+          event: "score_internal.coaching_event_failed",
+          repId: body.repId,
+          err: serializeErr(err),
+        });
+      }
     }
 
     // Phase 0 — happy-path telemetry. score-internal always has repId

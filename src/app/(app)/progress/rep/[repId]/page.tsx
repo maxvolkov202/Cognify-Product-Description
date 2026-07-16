@@ -36,10 +36,22 @@ export default async function RepDetailPage({ params }: { params: Params }) {
     day: "numeric",
     year: "numeric",
   });
-  const lead =
+  // Grading v3 reps persist the Coach's Focus + Stronger Version
+  // first-class; legacy rows fall back to the worst callout.
+  const legacyLead =
     rep.callouts.find((c) => c.tone === "warn" || c.tone === "critical") ??
     rep.callouts[0] ??
     null;
+  const lead = rep.coachFocus
+    ? {
+        title: rep.coachFocus.behavior ?? rep.coachFocus.text,
+        body: rep.coachFocus.why
+          ? `${rep.coachFocus.why}${rep.coachFocus.action ? ` On your next rep: ${rep.coachFocus.action}` : ""}`
+          : rep.coachFocus.action ?? rep.coachFocus.text,
+        quote: rep.feedback?.strongerVersion?.quote ?? null,
+        suggestedRewrite: rep.feedback?.strongerVersion?.rewrite ?? null,
+      }
+    : legacyLead;
   const wins = rep.callouts.filter((c) => c.tone === "positive").slice(0, 3);
 
   return (

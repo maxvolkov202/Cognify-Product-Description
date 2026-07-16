@@ -303,6 +303,30 @@ export type RepWithDetails = RecentRep & {
     suggestedRewrite: string | null;
   }[];
   transcript: string | null;
+  /** Grading v3 — the persisted Coach's Focus (null on pre-v4 rows). */
+  coachFocus: {
+    dimension: string;
+    subSkill?: string | null;
+    text: string;
+    behavior?: string;
+    why?: string;
+    action?: string;
+  } | null;
+  /** Grading v3 — the persisted feedback doc (null on pre-v4 rows). */
+  feedback: {
+    version: string;
+    headline?: string;
+    strongerVersion?: { quote: string | null; rewrite: string } | null;
+    skillFeedback?: Record<
+      string,
+      { feedback: string; subSkill?: string | null }
+    >;
+    implementationReview?: {
+      verdict: string;
+      note?: string;
+      technique?: string;
+    } | null;
+  } | null;
 };
 
 export async function getRepWithDetails(
@@ -343,6 +367,8 @@ export async function getRepWithDetails(
         suggestedRewrite: c.suggestedRewrite,
       })),
       transcript,
+      coachFocus: row.coachFocus ?? null,
+      feedback: row.feedback ?? null,
     };
   }, null);
 }

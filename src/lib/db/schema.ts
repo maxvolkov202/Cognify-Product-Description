@@ -340,12 +340,38 @@ export const reps = cognifyV2Schema.table(
       onDelete: "set null",
     }),
     // The Coach's Focus this rep RECEIVED after scoring:
-    // { dimension, subSkill?, text }. Written post-scoring; read by the
-    // retry flow + Phase 3 coaching memory.
+    // { dimension, subSkill?, text } (+ behavior/why/action on grading-v3
+    // reps — jsonb, no SQL migration needed). Written post-scoring; read
+    // by the retry flow + coaching memory.
     coachFocus: jsonb("coach_focus").$type<{
       dimension: string;
       subSkill?: string | null;
       text: string;
+      behavior?: string;
+      why?: string;
+      action?: string;
+    }>(),
+    // Grading v3 (migration 0042) — the render-shaped feedback document
+    // so async reps and the progress rep page reconstruct the FULL
+    // doc-shaped RepScore (headline, Stronger Version, per-skill
+    // feedback) instead of the lossy composite+callouts view. Absent on
+    // pre-v4 rows.
+    feedback: jsonb("feedback").$type<{
+      version: string;
+      headline?: string;
+      headlineTone?: string;
+      strongerVersion?: { quote: string | null; rewrite: string } | null;
+      nextRepHint?: string;
+      /** Keyed by dimension id. */
+      skillFeedback?: Record<
+        string,
+        { feedback: string; subSkill?: string | null }
+      >;
+      implementationReview?: {
+        verdict: string;
+        note?: string;
+        technique?: string;
+      } | null;
     }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
