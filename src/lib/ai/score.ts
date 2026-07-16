@@ -1371,7 +1371,11 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
       ? { structuralAdherence: validated.structuralAdherence }
       : {}),
     callouts: validated.callouts,
-    modelVersion: MODEL_VERSIONS.scoring,
+    // Grading v3 (3.2) — record the ACTUAL serving model (already
+    // provider-tagged by the shim: "gpt-4o", "openai-fallback:gpt-4o",
+    // "anthropic-fallback:claude-…"), not the role constant that used
+    // to misreport gpt-4o reps as claude-scored.
+    modelVersion: callMetrics.modelUsed ?? MODEL_VERSIONS.scoring,
     rubricVersion: RUBRIC_VERSION,
     headline: validated.headline,
     didWell: sanitizedDidWell,
