@@ -521,7 +521,9 @@
           "delivery": 30,
           "tone": 50
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -598,7 +600,9 @@
           "delivery": 80,
           "tone": 80
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -618,7 +622,9 @@
           "delivery": 38,
           "tone": 50
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -695,7 +701,9 @@
           "delivery": 80,
           "tone": 80
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -715,7 +723,9 @@
           "delivery": 50,
           "tone": 55
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -792,7 +802,9 @@
           "delivery": 80,
           "tone": 80
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -817,7 +829,9 @@
           "word_choice": 18,
           "concreteness": 22
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -894,7 +908,9 @@
           "delivery": 55,
           "tone": 55
         },
-        "untestableDimensions": ["tone"]
+        "untestableDimensions": [
+          "tone"
+        ]
       }
     },
     {
@@ -953,6 +969,256 @@
           "tone": 75
         }
       }
+    },
+    {
+      "id": "audio-tone__band-strong-clean-pitch__flat",
+      "kind": "audio-tone",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "durationMs": 22300,
+      "localAudioFile": "tests/fixtures/audio-grading/band-strong-clean-pitch__flat.wav",
+      "storagePath": "calibration-audio/band-strong-clean-pitch__flat.wav",
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__band-strong-clean-pitch__expressive",
+      "kind": "audio-tone",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "durationMs": 22300,
+      "localAudioFile": "tests/fixtures/audio-grading/band-strong-clean-pitch__expressive.mp3",
+      "storagePath": "calibration-audio/band-strong-clean-pitch__expressive.mp3",
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 70,
+          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__band-strong-clean-pitch__rushed",
+      "kind": "audio-tone",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "durationMs": 15400,
+      "localAudioFile": "tests/fixtures/audio-grading/band-strong-clean-pitch__rushed.mp3",
+      "storagePath": "calibration-audio/band-strong-clean-pitch__rushed.mp3",
+      "assertions": []
+    },
+    {
+      "id": "audio-tone__band-competent-okay-pitch__flat",
+      "kind": "audio-tone",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "durationMs": 19600,
+      "localAudioFile": "tests/fixtures/audio-grading/band-competent-okay-pitch__flat.wav",
+      "storagePath": "calibration-audio/band-competent-okay-pitch__flat.wav",
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__band-competent-okay-pitch__expressive",
+      "kind": "audio-tone",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "durationMs": 19600,
+      "localAudioFile": "tests/fixtures/audio-grading/band-competent-okay-pitch__expressive.mp3",
+      "storagePath": "calibration-audio/band-competent-okay-pitch__expressive.mp3",
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 70,
+          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__band-competent-okay-pitch__rushed",
+      "kind": "audio-tone",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "promptText": "Pitch your product to a CFO in 30 seconds.",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "durationMs": 15000,
+      "localAudioFile": "tests/fixtures/audio-grading/band-competent-okay-pitch__rushed.mp3",
+      "storagePath": "calibration-audio/band-competent-okay-pitch__rushed.mp3",
+      "assertions": []
+    },
+    {
+      "id": "audio-tone__qa-strong-pricing-question__flat",
+      "kind": "audio-tone",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "promptText": "Why are you priced thirty percent higher than your nearest competitor?",
+      "transcript": "Two answers — value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year — that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "durationMs": 34200,
+      "localAudioFile": "tests/fixtures/audio-grading/qa-strong-pricing-question__flat.wav",
+      "storagePath": "calibration-audio/qa-strong-pricing-question__flat.wav",
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__qa-strong-pricing-question__expressive",
+      "kind": "audio-tone",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "promptText": "Why are you priced thirty percent higher than your nearest competitor?",
+      "transcript": "Two answers — value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year — that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "durationMs": 34200,
+      "localAudioFile": "tests/fixtures/audio-grading/qa-strong-pricing-question__expressive.mp3",
+      "storagePath": "calibration-audio/qa-strong-pricing-question__expressive.mp3",
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 70,
+          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__qa-strong-pricing-question__rushed",
+      "kind": "audio-tone",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "promptText": "Why are you priced thirty percent higher than your nearest competitor?",
+      "transcript": "Two answers — value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year — that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "durationMs": 23300,
+      "localAudioFile": "tests/fixtures/audio-grading/qa-strong-pricing-question__rushed.mp3",
+      "storagePath": "calibration-audio/qa-strong-pricing-question__rushed.mp3",
+      "assertions": []
+    },
+    {
+      "id": "audio-tone__interview-competent-tell-me-about-yourself__flat",
+      "kind": "audio-tone",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "promptText": "Tell me about yourself.",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite — that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "durationMs": 29300,
+      "localAudioFile": "tests/fixtures/audio-grading/interview-competent-tell-me-about-yourself__flat.wav",
+      "storagePath": "calibration-audio/interview-competent-tell-me-about-yourself__flat.wav",
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__interview-competent-tell-me-about-yourself__expressive",
+      "kind": "audio-tone",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "promptText": "Tell me about yourself.",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite — that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "durationMs": 29300,
+      "localAudioFile": "tests/fixtures/audio-grading/interview-competent-tell-me-about-yourself__expressive.mp3",
+      "storagePath": "calibration-audio/interview-competent-tell-me-about-yourself__expressive.mp3",
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 70,
+          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__interview-competent-tell-me-about-yourself__rushed",
+      "kind": "audio-tone",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "promptText": "Tell me about yourself.",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite — that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "durationMs": 24100,
+      "localAudioFile": "tests/fixtures/audio-grading/interview-competent-tell-me-about-yourself__rushed.mp3",
+      "storagePath": "calibration-audio/interview-competent-tell-me-about-yourself__rushed.mp3",
+      "assertions": []
+    },
+    {
+      "id": "audio-tone__persuasive-strong-budget-cut-defense__flat",
+      "kind": "audio-tone",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "promptText": "Defend a budget reallocation that cuts a popular internal R&D project.",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability — we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment — it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "durationMs": 43700,
+      "localAudioFile": "tests/fixtures/audio-grading/persuasive-strong-budget-cut-defense__flat.wav",
+      "storagePath": "calibration-audio/persuasive-strong-budget-cut-defense__flat.wav",
+      "assertions": [
+        {
+          "kind": "maxScore",
+          "dimension": "tone",
+          "max": 55,
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__persuasive-strong-budget-cut-defense__expressive",
+      "kind": "audio-tone",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "promptText": "Defend a budget reallocation that cuts a popular internal R&D project.",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability — we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment — it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "durationMs": 43700,
+      "localAudioFile": "tests/fixtures/audio-grading/persuasive-strong-budget-cut-defense__expressive.mp3",
+      "storagePath": "calibration-audio/persuasive-strong-budget-cut-defense__expressive.mp3",
+      "assertions": [
+        {
+          "kind": "minScore",
+          "dimension": "tone",
+          "min": 70,
+          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+        }
+      ]
+    },
+    {
+      "id": "audio-tone__persuasive-strong-budget-cut-defense__rushed",
+      "kind": "audio-tone",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "promptText": "Defend a budget reallocation that cuts a popular internal R&D project.",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability — we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment — it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "durationMs": 32700,
+      "localAudioFile": "tests/fixtures/audio-grading/persuasive-strong-budget-cut-defense__rushed.mp3",
+      "storagePath": "calibration-audio/persuasive-strong-budget-cut-defense__rushed.mp3",
+      "assertions": []
     }
   ]
 }

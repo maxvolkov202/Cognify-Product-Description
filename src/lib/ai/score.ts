@@ -301,27 +301,6 @@ function isDeterministicSignalsOn(userId: string | undefined): boolean {
   return hash.readUInt32BE(0) % 100 < percent;
 }
 
-/** Ch.13 — Band-anchors gate. Same two-knob shape as
- *  isDeterministicSignalsOn so a single user's bucket assignment is
- *  consistent across both rollouts (different env hashes; correlation
- *  is fine). When on, the score prompt's RUBRIC block carries the 30
- *  per-dim band anchors; off path renders the legacy rubric. The
- *  switch is pure path — no scoring math change, but the prompt size
- *  grows, so cache_control buys us back the latency cost on
- *  subsequent calls. */
-function isBandAnchorsOn(userId: string | undefined): boolean {
-  if (process.env.FF_BAND_ANCHORS !== "true") return false;
-  const percent = parseInt(
-    process.env.FF_BAND_ANCHORS_PERCENT ?? "0",
-    10,
-  );
-  if (Number.isNaN(percent) || percent <= 0) return false;
-  if (percent >= 100) return true;
-  if (!userId) return false;
-  const hash = createHash("sha256").update(`band-anchors::${userId}`).digest();
-  return hash.readUInt32BE(0) % 100 < percent;
-}
-
 function renderTimedTranscript(
   transcript: string,
   words?: { word: string; startMs: number; endMs: number }[],
@@ -460,9 +439,9 @@ NEXT REP HINT:
  * the system prompt under ~3KB after caching.
  *
  * Ch.13 — when `withAnchors=true`, interleaves the per-dim band anchors
- * from `rubric-anchors.ts`. The anchored variant is cached separately
- * and rendered into the score prompt only when FF_BAND_ANCHORS is on,
- * so the legacy prompt + cache key stays untouched on the off path.
+ * from `rubric-anchors.ts`. Since rubric v4.0.0 the anchored variant is
+ * the only one rendered (band compression on gpt-4o without it); the
+ * FF_BAND_ANCHORS gate is retired.
  */
 const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "clarity",
@@ -502,7 +481,6 @@ High: ${r.highScoreSignals.slice(0, 3).join("; ")}${anchorBlock}`;
 // variants: the legacy (no band anchors) and the Ch.13 anchored
 // version. Both are kept warm so the FF flip is a pure path switch
 // with no first-request render cost.
-const COMPACT_RUBRIC = renderRubric(false);
 const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
 const SUB_SKILL_REFERENCE = renderSubSkillReference();
 /** Taxonomy v2 — definition blocks are pure module data; precompute the
@@ -937,15 +915,15 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     signalsBlock = renderTextSignalsBlock(textSignals);
   }
 
-  // Ch.13 — Band-anchors gate. When on, the cached rubric block in the
-  // system prompt carries the 30 per-dim band anchors. Off path keeps
-  // the legacy compact rubric — and an unchanged cache_control key for
-  // the system prompt block — so untouched users see no latency
-  // regression while the anchors ramp.
-  const bandAnchorsOn = isBandAnchorsOn(input.userId);
-  const rubricBlock = bandAnchorsOn
-    ? COMPACT_RUBRIC_WITH_ANCHORS
-    : COMPACT_RUBRIC;
+  // Grading v3 (rubric v4.0.0) — band anchors are UNCONDITIONAL. The
+  // Ch.13 FF_BAND_ANCHORS ramp never left 0%, and the v4.0.0 replay
+  // without anchors showed severe band compression on gpt-4o (the
+  // reference exceptional rep scored 62; everything clustered 40–65),
+  // which breaks the PRD band semantics users see. The anchors give
+  // the model concrete band placement ("pick the band first, then the
+  // score within it"); expectations in reference-reps.json are
+  // authored against the anchored prompt.
+  const rubricBlock = COMPACT_RUBRIC_WITH_ANCHORS;
 
   // Phase 4 — RAG retrieval. Embed the transcript, fetch top-K chunks
   // from pgvector, inject as supplemental anchors in the user prompt.

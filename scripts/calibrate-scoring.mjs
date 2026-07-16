@@ -81,7 +81,14 @@ async function scoreOne(rep) {
 
   const res = await fetch(`${BASE_URL}/api/score`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      // /api/score requires an identity — same convention as the
+      // phase-baseline / verify-scoring harnesses.
+      ...(process.env.CALIBRATION_GUEST_ID
+        ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+        : {}),
+    },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -198,7 +205,12 @@ function yellow(s) { return colored(s, "33"); }
 function dim(s) { return colored(s, "90"); }
 
 async function main() {
-  const allReps = loadReferenceReps();
+  const loaded = loadReferenceReps();
+  // audio-tone reps need their clip served over HTTP + the prosody
+  // worker running — that's scripts/calibrate-audio-tone.mjs's job.
+  // Scoring them here would silently text-grade tone and fail.
+  const allReps = loaded.filter((r) => r.kind !== "audio-tone");
+  const audioSkipped = loaded.length - allReps.length;
   const reps = FILTER ? allReps.filter((r) => r.id.includes(FILTER)) : allReps;
 
   if (reps.length === 0) {
@@ -209,7 +221,7 @@ async function main() {
   if (!JSON_OUT) {
     console.log(`\nCognify calibration harness`);
     console.log(`Target: ${BASE_URL}`);
-    console.log(`Reference reps: ${reps.length}${FILTER ? ` (filter: ${FILTER})` : ""}`);
+    console.log(`Reference reps: ${reps.length}${FILTER ? ` (filter: ${FILTER})` : ""}${audioSkipped ? ` (${audioSkipped} audio-tone reps skipped — run calibrate-audio-tone.mjs)` : ""}`);
     console.log(`Tolerance: ±${TOLERANCE} per dimension and composite\n`);
   }
 

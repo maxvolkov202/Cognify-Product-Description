@@ -128,13 +128,16 @@ const OPENAI_TIMEOUT_MS = parseInt(
   10,
 );
 /** When OpenAI is the PRIMARY provider (AI_PROVIDER=openai), the 15s
- *  fallback budget is too tight: gpt-4o serves the full scoring payload
- *  in ~14-22s, so primary calls were timing out at the boundary and
- *  cascading to a dead Anthropic fallback → mock scores (observed on
- *  prod 2026-07-15). Primary role gets a wider budget; both scoring
- *  routes run with maxDuration=120 so 45s leaves ample headroom. */
+ *  fallback budget is too tight — primary calls were timing out at the
+ *  boundary and cascading to a dead Anthropic fallback → mock scores
+ *  (observed on prod 2026-07-15 under the pre-v4 ~2400-token output;
+ *  temporarily widened to 45s). The v4 contract slimmed output to
+ *  ~1200 tokens: measured model p95 is 11.2s
+ *  (plans/baselines/phase-grading-v3-post.json), so 25s gives >2×
+ *  headroom while leaving room for the Anthropic fallback (20s) inside
+ *  the scoring routes' maxDuration budget. */
 const OPENAI_PRIMARY_TIMEOUT_MS = parseInt(
-  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "45000",
+  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "25000",
   10,
 );
 /** Grading v3 (3.2) — Anthropic AS FALLBACK needs its own budget. The 5s
