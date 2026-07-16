@@ -72,6 +72,23 @@ Deno.serve(async (req) => {
     const timeBudgetMs = snapshot["timeBudgetMs"] as number | undefined;
     const words = snapshot["words"] as Array<{ word: string; startMs: number; endMs: number }> | undefined;
 
+    // Grading v3 (3.5/D22) — mint a signed URL for the rep's audio so the
+    // scoring pipeline's prosody worker can extract pitch/monotone/volume
+    // features. Before this, async reps carried NO audio evidence and
+    // tone was graded text-only. Best-effort: a signing failure degrades
+    // to the text tier, never blocks scoring.
+    let audioUrl: string | undefined;
+    if (claimed.audio_url) {
+      try {
+        const { data: signed } = await admin.storage
+          .from("rep-audio")
+          .createSignedUrl(claimed.audio_url as string, SIGNED_URL_TTL_SECONDS);
+        audioUrl = signed?.signedUrl ?? undefined;
+      } catch {
+        audioUrl = undefined;
+      }
+    }
+
     // 3. Call back into Next.js for the actual Claude scoring. The internal
     //    endpoint handles knowledge base, rubric, and writes dimension_scores
     //    + callouts + progress_snapshots.
@@ -90,6 +107,7 @@ Deno.serve(async (req) => {
         frameworkId,
         frameworkNodes,
         words,
+        audioUrl,
       }),
     });
 

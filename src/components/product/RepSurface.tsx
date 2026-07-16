@@ -324,6 +324,52 @@ export function RepSurface({
     }
   }, [phase, repStatus.status, onComplete, sessionId]);
 
+  // Grading v3 (3.5) — async watchdog. Realtime can silently drop the
+  // subscription, which used to strand the user on the spinner forever.
+  // At T+60s poll getRepResult once (covers a missed 'completed' event);
+  // at T+120s (edge-fn + route budget exhausted) surface the error phase
+  // with the recording intact. Timers clear whenever the phase moves on
+  // (the effect re-runs on any phase change).
+  useEffect(() => {
+    if (phase.kind !== "processing-async") return;
+    const asyncPhase = phase;
+    const poll = setTimeout(async () => {
+      const fetched = await getRepResult(asyncPhase.repId);
+      if (fetched?.status === "completed" && fetched.score) {
+        setPhase({
+          kind: "done",
+          score: fetched.score,
+          recording: asyncPhase.recording,
+          transcript: asyncPhase.transcript,
+          words: asyncPhase.words,
+          repId: asyncPhase.repId,
+          calloutIds: fetched.calloutIds,
+          gate: null,
+        });
+        onComplete?.({
+          score: fetched.score,
+          recording: asyncPhase.recording,
+          repId: asyncPhase.repId,
+          sessionId: sessionId ?? asyncPhase.repId,
+          transcript: asyncPhase.transcript,
+          words: asyncPhase.words,
+        });
+      }
+    }, 60_000);
+    const giveUp = setTimeout(() => {
+      setPhase({
+        kind: "error",
+        message:
+          "Scoring is taking longer than expected. Your recording is saved — tap Retry to score again.",
+        recording: asyncPhase.recording,
+      });
+    }, 120_000);
+    return () => {
+      clearTimeout(poll);
+      clearTimeout(giveUp);
+    };
+  }, [phase, onComplete, sessionId]);
+
   useEffect(() => {
     if (!framework || revealFrameworkAfterMs <= 0) {
       setFrameworkVisible(true);

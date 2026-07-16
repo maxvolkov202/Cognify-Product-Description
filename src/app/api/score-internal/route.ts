@@ -87,6 +87,9 @@ export async function POST(req: Request) {
     exerciseId: z.string().uuid().optional(),
     muscleGroupDayId: z.string().uuid().optional(),
     isGraduationRep: z.boolean().optional(),
+    // Grading v3 (D22) — signed URL for the rep's audio so the prosody
+    // worker can ground tone/delivery. Optional; absent = text tier.
+    audioUrl: z.string().url().optional(),
   });
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -123,6 +126,7 @@ export async function POST(req: Request) {
       frameworkNodes: body.frameworkNodes,
       words: body.words,
       userCalibration: body.userCalibration ?? null,
+      ...(body.audioUrl ? { audioUrl: body.audioUrl } : {}),
       ...(rep.userId ? { userId: rep.userId } : {}),
       ...(frameworkWeights ? { weights: frameworkWeights } : {}),
       // Phase 8 — surface the muscle-group exercise context to scoring.
