@@ -3,10 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RefreshCw, ArrowRight, Target } from "lucide-react";
 import type { RepType } from "@/lib/ai/rep-types";
-import {
-  refreshRepPromptObjects,
-  refreshPressurePromptObjects,
-} from "@/lib/ai/workout-prompts";
+import { fetchPromptCandidates } from "@/server/actions/prompt-selection";
 import type { PressureArchetype } from "@/lib/ai/pressure-archetypes";
 import { PressureRepIndicator } from "./PressureRepIndicator";
 import { CircleTimer } from "./CircleTimer";
@@ -16,10 +13,14 @@ import {
   type RepFocusContext,
   type SkillDimension,
 } from "@/types/domain";
-import type { SessionType } from "@/lib/ai/workout-prompts";
+import type { SessionType } from "@/lib/workout/lab-plan";
 
 type Props = {
   repType: RepType;
+  /** Catalog exercise (exercises.id) feeding this slot. Refresh re-slates
+   *  from this exercise via the prompt-selection picker (Phase 2B.3 —
+   *  the client-side banks are retired). Refresh is hidden when null. */
+  exerciseId?: string | null;
   initialPrompts: string[];
   /** Stable prompt ids parallel to `initialPrompts` (lockstep). When the
    *  user picks index i, the parent gets initialPromptIds[i] so it can
@@ -76,6 +77,7 @@ type Props = {
  */
 export function WorkoutPromptSelect({
   repType,
+  exerciseId,
   initialPrompts,
   initialPromptIds,
   excludePromptIds,
@@ -92,6 +94,10 @@ export function WorkoutPromptSelect({
   const [promptIds, setPromptIds] = useState<string[]>(initialPromptIds ?? []);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Every prompt id shown in THIS component instance (across refreshes),
+  // so a refresh never re-serves a slate the user just rejected.
+  const shownIdsRef = useRef<Set<string>>(new Set(initialPromptIds ?? []));
 
   // Telemetry: fire 'shown' when a slate first renders, and on every
   // refresh. Idempotent enough — duplicate sends don't corrupt aggregate
@@ -146,28 +152,49 @@ export function WorkoutPromptSelect({
     ? "Read the prompt carefully before you start — the pressure is baked in."
     : repType.behavior;
 
-  function handleRefresh() {
-    const opts = excludePromptIds ? { excludeIds: excludePromptIds } : {};
-    const refreshed = pressureArchetype
-      ? refreshPressurePromptObjects(pressureArchetype.id, opts)
-      : refreshRepPromptObjects(repType.id, opts);
-    // Telemetry: the just-shown ids that the user is dropping count as
-    // refreshed_past — strong negative engagement signal vs. low pick
-    // rate alone. Fire BEFORE swapping state so we catch them.
-    if (promptIds.length > 0) {
-      void fetch("/api/prompt-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "refreshed_past",
-          promptIds,
-        }),
-      }).catch(() => {});
+  async function handleRefresh() {
+    // Phase 2B.3 (D23): refresh re-slates from the slot's catalog
+    // exercise — same training objective, new topics (PRD §9.3/§9.4.2).
+    if (!exerciseId || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const seen = [
+        ...(excludePromptIds ?? []),
+        ...shownIdsRef.current,
+      ];
+      const result = await fetchPromptCandidates({
+        exerciseId,
+        personalize: false,
+        sessionSeenPromptIds: seen,
+      });
+      if (result.candidates.length === 0) return;
+      // Telemetry: the just-shown ids the user is dropping count as
+      // refreshed_past — strong negative engagement signal vs. low pick
+      // rate alone. Fire only once the replacement slate actually
+      // arrived; a failed refresh keeps the old slate on screen and
+      // must not record it as dropped.
+      if (promptIds.length > 0) {
+        void fetch("/api/prompt-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "refreshed_past",
+            promptIds,
+          }),
+        }).catch(() => {});
+      }
+      const nextPrompts = result.candidates.map((c) => c.text);
+      const nextIds = result.candidates.map((c) => c.promptId);
+      for (const id of nextIds) shownIdsRef.current.add(id);
+      setPrompts(nextPrompts);
+      setPromptIds(nextIds);
+      setSelectedIdx(null);
+      setRefreshCount((c) => c + 1);
+    } catch {
+      // Refresh is best-effort — keep the current slate on failure.
+    } finally {
+      setIsRefreshing(false);
     }
-    setPrompts(refreshed.prompts);
-    setPromptIds(refreshed.promptIds);
-    setSelectedIdx(null);
-    setRefreshCount((c) => c + 1);
   }
 
   function handleContinue() {
@@ -250,17 +277,20 @@ export function WorkoutPromptSelect({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">
           Pick a prompt
         </p>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
-          aria-label="Refresh prompts"
-        >
-          <RefreshCw
-            className={`size-3 transition-transform ${refreshCount > 0 ? "rotate-180" : ""}`}
-          />
-          Refresh
-        </button>
+        {exerciseId ? (
+          <button
+            type="button"
+            onClick={() => void handleRefresh()}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50 disabled:cursor-wait disabled:opacity-60"
+            aria-label="Refresh prompts"
+          >
+            <RefreshCw
+              className={`size-3 transition-transform ${isRefreshing ? "animate-spin" : refreshCount > 0 ? "rotate-180" : ""}`}
+            />
+            {isRefreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        ) : null}
       </div>
 
       <div

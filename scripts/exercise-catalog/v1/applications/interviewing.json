@@ -549,6 +549,14 @@
             "business",
             "personal"
           ]
+        },
+        {
+          "text": "You're opening an interview. Answer \"Tell me about yourself,\" then end with one genuinely compelling question for the interviewer.",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal"
+          ]
         }
       ]
     },

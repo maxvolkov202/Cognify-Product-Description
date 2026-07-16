@@ -106,7 +106,9 @@ section("user-context threading (I1)");
     count: 5,
   });
   assert(
-    full.includes("USER VERTICAL (bias topics toward, don't force): sales"),
+    full.includes(
+      "USER VERTICAL (bias topics toward, don't force — vertical-flavored, never vertical-locked): sales",
+    ),
     "vertical line renders",
   );
   assert(
@@ -144,6 +146,85 @@ section("user-context threading (I1)");
   assert(
     full.includes("Generate 7 prompt options"),
     "count+2 extras preserved in the closing instruction",
+  );
+}
+
+section("generation-unit pack fields render (Phase 2A.1)");
+{
+  const exercise: PromptGenExercise = {
+    slug: "establishing-stakes",
+    name: "Establishing Stakes",
+    dimension: "thinking_quality",
+    rule: "Make what could be lost, gained, or changed clear early.",
+    why: null,
+    objective: "Train stakes-first personal storytelling.",
+    promptRules: null,
+    hiddenSkills: null,
+    application: "storytelling",
+    responseWindow: { minSec: 60, maxSec: 120 },
+    coachInsight:
+      "A story becomes interesting when the listener understands why the moment mattered.",
+    scoringLens: "Evaluate whether the listener understands why the story mattered.",
+    retryObjective: "Make the stakes clear within the first 20 seconds.",
+    commonFailureModes: [
+      "Spending too long on setup before anything matters",
+      "Ending with a vague lesson",
+    ],
+    secondaryCoreSkills: ["structure", "clarity"],
+  };
+  const rendered = buildGenUserPrompt({ exercise, existingTexts: [], count: 5 });
+  assert(
+    rendered.includes("COACH'S INSIGHT (shown before speaking): A story becomes"),
+    "coach insight renders",
+  );
+  assert(
+    rendered.includes("SCORING LENS (how the response is evaluated): Evaluate whether"),
+    "scoring lens renders",
+  );
+  assert(
+    rendered.includes("RETRY OBJECTIVE: Make the stakes clear"),
+    "retry objective renders",
+  );
+  assert(
+    rendered.includes("COMMON FAILURE MODES") &&
+      rendered.includes("- Spending too long on setup before anything matters"),
+    "common failure modes render as bullets",
+  );
+  assert(
+    rendered.includes("SECONDARY CORE SKILLS: structure, clarity"),
+    "secondary core skills render",
+  );
+  assert(
+    rendered.includes("STORYTELLING RULES:"),
+    "per-application Lab Engine rules render for storytelling",
+  );
+  assert(
+    rendered.includes("RESPONSE WINDOW: 60-120 seconds"),
+    "response window renders",
+  );
+
+  const coreExercise: PromptGenExercise = {
+    ...exercise,
+    application: null,
+    coachInsight: null,
+    scoringLens: null,
+    retryObjective: null,
+    commonFailureModes: null,
+    secondaryCoreSkills: null,
+  };
+  const bare = buildGenUserPrompt({
+    exercise: coreExercise,
+    existingTexts: [],
+    count: 5,
+  });
+  assert(
+    !bare.includes("COACH'S INSIGHT") &&
+      !bare.includes("SCORING LENS") &&
+      !bare.includes("RETRY OBJECTIVE") &&
+      !bare.includes("COMMON FAILURE MODES") &&
+      !bare.includes("SECONDARY CORE SKILLS") &&
+      !bare.includes("RULES:"),
+    "unauthored pack fields render nothing (calibration-style conditional rendering)",
   );
 }
 

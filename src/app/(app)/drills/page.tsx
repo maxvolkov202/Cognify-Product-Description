@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isSkillLabAppsEnabled } from "@/lib/flags";
 import { currentUser } from "@/lib/session/current-user";
-import { getUserProfile } from "@/lib/db/queries/user";
 import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 import { SkillLabClient } from "@/components/product/SkillLabClient";
 import {
@@ -53,7 +52,6 @@ export default async function DrillsPage({
   }
 
   const user = await currentUser();
-  const profile = user ? await getUserProfile(user.id) : null;
   const scores = user ? await getCurrentSkillScores(user.id) : null;
 
   return (
@@ -61,7 +59,6 @@ export default async function DrillsPage({
       <div className="mx-auto w-full max-w-5xl px-6 py-10 md:py-14">
         <SkillLabClient
           currentScores={scores ?? {}}
-          improvementGoals={profile?.improvementGoals ?? []}
           {...(initialFocus ? { initialFocus } : {})}
           {...(initialSubSkill ? { initialSubSkill } : {})}
         />

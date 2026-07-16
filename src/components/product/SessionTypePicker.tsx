@@ -1,7 +1,7 @@
 "use client";
 
 import { Flame, Target, Zap } from "lucide-react";
-import type { SessionType } from "@/lib/ai/workout-prompts";
+import type { SessionType } from "@/lib/workout/lab-plan";
 import type { SkillDimension } from "@/types/domain";
 import { SKILL_DIMENSIONS, DIMENSION_LABELS } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";

@@ -14,7 +14,7 @@ import {
   Flame,
   Mic,
 } from "lucide-react";
-import { pickVerticalPromptObjects } from "@/lib/ai/prompts/verticals";
+import { pickVerticalPrompts } from "@/server/actions/vertical-prompts";
 import { RepSurface } from "./RepSurface";
 import { TalkingPointsSidebar } from "./TalkingPointsSidebar";
 import { PressureRepIndicator } from "./PressureRepIndicator";
@@ -88,6 +88,12 @@ export function BuildARepFlow({
     () => new Set<string>(),
   );
   const seenIdsLoadedRef = useRef(false);
+  // Every prompt id shown this visit (initial slate + each refresh) so
+  // consecutive refreshes never re-serve a just-rejected slate; and an
+  // in-flight guard so double-clicks can't race two refreshes whose
+  // out-of-order resolutions clobber each other.
+  const shownPromptIdsRef = useRef<Set<string>>(new Set(initialPromptIds));
+  const isRefreshingRef = useRef(false);
   useEffect(() => {
     if (seenIdsLoadedRef.current) return;
     seenIdsLoadedRef.current = true;
@@ -152,24 +158,39 @@ export function BuildARepFlow({
 
   // ——— Handlers ——————————————————————————————————————
 
-  function handleRefresh() {
-    const refreshed = pickVerticalPromptObjects(vertical, 5, {
-      excludeIds: seenPromptIds,
-    });
-    // Telemetry: refreshed_past on the prompts we're dropping.
-    if (promptIds.length > 0) {
-      void fetch("/api/prompt-events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "refreshed_past",
-          promptIds,
-        }),
-      }).catch(() => {});
+  async function handleRefresh() {
+    // Phase 2B.3 (D23): re-slate from the DB catalog's vertical bank.
+    if (isRefreshingRef.current) return; // no overlapping refreshes
+    isRefreshingRef.current = true;
+    try {
+      // Exclude everything shown this visit (across refreshes), not just
+      // the current slate — otherwise refresh #2 can re-serve slate #1.
+      for (const id of promptIds) shownPromptIdsRef.current.add(id);
+      const refreshed = await pickVerticalPrompts({
+        vertical,
+        count: 5,
+        excludePromptIds: [...seenPromptIds, ...shownPromptIdsRef.current],
+      });
+      if (refreshed.length === 0) return; // keep current slate on failure
+      // Telemetry: refreshed_past on the prompts we're dropping — only
+      // once the replacement slate actually arrived.
+      if (promptIds.length > 0) {
+        void fetch("/api/prompt-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "refreshed_past",
+            promptIds,
+          }),
+        }).catch(() => {});
+      }
+      for (const p of refreshed) shownPromptIdsRef.current.add(p.id);
+      setPrompts(refreshed.map((p) => p.text));
+      setPromptIds(refreshed.map((p) => p.id));
+      setSelectedPromptIdx(null);
+    } finally {
+      isRefreshingRef.current = false;
     }
-    setPrompts(refreshed.map((p) => p.text));
-    setPromptIds(refreshed.map((p) => p.id));
-    setSelectedPromptIdx(null);
   }
 
   /**

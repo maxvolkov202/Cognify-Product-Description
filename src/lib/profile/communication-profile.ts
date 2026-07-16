@@ -193,9 +193,13 @@ export function applyRepToProfile(
 
   // Application performance (PRD §8.3.6): the composite of a Skill Lab
   // rep folds into that application's estimate with the same EMA rule.
+  // Gate on isApplicationId — exercises.application also carries
+  // non-Skill-Lab values (Phase 2B.3's 'pressure' bank), and an
+  // unguarded fold would surface a phantom "strongest application".
   const applications = { ...profile.applications };
   if (
     evidence.applicationId &&
+    isApplicationId(evidence.applicationId) &&
     evidence.composite != null &&
     Number.isFinite(evidence.composite)
   ) {

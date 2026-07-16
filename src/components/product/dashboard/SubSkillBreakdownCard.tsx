@@ -10,7 +10,6 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import { DIMENSION_ACCENTS } from "@/lib/skill-lab/mode-theme";
-import { DRILLABLE_DIMENSIONS } from "@/lib/ai/prompts/drills";
 import type { SubSkillBreakdown } from "@/lib/db/queries/sub-skills";
 import { cn } from "@/lib/utils/cn";
 
@@ -108,9 +107,6 @@ function DimensionRow({
   bucket: SubSkillBreakdown[SkillDimension] | null;
 }) {
   const accent = DIMENSION_ACCENTS[dimension];
-  const drillable = (DRILLABLE_DIMENSIONS as readonly SkillDimension[]).includes(
-    dimension,
-  );
   const totalSamples = bucket?.sampleSize ?? 0;
   const weakest = bucket?.weakest ?? null;
   const subSkills = bucket?.subSkills ?? [];
@@ -157,11 +153,10 @@ function DimensionRow({
                 subSkill={id}
                 stat={stat}
                 accent={accent}
-                drillable={drillable}
                 dimension={dimension}
               />
             ))}
-            {drillable && weakest && (
+            {weakest && (
               <Link
                 href={`/skill-lab?focus=${dimension}&subSkill=${weakest.id}`}
                 className="mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
@@ -182,13 +177,11 @@ function SubSkillRow({
   subSkill,
   stat,
   accent,
-  drillable,
   dimension,
 }: {
   subSkill: SubSkillId;
   stat: { avg: number; sampleSize: number; trend: number | null };
   accent: string;
-  drillable: boolean;
   dimension: SkillDimension;
 }) {
   const ready = stat.sampleSize >= MIN_SAMPLES_PER_SUB_SKILL;
@@ -219,7 +212,7 @@ function SubSkillRow({
           </span>
         )}
         <TrendIcon trend={stat.trend} />
-        {drillable && ready && (
+        {ready && (
           <Link
             href={`/skill-lab?focus=${dimension}&subSkill=${subSkill}`}
             className="rounded-full px-2 py-1 text-[10px] font-bold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white"

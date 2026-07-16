@@ -648,9 +648,10 @@ export async function getWeeklyRepSummary(
 
 /**
  * Returns the weakest dimension (lowest average) from the user's most
- * recent completed session — or null if they have no reps yet. Used
- * to bias `planTodaysWorkout`'s rep-type selection so tomorrow's
- * workout actually stresses yesterday's weak spot (Direction.md).
+ * recent completed session — or null if they have no reps yet.
+ * (Originally biased the retired planTodaysWorkout's rep-type selection;
+ * System A died in Phase 2B.3. Still feeds dashboard weakest-link
+ * surfaces.)
  *
  * Logic: pull the last N progressSnapshots rows, group by rep ID via
  * the takenAt timestamp, then use snapshots from the most recent rep.

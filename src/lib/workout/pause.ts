@@ -1,6 +1,6 @@
 "use client";
 
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 import type { RepScore } from "@/types/domain";
 
 /**

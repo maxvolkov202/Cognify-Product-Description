@@ -9,7 +9,7 @@ import {
   SKILL_DIMENSION_GROUPS,
 } from "@/types/domain";
 import { groupComposite } from "@/lib/scoring/rubric";
-import type { WorkoutSessionPlan } from "@/lib/ai/workout-prompts";
+import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 
 type Props = {
   scores: RepScore[];

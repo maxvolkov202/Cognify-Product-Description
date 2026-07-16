@@ -45,26 +45,14 @@ const MODEL =
       process.env.OPENAI_FALLBACK_MODEL ??
       "gpt-4o");
 
-const taxonomy = JSON.parse(
-  readFileSync(resolve(__dirname, "hidden-skills-v2.json"), "utf8"),
-);
-const legacyMap = JSON.parse(
-  readFileSync(resolve(__dirname, "migration-map.json"), "utf8"),
-).map;
-
-const SKILLS_BY_DIM = new Map();
-const SKILL_BY_ID = new Map();
-for (const s of taxonomy.skills) {
-  SKILL_BY_ID.set(s.id, s);
-  const arr = SKILLS_BY_DIM.get(s.dimension) ?? [];
-  arr.push(s);
-  SKILLS_BY_DIM.set(s.dimension, arr);
-}
-
-// PRD "Pacing" manifests use dimension key "pacing"; taxonomy uses code
-// name "delivery" (terminology-map ruling).
-const DIM_ALIAS = { pacing: "delivery" };
-const canonDim = (d) => DIM_ALIAS[d] ?? d;
+// Shared taxonomy loader (Phase 2 consolidation) — legacyMap carries
+// renames only; identity mappings fall through the `?? id` at use sites.
+import { loadTaxonomy, toSkillDim as canonDim } from "./lib.mjs";
+const {
+  skillsByDim: SKILLS_BY_DIM,
+  skillById: SKILL_BY_ID,
+  legacyMap,
+} = loadTaxonomy();
 
 const MANIFEST_FILES = [
   "clarity.json",

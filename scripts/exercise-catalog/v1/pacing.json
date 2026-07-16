@@ -1453,6 +1453,167 @@
           ]
         }
       ]
+    },
+    {
+      "dimension": "pacing",
+      "name": "The Speed Shift",
+      "rule": "Slow down hard on your single most important sentence.",
+      "why": "Pace is emphasis: the sentence you slow down on is the one they remember.",
+      "default_difficulty": "core",
+      "ordering": 10,
+      "tags": [
+        "prd-v2"
+      ],
+      "objective": "Use deliberate deceleration as emphasis: hold a normal controlled rate, then slow significantly on the one sentence that matters most.",
+      "hidden_skills": [
+        "deceleration_for_complexity",
+        "emphasis_timing",
+        "rate_awareness"
+      ],
+      "scoring_lens": "Constraint: one sentence must be delivered markedly slower than the surrounding rate. Feedback MUST contrast the key sentence's measured rate against the rep's baseline; a flat rate profile with no clear slowdown drags delivery.",
+      "coach_insight": "Pick the sentence that matters most before you start, then cut your speed nearly in half when you reach it. Everything else stays at normal pace. The trap: slowing everything down, which emphasizes nothing.",
+      "secondary_core_skills": [
+        "clarity",
+        "structure"
+      ],
+      "common_failure_modes": [
+        "Delivers the whole rep at one rate with no audible slowdown anywhere",
+        "Slows several sentences, so the key one no longer stands out",
+        "Slows a setup or throwaway line instead of the sentence carrying the point",
+        "Drops energy along with speed, so the key sentence lands flat instead of weighty"
+      ],
+      "scoring_emphasis": "Weight whether the slowed sentence is the one that actually carries the response's core point; a big slowdown on the wrong sentence scores like no slowdown at all.",
+      "retry_objective": "Choose the single most important sentence before speaking and cut its pace sharply while holding everything else at normal speed.",
+      "prompt_rules": "Generate opinion or advice prompts where one takeaway sentence clearly outranks the rest, so there is an obvious line to slow down on. One conversational sentence, answerable from any adult's real life within 3 seconds; vary the topic freely, never the slow-down objective.",
+      "response_window": {
+        "min_sec": 60,
+        "max_sec": 90
+      },
+      "constraint_types": [
+        "none"
+      ],
+      "prompts": [
+        {
+          "text": "What's the best advice you'd give someone starting their first job?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "business"
+          ]
+        },
+        {
+          "text": "What do you wish you'd understood about money ten years ago?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "finance"
+          ]
+        },
+        {
+          "text": "What makes a friendship last?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "What's the one habit that changed your life the most?",
+          "difficulty": "intro",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "Why do most New Year's resolutions fail?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "What separates a good teammate from a great one?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "sports"
+          ]
+        },
+        {
+          "text": "What's the most important thing technology has quietly changed about daily life?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "tech"
+          ]
+        },
+        {
+          "text": "Why do smart people still make bad decisions?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "science"
+          ]
+        },
+        {
+          "text": "What would you tell someone who's afraid to speak up in groups?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "What's one thing about where you grew up that outsiders never understand?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "Why is it so hard to change someone's mind?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "science"
+          ]
+        },
+        {
+          "text": "What makes a boss worth working for?",
+          "difficulty": "core",
+          "tags": [
+            "general",
+            "leadership"
+          ]
+        },
+        {
+          "text": "What's a belief most people hold that you think is quietly wrong?",
+          "difficulty": "stretch",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "What should people worry about more than they do, and what less?",
+          "difficulty": "stretch",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        },
+        {
+          "text": "If you could make everyone truly hear one sentence, what would it be and why?",
+          "difficulty": "stretch",
+          "tags": [
+            "general",
+            "personal"
+          ]
+        }
+      ]
     }
   ]
 }

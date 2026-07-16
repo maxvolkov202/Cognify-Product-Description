@@ -25,6 +25,8 @@ import { log, serializeErr } from "@/lib/log";
 import { pickPromptCandidates } from "@/server/lib/workout/assignment";
 import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
 import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
+import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
+import { textArrayLit } from "@/lib/db/sql-helpers";
 
 export type PromptCandidate = {
   id: string;
@@ -45,28 +47,6 @@ const PROMPT_BIAS_WINDOW = 30;
  *  than this many prompts. Matches the Shuffle candidate count (k=5) so we
  *  never lock onto a too-thin bank when a wider one would give real rotation. */
 const MIN_BANK_SIZE = 5; // tracks the D10 slate size
-
-/**
- * Legacy tag map — the original 864 vertical-flavored prompts (Phase 2 seed)
- * were tagged with single keys like "finance", "business", "leadership",
- * "healthcare", "science". The Wave 1 vertical bank (4,320 prompts) uses the
- * vertical id itself as the first tag ("sales", "leadership", etc.) plus
- * persona + goal ids. The vertical filter unions both schemes so the legacy
- * bank stays in rotation.
- *
- * "other" maps to an empty array; vertical filtering for "other" users
- * relies entirely on the new vertical-id tag.
- */
-const LEGACY_VERTICAL_TAGS: Record<string, string[]> = {
-  sales: ["business", "leadership"],
-  consulting: ["business", "leadership"],
-  finance: ["finance", "business"],
-  healthcare: ["healthcare", "science"],
-  law: ["business", "current events"],
-  education: ["education", "science"],
-  leadership: ["leadership", "business"],
-  other: [],
-};
 
 export async function fetchPromptCandidates(input: {
   exerciseId: string;
@@ -196,18 +176,6 @@ export async function fetchPromptCandidates(input: {
     // placeholder when the same query also carries bound params from the
     // surrounding `and(eq(...), eq(...), ...)` builder. Function calls
     // sidestep that ambiguity and keep the cascade reliable.
-    // Postgres array literal helper — binds each element individually via
-    // drizzle's sql.join so the array renders as `ARRAY['a','b']::text[]`
-    // instead of being bound as a single composite/record value (which
-    // fails with "cannot cast type record to text[]"). Without this every
-    // personalized tier query throws and the cascade silently falls
-    // through to general — the exact dark-Wave-2 bug from 2026-05-23.
-    const textArrayLit = (arr: readonly string[]) =>
-      drizzleSql`ARRAY[${drizzleSql.join(
-        arr.map((x) => drizzleSql`${x}`),
-        drizzleSql`, `,
-      )}]::text[]`;
-
     const legacy = userVertical ? LEGACY_VERTICAL_TAGS[userVertical] ?? [] : [];
     const verticalFilter =
       input.personalize && userVertical
@@ -316,8 +284,11 @@ export async function fetchPromptCandidates(input: {
     // PRD v3 Phase 2.6 — hard in-session exclusion (distinct from the
     // soft cross-session recentPromptIds bias). Cap the incoming list
     // defensively; relax when exclusion would starve a full slate.
+    // Keep the LAST 500 — callers append in-session ids after the (long)
+    // cross-session history, and it's the most-recent ids that must
+    // survive the cap or a refresh can re-serve the slate just rejected.
     const sessionSeen = new Set(
-      (input.sessionSeenPromptIds ?? []).slice(0, 500),
+      (input.sessionSeenPromptIds ?? []).slice(-500),
     );
     let available = bankRows.map((b) => ({
       id: b.id,

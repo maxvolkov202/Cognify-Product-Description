@@ -7,7 +7,6 @@ import {
   type SubSkillId,
 } from "@/types/sub-skills";
 import { DIMENSION_ACCENTS } from "@/lib/skill-lab/mode-theme";
-import { DRILLABLE_DIMENSIONS } from "@/lib/ai/prompts/drills";
 import { cn } from "@/lib/utils/cn";
 
 type Props = {
@@ -81,9 +80,6 @@ export function WeakestLinkCard({
 
   const { dimension, averageScore } = weakest;
   const accent = DIMENSION_ACCENTS[dimension];
-  const drillable = (DRILLABLE_DIMENSIONS as readonly SkillDimension[]).includes(
-    dimension,
-  );
   const drillHref = weakestSubSkill
     ? `/skill-lab?focus=${dimension}&subSkill=${weakestSubSkill.id}`
     : `/skill-lab?focus=${dimension}`;
@@ -127,21 +123,17 @@ export function WeakestLinkCard({
           <p className="mt-1 text-[12px] leading-relaxed text-ink-600 dark:text-ink-300">
             {weakestSubSkill
               ? `${SUB_SKILL_LABELS[weakestSubSkill.id]} is the lowest sub-skill within ${DIMENSION_LABELS[dimension]} (dim avg ${averageScore.toFixed(0)}).`
-              : drillable
-                ? `Drill ${DIMENSION_LABELS[dimension]} directly — fastest way to move the line.`
-                : `Workouts will bias toward ${DIMENSION_LABELS[dimension]} until the average lifts.`}
+              : `Drill ${DIMENSION_LABELS[dimension]} directly — fastest way to move the line.`}
           </p>
         </div>
-        {drillable && (
-          <Link
-            href={drillHref}
-            className="inline-flex shrink-0 items-center gap-1 self-center rounded-full px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-purple/70 dark:focus-visible:ring-brand-lavender/70"
-            style={{ backgroundColor: accent }}
-          >
-            {drillLabel}
-            <ArrowRight className="size-3" strokeWidth={2.5} aria-hidden="true" />
-          </Link>
-        )}
+        <Link
+          href={drillHref}
+          className="inline-flex shrink-0 items-center gap-1 self-center rounded-full px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-purple/70 dark:focus-visible:ring-brand-lavender/70"
+          style={{ backgroundColor: accent }}
+        >
+          {drillLabel}
+          <ArrowRight className="size-3" strokeWidth={2.5} aria-hidden="true" />
+        </Link>
       </div>
     </section>
   );

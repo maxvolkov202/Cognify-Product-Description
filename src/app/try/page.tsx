@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { and, eq, sql as drizzleSql } from "drizzle-orm";
 import { Logo } from "@/components/shared/Logo";
 import { QuickRepFlow } from "@/components/product/QuickRepFlow";
-import { pickWorkoutPrompts } from "@/lib/ai/prompts/workout";
+import { db } from "@/lib/db/client";
+import { exercisePrompts, exercises } from "@/lib/db/schema";
+import { safeDb } from "@/lib/db/safe";
 
 export const metadata: Metadata = {
   title: "Try Cognify · 60 seconds, no signup",
@@ -12,9 +15,30 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function TryPage() {
-  // Single random prompt from be_concise's 15-item bank. 20-second budget.
-  const [prompt] = pickWorkoutPrompts("be_concise", 1);
+/** No-DB fallback so the marketing page never breaks. */
+const FALLBACK_PROMPT =
+  "Explain why consistency beats intensity in 20 seconds";
+
+export default async function TryPage() {
+  // Phase 2B.3 (D23): single random intro-difficulty conciseness prompt
+  // from the DB catalog (the hardcoded banks are retired). 20s budget.
+  const prompt = await safeDb<string>(async () => {
+    const [row] = await db
+      .select({ text: exercisePrompts.promptText })
+      .from(exercisePrompts)
+      .innerJoin(exercises, eq(exercises.id, exercisePrompts.exerciseId))
+      .where(
+        and(
+          eq(exercises.dimension, "conciseness"),
+          eq(exercisePrompts.isActive, true),
+          eq(exercisePrompts.difficulty, 1),
+          drizzleSql`jsonb_exists(${exercisePrompts.tags}, 'general')`,
+        ),
+      )
+      .orderBy(drizzleSql`random()`)
+      .limit(1);
+    return row?.text ?? FALLBACK_PROMPT;
+  }, FALLBACK_PROMPT);
 
   return (
     <div className="min-h-screen bg-ink-50">
@@ -42,7 +66,7 @@ export default function TryPage() {
             see what a Cognify rep actually looks like before you commit.
           </p>
         </div>
-        <QuickRepFlow prompt={prompt ?? "Explain why consistency beats intensity in 20 seconds"} />
+        <QuickRepFlow prompt={prompt} />
       </main>
     </div>
   );
