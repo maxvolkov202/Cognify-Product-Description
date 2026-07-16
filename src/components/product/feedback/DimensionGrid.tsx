@@ -51,6 +51,15 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
       return m;
     }, [dimensions]);
 
+    // Grading v3 — per-skill feedback strings (v4 reps; absent on legacy).
+    const feedbackMap = useMemo(() => {
+      const m = new Map<SkillDimension, string>();
+      for (const d of dimensions) {
+        if (d.feedback) m.set(d.dimension, d.feedback);
+      }
+      return m;
+    }, [dimensions]);
+
     const calloutsByDim = useMemo(() => {
       const m = new Map<SkillDimension, Callout[]>();
       for (const dim of SKILL_DIMENSIONS) m.set(dim, []);
@@ -139,6 +148,7 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
               <DimensionCard
                 dimension={dim}
                 score={score}
+                feedback={feedbackMap.get(dim)}
                 callouts={calloutsByDim.get(dim) ?? []}
                 expanded={expanded}
                 onToggle={() =>

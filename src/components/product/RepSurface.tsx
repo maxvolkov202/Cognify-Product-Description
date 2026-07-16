@@ -12,7 +12,6 @@ import type {
   Framework,
   RepScore,
   ModeId,
-  Callout,
   SkillDimension,
 } from "@/types/domain";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
@@ -44,9 +43,6 @@ type Props = {
   mode?: ModeId;
   topic?: string;
   maxDurationMs?: number;
-  /** PRD v3 §4.5 — feedback layout. "v2" = Score → ONE Coach's Focus →
-   *  Core Skill Breakdown (Universal Training Engine); "v1" = legacy. */
-  feedbackVariant?: "v1" | "v2";
   /** ADR-001 — target response window. When set, the recorder counts UP
    *  against the band (never hard-stops at it), the infra ceiling is
    *  raised well past the window, and the window max (not the ceiling)
@@ -54,11 +50,14 @@ type Props = {
   responseWindow?: { minSec: number; maxSec: number } | null;
   sessionId?: string | null;
   revealFrameworkAfterMs?: number;
-  /** Shown as a focus overlay on idle state — used for retries. */
-  retryFocus?: Callout | null;
-  /** Shown as a focus overlay on idle state — carried from the previous
-   *  rep in the same workout session. Distinct from retryFocus (same-rep). */
-  carryoverFocus?: Callout | null;
+  /** Shown as a focus overlay on idle state — used for retries. §4.6
+   *  structure: Coach's Focus → biggest-improvement question → Stronger
+   *  Version (a rewrite of what the user actually said). */
+  retryFocus?: {
+    title: string;
+    body: string;
+    strongerVersion: { quote: string | null; rewrite: string } | null;
+  } | null;
   /** Previous rep's dimension scores (same workout) — used to render
    *  per-dimension delta pills on the feedback surface when continuity lines
    *  up with the current rep's scores. */
@@ -224,11 +223,9 @@ export function RepSurface({
   topic,
   maxDurationMs = 90_000,
   responseWindow = null,
-  feedbackVariant = "v1",
   sessionId,
   revealFrameworkAfterMs = 0,
   retryFocus,
-  carryoverFocus,
   previousDimensionScores,
   previousRepSummary,
   repTypeFramework,
@@ -792,7 +789,6 @@ export function RepSurface({
          *  a copy at the bottom for users who scrolled to the end. */}
         {navButtons}
         <FeedbackPanel
-          engineV2={feedbackVariant === "v2"}
           score={phase.score}
           audioUrl={phase.recording.url}
           durationMs={phase.recording.durationMs}
@@ -865,12 +861,9 @@ export function RepSurface({
         </div>
       )}
 
-      {/* ——— Focus overlay (retry takes precedence over carryover) ——— */}
-      {(retryFocus || carryoverFocus) && phase.kind === "idle" && (
-        <FocusOverlay
-          callout={(retryFocus ?? carryoverFocus) as Callout}
-          label={retryFocus ? "Focus for this retry" : "From your last rep"}
-        />
+      {/* ——— Retry focus overlay (§4.6) ——— */}
+      {retryFocus && phase.kind === "idle" && (
+        <FocusOverlay focus={retryFocus} label="Focus for this retry" />
       )}
 
       {/* ——— W5 (§4.6): "Users should always know what they are trying to
@@ -1174,10 +1167,14 @@ function LoadingEvidence() {
 }
 
 function FocusOverlay({
-  callout,
+  focus,
   label,
 }: {
-  callout: Callout;
+  focus: {
+    title: string;
+    body: string;
+    strongerVersion: { quote: string | null; rewrite: string } | null;
+  };
   label: string;
 }) {
   return (
@@ -1196,27 +1193,32 @@ function FocusOverlay({
             {label}
           </p>
           <p className="mt-0.5 text-sm font-bold text-ink-900 dark:text-white">
-            {callout.title}
+            {focus.title}
           </p>
-          {/* PRD §4.6 retry structure: "What change could create the
-              biggest improvement?" framing + a Stronger Version line. */}
+          {/* PRD §4.6 retry structure: Coach's Focus → "what change
+              creates the biggest improvement?" → Stronger Version. */}
           <p className="mt-1 text-xs leading-relaxed text-ink-600 dark:text-ink-300">
-            {callout.body}
+            {focus.body}
           </p>
-          {callout.suggestedRewrite && (
-            <div className="mt-2 rounded-lg bg-ink-50 dark:bg-ink-800 px-3 py-2">
-              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
-                Stronger version
-              </p>
-              <p className="mt-0.5 text-xs italic leading-relaxed text-ink-700 dark:text-ink-200">
-                &ldquo;{callout.suggestedRewrite}&rdquo;
-              </p>
-            </div>
-          )}
           <p className="mt-1.5 text-[11px] text-ink-500 dark:text-ink-400">
             What one change creates the biggest improvement? Make THAT the
             rep.
           </p>
+          {focus.strongerVersion && (
+            <div className="mt-2 rounded-lg bg-ink-50 dark:bg-ink-800 px-3 py-2">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
+                Stronger version
+              </p>
+              {focus.strongerVersion.quote && (
+                <p className="mt-0.5 text-[11px] leading-relaxed text-ink-500 dark:text-ink-400">
+                  You said: &ldquo;{focus.strongerVersion.quote}&rdquo;
+                </p>
+              )}
+              <p className="mt-0.5 text-xs italic leading-relaxed text-ink-700 dark:text-ink-200">
+                &ldquo;{focus.strongerVersion.rewrite}&rdquo;
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

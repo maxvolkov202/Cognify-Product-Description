@@ -4,7 +4,7 @@ import type { PressureArchetypeId } from "@/lib/ai/pressure-archetypes";
 /**
  * Exemplar response bank — concrete model speech samples per dimension
  * and (optionally) pressure archetype. Surfaced via the "See example"
- * link on NextRepFocusCard so the user has a sound model in their ear
+ * link on CoachFocusCard so the user has a sound model in their ear
  * before the next rep, not just a rule.
  *
  * Authoring rules:

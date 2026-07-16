@@ -35,7 +35,6 @@ import {
   type MuscleGroupId,
   type RepScore,
   type SkillDimension,
-  type Callout,
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
@@ -318,16 +317,11 @@ export default function PrepEventClient({
 
   const coachFocus =
     attempts.first != null ? deriveCoachFocus(attempts.first.score) : null;
-  const retryFocusCallout: Callout | null = coachFocus
+  const retryFocus = coachFocus
     ? {
-        dimension: coachFocus.dimension,
-        tone: "neutral",
-        title: "Focus for this retry",
-        body: coachFocus.text,
-        quote: null,
-        suggestedRewrite: null,
-        transcriptStart: null,
-        transcriptEnd: null,
+        title: coachFocus.behavior ?? "Focus for this retry",
+        body: coachFocus.action ?? coachFocus.text,
+        strongerVersion: attempts.first?.score.strongerVersion ?? null,
       }
     : null;
 
@@ -426,7 +420,6 @@ export default function PrepEventClient({
           <RepSurface
             key={`${moment.id}:${view.attempt}`}
             prompt={momentPrompt(event, moment)}
-            feedbackVariant="v2"
             mode="build_a_rep"
             topic={moment.title}
             sessionId={sessionId}
@@ -451,8 +444,8 @@ export default function PrepEventClient({
             feedbackTotalReps={1}
             feedbackModeLabel={view.attempt === "first" ? "BUILD A REP" : "RETRY"}
             hideRunItAgain
-            {...(view.attempt !== "first" && retryFocusCallout
-              ? { retryFocus: retryFocusCallout }
+            {...(view.attempt !== "first" && retryFocus
+              ? { retryFocus }
               : {})}
             {...(view.attempt !== "first" && attempts.first
               ? {
@@ -1377,7 +1370,6 @@ function SimulationView({
         <RepSurface
           key={`sim:${event.id}`}
           prompt={simulationPrompt(event)}
-          feedbackVariant="v2"
           mode="build_a_rep"
           topic={event.title}
           sessionId={sessionId}

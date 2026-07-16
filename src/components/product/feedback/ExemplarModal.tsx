@@ -13,7 +13,7 @@ type Props = {
 };
 
 /**
- * "See example" modal surfaced from NextRepFocusCard. Shows a curated
+ * "Hear an example" modal surfaced from CoachFocusCard. Shows a curated
  * spoken model — concrete topic, line-by-line beats the user can scan,
  * one tip on what makes the example actually train the dimension.
  *

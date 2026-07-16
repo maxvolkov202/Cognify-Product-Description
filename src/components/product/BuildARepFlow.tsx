@@ -25,7 +25,8 @@ import {
 } from "./CustomScenarioBuilder";
 import type { VerticalId, PersonaId } from "@/lib/onboarding/constants";
 import type { TalkingPoints } from "@/lib/ai/talking-points";
-import type { RepScore, Callout } from "@/types/domain";
+import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import type { RepScore } from "@/types/domain";
 import {
   PRESSURE_ARCHETYPES,
   getPressureArchetype,
@@ -129,7 +130,11 @@ export function BuildARepFlow({
   const [intakeCollapsed, setIntakeCollapsed] = useState(false);
 
   // Retry focus for Build-a-Rep (same as Daily Workout)
-  const [retryFocus, setRetryFocus] = useState<Callout | null>(null);
+  const [retryFocus, setRetryFocus] = useState<{
+    title: string;
+    body: string;
+    strongerVersion: { quote: string | null; rewrite: string } | null;
+  } | null>(null);
   const [repRetryNonce, setRepRetryNonce] = useState(0);
 
   // Preview gate (Product Sweep #5) — after talking points are generated,
@@ -330,13 +335,30 @@ export function BuildARepFlow({
   }
 
   function handleRepComplete({ score }: { score: RepScore }) {
-    const focus =
+    // v4 scores carry the Coach's Focus + Stronger Version first-class;
+    // legacy scores fall back to the worst callout + its rewrite.
+    const coachFocus = deriveCoachFocus(score);
+    const legacyCallout =
       score.callouts.find(
         (c) => c.tone === "warn" || c.tone === "critical",
       ) ??
       score.callouts[0] ??
       null;
-    setRetryFocus(focus);
+    const title =
+      coachFocus?.behavior ?? legacyCallout?.title ?? "Focus for this retry";
+    const body =
+      coachFocus?.action ?? coachFocus?.text ?? legacyCallout?.body ?? "";
+    const strongerVersion =
+      score.strongerVersion ??
+      (legacyCallout?.suggestedRewrite
+        ? {
+            quote: legacyCallout.quote ?? null,
+            rewrite: legacyCallout.suggestedRewrite,
+          }
+        : null);
+    setRetryFocus(
+      title || body ? { title, body, strongerVersion } : null,
+    );
   }
 
   function handleRepRetry() {

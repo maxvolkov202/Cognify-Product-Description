@@ -40,8 +40,18 @@ export type CoachFocus = {
   /** Hidden Skill id (src/types/sub-skills.ts). Null when the focus is
    *  dimension-level only. */
   subSkill: string | null;
-  /** The actionable focus line the user is asked to implement. */
+  /** The actionable focus line the user is asked to implement. On v4
+   *  (grading v3) reps this is composed from behavior + action so every
+   *  legacy consumer (coaching_events.focusText, retry context,
+   *  coaching-memory rendering) keeps working unchanged. */
   text: string;
+  /** Grading v3 (§8.6.2) three-question structure — model-emitted on v4
+   *  reps, absent on legacy-derived focuses. */
+  behavior?: string;
+  /** Why the behavior matters. */
+  why?: string;
+  /** The one thing to do on the retry. */
+  action?: string;
   /** Phase 15 I-8 — the coaching technique in play for this focus.
    *  Sourced from the retry response's implementationReview.technique
    *  (first-rep responses don't emit one → null). */
@@ -78,6 +88,27 @@ export type ImplementationReview = {
  * the weakest core dimension.
  */
 export function deriveCoachFocus(score: RepScore): CoachFocus | null {
+  // Grading v3 (v4 contract): the model emits the Coach's Focus
+  // first-class — no derivation needed. Everything below is the legacy
+  // chain for pre-v4 reps (historical rows, mock fallback).
+  if (score.coachFocus) {
+    const cf = score.coachFocus;
+    const technique = isCoachingTechnique(
+      score.implementationReview?.technique,
+    )
+      ? score.implementationReview.technique
+      : null;
+    return {
+      dimension: cf.dimension,
+      subSkill: cf.subSkill ?? null,
+      text: cf.text,
+      behavior: cf.behavior,
+      why: cf.why,
+      action: cf.action,
+      technique,
+    };
+  }
+
   const bullets = (score.nextRepFocus ?? []).filter(
     (b) => b.dimension !== "structural_adherence",
   );
