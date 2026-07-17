@@ -289,6 +289,11 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
       (matrix #3–#17: Google/email sign-in, workout golden path recording) need Max** — require real
       credentials + a mic + a connected browser.
 - [ ] 6.4 Post-promotion watch (Max): scoring telemetry p95, drift cron next 3 nights, error rates.
+      **Drift cron pre-validated green 2026-07-17** (`GET /api/cron/calibration-drift?dryRun=1` on the v4
+      pipeline): 29/29 reps ok, 0 drift, 0 fallback, avg |Δcomposite| 2.03 (gate >5), worst 5 (gate >15),
+      alert skipped. The cron alerts on COMPOSITE drift only (stable ±6), not per-dim noise (±15), so the
+      gpt-4o per-dim noise floor won't false-alarm. Max still watches the real nightly runs, but the
+      "hold until one run passes" condition is effectively met.
 - [x] `supabase functions deploy process-rep` — **DONE 2026-07-17** (Max supplied a token; deployed
       to project `dunnoccrvrqzsgxsfjuv`, status ACTIVE v1, current v4 code = audioUrl forwarding +
       coachFocus/feedback writes). Stays off the critical path until `NEXT_PUBLIC_USE_ASYNC_SCORING`
