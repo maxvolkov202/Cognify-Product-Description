@@ -12,9 +12,15 @@
 // (pure + unit-tested); this file owns only the DB reads and assembly.
 
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { exercises } from "@/lib/db/schema";
+import { exercises, practiceSessions, reps } from "@/lib/db/schema";
+import { currentUser } from "@/lib/session/current-user";
+import { buildCommunicationSnapshot } from "@/lib/profile/snapshot";
+import {
+  SUB_SKILL_TO_DIMENSION,
+  canonicalizeSubSkillId,
+} from "@/types/sub-skills";
 import { safeDb } from "@/lib/db/safe";
 import { log } from "@/lib/log";
 import {
@@ -105,6 +111,83 @@ const exerciseColumns = {
 } as const;
 
 const shuffle = <T,>(arr: T[]): T[] => seededShuffle(arr, randomUUID());
+
+/** §8.5 content memory window for lab exercises. */
+const LAB_DEDUPE_DAYS = 3;
+
+/** §8.5 personalization context: a stable per-user session counter (the
+ *  deterministic rotation seed the planning contract asks for) plus the
+ *  profile's hidden-skill estimates. Null for guests — they keep the
+ *  legacy random behavior. */
+type LabUserContext = {
+  userId: string;
+  sessionCount: number;
+  hiddenSkills: Partial<
+    Record<string, { score: number; sampleCount: number }>
+  >;
+};
+
+async function loadLabUserContext(): Promise<LabUserContext | null> {
+  const user = await currentUser();
+  if (!user) return null;
+  const [[countRow], snapshot] = await Promise.all([
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(practiceSessions)
+      .where(eq(practiceSessions.userId, user.id)),
+    buildCommunicationSnapshot(user.id),
+  ]);
+  return {
+    userId: user.id,
+    sessionCount: countRow?.n ?? 0,
+    hiddenSkills: snapshot?.profile.hiddenSkills ?? {},
+  };
+}
+
+/** Recently practiced exercise ids (any attempt) within the dedupe
+ *  window, restricted to the candidate pool. */
+async function loadRecentExerciseIds(
+  userId: string,
+  candidateIds: string[],
+): Promise<Set<string>> {
+  if (candidateIds.length === 0) return new Set();
+  const cutoff = new Date(Date.now() - LAB_DEDUPE_DAYS * 86_400_000);
+  const rows = await db
+    .select({ exerciseId: reps.exerciseId })
+    .from(reps)
+    .where(
+      and(
+        eq(reps.userId, userId),
+        gte(reps.createdAt, cutoff),
+        inArray(reps.exerciseId, candidateIds),
+      ),
+    )
+    .orderBy(desc(reps.createdAt))
+    .limit(100);
+  return new Set(
+    rows.map((r) => r.exerciseId).filter((id): id is string => !!id),
+  );
+}
+
+/** §8.5.4 — the weakest measured hidden skill within a dimension
+ *  (≥3 samples). Used as an automatic exercise bias when the user
+ *  didn't deep-link one; personalization grows with evidence. */
+function weakestHiddenSkillFor(
+  ctx: LabUserContext | null,
+  dim: SkillDimension,
+): SubSkillId | undefined {
+  if (!ctx) return undefined;
+  let best: { id: SubSkillId; score: number } | null = null;
+  for (const [rawId, est] of Object.entries(ctx.hiddenSkills)) {
+    if (!est || est.sampleCount < 3) continue;
+    const id = canonicalizeSubSkillId(rawId);
+    if (!id || SUB_SKILL_TO_DIMENSION[id as SubSkillId] !== dim) continue;
+    if (!best || est.score < best.score) {
+      best = { id: id as SubSkillId, score: est.score };
+    }
+  }
+  return best?.id;
+}
 
 /** Slate one slot's prompts from its exercise's catalog bank. Reuses the
  *  prompt-selection picker (tier cascade, difficulty bias, session
@@ -201,9 +284,13 @@ export async function planLabSession(
 ): Promise<WorkoutSessionPlan | null> {
   return safeDb<WorkoutSessionPlan | null>(async () => {
     const exclude = (input.excludePromptIds ?? []).slice(-500);
+    // §8.5 — selection is personalized + deterministic for signed-in
+    // users (content memory, weakness bias, rotating seeds); guests
+    // keep the legacy random behavior.
+    const ctx = await loadLabUserContext();
 
     if (input.style === "pressure") {
-      return planPressure(clampFocusCount(input.count), exclude);
+      return planPressure(clampFocusCount(input.count), exclude, ctx);
     }
 
     const dims =
@@ -216,10 +303,14 @@ export async function planLabSession(
     if (dims.length === 0) return null;
 
     const pressureIndex = pressureIndexFor(input.style, dims.length);
+    // §8.5 "never random": users rotate through the ramp session by
+    // session instead of drawing a fresh random archetype every time.
     const pressureArchetype =
       pressureIndex >= 0
         ? PRESSURE_ARCHETYPES[
-            shuffle([...FLOW_RAMP])[0] ?? "pushback"
+            (ctx
+              ? FLOW_RAMP[ctx.sessionCount % FLOW_RAMP.length]
+              : shuffle([...FLOW_RAMP])[0]) ?? "pushback"
           ]
         : null;
 
@@ -250,19 +341,35 @@ export async function planLabSession(
       if (i === pressureIndex) return;
       perDimCounts.set(d, (perDimCounts.get(d) ?? 0) + 1);
     });
+    const recentIds = ctx
+      ? await loadRecentExerciseIds(
+          ctx.userId,
+          rows.map((r) => r.id),
+        )
+      : new Set<string>();
     const perDimQueues = new Map<SkillDimension, LabCatalogExercise[]>();
     for (const [dim, count] of perDimCounts) {
+      const userPrefer =
+        input.style === "focus" ? input.preferSubSkill : undefined;
+      // §8.5.4 — no deep-linked skill? bias toward the user's weakest
+      // measured hidden skill in this dimension (grows with evidence).
+      const autoPrefer = userPrefer ?? weakestHiddenSkillFor(ctx, dim);
+      const dimShuffle = ctx
+        ? <T,>(arr: T[]): T[] =>
+            seededShuffle(arr, `${ctx.userId}:${dim}:${ctx.sessionCount}`)
+        : shuffle;
       const { picks, preferredMatched } = rotateExercises(
         byDim.get(dim) ?? [],
         count,
-        shuffle,
-        input.style === "focus" ? input.preferSubSkill : undefined,
+        dimShuffle,
+        autoPrefer,
+        recentIds,
       );
       if (picks.length === 0) {
         log.warn({ event: "lab_session.no_exercises", dimension: dim });
         return null;
       }
-      if (!preferredMatched) {
+      if (!preferredMatched && userPrefer) {
         // Deep-linked sub-skill has no tagged exercise — session still
         // runs, but the bias was a no-op. Loud so the gap is visible.
         log.warn({
@@ -330,10 +437,16 @@ export async function planLabSession(
 async function planPressure(
   count: number,
   exclude: string[],
+  ctx: LabUserContext | null,
 ): Promise<WorkoutSessionPlan | null> {
+  // §8.5 — a per-user rotating start (session counter) instead of a
+  // fresh random draw, so consecutive short sessions actually advance
+  // through the ramp the way the sequence contract intends.
   const archetypeIds = pressureArchetypeSequence(
     count,
-    Math.floor(Math.random() * FLOW_RAMP.length),
+    ctx
+      ? ctx.sessionCount % FLOW_RAMP.length
+      : Math.floor(Math.random() * FLOW_RAMP.length),
   );
   const pressureByArchetype = await loadPressureExercises();
 

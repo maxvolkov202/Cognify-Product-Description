@@ -22,7 +22,10 @@ import {
 import { safeDb } from "@/lib/db/safe";
 import { currentUser } from "@/lib/session/current-user";
 import { log, serializeErr } from "@/lib/log";
-import { pickPromptCandidates } from "@/server/lib/workout/assignment";
+import {
+  pickPromptCandidates,
+  ASSESSMENT_DAYS,
+} from "@/server/lib/workout/assignment";
 import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
 import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
 import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
@@ -107,6 +110,27 @@ export async function fetchPromptCandidates(input: {
         ? (userRow.improvementGoals as string[])
         : [];
       userStage = userRow?.communicationStage ?? null;
+
+      // §8.5 assessment coverage — during the assessment window the
+      // engine should LEARN the user, not optimize for them: narrowing
+      // every slate to their vertical from day one measures the
+      // baseline profile on one context and one style. Until the
+      // assessment day count is served, prompt tiers stay broad
+      // (general-first); vertical/goal personalization kicks in after.
+      try {
+        const [dayRow] = await db.execute<{ n: number }>(drizzleSql`
+          SELECT count(*)::int AS n
+          FROM cognify_v2.muscle_group_days
+          WHERE user_id = ${user.id}
+        `);
+        if ((dayRow?.n ?? 0) < ASSESSMENT_DAYS) {
+          userVertical = null;
+          userGoals = [];
+        }
+      } catch {
+        // Breadth check is best-effort — personalization stands if the
+        // count fails.
+      }
     }
 
     // Recent dim composite drives the difficulty bias hint.
@@ -142,6 +166,29 @@ export async function fetchPromptCandidates(input: {
         recentPromptIds = recentRows
           .map((row) => row.prompt_id)
           .filter((id): id is string => id != null);
+
+        // §8.5 content memory — prompts the user was shown and skipped
+        // in the last 7 days join the same soft-deprioritization tier
+        // as recently-practiced prompts (never hard-excluded: a thin
+        // bank still fills the slate).
+        const skippedRows = await db.execute<{ skipped: string[] | null }>(drizzleSql`
+          SELECT skipped_prompt_ids AS skipped
+          FROM cognify_v2.prompt_selection_events
+          WHERE user_id = ${userId}
+            AND exercise_id = ${input.exerciseId}
+            AND skipped_prompt_ids IS NOT NULL
+            AND created_at >= NOW() - INTERVAL '7 days'
+          ORDER BY created_at DESC
+          LIMIT 20
+        `);
+        const skippedIds = skippedRows.flatMap((row) =>
+          Array.isArray(row.skipped)
+            ? row.skipped.filter((id): id is string => typeof id === "string")
+            : [],
+        );
+        if (skippedIds.length > 0) {
+          recentPromptIds = [...new Set([...recentPromptIds, ...skippedIds])];
+        }
       } catch (err) {
         // Bias signals are nice-to-have. If the queries fail (rare —
         // network blip, query timeout) the picker still hands the user a
@@ -453,6 +500,9 @@ export type LogPromptSelectionInput = {
   mode: "shuffle" | "list" | "surprise" | "auto_idle";
   reshuffles: number;
   msToSelect: number;
+  /** §8.5 content memory — prompt ids the user saw this selection and
+   *  did NOT pick. Persisted so tomorrow's slates deprioritize them. */
+  skippedPromptIds?: string[];
 };
 
 export async function logPromptSelection(
@@ -468,6 +518,9 @@ export async function logPromptSelection(
       exerciseId: input.exerciseId,
       promptId: input.promptId,
       mode: input.mode,
+      skippedPromptIds: (input.skippedPromptIds ?? [])
+        .filter((id) => typeof id === "string" && id.length > 0)
+        .slice(-60),
       reshuffles: input.reshuffles,
       msToSelect: input.msToSelect,
     });

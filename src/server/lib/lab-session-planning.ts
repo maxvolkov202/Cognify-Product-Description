@@ -109,6 +109,10 @@ export function rotateExercises(
   count: number,
   shuffleFn: <T>(arr: T[]) => T[],
   preferSubSkill?: SubSkillId,
+  /** §8.5 content memory — exercises the user completed recently. They
+   *  sort behind fresh material (never excluded: a small bank must
+   *  still fill the session). */
+  recentExerciseIds?: ReadonlySet<string>,
 ): { picks: LabCatalogExercise[]; preferredMatched: boolean } {
   if (pool.length === 0) return { picks: [], preferredMatched: false };
   const wanted = preferSubSkill ? canonicalizeSubSkillId(preferSubSkill) : null;
@@ -120,8 +124,18 @@ export function rotateExercises(
       )
     : [];
   const preferredSet = new Set(preferred);
-  const rest = shuffleFn(pool.filter((e) => !preferredSet.has(e)));
-  const ordered = [...shuffleFn(preferred), ...rest];
+  const rest = pool.filter((e) => !preferredSet.has(e));
+  const isRecent = (e: LabCatalogExercise) =>
+    recentExerciseIds?.has(e.id) ?? false;
+  const fresh = shuffleFn(rest.filter((e) => !isRecent(e)));
+  const recent = shuffleFn(rest.filter(isRecent));
+  // Preferred exercises keep priority even when recent (the weakness
+  // bias is the stronger signal), but sort fresh-first within the tier.
+  const preferredOrdered = [
+    ...shuffleFn(preferred.filter((e) => !isRecent(e))),
+    ...shuffleFn(preferred.filter(isRecent)),
+  ];
+  const ordered = [...preferredOrdered, ...fresh, ...recent];
   const picks: LabCatalogExercise[] = [];
   for (let i = 0; i < count; i++) picks.push(ordered[i % ordered.length]!);
   return {

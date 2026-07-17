@@ -336,6 +336,35 @@ section("Pure planning logic (lab-session-planning)");
   );
   const wrap = rotateExercises(pool.slice(0, 2), 5, identity);
   assert(wrap.picks.length === 5, "rotation wraps when pool < count");
+
+  // §8.5 content memory — recently practiced exercises sort behind
+  // fresh material; the weakness bias (preferred) still beats recency.
+  const withRecent = rotateExercises(
+    pool,
+    3,
+    identity,
+    undefined,
+    new Set(["a"]),
+  );
+  assert(
+    withRecent.picks[withRecent.picks.length - 1]!.id === "a",
+    "recent exercise sorts last behind fresh material",
+  );
+  assert(
+    new Set(withRecent.picks.map((p) => p.id)).size === 3,
+    "recent exercises stay available (deprioritized, never excluded)",
+  );
+  const preferredRecent = rotateExercises(
+    pool,
+    3,
+    identity,
+    "jargon_translation" as never,
+    new Set(["a"]),
+  );
+  assert(
+    preferredRecent.picks[0]!.id === "a",
+    "preferred (weakness-biased) exercise leads even when recent",
+  );
 }
 
 // ————————————————————————————————————————————————————————————————
