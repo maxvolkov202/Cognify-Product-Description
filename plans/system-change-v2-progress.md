@@ -289,14 +289,16 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
       (matrix #3–#17: Google/email sign-in, workout golden path recording) need Max** — require real
       credentials + a mic + a connected browser.
 - [ ] 6.4 Post-promotion watch (Max): scoring telemetry p95, drift cron next 3 nights, error rates.
-- **⛔ Blocked on Max / follow-ups (NOT done this session):**
-  - `supabase functions deploy process-rep` — Supabase CLI is not authenticated (no `SUPABASE_ACCESS_TOKEN`).
-    **Non-critical:** async scoring is OFF in prod, so process-rep is off the critical path; deploy it before
-    enabling `NEXT_PUBLIC_USE_ASYNC_SCORING`.
+- [x] `supabase functions deploy process-rep` — **DONE 2026-07-17** (Max supplied a token; deployed
+      to project `dunnoccrvrqzsgxsfjuv`, status ACTIVE v1, current v4 code = audioUrl forwarding +
+      coachFocus/feedback writes). Stays off the critical path until `NEXT_PUBLIC_USE_ASYNC_SCORING`
+      is flipped on (deliberately left off — enabling async is a separate, separately-validated change).
+- **⛔ Remaining follow-ups (need Max):**
   - Deploy the prosody worker to prod (`modal deploy` + set `FF_PROSODY_WORKER`/`PROSODY_WORKER_URL`) — Max
     does this as a follow-up; until then prod tone stays on the text-conservative tier (no breakage).
   - Drift cron judgment — hold until one nightly run passes on the new pipeline.
-  - Anthropic fallback still reports low credits after the re-up (OpenAI primary is fine); worth a look.
+  - Anthropic fallback low on credits — **intentional (Max 2026-07-17: OpenAI-only, Anthropic not used).**
+    The dead fallback only costs the second hop; no action needed.
 - **Verify (Max, on prod):** full workout, Lab session, and BaR event end to end; prompt slates
   general + fresh; grading fast; tone reacts to delivery.
 
