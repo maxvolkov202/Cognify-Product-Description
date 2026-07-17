@@ -877,7 +877,7 @@ function PlanScreen({
         setUploadNote(
           data.error === "file_too_large"
             ? "That file is too large (4MB max)."
-            : "Upload failed — try again.",
+            : "Upload failed. Try again.",
         );
       } else if (data.parseStatus !== "parsed") {
         setUploadNote(
@@ -888,7 +888,7 @@ function PlanScreen({
         // experience should become increasingly specific." Regenerate
         // automatically instead of waiting for a manual click; the
         // user's own moments survive (regenerate keeps source=user).
-        setUploadNote("Context read — updating your plan with it…");
+        setUploadNote("Context read. Updating your plan with it…");
         await regeneratePreparationPlan({ eventId: event.id });
         setUploadNote(null);
       }
@@ -923,6 +923,24 @@ function PlanScreen({
               </span>
             )}
           </div>
+          {/* Edit #1 — a clean one-line summary of what's being practiced. */}
+          {event.moments.length > 0 && (
+            <p className="mt-2 text-xs text-slate-500 dark:text-ink-400">
+              You&apos;re practicing {event.moments.length} Critical Moment
+              {event.moments.length === 1 ? "" : "s"} (~
+              {Math.max(
+                1,
+                Math.round(
+                  event.moments.reduce(
+                    (s, m) => s + m.recommendedSeconds,
+                    0,
+                  ) / 60,
+                ),
+              )}{" "}
+              min of speaking) for this{" "}
+              {(EVENT_TYPE_LABEL[event.eventType] ?? "event").toLowerCase()}.
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -1042,7 +1060,7 @@ function PlanScreen({
         <p className="text-xs text-slate-500 dark:text-ink-400 mb-3">
           {/* C11 — define Critical Moments at first use. */}
           Critical Moments are the parts of your event most likely to determine
-          how it goes. Practice them in any order — edit the plan freely.
+          how it goes. Practice them in any order and edit the plan freely.
         </p>
         <ul className="space-y-2">
           {event.moments.map((m, i) => (
@@ -1292,7 +1310,7 @@ function PlanScreen({
             )}
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
-            One Critical Moment at a time — coaching after every rep, retry
+            One Critical Moment at a time: coaching after every rep, retry
             until it clicks. Hit “Practice” on any moment above.
           </p>
           <button
@@ -1326,7 +1344,7 @@ function PlanScreen({
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
             The whole event, start to finish, no interruptions. Feedback only at
-            the end — that&apos;s the point.
+            the end. That&apos;s the point.
           </p>
           <button
             type="button"
@@ -1403,7 +1421,7 @@ function MomentInsight({
           aria-label="Recommended speaking time in seconds"
           className="w-16 min-h-[36px] rounded-md border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-1.5 text-center text-xs font-bold text-slate-800 dark:text-white"
         />
-        seconds — match your real moment
+        seconds. Match your real moment
       </div>
       <div className="mt-5">
         <button
@@ -1411,7 +1429,7 @@ function MomentInsight({
           onClick={onReady}
           className="min-h-[48px] rounded-xl bg-pink-500 hover:bg-pink-400 px-6 py-3 font-semibold text-white"
         >
-          I&apos;m ready — start the rep
+          I&apos;m ready, start the rep
         </button>
       </div>
     </div>
@@ -1484,7 +1502,7 @@ function SimulationView({
         </button>
         <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 shadow-sm">
           <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
-            Full Simulation — {event.title}
+            Full Simulation: {event.title}
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-ink-400">
             Start to finish, no interruptions. Your framework stays beside you.
@@ -1545,7 +1563,7 @@ function SimulationView({
               ))}
             </ol>
             <p className="mt-2 text-[11px] text-slate-400 dark:text-ink-500">
-              Edits update your plan too — or ignore the framework entirely
+              Edits update your plan too, or ignore the framework entirely
               and deliver it your way.
             </p>
           </div>
@@ -1652,7 +1670,7 @@ function ReadinessReviewScreen({
     <div className="space-y-5">
       <div className="text-center">
         <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
-          Readiness Review — {event.title}
+          Readiness Review: {event.title}
         </div>
         <div className="mt-3 text-6xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">
           {review.overallScore != null ? Math.round(review.overallScore) : "—"}
@@ -1678,7 +1696,7 @@ function ReadinessReviewScreen({
 
       <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-500/15 dark:to-ink-900 p-4 shadow-sm">
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender mb-1">
-          Coach feedback — your one focus
+          Coach feedback: your one focus
         </div>
         <p className="text-sm text-slate-800 dark:text-ink-100 leading-snug">
           {review.coachFeedback}
