@@ -120,6 +120,19 @@ section("strongerVersion with empty quote object → null (not a parse failure)"
   assert(parsed.success && parsed.data.strongerVersion === null, "degenerate strongerVersion nulled");
 }
 
+section("long verbatim quote (>400 chars) parses — no mock-fallback on run-on answers");
+{
+  // Regression: gpt-4o quotes a long span from comma-spliced run-on
+  // transcripts; the old quote max(400) rejected the whole response and
+  // /api/score fell to mock-fallback. Cap is now 1000 (see score.ts).
+  const long = validResponse() as Record<string, unknown>;
+  const quote600 = "the miss has three components, ".repeat(20).trim(); // ~600 chars
+  long.strongerVersion = { quote: quote600, rewrite: "Lead with the single biggest driver, then name the other two." };
+  assert(quote600.length > 400 && quote600.length <= 1000, `test quote is 400-1000 chars (${quote600.length})`);
+  const parsed = scoringResponseSchema.safeParse(long);
+  assert(parsed.success, `600-char quote parses (${parsed.success ? "" : JSON.stringify(parsed.error.issues[0])})`);
+}
+
 // ————————————————————————————————————————————————————————————————
 section("sanitizeStrongerVersion — verbatim grounding");
 {

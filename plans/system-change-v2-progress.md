@@ -495,3 +495,52 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     truncation), rotation-counter modulo aliasing, guest-cookie identities taking the
     personalized path, auto-bias monotony (single tagged exercise leading forever), stale W7
     docstring, em-dash regressions.
+- **2026-07-17 (session 8) — Post-re-up verifications (the Phase-3/4 credit-blocked queue) +
+  a real quote-cap hotfix, on `fix/stronger-version-quote-cap`.** Max re-upped billing;
+  probe result: **OpenAI (scoring primary) live; Anthropic (fallback) still "credit balance
+  too low"** — flagged, work continued since primary is what all scoring/gen uses (Anthropic-dead
+  only costs the fallback hop).
+  - **Found + fixed a live latent bug (score.ts):** `strongerVersion.quote` had a Zod `max(400)`
+    but the prompt states NO quote cap, so on comma-spliced run-on answers gpt-4o quotes a long
+    span (e.g. the whole 859-char transcript) → the ENTIRE scoring response failed validation →
+    cascaded to the dead Anthropic fallback → **mock-fallback served for a real answer** (mis-logged
+    as "provider unreachable"). Same "weaponized cap" failure the `headline` cap already documents.
+    Fix: quote `max(400→1000)`, rewrite `max(600→700)` margin; schema-only, so scoring-prompt BYTES
+    are unchanged (no calibration re-author needed). Regression test added
+    (grading-v3-contract: 600-char quote parses). This bug is in prod now (Phase 3 shipped it) — it
+    silently mock-scores any long/run-on rep; the fix ships to prod in Phase 6.
+  - **Calibration (2, ≤5-noise criterion MET):** across 4 full-bank runs the failure count was
+    3/1/4/2, always ≤5 and on **rotating** reps (band-exceptional, interview-excellent, qa-competent,
+    velocity, objection-excellent each fail once) = the temp-0.2 gpt-4o noise floor, not drift
+    (no uniform direction; interview-excellent drifts UP +18 structure). Two surgical bank
+    adjustments (Max-authorized tooling):
+    (a) `rethreshold-independence.mjs` on **indep-launch-miss-breathless** thinking_quality min
+    65→35 — its old rationale literally read "observed **70/70/70**", i.e. it was thresholded
+    against MOCK output (mock returns ~70) because the quote-cap bug mock-failed this exact rep
+    during the Phase-3 re-author; real gpt-4o scores its thinking a stable 40/42/40.
+    (b) `reauthor-expectations.mjs` on **qa-excellent-board-regulatory** (single-rep replay files
+    → only this rep) composite 77→68, band strong→competent — consistent across 3 dedicated runs
+    (69/68/67), another instance of the documented §3.6 "pipeline under-rates upper-tier reps"
+    limitation. ⚠️ **For Max:** the bank pins CURRENT behavior for drift detection, not quality
+    endorsement — qa-excellent-board and the rotating upper-tier reps land ~8 below their
+    hand-authored composites; if that under-rating is a real quality gap, that's Phase-7 grading
+    work, not a bank problem.
+  - **Audio tone exit criterion (3): PASS.** Clean re-run 0 failures; all 4 valid tone pairs
+    separate +20…+35 with `toneSource:prosody` (real Praat-worker audio grading, worker on :8080).
+    band-competent's expressive clip stays excluded (the known upspeak specimen). One boundary-noise
+    clip (qa-strong expressive 55↔60) self-cleared on re-run.
+  - **Latency (4): `PHASE=v2-3 phase-baseline.mjs`** → total p50/p95 **7.66s / 10.27s**, model
+    7.1s / 9.4s, **0% mock-fallback, 0% OpenAI-fallback**, 100% cache. Better than the Phase-3
+    post-baseline (9.3s/11.8s). Persisted `plans/baselines/phase-v2-3.json`.
+  - **Phase-4 LLM smokes (5): all PASS with real model output** (`scripts/smoke-bar-llm.ts`, new).
+    #2 named questions → EXACTLY the user's 3 questions verbatim as practice moments, 0 fabricated,
+    suggestions-rail mechanism intact (`suggested:true`), coachCue+scoringHint present. #3 moment
+    notes auto-draft → clean STAR sections (the editability/persist half was Phase-4 unit-tested +
+    reviewed). #1 OpenAI vision parsed a generated JD image (1080 chars, accurate) → regenerated a
+    document-specific plan ("Final Panel Interview at Aurora Payments"). Browser extension wasn't
+    connected, so validated via direct LLM-function calls (the exact "LLM paths need a live smoke"
+    gap the Phase-4 log named).
+  - **verify-scoring.mjs (6): all assertions PASS** (coachFocus/strongerVersion grounding/per-skill
+    6/6/headlineTone/nextRepHint/non-mock). Trailing `UV_HANDLE_CLOSING` line is a Windows/libuv
+    teardown race after success, not an assertion failure.
+  - typecheck + full test suite + lint green. Next: Phase 6 prod promotion.

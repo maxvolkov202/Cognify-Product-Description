@@ -134,8 +134,19 @@ const coachFocusSchema = z.object({
  *  the WHOLE object (never an invented quote on screen). */
 const strongerVersionSchema = z
   .object({
-    quote: z.string().min(1).max(400),
-    rewrite: z.string().min(1).max(600),
+    // quote is a verbatim substring of the transcript (post-validated
+    // character-for-character below), so its only real bound is the
+    // transcript length. The prompt asks for a focused "moment" phrase and
+    // never states a char cap, so the model can't self-limit — on
+    // comma-spliced run-on answers gpt-4o legitimately quotes a long span.
+    // A 400 cap rejected those responses outright and dropped /api/score
+    // into mock-fallback (same failure the `headline` cap hit in May 2026).
+    // 1000 covers realistic long-moment quotes without weaponizing the cap;
+    // the "phrase" instruction keeps the normal case short.
+    quote: z.string().min(1).max(1000),
+    // rewrite is instructed to a ≤600 hard cap in the prompt; the schema
+    // keeps a small margin so an occasional overshoot doesn't mock-fallback.
+    rewrite: z.string().min(1).max(700),
   })
   .nullable();
 

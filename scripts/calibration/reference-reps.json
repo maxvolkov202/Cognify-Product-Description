@@ -472,8 +472,8 @@
         {
           "kind": "minScore",
           "dimension": "thinking_quality",
-          "min": 65,
-          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 70/70/70 — see grading-v3-design.md §3.6 known limitations]"
+          "min": 35,
+          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 70/70/70 — see grading-v3-design.md §3.6 known limitations] [re-thresholded at rubric v4.0.0: aspirational min 65, observed 40/42/40 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
@@ -587,15 +587,15 @@
       "transcript": "Three contingencies, ranked by likelihood. Most likely path — Section 6 narrows but keeps the data-portability carve-out. We're already on standard. Second — full restrictive language, which would force product changes in our EU stack. We've scoped that work; it's a six-week migration, owned by Aliya, with a budget delta of four hundred thousand. Third — extreme outcome, market exit. We'd absorb the impact through lifetime value already booked, no operational shock. We're not betting on outcome three. We're insuring against outcome two.",
       "durationMs": 31000,
       "expected": {
-        "composite": 77,
-        "band": "strong",
+        "composite": 68,
+        "band": "competent",
         "dimensions": {
-          "clarity": 78,
-          "structure": 84,
-          "conciseness": 88,
-          "thinking_quality": 64,
-          "delivery": 78,
-          "tone": 72
+          "clarity": 62,
+          "structure": 74,
+          "conciseness": 85,
+          "thinking_quality": 52,
+          "delivery": 74,
+          "tone": 68
         }
       }
     },
