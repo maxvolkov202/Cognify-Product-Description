@@ -187,12 +187,28 @@ async function main() {
       "parsed text capped",
     );
 
+    // Edit #1 — images are a supported kind now (vision-parsed). In the
+    // test environment there's no usable vision call for a 3-byte stub,
+    // so the parse degrades to "failed" (never "unsupported", never a
+    // throw); with a live key + real photo it returns "parsed".
     const image = await parseContextFile(
       Buffer.from([0xff, 0xd8, 0xff]),
       "image/jpeg",
       "photo.jpg",
     );
-    assert(image.status === "unsupported", "image → unsupported");
+    assert(
+      image.status === "failed" || image.status === "parsed",
+      "image → vision kind (failed-or-parsed, not unsupported)",
+    );
+    const bmp = await parseContextFile(
+      Buffer.from([0x42, 0x4d]),
+      "image/bmp",
+      "photo.bmp",
+    );
+    assert(
+      bmp.status === "unsupported",
+      "image mime outside the vision set → unsupported",
+    );
 
     const markdown = await parseContextFile(
       Buffer.from("# Notes\n- point"),
@@ -285,7 +301,8 @@ async function main() {
     assert(
       withHint != null &&
         withoutHint != null &&
-        withHint.startsWith(withoutHint),
+        withHint.replace(/^Scoring lens for this moment.*\n/m, "") ===
+          withoutHint,
       "the hint is strictly additive — the rest of the block is unchanged",
     );
     const longHint = renderEventContextBlock({
