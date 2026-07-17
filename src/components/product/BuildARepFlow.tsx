@@ -25,7 +25,8 @@ import {
 } from "./CustomScenarioBuilder";
 import type { VerticalId, PersonaId } from "@/lib/onboarding/constants";
 import type { TalkingPoints } from "@/lib/ai/talking-points";
-import type { RepScore, Callout } from "@/types/domain";
+import { deriveRetryFocus } from "@/lib/ai/coach-focus";
+import type { RepScore } from "@/types/domain";
 import {
   PRESSURE_ARCHETYPES,
   getPressureArchetype,
@@ -129,7 +130,11 @@ export function BuildARepFlow({
   const [intakeCollapsed, setIntakeCollapsed] = useState(false);
 
   // Retry focus for Build-a-Rep (same as Daily Workout)
-  const [retryFocus, setRetryFocus] = useState<Callout | null>(null);
+  const [retryFocus, setRetryFocus] = useState<{
+    title: string;
+    body: string;
+    strongerVersion: { quote: string | null; rewrite: string } | null;
+  } | null>(null);
   const [repRetryNonce, setRepRetryNonce] = useState(0);
 
   // Preview gate (Product Sweep #5) — after talking points are generated,
@@ -330,13 +335,9 @@ export function BuildARepFlow({
   }
 
   function handleRepComplete({ score }: { score: RepScore }) {
-    const focus =
-      score.callouts.find(
-        (c) => c.tone === "warn" || c.tone === "critical",
-      ) ??
-      score.callouts[0] ??
-      null;
-    setRetryFocus(focus);
+    // One shared derivation for retry focus + Stronger Version across
+    // all surfaces (v4 first-class fields, legacy callout fallback).
+    setRetryFocus(deriveRetryFocus(score));
   }
 
   function handleRepRetry() {

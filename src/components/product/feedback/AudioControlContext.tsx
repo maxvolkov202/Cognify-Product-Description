@@ -7,7 +7,7 @@ type AudioControl = {
   /** Seek the rep audio to the given millisecond and play. */
   seekToMs: (ms: number) => void;
   /** Open the matching DimensionCard inline (single-open accordion) and
-   *  scroll the grid into view. Called by OutcomeCard drill-in links. */
+   *  scroll the grid into view. Called by feedback drill-in links. */
   expandDimension: (dim: SkillDimension | "structural_adherence") => void;
   /** Resolve a callout instance back to its persisted DB id. Returns null
    *  when the rep wasn't saved (guest, DB down) — consumers should hide

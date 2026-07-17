@@ -241,6 +241,16 @@ export type DimensionScore = {
   subSkillScores?: Partial<
     Record<import("./sub-skills").SubSkillId, number>
   >;
+  /** Grading v3 (v4 contract, §4.5.3) — 1-2 sentence per-skill feedback
+   *  rendered inside the expanded Core Skill Breakdown card: why this
+   *  score, plus one skill-specific coaching line. Strong scores name
+   *  the effective behavior; weak scores name the gap. Absent on pre-v4
+   *  reps (the card falls back to per-dimension callouts). */
+  feedback?: string;
+  /** Grading v3 — the hidden skill (src/types/sub-skills.ts id) that
+   *  most drove this dimension's score. LLM-attributed; sanitized to
+   *  null on dimension mismatch. */
+  subSkill?: string | null;
 };
 
 /**
@@ -338,17 +348,39 @@ export type RepScore = {
    *  celebratory + raise-the-bar. Optional on read because legacy reps
    *  predate this field — UI computes a deterministic fallback when absent. */
   headline?: string;
-  /** Phase 2: AI-authored "what you did well" bullets. Exactly 2, except
-   *  for junk reps (composite < 25) which are allowed to be empty so the
-   *  feedback doesn't manufacture praise. Optional for legacy compat. */
+  /** PRE-v4 ONLY (grading v3 removed these from model output per PRD
+   *  §4.5.3 — "Separate 'What You Did Well' and 'Areas For Improvement'
+   *  sections do not exist"). Kept as optional read fields so historical
+   *  reps stay renderable. */
   didWell?: FeedbackBullet[];
-  /** Phase 2: AI-authored "what didn't land" bullets. Exactly 2 in the
-   *  normal case. Optional for legacy compat. */
+  /** Pre-v4 only — see didWell. */
   didntLand?: FeedbackBullet[];
-  /** Phase 2: AI-authored "next rep focus" prescriptions. Exactly 2 in
-   *  the normal case, each paired with a didntLand bullet (every gap gets
-   *  a paired fix). Optional for legacy compat. */
+  /** Pre-v4 only — see didWell. */
   nextRepFocus?: NextRepFocusItem[];
+  /** Grading v3 (v4 contract, §4.5.2 + §8.6.2) — THE single Coach's
+   *  Focus, model-emitted: what behavior held the user back, why it
+   *  matters, what to do on the retry. `text` is the composed one-liner
+   *  legacy consumers (coaching_events, retry context, coaching memory)
+   *  read. Absent on pre-v4 reps — deriveCoachFocus() falls back to the
+   *  legacy bullet/callout derivation chain. */
+  coachFocus?: {
+    dimension: SkillDimension;
+    subSkill: string | null;
+    /** Required in the v4 model contract; optional here because
+     *  persisted pre-v4 rows reconstruct a {dimension, subSkill, text}
+     *  focus — consumers must not assume these exist (fabricating them
+     *  from `text` duplicated copy on the Coach's Focus card). */
+    behavior?: string;
+    why?: string;
+    action?: string;
+    text: string;
+  };
+  /** Grading v3 (§4.6, Edit #5) — the Stronger Version: a rewrite of
+   *  what the USER actually said (their content, upgraded — never a
+   *  generic exemplar). `quote` is a verbatim transcript phrase
+   *  (substring-validated post-parse; the whole field is nulled on
+   *  mismatch). Null on junk reps and pre-v4 reps. */
+  strongerVersion?: { quote: string | null; rewrite: string } | null;
   /** Phase 2: which dimension the AI considers most important to surface
    *  for this rep. Drives DimensionGrid emphasis when not overridden by
    *  mode (focus mode pins to focusDimension, pressure to stressed dims). */
@@ -413,8 +445,12 @@ export type RepScore = {
  *  - v2.1.0 adds `headlineTone` calibration scaffold and `nextRepHint`
  *    AI-generated banner tail.
  *  - v3.0.0 swaps Adaptability → Tone, locks DIMENSION_WEIGHTS and
- *    BAND_DEFINITIONS to DNA spec. */
-export const FEEDBACK_VERSION = "v3.0.0";
+ *    BAND_DEFINITIONS to DNA spec.
+ *  - v4.0.0 (grading v3, PRD §4.5-4.6 clean break): model emits
+ *    `coachFocus` (behavior/why/action) + `strongerVersion` + per-skill
+ *    `dimensions[].feedback`; callouts/didWell/didntLand/nextRepFocus
+ *    leave the model output (empty/absent on new reps, legacy-read only). */
+export const FEEDBACK_VERSION = "v4.0.0";
 
 export type FrameworkNode = {
   id: string;

@@ -12,8 +12,6 @@ import {
 } from "@/lib/scoring/rubric";
 import { renderAnchorsForDimension } from "@/lib/scoring/rubric-anchors";
 import type {
-  FeedbackBullet,
-  NextRepFocusItem,
   RepScore,
   ScoreRepEventContext,
   SkillDimension,
@@ -38,7 +36,6 @@ import {
   blendScores,
 } from "@/lib/scoring/deterministic";
 import {
-  ALL_SUB_SKILLS,
   SUB_SKILL_TO_DIMENSION,
   SUB_SKILL_LABELS,
   SUB_SKILLS,
@@ -51,7 +48,9 @@ import { createHash } from "node:crypto";
 import {
   extractInlineProsody,
   mergeProsody,
+  synthesizeProsodyBaseline,
 } from "@/lib/audio/prosody-inline";
+import { getWordCount, durationToMinutes } from "@/lib/scoring/signals/_helpers";
 import {
   hasWorkerProsody,
   renderProsodyBlock,
@@ -70,61 +69,22 @@ const dimensionScoreSchema = z.object({
   ]),
   score: z.number().min(0).max(100),
   signals: z.array(z.string()),
+  /** Grading v3 (§4.5.3) — 1-2 sentence per-skill feedback for the
+   *  expanded Core Skill Breakdown card. Lenient: absent on quirky
+   *  provider outputs; the card falls back to a neutral line. */
+  feedback: z.string().min(1).max(400).optional(),
+  /** Grading v3 — the hidden skill that most drove the score. LENIENT:
+   *  invalid ids coerce to null (label→id mapping happens in
+   *  normalizeProviderQuirks first). */
+  subSkill: z
+    .string()
+    .nullable()
+    .optional()
+    .catch(null),
 });
 
-const calloutSchema = z.object({
-  dimension: z.enum([
-    "clarity",
-    "structure",
-    "conciseness",
-    "thinking_quality",
-    "delivery",
-    "tone",
-    "structural_adherence",
-  ]),
-  tone: z.enum(["positive", "neutral", "warn", "critical"]),
-  title: z.string().max(80),
-  body: z.string().max(320),
-  quote: z.string().max(320).nullable(),
-  suggestedRewrite: z.string().max(360).nullable(),
-  // Nullable to match the Callout domain type. Missing keys (undefined)
-  // are coerced to null upstream by normalizeProviderQuirks() before
-  // the schema parse — that handles the gpt-4o "field omitted entirely"
-  // case which was the dominant validation_failed cause (2026-05-21).
-  transcriptStart: z.number().min(0).nullable(),
-  transcriptEnd: z.number().min(0).nullable(),
-});
-
-const dimensionEnumSchema = z.enum([
-  "clarity",
-  "structure",
-  "conciseness",
-  "thinking_quality",
-  "delivery",
-  "tone",
-  "structural_adherence",
-]);
-
-const subSkillEnumSchema = z.enum(
-  ALL_SUB_SKILLS as unknown as [SubSkillId, ...SubSkillId[]],
-);
-
-const feedbackBulletSchema = z.object({
-  text: z.string().min(1).max(280),
-  dimension: dimensionEnumSchema,
-  /** Ch.2 sub-skill grading. Optional in input; sanitizer fills/strips. */
-  subSkill: subSkillEnumSchema.nullable().optional(),
-  quote: z.string().max(320).nullable(),
-  transcriptStart: z.number().min(0).nullable(),
-  transcriptEnd: z.number().min(0).nullable(),
-});
-
-const nextRepFocusItemSchema = feedbackBulletSchema.extend({
-  exampleLine: z.string().max(360).nullable(),
-});
-
-/** PRD v3 engine — the shared implementationReview schema (single-call
- *  path here + stage-2 in score-stages.ts). Present only on retry reps.
+/** PRD v3 engine — the implementationReview schema. Present only on
+ *  retry reps.
  *
  *  Phase 15 I-8 — `technique`: which coaching technique the coached
  *  focus used (taxonomy: CoachingTechnique in coach-focus.ts). LENIENT
@@ -150,24 +110,9 @@ export const implementationReviewSchema = z
   .nullable()
   .optional();
 
-const scoringResponseSchema = z.object({
-  dimensions: z.array(dimensionScoreSchema).length(ALL_DIMENSIONS.length),
-  structuralAdherence: z.number().min(0).max(100).nullable().optional(),
-  callouts: z.array(calloutSchema).min(3).max(3),
-  /** One-line diagnostic verdict — see HEADLINE RULES in systemPrompt.
-   * Cap was 120 but prod logs (May 2026) showed Haiku regularly emitting
-   * 130-150 char headlines on rich-signal reps; rejecting them dropped
-   * /api/score into mock-fallback. 200 keeps the headline visibly
-   * one-line on the ScoreHero (~2 lines on mobile worst-case) without
-   * weaponizing the cap. */
-  headline: z.string().min(1).max(200),
-  /** Phase 2 first-class bullets. Allow 0–2 so junk reps (composite < 25)
-   *  can omit didWell without manufacturing praise. The prompt enforces
-   *  "exactly 2" in the normal case. */
-  didWell: z.array(feedbackBulletSchema).max(2),
-  didntLand: z.array(feedbackBulletSchema).max(2),
-  nextRepFocus: z.array(nextRepFocusItemSchema).max(2),
-  primaryFocusDimension: z.enum([
+/** Grading v3 (§4.5.2 + §8.6.2) — THE single Coach's Focus. */
+const coachFocusSchema = z.object({
+  dimension: z.enum([
     "clarity",
     "structure",
     "conciseness",
@@ -175,6 +120,38 @@ const scoringResponseSchema = z.object({
     "delivery",
     "tone",
   ]),
+  /** LENIENT — label→id mapping happens in normalizeProviderQuirks;
+   *  anything still invalid coerces to null (sanitizer also strips
+   *  dimension mismatches). */
+  subSkill: z.string().nullable().optional().catch(null),
+  behavior: z.string().min(1).max(200),
+  why: z.string().min(1).max(280),
+  action: z.string().min(1).max(220),
+});
+
+/** Grading v3 (§4.6, Edit #5) — Stronger Version: the user's own content,
+ *  upgraded. quote is substring-validated post-parse; a mismatch nulls
+ *  the WHOLE object (never an invented quote on screen). */
+const strongerVersionSchema = z
+  .object({
+    quote: z.string().min(1).max(400),
+    rewrite: z.string().min(1).max(600),
+  })
+  .nullable();
+
+/** Exported for tests/grading-v3-contract.test.ts only. */
+export const scoringResponseSchema = z.object({
+  dimensions: z.array(dimensionScoreSchema).length(ALL_DIMENSIONS.length),
+  structuralAdherence: z.number().min(0).max(100).nullable().optional(),
+  /** One-line diagnostic verdict — see HEADLINE RULES in systemPrompt.
+   * Cap was 120 but prod logs (May 2026) showed Haiku regularly emitting
+   * 130-150 char headlines on rich-signal reps; rejecting them dropped
+   * /api/score into mock-fallback. 200 keeps the headline visibly
+   * one-line on the ScoreHero (~2 lines on mobile worst-case) without
+   * weaponizing the cap. */
+  headline: z.string().min(1).max(200),
+  coachFocus: coachFocusSchema,
+  strongerVersion: strongerVersionSchema,
   /** Phase 3 calibration scaffold — tone band the AI thinks it wrote in. */
   headlineTone: z.enum(["blunt", "directive", "praise", "celebratory"]),
   /** Phase 3 scaffold — short tail phrase for the NEXT rep's
@@ -326,27 +303,6 @@ function isDeterministicSignalsOn(userId: string | undefined): boolean {
   return hash.readUInt32BE(0) % 100 < percent;
 }
 
-/** Ch.13 — Band-anchors gate. Same two-knob shape as
- *  isDeterministicSignalsOn so a single user's bucket assignment is
- *  consistent across both rollouts (different env hashes; correlation
- *  is fine). When on, the score prompt's RUBRIC block carries the 30
- *  per-dim band anchors; off path renders the legacy rubric. The
- *  switch is pure path — no scoring math change, but the prompt size
- *  grows, so cache_control buys us back the latency cost on
- *  subsequent calls. */
-function isBandAnchorsOn(userId: string | undefined): boolean {
-  if (process.env.FF_BAND_ANCHORS !== "true") return false;
-  const percent = parseInt(
-    process.env.FF_BAND_ANCHORS_PERCENT ?? "0",
-    10,
-  );
-  if (Number.isNaN(percent) || percent <= 0) return false;
-  if (percent >= 100) return true;
-  if (!userId) return false;
-  const hash = createHash("sha256").update(`band-anchors::${userId}`).digest();
-  return hash.readUInt32BE(0) % 100 < percent;
-}
-
 function renderTimedTranscript(
   transcript: string,
   words?: { word: string; startMs: number; endMs: number }[],
@@ -383,21 +339,23 @@ Dimensions, in order:
 
 Be rigorous. 90+ is reserved for genuinely excellent reps. <40 means serious issues. Off-topic or junk reps (mic test, rambling, not answering the prompt) must score low on BOTH content and delivery dimensions; do not anchor to a default range.
 
+SCORE CALIBRATION (apply before writing any feedback):
+  - Use the FULL 0-100 range in both directions. A rep that fully accomplishes the prompt with visible structure, concrete support, and clean pacing MUST land 85+ on the dimensions it nails. Do not withhold the top band because "there is always something to improve" — there always is, and 90 already means that.
+  - Anchors: mic-test ramble = ~20. Generic answer that addresses the prompt without evidence or shape = ~55. Solid answer with real structure and support but visible rough edges = ~72. Tight, evidenced, well-paced answer = ~85. Flawless with a memorable close = ~93+.
+  - Pick each dimension's BAND first (from the Bands lists in the rubric), then the point score inside it. The feedback line you write must agree with the band: if your feedback names no real deficiency for that dimension, the score must be ≥80 — never invent a nitpick to justify a middle score.
+  - You will ALWAYS name a coachFocus and per-skill feedback, even on a 95 rep. Having something to coach is NOT evidence the rep is mediocre — do not let the coaching requirement drag scores toward the middle.
+  - DIMENSION INDEPENDENCE: score each dimension in ISOLATION. Mixed profiles (90 on one dimension, 25 on another) are common and intentional in training reps. Never let one dimension's failure bleed into another's score: hollow content does not lower Structure, a meandering shape does not lower Thinking Quality, and brilliant insight does not raise Structure.
+
 Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."] }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
-  "callouts": [
-    { "dimension": "...", "tone": "positive"|"neutral"|"warn"|"critical", "title": "short label", "body": "why it mattered", "quote": "verbatim phrase from transcript"|null, "suggestedRewrite": "speakable rephrasing"|null, "transcriptStart": ms, "transcriptEnd": ms }
-  ],
   "headline": "one-line verdict, see HEADLINE RULES below",
-  "didWell": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
-  "didntLand": [{ "text": "...", "dimension": "...", "quote": "...", "transcriptStart": ms, "transcriptEnd": ms }, ...],
-  "nextRepFocus": [{ "text": "...", "dimension": "...", "quote": "..."|null, "transcriptStart": ms|null, "transcriptEnd": ms|null, "exampleLine": "..."|null }, ...],
-  "primaryFocusDimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone",
+  "coachFocus": { "dimension": "...", "subSkill": "snake_case id"|null, "behavior": "...", "why": "...", "action": "..." },
+  "strongerVersion": { "quote": "verbatim phrase copied character-for-character from the transcript", "rewrite": "the user's own content, upgraded" } | null,
   "headlineTone": "blunt"|"directive"|"praise"|"celebratory",
   "nextRepHint": "3-8 word continuation tail for the next rep's banner"
 }
@@ -425,46 +383,53 @@ PER-MODE HEADLINE FRAMING (when MODE block is supplied in the user message):
         else → "{mechanism} got past you" framing
   - previousRepFocus supplied: the headline must address whether that dimension improved or stayed flat compared to the previous rep's headline. Don't restate the previous headline — extend it.
 
-CALLOUT RULES (responses violating these are rejected):
-  - Exactly 3 callouts: 1 positive + 2 warn/critical. The two improvements target the TWO lowest-scoring dimensions (one each).
-  - Every callout includes a \`quote\` copied verbatim from the transcript.
-  - Warn/critical callouts include a \`suggestedRewrite\`: concrete, speakable, same length or shorter, in the user's voice. Positive callouts set suggestedRewrite=null.
-  - dimension must be one of the six rubric dimensions (or "structural_adherence" when scoring against a framework).
+PER-SKILL FEEDBACK RULES (dimensions[].feedback — the expandable Core Skill Breakdown copy):
+  - 1-2 tight sentences per dimension: WHY this score, in terms of what the speaker actually did.
+  - Strong scores (≥75) name the effective behavior worth keeping. Weak scores name the gap and what closing it sounds like.
+  - Second-person, present-tense, no hedging, ≤400 chars.
+  - Must NOT introduce a second coaching objective that competes with coachFocus — per-skill feedback explains the score; coachFocus owns "what to change next".
+  - dimensions[].subSkill: the snake_case id of the hidden skill that most drove the score. It must belong to that dimension (use the SUB-SKILL REFERENCE). Mismatches are sanitized to null.
 
-BULLET RULES (didWell / didntLand / nextRepFocus — these are the user-facing summary bullets, distinct from callouts):
-  - didWell:        exactly 2 bullets in the normal case. ALLOWED 0 only when composite < 25 (junk reps must not manufacture praise).
-  - didntLand:      exactly 2 bullets, paired with the 2 nextRepFocus items (each gap gets a paired fix in the same array index).
-  - nextRepFocus:   exactly 2 bullets, prescriptive ("Open with a direction-setting sentence so the listener knows where you're going.").
-  - SUB-SKILL ATTRIBUTION (Ch.2 sub-skill grading): every bullet MUST set \`subSkill\` to the specific lever within the named dimension. The sub-skill must belong to the bullet's \`dimension\` (Vocabulary Precision belongs to Clarity, not Structure). Use the SUB-SKILL REFERENCE block in the user message to choose. Bullets with mismatched sub-skill / dimension are sanitized to subSkill=null.
-  - text ≤140 chars, second-person ("you …"), action-oriented, no hedging.
-  - Voice differs from callouts: callouts label what happened ("Rushed the setup"); bullets give actionable context ("You started talking without telling me where you were going.").
-  - GROUNDING — non-negotiable for didWell + didntLand:
-      Every bullet MUST cite a verbatim transcript phrase in \`quote\` and a timestamp range. If you cannot cite, do not write the bullet.
-      The quote is character-for-character from the transcript. Paraphrasing or insertion is rejected by the post-validator.
-  - GROUNDING — nextRepFocus only:
-      Generic prescriptive guidance is allowed ONLY in nextRepFocus bullets, AND ONLY when transcriptStart, transcriptEnd, and quote are ALL explicitly null. The text must read as universal advice ("open with a direction-setting sentence"), not pseudo-specific.
-      If a nextRepFocus bullet ties to a specific transcript moment, populate quote + timestamps the same as didntLand.
-  - exampleLine (nextRepFocus only): a short, speakable line the user could imitate next rep. Same constraints as suggestedRewrite. At most ONE of the two nextRepFocus items may have exampleLine=null.
-  - primaryFocusDimension: pick the single dimension you'd most want the user to focus on for the next rep. Surfaces in the UI's dimension grid.
+COACH'S FOCUS RULES (exactly ONE per rep — this is the most important output):
+  - The single highest-leverage behavior change for the next attempt. Never multiple objectives.
+  - Three parts, each answering one question (coach behaviors, not scores):
+      behavior : what specific behavior held the user back (≤200 chars, names what they DID, not a score)
+      why      : why that behavior matters for the listener (≤280 chars)
+      action   : the ONE thing to do differently on the retry (≤220 chars, imperative, immediately performable)
+  - When a MODE block names a focusDimension, the coachFocus must come from that dimension unless it scored ≥85 and another dimension is <60 (mirror the headline pivot rule).
+  - On a RETRY (RETRY EVALUATION block present): coachFocus is the NEXT development opportunity — acknowledge what carried over in \`why\` when the coached behavior improved.
+  - subSkill: the specific lever within the dimension, from the SUB-SKILL REFERENCE. Must belong to coachFocus.dimension.
 
-COPY RULES:
-  - title ≤80 chars: a label of what happened, not advice. Example: "Rushed the setup", "Landed the ask".
-  - body ≤300 chars: 1-2 tight sentences on why the moment matters. The fix belongs in suggestedRewrite, not body.
+STRONGER VERSION RULES (§4.6 — "a stronger version based off what I said"):
+  - Pick the single transcript moment where an upgrade teaches the most (usually the coachFocus dimension's weakest moment).
+  - quote: copied CHARACTER-FOR-CHARACTER from the transcript. Paraphrasing is rejected by the post-validator and the whole strongerVersion is discarded.
+  - rewrite: the user's OWN content and ideas, upgraded — same message, same facts, their voice, speakable out loud. NEVER a generic exemplar, NEVER invented facts or claims they didn't make. Same length or shorter than the quote where possible (≤600 chars hard cap).
+  - null ONLY for junk reps (composite < 25, off-prompt rambles) where no real content exists to upgrade.
 
-BANNED in title, body, or any bullet text: "good job", "great job", "nice work", "nice job", "well done", "way to go", "keep it up", "you got this", "you're doing great", "you did well". Drop filler adverbs (really, very, quite). Avoid hype verbs (crushed, absolutely, completely nailed). Every positive callout and didWell bullet points at a specific transcript moment.
+BANNED in headline, feedback, coachFocus, or strongerVersion: "good job", "great job", "nice work", "nice job", "well done", "way to go", "keep it up", "you got this", "you're doing great", "you did well". Drop filler adverbs (really, very, quite). Avoid hype verbs (crushed, absolutely, completely nailed).
 
 ANTI-HALLUCINATION RULES:
-  - Never write "you said X" / "when you mentioned X" / "the part where you X" without populating the quote field with the verbatim phrase.
-  - If you're tempted to reference a transcript moment but can't find the exact phrase, drop the reference entirely. Generic advice is honest; fabricated specifics break trust.
-  - Bullets that reference transcript moments without verbatim quotes are rejected by the post-validator.
+  - Never write "you said X" / "when you mentioned X" without X being verbatim from the transcript.
+  - strongerVersion.quote is validated character-for-character (whitespace-insensitive) — a fabricated quote discards the whole strongerVersion.
+  - If you can't find the exact phrase, write dimension-level feedback instead. Generic-but-honest beats fabricated-specific.
+
+PROSODY EVIDENCE SCOPE:
+  - When a PROSODY block is present in the user message, ground the delivery and tone scores (and their feedback lines) in it.
+  - PROSODY EVIDENCE informs delivery and tone ONLY. Never let vocal measurements move clarity, structure, conciseness, or thinking_quality.
+  - The reverse also holds: Tone grades the VOICE, not the words. Mediocre content delivered with genuinely expressive prosody is HIGH tone + low content scores — do not drag tone down because the argument was weak.
+  - Map the measurements to tone bands directly: pitch std ≥3 semitones with monotone ratio <20% and no upspeak pattern = healthy vocal variety, tone 70-85 (higher when volume also varies and articulation is crisp). Sustained monotone (monotone ratio >60% or pitch std <1 semitone) = tone ≤45. Between those, interpolate. Vocal variety AT target is strong tone — do not hold it in the 50s out of rigor.
+  - When NO prosody/audio evidence is present, grade tone conservatively toward band center (55-70) from text alone — do not invent vocal qualities.
 
 EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — these override the per-dimension rubric in the listed conflicts):
   1. Brevity-at-cost-of-meaning: a response that is concise but loses the meaning takes the hit on CLARITY, not as a Conciseness reward. Honest score: low Clarity (idea didn't land), neutral Conciseness (don't reward erasing meaning).
-  2. Shallow-but-organized: a well-structured response with shallow ideas scores HIGH on Structure and LOW on Thinking Quality. Do NOT reward organization for compensating for weak reasoning. Numbered scaffolds without substance are still shallow.
+  2. Shallow-but-organized: Structure grades the SCAFFOLD ONLY — opening direction, ordering, transitions, close. If the scaffold is clearly visible, Structure scores 70+ even when every point inside it is hollow, tautological, or absurd; the hollowness is Thinking Quality's hit (LOW), not Structure's. A hollow-but-scaffolded rep that addresses the prompt is NOT a junk rep — junk means mic-test/off-prompt. Do NOT let weak reasoning bleed into the Structure score, and do NOT reward organization on the Thinking side.
+  2b. Disorganized-but-deep (the mirror case): score the REASONING on its own merits even when the packaging meanders. False starts, loops, and missing scaffolds hit Structure (LOW), not Thinking Quality. Insight that reframes the problem — naming the load-bearing variable, distinguishing cases that change the answer, reading the intent behind a message — is HIGH thinking (75+) regardless of how untidy the shape is. In a thinking-out-loud format, exploratory phrasing ("my read is", "the part I keep coming back to") is analysis in progress, NOT weak conviction — judge whether the underlying reasoning discriminates cases and finds what matters, not how confidently it is packaged.
   3. Fast-and-no-fillers: a response delivered at 220+ wpm without filler words still scores LOW on Delivery. Rate is part of pacing — speed isn't competence. Optimal range is 150-160 wpm.
   4. Variety-with-upspeak: a response with strong vocal variety BUT consistent rising inflection on statements scores LOW on Tone. Upspeak undercuts authority. Strong variety does NOT cancel out an upspeak pattern.
   5. Short-but-deep: a response under 30 seconds is NOT penalized for length alone. Evaluate whether the brevity served the prompt — if the rep fully engaged the prompt with strong thinking and no filler, it can score high. If it dodged depth, Thinking Quality drops regardless of other qualities.
-  6. Composite ≥ 95: such a response should be exceptionally rare. Set primaryFocusDimension to the LOWEST-scoring dim regardless of focus mode (the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
+  7. Depth-appropriate-to-format: judge Thinking Quality against what the FORMAT calls for. A 30-second pitch or objection response with quantified evidence, a causal chain, and a clear ask is 85+ thinking — do NOT dock it for missing counterarguments or hedged nuance that the format has no room for. Reserve the counterargument expectation for formats that invite it (defenses, recommendations, debates).
+  8. Padding-is-not-concise: Conciseness is signal-per-word, not just low filler. A rep that enumerates every instance where a summary would do (walking through each day/item one by one), restates the same point in fresh words, or stacks redundant examples scores LOW on Conciseness (40s-50s) even with zero hedges and zero fillers. Clean sentences do not redeem redundant content.
+  6. Composite ≥ 95: such a response should be exceptionally rare. Point coachFocus at the LOWEST-scoring dimension regardless of focus mode (it is the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
 
 HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headline in):
   - "blunt"       — composite < 50, headline names what failed.
@@ -476,7 +441,7 @@ HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headlin
 NEXT REP HINT:
   - 3-8 words, present-tense, second-person, no period.
   - Becomes the tail of the next rep's "Last rep focus: <dim> — <hint>" banner.
-  - Tied to primaryFocusDimension. Specific over generic when possible:
+  - Tied to the coachFocus dimension. Specific over generic when possible:
       generic   : "keep building on it"
       specific  : "land the open before the ask"
   - No filler verbs ("focus on", "work on") — give an action.`;
@@ -488,9 +453,9 @@ NEXT REP HINT:
  * the system prompt under ~3KB after caching.
  *
  * Ch.13 — when `withAnchors=true`, interleaves the per-dim band anchors
- * from `rubric-anchors.ts`. The anchored variant is cached separately
- * and rendered into the score prompt only when FF_BAND_ANCHORS is on,
- * so the legacy prompt + cache key stays untouched on the off path.
+ * from `rubric-anchors.ts`. Since rubric v4.0.0 the anchored variant is
+ * the only one rendered (band compression on gpt-4o without it); the
+ * FF_BAND_ANCHORS gate is retired.
  */
 const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "clarity",
@@ -499,8 +464,22 @@ const LLM_SCORED_DIMENSIONS: SkillDimension[] = [
   "tone",
 ];
 
+/** Grading v3 — the rubric block covers ALL SIX dims: even though the
+ *  delivery NUMBER is deterministically overridden and thinking_quality
+ *  is blended, the model must justify a per-skill `feedback` line for
+ *  every dimension (§4.5.3). Knowledge blocks stay scoped to
+ *  LLM_SCORED_DIMENSIONS (they're an order of magnitude bigger). */
+const RUBRIC_DIMENSIONS: SkillDimension[] = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "tone",
+];
+
 function renderRubric(withAnchors = false): string {
-  return LLM_SCORED_DIMENSIONS.map((d) => {
+  return RUBRIC_DIMENSIONS.map((d) => {
     const r = DIMENSION_RUBRIC[d];
     const anchorBlock = withAnchors
       ? `\n\nBands (pick the band first, then place the score within its range):\n${renderAnchorsForDimension(d)}`
@@ -516,7 +495,6 @@ High: ${r.highScoreSignals.slice(0, 3).join("; ")}${anchorBlock}`;
 // variants: the legacy (no band anchors) and the Ch.13 anchored
 // version. Both are kept warm so the FF flip is a pure path switch
 // with no first-request render cost.
-const COMPACT_RUBRIC = renderRubric(false);
 const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
 const SUB_SKILL_REFERENCE = renderSubSkillReference();
 /** Taxonomy v2 — definition blocks are pure module data; precompute the
@@ -560,177 +538,104 @@ const CALLOUT_BANNED_PHRASES = [
   "you did well",
 ];
 
-type RawCallout = {
-  dimension:
-    | "clarity"
-    | "structure"
-    | "conciseness"
-    | "thinking_quality"
-    | "delivery"
-    | "tone"
-    | "structural_adherence";
-  tone: "positive" | "neutral" | "warn" | "critical";
-  title: string;
-  body: string;
-  quote: string | null;
-  suggestedRewrite: string | null;
-  transcriptStart: number | null;
-  transcriptEnd: number | null;
-};
-
-function calloutContainsBanned(c: RawCallout): boolean {
-  const hay = `${c.title} ${c.body}`.toLowerCase();
-  return CALLOUT_BANNED_PHRASES.some((p) => hay.includes(p));
-}
-
-/** Phase 2 grounding validator. Mirrors sanitizeCallouts' belt-and-suspenders
- *  approach: trust the prompt rules but verify post-LLM. For each bullet:
- *    - If quote != null, verify it's a substring of the rep transcript
- *      (case-insensitive, whitespace-collapsed). Mismatch → strip quote +
- *      timestamps so the UI renders the bullet without quote-mark styling
- *      and without the timestamp jump affordance. Don't drop the bullet —
- *      the text alone is still useful guidance.
- *    - Verify transcriptStart < transcriptEnd <= durationMs. Out-of-range
- *      timestamps get nulled out (same UI consequence as bad quote).
- *    - Banned-phrase sweep: bullets containing pseudo-specific phrases
- *      ("you said", "when you mentioned", "the part where you") with
- *      quote=null are also stripped of any timestamp data — they were
- *      claiming to ground in transcript without actually doing so. */
-const PSEUDO_GROUND_PHRASES = [
-  "you said",
-  "when you mentioned",
-  "when you said",
-  "the part where you",
-  "the moment where you",
-  "the bit where you",
-];
 
 function normalizeForMatch(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-function sanitizeBullets<T extends FeedbackBullet>(opts: {
-  bullets: T[];
-  transcript: string;
-  durationMs: number;
-  /** Tag for log output ("didWell" / "didntLand" / "nextRepFocus"). */
-  label: string;
-}): T[] {
-  const { bullets, transcript, durationMs, label } = opts;
-  const haystack = normalizeForMatch(transcript);
-  return bullets.map((b) => {
-    let quote = b.quote;
-    let start = b.transcriptStart;
-    let end = b.transcriptEnd;
 
-    // Quote substring check.
-    if (quote != null) {
-      const needle = normalizeForMatch(quote);
-      if (needle.length === 0 || !haystack.includes(needle)) {
-        console.warn(
-          `[score] ${label} bullet quote not found in transcript; stripping anchor:`,
-          { quote: quote.slice(0, 80) },
-        );
-        quote = null;
-        start = null;
-        end = null;
-      }
-    }
-
-    // Timestamp range check.
-    if (start != null && end != null) {
-      if (start < 0 || end <= start || end > durationMs) {
-        console.warn(
-          `[score] ${label} bullet timestamps out of range; stripping anchor:`,
-          { start, end, durationMs },
-        );
-        quote = null;
-        start = null;
-        end = null;
-      }
-    }
-
-    // Pseudo-ground sweep: text claims a transcript moment but no quote.
-    const lowerText = b.text.toLowerCase();
-    const claimsTranscriptMoment = PSEUDO_GROUND_PHRASES.some((p) =>
-      lowerText.includes(p),
-    );
-    if (claimsTranscriptMoment && quote == null) {
-      console.warn(
-        `[score] ${label} bullet claims transcript moment without quote; nulling timestamps:`,
-        { text: b.text.slice(0, 80) },
-      );
-      start = null;
-      end = null;
-    }
-
-    return { ...b, quote, transcriptStart: start, transcriptEnd: end };
-  });
+/** Generic banned-phrase check for the v4 copy fields. */
+export function containsBannedPhrase(text: string): boolean {
+  const hay = text.toLowerCase();
+  return CALLOUT_BANNED_PHRASES.some((p) => hay.includes(p));
 }
 
-/** Ch.2 sub-skill validator. For each bullet:
- *    - If subSkill is provided, verify it belongs to the bullet's dimension
- *      via SUB_SKILL_TO_DIMENSION. Mismatch → null out the subSkill (leave
- *      the bullet otherwise intact; UI gracefully renders no chip).
- *    - structural_adherence dimension never carries a sub-skill (it's a
- *      separate framework-scoring dim). Strip if set.
- *    - Missing subSkill is allowed (legacy, edge-case bullets) — handled
- *      by Zod's `.optional()`. */
-function sanitizeSubSkills<T extends FeedbackBullet>(opts: {
-  bullets: T[];
-  label: string;
-}): T[] {
-  const { bullets, label } = opts;
-  return bullets.map((b) => {
-    const sub = b.subSkill;
-    if (sub == null || sub === undefined) return b;
-    if (b.dimension === "structural_adherence") {
-      console.warn(
-        `[score] ${label} bullet on structural_adherence had subSkill; stripping:`,
-        { subSkill: sub },
-      );
-      return { ...b, subSkill: null };
-    }
-    const expectedDim = SUB_SKILL_TO_DIMENSION[sub as SubSkillId];
-    if (expectedDim !== b.dimension) {
-      console.warn(
-        `[score] ${label} bullet sub-skill / dimension mismatch; stripping subSkill:`,
-        { subSkill: sub, dimension: b.dimension, expectedDim },
-      );
-      return { ...b, subSkill: null };
-    }
-    return b;
+/** Log for prompt-drift auditing; the copy itself is kept (praise filler
+ *  in a feedback line is awkward, not harmful — unlike a fabricated
+ *  quote). Returns {} so it composes into object spreads. */
+function logBannedAndKeep(field: string, text: string): Record<string, never> {
+  console.warn(`[score] ${field} tripped banned-phrase filter (kept):`, {
+    text: text.slice(0, 80),
   });
+  return {};
 }
 
-function sanitizeCallouts(callouts: RawCallout[]): RawCallout[] {
-  return callouts.map((c) => {
-    if (!calloutContainsBanned(c)) return c;
-    // Log so we can audit prompt drift. Don't drop — we need to keep
-    // the 1+2 shape intact.
+/** Sub-skill attribution must belong to the dimension it's attached to
+ *  (Vocabulary Precision belongs to Clarity, not Structure). Mismatches
+ *  and unknown ids strip to null. */
+export function sanitizeDimSubSkill(
+  dimension: SkillDimension,
+  subSkill: string | null | undefined,
+): SubSkillId | null {
+  if (!subSkill) return null;
+  const canonical = canonicalizeSubSkillId(subSkill);
+  if (!canonical) return null;
+  if (SUB_SKILL_TO_DIMENSION[canonical] !== dimension) {
     console.warn(
-      "[score] callout tripped banned-phrase filter; sanitizing:",
-      { dimension: c.dimension, tone: c.tone, title: c.title },
+      `[score] dimension subSkill mismatch; stripping:`,
+      { dimension, subSkill: canonical },
     );
-    if (c.tone === "positive") {
-      return {
-        ...c,
-        title: "Landed a specific moment",
-        body:
-          c.quote
-            ? `The line "${c.quote}" hit clearly — keep that specificity.`
-            : "A specific moment landed cleanly. Keep that specificity.",
-      };
+    return null;
+  }
+  return canonical;
+}
+
+type RawCoachFocus = {
+  dimension: SkillDimension;
+  subSkill?: string | null;
+  behavior: string;
+  why: string;
+  action: string;
+};
+
+/** Grading v3 — sanitize the Coach's Focus: sub-skill mismatch strips to
+ *  null; banned phrases log; `text` (the composed one-liner every legacy
+ *  consumer reads: coaching_events.focusText, retry context, coaching
+ *  memory) is the action line. */
+export function sanitizeCoachFocus(cf: RawCoachFocus): NonNullable<
+  RepScore["coachFocus"]
+> {
+  for (const [field, value] of [
+    ["behavior", cf.behavior],
+    ["why", cf.why],
+    ["action", cf.action],
+  ] as const) {
+    if (containsBannedPhrase(value)) {
+      logBannedAndKeep(`coachFocus.${field}`, value);
     }
-    return {
-      ...c,
-      title: "Tighten this moment",
-      body:
-        c.quote
-          ? `"${c.quote}" could land cleaner. See the suggested rewrite below.`
-          : "This moment could land cleaner. See the suggested rewrite below.",
-    };
-  });
+  }
+  return {
+    dimension: cf.dimension,
+    subSkill: sanitizeDimSubSkill(cf.dimension, cf.subSkill),
+    behavior: cf.behavior,
+    why: cf.why,
+    action: cf.action,
+    text: cf.action,
+  };
+}
+
+/** Grading v3 (§4.6) anti-hallucination — the Stronger Version quote must
+ *  be a verbatim (whitespace-collapsed, case-insensitive) transcript
+ *  substring; otherwise the WHOLE object is discarded. */
+export function sanitizeStrongerVersion(opts: {
+  strongerVersion: { quote: string; rewrite: string } | null;
+  transcript: string;
+}): { quote: string; rewrite: string } | null {
+  const sv = opts.strongerVersion;
+  if (!sv) return null;
+  const haystack = normalizeForMatch(opts.transcript);
+  const needle = normalizeForMatch(sv.quote);
+  if (needle.length === 0 || !haystack.includes(needle)) {
+    console.warn(
+      "[score] strongerVersion quote not found in transcript; discarding:",
+      { quote: sv.quote.slice(0, 80) },
+    );
+    return null;
+  }
+  if (containsBannedPhrase(sv.rewrite)) {
+    logBannedAndKeep("strongerVersion.rewrite", sv.rewrite);
+  }
+  return sv;
 }
 
 /** Render the MODE block injected into the user prompt before the
@@ -810,13 +715,14 @@ export function renderRetryEvaluationBlock(
     // replay — the orchestrator runs it; do not re-baseline here.
     `  - In implementationReview also set "technique" — which coaching technique the coached change above used: "smaller_step" (one small concrete action), "transcript_example" (a before/after example from the user's own words), "related_hidden_skill" (coaching an adjacent hidden skill), "reframe" (the same fix under a new framing). Omit the field if none clearly fits.`,
     `  - Acknowledge what carried over from the first attempt before naming the next opportunity.`,
+    `  - coachFocus in your output is the NEXT development opportunity (it may stay on the same behavior only if the implementation was missed).`,
+    `  - strongerVersion must quote the NEW transcript below, never the first attempt.`,
     `  - Score the new transcript on its own merits with the normal rubric — do not inflate for effort or deflate for repetition of the same prompt.`,
   ].join("\n");
 }
 
 /** PRD v3 §7.5 — the EVENT CONTEXT block for Build a Rep preparation
- *  reps. Shared by the single-call path (via renderModeBlock) and the
- *  two-stage path (prepareContext in score-stages.ts), mirroring
+ *  reps (rendered via renderModeBlock), mirroring
  *  renderRetryEvaluationBlock exactly. Returns null when the rep isn't
  *  a prep rep, keeping non-prep prompts byte-identical — this is the
  *  calibration guardrail: reference runs never carry eventContext. */
@@ -881,64 +787,62 @@ function normalizeSubSkillField(value: unknown): unknown {
   return null;
 }
 
-function normalizeBulletArray(arr: unknown): unknown {
-  if (!Array.isArray(arr)) return arr;
-  return arr.map((b) => {
-    if (!b || typeof b !== "object") return b;
-    const obj = { ...(b as Record<string, unknown>) };
-    if ("subSkill" in obj) obj.subSkill = normalizeSubSkillField(obj.subSkill);
-    // Coerce missing-or-undefined transcript anchors to null so the
-    // nullable Zod field accepts. LLMs sometimes drop these entirely.
-    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
-      obj.transcriptStart = null;
-    }
-    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
-      obj.transcriptEnd = null;
-    }
-    if (!("quote" in obj) || obj.quote === undefined) {
-      obj.quote = null;
-    }
-    return obj;
-  });
-}
 
-/** Coerce missing transcript anchors on callouts to null. gpt-4o sometimes
- *  omits the fields entirely when it can't ground the callout — that lands
- *  as `undefined` after JSON.parse, which the nullable Zod schema rejects.
- *  This was the dominant validation_failed → mock-fallback cause in
- *  2026-05-21 telemetry. */
-function normalizeCalloutsArray(arr: unknown): unknown {
-  if (!Array.isArray(arr)) return arr;
-  return arr.map((c) => {
-    if (!c || typeof c !== "object") return c;
-    const obj = { ...(c as Record<string, unknown>) };
-    if (!("transcriptStart" in obj) || obj.transcriptStart === undefined) {
-      obj.transcriptStart = null;
-    }
-    if (!("transcriptEnd" in obj) || obj.transcriptEnd === undefined) {
-      obj.transcriptEnd = null;
-    }
-    if (!("quote" in obj) || obj.quote === undefined) {
-      obj.quote = null;
-    }
-    if (
-      !("suggestedRewrite" in obj) ||
-      obj.suggestedRewrite === undefined
-    ) {
-      obj.suggestedRewrite = null;
-    }
-    return obj;
-  });
-}
 
-function normalizeProviderQuirks(parsed: unknown): unknown {
+/**
+ * Grading v3 — normalize provider quirks on the v4 shape before Zod.
+ * The gpt-4o omission class (fields dropped entirely → undefined →
+ * nullable schema rejects) caused the 2026-05-21 validation_failed
+ * wave; every nullable v4 field gets the same missing→null coercion,
+ * and sub-skill ids get label→id mapping.
+ */
+export function normalizeProviderQuirks(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== "object") return parsed;
   const obj = { ...(parsed as Record<string, unknown>) };
-  if ("callouts" in obj) obj.callouts = normalizeCalloutsArray(obj.callouts);
-  if ("didWell" in obj) obj.didWell = normalizeBulletArray(obj.didWell);
-  if ("didntLand" in obj) obj.didntLand = normalizeBulletArray(obj.didntLand);
-  if ("nextRepFocus" in obj)
-    obj.nextRepFocus = normalizeBulletArray(obj.nextRepFocus);
+
+  if (Array.isArray(obj.dimensions)) {
+    obj.dimensions = obj.dimensions.map((d) => {
+      if (!d || typeof d !== "object") return d;
+      const dim = { ...(d as Record<string, unknown>) };
+      if ("subSkill" in dim) {
+        dim.subSkill = normalizeSubSkillField(dim.subSkill);
+      } else {
+        dim.subSkill = null;
+      }
+      // Some providers emit feedback:null instead of omitting — the
+      // optional (not nullable) schema wants it absent.
+      if (dim.feedback === null) delete dim.feedback;
+      return dim;
+    });
+  }
+
+  if (obj.coachFocus && typeof obj.coachFocus === "object") {
+    const cf = { ...(obj.coachFocus as Record<string, unknown>) };
+    if ("subSkill" in cf) {
+      cf.subSkill = normalizeSubSkillField(cf.subSkill);
+    } else {
+      cf.subSkill = null;
+    }
+    obj.coachFocus = cf;
+  }
+
+  // Missing strongerVersion (undefined) → null; also treat an object
+  // with a missing/empty quote or rewrite as null rather than failing
+  // the whole parse.
+  if (!("strongerVersion" in obj) || obj.strongerVersion === undefined) {
+    obj.strongerVersion = null;
+  } else if (obj.strongerVersion && typeof obj.strongerVersion === "object") {
+    const sv = obj.strongerVersion as Record<string, unknown>;
+    if (
+      typeof sv.quote !== "string" ||
+      sv.quote.length === 0 ||
+      typeof sv.rewrite !== "string" ||
+      sv.rewrite.length === 0
+    ) {
+      obj.strongerVersion = null;
+    }
+  }
+
   return obj;
 }
 
@@ -1025,15 +929,15 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     signalsBlock = renderTextSignalsBlock(textSignals);
   }
 
-  // Ch.13 — Band-anchors gate. When on, the cached rubric block in the
-  // system prompt carries the 30 per-dim band anchors. Off path keeps
-  // the legacy compact rubric — and an unchanged cache_control key for
-  // the system prompt block — so untouched users see no latency
-  // regression while the anchors ramp.
-  const bandAnchorsOn = isBandAnchorsOn(input.userId);
-  const rubricBlock = bandAnchorsOn
-    ? COMPACT_RUBRIC_WITH_ANCHORS
-    : COMPACT_RUBRIC;
+  // Grading v3 (rubric v4.0.0) — band anchors are UNCONDITIONAL. The
+  // Ch.13 FF_BAND_ANCHORS ramp never left 0%, and the v4.0.0 replay
+  // without anchors showed severe band compression on gpt-4o (the
+  // reference exceptional rep scored 62; everything clustered 40–65),
+  // which breaks the PRD band semantics users see. The anchors give
+  // the model concrete band placement ("pick the band first, then the
+  // score within it"); expectations in reference-reps.json are
+  // authored against the anchored prompt.
+  const rubricBlock = COMPACT_RUBRIC_WITH_ANCHORS;
 
   // Phase 4 — RAG retrieval. Embed the transcript, fetch top-K chunks
   // from pgvector, inject as supplemental anchors in the user prompt.
@@ -1079,15 +983,42 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     ragPromise,
   ]);
   const ragBlock = renderRagContextBlock(ragResult.chunks);
+  // Grading v3 (3.6) — worker prosody must survive even when word
+  // timings are absent (async retries, calibration clips): the old
+  // `inlineProsody ? merge(...)` gate silently discarded the worker's
+  // pitch/monotone/volume evidence and dropped tone to the text tier.
+  // synthesizeProsodyBaseline derives rate + fillers from the
+  // transcript with the SAME tokenizer + filler lexicon as the timed
+  // path, so grading semantics don't fork by transport.
   const prosodyFeatures =
     input.prosodyFeatures ??
-    (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
+    (inlineProsody
+      ? mergeProsody(inlineProsody, workerProsody)
+      : workerProsody
+        ? mergeProsody(
+            synthesizeProsodyBaseline({
+              transcript: input.transcript,
+              durationMs: input.durationMs,
+            }),
+            workerProsody,
+          )
+        : null);
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
   const userPrompt = [
     modeBlock,
     `PROMPT: ${input.promptText}`,
-    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
+    // Grading v3 (3.6) — computed rate line. The model reliably applies
+    // the 220+wpm edge rule only when the division is done for it;
+    // word timings aren't always present (async retries, calibration
+    // reps), so derive WPM via the shared signals tokenizer (same one
+    // that feeds the SIGNALS block, so the prompt never carries two
+    // disagreeing WPM values). Deterministic function of (transcript,
+    // durationMs) → byte-stable for reference reps (calibration
+    // guardrail).
+    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s · MEASURED RATE: ~${Math.round(
+      getWordCount(input.transcript) / durationToMinutes(input.durationMs),
+    )} wpm (optimal 150-160)`,
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
@@ -1131,7 +1062,12 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     // gives the model real room to finish; cost increase is ~$0.005
     // worst-case per call ($16 / 1M output × 1600 extra tokens) which
     // is rounding error vs. the 0% mock-fallback rate it buys us.
-    max_tokens: 4000,
+    // Grading v3 — the v4 output (6 dims-with-feedback ~600 + coachFocus
+    // ~120 + strongerVersion ~150 + headline/hint ~60 ≈ 1,100-1,500
+    // typical tokens) is ~40% slimmer than the old bullets+callouts
+    // shape; 2500 leaves ~1.6x headroom over the observed ceiling.
+    // Output decode dominates gpt-4o latency, so this is the 3.5 win.
+    max_tokens: 2500,
     // Calibration stability: Anthropic SDK defaults temperature to 1.0,
     // which causes 30-50pt run-to-run swings on the same input (documented
     // in docs/calibration-baseline-2026-05-d2.md). Dropping to 0.2 keeps
@@ -1149,7 +1085,7 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
       },
       {
         type: "text" as const,
-        text: `RUBRIC (only the four LLM-scored dimensions; delivery and thinking_quality are scored separately):\n\n${rubricBlock}`,
+        text: `RUBRIC (all six dimensions — score each and write its per-skill feedback; delivery and thinking_quality numbers may additionally be grounded by deterministic measurement server-side):\n\n${rubricBlock}`,
         cache_control: { type: "ephemeral" as const },
       },
       ...(COMPACT_KNOWLEDGE
@@ -1244,45 +1180,23 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
 
   const validated = scoringResponseSchema.parse(parsed);
 
-  // WS-4: post-LLM callout validator. The scoring prompt has BANNED
-  // rules but belt-and-suspenders — we also check client-side and
-  // filter any callouts whose title/body contain banned filler. Rather
-  // than drop the whole response, we sanitize: filtered callouts get
-  // replaced by a neutral-tone fallback so the 1-positive + 2-improvement
-  // shape stays intact. In practice this is rare because the prompt's
-  // authoring rules are strict.
-  validated.callouts = sanitizeCallouts(validated.callouts);
-
-  // Phase 2: anti-hallucination grounding. Strip quote/timestamp anchors
-  // when the AI claims a transcript moment we can't verify. Bullets
-  // remain in the response — only the false specificity is removed.
-  const sanitizedDidWell = sanitizeSubSkills({
-    bullets: sanitizeBullets({
-      bullets: validated.didWell as FeedbackBullet[],
-      transcript: input.transcript,
-      durationMs: input.durationMs,
-      label: "didWell",
-    }),
-    label: "didWell",
+  // Grading v3 sanitizers — belt-and-suspenders over the prompt rules.
+  // Sub-skill attributions with a dimension mismatch strip to null;
+  // Stronger Version quotes that aren't verbatim discard the whole
+  // object (an invented quote must never reach the screen); banned
+  // phrases are logged for prompt-drift auditing.
+  const sanitizedCoachFocus = sanitizeCoachFocus(validated.coachFocus);
+  const sanitizedStrongerVersion = sanitizeStrongerVersion({
+    strongerVersion: validated.strongerVersion,
+    transcript: input.transcript,
   });
-  const sanitizedDidntLand = sanitizeSubSkills({
-    bullets: sanitizeBullets({
-      bullets: validated.didntLand as FeedbackBullet[],
-      transcript: input.transcript,
-      durationMs: input.durationMs,
-      label: "didntLand",
-    }),
-    label: "didntLand",
-  });
-  const sanitizedNextRepFocus = sanitizeSubSkills({
-    bullets: sanitizeBullets({
-      bullets: validated.nextRepFocus as NextRepFocusItem[],
-      transcript: input.transcript,
-      durationMs: input.durationMs,
-      label: "nextRepFocus",
-    }),
-    label: "nextRepFocus",
-  });
+  const sanitizedDimFeedback = validated.dimensions.map((d) => ({
+    ...d,
+    subSkill: sanitizeDimSubSkill(d.dimension, d.subSkill),
+    ...(d.feedback && containsBannedPhrase(d.feedback)
+      ? logBannedAndKeep("dimensions.feedback", d.feedback)
+      : {}),
+  }));
 
   const dimensionMap: Partial<Record<SkillDimension, number>> = {};
   for (const d of validated.dimensions) {
@@ -1300,7 +1214,7 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
   // on top of the measurable hedge/restart/pause baseline.
   //
   // Clarity, structure, conciseness, and tone stay LLM-scored as-is.
-  let finalDimensions = validated.dimensions.map((d) => ({ ...d }));
+  let finalDimensions = sanitizedDimFeedback.map((d) => ({ ...d }));
   if (input.words && input.words.length > 0) {
     const signalBundle = extractSignals({
       words: input.words,
@@ -1312,15 +1226,29 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     // Delivery — pure deterministic override (was "pacing" in v2-beta.*)
     const deliveryResult = scorePacing(signalBundle);
     dimensionMap.delivery = deliveryResult.score;
-    finalDimensions = finalDimensions.map((d) =>
-      d.dimension === "delivery"
-        ? {
-            dimension: "delivery" as const,
-            score: deliveryResult.score,
-            signals: deliveryResult.signals,
-          }
-        : d,
-    );
+    finalDimensions = finalDimensions.map((d) => {
+      if (d.dimension !== "delivery") return d;
+      // Spread keeps the model's per-skill feedback + subSkill
+      // (grading v3) while the NUMBER stays deterministic — but when
+      // the override moves the number far from what the model graded,
+      // the model's feedback line explains a score that no longer
+      // exists (§4.5.3: feedback explains THIS score). Swap in the
+      // deterministic narrative instead of showing e.g. Delivery 45
+      // with copy praising the pacing.
+      const overrideDiverges =
+        typeof d.score === "number" &&
+        Math.abs(d.score - deliveryResult.score) > 10;
+      return {
+        ...d,
+        score: deliveryResult.score,
+        signals: deliveryResult.signals,
+        ...(overrideDiverges
+          ? {
+              feedback: `Your measured pace was ${Math.round(signalBundle.wpm)} words per minute with ${signalBundle.fillerRate.toFixed(1)} fillers per minute${signalBundle.longPauseCount > 0 ? ` and ${signalBundle.longPauseCount} long pause${signalBundle.longPauseCount === 1 ? "" : "s"}` : ""}. ${deliveryResult.score >= 75 ? "That sits close to the 150-160 sweet spot listeners follow best." : "Aim for the 150-160 range with a deliberate pause after each key point."}`,
+            }
+          : {}),
+      };
+    });
 
     // Thinking Quality — hybrid blend with LLM layer (was "confidence")
     const thinkingDet = scoreThinkingQualityDeterministic(signalBundle);
@@ -1330,7 +1258,7 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     finalDimensions = finalDimensions.map((d) =>
       d.dimension === "thinking_quality"
         ? {
-            dimension: "thinking_quality" as const,
+            ...d,
             score: thinkingBlended,
             signals: [
               ...thinkingDet.signals,
@@ -1360,6 +1288,18 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     });
   }
 
+  // Grading v3 (spike 3.1) — tag what evidence grounded the tone score
+  // so profile/trend consumers can tell prosody-grounded tone from
+  // text-conservative tone (PRD §11.5 consistency across performances).
+  // "audio" tier reserved for a future audio-in grader; the spike chose
+  // DSP prosody.
+  const toneSource = hasWorkerProsody(prosodyFeatures) ? "prosody" : "text";
+  finalDimensions = finalDimensions.map((d) =>
+    d.dimension === "tone"
+      ? { ...d, signals: [...d.signals, `[toneSource: ${toneSource}]`] }
+      : d,
+  );
+
   const compositeScore = composite(dimensionMap, input.weights);
 
   const validationDurationMs = Date.now() - validationStart;
@@ -1371,14 +1311,21 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     ...(validated.structuralAdherence != null
       ? { structuralAdherence: validated.structuralAdherence }
       : {}),
-    callouts: validated.callouts,
-    modelVersion: MODEL_VERSIONS.scoring,
+    // Grading v3 — the model emits no callouts; the array stays required
+    // on RepScore (dozens of consumers index it) but empty on v4 reps.
+    callouts: [],
+    // Grading v3 (3.2) — record the ACTUAL serving model (already
+    // provider-tagged by the shim: "gpt-4o", "openai-fallback:gpt-4o",
+    // "anthropic-fallback:claude-…"), not the role constant that used
+    // to misreport gpt-4o reps as claude-scored.
+    modelVersion: callMetrics.modelUsed ?? MODEL_VERSIONS.scoring,
     rubricVersion: RUBRIC_VERSION,
     headline: validated.headline,
-    didWell: sanitizedDidWell,
-    didntLand: sanitizedDidntLand,
-    nextRepFocus: sanitizedNextRepFocus,
-    primaryFocusDimension: validated.primaryFocusDimension,
+    coachFocus: sanitizedCoachFocus,
+    strongerVersion: sanitizedStrongerVersion,
+    // §4.5.2 — the Coach's Focus dimension IS the primary focus (drives
+    // DimensionGrid emphasis + exemplar pick).
+    primaryFocusDimension: sanitizedCoachFocus.dimension,
     headlineTone: validated.headlineTone,
     nextRepHint: validated.nextRepHint,
     // PRD v3 engine — present only on retry-evaluated reps. Null-coalesced

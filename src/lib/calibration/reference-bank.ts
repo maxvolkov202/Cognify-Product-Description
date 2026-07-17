@@ -15,11 +15,17 @@ const SIGNED_URL_TTL_SECONDS = 3600;
 
 export type ReferenceRep = {
   id: string;
-  kind: "band" | "independence";
+  kind: "band" | "independence" | "audio-tone";
   promptText: string;
   transcript: string;
   durationMs: number;
   audioUrl?: string;
+  /** Grading v3 audio-tone reps: object key in the rep-audio bucket
+   *  (calibration-audio/…). Consumers mint signed URLs at runtime. */
+  storagePath?: string;
+  scriptId?: string;
+  style?: string;
+  localAudioFile?: string;
   expected?: {
     composite: number;
     band: string;

@@ -24,6 +24,10 @@ import {
   deriveImplementationVerdict,
 } from "@/lib/ai/coach-focus";
 import { safeDb } from "@/lib/db/safe";
+import {
+  applyFeedbackDoc,
+  buildFeedbackDoc,
+} from "@/lib/scoring/feedback-doc";
 import { currentUser } from "@/lib/session/current-user";
 import { log } from "@/lib/log";
 import { detectNewHigh, emitActivityEvent } from "@/lib/db/queries/activity";
@@ -269,6 +273,10 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
   // the coaching-history ledger stays trustworthy.
   const isMockFallback = input.score.modelVersion === "mock-fallback-v1";
   const coachFocus = isMockFallback ? null : deriveCoachFocus(input.score);
+  // Grading v3 — persist the doc-shaped feedback so async reads and the
+  // progress rep page reconstruct the full RepScore (null for mock/
+  // feedback-less scores → column stays absent).
+  const feedbackDoc = buildFeedbackDoc(input.score);
 
   return safeDb(async () => {
     // Phase 15 P-2 — the CORE persistence is atomic. Pre-tx, a late
@@ -325,6 +333,7 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
           : {}),
         ...(input.parentRepId ? { parentRepId: input.parentRepId } : {}),
         ...(coachFocus ? { coachFocus } : {}),
+        ...(feedbackDoc ? { feedback: feedbackDoc } : {}),
         frameworkSnapshot: input.framework
           ? {
               name: input.framework.name,
@@ -970,11 +979,35 @@ export async function getRepResult(
       })),
       modelVersion: rep.modelVersion ?? "",
       rubricVersion: rep.rubricVersion ?? "",
+      // Grading v3 — the persisted Coach's Focus survives read-back so
+      // async reps drive the retry flow exactly like sync ones.
+      ...(rep.coachFocus
+        ? {
+            coachFocus: {
+              dimension: rep.coachFocus.dimension as SkillDimension,
+              subSkill: rep.coachFocus.subSkill ?? null,
+              // Only pass through GENUINE v4 fields. Legacy rows carry
+              // {dimension, subSkill, text} — fabricating
+              // behavior/action from text made CoachFocusCard render
+              // the same sentence twice (headline + "On your retry").
+              ...(rep.coachFocus.behavior
+                ? { behavior: rep.coachFocus.behavior }
+                : {}),
+              ...(rep.coachFocus.why ? { why: rep.coachFocus.why } : {}),
+              ...(rep.coachFocus.action
+                ? { action: rep.coachFocus.action }
+                : {}),
+              text: rep.coachFocus.text,
+            },
+          }
+        : {}),
     };
 
     return {
       status: "completed" as const,
-      score,
+      // Grading v3 — merge the persisted feedback doc (headline,
+      // Stronger Version, per-skill feedback…). No-op on legacy rows.
+      score: applyFeedbackDoc(score, rep.feedback),
       calloutIds: cos.map((c) => c.id),
     };
   }, null);

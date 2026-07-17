@@ -52,6 +52,42 @@ section("openaiModelForRole");
   );
 }
 
+section("grading v3 — provider-neutral role keys + openai default");
+{
+  assert(
+    MODELS.scoring === "role:scoring" && MODELS.framework === "role:framework",
+    "MODELS exports role keys, not provider ids",
+  );
+  const anthScoring = B.resolveAnthropicModel(MODELS.scoring);
+  const anthFramework = B.resolveAnthropicModel(MODELS.framework);
+  assert(
+    anthScoring ===
+      (process.env.ANTHROPIC_SCORING_MODEL ?? "claude-haiku-4-5-20251001"),
+    "role:scoring resolves to the Anthropic scoring model",
+  );
+  assert(
+    anthFramework ===
+      (process.env.ANTHROPIC_FRAMEWORK_MODEL ?? "claude-sonnet-4-6"),
+    "role:framework resolves to the Anthropic framework model",
+  );
+  assert(
+    B.resolveAnthropicModel("claude-3-opus-hypothetical") ===
+      "claude-3-opus-hypothetical",
+    "raw model ids pass through the Anthropic resolver",
+  );
+  const envProvider = (
+    process.env.AI_PROVIDER ??
+    process.env.SCORING_PROVIDER ??
+    ""
+  ).toLowerCase();
+  if (envProvider === "" || envProvider === "openai") {
+    assert(
+      B.primaryProvider() === "openai",
+      "default primary provider is openai (D22)",
+    );
+  }
+}
+
 section("isHardKeyFailure");
 {
   assert(

@@ -6,20 +6,21 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns, cronRuns } from "@/lib/db/schema";
 import { scoreRep } from "@/lib/ai/score";
+import { getAudioSignedUrl } from "@/lib/audio/upload";
 import { log, serializeErr } from "@/lib/log";
 
-// Phase 14 — provider-aware drift tolerance. The reference-rep expected
-// bands were authored against Anthropic Haiku; GPT-4o systematically
-// compresses the top band (measured baseline 2026-07-06: avg |delta| 7.8,
-// worst ~23), so the Haiku threshold flags most reps as "drift" when
-// OpenAI is the active provider. Tolerance follows the provider; override
-// with DRIFT_TOLERANCE for either.
-import { AI_PROVIDER_ACTIVE } from "@/lib/ai/claude";
-const DRIFT_TOLERANCE = parseInt(
-  process.env.DRIFT_TOLERANCE ??
-    (AI_PROVIDER_ACTIVE === "openai" ? "12" : "5"),
-  10,
-);
+// Grading v3 (3.6) — single ±5 tolerance for every provider. The old
+// provider-split (12 for OpenAI) existed because expectations were
+// authored against Anthropic Haiku; the v4.0.0 bank was re-authored
+// against the serving provider (OpenAI gpt-4o), so the wide tolerance
+// would just mask real drift now. Override with DRIFT_TOLERANCE.
+const DRIFT_TOLERANCE = parseInt(process.env.DRIFT_TOLERANCE ?? "5", 10);
+
+// Alert gates derive from the tolerance so they can't silently desync
+// from it again: broad drift = average |Δ| beyond the per-rep tolerance;
+// blow-up = one rep at 3× tolerance.
+const ALERT_AVG_GATE = DRIFT_TOLERANCE;
+const ALERT_WORST_GATE = DRIFT_TOLERANCE * 3;
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -187,21 +188,43 @@ async function handleCron(req: Request) {
 
   // Hand-rolled bounded concurrency — N workers pull from a shared cursor.
   // Mirrors the proven pattern in weekly-narrative/route.ts:92–99.
+  //
+  // Grading v3 (3.6) — elapsed guard: the route runs under
+  // maxDuration=300; a slow provider night (pre-v4 p95 was 20s+/rep)
+  // could blow past it mid-write and kill the run uncleanly. Workers
+  // stop pulling new reps at 240s so in-flight calls finish and the
+  // summary/alert path always runs; skipped reps are reported, not
+  // silently dropped.
+  const ELAPSED_BUDGET_MS = 240_000;
+  const runStart = Date.now();
   let cursor = 0;
   const workers = Array.from(
     { length: Math.min(CONCURRENCY, refReps.length) },
     async () => {
-      while (cursor < refReps.length) {
+      while (
+        cursor < refReps.length &&
+        Date.now() - runStart < ELAPSED_BUDGET_MS
+      ) {
         const i = cursor++;
         await processOne(refReps[i]!);
       }
     },
   );
   await Promise.all(workers);
+  const skippedForTime = refReps.length - results.length;
+  if (skippedForTime > 0) {
+    log.warn({
+      event: "cron.calibration_drift.elapsed_budget_hit",
+      runId,
+      skippedForTime,
+      elapsedMs: Date.now() - runStart,
+    });
+  }
 
   const summary = {
     runId,
     totalReps: results.length,
+    skippedForTime,
     okCount: results.filter((r) => r.status === "ok").length,
     driftCount: results.filter((r) => r.status === "drift").length,
     fallbackCount: results.filter((r) => r.status === "fallback").length,
@@ -210,8 +233,8 @@ async function handleCron(req: Request) {
   };
 
   // Ch.C1 — Alert on drift / fallback. Fire webhook when:
-  //   - avg-|delta| > 5 (broad scoring drift), OR
-  //   - any single rep's |delta| > 15 (a specific rep blew up), OR
+  //   - avg-|delta| > ALERT_AVG_GATE (broad scoring drift), OR
+  //   - any single rep's |delta| > ALERT_WORST_GATE (a rep blew up), OR
   //   - fallbackCount > 2 (real prod scoring is failing on multiple reps)
   const realDeltas = results
     .map((r) => r.deltaComposite)
@@ -225,7 +248,9 @@ async function handleCron(req: Request) {
       ? Math.max(...realDeltas.map((d) => Math.abs(d)))
       : 0;
   const shouldAlert =
-    avgAbsDelta > 5 || worstAbsDelta > 15 || summary.fallbackCount > 2;
+    avgAbsDelta > ALERT_AVG_GATE ||
+    worstAbsDelta > ALERT_WORST_GATE ||
+    summary.fallbackCount > 2;
   let alertSentAt: Date | null = null;
   let alertOutcome: "sent" | "skipped" | "no-webhook" | "failed" | "dry-run" =
     "skipped";
@@ -262,8 +287,8 @@ async function handleCron(req: Request) {
       const payload = {
         text: [
           `*Cognify calibration drift alert* (run ${runId})`,
-          `Avg |Δcomposite|: ${avgAbsDelta.toFixed(1)} (gate >5)`,
-          `Worst |Δcomposite|: ${worstAbsDelta} (gate >15)`,
+          `Avg |Δcomposite|: ${avgAbsDelta.toFixed(1)} (gate >${ALERT_AVG_GATE})`,
+          `Worst |Δcomposite|: ${worstAbsDelta} (gate >${ALERT_WORST_GATE})`,
           `Fallbacks: ${summary.fallbackCount} of ${summary.totalReps} (gate >2)`,
           ``,
           `*Top-3 worst drift reps:*`,
@@ -365,7 +390,9 @@ type ReferenceRep = {
   promptText: string;
   transcript: string;
   durationMs: number;
-  audioUrl?: string;
+  /** Object key in the `rep-audio` bucket (e.g. calibration-audio/x.mp3).
+   *  Signed URLs are minted per run — never persisted in the bank. */
+  storagePath?: string;
   expected?: {
     composite?: number;
     dimensions?: Record<string, number>;
@@ -408,11 +435,29 @@ async function scoreOne(rep: ReferenceRep): Promise<ScoreResponse> {
   // for the Supabase Edge Function with a different body shape;
   // calling scoreRep directly avoids the HTTP hop, the secret
   // handling, and the body-schema mismatch entirely.
+  //
+  // Grading v3 (3.6) — audio reference reps carry a bucket storagePath;
+  // mint a short-lived signed URL per run so the prosody worker can
+  // fetch the clip. Shared helper (same bucket + null-on-error
+  // semantics as playback); signing failure degrades to text-tier
+  // tone, same as production reps.
+  let audioUrl: string | undefined;
+  if (rep.storagePath) {
+    try {
+      audioUrl = (await getAudioSignedUrl(rep.storagePath, 600)) ?? undefined;
+    } catch (err) {
+      log.warn({
+        event: "cron.calibration_drift.sign_audio_failed",
+        refRepId: rep.id,
+        err: serializeErr(err),
+      });
+    }
+  }
   const score = await scoreRep({
     transcript: rep.transcript,
     promptText: rep.promptText,
     durationMs: rep.durationMs,
-    ...(rep.audioUrl ? { audioUrl: rep.audioUrl } : {}),
+    ...(audioUrl ? { audioUrl } : {}),
   });
   return {
     composite: score.composite,

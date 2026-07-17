@@ -14,7 +14,12 @@ import { WhyThisMattersPopover } from "../WhyThisMattersPopover";
 type Props = {
   dimension: SkillDimension;
   score: number;
-  /** Pre-filtered to only callouts where `dimension === this dimension`. */
+  /** Grading v3 (§4.5.3) — the model's 1-2 sentence per-skill feedback
+   *  (why this score + one coaching line). When present it leads the
+   *  expanded panel; legacy reps fall back to per-dimension callouts. */
+  feedback?: string;
+  /** Pre-filtered to only callouts where `dimension === this dimension`.
+   *  Legacy reps only — v4 reps emit no callouts. */
   callouts: Callout[];
   expanded: boolean;
   onToggle: () => void;
@@ -30,6 +35,7 @@ type Props = {
 export function DimensionCard({
   dimension,
   score,
+  feedback,
   callouts,
   expanded,
   onToggle,
@@ -109,7 +115,12 @@ export function DimensionCard({
             <div className="flex justify-end">
               <WhyThisMattersPopover dimension={dimension} />
             </div>
-            {callouts.length === 0 && (
+            {feedback && (
+              <p className="text-[13px] leading-relaxed text-ink-700 dark:text-ink-200">
+                {feedback}
+              </p>
+            )}
+            {!feedback && callouts.length === 0 && (
               <p className="text-xs leading-relaxed text-ink-500 dark:text-ink-400">
                 No specific moment to flag — score reflects overall consistency
                 across the rep.

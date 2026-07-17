@@ -51,8 +51,18 @@ import {
  * Reps with the FF off score on the lower-version path and are tagged
  * with the current version anyway — the version is the rubric the rep
  * was eligible for, not the path it took.
+ *
+ * v4.0.0 (grading v3, Phase 3 / D22): the unified v4 pass — OpenAI
+ * primary, PRD §4.5-4.6 output shape (coachFocus, strongerVersion,
+ * per-skill feedback; callouts/bullets removed), 6-dim rubric block,
+ * prosody-evidence scope rule, and band anchors rendered
+ * unconditionally (FF_BAND_ANCHORS retired — without anchors gpt-4o
+ * compressed every rep into 40-65, breaking band semantics).
+ * Composite math + weights unchanged, but the prompt rewrite shifts
+ * absolute score levels → reference-bank expectations re-authored on
+ * this version (2026-07-16 replay, anchored prompt).
  */
-export const RUBRIC_VERSION = "v3.3.0";
+export const RUBRIC_VERSION = "v4.0.0";
 
 export type DimensionGroup = "content" | "delivery";
 

@@ -1,0 +1,131 @@
+{
+  "pairRules": {
+    "tonePairs": {
+      "compare": [
+        "flat",
+        "expressive"
+      ],
+      "rule": "tone(expressive) - tone(flat) >= 15, correct sign mandatory"
+    },
+    "pacingPairs": {
+      "compare": [
+        "rushed",
+        "expressive"
+      ],
+      "rule": "delivery(expressive) - delivery(rushed) >= 10"
+    },
+    "invariance": "clarity/structure/conciseness/thinking_quality within +/-8 across styles of the same script"
+  },
+  "fixtures": [
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "sourceDurationMs": 35000,
+      "note": "PSOLA pitch-flattened from the expressive clip (constant median F0)"
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "sourceDurationMs": 35000
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
+      "sourceDurationMs": 35000
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "sourceDurationMs": 27000,
+      "note": "PSOLA pitch-flattened from the expressive clip (constant median F0)"
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "sourceDurationMs": 27000
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
+      "sourceDurationMs": 27000
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "transcript": "Two answers \u2014 value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year \u2014 that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "sourceDurationMs": 33000,
+      "note": "PSOLA pitch-flattened from the expressive clip (constant median F0)"
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "transcript": "Two answers \u2014 value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year \u2014 that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "sourceDurationMs": 33000
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "transcript": "Two answers \u2014 value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year \u2014 that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
+      "sourceDurationMs": 33000
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite \u2014 that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "sourceDurationMs": 36000,
+      "note": "PSOLA pitch-flattened from the expressive clip (constant median F0)"
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite \u2014 that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "sourceDurationMs": 36000
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite \u2014 that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
+      "sourceDurationMs": 36000
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability \u2014 we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment \u2014 it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "sourceDurationMs": 38000,
+      "note": "PSOLA pitch-flattened from the expressive clip (constant median F0)"
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability \u2014 we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment \u2014 it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "sourceDurationMs": 38000
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability \u2014 we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment \u2014 it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
+      "sourceDurationMs": 38000
+    }
+  ]
+}

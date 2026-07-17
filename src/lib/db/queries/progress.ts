@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";
+import type { RepFeedbackDoc } from "@/lib/scoring/feedback-doc";
 import { ALL_DIMENSIONS } from "@/lib/scoring/rubric";
 
 export type SkillTrendPoint = { takenAt: Date; score: number };
@@ -303,6 +304,19 @@ export type RepWithDetails = RecentRep & {
     suggestedRewrite: string | null;
   }[];
   transcript: string | null;
+  /** Grading v3 — the persisted Coach's Focus (null on pre-v4 rows). */
+  coachFocus: {
+    dimension: string;
+    subSkill?: string | null;
+    text: string;
+    behavior?: string;
+    why?: string;
+    action?: string;
+  } | null;
+  /** Grading v3 — the persisted feedback doc (null on pre-v4 rows).
+   *  Single canonical shape — the local copy had already drifted
+   *  (it lost headlineTone/nextRepHint). */
+  feedback: RepFeedbackDoc | null;
 };
 
 export async function getRepWithDetails(
@@ -343,6 +357,8 @@ export async function getRepWithDetails(
         suggestedRewrite: c.suggestedRewrite,
       })),
       transcript,
+      coachFocus: row.coachFocus ?? null,
+      feedback: row.feedback ?? null,
     };
   }, null);
 }

@@ -35,13 +35,24 @@
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bandFor, bandsAdjacent } from "./calibration/_bands.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REF_REPS_PATH = resolve(__dirname, "calibration", "reference-reps.json");
 const BASE_URL = process.env.DEV_BASE_URL ?? "http://127.0.0.1:3333";
 const FILTER = parseArg("--filter");
 const JSON_OUT = process.argv.includes("--json");
-const TOLERANCE = 5;
+// Split tolerances (rubric v4.0.0): composite is stable run-to-run
+// (weighted average smooths dimension noise), but gpt-4o at
+// temperature 0.2 moves individual dimensions ±10 between identical
+// runs on borderline reps — a ±5 per-dim gate fails on noise alone.
+// Composite stays the tight product gate; per-dim catches only real
+// per-skill regressions.
+const TOLERANCE = parseInt(process.env.CALIBRATION_TOLERANCE ?? "6", 10);
+const DIM_TOLERANCE = parseInt(
+  process.env.CALIBRATION_DIM_TOLERANCE ?? "15",
+  10,
+);
 
 function parseArg(name) {
   const idx = process.argv.indexOf(name);
@@ -81,35 +92,33 @@ async function scoreOne(rep) {
 
   const res = await fetch(`${BASE_URL}/api/score`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      // /api/score requires an identity — same convention as the
+      // phase-baseline / verify-scoring harnesses.
+      ...(process.env.CALIBRATION_GUEST_ID
+        ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+        : {}),
+    },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} ${res.statusText}`);
   }
-  return res.json();
+  const score = await res.json();
+  // A mock-fallback response means the scoring provider was unreachable
+  // (credits/quota/outage) — comparing its canned values against
+  // expectations silently poisons the whole run (observed 2026-07-17:
+  // OpenAI quota died mid-run and a dozen reps "scored" the identical
+  // fallback tuple). Fail loudly instead.
+  if (score.modelVersion === "mock-fallback-v1") {
+    throw new Error(
+      "mock-fallback response — scoring provider unreachable (check credits/quota); run is invalid",
+    );
+  }
+  return score;
 }
 
-function bandFor(score) {
-  if (score < 40) return "poor";
-  if (score < 60) return "below_standard";
-  if (score < 75) return "competent";
-  if (score < 85) return "strong";
-  if (score < 95) return "excellent";
-  return "exceptional";
-}
-
-function bandsAdjacent(a, b) {
-  const order = [
-    "poor",
-    "below_standard",
-    "competent",
-    "strong",
-    "excellent",
-    "exceptional",
-  ];
-  return Math.abs(order.indexOf(a) - order.indexOf(b)) <= 1;
-}
 
 function evaluateBand(rep, score) {
   const failures = [];
@@ -152,7 +161,7 @@ function evaluateBand(rep, score) {
       continue;
     }
     const delta = actual - expected;
-    if (Math.abs(delta) > TOLERANCE) {
+    if (Math.abs(delta) > DIM_TOLERANCE) {
       failures.push(
         `${dim} drift ${delta > 0 ? "+" : ""}${delta} (expected ${expected}, got ${actual})`,
       );
@@ -182,6 +191,19 @@ function evaluateIndependence(rep, score) {
       failures.push(
         `${a.dimension}=${actual} > max ${a.max}${a.rationale ? ` (${a.rationale})` : ""}`,
       );
+    } else if (a.kind === "minGap") {
+      // Pair-direction assertion: dimension must exceed `versus` by
+      // ≥ gap. Encodes "structure > thinking by 15" style independence
+      // semantics without pinning absolute levels (which drift with
+      // provider/prompt changes far more than relative order does).
+      const other = dimMap[a.versus];
+      if (other == null) {
+        failures.push(`dimension ${a.versus} missing from response`);
+      } else if (actual - other < a.gap) {
+        failures.push(
+          `${a.dimension}(${actual}) − ${a.versus}(${other}) = ${actual - other} < required gap ${a.gap}${a.rationale ? ` (${a.rationale})` : ""}`,
+        );
+      }
     }
   }
   return { failures, warnings };
@@ -198,7 +220,12 @@ function yellow(s) { return colored(s, "33"); }
 function dim(s) { return colored(s, "90"); }
 
 async function main() {
-  const allReps = loadReferenceReps();
+  const loaded = loadReferenceReps();
+  // audio-tone reps need their clip served over HTTP + the prosody
+  // worker running — that's scripts/calibrate-audio-tone.mjs's job.
+  // Scoring them here would silently text-grade tone and fail.
+  const allReps = loaded.filter((r) => r.kind !== "audio-tone");
+  const audioSkipped = loaded.length - allReps.length;
   const reps = FILTER ? allReps.filter((r) => r.id.includes(FILTER)) : allReps;
 
   if (reps.length === 0) {
@@ -209,8 +236,8 @@ async function main() {
   if (!JSON_OUT) {
     console.log(`\nCognify calibration harness`);
     console.log(`Target: ${BASE_URL}`);
-    console.log(`Reference reps: ${reps.length}${FILTER ? ` (filter: ${FILTER})` : ""}`);
-    console.log(`Tolerance: ±${TOLERANCE} per dimension and composite\n`);
+    console.log(`Reference reps: ${reps.length}${FILTER ? ` (filter: ${FILTER})` : ""}${audioSkipped ? ` (${audioSkipped} audio-tone reps skipped — run calibrate-audio-tone.mjs)` : ""}`);
+    console.log(`Tolerance: ±${TOLERANCE} composite · ±${DIM_TOLERANCE} per dimension\n`);
   }
 
   const results = [];

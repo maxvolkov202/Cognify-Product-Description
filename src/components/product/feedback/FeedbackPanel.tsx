@@ -10,11 +10,13 @@ import { AudioControlProvider } from "./AudioControlContext";
 import { RepProgressStrip } from "./RepProgressStrip";
 import { LastRepFocusBanner } from "./LastRepFocusBanner";
 import { ScoreHero } from "./ScoreHero";
-import { OutcomeCard } from "./OutcomeCard";
-import { NextRepFocusCard } from "./NextRepFocusCard";
 import { CoachFocusCard } from "./CoachFocusCard";
 import { DimensionGrid } from "./DimensionGrid";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  type TopWeakness,
+} from "@/lib/ai/coach-focus";
 import { RepAudioScrubber } from "./RepAudioScrubber";
 import { ExemplarModal } from "./ExemplarModal";
 import type { DimensionGridHandle } from "./DimensionGrid";
@@ -24,7 +26,10 @@ import { isPressureArchetypeId } from "@/lib/ai/pressure-archetypes";
 export type PreviousRepSummary = {
   composite: number;
   dimensions: { dimension: SkillDimension; score: number }[];
-  topWeakness: Callout | null;
+  /** Shared shape from deriveTopWeakness — v4 reps build it from the
+   *  Coach's Focus (callouts are empty by contract); a full legacy
+   *  Callout is structurally assignable. */
+  topWeakness: TopWeakness | null;
   transcript: string;
   promptText: string;
   /** Phase 2: verbatim previous-rep headline. Plumbed into the next rep's
@@ -33,9 +38,7 @@ export type PreviousRepSummary = {
    *  rep of a session won't have it. */
   headline?: string;
   /** Phase 2: when the previous rep was a pressure rep, this is the
-   *  archetype id. Drives the pressure_residue carry-over branch in
-   *  planNextRep — the next rep gets the worst-scoring stressed dim as
-   *  its focus regardless of the carryover threshold. */
+   *  archetype id. */
   pressureArchetypeId?: string | null;
   /** Phase 3: AI-authored 3-8 word continuation tail. Becomes the tail of
    *  the NEXT rep's LastRepFocusBanner ("Last rep focus: structure — {tail}").
@@ -47,13 +50,11 @@ type Props = {
   score: RepScore;
   audioUrl?: string;
   durationMs: number;
-  /** Kept for forward compat — Phase 1 doesn't render the transcript view
-   *  inline; per-dimension quotes live inside expanded DimensionCards. */
+  /** Kept for forward compat — per-dimension quotes live inside expanded
+   *  DimensionCards. */
   transcript?: string;
-  /** Kept for forward compat with Phase 2 word-level grounding. */
+  /** Kept for forward compat with word-level grounding. */
   words?: { word: string; startMs: number; endMs: number }[];
-  /** Kept for forward compat — Phase 1 ignores the rep-to-rep progression
-   *  card. Phase 3 may reintroduce it. */
   previousRepSummary?: PreviousRepSummary | null;
   previousDimensionScores?: Partial<Record<SkillDimension, number>>;
   repId?: string | null;
@@ -62,37 +63,35 @@ type Props = {
     archetypeName: string;
     archetypeTagline: string;
   } | null;
-  /** 1-based. New in Phase 1. */
+  /** 1-based. */
   repIndex?: number;
   totalReps?: number;
   /** Pre-formatted, uppercase. Empty string omits the separator chip. */
   modeLabel?: string;
   /** Pulled from the rep before this one. Renders the LastRepFocusBanner
-   *  when present. Source: WorkoutSession derives from previousRepSummary.
-   *  `customHint` overrides the static copy.ts tail when the previous rep's
-   *  AI scoring emitted a `nextRepHint`. */
+   *  when present. `customHint` overrides the static copy.ts tail when the
+   *  previous rep's AI scoring emitted a `nextRepHint`. */
   lastRepFocus?: { dimension: SkillDimension; customHint?: string } | null;
   /** When provided, RepProgressStrip shows "Save and exit". */
   onSaveExit?: () => void;
-  /** Phase 2: per-rep mode signals so the dimension grid can apply
-   *  mode-aware emphasis (focus mode pins focusDimension top-left,
-   *  pressure mode reorders by stressedDimensions). Optional — when
-   *  absent, the grid uses the Phase 1 score-spread heuristic. */
+  /** Per-rep mode signals so the dimension grid can apply mode-aware
+   *  emphasis (focus mode pins focusDimension top-left, pressure mode
+   *  reorders by stressedDimensions). */
   modeSignals?: {
     sessionType: "focus" | "combined" | "flow";
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
-  /** PRD v3 §4.5 — the Universal Training Engine's feedback layout:
-   *  Score → ONE Coach's Focus → Core Skill Breakdown. Removes the
-   *  legacy did-well/didn't-land split (§4.5.3: those sections "do not
-   *  exist") and the multi-bullet Next Rep Focus list (§4.5.2: never
-   *  multiple primary objectives). Default false = v1, byte-identical. */
-  engineV2?: boolean;
 };
 
 const STAGGER_SEC = 0.06;
 
+/**
+ * The rep feedback surface — PRD §4.5 (grading v3 clean break):
+ * Communication Score → ONE Coach's Focus → expandable Core Skill
+ * Breakdown. The legacy did-well / didn't-land / next-rep-focus layout
+ * was retired in Phase 3 (§4.5.3: those sections "do not exist").
+ */
 export function FeedbackPanel({
   score,
   audioUrl,
@@ -106,21 +105,22 @@ export function FeedbackPanel({
   lastRepFocus,
   onSaveExit,
   modeSignals,
-  engineV2 = false,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DimensionGridHandle>(null);
   const [exemplarOpen, setExemplarOpen] = useState(false);
 
-  // Compute the matching exemplar once per render. Uses deriveCoachFocus
-  // so the exemplar dimension matches what the Coach's Focus card actually
-  // shows — including the F-5 structural_adherence → core-dimension
-  // redirect (raw primaryFocusDimension would bail on framework-heavy
-  // reps and leave them without a "Hear a stronger version" exemplar).
-  // Archetype-specific variants win when this is a pressure rep.
+  // One memoized derivation — the exemplar picker below and the Coach's
+  // Focus card both read it (the legacy chain walks bullet/callout
+  // arrays, so re-deriving on every audio-scrubber render adds up).
+  const focus = useMemo(() => deriveCoachFocus(score), [score]);
+
+  // Compute the matching exemplar once per render, from the same focus
+  // the Coach's Focus card shows. Archetype-specific variants win when
+  // this is a pressure rep.
   const exemplar = useMemo(() => {
-    const primaryDim = deriveCoachFocus(score)?.dimension ?? null;
+    const primaryDim = focus?.dimension ?? null;
     if (!primaryDim) return null;
     const rawArchetype = modeSignals?.pressureArchetypeId;
     const archetypeId =
@@ -131,7 +131,7 @@ export function FeedbackPanel({
       dimension: primaryDim,
       archetypeId,
     });
-  }, [score, modeSignals]);
+  }, [focus, modeSignals]);
 
   const formattedDuration = useMemo(() => {
     const total = Math.floor(durationMs / 1000);
@@ -140,51 +140,19 @@ export function FeedbackPanel({
     return `${m}:${s.toString().padStart(2, "0")}`;
   }, [durationMs]);
 
-  // ——— Bullet sources: prefer Phase 2 first-class AI bullets when
-  //   present and non-empty; otherwise derive from existing callouts
-  //   (Phase 1 fallback — template-y voice but visually correct).
-  const positiveCallouts = useMemo(
-    () =>
-      score.callouts.filter(
-        (c) => c.tone === "positive" || c.tone === "neutral",
-      ),
-    [score.callouts],
-  );
-  const improvementCallouts = useMemo(
-    () =>
-      score.callouts.filter(
-        (c) => c.tone === "warn" || c.tone === "critical",
-      ),
-    [score.callouts],
-  );
-
-  const usePhase2DidWell = (score.didWell?.length ?? 0) > 0;
-  const usePhase2DidntLand = (score.didntLand?.length ?? 0) > 0;
-  const usePhase2NextRep = (score.nextRepFocus?.length ?? 0) > 0;
-
-  const didWellFallback = useMemo(
-    () => positiveCallouts.slice(0, 2).map((c) => c.title),
-    [positiveCallouts],
-  );
-  const didntLandFallback = useMemo(
-    () => improvementCallouts.slice(0, 2).map((c) => c.title),
-    [improvementCallouts],
-  );
-  const nextRepFocusFallback = useMemo(
-    () =>
-      improvementCallouts
-        .slice(0, 2)
-        .map((c) => c.suggestedRewrite ?? c.title),
-    [improvementCallouts],
-  );
-
   const headline = useMemo(
     () => score.headline ?? fallbackHeadline(score.composite),
     [score.headline, score.composite],
   );
 
-  // Resolve callout → DB id by reference equality, mirroring the original
-  // FeedbackPanel's idForCallout pattern (parallel arrays).
+  // §4.6 Stronger Version — same shared derivation the retry surfaces
+  // use (v4 first-class field, legacy callout-rewrite fallback).
+  const strongerVersion = useMemo(
+    () => deriveRetryFocus(score)?.strongerVersion ?? null,
+    [score],
+  );
+
+  // Resolve callout → DB id by reference equality (parallel arrays).
   const getCalloutId = useMemo(() => {
     return (callout: Callout): string | null => {
       const idx = score.callouts.indexOf(callout);
@@ -207,34 +175,6 @@ export function FeedbackPanel({
     gridRef.current?.open(dim);
     heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  // Drill-in targets:
-  //   "See examples"  → first positive Phase 2 bullet's dim, falling back
-  //                      to first positive callout's dim
-  //   "See breakdown" → first improvement Phase 2 bullet's dim, falling
-  //                      back to first improvement callout's dim
-  const positiveDrillTarget = (() => {
-    const phase2Dim = score.didWell?.[0]?.dimension;
-    if (phase2Dim && phase2Dim !== "structural_adherence")
-      return phase2Dim as SkillDimension;
-    if (
-      positiveCallouts[0] &&
-      positiveCallouts[0].dimension !== "structural_adherence"
-    )
-      return positiveCallouts[0].dimension as SkillDimension;
-    return null;
-  })();
-  const improvementDrillTarget = (() => {
-    const phase2Dim = score.didntLand?.[0]?.dimension;
-    if (phase2Dim && phase2Dim !== "structural_adherence")
-      return phase2Dim as SkillDimension;
-    if (
-      improvementCallouts[0] &&
-      improvementCallouts[0].dimension !== "structural_adherence"
-    )
-      return improvementCallouts[0].dimension as SkillDimension;
-    return null;
-  })();
 
   const showProgressStrip =
     typeof repIndex === "number" && typeof totalReps === "number";
@@ -282,7 +222,6 @@ export function FeedbackPanel({
         <Section delay={2}>
           <div ref={heroRef}>
             <ScoreHero
-              ref={engineV2 ? undefined : gridRef}
               composite={score.composite}
               headline={headline}
               dimensions={score.dimensions}
@@ -290,90 +229,36 @@ export function FeedbackPanel({
               durationLabel={formattedDuration}
               primaryFocusDimension={score.primaryFocusDimension}
               modeSignals={modeSignals}
-              hideBreakdown={engineV2}
+              hideBreakdown
             />
           </div>
         </Section>
 
-        {/* PRD v3 §4.5 (v2): Score → ONE Coach's Focus → Breakdown. */}
-        {engineV2 && (
-          <>
-            {(() => {
-              const focus = deriveCoachFocus(score);
-              return focus ? (
-                <Section delay={3}>
-                  <CoachFocusCard
-                    focus={focus}
-                    onSeeExample={
-                      exemplar ? () => setExemplarOpen(true) : undefined
-                    }
-                  />
-                </Section>
-              ) : null;
-            })()}
-            <Section delay={4}>
-              <div className="surface-card relative overflow-hidden">
-                <div className="p-5 md:p-6">
-                  <DimensionGrid
-                    ref={gridRef}
-                    dimensions={score.dimensions}
-                    callouts={score.callouts}
-                    primaryFocusDimension={score.primaryFocusDimension}
-                    modeSignals={modeSignals}
-                  />
-                </div>
-              </div>
-            </Section>
-          </>
+        {focus && (
+          <Section delay={3}>
+            <CoachFocusCard
+              focus={focus}
+              strongerVersion={strongerVersion}
+              onSeeExample={
+                exemplar ? () => setExemplarOpen(true) : undefined
+              }
+            />
+          </Section>
         )}
-
-        {!engineV2 && (
-          <>
-            <Section delay={3}>
-              <OutcomeCard
-                variant="positive"
-                title="What you did well"
-                bullets={usePhase2DidWell ? score.didWell : undefined}
-                fallbackBullets={usePhase2DidWell ? undefined : didWellFallback}
-                linkLabel={positiveDrillTarget ? "See examples" : undefined}
-                onLinkClick={
-                  positiveDrillTarget
-                    ? () => expandDimension(positiveDrillTarget)
-                    : undefined
-                }
+        <Section delay={4}>
+          <div className="surface-card relative overflow-hidden">
+            <div className="p-5 md:p-6">
+              <DimensionGrid
+                ref={gridRef}
+                dimensions={score.dimensions}
+                callouts={score.callouts}
+                primaryFocusDimension={score.primaryFocusDimension}
+                modeSignals={modeSignals}
               />
-            </Section>
+            </div>
+          </div>
+        </Section>
 
-            <Section delay={4}>
-              <OutcomeCard
-                variant="negative"
-                title="What didn't land"
-                bullets={usePhase2DidntLand ? score.didntLand : undefined}
-                fallbackBullets={
-                  usePhase2DidntLand ? undefined : didntLandFallback
-                }
-                linkLabel={improvementDrillTarget ? "See breakdown" : undefined}
-                onLinkClick={
-                  improvementDrillTarget
-                    ? () => expandDimension(improvementDrillTarget)
-                    : undefined
-                }
-              />
-            </Section>
-
-            <Section delay={5}>
-              <NextRepFocusCard
-                items={usePhase2NextRep ? score.nextRepFocus : undefined}
-                fallbackBullets={
-                  usePhase2NextRep ? undefined : nextRepFocusFallback
-                }
-                onSeeExample={
-                  exemplar ? () => setExemplarOpen(true) : undefined
-                }
-              />
-            </Section>
-          </>
-        )}
         <ExemplarModal
           open={exemplarOpen}
           exemplar={exemplar}

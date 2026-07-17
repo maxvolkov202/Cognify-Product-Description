@@ -199,6 +199,15 @@ type FlowInsight = {
  * to a positive + finally a neutral summary.
  */
 function deriveFlowInsight(score: RepScore): FlowInsight {
+  // v4 (grading v3) reps emit no callouts — the Coach's Focus IS the
+  // single insight. Legacy reps keep the callout-derived chain below.
+  if (score.coachFocus) {
+    return {
+      dimensionLabel: DIMENSION_LABELS[score.coachFocus.dimension],
+      polarity: "improvement",
+      sentence: score.coachFocus.action || score.coachFocus.text,
+    };
+  }
   const callouts = score.callouts ?? [];
   const improvement = callouts.find(
     (c) => c.tone === "warn" || c.tone === "critical",

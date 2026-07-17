@@ -23,7 +23,7 @@ import type {
   SessionPhase,
 } from "@/lib/workout/types";
 import type { PickMode } from "@/lib/workout/session-machine";
-import type { Callout, MuscleGroupId, RepScore } from "@/types/domain";
+import type { MuscleGroupId, RepScore } from "@/types/domain";
 import { MUSCLE_GROUP_LABELS } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
 import { DIM_THEMES } from "@/lib/workout/dim-theme";
@@ -31,7 +31,11 @@ import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
 import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  deriveTopWeakness,
+} from "@/lib/ai/coach-focus";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
   fetchDaySummary,
@@ -369,29 +373,10 @@ function ActiveRep({
     loop === "v2" && !graduation && attempt !== "first" && !!firstAttempt;
   const coachFocus =
     isEngineRetry && firstAttempt ? deriveCoachFocus(firstAttempt.score) : null;
-  const retryFocusCallout: Callout | null =
-    coachFocus && firstAttempt
-      ? {
-          dimension: coachFocus.dimension,
-          tone: "neutral",
-          title: "Focus for this retry",
-          body: coachFocus.text,
-          quote: null,
-          // §4.6 Stronger Version — carry the first attempt's suggested
-          // rewrite into the retry overlay. Prefer a rewrite on the focus
-          // dimension itself, else any rewrite the scorer produced.
-          suggestedRewrite:
-            firstAttempt.score.callouts.find(
-              (c) =>
-                c.dimension === coachFocus.dimension && c.suggestedRewrite,
-            )?.suggestedRewrite ??
-            firstAttempt.score.callouts.find((c) => c.suggestedRewrite)
-              ?.suggestedRewrite ??
-            null,
-          transcriptStart: null,
-          transcriptEnd: null,
-        }
-      : null;
+  // §4.6 retry focus + Stronger Version — one shared derivation for
+  // every surface (see deriveRetryFocus).
+  const retryFocus =
+    isEngineRetry && firstAttempt ? deriveRetryFocus(firstAttempt.score) : null;
   const skillDim = dimension ? muscleGroupToSkillDim(dimension) : null;
   const retryModeContext: ScoreRepModeContext | null =
     isEngineRetry && firstAttempt && coachFocus && skillDim
@@ -426,7 +411,6 @@ function ActiveRep({
       // graduation pressure rep keeps the legacy countdown (explicit
       // time-pressure is its whole point).
       responseWindow={graduation ? null : (station.responseWindow ?? null)}
-      feedbackVariant={loop === "v2" ? "v2" : "v1"}
       mode="daily_workout"
       topic={
         graduation
@@ -447,7 +431,7 @@ function ActiveRep({
       muscleGroupDayId={muscleGroupDayId}
       isGraduationRep={!!graduation}
       {...(framework ? { repTypeFramework: framework } : {})}
-      {...(retryFocusCallout ? { retryFocus: retryFocusCallout } : {})}
+      {...(retryFocus ? { retryFocus } : {})}
       {...(isEngineRetry && firstAttempt
         ? {
             previousRepSummary: {
@@ -456,10 +440,7 @@ function ActiveRep({
                 dimension: d.dimension,
                 score: d.score,
               })),
-              topWeakness:
-                firstAttempt.score.callouts.find(
-                  (c) => c.tone === "warn" || c.tone === "critical",
-                ) ?? null,
+              topWeakness: deriveTopWeakness(firstAttempt.score),
               transcript: firstAttempt.transcript,
               promptText: selectedPrompt.text,
             },

@@ -3,7 +3,7 @@
  *
  * Exercises the REAL model pipeline (no mocks) for the pieces Phases 1-3
  * added, and asserts the contracts hold:
- *   1. First-rep scoring (two-stage, the production dev path):
+ *   1. First-rep scoring (unified single pass, the production path):
  *      no implementationReview, coach focus derivable.
  *   2. Retry scoring with retryContext: implementationReview present with
  *      a valid verdict; feedback framed as implementation review.
@@ -66,14 +66,14 @@ function mkWords(transcript: string): { word: string; startMs: number; endMs: nu
 
 async function main() {
   console.log("\n=== v2 engine live smoke ===\n");
-  const { scoreRepTwoStage } = await import("../src/lib/ai/score-stages");
+  const { scoreRepWithMetrics } = await import("../src/lib/ai/score");
   const { deriveCoachFocus } = await import("../src/lib/ai/coach-focus");
   const { buildCommunicationSnapshot, renderCoachingMemoryBlock } =
     await import("../src/lib/profile/snapshot");
 
-  // ── 1. First rep (two-stage production path) ─────────────────────────
-  console.log("1) First-rep two-stage scoring");
-  const firstResult = await scoreRepTwoStage({
+  // ── 1. First rep (unified single-pass production path) ──────────────
+  console.log("1) First-rep unified-pass scoring");
+  const firstResult = await scoreRepWithMetrics({
     transcript: FIRST_TRANSCRIPT,
     promptText: PROMPT,
     durationMs: 45_000,
@@ -96,7 +96,7 @@ async function main() {
   // ── 2. Retry with retryContext ───────────────────────────────────────
   console.log("\n2) Retry scoring with retryContext");
   if (!focus) throw new Error("no focus to carry into retry");
-  const retryResult = await scoreRepTwoStage({
+  const retryResult = await scoreRepWithMetrics({
     transcript: RETRY_TRANSCRIPT,
     promptText: PROMPT,
     durationMs: 30_000,

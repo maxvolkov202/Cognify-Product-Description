@@ -1,0 +1,122 @@
+{
+  "band-strong-clean-pitch__flat.wav": {
+    "pitchStdSemitones": 0.07,
+    "pitchRangeSemitones": 0.14,
+    "monotoneRatio": 0.95,
+    "intensityStdDb": 19.93,
+    "wordsPerMinute": 183,
+    "durationSec": 22.3
+  },
+  "band-strong-clean-pitch__expressive.mp3": {
+    "pitchStdSemitones": 3.05,
+    "pitchRangeSemitones": 10.5,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 20.19,
+    "wordsPerMinute": 183,
+    "durationSec": 22.3
+  },
+  "band-strong-clean-pitch__rushed.mp3": {
+    "pitchStdSemitones": 3.31,
+    "pitchRangeSemitones": 11.78,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 16.06,
+    "wordsPerMinute": 265,
+    "durationSec": 15.4
+  },
+  "band-competent-okay-pitch__flat.wav": {
+    "pitchStdSemitones": 0.16,
+    "pitchRangeSemitones": 0.13,
+    "monotoneRatio": 0.84,
+    "intensityStdDb": 15.54,
+    "wordsPerMinute": 162,
+    "durationSec": 19.6
+  },
+  "band-competent-okay-pitch__expressive.mp3": {
+    "pitchStdSemitones": 2.9,
+    "pitchRangeSemitones": 9.7,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 15.82,
+    "wordsPerMinute": 162,
+    "durationSec": 19.6
+  },
+  "band-competent-okay-pitch__rushed.mp3": {
+    "pitchStdSemitones": 3.03,
+    "pitchRangeSemitones": 10.04,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 16.95,
+    "wordsPerMinute": 212,
+    "durationSec": 15.0
+  },
+  "qa-strong-pricing-question__flat.wav": {
+    "pitchStdSemitones": 0.25,
+    "pitchRangeSemitones": 0.15,
+    "monotoneRatio": 0.91,
+    "intensityStdDb": 19.86,
+    "wordsPerMinute": 144,
+    "durationSec": 34.2
+  },
+  "qa-strong-pricing-question__expressive.mp3": {
+    "pitchStdSemitones": 3.15,
+    "pitchRangeSemitones": 10.82,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 20.12,
+    "wordsPerMinute": 144,
+    "durationSec": 34.2
+  },
+  "qa-strong-pricing-question__rushed.mp3": {
+    "pitchStdSemitones": 3.19,
+    "pitchRangeSemitones": 10.19,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 17.08,
+    "wordsPerMinute": 211,
+    "durationSec": 23.3
+  },
+  "interview-competent-tell-me-about-yourself__flat.wav": {
+    "pitchStdSemitones": 0.1,
+    "pitchRangeSemitones": 0.16,
+    "monotoneRatio": 0.76,
+    "intensityStdDb": 16.56,
+    "wordsPerMinute": 184,
+    "durationSec": 29.3
+  },
+  "interview-competent-tell-me-about-yourself__expressive.mp3": {
+    "pitchStdSemitones": 3.31,
+    "pitchRangeSemitones": 11.1,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 16.85,
+    "wordsPerMinute": 184,
+    "durationSec": 29.3
+  },
+  "interview-competent-tell-me-about-yourself__rushed.mp3": {
+    "pitchStdSemitones": 3.57,
+    "pitchRangeSemitones": 11.33,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 17.14,
+    "wordsPerMinute": 224,
+    "durationSec": 24.1
+  },
+  "persuasive-strong-budget-cut-defense__flat.wav": {
+    "pitchStdSemitones": 0.09,
+    "pitchRangeSemitones": 0.15,
+    "monotoneRatio": 0.85,
+    "intensityStdDb": 20.62,
+    "wordsPerMinute": 148,
+    "durationSec": 43.7
+  },
+  "persuasive-strong-budget-cut-defense__expressive.mp3": {
+    "pitchStdSemitones": 3.37,
+    "pitchRangeSemitones": 11.74,
+    "monotoneRatio": 0.02,
+    "intensityStdDb": 20.94,
+    "wordsPerMinute": 148,
+    "durationSec": 43.7
+  },
+  "persuasive-strong-budget-cut-defense__rushed.mp3": {
+    "pitchStdSemitones": 2.67,
+    "pitchRangeSemitones": 8.99,
+    "monotoneRatio": 0.0,
+    "intensityStdDb": 17.87,
+    "wordsPerMinute": 198,
+    "durationSec": 32.7
+  }
+}

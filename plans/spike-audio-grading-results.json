@@ -1,0 +1,3319 @@
+{
+  "generatedAt": "2026-07-16T19:55:49.654Z",
+  "repeats": 3,
+  "armStats": {
+    "audio-gpt-audio": {
+      "model": "gpt-audio-1.5",
+      "runs": 45,
+      "G1_tonePairs": [
+        {
+          "script": "band-strong-clean-pitch",
+          "sep": 0
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "sep": 0
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "sep": 0
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "sep": 0
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "sep": 0
+        }
+      ],
+      "G1_pass": false,
+      "G2_pacingPairs": [
+        {
+          "script": "band-strong-clean-pitch",
+          "sep": 0
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "sep": 0
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "sep": 0
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "sep": 0
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "sep": -5
+        }
+      ],
+      "G2_pass": false,
+      "G3_invariance": [
+        {
+          "script": "band-strong-clean-pitch",
+          "maxSpread": 5
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "maxSpread": 5
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "maxSpread": 0
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "maxSpread": 2
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "maxSpread": 7
+        }
+      ],
+      "G3_pass": true,
+      "G5_latency": {
+        "p50": 1706,
+        "p95": 2268
+      },
+      "G7_toneStdevMax": 2.0548046676563256,
+      "G7_pass": true,
+      "G4_sanity": null
+    },
+    "audio-mini": {
+      "model": "gpt-audio-mini",
+      "runs": 45,
+      "G1_tonePairs": [
+        {
+          "script": "band-strong-clean-pitch",
+          "sep": 10
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "sep": 0
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "sep": 10
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "sep": 0
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "sep": 0
+        }
+      ],
+      "G1_pass": false,
+      "G2_pacingPairs": [
+        {
+          "script": "band-strong-clean-pitch",
+          "sep": 0
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "sep": 0
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "sep": 0
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "sep": 0
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "sep": 0
+        }
+      ],
+      "G2_pass": false,
+      "G3_invariance": [
+        {
+          "script": "band-strong-clean-pitch",
+          "maxSpread": 10
+        },
+        {
+          "script": "band-competent-okay-pitch",
+          "maxSpread": 0
+        },
+        {
+          "script": "qa-strong-pricing-question",
+          "maxSpread": 15
+        },
+        {
+          "script": "interview-competent-tell-me-about-yourself",
+          "maxSpread": 5
+        },
+        {
+          "script": "persuasive-strong-budget-cut-defense",
+          "maxSpread": 0
+        }
+      ],
+      "G3_pass": false,
+      "G5_latency": {
+        "p50": 1777,
+        "p95": 4219
+      },
+      "G7_toneStdevMax": 4.714045207910316,
+      "G7_pass": true,
+      "G4_sanity": null
+    }
+  },
+  "runs": [
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be average, while the content is clear, well-structured, concise, and supported by relevant evidence.",
+      "latencyMs": 1992,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 67,
+        "total_tokens": 675,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 67
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be average, with moderate expressiveness and pacing.",
+      "latencyMs": 2333,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 56,
+        "total_tokens": 664,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be moderate and professional but not exceptional.",
+      "latencyMs": 2020,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 54,
+        "total_tokens": 662,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 54
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a good pace, but could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 1808,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 86,
+        "total_tokens": 694,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "Tone was moderately engaging but could have been more varied and expressive to match the content’s importance.",
+      "latencyMs": 2080,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 81,
+        "total_tokens": 689,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__flat.wav",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "Tone is moderately engaging but could benefit from more variation and warmth to fully match the content.",
+      "latencyMs": 2349,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 80,
+        "total_tokens": 688,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 80
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be moderate and professional but not exceptional.",
+      "latencyMs": 1527,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 54,
+        "total_tokens": 662,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 54
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 95,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio evidence, tone and delivery are judged conservatively; the content suggests a confident pitch but vocal qualities can't be confirmed.",
+      "latencyMs": 1536,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 61,
+        "total_tokens": 669,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 95,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be moderate and neutral, lacking evidence of vocal expressiveness or pacing.",
+      "latencyMs": 1366,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 60,
+        "total_tokens": 668,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 60
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "Tone is confident and warm, but could benefit from more varied pacing and emphasis to fully engage the listener.",
+      "latencyMs": 1755,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 83,
+        "total_tokens": 691,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 83
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, but could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 1535,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 86,
+        "total_tokens": 694,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__expressive.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is somewhat neutral and lacks strong vocal variety, but the content is clear and concise.",
+      "latencyMs": 2671,
+      "usage": {
+        "prompt_tokens": 608,
+        "completion_tokens": 81,
+        "total_tokens": 689,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 223,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assumed to be moderate and professional based on the text, but without audio evidence, they are scored conservatively.",
+      "latencyMs": 1595,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 63,
+        "total_tokens": 602,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 63
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio, the tone and delivery are assumed to be moderate, but the content is clear, structured, and concise with solid reasoning.",
+      "latencyMs": 1977,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 63,
+        "total_tokens": 602,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 63
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assumed to be adequate but not exceptional due to lack of audio evidence, resulting in moderate scores.",
+      "latencyMs": 1813,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 60,
+        "total_tokens": 599,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 60
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with good pacing, but could benefit from slightly more variation in emphasis to enhance engagement.",
+      "latencyMs": 8422,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 86,
+        "total_tokens": 625,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and informative, with a clear focus on benefits, though slightly monotone in delivery.",
+      "latencyMs": 1445,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 83,
+        "total_tokens": 622,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 83
+        }
+      }
+    },
+    {
+      "file": "band-strong-clean-pitch__rushed.mp3",
+      "scriptId": "band-strong-clean-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and informative, though slightly monotone and could benefit from more vocal variation to enhance engagement.",
+      "latencyMs": 1360,
+      "usage": {
+        "prompt_tokens": 539,
+        "completion_tokens": 84,
+        "total_tokens": 623,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 154,
+          "text_tokens": 385,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 84
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assumed to be adequate but not exceptional, as no audio evidence is provided.",
+      "latencyMs": 1945,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 56,
+        "total_tokens": 618,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but lack expressiveness, making it sound somewhat flat despite the clear and concise content.",
+      "latencyMs": 1407,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 59,
+        "total_tokens": 621,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 59
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but lack expressiveness, making it sound somewhat flat and less engaging.",
+      "latencyMs": 1203,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 56,
+        "total_tokens": 618,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is professional but slightly monotone, lacking variation to emphasize key points.",
+      "latencyMs": 1444,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 78,
+        "total_tokens": 640,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 78
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is clear and professional but lacks vocal variation and warmth, making it sound somewhat flat.",
+      "latencyMs": 1033,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 81,
+        "total_tokens": 643,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__flat.wav",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "Tone is somewhat neutral and informative, but lacks variation and warmth to fully engage the listener.",
+      "latencyMs": 1468,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 80,
+        "total_tokens": 642,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 80
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 95,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady but lack strong vocal expressiveness, suggesting a moderate level of engagement.",
+      "latencyMs": 1266,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 56,
+        "total_tokens": 618,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are likely adequate but not exceptional, as there's no evidence of vocal expressiveness or pacing beyond the text.",
+      "latencyMs": 1641,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 61,
+        "total_tokens": 623,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady but lack strong expressiveness or dynamic pacing, suggesting a moderate level of engagement.",
+      "latencyMs": 1612,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 58,
+        "total_tokens": 620,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 58
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is professional but slightly monotone, with room for more vocal variety to emphasize key points.",
+      "latencyMs": 1090,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 82,
+        "total_tokens": 644,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 82
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is clear but slightly monotone, with room for more vocal variation to emphasize key points.",
+      "latencyMs": 1808,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 82,
+        "total_tokens": 644,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 82
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__expressive.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is clear but could benefit from more variation and warmth to fully engage the listener.",
+      "latencyMs": 4219,
+      "usage": {
+        "prompt_tokens": 562,
+        "completion_tokens": 80,
+        "total_tokens": 642,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 196,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 80
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 95,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear neutral and steady, but without audio evidence, we assume a moderate level of vocal expressiveness and pacing.",
+      "latencyMs": 1659,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 62,
+        "total_tokens": 578,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 62
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assumed to be moderate and neutral due to lack of audio evidence, resulting in average scores.",
+      "latencyMs": 1637,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 59,
+        "total_tokens": 575,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 59
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 95,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The content is clear, structured, and concise, but without audio evidence, delivery and tone are scored conservatively as average.",
+      "latencyMs": 1399,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 61,
+        "total_tokens": 577,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is clear but could be more varied and engaging to match the importance of the content.",
+      "latencyMs": 1967,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 81,
+        "total_tokens": 597,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 75,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is professional but slightly monotone, with room for more vocal variation to emphasize key points.",
+      "latencyMs": 1183,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 82,
+        "total_tokens": 598,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 82
+        }
+      }
+    },
+    {
+      "file": "band-competent-okay-pitch__rushed.mp3",
+      "scriptId": "band-competent-okay-pitch",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, though slightly monotone, with room for more vocal variation to emphasize key points.",
+      "latencyMs": 1579,
+      "usage": {
+        "prompt_tokens": 516,
+        "completion_tokens": 85,
+        "total_tokens": 601,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 150,
+          "text_tokens": 366,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 85
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and moderately engaging, but without audio evidence, they are assessed conservatively as competent but not exceptional.",
+      "latencyMs": 1762,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 62,
+        "total_tokens": 808,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 62
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady and professional but without evidence of strong vocal expressiveness or pacing, they are rated moderately.",
+      "latencyMs": 1770,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 60,
+        "total_tokens": 806,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 60
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but not particularly dynamic, suggesting a moderate level of vocal expressiveness.",
+      "latencyMs": 1521,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 56,
+        "total_tokens": 802,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is moderately engaging but could use more variation in emphasis to fully match the content's importance.",
+      "latencyMs": 3695,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 82,
+        "total_tokens": 828,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 82
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is moderately engaging and confident, though slightly flat in areas, with room for more vocal variation to enhance expressiveness.",
+      "latencyMs": 9159,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 87,
+        "total_tokens": 833,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 87
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__flat.wav",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is moderately engaging but could benefit from more variation and warmth to fully match the content.",
+      "latencyMs": 1597,
+      "usage": {
+        "prompt_tokens": 746,
+        "completion_tokens": 81,
+        "total_tokens": 827,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 341,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of strong vocal expressiveness or dynamic pacing.",
+      "latencyMs": 1613,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 56,
+        "total_tokens": 803,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but not particularly dynamic, suggesting a moderate level of expressiveness and pacing.",
+      "latencyMs": 1625,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 57,
+        "total_tokens": 804,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 57
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but lack notable expressiveness or dynamic pacing.",
+      "latencyMs": 5753,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 53,
+        "total_tokens": 800,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 53
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "Tone is moderately engaging with clear emphasis on key points, but could benefit from more variation in intonation to enhance delivery.",
+      "latencyMs": 1777,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 86,
+        "total_tokens": 833,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is moderately engaging with a clear focus on the value proposition, though it could benefit from more variation in emphasis and pacing.",
+      "latencyMs": 1743,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 88,
+        "total_tokens": 835,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 88
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__expressive.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and aligned with the content, though slightly monotone and could benefit from more vocal variation.",
+      "latencyMs": 1703,
+      "usage": {
+        "prompt_tokens": 747,
+        "completion_tokens": 84,
+        "total_tokens": 831,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 342,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 84
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of strong vocal expressiveness or pacing, so they are rated moderately.",
+      "latencyMs": 1754,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 61,
+        "total_tokens": 699,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but not particularly dynamic, suggesting a moderate level of expressiveness and pacing.",
+      "latencyMs": 1656,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 57,
+        "total_tokens": 695,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 57
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional, but without audio evidence, we assume a moderate level of expressiveness and pacing.",
+      "latencyMs": 1457,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 61,
+        "total_tokens": 699,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 90,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is moderately engaging, with some variation, but could be more dynamic to fully match the content's importance.",
+      "latencyMs": 1662,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 85,
+        "total_tokens": 723,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 85
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is moderately engaging but could benefit from more variation in emphasis and pacing to fully match the content's importance.",
+      "latencyMs": 1780,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 85,
+        "total_tokens": 723,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 85
+        }
+      }
+    },
+    {
+      "file": "qa-strong-pricing-question__rushed.mp3",
+      "scriptId": "qa-strong-pricing-question",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is somewhat neutral and informative, but lacks variation and warmth, making it less engaging.",
+      "latencyMs": 2126,
+      "usage": {
+        "prompt_tokens": 638,
+        "completion_tokens": 81,
+        "total_tokens": 719,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 233,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady but not particularly dynamic, suggesting a moderate level of vocal expressiveness.",
+      "latencyMs": 1451,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 56,
+        "total_tokens": 754,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of vocal expressiveness, they are scored conservatively.",
+      "latencyMs": 1665,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 58,
+        "total_tokens": 756,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 58
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of vocal expressiveness, they are scored conservatively.",
+      "latencyMs": 1739,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 58,
+        "total_tokens": 756,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 58
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "Tone is moderately varied and confident, but could benefit from more vocal expressiveness to fully engage the listener.",
+      "latencyMs": 1687,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 83,
+        "total_tokens": 781,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 83
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "Tone is confident and clear, though slightly flat in places, with room for more vocal variation.",
+      "latencyMs": 2667,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 81,
+        "total_tokens": 779,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__flat.wav",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "Tone is clear but slightly flat, with room for more variation and warmth to match the content.",
+      "latencyMs": 1652,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 81,
+        "total_tokens": 779,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady and professional, but without audio evidence, we assume a moderate level of vocal expressiveness and pacing.",
+      "latencyMs": 1769,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 62,
+        "total_tokens": 760,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 62
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady and professional but without evidence of strong vocal expressiveness or pacing, so they are scored conservatively.",
+      "latencyMs": 1794,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 62,
+        "total_tokens": 760,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 62
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of vocal expressiveness, they are scored conservatively.",
+      "latencyMs": 1450,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 58,
+        "total_tokens": 756,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 58
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, though slightly lacking in vocal variation to fully engage the listener.",
+      "latencyMs": 1543,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 86,
+        "total_tokens": 784,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 75,
+        "thinking_quality": 80,
+        "delivery": 70,
+        "tone": 65
+      },
+      "toneRationale": "The tone is clear and professional but lacks significant variation or warmth, making it sound somewhat monotone.",
+      "latencyMs": 1762,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 82,
+        "total_tokens": 780,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 82
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__expressive.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, though slightly flat in emotional variation.",
+      "latencyMs": 1615,
+      "usage": {
+        "prompt_tokens": 698,
+        "completion_tokens": 81,
+        "total_tokens": 779,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 293,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of strong vocal expressiveness or pacing, so they are scored conservatively.",
+      "latencyMs": 1717,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 62,
+        "total_tokens": 708,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 62
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady and professional but without evidence of strong vocal expressiveness or dynamic pacing.",
+      "latencyMs": 1506,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 56,
+        "total_tokens": 702,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 56
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 85,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery seem steady and professional but without evidence of strong vocal expressiveness or pacing, so they are scored moderately.",
+      "latencyMs": 1371,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 61,
+        "total_tokens": 707,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, though it could benefit from slightly more variation in intonation to enhance engagement.",
+      "latencyMs": 1547,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 89,
+        "total_tokens": 735,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 89
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, though slightly monotone and could benefit from more vocal variation.",
+      "latencyMs": 1838,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 86,
+        "total_tokens": 732,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "interview-competent-tell-me-about-yourself__rushed.mp3",
+      "scriptId": "interview-competent-tell-me-about-yourself",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a steady pace, though slightly monotone and could benefit from more vocal variation.",
+      "latencyMs": 2500,
+      "usage": {
+        "prompt_tokens": 646,
+        "completion_tokens": 86,
+        "total_tokens": 732,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 241,
+          "text_tokens": 405,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 86
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 90,
+        "conciseness": 88,
+        "thinking_quality": 90,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are likely steady and professional, but without audio evidence, they are scored conservatively at a moderate level.",
+      "latencyMs": 2010,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 61,
+        "total_tokens": 944,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 90,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery appear steady and professional, but without audio evidence, we assume a moderate level of expressiveness and pacing.",
+      "latencyMs": 1776,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 61,
+        "total_tokens": 944,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 61
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 90,
+        "conciseness": 88,
+        "thinking_quality": 90,
+        "delivery": 70,
+        "tone": 68
+      },
+      "toneRationale": "The tone seems confident and empathetic, but without audio evidence, expressiveness and warmth are assumed to be moderate.",
+      "latencyMs": 2268,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 59,
+        "total_tokens": 942,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 59
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 90,
+        "conciseness": 80,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and direct, with a clear focus on the reasoning, though it could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 2076,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 90,
+        "total_tokens": 973,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 90
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is measured and serious, matching the content, though slightly flat in delivery.",
+      "latencyMs": 1954,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 79,
+        "total_tokens": 962,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 79
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__flat.wav",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "flat",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and purposeful, though slightly flat in delivery, which affects the overall impact.",
+      "latencyMs": 2298,
+      "usage": {
+        "prompt_tokens": 883,
+        "completion_tokens": 81,
+        "total_tokens": 964,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 437,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 81
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assessed conservatively due to lack of audio, suggesting a competent but unremarkable vocal performance.",
+      "latencyMs": 1958,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 60,
+        "total_tokens": 944,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 60
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 95,
+        "thinking_quality": 90,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are assumed to be moderate and neutral due to lack of audio evidence, resulting in average scores.",
+      "latencyMs": 1753,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 59,
+        "total_tokens": 943,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 59
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 95,
+        "thinking_quality": 90,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "Without audio evidence, tone and delivery are assumed to be moderate; the content is well-structured and clear, but vocal qualities cannot be assessed.",
+      "latencyMs": 2093,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 65,
+        "total_tokens": 949,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 65
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is measured and serious, appropriate for the content, but could benefit from more variation in intonation to emphasize key points.",
+      "latencyMs": 1790,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 88,
+        "total_tokens": 972,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 88
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and clear, with a focus on transparency and rationale, though it could benefit from more varied vocal emphasis.",
+      "latencyMs": 1812,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 87,
+        "total_tokens": 971,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 87
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__expressive.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "expressive",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and direct, with a clear focus on the rationale, though it could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 1861,
+      "usage": {
+        "prompt_tokens": 884,
+        "completion_tokens": 90,
+        "total_tokens": 974,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 438,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 90
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 0,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 92,
+        "thinking_quality": 88,
+        "delivery": 70,
+        "tone": 68
+      },
+      "toneRationale": "The tone and delivery seem steady and confident but without evidence of vocal expressiveness, they are scored moderately.",
+      "latencyMs": 1842,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 57,
+        "total_tokens": 830,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 57
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 1,
+      "dims": {
+        "clarity": 90,
+        "structure": 90,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 65,
+        "tone": 65
+      },
+      "toneRationale": "The tone and delivery are likely steady and professional but without evidence of vocal expressiveness, so they are scored conservatively.",
+      "latencyMs": 1706,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 60,
+        "total_tokens": 833,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 60
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-gpt-audio",
+      "repeat": 2,
+      "dims": {
+        "clarity": 90,
+        "structure": 95,
+        "conciseness": 90,
+        "thinking_quality": 90,
+        "delivery": 70,
+        "tone": 70
+      },
+      "toneRationale": "The tone seems confident and empathetic, but without audio evidence, expressiveness and pacing are assumed to be moderate.",
+      "latencyMs": 2124,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 59,
+        "total_tokens": 832,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 59
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 0,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 85,
+        "thinking_quality": 90,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and direct, with a clear rationale, though it could benefit from more vocal variation to fully engage the listener.",
+      "latencyMs": 1351,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 88,
+        "total_tokens": 861,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 88
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 1,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and direct, with a clear rationale, though it could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 1465,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 87,
+        "total_tokens": 860,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 87
+        }
+      }
+    },
+    {
+      "file": "persuasive-strong-budget-cut-defense__rushed.mp3",
+      "scriptId": "persuasive-strong-budget-cut-defense",
+      "style": "rushed",
+      "arm": "audio-mini",
+      "repeat": 2,
+      "dims": {
+        "clarity": 85,
+        "structure": 80,
+        "conciseness": 90,
+        "thinking_quality": 85,
+        "delivery": 70,
+        "tone": 75
+      },
+      "toneRationale": "The tone is confident and direct, with a clear rationale, though it could benefit from more vocal variation to emphasize key points.",
+      "latencyMs": 1987,
+      "usage": {
+        "prompt_tokens": 773,
+        "completion_tokens": 87,
+        "total_tokens": 860,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 327,
+          "text_tokens": 446,
+          "image_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": 87
+        }
+      }
+    }
+  ],
+  "sanity": []
+}

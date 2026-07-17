@@ -47,6 +47,22 @@ const openaiKey = process.env.OPENAI_API_KEY;
 const openaiFallbackModel =
   process.env.OPENAI_FALLBACK_MODEL ?? "gpt-4o";
 
+// Grading v3 (3.2) — per-role ANTHROPIC models, mirroring OPENAI_MODELS.
+// Role keys (MODELS.scoring/framework, "role:*") resolve through these
+// maps at dispatch; raw model ids pass through untouched.
+const ANTHROPIC_MODELS: Record<"scoring" | "framework", string> = {
+  scoring: process.env.ANTHROPIC_SCORING_MODEL ?? "claude-haiku-4-5-20251001",
+  framework: process.env.ANTHROPIC_FRAMEWORK_MODEL ?? "claude-sonnet-4-6",
+};
+
+/** Resolve a role key (or raw Anthropic id) to the Anthropic model that
+ *  plays the role. Unknown/raw ids pass through unchanged. */
+function resolveAnthropicModel(modelOrRole: string): string {
+  if (modelOrRole === "role:scoring") return ANTHROPIC_MODELS.scoring;
+  if (modelOrRole === "role:framework") return ANTHROPIC_MODELS.framework;
+  return modelOrRole;
+}
+
 // Phase 14 — per-ROLE OpenAI models, mirroring the Anthropic MODELS map
 // so provider choice never collapses the scoring/framework distinction.
 // Call sites keep passing the Anthropic-flavored ids from MODELS as the
@@ -58,11 +74,11 @@ const OPENAI_MODELS: Record<"scoring" | "framework", string> = {
   framework: process.env.OPENAI_FRAMEWORK_MODEL ?? openaiFallbackModel,
 };
 
-/** Map an Anthropic-flavored role-key model id → the OpenAI model that
- *  plays the same role. Unknown ids get the scoring default (safe: it is
- *  the speed-first choice). */
-function openaiModelForRole(anthropicModelId: string): string {
-  if (anthropicModelId === MODELS.framework) return OPENAI_MODELS.framework;
+/** Map a role key (or raw model id) → the OpenAI model that plays the
+ *  role. Unknown/raw ids get the scoring default (safe: it is the
+ *  speed-first choice). */
+function openaiModelForRole(modelOrRole: string): string {
+  if (modelOrRole === "role:framework") return OPENAI_MODELS.framework;
   return OPENAI_MODELS.scoring;
 }
 
@@ -72,18 +88,20 @@ function openaiModelForRole(anthropicModelId: string): string {
 // scoring path while everything else stayed Anthropic-primary — that
 // asymmetry meant "openai mode" still burned a dead Anthropic round-trip
 // on every non-scoring call). Values: "anthropic" (default) | "openai".
+// Grading v3 (D22/3.2): OpenAI is the OFFICIAL primary; Anthropic is
+// the fallback. Set AI_PROVIDER=anthropic to invert.
 const rawProvider = (
   process.env.AI_PROVIDER ??
   process.env.SCORING_PROVIDER ??
-  "anthropic"
+  "openai"
 )
   .trim()
   .toLowerCase();
 const PRIMARY_PROVIDER: "anthropic" | "openai" =
-  rawProvider === "openai" ? "openai" : "anthropic";
+  rawProvider === "anthropic" ? "anthropic" : "openai";
 if (rawProvider !== PRIMARY_PROVIDER && process.env.NODE_ENV !== "test") {
   console.warn(
-    `[ai] AI_PROVIDER="${rawProvider}" not recognized — falling back to "anthropic". Valid values: "anthropic" | "openai".`,
+    `[ai] AI_PROVIDER="${rawProvider}" not recognized — defaulting to "openai" (D22). Valid values: "anthropic" | "openai".`,
   );
 }
 type Provider = "anthropic" | "openai";
@@ -110,23 +128,46 @@ const OPENAI_TIMEOUT_MS = parseInt(
   10,
 );
 /** When OpenAI is the PRIMARY provider (AI_PROVIDER=openai), the 15s
- *  fallback budget is too tight: gpt-4o serves the full scoring payload
- *  in ~14-22s, so primary calls were timing out at the boundary and
- *  cascading to a dead Anthropic fallback → mock scores (observed on
- *  prod 2026-07-15). Primary role gets a wider budget; both scoring
- *  routes run with maxDuration=120 so 45s leaves ample headroom. */
+ *  fallback budget is too tight — primary calls were timing out at the
+ *  boundary and cascading to a dead Anthropic fallback → mock scores
+ *  (observed on prod 2026-07-15 under the pre-v4 ~2400-token output;
+ *  temporarily widened to 45s). The v4 contract slimmed output to
+ *  ~1200 tokens: measured model p95 is 11.2s
+ *  (plans/baselines/phase-grading-v3-post.json). 35s gives ~3×
+ *  headroom — the extra margin over a strict 2× exists for long
+ *  simulation reps (SIM_MAX_SEC transcripts inflate prompt processing)
+ *  and slow-provider nights, because the cost of clipping a healthy
+ *  completion is a mock score while the cost of a loose ceiling is
+ *  only slower failure detection. Leaves room for the Anthropic
+ *  fallback (20s) inside the scoring routes' maxDuration budget. */
 const OPENAI_PRIMARY_TIMEOUT_MS = parseInt(
-  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "45000",
+  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "35000",
+  10,
+);
+/** Grading v3 (3.2) — Anthropic AS FALLBACK needs its own budget. The 5s
+ *  ANTHROPIC_TIMEOUT_MS was tuned for Haiku-as-primary quick-fail; a
+ *  full scoring completion on the unified payload takes longer, so the
+ *  old default guaranteed every real fallback aborted → mock score
+ *  ("fallback theater"). 20s clears healthy Haiku completions while the
+ *  scoring routes' maxDuration=120 leaves headroom for
+ *  primary(45s) + fallback(20s). */
+const ANTHROPIC_FALLBACK_TIMEOUT_MS = parseInt(
+  process.env.SCORING_ANTHROPIC_FALLBACK_TIMEOUT_MS ?? "20000",
   10,
 );
 
 if (!apiKey && process.env.NODE_ENV !== "test") {
-  console.warn("[ai] ANTHROPIC_API_KEY is not set. Claude calls will fail.");
+  console.warn(
+    PRIMARY_PROVIDER === "anthropic"
+      ? "[ai] ANTHROPIC_API_KEY is not set. PRIMARY provider calls will fail."
+      : "[ai] ANTHROPIC_API_KEY is not set — Anthropic fallback is disabled. OpenAI failures will surface to callers as-is.",
+  );
 }
 if (!openaiKey && process.env.NODE_ENV !== "test") {
   console.warn(
-    "[ai] OPENAI_API_KEY not set — fallback to OpenAI is disabled. " +
-      "Claude failures will surface to callers as-is.",
+    PRIMARY_PROVIDER === "openai"
+      ? "[ai] OPENAI_API_KEY is not set. PRIMARY provider calls will fail."
+      : "[ai] OPENAI_API_KEY not set — fallback to OpenAI is disabled. Anthropic failures will surface to callers as-is.",
   );
 }
 
@@ -303,6 +344,8 @@ export const __breakerForTests = {
   recordProviderOutcome,
   breakerOpen,
   openaiModelForRole: (id: string) => openaiModelForRole(id),
+  resolveAnthropicModel: (id: string) => resolveAnthropicModel(id),
+  primaryProvider: () => PRIMARY_PROVIDER,
 };
 
 /** Translate Anthropic `messages.create` params to OpenAI chat
@@ -432,9 +475,14 @@ async function callAnthropicOnce(
   }, timeoutMs);
   const start = Date.now();
   try {
-    const response = (await realAnthropic.messages.create(params, {
-      signal: controller.signal,
-    })) as Anthropic.Messages.Message;
+    const response = (await realAnthropic.messages.create(
+      // Role keys ("role:scoring") resolve to the Anthropic model here;
+      // raw ids pass through.
+      { ...params, model: resolveAnthropicModel(params.model) },
+      {
+        signal: controller.signal,
+      },
+    )) as Anthropic.Messages.Message;
     const tagged: Anthropic.Messages.Message =
       role === "fallback"
         ? { ...response, model: `anthropic-fallback:${response.model}` }
@@ -673,9 +721,16 @@ async function messagesCreateWithMetrics(
       response = r;
       openaiDurationMs = durationMs;
     } else {
+      // Anthropic as PRIMARY needs a full-completion budget, not the 5s
+      // ANTHROPIC_TIMEOUT_MS quick-fail (that default was tuned for the
+      // old Haiku-primary → fast-OpenAI-fallback topology). With
+      // AI_PROVIDER=anthropic a 5s budget aborts every healthy scoring
+      // completion and cascades to the very provider the operator
+      // inverted away from.
       const { response: r, durationMs } = await callAnthropicOnce(
         params,
         "primary",
+        Math.max(ANTHROPIC_TIMEOUT_MS, ANTHROPIC_FALLBACK_TIMEOUT_MS),
       );
       response = r;
       anthropicDurationMs = durationMs;
@@ -700,7 +755,7 @@ async function messagesCreateWithMetrics(
     const primaryName = isOpenAIPrimary ? "OpenAI" : "Anthropic";
     const fallbackName = isOpenAIPrimary ? "Anthropic" : "OpenAI";
     const fallbackModel = isOpenAIPrimary
-      ? params.model // Anthropic serves with the role-key id as-is
+      ? resolveAnthropicModel(params.model)
       : openaiModelForRole(params.model);
     console.warn(
       `[ai] ${primaryName} call failed — falling back to ${fallbackName} ${fallbackModel}. Reason:`,
@@ -712,6 +767,7 @@ async function messagesCreateWithMetrics(
         const { response: r, durationMs } = await callAnthropicOnce(
           params,
           "fallback",
+          ANTHROPIC_FALLBACK_TIMEOUT_MS,
         );
         response = r;
         anthropicDurationMs = durationMs;
@@ -816,12 +872,27 @@ export const AI_PROVIDER_ACTIVE = PRIMARY_PROVIDER;
 // clarity, structure, conciseness, tone + author 3 callouts —
 // well within Haiku's accuracy band. Override via ANTHROPIC_SCORING_MODEL
 // for A/B tests against Sonnet.
+/**
+ * Grading v3 (3.2) — provider-NEUTRAL role keys. Call sites pass
+ * `MODELS.scoring` / `MODELS.framework` as the stable role identity;
+ * the shim resolves the actual model id per provider at dispatch time
+ * (resolveAnthropicModel / openaiModelForRole). Raw model ids still
+ * pass through untouched for one-off overrides.
+ *
+ * This replaces the old convention where the Anthropic id doubled as
+ * the role key — which leaked into stored rows as `modelVersion` and
+ * misreported gpt-4o-served reps as claude-scored.
+ */
 export const MODELS = {
-  scoring: process.env.ANTHROPIC_SCORING_MODEL ?? "claude-haiku-4-5-20251001",
-  framework: process.env.ANTHROPIC_FRAMEWORK_MODEL ?? "claude-sonnet-4-6",
+  scoring: "role:scoring",
+  framework: "role:framework",
 } as const;
 
+/** @deprecated Grading v3: stored rep rows now record the ACTUAL serving
+ *  model from call metrics (`metrics.modelUsed`, e.g. "openai:gpt-4o").
+ *  This export remains only for non-scoring consumers that version their
+ *  outputs by role (weekly narrative, progression). */
 export const MODEL_VERSIONS = {
-  scoring: MODELS.scoring,
-  framework: MODELS.framework,
+  scoring: ANTHROPIC_MODELS.scoring,
+  framework: ANTHROPIC_MODELS.framework,
 } as const;

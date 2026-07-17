@@ -154,7 +154,7 @@ export async function analyzeProgression(
 ): Promise<ProgressionResponse & { modelVersion: string }> {
   const userPrompt = buildUserPrompt(input);
 
-  const response = await anthropic.messages.create({
+  const { response, metrics } = await anthropic.messages.createWithMetrics({
     model: MODELS.scoring,
     max_tokens: 1500,
     system: [
@@ -195,7 +195,11 @@ export async function analyzeProgression(
 
   return {
     ...validated,
-    modelVersion: MODEL_VERSIONS.scoring,
+    // Grading v3 — record the model that actually served the call
+    // (provider-aware), not the hardcoded Anthropic constant; with
+    // OpenAI primary the old constant misattributed every progression
+    // row to claude.
+    modelVersion: metrics.modelUsed ?? MODEL_VERSIONS.scoring,
   };
 }
 

@@ -95,15 +95,12 @@ const COMPOSITE_TOLERANCE = parseInt(FLAGS["composite-tolerance"] ?? "5", 10);
 const DIM_TOLERANCE = parseInt(FLAGS["dim-tolerance"] ?? "8", 10);
 const MIN_HOLD_RATE = parseFloat(FLAGS["min-hold-rate"] ?? "0.9");
 
-// Phase 5+ — set TWO_STAGE=true to baseline the two-stage endpoint
-// (/api/score/twostage) instead of the legacy single-call /api/score.
-// muscle-group-final + post-strict-rubric modes imply twostage; legacy
-// mode honors the env.
-const TWO_STAGE =
-  MODE === "muscle-group-final" ||
-  MODE === "post-strict-rubric" ||
-  process.env.TWO_STAGE === "true";
-const SCORE_ENDPOINT = TWO_STAGE ? "/api/score/twostage" : "/api/score";
+// Phase 3 (grading v3) retired the two-stage endpoints — every baseline
+// runs against the unified single-call /api/score. (Historical baselines
+// tagged muscle-group-final / post-strict-rubric were captured on the
+// deleted /api/score/twostage; latency comparisons across that boundary
+// aren't apples-to-apples.)
+const SCORE_ENDPOINT = "/api/score";
 
 function parseCliFlags(argv) {
   const out = {};
@@ -159,7 +156,15 @@ async function scoreOne(rep, opts = {}) {
   const t0 = Date.now();
   const res = await fetch(`${BASE_URL}${SCORE_ENDPOINT}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      // /api/score requires an auth or guest identity (the open-curl
+      // vector was closed post-Phase-1) — same convention as the
+      // calibrate-* harnesses.
+      ...(process.env.CALIBRATION_GUEST_ID
+        ? { cookie: `cognify_guest_id=${process.env.CALIBRATION_GUEST_ID}` }
+        : {}),
+    },
     body: JSON.stringify(body),
   });
   const clientLatencyMs = Date.now() - t0;
@@ -301,7 +306,7 @@ function summarizeTelemetry(rows) {
 }
 
 async function main() {
-  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL}${SCORE_ENDPOINT} (mode=${MODE}, twoStage=${TWO_STAGE}) ===\n`);
+  console.log(`\n=== Phase ${PHASE} baseline — ${BASE_URL}${SCORE_ENDPOINT} (mode=${MODE}) ===\n`);
 
   // Resolve exercise pin (muscle-group-final + exercise-id).
   let exercise = null;

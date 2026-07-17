@@ -48,10 +48,14 @@ import CountUpScore from "@/components/product/workout-shell/CountUpScore";
 import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  deriveTopWeakness,
+} from "@/lib/ai/coach-focus";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ShellStation } from "@/lib/workout/types";
-import type { Callout, MuscleGroupId, RepScore } from "@/types/domain";
+import type { MuscleGroupId, RepScore } from "@/types/domain";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 
 type Phase =
@@ -309,18 +313,8 @@ export default function AppSessionClient({
 
   const coachFocus =
     attempts.first != null ? deriveCoachFocus(attempts.first.score) : null;
-  const retryFocusCallout: Callout | null = coachFocus
-    ? {
-        dimension: coachFocus.dimension,
-        tone: "neutral",
-        title: "Focus for this retry",
-        body: coachFocus.text,
-        quote: null,
-        suggestedRewrite: null,
-        transcriptStart: null,
-        transcriptEnd: null,
-      }
-    : null;
+  const retryFocus =
+    attempts.first != null ? deriveRetryFocus(attempts.first.score) : null;
   const skillDim = exercise
     ? muscleGroupToSkillDim(exercise.dimension)
     : null;
@@ -484,7 +478,6 @@ export default function AppSessionClient({
             key={`${exercise.exerciseId}:${selectedPrompt.promptId}:${phase.attempt}`}
             prompt={selectedPrompt.text}
             responseWindow={exercise.responseWindow}
-            feedbackVariant="v2"
             mode="skill_lab"
             topic={exercise.name}
             sessionId={sessionId}
@@ -495,8 +488,8 @@ export default function AppSessionClient({
             exerciseId={exercise.exerciseId}
             applicationId={applicationId}
             hideRunItAgain
-            {...(phase.attempt !== "first" && retryFocusCallout
-              ? { retryFocus: retryFocusCallout }
+            {...(phase.attempt !== "first" && retryFocus
+              ? { retryFocus }
               : {})}
             {...(phase.attempt !== "first" && attempts.first
               ? {
@@ -506,10 +499,7 @@ export default function AppSessionClient({
                       dimension: d.dimension,
                       score: d.score,
                     })),
-                    topWeakness:
-                      attempts.first.score.callouts.find(
-                        (c) => c.tone === "warn" || c.tone === "critical",
-                      ) ?? null,
+                    topWeakness: deriveTopWeakness(attempts.first.score),
                     transcript: attempts.first.transcript,
                     promptText: selectedPrompt.text,
                   },

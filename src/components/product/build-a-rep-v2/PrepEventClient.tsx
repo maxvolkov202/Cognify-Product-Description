@@ -35,14 +35,17 @@ import {
   type MuscleGroupId,
   type RepScore,
   type SkillDimension,
-  type Callout,
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import ImprovementReview, {
   type AttemptPayload,
 } from "@/components/product/workout-shell/ImprovementReview";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  deriveTopWeakness,
+} from "@/lib/ai/coach-focus";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
@@ -185,6 +188,20 @@ export default function PrepEventClient({
         if (calloutAcc.current.length > 12) calloutAcc.current.shift();
       }
     }
+    // v4 scores ship callouts: [] — the readiness review's coaching
+    // evidence comes from the Coach's Focus instead. Without this the
+    // review LLM graded event readiness from dimension averages alone.
+    if (score.callouts.length === 0 && score.coachFocus) {
+      calloutAcc.current.push({
+        dimension: score.coachFocus.dimension,
+        title: score.coachFocus.behavior ?? score.coachFocus.text,
+        body:
+          score.coachFocus.why ??
+          score.coachFocus.action ??
+          score.coachFocus.text,
+      });
+      if (calloutAcc.current.length > 12) calloutAcc.current.shift();
+    }
     setPracticedThisSession(true);
   }, []);
 
@@ -294,10 +311,30 @@ export default function PrepEventClient({
         repId: payload.repId,
         dimensionAverages: dims,
         transcriptExcerpt: payload.transcript.slice(0, 8000),
-        callouts: payload.score.callouts
-          .filter((c) => c.tone === "warn" || c.tone === "critical")
-          .slice(0, 8)
-          .map((c) => ({ dimension: c.dimension, title: c.title, body: c.body })),
+        callouts: (payload.score.callouts.length === 0 &&
+        payload.score.coachFocus
+          ? [
+              {
+                dimension: payload.score.coachFocus.dimension as
+                  | SkillDimension
+                  | "structural_adherence",
+                title:
+                  payload.score.coachFocus.behavior ??
+                  payload.score.coachFocus.text,
+                body:
+                  payload.score.coachFocus.why ??
+                  payload.score.coachFocus.action ??
+                  payload.score.coachFocus.text,
+              },
+            ]
+          : payload.score.callouts
+              .filter((c) => c.tone === "warn" || c.tone === "critical")
+              .map((c) => ({
+                dimension: c.dimension,
+                title: c.title,
+                body: c.body,
+              }))
+        ).slice(0, 8),
       });
       if (res.ok) {
         resetSessionState();
@@ -318,18 +355,8 @@ export default function PrepEventClient({
 
   const coachFocus =
     attempts.first != null ? deriveCoachFocus(attempts.first.score) : null;
-  const retryFocusCallout: Callout | null = coachFocus
-    ? {
-        dimension: coachFocus.dimension,
-        tone: "neutral",
-        title: "Focus for this retry",
-        body: coachFocus.text,
-        quote: null,
-        suggestedRewrite: null,
-        transcriptStart: null,
-        transcriptEnd: null,
-      }
-    : null;
+  const retryFocus =
+    attempts.first != null ? deriveRetryFocus(attempts.first.score) : null;
 
   const anyPracticed =
     practicedThisSession || event.moments.some((m) => m.attempts > 0);
@@ -426,7 +453,6 @@ export default function PrepEventClient({
           <RepSurface
             key={`${moment.id}:${view.attempt}`}
             prompt={momentPrompt(event, moment)}
-            feedbackVariant="v2"
             mode="build_a_rep"
             topic={moment.title}
             sessionId={sessionId}
@@ -451,8 +477,8 @@ export default function PrepEventClient({
             feedbackTotalReps={1}
             feedbackModeLabel={view.attempt === "first" ? "BUILD A REP" : "RETRY"}
             hideRunItAgain
-            {...(view.attempt !== "first" && retryFocusCallout
-              ? { retryFocus: retryFocusCallout }
+            {...(view.attempt !== "first" && retryFocus
+              ? { retryFocus }
               : {})}
             {...(view.attempt !== "first" && attempts.first
               ? {
@@ -462,10 +488,7 @@ export default function PrepEventClient({
                       dimension: d.dimension,
                       score: d.score,
                     })),
-                    topWeakness:
-                      attempts.first.score.callouts.find(
-                        (c) => c.tone === "warn" || c.tone === "critical",
-                      ) ?? null,
+                    topWeakness: deriveTopWeakness(attempts.first.score),
                     transcript: attempts.first.transcript,
                     promptText: momentPrompt(event, moment),
                   },
@@ -1254,8 +1277,8 @@ function SimulationView({
   onMomentTitleChange: (momentId: string, title: string) => void;
 }) {
   // L10 — the binding constraint on simulation length is the score
-  // routes' durationMs ceiling (1_500_000ms = 25 min in /api/score +
-  // /api/score/twostage bodySchema), NOT the plan schema's 30-min
+  // route's durationMs ceiling (1_500_000ms = 25 min in /api/score's
+  // bodySchema), NOT the plan schema's 30-min
   // recommendedDurationSec cap. Clamp everything to 25 min so a long
   // recommendation can't silently truncate mid-rep or fail scoring.
   const SIM_MAX_SEC = 1500; // 25 min — score-route durationMs ceiling
@@ -1377,7 +1400,6 @@ function SimulationView({
         <RepSurface
           key={`sim:${event.id}`}
           prompt={simulationPrompt(event)}
-          feedbackVariant="v2"
           mode="build_a_rep"
           topic={event.title}
           sessionId={sessionId}
