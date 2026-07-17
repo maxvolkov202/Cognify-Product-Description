@@ -4,7 +4,11 @@
 // placement, exercise rotation, flow ramp) are unit-testable
 // (tests/session-types.test.ts) — server actions stay thin.
 
-import { canonicalizeSubSkillId, type SubSkillId } from "@/types/sub-skills";
+import {
+  SUB_SKILL_TO_DIMENSION,
+  canonicalizeSubSkillId,
+  type SubSkillId,
+} from "@/types/sub-skills";
 import type { PressureArchetypeId } from "@/lib/ai/pressure-archetypes";
 import type { LabCatalogExercise } from "@/lib/workout/lab-plan";
 import type { SkillDimension } from "@/types/domain";
@@ -104,11 +108,39 @@ export function pressureArchetypeSequence(
  * Pure given `shuffleFn` — inject a seeded shuffle for deterministic
  * tests.
  */
+/** §8.5.4 — the weakest measured hidden skill within a dimension
+ *  (≥3 samples). Drives the lab planner's automatic exercise bias when
+ *  the user didn't deep-link one; personalization grows with evidence. */
+export function weakestHiddenSkillFor(
+  hiddenSkills: Partial<Record<string, { score: number; sampleCount: number }>>,
+  dim: SkillDimension,
+): SubSkillId | undefined {
+  let best: { id: SubSkillId; score: number } | null = null;
+  for (const [rawId, est] of Object.entries(hiddenSkills)) {
+    if (!est || est.sampleCount < 3) continue;
+    const id = canonicalizeSubSkillId(rawId);
+    if (!id || SUB_SKILL_TO_DIMENSION[id as SubSkillId] !== dim) continue;
+    if (!best || est.score < best.score) {
+      best = { id: id as SubSkillId, score: est.score };
+    }
+  }
+  return best?.id;
+}
+
 export function rotateExercises(
   pool: LabCatalogExercise[],
   count: number,
   shuffleFn: <T>(arr: T[]) => T[],
   preferSubSkill?: SubSkillId,
+  /** §8.5 content memory — exercises the user completed recently. They
+   *  sort behind fresh material (never excluded: a small bank must
+   *  still fill the session). */
+  recentExerciseIds?: ReadonlySet<string>,
+  /** "hard" (user deep-link): preferred outranks recency. "soft"
+   *  (automatic weakness bias): a recent preferred exercise drops
+   *  behind fresh material — otherwise a single tagged exercise would
+   *  lead every session forever, immune to the dedupe window. */
+  preferStrength: "hard" | "soft" = "hard",
 ): { picks: LabCatalogExercise[]; preferredMatched: boolean } {
   if (pool.length === 0) return { picks: [], preferredMatched: false };
   const wanted = preferSubSkill ? canonicalizeSubSkillId(preferSubSkill) : null;
@@ -120,8 +152,17 @@ export function rotateExercises(
       )
     : [];
   const preferredSet = new Set(preferred);
-  const rest = shuffleFn(pool.filter((e) => !preferredSet.has(e)));
-  const ordered = [...shuffleFn(preferred), ...rest];
+  const rest = pool.filter((e) => !preferredSet.has(e));
+  const isRecent = (e: LabCatalogExercise) =>
+    recentExerciseIds?.has(e.id) ?? false;
+  const fresh = shuffleFn(rest.filter((e) => !isRecent(e)));
+  const recent = shuffleFn(rest.filter(isRecent));
+  const preferredFresh = shuffleFn(preferred.filter((e) => !isRecent(e)));
+  const preferredRecent = shuffleFn(preferred.filter(isRecent));
+  const ordered =
+    preferStrength === "hard"
+      ? [...preferredFresh, ...preferredRecent, ...fresh, ...recent]
+      : [...preferredFresh, ...fresh, ...preferredRecent, ...recent];
   const picks: LabCatalogExercise[] = [];
   for (let i = 0; i < count; i++) picks.push(ordered[i % ordered.length]!);
   return {

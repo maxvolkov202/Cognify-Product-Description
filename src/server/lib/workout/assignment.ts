@@ -891,7 +891,10 @@ export function pickPromptCandidates(
   const k = input.k ?? PROMPT_SLATE_SIZE;
   const bias =
     input.challengeBias ?? (input.preferEasier ? "easier" : "neutral");
-  const recent = new Set(recentPromptIds.slice(0, PROMPT_BIAS_WINDOW));
+  // Callers may append persisted skip-memory ids after the practiced
+  // window (§8.5) — accept up to twice the practiced window so those
+  // survive the defensive cap.
+  const recent = new Set(recentPromptIds.slice(0, PROMPT_BIAS_WINDOW * 2));
 
   // 1) Split bank into "fresh" (not in recent) vs "used".
   const fresh = available.filter((p) => !recent.has(p.promptId));

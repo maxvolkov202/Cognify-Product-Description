@@ -246,16 +246,16 @@ grading speed already fixed there).*
   → plan shows exactly those 3 → rep screen shows question + notes panel → feedback has core skills +
   stronger version → improvement review has playback → post-rep offers retry/next/exit.
 
-### Phase 5 — Doc-fidelity pass: Skill Lab + Daily Workout + engine ⬜
+### Phase 5 — Doc-fidelity pass: Skill Lab + Daily Workout + engine ✅ (2026-07-17, feat/doc-fidelity-sweep)
 *PRD refs: §4, §5, §6, §8.5. Fresh session. Smaller "sweep" phase.*
 
-- [ ] 5.1 Cross-check every §4 design decision against the shipped loop (insight consumable in
+- [x] 5.1 Cross-check every §4 design decision against the shipped loop (insight consumable in
       seconds, single coach objective, score movement visibility, next-actions).
-- [ ] 5.2 §5.7 Workout Complete + §6.8 Session Complete field-by-field audit (coach recommendation
+- [x] 5.2 §5.7 Workout Complete + §6.8 Session Complete field-by-field audit (coach recommendation
       quality, most-improved logic, reps earned).
-- [ ] 5.3 §8.5 content selection principles audit (intentional variety, content memory, assessment
+- [x] 5.3 §8.5 content selection principles audit (intentional variety, content memory, assessment
       coverage) — confirm selection engines honor them; fix gaps.
-- [ ] 5.4 Copy sweep for doc terminology (Core Skills, Coach's Focus, Communication Score labels).
+- [x] 5.4 Copy sweep for doc terminology (Core Skills, Coach's Focus, Communication Score labels).
 - **Verify after merge (Max):** one full Daily Workout + one 3-exercise Lab session on dev feel
   doc-conformant end to end.
 
@@ -461,3 +461,37 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Verification limitation: both AI providers are still out of credits**, so plan
     generation/notes/vision were exercised through their deterministic fallbacks + unit tests
     only; the LLM paths need a live smoke after re-up (see Max checklist in the PR).
+- **2026-07-17 (session 7, same session) — Phase 5: doc-fidelity sweep on
+  `feat/doc-fidelity-sweep`.** Four parallel audits (§4 loop, §5.7/§6.8 screens, §8.5
+  selection, terminology) → fix waves + a 2-angle review wave.
+  - **§4 loop:** "Run it again" now implements the focus the Improvement Review just assigned
+    (was re-coaching the FIRST rep's objective — overlay, scoring context, comparison, and
+    parentRepId lineage all follow the attempt being implemented against); retry screens no
+    longer stack generic sub-skill hints beside the Coach's Focus overlay.
+  - **§5.7/§6.8 screens:** Core Skill breakdown (current values) always on Workout Complete;
+    coach recommendation value-driven only (calendar-parity branch removed; sub-70 users keep
+    Lab discovery via a secondary "Or apply it" link); improvement/most-improved fall back to
+    all attempts on single-exercise days (labeled "Includes your coached retry"); Lab
+    completion labels the degraded-fetch metric honestly + lists all six Core Skills.
+  - **§8.5 selection:** lab planner personalizes for signed-in users (3-day recent-exercise
+    demotion, automatic weakest-hidden-skill bias — soft, recency-aware; user deep-links stay
+    hard), hash-spread deterministic rotation seeds + pressure-archetype rotation (guests keep
+    legacy random); prompt skip memory persists (migration 0044:
+    prompt_selection_events.skipped_prompt_ids; 7-day soft deprioritization wired through
+    PromptPicker → fetchPromptCandidates, truncation-proofed); assessment-phase slates stay
+    broad (30-day windowed gate matching isAssessmentActive) instead of vertical-narrowed from
+    day one.
+  - **Terminology (5.4):** "Composite"→"Communication Score", "dimensions"→"Core Skills",
+    tutorial "Delivery"→"Pacing" across dashboard/progress/report/completion surfaces.
+    (SubSkillBreakdownCard is already dead behind the retired FF_SUBSKILL_UI — untouched.)
+  - **Surfaced to Max, not relitigated (PRD-vs-code conflicts):** (1) Owen C10 score-movement
+    softening (negatives < −3 hidden) contradicts PRD §4.7 "score movement should be highly
+    visible" and C10 isn't in the D-log — needs a ruling: amend §4.7 or restore numeric
+    visibility. (2) §8.5 "recently used communication contexts / speaking scenarios" memory
+    remains unimplemented (needs tag-level schema design — deferred; prompt-id-level memory
+    only). (3) The Lab core-skill planner personalizes now, but §8.5's full
+    strengths/weaknesses/goals matrix is Phase-7-intelligence scope.
+  - Review wave (2 angles) fixed: skip-memory silently no-op for active users (bias-window
+    truncation), rotation-counter modulo aliasing, guest-cookie identities taking the
+    personalized path, auto-bias monotony (single tagged exercise leading forever), stale W7
+    docstring, em-dash regressions.

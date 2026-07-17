@@ -956,13 +956,18 @@ export function RepSurface({
 
       {/* ——— Ch.6a delivery hints — only when focus mode supplies a
           dimension. Mixed/pressure modes hide the strip; they get richer
-          framing via the rep type framework already. ——— */}
-      {phase.kind === "idle" && scoreModeContext?.focusDimension && (
-        <RepHintsBar
-          dimension={scoreModeContext.focusDimension}
-          seed={sessionId ?? prompt}
-        />
-      )}
+          framing via the rep type framework already. Retries hide it
+          too (§4.6: "The Retry should target a single coaching
+          objective" — generic sub-skill cues next to the Coach's Focus
+          overlay hand the user competing objectives). ——— */}
+      {phase.kind === "idle" &&
+        scoreModeContext?.focusDimension &&
+        !retryFocus && (
+          <RepHintsBar
+            dimension={scoreModeContext.focusDimension}
+            seed={sessionId ?? prompt}
+          />
+        )}
 
       {/* ——— Daily Workout framework strip (legacy cheat sheet) ———
           Only shown in non-idle Daily Workout phases (error). The idle

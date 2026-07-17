@@ -46,7 +46,7 @@ export function DailyScoreCard({ points }: Props) {
                 {delta !== null && <DeltaPill delta={delta} />}
               </div>
               <p className="mt-1 text-sm text-ink-600 dark:text-ink-300">
-                Composite across {todayPoint.repCount}{" "}
+                Communication Score across {todayPoint.repCount}{" "}
                 {todayPoint.repCount === 1 ? "rep" : "reps"} today.
               </p>
             </>

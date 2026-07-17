@@ -26,6 +26,7 @@ import {
   pressureIndexFor,
   pressureArchetypeSequence,
   rotateExercises,
+  weakestHiddenSkillFor,
   FLOW_RAMP,
   MAX_MIXED_REPS,
 } from "@/server/lib/lab-session-planning";
@@ -336,6 +337,79 @@ section("Pure planning logic (lab-session-planning)");
   );
   const wrap = rotateExercises(pool.slice(0, 2), 5, identity);
   assert(wrap.picks.length === 5, "rotation wraps when pool < count");
+
+  // §8.5 content memory — recently practiced exercises sort behind
+  // fresh material; the weakness bias (preferred) still beats recency.
+  const withRecent = rotateExercises(
+    pool,
+    3,
+    identity,
+    undefined,
+    new Set(["a"]),
+  );
+  assert(
+    withRecent.picks[withRecent.picks.length - 1]!.id === "a",
+    "recent exercise sorts last behind fresh material",
+  );
+  assert(
+    new Set(withRecent.picks.map((p) => p.id)).size === 3,
+    "recent exercises stay available (deprioritized, never excluded)",
+  );
+  const preferredRecent = rotateExercises(
+    pool,
+    3,
+    identity,
+    "jargon_translation" as never,
+    new Set(["a"]),
+  );
+  assert(
+    preferredRecent.picks[0]!.id === "a",
+    "hard (deep-linked) preference leads even when recent",
+  );
+  const softRecent = rotateExercises(
+    pool,
+    3,
+    identity,
+    "jargon_translation" as never,
+    new Set(["a"]),
+    "soft",
+  );
+  assert(
+    softRecent.picks[0]!.id !== "a" &&
+      softRecent.picks[softRecent.picks.length - 1]!.id !== softRecent.picks[0]!.id,
+    "soft (automatic) preference yields to recency — fresh material leads",
+  );
+  const softFresh = rotateExercises(
+    pool,
+    3,
+    identity,
+    "jargon_translation" as never,
+    new Set(["b"]),
+    "soft",
+  );
+  assert(
+    softFresh.picks[0]!.id === "a",
+    "soft preference still leads when the preferred exercise is fresh",
+  );
+
+  // §8.5.4 — weakest-hidden-skill bias derivation.
+  const est = {
+    jargon_translation: { score: 35, sampleCount: 5 }, // clarity
+    concreteness: { score: 25, sampleCount: 2 }, // clarity, too few samples
+    signposting: { score: 20, sampleCount: 8 }, // structure
+  };
+  assert(
+    weakestHiddenSkillFor(est, "clarity") === "jargon_translation",
+    "weakest measured clarity skill wins (thin samples ignored)",
+  );
+  assert(
+    weakestHiddenSkillFor(est, "structure") === "signposting",
+    "per-dimension scoping respected",
+  );
+  assert(
+    weakestHiddenSkillFor({}, "clarity") === undefined,
+    "no evidence → no automatic bias",
+  );
 }
 
 // ————————————————————————————————————————————————————————————————

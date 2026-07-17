@@ -1814,6 +1814,9 @@ export const promptSelectionEvents = cognifyV2Schema.table(
     mode: text("mode").notNull(),
     reshuffles: integer("reshuffles").notNull().default(0),
     msToSelect: integer("ms_to_select").notNull(),
+    /** §8.5 content memory (migration 0044) — prompt ids shown but not
+     *  picked this selection; the picker deprioritizes them for 7 days. */
+    skippedPromptIds: jsonb("skipped_prompt_ids").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

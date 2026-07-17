@@ -150,6 +150,11 @@ export default function PromptPicker({
           mode: params.mode,
           reshuffles: state.reshuffles,
           msToSelect,
+          // §8.5 content memory — everything shown this selection that
+          // wasn't picked gets deprioritized in future slates.
+          skippedPromptIds: Array.from(seenPromptIdsRef.current).filter(
+            (id) => id !== params.promptId,
+          ),
         });
       }
       onSelect({
