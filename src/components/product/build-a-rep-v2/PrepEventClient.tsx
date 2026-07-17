@@ -67,6 +67,7 @@ import {
   type PrepMoment,
   type PrepWeakMoment,
 } from "@/server/actions/prep-events";
+import { PREP_ACCEPT_ATTR } from "@/lib/prep/parse";
 import type { ReadinessReviewContent } from "@/lib/ai/prep/readiness-review";
 
 type View =
@@ -843,7 +844,7 @@ function PlanScreen({
         );
       } else if (data.parseStatus !== "parsed") {
         setUploadNote(
-          "Uploaded, but we couldn't read text from that file (PDF, DOCX, TXT and MD work best).",
+          "Uploaded, but we couldn't read that file (PDF, DOCX, PPTX, TXT, MD and photos work best).",
         );
       } else {
         // §7.5 — "As additional context is provided, the preparation
@@ -903,14 +904,15 @@ function PlanScreen({
               Context
             </h2>
             <p className="text-xs text-slate-500 dark:text-ink-400">
-              Optional — resume, job description, deck outline, agenda. The more
-              you add, the more personal your plan gets.
+              Optional: resume, job description, deck outline, agenda, or a
+              photo of any of them. The more you add, the more personal your
+              plan gets.
             </p>
           </div>
           <input
             ref={fileInput}
             type="file"
-            accept=".pdf,.docx,.txt,.md"
+            accept={PREP_ACCEPT_ATTR}
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];

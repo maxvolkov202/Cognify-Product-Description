@@ -20,7 +20,18 @@ export const PREP_ACCEPTED_EXTENSIONS = [
   ".pptx",
   ".txt",
   ".md",
+  // Edit #1 — photo-library uploads (job postings, slides, whiteboards,
+  // schedules). Parsed to text via vision at upload time.
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
 ] as const;
+
+/** The file-picker accept attribute. `image/*` (not just extensions)
+ *  is what makes iOS offer the photo library. */
+export const PREP_ACCEPT_ATTR = ".pdf,.docx,.pptx,.txt,.md,image/*";
 
 export type ParseResult =
   | { status: "parsed"; text: string }
@@ -83,6 +94,21 @@ export async function parseContextFile(
           ? { status: "parsed", text: normalized }
           : { status: "failed", text: null };
       }
+      case "image": {
+        // Edit #1 — vision extraction (transcribed text + a short
+        // prep-relevant description). Model unavailable → "failed",
+        // never blocks the upload.
+        const { extractImageContextText } = await import(
+          "@/lib/ai/prep/image-context"
+        );
+        const mime = normalizeImageMime(mimeType, lower);
+        if (!mime) return { status: "unsupported", text: null };
+        const text = await extractImageContextText(buffer, mime);
+        const normalized = normalize(text ?? "");
+        return normalized.length > 0
+          ? { status: "parsed", text: `[From image ${fileName}]\n${normalized}` }
+          : { status: "failed", text: null };
+      }
       default:
         return { status: "unsupported", text: null };
     }
@@ -91,10 +117,30 @@ export async function parseContextFile(
   }
 }
 
+/** Resolve a usable image mime from the browser mime or extension
+ *  (some pickers hand over empty mime types for photos). */
+function normalizeImageMime(
+  mimeType: string | null,
+  lowerName: string,
+): string | null {
+  if (
+    mimeType &&
+    ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mimeType)
+  ) {
+    return mimeType;
+  }
+  if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg"))
+    return "image/jpeg";
+  if (lowerName.endsWith(".png")) return "image/png";
+  if (lowerName.endsWith(".webp")) return "image/webp";
+  if (lowerName.endsWith(".gif")) return "image/gif";
+  return null;
+}
+
 function detectKind(
   mimeType: string | null,
   lowerName: string,
-): "pdf" | "docx" | "pptx" | "text" | "unsupported" {
+): "pdf" | "docx" | "pptx" | "text" | "image" | "unsupported" {
   if (mimeType === "application/pdf" || lowerName.endsWith(".pdf")) {
     return "pdf";
   }
@@ -118,6 +164,12 @@ function detectKind(
     lowerName.endsWith(".md")
   ) {
     return "text";
+  }
+  if (
+    mimeType?.startsWith("image/") ||
+    /\.(jpe?g|png|webp|gif)$/.test(lowerName)
+  ) {
+    return "image";
   }
   return "unsupported";
 }
