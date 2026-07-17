@@ -260,9 +260,29 @@ export default function ImprovementReview({
           <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-brand-lavender mb-1">
             Next development opportunity
           </div>
-          <p className="text-sm text-slate-800 dark:text-ink-100">
-            {nextFocus.text}
-          </p>
+          {/* v4 scores carry the three-part focus; legacy falls back to
+              the single text line. */}
+          {nextFocus.behavior ? (
+            <>
+              <p className="text-sm font-semibold text-slate-800 dark:text-ink-100">
+                {nextFocus.behavior}
+              </p>
+              {nextFocus.why && (
+                <p className="mt-1 text-xs text-slate-600 dark:text-ink-300">
+                  {nextFocus.why}
+                </p>
+              )}
+              {nextFocus.action && (
+                <p className="mt-2 rounded-lg bg-white/70 dark:bg-ink-900/60 px-3 py-2 text-[13px] font-semibold text-slate-800 dark:text-ink-100">
+                  If you run it again: {nextFocus.action}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-slate-800 dark:text-ink-100">
+              {nextFocus.text}
+            </p>
+          )}
         </div>
       )}
 
