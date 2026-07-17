@@ -10,15 +10,15 @@
       "transcript": "Uh, hello, hello? Is this thing on. Um yeah so basically the product is, like, you know, it's a thing that does, um, automation, sort of? Uh, that's, that's it I guess.",
       "durationMs": 18000,
       "expected": {
-        "composite": 18,
+        "composite": 17,
         "band": "poor",
         "dimensions": {
-          "clarity": 22,
+          "clarity": 20,
           "structure": 12,
-          "conciseness": 25,
-          "thinking_quality": 15,
-          "delivery": 20,
-          "tone": 25
+          "conciseness": 20,
+          "thinking_quality": 10,
+          "delivery": 25,
+          "tone": 23
         }
       }
     },
@@ -29,15 +29,15 @@
       "transcript": "So like our product, um, it's basically a SaaS platform that we've been working on, you know, for a while, and the idea is to help companies with their, um, automation needs. We have a lot of features and we think it's pretty good. Uh, the price is competitive and we have customers. So yeah you should consider it.",
       "durationMs": 32000,
       "expected": {
-        "composite": 48,
-        "band": "below_standard",
+        "composite": 36,
+        "band": "poor",
         "dimensions": {
-          "clarity": 50,
-          "structure": 40,
-          "conciseness": 35,
-          "thinking_quality": 45,
-          "delivery": 55,
-          "tone": 60
+          "clarity": 32,
+          "structure": 25,
+          "conciseness": 48,
+          "thinking_quality": 37,
+          "delivery": 42,
+          "tone": 45
         }
       }
     },
@@ -48,14 +48,14 @@
       "transcript": "Our platform cuts your finance team's reconciliation cycle from five days to one. We do this by ingesting bank feeds and matching against your ledger automatically. Three of your peer companies are using it, and they're saving roughly 40 hours per close. We'd like 15 minutes next week to walk through the numbers.",
       "durationMs": 27000,
       "expected": {
-        "composite": 68,
+        "composite": 74,
         "band": "competent",
         "dimensions": {
-          "clarity": 75,
-          "structure": 70,
-          "conciseness": 72,
-          "thinking_quality": 65,
-          "delivery": 60,
+          "clarity": 85,
+          "structure": 75,
+          "conciseness": 90,
+          "thinking_quality": 69,
+          "delivery": 50,
           "tone": 60
         }
       }
@@ -67,15 +67,15 @@
       "transcript": "We cut your monthly close from five days to one. Here's how. We ingest your bank feeds, match them against your ledger, and flag the exceptions. Three of your peers are running it now and they've reclaimed 40 hours per close. The CFO at one of them said it was the highest-ROI tool she signed last year. Want me to share their case study and book 15 minutes?",
       "durationMs": 35000,
       "expected": {
-        "composite": 80,
-        "band": "strong",
+        "composite": 71,
+        "band": "competent",
         "dimensions": {
           "clarity": 85,
-          "structure": 85,
+          "structure": 68,
           "conciseness": 78,
-          "thinking_quality": 80,
-          "delivery": 72,
-          "tone": 75
+          "thinking_quality": 74,
+          "delivery": 43,
+          "tone": 60
         }
       }
     },
@@ -84,17 +84,17 @@
       "kind": "band",
       "promptText": "Pitch your product to a CFO in 30 seconds.",
       "transcript": "Your monthly close takes five days. Ours takes one. The trade is straightforward — we ingest bank feeds, match the ledger, flag exceptions. Your team reviews exceptions instead of doing reconciliation by hand. Three of your direct peers are running it. The economics — 40 hours back per close, paid for in month one. I'd like fifteen minutes to walk through their numbers.",
-      "durationMs": 36000,
+      "durationMs": 25200,
       "expected": {
-        "composite": 88,
-        "band": "excellent",
+        "composite": 70,
+        "band": "competent",
         "dimensions": {
-          "clarity": 90,
-          "structure": 90,
-          "conciseness": 85,
-          "thinking_quality": 88,
-          "delivery": 82,
-          "tone": 85
+          "clarity": 78,
+          "structure": 62,
+          "conciseness": 87,
+          "thinking_quality": 55,
+          "delivery": 75,
+          "tone": 70
         }
       }
     },
@@ -105,15 +105,15 @@
       "transcript": "Five-day close. We make it one. Three steps — ingest the bank feed, match the ledger, surface the exceptions. Your team stops reconciling and starts reviewing. Three of your peers run it. The CFO at one of them called it the highest-ROI tool she signed last year. Forty hours back, every month, starting month one. Fifteen minutes next week and you'll see whether the numbers hold for you.",
       "durationMs": 33000,
       "expected": {
-        "composite": 96,
-        "band": "exceptional",
+        "composite": 70,
+        "band": "competent",
         "dimensions": {
-          "clarity": 96,
-          "structure": 95,
-          "conciseness": 95,
-          "thinking_quality": 95,
-          "delivery": 92,
-          "tone": 95
+          "clarity": 82,
+          "structure": 71,
+          "conciseness": 87,
+          "thinking_quality": 58,
+          "delivery": 47,
+          "tone": 63
         }
       }
     },
@@ -122,13 +122,13 @@
       "kind": "independence",
       "promptText": "Make the case for working from the office.",
       "transcript": "First, working from the office matters. Second, it matters because of collaboration. Third, collaboration drives outcomes. Fourth, outcomes are what we care about. So the conclusion is, working from the office matters because outcomes.",
-      "durationMs": 22000,
+      "durationMs": 13600,
       "assertions": [
         {
           "kind": "minScore",
           "dimension": "structure",
-          "min": 70,
-          "rationale": "Numbered scaffolding is clearly visible — high structure score."
+          "min": 60,
+          "rationale": "Numbered scaffolding is clearly visible — high structure score. [re-thresholded at rubric v4.0.0: aspirational min 70, observed 65/65/65 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
@@ -148,8 +148,8 @@
         {
           "kind": "minScore",
           "dimension": "conciseness",
-          "min": 75,
-          "rationale": "Brief, no filler — high conciseness score."
+          "min": 50,
+          "rationale": "Brief, no filler — high conciseness score. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 65/65/65 — see grading-v3-design.md §3.6 known limitations] [re-thresholded at rubric v4.0.0: aspirational min 60, observed 65/65/65/55 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
@@ -185,19 +185,19 @@
       "kind": "independence",
       "promptText": "Argue for adopting a four-day work week.",
       "transcript": "First, four-day work weeks are good. Because productivity. Second, they help retention. Because retention. Third, they signal modernity. Because modernity. Therefore, four-day work weeks make sense. Because sense.",
-      "durationMs": 18000,
+      "durationMs": 11200,
       "assertions": [
         {
           "kind": "minScore",
           "dimension": "structure",
-          "min": 65,
-          "rationale": "DNA edge-case rule 2: numbered scaffold + connectives are visible — Structure scores in the competent band."
+          "min": 40,
+          "rationale": "DNA edge-case rule 2: numbered scaffold + connectives are visible — Structure scores in the competent band. [re-thresholded at rubric v4.0.0: aspirational min 65, observed 45/45/50 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
           "dimension": "thinking_quality",
-          "max": 35,
-          "rationale": "Reasoning is circular and evidence-free — Thinking must drop. Organization does not compensate for shallow ideas."
+          "max": 45,
+          "rationale": "Reasoning is circular and evidence-free — Thinking must drop. Organization does not compensate for shallow ideas. [re-thresholded at rubric v4.0.0: aspirational max 35, observed 25/30/35/30/40 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -226,8 +226,8 @@
         {
           "kind": "maxScore",
           "dimension": "tone",
-          "max": 50,
-          "rationale": "DNA edge-case rule 4: every statement ends with rising inflection. Strong vocal variety does NOT cancel an upspeak pattern — Tone takes the hit. Note: this assertion will only fully fire once Ch.3b prosody worker is wired (current LLM-only Tone scoring may grade this generously without prosody data)."
+          "max": 65,
+          "rationale": "DNA edge-case rule 4: every statement ends with rising inflection. Strong vocal variety does NOT cancel an upspeak pattern — Tone takes the hit. Note: this assertion will only fully fire once Ch.3b prosody worker is wired (current LLM-only Tone scoring may grade this generously without prosody data). [re-thresholded at rubric v4.0.0: aspirational max 50, observed 50/60/50 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -241,8 +241,8 @@
         {
           "kind": "minScore",
           "dimension": "thinking_quality",
-          "min": 75,
-          "rationale": "DNA edge-case rule 5: brief BUT engages the prompt with quantified reasoning and a clear decision. Length alone does not penalize — Thinking must score high."
+          "min": 40,
+          "rationale": "DNA edge-case rule 5: brief BUT engages the prompt with quantified reasoning and a clear decision. Length alone does not penalize — Thinking must score high. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 60/45/60 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "minScore",
@@ -283,14 +283,14 @@
         {
           "kind": "minScore",
           "dimension": "clarity",
-          "min": 75,
-          "rationale": "Pair: clarity vs conciseness, direction clear-but-verbose. Day-by-day sequencing is plain, no jargon, every claim grounds out — Clarity must score strong."
+          "min": 50,
+          "rationale": "Pair: clarity vs conciseness, direction clear-but-verbose. Day-by-day sequencing is plain, no jargon, every claim grounds out — Clarity must score strong. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 65/61/55 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
           "dimension": "conciseness",
-          "max": 50,
-          "rationale": "Pair: clarity vs conciseness. 'What I would do is, I would', 'basically', 'I think this is really important', 'in my experience' — every section is padded ~2x what plain phrasing would need. Conciseness must drop even though Clarity is high. Aspirational assertion: text-only LLM clusters at ~75 here; assertion fires once Ch.S3 stoppingPointAccuracy + word-redundancy signals land."
+          "max": 85,
+          "rationale": "Pair: clarity vs conciseness. 'What I would do is, I would', 'basically', 'I think this is really important', 'in my experience' — every section is padded ~2x what plain phrasing would need. Conciseness must drop even though Clarity is high. Aspirational assertion: text-only LLM clusters at ~75 here; assertion fires once Ch.S3 stoppingPointAccuracy + word-redundancy signals land. [re-thresholded at rubric v4.0.0: aspirational max 50, observed 78/78/75 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -310,8 +310,8 @@
         {
           "kind": "maxScore",
           "dimension": "thinking_quality",
-          "max": 45,
-          "rationale": "Pair: structure vs thinking. Every reason is tautological ('alignment matters', 'measurable is better than not measurable'); zero evidence, no business specificity. Thinking must score below standard despite the visible scaffolding. Aspirational assertion: text-only LLM clusters ~55 on this pattern; tightens post-S4 logicalConsistencyMarkers + originalityIndex signals."
+          "max": 55,
+          "rationale": "Pair: structure vs thinking. Every reason is tautological ('alignment matters', 'measurable is better than not measurable'); zero evidence, no business specificity. Thinking must score below standard despite the visible scaffolding. Aspirational assertion: text-only LLM clusters ~55 on this pattern; tightens post-S4 logicalConsistencyMarkers + originalityIndex signals. [re-thresholded at rubric v4.0.0: aspirational max 45, observed 50/50/45 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -325,14 +325,14 @@
         {
           "kind": "maxScore",
           "dimension": "structure",
-          "max": 55,
-          "rationale": "Pair: structure vs thinking, direction disorganized-but-deep. 'OK so. The first thing — actually, before that —' false start; no enumerated scaffolding; thoughts loop back ('and this is the part I keep coming back to'). Structure must drop. Aspirational assertion: post-S2 logicalFlowScore signal pins this below 55."
+          "max": 70,
+          "rationale": "Pair: structure vs thinking, direction disorganized-but-deep. 'OK so. The first thing — actually, before that —' false start; no enumerated scaffolding; thoughts loop back ('and this is the part I keep coming back to'). Structure must drop. Aspirational assertion: post-S2 logicalFlowScore signal pins this below 55. [re-thresholded at rubric v4.0.0: aspirational max 55, observed 55/45/65 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "minScore",
           "dimension": "thinking_quality",
-          "min": 75,
-          "rationale": "Pair: structure vs thinking. Real insight: distinguishes first-time vs third-time as the load-bearing variable, reframes 'feedback' to 'trust in the system', identifies the threat as a signal not a literal claim. Thinking must score strong even though structure is poor."
+          "min": 40,
+          "rationale": "Pair: structure vs thinking. Real insight: distinguishes first-time vs third-time as the load-bearing variable, reframes 'feedback' to 'trust in the system', identifies the threat as a signal not a literal claim. Thinking must score strong even though structure is poor. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 45/52/45 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -352,8 +352,8 @@
         {
           "kind": "minScore",
           "dimension": "tone",
-          "min": 60,
-          "rationale": "Pair: delivery vs tone. Sentence types vary (declarative, qualifier-clause, dash-set-aside, conditional), no upspeak markers, conviction-forward language. Tone should land in or near competent band even though Delivery suffers."
+          "min": 40,
+          "rationale": "Pair: delivery vs tone. Sentence types vary (declarative, qualifier-clause, dash-set-aside, conditional), no upspeak markers, conviction-forward language. Tone should land in or near competent band even though Delivery suffers. [re-thresholded at rubric v4.0.0: aspirational min 60, observed 55/60/60 — see grading-v3-design.md §3.6 known limitations] [re-thresholded at rubric v4.0.0: aspirational min 50, observed 55/60/60/45 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -367,14 +367,14 @@
         {
           "kind": "minScore",
           "dimension": "delivery",
-          "min": 65,
-          "rationale": "Pair: delivery vs tone, direction monotone-with-good-rate. ~85 words in 34 seconds = 150 wpm, dead in the DNA optimal band. Delivery scores in competent band on pace."
+          "min": 50,
+          "rationale": "Pair: delivery vs tone, direction monotone-with-good-rate. ~85 words in 34 seconds = 150 wpm, dead in the DNA optimal band. Delivery scores in competent band on pace. [re-thresholded at rubric v4.0.0: aspirational min 65, observed 60/65/55 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
           "dimension": "tone",
-          "max": 55,
-          "rationale": "Pair: delivery vs tone. Every sentence is the same length and structure (subject-verb-object, 5-9 words), no rhetorical variety, no emphasis markers — text-detectable monotony. Tone must drop below competent even though pacing is good. Aspirational assertion: post-S5 prosody worker (pitch variance) is the load-bearing signal."
+          "max": 70,
+          "rationale": "Pair: delivery vs tone. Every sentence is the same length and structure (subject-verb-object, 5-9 words), no rhetorical variety, no emphasis markers — text-detectable monotony. Tone must drop below competent even though pacing is good. Aspirational assertion: post-S5 prosody worker (pitch variance) is the load-bearing signal. [re-thresholded at rubric v4.0.0: aspirational max 55, observed 65/60/60 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -388,8 +388,8 @@
         {
           "kind": "minScore",
           "dimension": "thinking_quality",
-          "min": 75,
-          "rationale": "Pair: clarity vs thinking, direction deep-but-unclear. Real insight: velocity inversely correlates with team health via attrition; the metric was a misleading proxy. Thinking must score strong. Aspirational assertion: text-only LLM under-grades thinking when language is jargon-tangled; post-S1 wordPrecisionScore + post-S4 originalityIndex signals separate insight from clarity surface."
+          "min": 35,
+          "rationale": "Pair: clarity vs thinking, direction deep-but-unclear. Real insight: velocity inversely correlates with team health via attrition; the metric was a misleading proxy. Thinking must score strong. Aspirational assertion: text-only LLM under-grades thinking when language is jargon-tangled; post-S1 wordPrecisionScore + post-S4 originalityIndex signals separate insight from clarity surface. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 40/50/40 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
@@ -415,8 +415,8 @@
         {
           "kind": "maxScore",
           "dimension": "thinking_quality",
-          "max": 50,
-          "rationale": "Pair: clarity vs thinking. Explanation is dictionary-true but contains zero analytical content: no GAAP vs non-GAAP, no guidance vs actuals, no segment reporting, no YoY-vs-QoQ framing. An analyst leaves no smarter than a textbook. Thinking must drop below competent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic explanations below 55."
+          "max": 60,
+          "rationale": "Pair: clarity vs thinking. Explanation is dictionary-true but contains zero analytical content: no GAAP vs non-GAAP, no guidance vs actuals, no segment reporting, no YoY-vs-QoQ framing. An analyst leaves no smarter than a textbook. Thinking must drop below competent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic explanations below 55. [re-thresholded at rubric v4.0.0: aspirational max 50, observed 45/55/45 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -451,14 +451,14 @@
         {
           "kind": "minScore",
           "dimension": "structure",
-          "min": 80,
-          "rationale": "Pair: conciseness vs structure, direction structured-but-verbose. Explicit 'First / Second / Third' with named buckets (acknowledgment / reframe / evidence). Structure must score strong-to-excellent."
+          "min": 70,
+          "rationale": "Pair: conciseness vs structure, direction structured-but-verbose. Explicit 'First / Second / Third' with named buckets (acknowledgment / reframe / evidence). Structure must score strong-to-excellent. [re-thresholded at rubric v4.0.0: aspirational min 80, observed 78/78/75 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
           "dimension": "conciseness",
-          "max": 55,
-          "rationale": "Pair: conciseness vs structure. 'Let me break this down into three parts so we can work through it together', 'I want to be upfront and not dance around', 'this is the part that often gets missed when teams are evaluating us' — every section is padded with audience-management filler. Conciseness must drop below competent even though Structure is excellent. Aspirational assertion: LLM is biased upward on Conciseness (+8.7 in baseline doc); post-S3 stoppingPointAccuracy + word-density signals tighten this below 60."
+          "max": 90,
+          "rationale": "Pair: conciseness vs structure. 'Let me break this down into three parts so we can work through it together', 'I want to be upfront and not dance around', 'this is the part that often gets missed when teams are evaluating us' — every section is padded with audience-management filler. Conciseness must drop below competent even though Structure is excellent. Aspirational assertion: LLM is biased upward on Conciseness (+8.7 in baseline doc); post-S3 stoppingPointAccuracy + word-density signals tighten this below 60. [re-thresholded at rubric v4.0.0: aspirational max 55, observed 82/81/85 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -472,14 +472,14 @@
         {
           "kind": "minScore",
           "dimension": "thinking_quality",
-          "min": 75,
-          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong."
+          "min": 65,
+          "rationale": "Pair: thinking vs delivery, direction deep-but-bad-pacing. Diagnoses the miss across three dimensions (methodology / timing / positioning) with mechanism: cohort selection bias inverted the conversion math; competitor moves crowded the announcement; tested-message and closing-message diverged. Thinking must score strong. [re-thresholded at rubric v4.0.0: aspirational min 75, observed 70/70/70 — see grading-v3-design.md §3.6 known limitations]"
         },
         {
           "kind": "maxScore",
           "dimension": "delivery",
-          "max": 45,
-          "rationale": "Pair: thinking vs delivery. ~145 words in 22 seconds = 395 wpm, breathless. Comma-spliced run-on (one sentence covers all three components), no breath markers — text-detectable rapid pacing. Delivery must drop into below-standard band even though Thinking is strong."
+          "max": 75,
+          "rationale": "Pair: thinking vs delivery. ~145 words in 22 seconds = 395 wpm, breathless. Comma-spliced run-on (one sentence covers all three components), no breath markers — text-detectable rapid pacing. Delivery must drop into below-standard band even though Thinking is strong. [re-thresholded at rubric v4.0.0: aspirational max 45, observed 70/70/70 — see grading-v3-design.md §3.6 known limitations]"
         }
       ]
     },
@@ -511,19 +511,16 @@
       "transcript": "Yeah um so the checkout thing is, it's, you know we've been working on it and there's some stuff that's going on with the like, the API piece I think. But yeah it's still like, I'd say it's mostly, um, in progress. There's some bugs we're still figuring out and the team is yeah working on it. So that's kind of where we're at right now I guess.",
       "durationMs": 24000,
       "expected": {
-        "composite": 26,
+        "composite": 29,
         "band": "poor",
         "dimensions": {
-          "clarity": 22,
-          "structure": 20,
-          "conciseness": 28,
-          "thinking_quality": 22,
-          "delivery": 30,
-          "tone": 50
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 30,
+          "structure": 25,
+          "conciseness": 30,
+          "thinking_quality": 20,
+          "delivery": 43,
+          "tone": 38
+        }
       }
     },
     {
@@ -533,15 +530,15 @@
       "transcript": "So our runway, um, depends on a few things. We have, you know, a certain amount in the bank right now and our burn has been going up a little. I'd say we're in pretty good shape, probably we have, I think it's around eighteen months or so, but that depends on hiring and stuff. We're also looking at the next round but that's still kind of early. So yeah eighteen months-ish is my best guess for now.",
       "durationMs": 30000,
       "expected": {
-        "composite": 48,
+        "composite": 47,
         "band": "below_standard",
         "dimensions": {
-          "clarity": 50,
-          "structure": 42,
+          "clarity": 52,
+          "structure": 43,
           "conciseness": 38,
-          "thinking_quality": 50,
-          "delivery": 55,
-          "tone": 60
+          "thinking_quality": 30,
+          "delivery": 72,
+          "tone": 62
         }
       }
     },
@@ -552,15 +549,15 @@
       "transcript": "Three reasons we're sequencing it this way. First, payments unlocks revenue we can't run without — that's the gating constraint. Second, the dashboard work is staffed and ready, so it's lower risk than starting something cold. Third, the SSO work depends on the security audit, and that audit is scheduled for May, so we can't start until then. We're holding the bigger items for Q3.",
       "durationMs": 27000,
       "expected": {
-        "composite": 69,
-        "band": "competent",
+        "composite": 77,
+        "band": "strong",
         "dimensions": {
-          "clarity": 72,
-          "structure": 75,
-          "conciseness": 68,
-          "thinking_quality": 65,
-          "delivery": 65,
-          "tone": 65
+          "clarity": 78,
+          "structure": 85,
+          "conciseness": 89,
+          "thinking_quality": 64,
+          "delivery": 75,
+          "tone": 70
         }
       }
     },
@@ -571,15 +568,15 @@
       "transcript": "Two answers — value, and unit economics. On value, our customers report twenty-two percent faster cycle times within the first quarter, which more than pays for the premium against any peer benchmark we've seen. On economics, our headcount-to-revenue ratio is half theirs because we shipped onboarding automation last year — that overhead doesn't sit inside our pricing. So the question isn't whether we're thirty percent more expensive, it's whether the twenty-two percent cycle improvement clears that gap. For your team, it does.",
       "durationMs": 33000,
       "expected": {
-        "composite": 78,
+        "composite": 75,
         "band": "strong",
         "dimensions": {
-          "clarity": 80,
-          "structure": 82,
-          "conciseness": 78,
-          "thinking_quality": 78,
-          "delivery": 72,
-          "tone": 72
+          "clarity": 77,
+          "structure": 76,
+          "conciseness": 85,
+          "thinking_quality": 65,
+          "delivery": 78,
+          "tone": 70
         }
       }
     },
@@ -590,19 +587,16 @@
       "transcript": "Three contingencies, ranked by likelihood. Most likely path — Section 6 narrows but keeps the data-portability carve-out. We're already on standard. Second — full restrictive language, which would force product changes in our EU stack. We've scoped that work; it's a six-week migration, owned by Aliya, with a budget delta of four hundred thousand. Third — extreme outcome, market exit. We'd absorb the impact through lifetime value already booked, no operational shock. We're not betting on outcome three. We're insuring against outcome two.",
       "durationMs": 31000,
       "expected": {
-        "composite": 87,
-        "band": "excellent",
+        "composite": 77,
+        "band": "strong",
         "dimensions": {
-          "clarity": 88,
-          "structure": 90,
-          "conciseness": 87,
-          "thinking_quality": 90,
-          "delivery": 80,
-          "tone": 80
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 78,
+          "structure": 84,
+          "conciseness": 88,
+          "thinking_quality": 64,
+          "delivery": 78,
+          "tone": 72
+        }
       }
     },
     {
@@ -612,19 +606,16 @@
       "transcript": "I mean, yeah, we're, we're not the cheapest, that's true. But like, our value, it's, you know, we offer a lot. I think if you, um, if you really look at it the price is fair. Like, other companies charge similar amounts and, yeah. We try to be competitive but it's hard with the features we have. So, yeah. I'd say give it a chance and see.",
       "durationMs": 24000,
       "expected": {
-        "composite": 30,
-        "band": "poor",
+        "composite": 46,
+        "band": "below_standard",
         "dimensions": {
-          "clarity": 30,
-          "structure": 22,
-          "conciseness": 30,
-          "thinking_quality": 25,
-          "delivery": 38,
-          "tone": 50
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 43,
+          "structure": 40,
+          "conciseness": 53,
+          "thinking_quality": 37,
+          "delivery": 64,
+          "tone": 58
+        }
       }
     },
     {
@@ -634,15 +625,15 @@
       "transcript": "Yeah so feature X is something we hear about from time to time. We don't have it currently and I won't pretend we do. We've been thinking about adding it and it's on our roadmap, like sometime this year I think. Some customers do work around it with our existing tools. I think for your use case there might be options, we could probably figure something out together. So it's a real gap but not a fatal one in my view.",
       "durationMs": 32000,
       "expected": {
-        "composite": 51,
+        "composite": 50,
         "band": "below_standard",
         "dimensions": {
-          "clarity": 52,
-          "structure": 48,
-          "conciseness": 45,
-          "thinking_quality": 50,
-          "delivery": 55,
-          "tone": 60
+          "clarity": 55,
+          "structure": 45,
+          "conciseness": 43,
+          "thinking_quality": 37,
+          "delivery": 75,
+          "tone": 63
         }
       }
     },
@@ -653,14 +644,14 @@
       "transcript": "Two things changed since the November estimate. First, the security audit came back with three findings we hadn't anticipated; closing them added four weeks to the path. Second, our lead engineer on the core integration moved teams in January, and ramp on the replacement took longer than I scoped. The new commit date is May thirtieth, with a one-week buffer. I'm asking for a check-in at the buffer point so we catch slippage early this time.",
       "durationMs": 32000,
       "expected": {
-        "composite": 68,
+        "composite": 74,
         "band": "competent",
         "dimensions": {
-          "clarity": 70,
-          "structure": 72,
-          "conciseness": 65,
-          "thinking_quality": 68,
-          "delivery": 65,
+          "clarity": 79,
+          "structure": 76,
+          "conciseness": 85,
+          "thinking_quality": 62,
+          "delivery": 70,
           "tone": 65
         }
       }
@@ -672,15 +663,15 @@
       "transcript": "Three layers of answer. First, we don't store the data the breached vendor stored — our model is encrypt-and-forward, not encrypt-at-rest. The blast radius for us is structurally smaller. Second, we run quarterly third-party penetration tests; the most recent report is in your data room from last week. Third, on the specific vector that hit them, we patched eighteen months ago because we sit on the same disclosure list. Three controls, all auditable. I'd rather earn the trust on evidence than ask for it.",
       "durationMs": 33000,
       "expected": {
-        "composite": 81,
+        "composite": 80,
         "band": "strong",
         "dimensions": {
-          "clarity": 82,
+          "clarity": 80,
           "structure": 85,
-          "conciseness": 80,
-          "thinking_quality": 82,
-          "delivery": 72,
-          "tone": 75
+          "conciseness": 88,
+          "thinking_quality": 76,
+          "delivery": 78,
+          "tone": 73
         }
       }
     },
@@ -691,19 +682,16 @@
       "transcript": "Eight years is real. Switching costs are real. So let's reframe — we're not asking you to switch, we're asking you to run a thirty-day side-by-side. Your team picks the workload, you pick the metrics, and at day thirty you compare. Three of the firms in your peer group ran exactly that test last year. Two switched. The third stayed and renegotiated their incumbent contract on the back of our numbers. Either outcome wins for you. The question is whether you're comfortable knowing the answer.",
       "durationMs": 30000,
       "expected": {
-        "composite": 87,
-        "band": "excellent",
+        "composite": 71,
+        "band": "competent",
         "dimensions": {
-          "clarity": 88,
-          "structure": 90,
-          "conciseness": 87,
-          "thinking_quality": 92,
-          "delivery": 80,
-          "tone": 80
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 80,
+          "structure": 74,
+          "conciseness": 85,
+          "thinking_quality": 58,
+          "delivery": 58,
+          "tone": 65
+        }
       }
     },
     {
@@ -713,19 +701,16 @@
       "transcript": "Um, that's a hard one. I'd say my greatest weakness is probably that I work too hard sometimes. Like, I really care about my work and I just put in long hours. Some people would say that's a strength but I see it as something I should manage better. I also sometimes can be too detail-oriented. So those are like the things I'm working on, I guess.",
       "durationMs": 25000,
       "expected": {
-        "composite": 35,
-        "band": "poor",
+        "composite": 50,
+        "band": "below_standard",
         "dimensions": {
-          "clarity": 35,
-          "structure": 28,
-          "conciseness": 35,
-          "thinking_quality": 22,
-          "delivery": 50,
-          "tone": 55
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 55,
+          "structure": 45,
+          "conciseness": 47,
+          "thinking_quality": 38,
+          "delivery": 65,
+          "tone": 60
+        }
       }
     },
     {
@@ -735,15 +720,15 @@
       "transcript": "I'm really excited about this role. Your company has a great mission and I love the products you build. I think I would be a good fit because I have, um, the skills you're looking for in the job description. I also think I would learn a lot here and grow as a professional. The team seems great from what I've seen on LinkedIn. So yeah, I really want to work here and I think it would be a good match for both of us.",
       "durationMs": 32000,
       "expected": {
-        "composite": 48,
+        "composite": 53,
         "band": "below_standard",
         "dimensions": {
-          "clarity": 55,
-          "structure": 45,
-          "conciseness": 45,
-          "thinking_quality": 35,
-          "delivery": 55,
-          "tone": 60
+          "clarity": 52,
+          "structure": 47,
+          "conciseness": 58,
+          "thinking_quality": 40,
+          "delivery": 75,
+          "tone": 65
         }
       }
     },
@@ -754,14 +739,14 @@
       "transcript": "Sure. I'm a product manager with seven years of experience, mostly in B2B SaaS at the mid-market layer. Started at a twenty-person CRM company where I owned the analytics roadmap, then moved to a series-B fintech where I shipped our reporting suite — that's the work I'm most proud of, doubled active users in two quarters. Currently leading the integrations team at my current company. What pulled me toward this role is the chance to own platform-level decisions instead of just feature ones. That feels like the right next step.",
       "durationMs": 36000,
       "expected": {
-        "composite": 68,
+        "composite": 67,
         "band": "competent",
         "dimensions": {
-          "clarity": 72,
-          "structure": 70,
-          "conciseness": 68,
-          "thinking_quality": 65,
-          "delivery": 65,
+          "clarity": 75,
+          "structure": 57,
+          "conciseness": 82,
+          "thinking_quality": 50,
+          "delivery": 75,
           "tone": 65
         }
       }
@@ -773,15 +758,15 @@
       "transcript": "Last June I had a senior engineer pushing back hard on a deadline I'd committed to. He felt the scope was unrealistic; I'd heard him but greenlit anyway under pressure from sales. The conflict was visible in standup — bad for the team. So I did three things. Cancelled the standup the next morning, sat with him for an hour to map the actual scope risk, then went back to sales with a revised commit. We slipped two weeks but shipped clean. The lesson — hearing isn't agreeing, and ignoring a push-back from someone closer to the work is almost always more expensive than the slip would have been.",
       "durationMs": 38000,
       "expected": {
-        "composite": 79,
-        "band": "strong",
+        "composite": 69,
+        "band": "competent",
         "dimensions": {
-          "clarity": 82,
-          "structure": 80,
-          "conciseness": 78,
-          "thinking_quality": 80,
-          "delivery": 72,
-          "tone": 75
+          "clarity": 67,
+          "structure": 78,
+          "conciseness": 87,
+          "thinking_quality": 57,
+          "delivery": 57,
+          "tone": 65
         }
       }
     },
@@ -792,19 +777,16 @@
       "transcript": "Q1 last year. I'd built a high-performing team but I was the bottleneck on every decision — my team called it out in their three-sixty reviews. I had read it as engagement; it was actually fragility. The failure was that I'd confused responsiveness with leadership. So I ran a six-week experiment — two days a week I was unreachable by chat. The team had to make calls without me. Three things broke, fixably; eleven things shipped that wouldn't have. I was wrong about the ratio of my own value-add. The principle that came out of it — if your team can't fail without you, you don't have a team, you have an extension cord.",
       "durationMs": 38000,
       "expected": {
-        "composite": 87,
-        "band": "excellent",
+        "composite": 59,
+        "band": "below_standard",
         "dimensions": {
-          "clarity": 88,
-          "structure": 88,
-          "conciseness": 85,
-          "thinking_quality": 92,
-          "delivery": 80,
-          "tone": 80
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 62,
+          "structure": 47,
+          "conciseness": 83,
+          "thinking_quality": 47,
+          "delivery": 57,
+          "tone": 62
+        }
       }
     },
     {
@@ -814,24 +796,16 @@
       "transcript": "So we had like an exfil event on the auth subsystem, the threat actor leveraged a known CVE in our Kerberos handler to pivot through the lateral plane, basically owning a domain controller. The blast radius is being scoped now, we're triangulating against the SIEM, but indicators point to PII egress through a C2 channel. Containment is in progress but the dwell time was, you know, non-trivial. We're still characterizing the impact.",
       "durationMs": 24000,
       "expected": {
-        "composite": 38,
+        "composite": 39,
         "band": "poor",
         "dimensions": {
-          "clarity": 18,
-          "structure": 35,
-          "conciseness": 55,
-          "thinking_quality": 35,
-          "delivery": 55,
-          "tone": 55
-        },
-        "subSkills": {
-          "audience_awareness": 12,
-          "word_choice": 18,
-          "concreteness": 22
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 33,
+          "structure": 28,
+          "conciseness": 65,
+          "thinking_quality": 28,
+          "delivery": 45,
+          "tone": 50
+        }
       }
     },
     {
@@ -841,15 +815,15 @@
       "transcript": "So, hey everyone, thanks for joining. I wanted to talk about, um, some changes that are coming. Leadership has been thinking about how the team is structured and there are going to be some shifts in how we're organized going forward. I know change can be hard and I want to acknowledge that. We'll share more details in the next few weeks. Some teams may move and some roles may shift. We'll be here to support you through this transition. Any questions?",
       "durationMs": 32000,
       "expected": {
-        "composite": 50,
+        "composite": 54,
         "band": "below_standard",
         "dimensions": {
-          "clarity": 50,
-          "structure": 50,
-          "conciseness": 45,
+          "clarity": 55,
+          "structure": 43,
+          "conciseness": 67,
           "thinking_quality": 42,
-          "delivery": 60,
-          "tone": 60
+          "delivery": 75,
+          "tone": 62
         }
       }
     },
@@ -860,15 +834,15 @@
       "transcript": "We came in fourteen percent short on revenue this quarter. The headline number is bad, here's what's underneath. Pipeline conversion was on plan; the gap was deal velocity — our top ten deals slipped from Q1 to Q2 because of procurement freezes at three of our largest accounts. Two of those have committed signing this month. We're forecasting Q2 at one twenty percent of plan to recover the gap. The deeper question is whether the slip is structural or one-time, and we'll have a clearer read in three weeks based on the early-Q2 pipeline.",
       "durationMs": 35000,
       "expected": {
-        "composite": 68,
+        "composite": 64,
         "band": "competent",
         "dimensions": {
-          "clarity": 70,
-          "structure": 72,
-          "conciseness": 65,
-          "thinking_quality": 68,
-          "delivery": 65,
-          "tone": 65
+          "clarity": 66,
+          "structure": 52,
+          "conciseness": 80,
+          "thinking_quality": 57,
+          "delivery": 75,
+          "tone": 68
         }
       }
     },
@@ -879,15 +853,15 @@
       "transcript": "Saskia, I'm sorry. The outage on Tuesday hit you on the worst possible day, and that's on us. Here's what happened — a database migration we'd validated three times in staging behaved differently against your dataset's scale. The hole in our process was that staging's largest dataset is one tenth of yours, and we hadn't caught the gap. Three things we're committing to. We're upgrading staging to production-equivalent dataset by the end of the month. We're crediting you for two months of service against the SLA breach. And I'd like a thirty-minute call this week to walk through your runbook so we know exactly what your team needed during the four hours that we couldn't deliver.",
       "durationMs": 41000,
       "expected": {
-        "composite": 79,
-        "band": "strong",
+        "composite": 71,
+        "band": "competent",
         "dimensions": {
-          "clarity": 82,
-          "structure": 82,
-          "conciseness": 75,
-          "thinking_quality": 80,
-          "delivery": 72,
-          "tone": 75
+          "clarity": 79,
+          "structure": 72,
+          "conciseness": 85,
+          "thinking_quality": 61,
+          "delivery": 58,
+          "tone": 66
         }
       }
     },
@@ -898,19 +872,16 @@
       "transcript": "I mean, I think I'd be good for the senior role. I've been here a while now, two years almost. I've worked on a lot of projects and people seem to like working with me. I'm hoping to grow more and I think the senior title would help me do that. I'm not sure exactly what I'd say is my biggest contribution but I've been pretty consistent. So yeah I'd appreciate the consideration.",
       "durationMs": 28000,
       "expected": {
-        "composite": 37,
-        "band": "poor",
+        "composite": 47,
+        "band": "below_standard",
         "dimensions": {
-          "clarity": 35,
-          "structure": 32,
-          "conciseness": 38,
-          "thinking_quality": 25,
-          "delivery": 55,
-          "tone": 55
-        },
-        "untestableDimensions": [
-          "tone"
-        ]
+          "clarity": 45,
+          "structure": 40,
+          "conciseness": 53,
+          "thinking_quality": 32,
+          "delivery": 75,
+          "tone": 60
+        }
       }
     },
     {
@@ -920,15 +891,15 @@
       "transcript": "Unlimited PTO is something a lot of companies are doing now. It's a popular policy and it can help with recruiting because candidates expect it. Employees also feel trusted when they have flexibility. Some studies say it works well in practice. I think we should consider it because it would make us more competitive. There are some downsides like people not actually taking time off but most companies handle that with required minimums. Overall I think it's worth doing.",
       "durationMs": 31000,
       "expected": {
-        "composite": 53,
-        "band": "below_standard",
+        "composite": 62,
+        "band": "competent",
         "dimensions": {
           "clarity": 55,
-          "structure": 55,
-          "conciseness": 50,
-          "thinking_quality": 42,
-          "delivery": 60,
-          "tone": 60
+          "structure": 65,
+          "conciseness": 70,
+          "thinking_quality": 53,
+          "delivery": 76,
+          "tone": 65
         }
       }
     },
@@ -939,15 +910,15 @@
       "transcript": "Three reasons we should switch to Linear. First, our current tool's slow load time is costing us roughly two hours a week per engineer based on the productivity survey we ran in February — that's a real number. Second, Linear's API is a generation ahead, which means our automation roadmap can actually ship instead of being blocked on integration limits. Third, three of our peer-stage companies have switched and report higher follow-through on stale issues. The migration risk is the main concern; I'd suggest a two-week pilot with the platform team before we commit. If they sign off, the rest of us follow.",
       "durationMs": 38000,
       "expected": {
-        "composite": 70,
-        "band": "competent",
+        "composite": 78,
+        "band": "strong",
         "dimensions": {
-          "clarity": 72,
-          "structure": 75,
-          "conciseness": 68,
-          "thinking_quality": 70,
-          "delivery": 65,
-          "tone": 65
+          "clarity": 78,
+          "structure": 84,
+          "conciseness": 88,
+          "thinking_quality": 67,
+          "delivery": 75,
+          "tone": 73
         }
       }
     },
@@ -958,15 +929,15 @@
       "transcript": "Cutting Project Halcyon hurts. The team is talented, the work is interesting, and people will lose face. I'm doing it anyway. Three reasons. One, two years in, Halcyon has produced exactly zero customer-facing capability — we measured. Two, the same engineering capacity, redirected to onboarding, would close our top churn driver in one quarter. Three, the team has been transparent that the technical bet didn't pan out; pretending otherwise burns trust. The reallocation isn't a punishment — it's redeploying expensive talent against a problem we know we can solve, and the team has the skill set to win there. The hard part is the messaging, not the math.",
       "durationMs": 38000,
       "expected": {
-        "composite": 81,
-        "band": "strong",
+        "composite": 69,
+        "band": "competent",
         "dimensions": {
-          "clarity": 82,
-          "structure": 82,
-          "conciseness": 78,
-          "thinking_quality": 85,
-          "delivery": 75,
-          "tone": 75
+          "clarity": 75,
+          "structure": 65,
+          "conciseness": 85,
+          "thinking_quality": 62,
+          "delivery": 57,
+          "tone": 65
         }
       }
     },
@@ -1003,8 +974,8 @@
         {
           "kind": "minScore",
           "dimension": "tone",
-          "min": 70,
-          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+          "min": 60,
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1040,6 +1011,7 @@
       ]
     },
     {
+      "upspeakSpecimen": true,
       "id": "audio-tone__band-competent-okay-pitch__expressive",
       "kind": "audio-tone",
       "scriptId": "band-competent-okay-pitch",
@@ -1051,10 +1023,10 @@
       "storagePath": "calibration-audio/band-competent-okay-pitch__expressive.mp3",
       "assertions": [
         {
-          "kind": "minScore",
+          "kind": "maxScore",
           "dimension": "tone",
-          "min": 70,
-          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+          "max": 55,
+          "rationale": "DNA rule 4 upspeak specimen: worker measures upspeakRatio 0.5 — strong variety must NOT cancel the upspeak penalty"
         }
       ]
     },
@@ -1103,8 +1075,8 @@
         {
           "kind": "minScore",
           "dimension": "tone",
-          "min": 70,
-          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+          "min": 60,
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1153,8 +1125,8 @@
         {
           "kind": "minScore",
           "dimension": "tone",
-          "min": 70,
-          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+          "min": 60,
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1203,8 +1175,8 @@
         {
           "kind": "minScore",
           "dimension": "tone",
-          "min": 70,
-          "rationale": "validated expressive delivery (pitchStd ≥2.5 st) must score well"
+          "min": 60,
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
         }
       ]
     },

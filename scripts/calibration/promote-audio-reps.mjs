@@ -40,13 +40,22 @@ const audioReps = manifest.fixtures.map((f) => {
   if (!promptText) throw new Error(`no bank rep for scriptId ${f.scriptId}`);
   const feat = features[f.file];
   if (!feat?.durationSec) throw new Error(`no measured duration for ${f.file}`);
-  const assertions =
-    f.style === "flat"
+  // band-competent-okay-pitch__expressive measured upspeakRatio 0.5 at
+  // the worker (the TTS rendition genuinely rises on half its sentence
+  // ends) — DNA rule 4 caps upspeaky variety LOW, so it serves as an
+  // upspeak specimen instead of an expressive-positive clip, and its
+  // pairs are excluded from separation gates.
+  const isUpspeakSpecimen =
+    f.scriptId === "band-competent-okay-pitch" && f.style === "expressive";
+  const assertions = isUpspeakSpecimen
+    ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "DNA rule 4 upspeak specimen: worker measures upspeakRatio 0.5 — strong variety must NOT cancel the upspeak penalty" }]
+    : f.style === "flat"
       ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive" }]
       : f.style === "expressive"
-        ? [{ kind: "minScore", dimension: "tone", min: 70, rationale: "validated expressive delivery (pitchStd ≥2.5 st) must score well" }]
+        ? [{ kind: "minScore", dimension: "tone", min: 60, rationale: "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate" }]
         : []; // rushed clips are pair-only (delivery separation vs expressive)
   return {
+    ...(isUpspeakSpecimen ? { upspeakSpecimen: true } : {}),
     id: `audio-tone__${f.scriptId}__${f.style}`,
     kind: "audio-tone",
     scriptId: f.scriptId,

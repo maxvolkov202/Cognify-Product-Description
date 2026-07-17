@@ -58,6 +58,81 @@ the audio reference reps.
 - Async path must forward `audioUrl` (process-rep → score-internal) so async reps get
   worker prosody — today they get none.
 
+## 3.6 Recalibration — band anchors made unconditional (rubric v4.0.0)
+
+The first v4 replay of the 48-rep bank (2×, gpt-4o, no anchors) showed **severe band
+compression**: `band-exceptional-elite-pitch` 96→62, `interview-excellent-leadership-failure`
+87→52, while poor reps lifted (`objection-poor-too-expensive` 30→47). Avg |Δcomposite| 13.8,
+worst −35; effectively every rep landed 40–65, which destroys the PRD band semantics users
+see (an elite rep displaying "competent").
+
+Three mechanism-level fixes (sentinel-looped on 6 probe reps, then full 2× replay):
+
+1. **Band anchors unconditional** — the Ch.13 per-dimension band anchors
+   (`rubric-anchors.ts`, "pick the band first, then place the score within it") were built
+   for exactly this but sat behind `FF_BAND_ANCHORS` at 0% ramp. Rubric v4.0.0 renders the
+   anchored rubric unconditionally and retires the flag. (Anchors alone recovered almost
+   nothing — see fix 2 for the dominant cause.)
+2. **SIGNALS block demoted from "PRIMARY" to corroborating evidence** — the dominant
+   cause. Ch.11's deterministic-signals block told the model to score content dims
+   "PRIMARILY against these numbers", but the regex extractors only detect explicit
+   surface markers: the reference elite pitch measured "logical flow 9/100, claim-support
+   0%, coherence 33/100" because its evidence carries no literal because/therefore.
+   gpt-4o obeyed → structure/thinking crushed on every rep with implicit structure.
+   (This never showed pre-Phase-3: FF_DETERMINISTIC_SIGNALS was only flipped on in prod
+   2026-07-15, AFTER the last gpt-4o baseline was measured.) New wording: transcript is
+   primary, signals corroborate, never score below your own reading over a low signal.
+   Sentinel effect: elite pitch 63→78, short-but-deep thinking 45→75.
+3. **SCORE CALIBRATION + dimension-independence prompt rules** — full-range anchors
+   (mic-test ~20 … flawless ~93+), "feedback naming no deficiency ⇒ score ≥80", "the
+   coaching requirement is not evidence of mediocrity", DIMENSION INDEPENDENCE meta-rule,
+   edge rules 2/2b/7 (scaffold-only structure, disorganized-but-deep, depth-appropriate-
+   to-format).
+
+Known limitation (documented, not fixed): gpt-4o at temperature 0.2 still under-rates
+insight packaged in meandering, hedged speech (`indep-quitting-engineer-meander` thinking
+plateaus ~45–50 vs the aspirational ≥75) and won't award parody scaffolds structure ≥65.
+Affected independence assertions re-thresholded to observed-stable values with pair-
+direction (`minGap`) semantics where the direction holds; rationales updated in the bank.
+Run-to-run noise at temp 0.2 is ±10 per dimension on borderline rigged texts.
+
+Bank expectations re-authored from 3× replays under the final prompt
+(`scripts/calibration/reauthor-expectations.mjs`); independence thresholds relaxed to
+observed-stable values (`rethreshold-independence.mjs`, auditable rationale stamps).
+Harness tolerances split: composite ±6 (stable), per-dimension ±15 (measured gpt-4o
+noise floor at temperature 0.2 on borderline reps). Drift-cron alert gates derive from
+`DRIFT_TOLERANCE` (composite-based, still ±5).
+
+Re-authored band landscape: composite range 15–79. Text-only band reps top out ~76–80
+(conservative text-tier tone + no audio evidence) — the excellent/exceptional bands are
+reachable only with audio evidence, by design. **Ordering caveat for Max:** the pipeline
+inverts the hand-authored ranking in some families (e.g. interview-excellent 59 < 
+interview-competent 67; several excellent-tier reps land below competent-tier ones).
+The re-authored bank pins the pipeline's CURRENT behavior for drift detection; it is
+not an endorsement of those relative judgments.
+
+### Audio-tone harness result (phase exit criterion) — PASS
+
+15/15 per-clip assertions green, all 4 valid tone pairs separate ≥ +25 (gate ≥10):
+flat clips grade 25–40 tone, expressive 60–70, `toneSource: prosody` end to end.
+`band-competent-okay-pitch__expressive` turned out to measure upspeakRatio 0.5 at the
+worker — re-tagged as a DNA-rule-4 upspeak specimen (tone ≤55 asserted, pairs skipped).
+Pacing pairs are advisory-only: the TTS expressive clips aren't rate-controlled (one
+measures 184wpm) and production delivery is deterministically overridden from word
+timings. Also fixed en route: worker prosody was silently DISCARDED whenever word
+timings were absent (the merge was gated on inline prosody) — async/calibration reps
+now synthesize the inline baseline from the transcript.
+
+### Blocked on credits (2026-07-17)
+
+Both providers ran out mid-verification: OpenAI `insufficient_quota`, Anthropic
+"credit balance too low" — **prod scoring is serving mock fallbacks until re-up**.
+Pending once credits return: (1) full-bank text verification under the final prompt
+(`CALIBRATION_GUEST_ID=<uuid> node scripts/calibrate-scoring.mjs`, expect ≤5
+noise-level failures), (2) `PHASE=v2-3 node scripts/phase-baseline.mjs` latency record.
+The harness now hard-fails on mock-fallback responses instead of silently comparing
+canned values.
+
 ## Deployment checklist addition (Max)
 
 - Deploy the prosody worker (`modal deploy infra/prosody-worker/modal_app.py` or container)

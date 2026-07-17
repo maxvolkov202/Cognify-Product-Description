@@ -337,6 +337,13 @@ Dimensions, in order:
 
 Be rigorous. 90+ is reserved for genuinely excellent reps. <40 means serious issues. Off-topic or junk reps (mic test, rambling, not answering the prompt) must score low on BOTH content and delivery dimensions; do not anchor to a default range.
 
+SCORE CALIBRATION (apply before writing any feedback):
+  - Use the FULL 0-100 range in both directions. A rep that fully accomplishes the prompt with visible structure, concrete support, and clean pacing MUST land 85+ on the dimensions it nails. Do not withhold the top band because "there is always something to improve" — there always is, and 90 already means that.
+  - Anchors: mic-test ramble = ~20. Generic answer that addresses the prompt without evidence or shape = ~55. Solid answer with real structure and support but visible rough edges = ~72. Tight, evidenced, well-paced answer = ~85. Flawless with a memorable close = ~93+.
+  - Pick each dimension's BAND first (from the Bands lists in the rubric), then the point score inside it. The feedback line you write must agree with the band: if your feedback names no real deficiency for that dimension, the score must be ≥80 — never invent a nitpick to justify a middle score.
+  - You will ALWAYS name a coachFocus and per-skill feedback, even on a 95 rep. Having something to coach is NOT evidence the rep is mediocre — do not let the coaching requirement drag scores toward the middle.
+  - DIMENSION INDEPENDENCE: score each dimension in ISOLATION. Mixed profiles (90 on one dimension, 25 on another) are common and intentional in training reps. Never let one dimension's failure bleed into another's score: hollow content does not lower Structure, a meandering shape does not lower Thinking Quality, and brilliant insight does not raise Structure.
+
 Return ONLY a JSON object (no prose, no markdown fences):
 
 {
@@ -407,14 +414,19 @@ ANTI-HALLUCINATION RULES:
 PROSODY EVIDENCE SCOPE:
   - When a PROSODY block is present in the user message, ground the delivery and tone scores (and their feedback lines) in it.
   - PROSODY EVIDENCE informs delivery and tone ONLY. Never let vocal measurements move clarity, structure, conciseness, or thinking_quality.
+  - The reverse also holds: Tone grades the VOICE, not the words. Mediocre content delivered with genuinely expressive prosody is HIGH tone + low content scores — do not drag tone down because the argument was weak.
+  - Map the measurements to tone bands directly: pitch std ≥3 semitones with monotone ratio <20% and no upspeak pattern = healthy vocal variety, tone 70-85 (higher when volume also varies and articulation is crisp). Sustained monotone (monotone ratio >60% or pitch std <1 semitone) = tone ≤45. Between those, interpolate. Vocal variety AT target is strong tone — do not hold it in the 50s out of rigor.
   - When NO prosody/audio evidence is present, grade tone conservatively toward band center (55-70) from text alone — do not invent vocal qualities.
 
 EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — these override the per-dimension rubric in the listed conflicts):
   1. Brevity-at-cost-of-meaning: a response that is concise but loses the meaning takes the hit on CLARITY, not as a Conciseness reward. Honest score: low Clarity (idea didn't land), neutral Conciseness (don't reward erasing meaning).
-  2. Shallow-but-organized: a well-structured response with shallow ideas scores HIGH on Structure and LOW on Thinking Quality. Do NOT reward organization for compensating for weak reasoning. Numbered scaffolds without substance are still shallow.
+  2. Shallow-but-organized: Structure grades the SCAFFOLD ONLY — opening direction, ordering, transitions, close. If the scaffold is clearly visible, Structure scores 70+ even when every point inside it is hollow, tautological, or absurd; the hollowness is Thinking Quality's hit (LOW), not Structure's. A hollow-but-scaffolded rep that addresses the prompt is NOT a junk rep — junk means mic-test/off-prompt. Do NOT let weak reasoning bleed into the Structure score, and do NOT reward organization on the Thinking side.
+  2b. Disorganized-but-deep (the mirror case): score the REASONING on its own merits even when the packaging meanders. False starts, loops, and missing scaffolds hit Structure (LOW), not Thinking Quality. Insight that reframes the problem — naming the load-bearing variable, distinguishing cases that change the answer, reading the intent behind a message — is HIGH thinking (75+) regardless of how untidy the shape is. In a thinking-out-loud format, exploratory phrasing ("my read is", "the part I keep coming back to") is analysis in progress, NOT weak conviction — judge whether the underlying reasoning discriminates cases and finds what matters, not how confidently it is packaged.
   3. Fast-and-no-fillers: a response delivered at 220+ wpm without filler words still scores LOW on Delivery. Rate is part of pacing — speed isn't competence. Optimal range is 150-160 wpm.
   4. Variety-with-upspeak: a response with strong vocal variety BUT consistent rising inflection on statements scores LOW on Tone. Upspeak undercuts authority. Strong variety does NOT cancel out an upspeak pattern.
   5. Short-but-deep: a response under 30 seconds is NOT penalized for length alone. Evaluate whether the brevity served the prompt — if the rep fully engaged the prompt with strong thinking and no filler, it can score high. If it dodged depth, Thinking Quality drops regardless of other qualities.
+  7. Depth-appropriate-to-format: judge Thinking Quality against what the FORMAT calls for. A 30-second pitch or objection response with quantified evidence, a causal chain, and a clear ask is 85+ thinking — do NOT dock it for missing counterarguments or hedged nuance that the format has no room for. Reserve the counterargument expectation for formats that invite it (defenses, recommendations, debates).
+  8. Padding-is-not-concise: Conciseness is signal-per-word, not just low filler. A rep that enumerates every instance where a summary would do (walking through each day/item one by one), restates the same point in fresh words, or stacks redundant examples scores LOW on Conciseness (40s-50s) even with zero hedges and zero fillers. Clean sentences do not redeem redundant content.
   6. Composite ≥ 95: such a response should be exceptionally rare. Set primaryFocusDimension to the LOWEST-scoring dim regardless of focus mode (the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
 
 HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headline in):
@@ -969,15 +981,65 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     ragPromise,
   ]);
   const ragBlock = renderRagContextBlock(ragResult.chunks);
+  // Grading v3 (3.6) — worker prosody must survive even when word
+  // timings are absent (async retries, calibration clips): the old
+  // `inlineProsody ? merge(...)` gate silently discarded the worker's
+  // pitch/monotone/volume evidence and dropped tone to the text tier.
+  // With no timings we synthesize the inline baseline from the
+  // transcript: rate + fillers are honestly derivable from text; pause
+  // fields are zero because we genuinely have no timing evidence.
+  const transcriptWords = input.transcript.split(/\s+/).filter(Boolean);
+  const workerOnlyBaseline =
+    !inlineProsody && workerProsody
+      ? {
+          wordsPerMinute:
+            transcriptWords.length /
+            Math.max(0.001, input.durationMs / 60_000),
+          fillerCount: transcriptWords.filter((w) =>
+            /^(um+|uh+|erm+|hmm+)[.,!?]*$/i.test(w),
+          ).length,
+          fillerRatePerMinute: 0, // set below from fillerCount
+          pauseCount: 0,
+          longPauseCount: 0,
+          pauseTotalMs: 0,
+          meanPauseMs: 0,
+          pitchMeanHz: null,
+          pitchStdSemitones: null,
+          pitchRangeSemitones: null,
+          monotoneRatio: null,
+          upspeakRatio: null,
+          rmsMean: null,
+          rmsStd: null,
+          articulationScore: null,
+        }
+      : null;
+  if (workerOnlyBaseline) {
+    workerOnlyBaseline.fillerRatePerMinute =
+      workerOnlyBaseline.fillerCount /
+      Math.max(0.001, input.durationMs / 60_000);
+  }
   const prosodyFeatures =
     input.prosodyFeatures ??
-    (inlineProsody ? mergeProsody(inlineProsody, workerProsody) : null);
+    (inlineProsody
+      ? mergeProsody(inlineProsody, workerProsody)
+      : workerOnlyBaseline
+        ? mergeProsody(workerOnlyBaseline, workerProsody)
+        : null);
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
   const userPrompt = [
     modeBlock,
     `PROMPT: ${input.promptText}`,
-    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s`,
+    // Grading v3 (3.6) — computed rate line. The model reliably applies
+    // the 220+wpm edge rule only when the division is done for it;
+    // word timings aren't always present (async retries, calibration
+    // reps), so derive WPM from the transcript itself. Deterministic
+    // function of (transcript, durationMs) → byte-stable for reference
+    // reps (calibration guardrail).
+    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s · MEASURED RATE: ~${Math.round(
+      input.transcript.split(/\s+/).filter(Boolean).length /
+        Math.max(0.001, input.durationMs / 60_000),
+    )} wpm (optimal 150-160)`,
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
