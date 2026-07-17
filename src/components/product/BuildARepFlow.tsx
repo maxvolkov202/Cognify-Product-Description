@@ -25,7 +25,7 @@ import {
 } from "./CustomScenarioBuilder";
 import type { VerticalId, PersonaId } from "@/lib/onboarding/constants";
 import type { TalkingPoints } from "@/lib/ai/talking-points";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import { deriveRetryFocus } from "@/lib/ai/coach-focus";
 import type { RepScore } from "@/types/domain";
 import {
   PRESSURE_ARCHETYPES,
@@ -335,30 +335,9 @@ export function BuildARepFlow({
   }
 
   function handleRepComplete({ score }: { score: RepScore }) {
-    // v4 scores carry the Coach's Focus + Stronger Version first-class;
-    // legacy scores fall back to the worst callout + its rewrite.
-    const coachFocus = deriveCoachFocus(score);
-    const legacyCallout =
-      score.callouts.find(
-        (c) => c.tone === "warn" || c.tone === "critical",
-      ) ??
-      score.callouts[0] ??
-      null;
-    const title =
-      coachFocus?.behavior ?? legacyCallout?.title ?? "Focus for this retry";
-    const body =
-      coachFocus?.action ?? coachFocus?.text ?? legacyCallout?.body ?? "";
-    const strongerVersion =
-      score.strongerVersion ??
-      (legacyCallout?.suggestedRewrite
-        ? {
-            quote: legacyCallout.quote ?? null,
-            rewrite: legacyCallout.suggestedRewrite,
-          }
-        : null);
-    setRetryFocus(
-      title || body ? { title, body, strongerVersion } : null,
-    );
+    // One shared derivation for retry focus + Stronger Version across
+    // all surfaces (v4 first-class fields, legacy callout fallback).
+    setRetryFocus(deriveRetryFocus(score));
   }
 
   function handleRepRetry() {

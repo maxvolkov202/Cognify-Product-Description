@@ -38,12 +38,18 @@ export default async function ReferenceBankOpsPage() {
   const audioMap = await listReferenceRepAudio();
 
   const totalReps = bank.reps.length;
-  const repsWithAudio = bank.reps.filter((r) => audioMap.has(r.id)).length;
+  // Audio presence: per-rep uploads (legacy reference-reps/ prefix) OR
+  // a grading-v3 storagePath (calibration-audio/ clips uploaded by
+  // scripts/upload-calibration-audio.mjs).
+  const repsWithAudio = bank.reps.filter(
+    (r) => audioMap.has(r.id) || r.storagePath,
+  ).length;
   const audioCoverage =
     totalReps > 0 ? Math.round((repsWithAudio / totalReps) * 100) : 0;
 
   const bandReps = bank.reps.filter((r) => r.kind === "band");
   const indepReps = bank.reps.filter((r) => r.kind === "independence");
+  const audioToneReps = bank.reps.filter((r) => r.kind === "audio-tone");
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-12">
@@ -64,6 +70,17 @@ export default async function ReferenceBankOpsPage() {
             /api/score
           </code>{" "}
           so you can smoke-test scoring without recording a fresh rep.
+          {audioToneReps.length > 0 && (
+            <>
+              {" "}
+              The bank also carries {audioToneReps.length} audio-tone clips
+              (grading v3 flat/expressive/rushed pairs) exercised by{" "}
+              <code className="rounded bg-ink-50 px-1 py-0.5 font-mono text-[11px]">
+                scripts/calibrate-audio-tone.mjs
+              </code>
+              , not listed below.
+            </>
+          )}
         </p>
       </div>
 

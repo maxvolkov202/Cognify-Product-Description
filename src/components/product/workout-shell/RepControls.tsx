@@ -31,7 +31,11 @@ import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
 import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  deriveTopWeakness,
+} from "@/lib/ai/coach-focus";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
   fetchDaySummary,
@@ -369,31 +373,10 @@ function ActiveRep({
     loop === "v2" && !graduation && attempt !== "first" && !!firstAttempt;
   const coachFocus =
     isEngineRetry && firstAttempt ? deriveCoachFocus(firstAttempt.score) : null;
-  // §4.6 Stronger Version — first-class on v4 scores; legacy reps
-  // scavenge a callout suggestedRewrite (focus dimension preferred).
-  const strongerVersion =
-    coachFocus && firstAttempt
-      ? firstAttempt.score.strongerVersion ??
-        (() => {
-          const legacy =
-            firstAttempt.score.callouts.find(
-              (c) =>
-                c.dimension === coachFocus.dimension && c.suggestedRewrite,
-            ) ??
-            firstAttempt.score.callouts.find((c) => c.suggestedRewrite);
-          return legacy?.suggestedRewrite
-            ? { quote: legacy.quote ?? null, rewrite: legacy.suggestedRewrite }
-            : null;
-        })()
-      : null;
+  // §4.6 retry focus + Stronger Version — one shared derivation for
+  // every surface (see deriveRetryFocus).
   const retryFocus =
-    coachFocus && firstAttempt
-      ? {
-          title: coachFocus.behavior ?? "Focus for this retry",
-          body: coachFocus.action ?? coachFocus.text,
-          strongerVersion,
-        }
-      : null;
+    isEngineRetry && firstAttempt ? deriveRetryFocus(firstAttempt.score) : null;
   const skillDim = dimension ? muscleGroupToSkillDim(dimension) : null;
   const retryModeContext: ScoreRepModeContext | null =
     isEngineRetry && firstAttempt && coachFocus && skillDim
@@ -457,10 +440,7 @@ function ActiveRep({
                 dimension: d.dimension,
                 score: d.score,
               })),
-              topWeakness:
-                firstAttempt.score.callouts.find(
-                  (c) => c.tone === "warn" || c.tone === "critical",
-                ) ?? null,
+              topWeakness: deriveTopWeakness(firstAttempt.score),
               transcript: firstAttempt.transcript,
               promptText: selectedPrompt.text,
             },

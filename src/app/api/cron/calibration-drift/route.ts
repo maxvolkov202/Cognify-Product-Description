@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns, cronRuns } from "@/lib/db/schema";
 import { scoreRep } from "@/lib/ai/score";
-import { supabaseAdmin, hasSupabase } from "@/lib/supabase/admin";
+import { getAudioSignedUrl } from "@/lib/audio/upload";
 import { log, serializeErr } from "@/lib/log";
 
 // Grading v3 (3.6) — single ±5 tolerance for every provider. The old
@@ -438,15 +438,13 @@ async function scoreOne(rep: ReferenceRep): Promise<ScoreResponse> {
   //
   // Grading v3 (3.6) — audio reference reps carry a bucket storagePath;
   // mint a short-lived signed URL per run so the prosody worker can
-  // fetch the clip. Best-effort: signing failure degrades to text-tier
+  // fetch the clip. Shared helper (same bucket + null-on-error
+  // semantics as playback); signing failure degrades to text-tier
   // tone, same as production reps.
   let audioUrl: string | undefined;
-  if (rep.storagePath && hasSupabase()) {
+  if (rep.storagePath) {
     try {
-      const { data } = await supabaseAdmin()
-        .storage.from("rep-audio")
-        .createSignedUrl(rep.storagePath, 600);
-      audioUrl = data?.signedUrl ?? undefined;
+      audioUrl = (await getAudioSignedUrl(rep.storagePath, 600)) ?? undefined;
     } catch (err) {
       log.warn({
         event: "cron.calibration_drift.sign_audio_failed",

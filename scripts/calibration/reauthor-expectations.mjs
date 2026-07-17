@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bandFor } from "./_bands.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BANK = resolve(__dirname, "reference-reps.json");
@@ -38,8 +39,6 @@ const runs = runFiles.map((f) => {
 });
 
 const bank = JSON.parse(readFileSync(BANK, "utf8"));
-const bandFor = (s) =>
-  s < 40 ? "poor" : s < 60 ? "below_standard" : s < 75 ? "competent" : s < 85 ? "strong" : s < 95 ? "excellent" : "exceptional";
 
 const unstable = [];
 const table = [];
@@ -57,14 +56,22 @@ for (const rep of bank.reps) {
   const dims = Object.keys(rep.expected.dimensions);
   let dimSpreadMax = 0;
   const newDims = {};
+  let dimMissing = false;
   for (const d of dims) {
     const vals = samples.map((s) => s.dimensions[d]).filter((v) => typeof v === "number");
     if (vals.length < 2) {
-      unstable.push(`${rep.id}: dimension ${d} missing in a run`);
-      continue;
+      dimMissing = true;
+      break;
     }
     dimSpreadMax = Math.max(dimSpreadMax, Math.max(...vals) - Math.min(...vals));
     newDims[d] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  }
+  if (dimMissing) {
+    // Never write a PARTIAL dimensions map — that silently deletes the
+    // missing dimension's expectation from the bank and the harness
+    // stops gating it forever. Keep the old expected block instead.
+    unstable.push(`${rep.id}: a dimension is missing in a run — NOT re-authored (old expected kept)`);
+    continue;
   }
   const newComposite = Math.round(comps.reduce((a, b) => a + b, 0) / comps.length);
   if (compSpread > 6 || dimSpreadMax > 10) {

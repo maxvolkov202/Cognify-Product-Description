@@ -82,12 +82,47 @@ export function QuickRepFlow({ prompt }: { prompt: string }) {
   const topDim = sortedDims[0];
   const bottomDim = sortedDims[sortedDims.length - 1];
 
-  const positiveCallout =
+  // v4 (grading v3) scores ship callouts: [] — the coaching lives on
+  // coachFocus / strongerVersion / per-skill feedback. Synthesize the
+  // two cards from those so the guest funnel never shows bare numbers;
+  // legacy scores keep their real callouts.
+  const legacyPositive =
     score.callouts.find((c) => c.tone === "positive") ?? score.callouts[0];
-  const improvementCallout =
+  const legacyImprovement =
     score.callouts.find(
       (c) => c.tone === "warn" || c.tone === "critical",
     ) ?? score.callouts[score.callouts.length - 1];
+  const positiveCallout: Callout | undefined =
+    legacyPositive ??
+    (topDim?.feedback
+      ? {
+          dimension: topDim.dimension,
+          tone: "positive",
+          title: `Strongest: ${topDim.dimension.replace(/_/g, " ")}`,
+          body: topDim.feedback,
+          quote: null,
+          suggestedRewrite: null,
+          transcriptStart: null,
+          transcriptEnd: null,
+        }
+      : undefined);
+  const improvementCallout: Callout | undefined =
+    legacyImprovement ??
+    (score.coachFocus
+      ? {
+          dimension: score.coachFocus.dimension,
+          tone: "warn",
+          title: score.coachFocus.behavior ?? score.coachFocus.text,
+          body:
+            score.coachFocus.why ??
+            score.coachFocus.action ??
+            score.coachFocus.text,
+          quote: score.strongerVersion?.quote ?? null,
+          suggestedRewrite: score.strongerVersion?.rewrite ?? null,
+          transcriptStart: null,
+          transcriptEnd: null,
+        }
+      : undefined);
 
   const hasTranscript = transcript && transcript.trim().length > 0;
 

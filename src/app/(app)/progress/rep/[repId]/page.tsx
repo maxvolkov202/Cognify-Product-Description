@@ -42,16 +42,21 @@ export default async function RepDetailPage({ params }: { params: Params }) {
     rep.callouts.find((c) => c.tone === "warn" || c.tone === "critical") ??
     rep.callouts[0] ??
     null;
-  const lead = rep.coachFocus
-    ? {
-        title: rep.coachFocus.behavior ?? rep.coachFocus.text,
-        body: rep.coachFocus.why
-          ? `${rep.coachFocus.why}${rep.coachFocus.action ? ` On your next rep: ${rep.coachFocus.action}` : ""}`
-          : rep.coachFocus.action ?? rep.coachFocus.text,
-        quote: rep.feedback?.strongerVersion?.quote ?? null,
-        suggestedRewrite: rep.feedback?.strongerVersion?.rewrite ?? null,
-      }
-    : legacyLead;
+  // v4 rows carry behavior/action; legacy rows persisted only
+  // {dimension, text}, and rendering those through the v4 branch put
+  // the same sentence in title AND body while dropping the richer
+  // worst-callout lead — so require a genuine v4 field.
+  const lead =
+    rep.coachFocus && (rep.coachFocus.behavior || rep.coachFocus.action)
+      ? {
+          title: rep.coachFocus.behavior ?? rep.coachFocus.text,
+          body: rep.coachFocus.why
+            ? `${rep.coachFocus.why}${rep.coachFocus.action ? ` On your next rep: ${rep.coachFocus.action}` : ""}`
+            : rep.coachFocus.action ?? rep.coachFocus.text,
+          quote: rep.feedback?.strongerVersion?.quote ?? null,
+          suggestedRewrite: rep.feedback?.strongerVersion?.rewrite ?? null,
+        }
+      : legacyLead;
   const wins = rep.callouts.filter((c) => c.tone === "positive").slice(0, 3);
 
   return (

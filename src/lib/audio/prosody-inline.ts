@@ -90,6 +90,44 @@ export function extractInlineProsody(
   };
 }
 
+/** Grading v3 (3.5) — baseline for reps WITHOUT word timings (async
+ *  retries, calibration clips) so worker prosody isn't discarded just
+ *  because Deepgram timings are absent. Rate + fillers are honestly
+ *  derivable from the transcript text (same tokenizer + FILLER_WORDS
+ *  as the timed path, so filler semantics match across transports);
+ *  pause fields carry no evidence — `pauseDataAvailable: false` tells
+ *  renderProsodyBlock to omit the pause line rather than fabricate
+ *  "pauses: 0". */
+export function synthesizeProsodyBaseline(input: {
+  transcript: string;
+  durationMs: number;
+}): ProsodyFeatures {
+  const tokens = input.transcript
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => ({ word, startMs: 0, endMs: 0 }));
+  const minutes = Math.max(0.001, input.durationMs / 60_000);
+  const fillerCount = countFillers(tokens);
+  return {
+    wordsPerMinute: tokens.length / minutes,
+    fillerCount,
+    fillerRatePerMinute: fillerCount / minutes,
+    pauseCount: 0,
+    longPauseCount: 0,
+    pauseTotalMs: 0,
+    meanPauseMs: 0,
+    pauseDataAvailable: false,
+    pitchMeanHz: null,
+    pitchStdSemitones: null,
+    pitchRangeSemitones: null,
+    monotoneRatio: null,
+    upspeakRatio: null,
+    rmsMean: null,
+    rmsStd: null,
+    articulationScore: null,
+  };
+}
+
 /** Count fillers, with the "you know" two-word special case. */
 function countFillers(words: readonly WordTimingLike[]): number {
   let count = 0;

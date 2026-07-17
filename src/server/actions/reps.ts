@@ -986,9 +986,17 @@ export async function getRepResult(
             coachFocus: {
               dimension: rep.coachFocus.dimension as SkillDimension,
               subSkill: rep.coachFocus.subSkill ?? null,
-              behavior: rep.coachFocus.behavior ?? rep.coachFocus.text,
-              why: rep.coachFocus.why ?? "",
-              action: rep.coachFocus.action ?? rep.coachFocus.text,
+              // Only pass through GENUINE v4 fields. Legacy rows carry
+              // {dimension, subSkill, text} — fabricating
+              // behavior/action from text made CoachFocusCard render
+              // the same sentence twice (headline + "On your retry").
+              ...(rep.coachFocus.behavior
+                ? { behavior: rep.coachFocus.behavior }
+                : {}),
+              ...(rep.coachFocus.why ? { why: rep.coachFocus.why } : {}),
+              ...(rep.coachFocus.action
+                ? { action: rep.coachFocus.action }
+                : {}),
               text: rep.coachFocus.text,
             },
           }

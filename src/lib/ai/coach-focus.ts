@@ -145,6 +145,89 @@ export function deriveCoachFocus(score: RepScore): CoachFocus | null {
   };
 }
 
+/** What the retry surfaces render: a short title, the actionable body,
+ *  and the Stronger Version pulled from the user's own words. */
+export type RetryFocus = {
+  title: string;
+  body: string;
+  strongerVersion: { quote: string | null; rewrite: string } | null;
+};
+
+/**
+ * Grading v3 — ONE derivation for the retry overlay/banner, shared by
+ * every surface (workout shell, Skill Lab, Build-a-Rep, prep events).
+ * Before this helper each surface hand-rolled its own v4/legacy
+ * precedence and they had already forked (two surfaces lost the legacy
+ * Stronger Version entirely). v4 fields first; legacy warn/critical
+ * callout scavenge as fallback. Null when the score carries no focus.
+ */
+export function deriveRetryFocus(score: RepScore): RetryFocus | null {
+  const focus = deriveCoachFocus(score);
+  if (!focus) return null;
+  const legacyCallout =
+    (score.callouts ?? []).find(
+      (c) =>
+        (c.tone === "warn" || c.tone === "critical") &&
+        c.dimension === focus.dimension &&
+        c.suggestedRewrite,
+    ) ??
+    (score.callouts ?? []).find(
+      (c) => (c.tone === "warn" || c.tone === "critical") && c.suggestedRewrite,
+    ) ??
+    null;
+  const strongerVersion = score.strongerVersion
+    ? { quote: score.strongerVersion.quote, rewrite: score.strongerVersion.rewrite }
+    : legacyCallout?.suggestedRewrite
+      ? { quote: legacyCallout.quote ?? null, rewrite: legacyCallout.suggestedRewrite }
+      : null;
+  return {
+    title: focus.behavior ?? focus.text,
+    body: focus.action ?? focus.text,
+    strongerVersion,
+  };
+}
+
+/** Matches progression's RepSummary.topWeakness shape. */
+export type TopWeakness = {
+  dimension: SkillDimension | "structural_adherence";
+  title: string;
+  body: string;
+  quote: string | null;
+  suggestedRewrite: string | null;
+};
+
+/**
+ * Grading v3 — the previous rep's "top weakness" for progression
+ * context. v4 reps carry it on coachFocus (callouts are empty by
+ * contract, so the old callout scavenge returned null on EVERY v4 rep
+ * and progression silently lost its weakness line); legacy reps keep
+ * the worst warn/critical callout.
+ */
+export function deriveTopWeakness(score: RepScore): TopWeakness | null {
+  if (score.coachFocus) {
+    const cf = score.coachFocus;
+    return {
+      dimension: cf.dimension,
+      title: cf.behavior ?? cf.text,
+      body: cf.why ?? cf.action ?? cf.text,
+      quote: score.strongerVersion?.quote ?? null,
+      suggestedRewrite: score.strongerVersion?.rewrite ?? null,
+    };
+  }
+  const callout = (score.callouts ?? []).find(
+    (c) => c.tone === "critical" || c.tone === "warn",
+  );
+  return callout
+    ? {
+        dimension: callout.dimension,
+        title: callout.title,
+        body: callout.body,
+        quote: callout.quote ?? null,
+        suggestedRewrite: callout.suggestedRewrite ?? null,
+      }
+    : null;
+}
+
 /** Weakest scored dimension that is a real Core Skill (framework grades
  *  excluded). Null when the score carries no core dimensions at all. */
 function weakestCoreDimension(score: RepScore): SkillDimension | null {

@@ -18,6 +18,7 @@ import type {
   ActivityPayload,
   NotificationPayload,
 } from "@/types/db-payloads";
+import type { RepFeedbackDoc } from "@/lib/scoring/feedback-doc";
 
 // All v2 tables live in the `cognify_v2` Postgres schema so they don't
 // collide with Bob's v1 tables in `public` on the same Supabase project.
@@ -350,29 +351,14 @@ export const reps = cognifyV2Schema.table(
       behavior?: string;
       why?: string;
       action?: string;
+      technique?: string | null;
     }>(),
     // Grading v3 (migration 0042) — the render-shaped feedback document
     // so async reps and the progress rep page reconstruct the FULL
     // doc-shaped RepScore (headline, Stronger Version, per-skill
     // feedback) instead of the lossy composite+callouts view. Absent on
     // pre-v4 rows.
-    feedback: jsonb("feedback").$type<{
-      version: string;
-      headline?: string;
-      headlineTone?: string;
-      strongerVersion?: { quote: string | null; rewrite: string } | null;
-      nextRepHint?: string;
-      /** Keyed by dimension id. */
-      skillFeedback?: Record<
-        string,
-        { feedback: string; subSkill?: string | null }
-      >;
-      implementationReview?: {
-        verdict: string;
-        note?: string;
-        technique?: string;
-      } | null;
-    }>(),
+    feedback: jsonb("feedback").$type<RepFeedbackDoc>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

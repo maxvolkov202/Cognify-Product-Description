@@ -7,6 +7,7 @@ import {
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import type { SkillDimension } from "@/types/domain";
+import type { RepFeedbackDoc } from "@/lib/scoring/feedback-doc";
 import { ALL_DIMENSIONS } from "@/lib/scoring/rubric";
 
 export type SkillTrendPoint = { takenAt: Date; score: number };
@@ -312,21 +313,10 @@ export type RepWithDetails = RecentRep & {
     why?: string;
     action?: string;
   } | null;
-  /** Grading v3 — the persisted feedback doc (null on pre-v4 rows). */
-  feedback: {
-    version: string;
-    headline?: string;
-    strongerVersion?: { quote: string | null; rewrite: string } | null;
-    skillFeedback?: Record<
-      string,
-      { feedback: string; subSkill?: string | null }
-    >;
-    implementationReview?: {
-      verdict: string;
-      note?: string;
-      technique?: string;
-    } | null;
-  } | null;
+  /** Grading v3 — the persisted feedback doc (null on pre-v4 rows).
+   *  Single canonical shape — the local copy had already drifted
+   *  (it lost headlineTone/nextRepHint). */
+  feedback: RepFeedbackDoc | null;
 };
 
 export async function getRepWithDetails(

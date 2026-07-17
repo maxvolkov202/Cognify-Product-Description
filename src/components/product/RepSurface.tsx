@@ -333,8 +333,15 @@ export function RepSurface({
   useEffect(() => {
     if (phase.kind !== "processing-async") return;
     const asyncPhase = phase;
+    // clearTimeout can't cancel a poll whose getRepResult round-trip is
+    // already in flight — if realtime completes the rep during that
+    // window, the poll would fire onComplete a SECOND time (double
+    // session-advance). The cancelled flag closes that race: cleanup
+    // runs on any phase change, before the poll's await resumes.
+    let cancelled = false;
     const poll = setTimeout(async () => {
       const fetched = await getRepResult(asyncPhase.repId);
+      if (cancelled) return;
       if (fetched?.status === "completed" && fetched.score) {
         setPhase({
           kind: "done",
@@ -360,11 +367,12 @@ export function RepSurface({
       setPhase({
         kind: "error",
         message:
-          "Scoring is taking longer than expected. Your recording is saved — tap Retry to score again.",
+          "Scoring is taking longer than expected. Your recording is saved. Tap Retry to score again.",
         recording: asyncPhase.recording,
       });
     }, 120_000);
     return () => {
+      cancelled = true;
       clearTimeout(poll);
       clearTimeout(giveUp);
     };
@@ -604,10 +612,10 @@ export function RepSurface({
       const isTimeout =
         err instanceof DOMException && err.name === "AbortError";
       const message = isTimeout
-        ? "Scoring took longer than 45 seconds — your audio is saved below. Tap Retry to score again. Slow networks (mobile/hotspot) sometimes need a second try."
+        ? "Scoring took longer than 45 seconds. Your audio is saved below. Tap Retry to score again. Slow networks (mobile/hotspot) sometimes need a second try."
         : err instanceof Error
-          ? `${err.message}. Your recording was captured and is playable below — tap Retry to score again.`
-          : "Scoring failed. Your recording is saved — tap Retry.";
+          ? `${err.message}. Your recording was captured and is playable below. Tap Retry to score again.`
+          : "Scoring failed. Your recording is saved. Tap Retry.";
       setPhase({ kind: "error", message, recording: result });
       return;
     }

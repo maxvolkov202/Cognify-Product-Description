@@ -28,6 +28,11 @@ export type ProsodyFeatures = {
   longPauseCount: number; // gaps > 1500ms — "active processing windows"
   pauseTotalMs: number;
   meanPauseMs: number;
+  /** False when features were synthesized without word timings (the
+   *  pause fields are zero-for-unknown, not measured) — render paths
+   *  must omit pause evidence rather than present it as measurement.
+   *  Absent = true (timed path). */
+  pauseDataAvailable?: boolean;
   // ——— Worker (parselmouth/Praat — async, may be null)
   pitchMeanHz: number | null;
   pitchStdSemitones: number | null;
@@ -79,9 +84,11 @@ export function renderProsodyBlock(
   lines.push(
     `  fillers: ${features.fillerCount} total (${features.fillerRatePerMinute.toFixed(1)}/min; target <2/min)`,
   );
-  lines.push(
-    `  pauses: ${features.pauseCount} (${features.longPauseCount} long ≥1.5s, mean ${Math.round(features.meanPauseMs)}ms)`,
-  );
+  if (features.pauseDataAvailable !== false) {
+    lines.push(
+      `  pauses: ${features.pauseCount} (${features.longPauseCount} long ≥1.5s, mean ${Math.round(features.meanPauseMs)}ms)`,
+    );
+  }
   if (features.pitchMeanHz != null) {
     lines.push(`  pitch mean: ${features.pitchMeanHz.toFixed(0)}Hz`);
   }

@@ -180,6 +180,12 @@ export async function POST(req: Request) {
                     ...(coachFocus.action
                       ? { action: coachFocus.action }
                       : {}),
+                    // Parity with saveRep: without this the async
+                    // cohort persisted technique-less focuses and
+                    // technique-effectiveness analytics skewed sync.
+                    ...(coachFocus.technique
+                      ? { technique: coachFocus.technique }
+                      : {}),
                   },
                 }
               : {}),

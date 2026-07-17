@@ -12,7 +12,11 @@ import { LastRepFocusBanner } from "./LastRepFocusBanner";
 import { ScoreHero } from "./ScoreHero";
 import { CoachFocusCard } from "./CoachFocusCard";
 import { DimensionGrid } from "./DimensionGrid";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  type TopWeakness,
+} from "@/lib/ai/coach-focus";
 import { RepAudioScrubber } from "./RepAudioScrubber";
 import { ExemplarModal } from "./ExemplarModal";
 import type { DimensionGridHandle } from "./DimensionGrid";
@@ -22,7 +26,10 @@ import { isPressureArchetypeId } from "@/lib/ai/pressure-archetypes";
 export type PreviousRepSummary = {
   composite: number;
   dimensions: { dimension: SkillDimension; score: number }[];
-  topWeakness: Callout | null;
+  /** Shared shape from deriveTopWeakness — v4 reps build it from the
+   *  Coach's Focus (callouts are empty by contract); a full legacy
+   *  Callout is structurally assignable. */
+  topWeakness: TopWeakness | null;
   transcript: string;
   promptText: string;
   /** Phase 2: verbatim previous-rep headline. Plumbed into the next rep's
@@ -104,11 +111,16 @@ export function FeedbackPanel({
   const gridRef = useRef<DimensionGridHandle>(null);
   const [exemplarOpen, setExemplarOpen] = useState(false);
 
-  // Compute the matching exemplar once per render. Uses deriveCoachFocus
-  // so the exemplar dimension matches what the Coach's Focus card actually
-  // shows. Archetype-specific variants win when this is a pressure rep.
+  // One memoized derivation — the exemplar picker below and the Coach's
+  // Focus card both read it (the legacy chain walks bullet/callout
+  // arrays, so re-deriving on every audio-scrubber render adds up).
+  const focus = useMemo(() => deriveCoachFocus(score), [score]);
+
+  // Compute the matching exemplar once per render, from the same focus
+  // the Coach's Focus card shows. Archetype-specific variants win when
+  // this is a pressure rep.
   const exemplar = useMemo(() => {
-    const primaryDim = deriveCoachFocus(score)?.dimension ?? null;
+    const primaryDim = focus?.dimension ?? null;
     if (!primaryDim) return null;
     const rawArchetype = modeSignals?.pressureArchetypeId;
     const archetypeId =
@@ -119,7 +131,7 @@ export function FeedbackPanel({
       dimension: primaryDim,
       archetypeId,
     });
-  }, [score, modeSignals]);
+  }, [focus, modeSignals]);
 
   const formattedDuration = useMemo(() => {
     const total = Math.floor(durationMs / 1000);
@@ -133,18 +145,12 @@ export function FeedbackPanel({
     [score.headline, score.composite],
   );
 
-  // §4.6 Stronger Version — first-class field on v4 reps; legacy reps
-  // scavenge the first improvement callout carrying a suggestedRewrite.
-  const strongerVersion = useMemo(() => {
-    if (score.strongerVersion) return score.strongerVersion;
-    const legacy = score.callouts.find(
-      (c) =>
-        (c.tone === "warn" || c.tone === "critical") && c.suggestedRewrite,
-    );
-    return legacy?.suggestedRewrite
-      ? { quote: legacy.quote ?? null, rewrite: legacy.suggestedRewrite }
-      : null;
-  }, [score.strongerVersion, score.callouts]);
+  // §4.6 Stronger Version — same shared derivation the retry surfaces
+  // use (v4 first-class field, legacy callout-rewrite fallback).
+  const strongerVersion = useMemo(
+    () => deriveRetryFocus(score)?.strongerVersion ?? null,
+    [score],
+  );
 
   // Resolve callout → DB id by reference equality (parallel arrays).
   const getCalloutId = useMemo(() => {
@@ -172,8 +178,6 @@ export function FeedbackPanel({
 
   const showProgressStrip =
     typeof repIndex === "number" && typeof totalReps === "number";
-
-  const focus = deriveCoachFocus(score);
 
   return (
     <AudioControlProvider value={{ seekToMs, expandDimension, getCalloutId }}>

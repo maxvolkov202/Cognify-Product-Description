@@ -54,7 +54,7 @@ export function CoachFocusCard({
           </p>
         ) : (
           <p className="mt-2 text-[13px] leading-relaxed text-ink-600 dark:text-ink-300">
-            One behavior. Implement it on your Retry — that&apos;s the whole
+            One behavior. Implement it on your Retry. That&apos;s the whole
             game.
           </p>
         )}

@@ -133,11 +133,15 @@ const OPENAI_TIMEOUT_MS = parseInt(
  *  (observed on prod 2026-07-15 under the pre-v4 ~2400-token output;
  *  temporarily widened to 45s). The v4 contract slimmed output to
  *  ~1200 tokens: measured model p95 is 11.2s
- *  (plans/baselines/phase-grading-v3-post.json), so 25s gives >2×
- *  headroom while leaving room for the Anthropic fallback (20s) inside
- *  the scoring routes' maxDuration budget. */
+ *  (plans/baselines/phase-grading-v3-post.json). 35s gives ~3×
+ *  headroom — the extra margin over a strict 2× exists for long
+ *  simulation reps (SIM_MAX_SEC transcripts inflate prompt processing)
+ *  and slow-provider nights, because the cost of clipping a healthy
+ *  completion is a mock score while the cost of a loose ceiling is
+ *  only slower failure detection. Leaves room for the Anthropic
+ *  fallback (20s) inside the scoring routes' maxDuration budget. */
 const OPENAI_PRIMARY_TIMEOUT_MS = parseInt(
-  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "25000",
+  process.env.SCORING_OPENAI_PRIMARY_TIMEOUT_MS ?? "35000",
   10,
 );
 /** Grading v3 (3.2) — Anthropic AS FALLBACK needs its own budget. The 5s
@@ -717,9 +721,16 @@ async function messagesCreateWithMetrics(
       response = r;
       openaiDurationMs = durationMs;
     } else {
+      // Anthropic as PRIMARY needs a full-completion budget, not the 5s
+      // ANTHROPIC_TIMEOUT_MS quick-fail (that default was tuned for the
+      // old Haiku-primary → fast-OpenAI-fallback topology). With
+      // AI_PROVIDER=anthropic a 5s budget aborts every healthy scoring
+      // completion and cascades to the very provider the operator
+      // inverted away from.
       const { response: r, durationMs } = await callAnthropicOnce(
         params,
         "primary",
+        Math.max(ANTHROPIC_TIMEOUT_MS, ANTHROPIC_FALLBACK_TIMEOUT_MS),
       );
       response = r;
       anthropicDurationMs = durationMs;

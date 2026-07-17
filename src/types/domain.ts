@@ -366,9 +366,13 @@ export type RepScore = {
   coachFocus?: {
     dimension: SkillDimension;
     subSkill: string | null;
-    behavior: string;
-    why: string;
-    action: string;
+    /** Required in the v4 model contract; optional here because
+     *  persisted pre-v4 rows reconstruct a {dimension, subSkill, text}
+     *  focus — consumers must not assume these exist (fabricating them
+     *  from `text` duplicated copy on the Coach's Focus card). */
+    behavior?: string;
+    why?: string;
+    action?: string;
     text: string;
   };
   /** Grading v3 (§4.6, Edit #5) — the Stronger Version: a rewrite of

@@ -48,7 +48,11 @@ import CountUpScore from "@/components/product/workout-shell/CountUpScore";
 import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
-import { deriveCoachFocus } from "@/lib/ai/coach-focus";
+import {
+  deriveCoachFocus,
+  deriveRetryFocus,
+  deriveTopWeakness,
+} from "@/lib/ai/coach-focus";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ShellStation } from "@/lib/workout/types";
 import type { MuscleGroupId, RepScore } from "@/types/domain";
@@ -309,13 +313,8 @@ export default function AppSessionClient({
 
   const coachFocus =
     attempts.first != null ? deriveCoachFocus(attempts.first.score) : null;
-  const retryFocus = coachFocus
-    ? {
-        title: coachFocus.behavior ?? "Focus for this retry",
-        body: coachFocus.action ?? coachFocus.text,
-        strongerVersion: attempts.first?.score.strongerVersion ?? null,
-      }
-    : null;
+  const retryFocus =
+    attempts.first != null ? deriveRetryFocus(attempts.first.score) : null;
   const skillDim = exercise
     ? muscleGroupToSkillDim(exercise.dimension)
     : null;
@@ -500,10 +499,7 @@ export default function AppSessionClient({
                       dimension: d.dimension,
                       score: d.score,
                     })),
-                    topWeakness:
-                      attempts.first.score.callouts.find(
-                        (c) => c.tone === "warn" || c.tone === "critical",
-                      ) ?? null,
+                    topWeakness: deriveTopWeakness(attempts.first.score),
                     transcript: attempts.first.transcript,
                     promptText: selectedPrompt.text,
                   },

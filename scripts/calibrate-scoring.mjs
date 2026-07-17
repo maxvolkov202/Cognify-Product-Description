@@ -35,6 +35,7 @@
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bandFor, bandsAdjacent } from "./calibration/_bands.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REF_REPS_PATH = resolve(__dirname, "calibration", "reference-reps.json");
@@ -118,26 +119,6 @@ async function scoreOne(rep) {
   return score;
 }
 
-function bandFor(score) {
-  if (score < 40) return "poor";
-  if (score < 60) return "below_standard";
-  if (score < 75) return "competent";
-  if (score < 85) return "strong";
-  if (score < 95) return "excellent";
-  return "exceptional";
-}
-
-function bandsAdjacent(a, b) {
-  const order = [
-    "poor",
-    "below_standard",
-    "competent",
-    "strong",
-    "excellent",
-    "exceptional",
-  ];
-  return Math.abs(order.indexOf(a) - order.indexOf(b)) <= 1;
-}
 
 function evaluateBand(rep, score) {
   const failures = [];

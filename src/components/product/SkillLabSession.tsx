@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, RotateCcw, Trophy } from "lucide-react";
+import { deriveTopWeakness } from "@/lib/ai/coach-focus";
 import { motion } from "motion/react";
 import { RepSurface } from "./RepSurface";
 import { WorkoutPromptSelect } from "./WorkoutPromptSelect";
@@ -112,10 +113,7 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
   }) {
     bumpCompletedRepCount();
     setScores((prev) => [...prev, score]);
-    const topWeakness =
-      score.callouts.find(
-        (c) => c.tone === "warn" || c.tone === "critical",
-      ) ?? null;
+    const topWeakness = deriveTopWeakness(score);
     setPreviousRepSummary({
       composite: score.composite,
       dimensions: score.dimensions.map((d) => ({

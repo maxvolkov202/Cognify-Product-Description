@@ -48,7 +48,9 @@ import { createHash } from "node:crypto";
 import {
   extractInlineProsody,
   mergeProsody,
+  synthesizeProsodyBaseline,
 } from "@/lib/audio/prosody-inline";
+import { getWordCount, durationToMinutes } from "@/lib/scoring/signals/_helpers";
 import {
   hasWorkerProsody,
   renderProsodyBlock,
@@ -427,7 +429,7 @@ EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — 
   5. Short-but-deep: a response under 30 seconds is NOT penalized for length alone. Evaluate whether the brevity served the prompt — if the rep fully engaged the prompt with strong thinking and no filler, it can score high. If it dodged depth, Thinking Quality drops regardless of other qualities.
   7. Depth-appropriate-to-format: judge Thinking Quality against what the FORMAT calls for. A 30-second pitch or objection response with quantified evidence, a causal chain, and a clear ask is 85+ thinking — do NOT dock it for missing counterarguments or hedged nuance that the format has no room for. Reserve the counterargument expectation for formats that invite it (defenses, recommendations, debates).
   8. Padding-is-not-concise: Conciseness is signal-per-word, not just low filler. A rep that enumerates every instance where a summary would do (walking through each day/item one by one), restates the same point in fresh words, or stacks redundant examples scores LOW on Conciseness (40s-50s) even with zero hedges and zero fillers. Clean sentences do not redeem redundant content.
-  6. Composite ≥ 95: such a response should be exceptionally rare. Set primaryFocusDimension to the LOWEST-scoring dim regardless of focus mode (the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
+  6. Composite ≥ 95: such a response should be exceptionally rare. Point coachFocus at the LOWEST-scoring dimension regardless of focus mode (it is the only remaining work). The post-validator will set requiresHumanReview=true on responses scoring ≥95.
 
 HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headline in):
   - "blunt"       — composite < 50, headline names what failed.
@@ -439,7 +441,7 @@ HEADLINE TONE BAND (calibration scaffold — pick the band you wrote the headlin
 NEXT REP HINT:
   - 3-8 words, present-tense, second-person, no period.
   - Becomes the tail of the next rep's "Last rep focus: <dim> — <hint>" banner.
-  - Tied to primaryFocusDimension. Specific over generic when possible:
+  - Tied to the coachFocus dimension. Specific over generic when possible:
       generic   : "keep building on it"
       specific  : "land the open before the ask"
   - No filler verbs ("focus on", "work on") — give an action.`;
@@ -985,45 +987,21 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
   // timings are absent (async retries, calibration clips): the old
   // `inlineProsody ? merge(...)` gate silently discarded the worker's
   // pitch/monotone/volume evidence and dropped tone to the text tier.
-  // With no timings we synthesize the inline baseline from the
-  // transcript: rate + fillers are honestly derivable from text; pause
-  // fields are zero because we genuinely have no timing evidence.
-  const transcriptWords = input.transcript.split(/\s+/).filter(Boolean);
-  const workerOnlyBaseline =
-    !inlineProsody && workerProsody
-      ? {
-          wordsPerMinute:
-            transcriptWords.length /
-            Math.max(0.001, input.durationMs / 60_000),
-          fillerCount: transcriptWords.filter((w) =>
-            /^(um+|uh+|erm+|hmm+)[.,!?]*$/i.test(w),
-          ).length,
-          fillerRatePerMinute: 0, // set below from fillerCount
-          pauseCount: 0,
-          longPauseCount: 0,
-          pauseTotalMs: 0,
-          meanPauseMs: 0,
-          pitchMeanHz: null,
-          pitchStdSemitones: null,
-          pitchRangeSemitones: null,
-          monotoneRatio: null,
-          upspeakRatio: null,
-          rmsMean: null,
-          rmsStd: null,
-          articulationScore: null,
-        }
-      : null;
-  if (workerOnlyBaseline) {
-    workerOnlyBaseline.fillerRatePerMinute =
-      workerOnlyBaseline.fillerCount /
-      Math.max(0.001, input.durationMs / 60_000);
-  }
+  // synthesizeProsodyBaseline derives rate + fillers from the
+  // transcript with the SAME tokenizer + filler lexicon as the timed
+  // path, so grading semantics don't fork by transport.
   const prosodyFeatures =
     input.prosodyFeatures ??
     (inlineProsody
       ? mergeProsody(inlineProsody, workerProsody)
-      : workerOnlyBaseline
-        ? mergeProsody(workerOnlyBaseline, workerProsody)
+      : workerProsody
+        ? mergeProsody(
+            synthesizeProsodyBaseline({
+              transcript: input.transcript,
+              durationMs: input.durationMs,
+            }),
+            workerProsody,
+          )
         : null);
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
@@ -1033,12 +1011,13 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     // Grading v3 (3.6) — computed rate line. The model reliably applies
     // the 220+wpm edge rule only when the division is done for it;
     // word timings aren't always present (async retries, calibration
-    // reps), so derive WPM from the transcript itself. Deterministic
-    // function of (transcript, durationMs) → byte-stable for reference
-    // reps (calibration guardrail).
+    // reps), so derive WPM via the shared signals tokenizer (same one
+    // that feeds the SIGNALS block, so the prompt never carries two
+    // disagreeing WPM values). Deterministic function of (transcript,
+    // durationMs) → byte-stable for reference reps (calibration
+    // guardrail).
     `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s · MEASURED RATE: ~${Math.round(
-      input.transcript.split(/\s+/).filter(Boolean).length /
-        Math.max(0.001, input.durationMs / 60_000),
+      getWordCount(input.transcript) / durationToMinutes(input.durationMs),
     )} wpm (optimal 150-160)`,
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
@@ -1106,7 +1085,7 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
       },
       {
         type: "text" as const,
-        text: `RUBRIC (only the four LLM-scored dimensions; delivery and thinking_quality are scored separately):\n\n${rubricBlock}`,
+        text: `RUBRIC (all six dimensions — score each and write its per-skill feedback; delivery and thinking_quality numbers may additionally be grounded by deterministic measurement server-side):\n\n${rubricBlock}`,
         cache_control: { type: "ephemeral" as const },
       },
       ...(COMPACT_KNOWLEDGE
@@ -1247,17 +1226,29 @@ export async function scoreRepWithMetrics(input: ScoreRepInput): Promise<ScoreRe
     // Delivery — pure deterministic override (was "pacing" in v2-beta.*)
     const deliveryResult = scorePacing(signalBundle);
     dimensionMap.delivery = deliveryResult.score;
-    finalDimensions = finalDimensions.map((d) =>
-      d.dimension === "delivery"
-        ? {
-            // Spread keeps the model's per-skill feedback + subSkill
-            // (grading v3) while the NUMBER stays deterministic.
-            ...d,
-            score: deliveryResult.score,
-            signals: deliveryResult.signals,
-          }
-        : d,
-    );
+    finalDimensions = finalDimensions.map((d) => {
+      if (d.dimension !== "delivery") return d;
+      // Spread keeps the model's per-skill feedback + subSkill
+      // (grading v3) while the NUMBER stays deterministic — but when
+      // the override moves the number far from what the model graded,
+      // the model's feedback line explains a score that no longer
+      // exists (§4.5.3: feedback explains THIS score). Swap in the
+      // deterministic narrative instead of showing e.g. Delivery 45
+      // with copy praising the pacing.
+      const overrideDiverges =
+        typeof d.score === "number" &&
+        Math.abs(d.score - deliveryResult.score) > 10;
+      return {
+        ...d,
+        score: deliveryResult.score,
+        signals: deliveryResult.signals,
+        ...(overrideDiverges
+          ? {
+              feedback: `Your measured pace was ${Math.round(signalBundle.wpm)} words per minute with ${signalBundle.fillerRate.toFixed(1)} fillers per minute${signalBundle.longPauseCount > 0 ? ` and ${signalBundle.longPauseCount} long pause${signalBundle.longPauseCount === 1 ? "" : "s"}` : ""}. ${deliveryResult.score >= 75 ? "That sits close to the 150-160 sweet spot listeners follow best." : "Aim for the 150-160 range with a deliberate pause after each key point."}`,
+            }
+          : {}),
+      };
+    });
 
     // Thinking Quality — hybrid blend with LLM layer (was "confidence")
     const thinkingDet = scoreThinkingQualityDeterministic(signalBundle);
