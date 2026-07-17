@@ -33,6 +33,13 @@ phase) → check the phase off here. Never commit to main directly.
 - **D23 — Legacy prompt System A retired.** Hardcoded banks (`src/lib/ai/prompts/*`) + rep-type
   planners migrated-or-deleted; the DB catalog (`cognify_v2.exercises`/`exercise_prompts`) is the only
   prompt system.
+- **D24 — Score-movement softening kept (confirmed by Max 2026-07-17, Phase 6).** Owen C10's
+  `softenScoreDelta` hides the raw numeral for large single-attempt drops (delta < −3 → soft coaching
+  copy; −3…0 → shown neutral; ≥ +1 → celebrated). This resolves the PR #11 conflict with PRD §4.7's
+  "score movement should be highly visible": Max's ruling is that "highly visible" governs improvement,
+  while a noisy retry's large negative reads as "this system is bogus" and is softened. Direction is
+  always shown; only the numeral for a big drop is withheld. Do NOT restore visible large negatives.
+  PRD §4.7.2 amended with the display rule so code and doc agree.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
@@ -48,10 +55,12 @@ phase) → check the phase off here. Never commit to main directly.
 - **Grading**: unified hybrid pipeline (`src/lib/ai/score.ts` + `score-stages.ts`), two sequential
   LLM calls (Haiku), stage2 redoes RAG/prosody (+500ms), no streaming; deterministic pacing + 60/40
   thinking-quality blend; coaching memory; calibration drift cron + reference bank.
-- **Prompts**: DB catalog ~94 exercises / 6,714 active prompts on dev after reseed+prune; **PROD still
-  carries ~31k stale rows** (reseed+prune never promoted). Universality rule landed in the generator
-  2026-07-07 (`src/lib/ai/prompt-gen.ts`); `docs/prompt-design-canon.md` is the authoring canon.
-  Legacy System A banks (~1,275 hardcoded prompts) still in tree and corporate-skewed.
+- **Prompts**: DB catalog 102 exercises / **4,148 active prompts** (38,962 total; the rest deactivated,
+  reversible `is_active=false`). **This IS the prod catalog** — dev `.env.local` and prod Vercel point at
+  ONE Supabase DB, so Phase 2's reseed+prune (session 4) already promoted to prod; the earlier "~31k
+  stale rows never promoted" note is obsolete (verified 2026-07-17 in Phase 6: 0 exercises below the
+  slate floor). Universality rule landed in the generator 2026-07-07 (`src/lib/ai/prompt-gen.ts`);
+  `docs/prompt-design-canon.md` is the authoring canon. Legacy System A banks retired in Phase 2 (D23).
 - **Progression** (rank 32 tiers, XP, committed-day streaks + freezes, achievements, leaderboards,
   weekly/team challenges, leagues) matches PRD §10 — no major work planned.
 
@@ -259,17 +268,35 @@ grading speed already fixed there).*
 - **Verify after merge (Max):** one full Daily Workout + one 3-exercise Lab session on dev feel
   doc-conformant end to end.
 
-### Phase 6 — Production promotion ⬜
+### Phase 6 — Production promotion 🟡 (2026-07-17 session 9 — code deployed + verified; 3 items need Max)
 *Refs: `plans/prod-promotion-runbook.md`, `plans/project_vercel-env-newline-gotcha` memory. Fresh
 session. Requires Max + coordination on prod (Bob per earlier handoffs).*
 
-- [ ] 6.1 Prod reseed + prune (`seed-exercise-catalog` + general + vertical seeds, then
-      `prune-stale-prompts --generated --orphaned`, `prune-prompts`) — record before/after counts.
-- [ ] 6.2 Flag promotion: enable `FF_MUSCLE_GROUP_WORKOUT`, `FF_TRAINING_ENGINE_V2`,
-      `FF_SKILL_LAB_APPS`, `FF_BUILD_A_REP_V2`, `FF_PROMPT_GEN` in prod (beware trailing-newline env
-      gotcha — verify with `vercel env pull` + grep, then smoke a flag-dependent surface).
-- [ ] 6.3 Prod smoke matrix (see `plans/smoke-matrix.md`) + calibration drift green on new grading.
-- [ ] 6.4 Post-promotion watch: scoring telemetry p95, drift cron next 3 nights, error rates.
+- [x] 6.1 Prod reseed + prune — **already applied via the shared DB in Phase 2** (dev = prod DB). Verified
+      2026-07-17: 102 exercises / 4,148 active prompts / 0 exercises below the slate floor. Did NOT
+      hard-delete the 34.8k `is_active=false` rows — deactivation is deliberately reversible and they
+      don't serve; a hard prune is optional table hygiene, deferred to preserve reversibility.
+- [x] 6.2 Flag promotion — the 5 v2 flags were **already `true` in prod** (set 10–51d ago in earlier
+      deploys; the tracker's "off in prod" notes were stale). Only change needed + made:
+      `FF_PROSODY_WORKER` was wrongly `true` → set to `false` (Max: prosody worker not deployed to prod;
+      `vercel env rm` then `add --value false --no-sensitive --yes`, verified via `env pull`). `AI_PROVIDER=openai`
+      confirmed. `NEXT_PUBLIC_USE_ASYNC_SCORING=false` in prod (so the sync `/api/score` path serves everyone).
+- [x] 6.3 Prod smoke matrix — **non-auth critical items green** on `cognify-v2-neon.vercel.app`: `/` 200 +
+      all 6 security headers (CSP/HSTS/Permissions-Policy `microphone=(self)`/X-Frame-Options DENY/etc.),
+      `/try` + `/dashboard` 200 (no 500), scoring health OpenAI. **SIGNALS score-compression bug confirmed
+      FIXED in prod:** band reps spread 17→73 (poor=17, below=34, competent-exceptional 71–73), real
+      gpt-4o (`openai:gpt-4o-2024-08-06`), rubric v4.0.0, 0 calibration failures. ⛔ **Auth + mic items
+      (matrix #3–#17: Google/email sign-in, workout golden path recording) need Max** — require real
+      credentials + a mic + a connected browser.
+- [ ] 6.4 Post-promotion watch (Max): scoring telemetry p95, drift cron next 3 nights, error rates.
+- **⛔ Blocked on Max / follow-ups (NOT done this session):**
+  - `supabase functions deploy process-rep` — Supabase CLI is not authenticated (no `SUPABASE_ACCESS_TOKEN`).
+    **Non-critical:** async scoring is OFF in prod, so process-rep is off the critical path; deploy it before
+    enabling `NEXT_PUBLIC_USE_ASYNC_SCORING`.
+  - Deploy the prosody worker to prod (`modal deploy` + set `FF_PROSODY_WORKER`/`PROSODY_WORKER_URL`) — Max
+    does this as a follow-up; until then prod tone stays on the text-conservative tier (no breakage).
+  - Drift cron judgment — hold until one nightly run passes on the new pipeline.
+  - Anthropic fallback still reports low credits after the re-up (OpenAI primary is fine); worth a look.
 - **Verify (Max, on prod):** full workout, Lab session, and BaR event end to end; prompt slates
   general + fresh; grading fast; tone reacts to delivery.
 
@@ -544,3 +571,28 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     6/6/headlineTone/nextRepHint/non-mock). Trailing `UV_HANDLE_CLOSING` line is a Windows/libuv
     teardown race after success, not an assertion failure.
   - typecheck + full test suite + lint green. Next: Phase 6 prod promotion.
+- **2026-07-17 (session 9) — Phase 6 prod promotion on `phase-6-prod-promotion`.** Max authorized the
+  prod work. Vercel CLI authed (`maxvolkov202`), project `cognify-v2` (`cognify-v2-neon.vercel.app` is its
+  prod alias). Executed:
+  - **D24 ruling (PR #11 conflict):** kept Owen C10 score-movement softening; amended PRD §4.7.2 with the
+    display rule (delta < −3 → soft copy, ≥ +1 → celebrate) and logged D24. Code and doc now agree; large
+    negatives stay hidden.
+  - **Flag promotion (6.2):** discovered the 5 v2 flags were ALREADY `true` in prod (stale tracker notes);
+    fixed the one wrong one (`FF_PROSODY_WORKER` true→false per Max). `AI_PROVIDER=openai`,
+    `NEXT_PUBLIC_USE_ASYNC_SCORING=false` (sync path serves everyone → the blocked process-rep edge fn is
+    off the critical path).
+  - **Reseed (6.1):** already applied via the shared DB in Phase 2 (4,148 active prompts, 0 thin); no
+    destructive hard-prune (preserves `is_active=false` reversibility).
+  - **Deploy (the headline item):** first `vercel deploy --prod` **build FAILED** — a real latent Phase-4
+    bug: `PrepEventClient` (client) + the client image-downscaler imported constants from `prep/parse.ts`,
+    which dynamic-imports node-only extractors (unpdf/pptx → `node:zlib`), so webpack pulled `node:zlib`
+    into the browser bundle. Tests/typecheck/lint never exercise the bundle boundary, so it only surfaced
+    at deploy. Fixed by splitting client-safe constants into `src/lib/prep/parse-constants.ts` (parse.ts
+    re-exports for server importers); local `next build` + full suite green; redeploy READY
+    (`dpl_7kydKi…`, prod alias repointed).
+  - **Smoke (6.3):** headers + pages + scoring health green; **SIGNALS score-compression bug fixed in
+    prod** (band spread 17→73, real gpt-4o, rubric v4.0.0, 0 calibration failures). Auth/mic matrix items
+    left for Max.
+  - **Handed to Max (blocked/follow-up):** `supabase functions deploy process-rep` (CLI unauthenticated;
+    non-critical while async scoring is off), prosody-worker prod deploy (Modal), drift-cron hold, and the
+    Anthropic-fallback low-credit flag. `/code-review` + PR + self-merge as usual.
