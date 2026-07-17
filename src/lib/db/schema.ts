@@ -541,8 +541,15 @@ export const criticalMoments = cognifyV2Schema.table(
     scoringHint: text("scoring_hint"),
     recommendedSeconds: integer("recommended_seconds").notNull().default(90),
     sortOrder: integer("sort_order").notNull().default(0),
-    /** generated | user (PRD §7.7 — plan is fully editable). */
+    /** generated | user | suggested (PRD §7.7 — plan is fully editable;
+     *  "suggested" = planner-offered optional addition, Edit #2). */
     source: text("source").notNull().default("generated"),
+    /** Edit #3 (migration 0043) — per-moment speaking notes/structure:
+     *  {sections: [{header, bullets[]}]} (TalkingPoints shape).
+     *  AI-generated once, then user-edited in place. */
+    notes: jsonb("notes").$type<{
+      sections: { header: string; bullets: string[] }[];
+    }>(),
     bestComposite: real("best_composite"),
     attempts: integer("attempts").notNull().default(0),
     lastPracticedAt: timestamp("last_practiced_at", { withTimezone: true }),

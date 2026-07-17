@@ -37,6 +37,7 @@ import {
   type SkillDimension,
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
+import { TalkingPointsSidebar } from "@/components/product/TalkingPointsSidebar";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import ImprovementReview, {
   type AttemptPayload,
@@ -51,6 +52,8 @@ import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
   acceptSuggestedMoment,
   addCriticalMoment,
+  generateMomentStructure,
+  saveMomentNotes,
   archivePrepEvent,
   finishPrepSession,
   getPrepEvent,
@@ -96,8 +99,17 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   other: "Event",
 };
 
+/** Edit #3 — what the USER sees on the rep screen: just their question/
+ *  moment title, the way it would be asked in the real event. */
+function momentDisplayPrompt(moment: PrepMoment): string {
+  return moment.title;
+}
+
+/** What the GRADER sees (RepSurface scoringPromptText): the moment plus
+ *  full event context, so scoring stays event-aware while the screen
+ *  stays clean. */
 function momentPrompt(event: PrepEventDetail, moment: PrepMoment): string {
-  const base = `${moment.title} — ${event.title}.`;
+  const base = `${moment.title} (${event.title}).`;
   const objective = moment.objective ? ` ${moment.objective}` : "";
   return `${base}${objective} Deliver it exactly as you would in the real ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"}.`.slice(
     0,
@@ -106,7 +118,7 @@ function momentPrompt(event: PrepEventDetail, moment: PrepMoment): string {
 }
 
 function simulationPrompt(event: PrepEventDetail): string {
-  return `Full simulation: ${event.title}. Deliver the entire ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"} from beginning to end without stopping. Your framework is beside you as a guide — use it or ignore it.`.slice(
+  return `Full simulation: ${event.title}. Deliver the entire ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"} from beginning to end without stopping. Your framework is beside you as a guide. Use it or ignore it.`.slice(
     0,
     500,
   );
@@ -154,11 +166,31 @@ export default function PrepEventClient({
   // §7.7 — "Users may edit the recommended time before beginning";
   // per-moment override edited on the rep screen (MomentInsight).
   const [momentSeconds, setMomentSeconds] = useState<number | null>(null);
+  // Edit #3 — per-moment speaking notes. Auto-generated once per moment
+  // per mount (attempted set guards the failure-retry loop), then
+  // user-edited via the sidebar.
+  const [notesBusy, setNotesBusy] = useState<"generate" | "save" | null>(null);
+  const notesAttempted = useRef<Set<string>>(new Set());
 
   const refreshEvent = useCallback(async () => {
     const fresh = await getPrepEvent(event.id);
     if (fresh) setEvent(fresh);
   }, [event.id]);
+
+  // Edit #3 — auto-draft speaking notes the first time a moment is
+  // opened without any (the attempted set guards the failure-retry
+  // loop); afterwards the sidebar's edit/regenerate own the lifecycle.
+  useEffect(() => {
+    if (view.kind !== "moment") return;
+    const id = view.moment.id;
+    const live = event.moments.find((m) => m.id === id);
+    if (!live || live.notes || notesAttempted.current.has(id)) return;
+    notesAttempted.current.add(id);
+    setNotesBusy("generate");
+    void generateMomentStructure({ momentId: id })
+      .then(() => refreshEvent())
+      .finally(() => setNotesBusy(null));
+  }, [view, event.moments, refreshEvent]);
 
   const ensureSession = useCallback(async (): Promise<string | null> => {
     if (sessionId) return sessionId;
@@ -387,6 +419,10 @@ export default function PrepEventClient({
 
   if (view.kind === "moment" || view.kind === "moment-review") {
     const moment = view.moment;
+    // view.moment is a snapshot taken when the moment was opened; notes
+    // land on the event via refreshEvent, so read them live.
+    const liveMoment =
+      event.moments.find((m) => m.id === moment.id) ?? moment;
     const skillDim = coachFocus ? muscleGroupToSkillDim(coachFocus.dimension) : null;
     const isRetryAttempt = view.kind === "moment" && view.attempt !== "first";
     // L2 (§7.5) — every moment rep (first attempts included) carries the
@@ -451,9 +487,11 @@ export default function PrepEventClient({
         )}
 
         {view.kind === "moment" && view.stage === "rep" && (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
           <RepSurface
             key={`${moment.id}:${view.attempt}`}
-            prompt={momentPrompt(event, moment)}
+            prompt={momentDisplayPrompt(moment)}
+            scoringPromptText={momentPrompt(event, moment)}
             mode="build_a_rep"
             topic={moment.title}
             sessionId={sessionId}
@@ -517,6 +555,35 @@ export default function PrepEventClient({
               view.attempt === "first" ? "Start your Retry →" : "Improvement Review →"
             }
           />
+          {/* Edit #3 — the speaking-notes panel: an AI-drafted structure
+              the user edits freely and keeps beside them during the rep. */}
+          <aside className="self-start lg:sticky lg:top-4">
+            {liveMoment.notes ? (
+              <TalkingPointsSidebar
+                talkingPoints={liveMoment.notes}
+                onEdit={(next) => {
+                  setNotesBusy("save");
+                  void saveMomentNotes({ momentId: moment.id, notes: next })
+                    .then(() => refreshEvent())
+                    .finally(() => setNotesBusy(null));
+                }}
+                onRegenerate={() => {
+                  setNotesBusy("generate");
+                  void generateMomentStructure({ momentId: moment.id })
+                    .then(() => refreshEvent())
+                    .finally(() => setNotesBusy(null));
+                }}
+                regenerating={notesBusy === "generate"}
+              />
+            ) : (
+              <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 text-xs text-slate-500 dark:text-ink-400">
+                {notesBusy === "generate"
+                  ? "Drafting your speaking notes…"
+                  : "Speaking notes will appear here."}
+              </div>
+            )}
+          </aside>
+          </div>
         )}
 
         {/* §7.7 — the first-feedback screen's "Continue to Next Critical

@@ -39,6 +39,11 @@ type SpeakingThreshold = {
 
 type Props = {
   prompt: string;
+  /** Edit #3 — when set, scoring/transcript persistence use THIS text
+   *  while the user sees `prompt`. Lets Build-a-Rep show just the
+   *  question ("Tell me about yourself") while the grader still gets
+   *  the full event context sentence. Defaults to `prompt`. */
+  scoringPromptText?: string;
   framework?: Framework;
   mode?: ModeId;
   topic?: string;
@@ -218,6 +223,7 @@ const USE_ASYNC_SCORING =
 
 export function RepSurface({
   prompt,
+  scoringPromptText,
   framework,
   mode = "scenario_training",
   topic,
@@ -512,7 +518,7 @@ export function RepSurface({
 
       const pending = await insertPendingRep({
         mode,
-        promptText: prompt,
+        promptText: scoringPromptText ?? prompt,
         durationMs: result.durationMs,
         transcript,
         audioPath: audioUrl,
@@ -563,7 +569,7 @@ export function RepSurface({
       transcript:
         transcript ||
         `Rep recorded for ${Math.round(result.durationMs / 1000)}s on: ${prompt}`,
-      promptText: prompt,
+      promptText: scoringPromptText ?? prompt,
       durationMs: result.durationMs,
       ...(words.length > 0 ? { words } : {}),
       ...(framework
@@ -647,7 +653,7 @@ export function RepSurface({
     try {
       const saved = await saveRep({
         mode,
-        promptText: prompt,
+        promptText: scoringPromptText ?? prompt,
         durationMs: result.durationMs,
         transcript,
         audioUrl,
