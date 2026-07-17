@@ -5,55 +5,27 @@
 // Raw files land in Supabase Storage; only the extracted text (capped)
 // is injected into Preparation Plan / coaching generation.
 
-/** Hard cap on stored parsed text. Resumes/JDs are a few thousand chars;
- *  the cap only bites on pasted decks or long docs, where the head of
- *  the document carries most of the personalization value anyway. */
-export const PREP_PARSED_TEXT_CAP = 50_000;
+// Client-safe constants + the ParseResult type live in ./parse-constants
+// (no node: imports) so client components can import them without dragging
+// this module's node-only document extractors into the browser bundle.
+// Re-exported here so existing server-side `@/lib/prep/parse` imports keep
+// working unchanged.
+export {
+  PREP_PARSED_TEXT_CAP,
+  PREP_UPLOAD_MAX_BYTES,
+  PREP_ACCEPTED_EXTENSIONS,
+  PREP_ACCEPT_ATTR,
+  IMAGE_MIME_BY_EXT,
+  VISION_IMAGE_MIMES,
+} from "./parse-constants";
+export type { ParseResult } from "./parse-constants";
 
-/** Per-file upload cap (bytes). Matches the recording-upload ceiling
- *  and stays comfortably under Vercel's request-body limit. */
-export const PREP_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
-
-export const PREP_ACCEPTED_EXTENSIONS = [
-  ".pdf",
-  ".docx",
-  ".pptx",
-  ".txt",
-  ".md",
-  // Edit #1 — photo-library uploads (job postings, slides, whiteboards,
-  // schedules). Parsed to text via vision at upload time.
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".webp",
-  ".gif",
-] as const;
-
-/** The file-picker accept attribute. `image/*` (not just extensions)
- *  is what makes iOS offer the photo library. */
-export const PREP_ACCEPT_ATTR = ".pdf,.docx,.pptx,.txt,.md,image/*";
-
-/** Single source of truth for vision-parseable images — drives the
- *  extension detection here, the client-side downscaler's passthrough
- *  check, and the vision module's mime gate. (HEIC is NOT here: the
- *  vision API doesn't take it; the client downscaler transcodes HEIC
- *  to JPEG on browsers that can decode it.) */
-export const IMAGE_MIME_BY_EXT = {
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-} as const;
-
-export const VISION_IMAGE_MIMES = [
-  ...new Set(Object.values(IMAGE_MIME_BY_EXT)),
-] as const;
-
-export type ParseResult =
-  | { status: "parsed"; text: string }
-  | { status: "failed"; text: null }
-  | { status: "unsupported"; text: null };
+import {
+  PREP_PARSED_TEXT_CAP,
+  IMAGE_MIME_BY_EXT,
+  VISION_IMAGE_MIMES,
+} from "./parse-constants";
+import type { ParseResult } from "./parse-constants";
 
 function normalize(text: string): string {
   return text
