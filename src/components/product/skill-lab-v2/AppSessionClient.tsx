@@ -717,9 +717,15 @@ function SessionComplete({
         }
       }
     }
-    return SKILL_DIMENSIONS.filter((dim) => byDim.has(dim)).map((dim) => ({
+    // §6.8/§5.7 fidelity — the breakdown is "all six Core Skills":
+    // ungraded dims render as explicit placeholders instead of silently
+    // shrinking the grid (a 4-tile grid hides that two skills went
+    // unmeasured this session).
+    return SKILL_DIMENSIONS.map((dim) => ({
       dimension: dim,
-      score: Math.round(byDim.get(dim)!.total / byDim.get(dim)!.n),
+      score: byDim.has(dim)
+        ? Math.round(byDim.get(dim)!.total / byDim.get(dim)!.n)
+        : null,
     }));
   })();
 
@@ -778,7 +784,14 @@ function SessionComplete({
           {scoreValue != null ? <CountUpScore value={scoreValue} /> : "—"}
         </div>
         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500 mt-1">
-          {label} score
+          {/* §6.8 fidelity — when the profile summary fetch failed we
+              fall back to this session's retry average, which is a
+              DIFFERENT metric than the persistent Application Score;
+              label it honestly so the hub's number later doesn't read
+              as a phantom drop. */}
+          {summary?.applicationScore != null
+            ? `${label} score`
+            : `This session's average`}
         </div>
       </div>
 
@@ -817,7 +830,7 @@ function SessionComplete({
         </div>
       )}
 
-      {coreBreakdown.length > 0 && (
+      {coreBreakdown.some((d) => d.score != null) && (
         <div className="w-full max-w-md mt-1">
           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-ink-500 mb-2">
             Core Skills this session
@@ -832,7 +845,7 @@ function SessionComplete({
                   {DIMENSION_LABELS[d.dimension as SkillDimension] ?? d.dimension}
                 </span>
                 <span className="text-xs font-bold tabular-nums text-slate-900 dark:text-white">
-                  {d.score}
+                  {d.score ?? "—"}
                 </span>
               </div>
             ))}

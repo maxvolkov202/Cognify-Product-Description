@@ -70,8 +70,8 @@ export function WeakestLinkCard({
           </p>
           <p className="mt-1 text-[12px] leading-relaxed text-ink-500 dark:text-ink-400">
             {totalReps === 0
-              ? "Run your first rep to start building a per-dimension picture."
-              : `Need at least 10 reps in a dimension before we can call out a weakness. You have ${totalReps} total so far — keep going.`}
+              ? "Run your first rep to start building your Core Skill picture."
+              : `Need at least 10 reps in a Core Skill before we can call out a weakness. You have ${totalReps} total so far — keep going.`}
           </p>
         </div>
       </section>

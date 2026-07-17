@@ -238,7 +238,7 @@ function ScoringVisual() {
     { label: "Structure", group: "Content", pct: 82 },
     { label: "Conciseness", group: "Content", pct: 74 },
     { label: "Thinking", group: "Content", pct: 80 },
-    { label: "Delivery", group: "Delivery", pct: 71 },
+    { label: "Pacing", group: "Delivery", pct: 71 },
     { label: "Tone", group: "Delivery", pct: 85 },
   ];
   return (

@@ -56,7 +56,7 @@ export function BaselineRep() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">
                 Scored across
               </p>
-              <p className="mt-0.5 font-bold">All 6 dimensions</p>
+              <p className="mt-0.5 font-bold">All 6 Core Skills</p>
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500">

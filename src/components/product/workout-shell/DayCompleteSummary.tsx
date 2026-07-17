@@ -127,7 +127,7 @@ export default function DayCompleteSummary({
           {composite != null ? <CountUpScore value={Math.round(composite)} /> : "—"}
         </div>
         <div className="mt-1 text-xs text-slate-500 dark:text-ink-400 uppercase tracking-wider">
-          Composite
+          Communication Score
         </div>
         {delta != null && (
           <div
@@ -270,6 +270,40 @@ export default function DayCompleteSummary({
         </div>
       )}
 
+      {/* §5.7 Core Skill Breakdown — current performance across all six
+          Core Skills, always visible when the day produced any scored
+          rep (the trend chart below needs ≥2 reps and shows movement,
+          not current values). */}
+      {reps.length >= 1 && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-2">
+            Core Skill breakdown
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {ALL_DIMS.map((d) => {
+              const vals = reps
+                .filter((r) => !r.isGraduationRep)
+                .map((r) => r.perDim[d])
+                .filter((v): v is number => v != null);
+              const avg =
+                vals.length > 0
+                  ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
+                  : null;
+              return (
+                <div key={d} className="rounded-xl bg-slate-50 dark:bg-ink-800 p-2 text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-ink-400 truncate">
+                    {DIMENSION_LABELS[d]}
+                  </div>
+                  <div className="mt-0.5 text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">
+                    {avg ?? "—"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Per-dim trend line */}
       {reps.length >= 2 && (
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 shadow-sm">
@@ -282,7 +316,7 @@ export default function DayCompleteSummary({
             )}
           />
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-ink-400 mb-2">
-            Per-dimension trend
+            Core Skill trend
           </div>
           <DimTrendChart reps={reps} />
           <div className="mt-3 flex flex-wrap gap-2 justify-center">
@@ -705,9 +739,13 @@ function StatPill({
 function findMostImprovedDim(
   reps: DayRepBreakdown[],
 ): { dim: SkillDimension; delta: number } | null {
-  const normal = reps.filter(
+  // Same W6 semantics + §5.7 fallback as computeWorkoutMovement below.
+  let normal = reps.filter(
     (r) => !r.isGraduationRep && r.attemptKind === "first",
   );
+  if (normal.length < 2) {
+    normal = reps.filter((r) => !r.isGraduationRep);
+  }
   if (normal.length < 2) return null;
   const first = normal[0]!;
   const last = normal[normal.length - 1]!;
@@ -732,16 +770,24 @@ function findMostImprovedDim(
 function computeWorkoutMovement(
   reps: DayRepBreakdown[],
 ): { label: string; delta: number }[] {
-  const normal = reps.filter(
+  // W6 — first attempts only, so retry lift doesn't inflate the
+  // beginning-to-end story. §5.7 fidelity fallback: with fewer than two
+  // first attempts (single-exercise day + retries), fall back to ALL
+  // non-graduation reps rather than hiding the improvement section on
+  // exactly the day the retry gain was the story.
+  let normal = reps.filter(
     (r) => !r.isGraduationRep && r.attemptKind === "first",
   );
+  if (normal.length < 2) {
+    normal = reps.filter((r) => !r.isGraduationRep);
+  }
   if (normal.length < 2) return [];
   const first = normal[0]!;
   const last = normal[normal.length - 1]!;
   const out: { label: string; delta: number }[] = [];
   const compositeDelta = Math.round(last.composite - first.composite);
   if (compositeDelta >= -3) {
-    out.push({ label: "Composite", delta: compositeDelta });
+    out.push({ label: "Communication Score", delta: compositeDelta });
   }
   const dimDeltas = ALL_DIMS.map((d) => {
     const a = first.perDim[d];
@@ -830,8 +876,13 @@ function buildCoachRecommendation(
   if (!weakest) return null;
   const label = DIMENSION_LABELS[weakest.dim];
   const roundedAvg = Math.round(weakest.avg);
-  const isEvenUtcDay = new Date().getUTCDate() % 2 === 0;
-  if (roundedAvg >= 70 || isEvenUtcDay) {
+  // §5.7 fidelity — the recommendation is driven by development VALUE,
+  // never the calendar (the old even-UTC-day branch handed out Lab
+  // recommendations regardless of how weak the skill was). A genuinely
+  // weak Core Skill (<70) earns the targeted drill; once the weakest
+  // skill is holding ≥70, applying it under realistic conditions in the
+  // Lab is the higher-value next step.
+  if (roundedAvg >= 70) {
     const applicationId = DIM_TO_APPLICATION[weakest.dim];
     return {
       kind: "lab",

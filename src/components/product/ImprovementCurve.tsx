@@ -146,7 +146,7 @@ export function ImprovementCurve({
               Improvement curve
             </h2>
             <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
-              Daily composite score · all reps, all dimensions averaged
+              Daily Communication Score · all reps, all Core Skills averaged
             </p>
           </div>
           <RangeTabs range={range} onChange={setRange} />

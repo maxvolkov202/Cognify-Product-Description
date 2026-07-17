@@ -116,6 +116,7 @@ export default function RepControls({
   attempt = "first",
   firstAttempt = null,
   retryAttempt = null,
+  retryAttempt = null,
   isLastStation = false,
   repsCompleted = 0,
   totalStations = 4,
@@ -195,6 +196,7 @@ export default function RepControls({
             loop={loop}
             attempt={attempt}
             firstAttempt={firstAttempt}
+            retryAttempt={retryAttempt}
             totalStations={totalStations}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
@@ -340,6 +342,7 @@ function ActiveRep({
   loop?: LoopVariant;
   attempt?: AttemptKind;
   firstAttempt?: AttemptPayload | null;
+  retryAttempt?: AttemptPayload | null;
   totalStations?: number;
   onRepScored?: (params: {
     composite: number | null;
@@ -371,15 +374,23 @@ function ActiveRep({
   // and the attempt lineage for saveRep.
   const isEngineRetry =
     loop === "v2" && !graduation && attempt !== "first" && !!firstAttempt;
+  // §4.7 fidelity — "Coach's Focus becomes the next development
+  // opportunity": a plain retry implements the FIRST rep's focus, but
+  // "Run it again" (attempt="again", entered from the Improvement
+  // Review) implements the focus the review just assigned — which is
+  // derived from the RETRY's score. Base everything (overlay, scoring
+  // retryContext, comparison baseline) on that attempt.
+  const baseAttempt =
+    attempt === "again" && retryAttempt ? retryAttempt : firstAttempt;
   const coachFocus =
-    isEngineRetry && firstAttempt ? deriveCoachFocus(firstAttempt.score) : null;
+    isEngineRetry && baseAttempt ? deriveCoachFocus(baseAttempt.score) : null;
   // §4.6 retry focus + Stronger Version — one shared derivation for
   // every surface (see deriveRetryFocus).
   const retryFocus =
-    isEngineRetry && firstAttempt ? deriveRetryFocus(firstAttempt.score) : null;
+    isEngineRetry && baseAttempt ? deriveRetryFocus(baseAttempt.score) : null;
   const skillDim = dimension ? muscleGroupToSkillDim(dimension) : null;
   const retryModeContext: ScoreRepModeContext | null =
-    isEngineRetry && firstAttempt && coachFocus && skillDim
+    isEngineRetry && baseAttempt && coachFocus && skillDim
       ? {
           sessionType: "focus",
           focusDimension: skillDim,
@@ -387,8 +398,8 @@ function ActiveRep({
           totalReps: totalStations,
           retryContext: {
             attempt: attempt === "again" ? "again" : "retry",
-            firstTranscript: firstAttempt.transcript,
-            firstComposite: firstAttempt.score.composite ?? null,
+            firstTranscript: baseAttempt.transcript,
+            firstComposite: baseAttempt.score.composite ?? null,
             coachFocus: {
               dimension: coachFocus.dimension,
               subSkill: coachFocus.subSkill,
@@ -432,16 +443,20 @@ function ActiveRep({
       isGraduationRep={!!graduation}
       {...(framework ? { repTypeFramework: framework } : {})}
       {...(retryFocus ? { retryFocus } : {})}
-      {...(isEngineRetry && firstAttempt
+      {...(isEngineRetry && baseAttempt && firstAttempt
         ? {
+            // Comparison baseline follows the coached focus: the rep
+            // being implemented against (retry take on "again"
+            // attempts). Lineage still roots at the FIRST rep so the
+            // coaching ledger's verdict back-fill stays anchored.
             previousRepSummary: {
-              composite: firstAttempt.score.composite,
-              dimensions: firstAttempt.score.dimensions.map((d) => ({
+              composite: baseAttempt.score.composite,
+              dimensions: baseAttempt.score.dimensions.map((d) => ({
                 dimension: d.dimension,
                 score: d.score,
               })),
-              topWeakness: deriveTopWeakness(firstAttempt.score),
-              transcript: firstAttempt.transcript,
+              topWeakness: deriveTopWeakness(baseAttempt.score),
+              transcript: baseAttempt.transcript,
               promptText: selectedPrompt.text,
             },
             attemptKind: attempt,
