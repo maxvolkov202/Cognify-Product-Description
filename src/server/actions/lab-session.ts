@@ -17,10 +17,6 @@ import { db } from "@/lib/db/client";
 import { exercises, practiceSessions, reps } from "@/lib/db/schema";
 import { currentUser } from "@/lib/session/current-user";
 import { buildCommunicationSnapshot } from "@/lib/profile/snapshot";
-import {
-  SUB_SKILL_TO_DIMENSION,
-  canonicalizeSubSkillId,
-} from "@/types/sub-skills";
 import { safeDb } from "@/lib/db/safe";
 import { log } from "@/lib/log";
 import {
@@ -35,6 +31,7 @@ import {
   pressureArchetypeSequence,
   pressureIndexFor,
   rotateExercises,
+  weakestHiddenSkillFor,
   FLOW_RAMP,
 } from "@/server/lib/lab-session-planning";
 import {
@@ -129,7 +126,10 @@ type LabUserContext = {
 
 async function loadLabUserContext(): Promise<LabUserContext | null> {
   const user = await currentUser();
-  if (!user) return null;
+  // Guests keep the legacy random behavior — currentUser() also returns
+  // guest-cookie identities, and building a snapshot + counters for a
+  // throwaway profile is wasted work.
+  if (!user || user.kind !== "authenticated") return null;
   const [[countRow], snapshot] = await Promise.all([
     db
       .select({ n: sql<number>`count(*)::int` })
@@ -139,9 +139,23 @@ async function loadLabUserContext(): Promise<LabUserContext | null> {
   ]);
   return {
     userId: user.id,
+    // NOT a per-session counter: lab flows self-create one
+    // practice_sessions row per REP, so raw counts advance in
+    // session-sized strides and `count % 5` can alias to the same
+    // archetype forever (a habitual 5-rep session user would never
+    // rotate). rotationIndex() hash-spreads it instead.
     sessionCount: countRow?.n ?? 0,
     hiddenSkills: snapshot?.profile.hiddenSkills ?? {},
   };
+}
+
+/** Deterministic, alias-free rotation index: Knuth multiplicative hash
+ *  over the activity counter, so fixed per-session strides (e.g. +5
+ *  rows from a 5-rep session) still land on a different archetype next
+ *  session while staying stable within one planning call. */
+function rotationIndex(ctx: LabUserContext, modulo: number): number {
+  const mixed = (ctx.sessionCount * 2654435761) >>> 0;
+  return mixed % modulo;
 }
 
 /** Recently practiced exercise ids (any attempt) within the dedupe
@@ -169,25 +183,7 @@ async function loadRecentExerciseIds(
   );
 }
 
-/** §8.5.4 — the weakest measured hidden skill within a dimension
- *  (≥3 samples). Used as an automatic exercise bias when the user
- *  didn't deep-link one; personalization grows with evidence. */
-function weakestHiddenSkillFor(
-  ctx: LabUserContext | null,
-  dim: SkillDimension,
-): SubSkillId | undefined {
-  if (!ctx) return undefined;
-  let best: { id: SubSkillId; score: number } | null = null;
-  for (const [rawId, est] of Object.entries(ctx.hiddenSkills)) {
-    if (!est || est.sampleCount < 3) continue;
-    const id = canonicalizeSubSkillId(rawId);
-    if (!id || SUB_SKILL_TO_DIMENSION[id as SubSkillId] !== dim) continue;
-    if (!best || est.score < best.score) {
-      best = { id: id as SubSkillId, score: est.score };
-    }
-  }
-  return best?.id;
-}
+
 
 /** Slate one slot's prompts from its exercise's catalog bank. Reuses the
  *  prompt-selection picker (tier cascade, difficulty bias, session
@@ -309,7 +305,7 @@ export async function planLabSession(
       pressureIndex >= 0
         ? PRESSURE_ARCHETYPES[
             (ctx
-              ? FLOW_RAMP[ctx.sessionCount % FLOW_RAMP.length]
+              ? FLOW_RAMP[rotationIndex(ctx, FLOW_RAMP.length)]
               : shuffle([...FLOW_RAMP])[0]) ?? "pushback"
           ]
         : null;
@@ -353,7 +349,8 @@ export async function planLabSession(
         input.style === "focus" ? input.preferSubSkill : undefined;
       // §8.5.4 — no deep-linked skill? bias toward the user's weakest
       // measured hidden skill in this dimension (grows with evidence).
-      const autoPrefer = userPrefer ?? weakestHiddenSkillFor(ctx, dim);
+      const autoPrefer =
+        userPrefer ?? (ctx ? weakestHiddenSkillFor(ctx.hiddenSkills, dim) : undefined);
       const dimShuffle = ctx
         ? <T,>(arr: T[]): T[] =>
             seededShuffle(arr, `${ctx.userId}:${dim}:${ctx.sessionCount}`)
@@ -364,6 +361,10 @@ export async function planLabSession(
         dimShuffle,
         autoPrefer,
         recentIds,
+        // A user deep-link outranks recency; the automatic weakness
+        // bias yields to it (otherwise a single tagged exercise would
+        // lead every session forever, immune to the dedupe window).
+        userPrefer ? "hard" : "soft",
       );
       if (picks.length === 0) {
         log.warn({ event: "lab_session.no_exercises", dimension: dim });
@@ -445,7 +446,7 @@ async function planPressure(
   const archetypeIds = pressureArchetypeSequence(
     count,
     ctx
-      ? ctx.sessionCount % FLOW_RAMP.length
+      ? rotationIndex(ctx, FLOW_RAMP.length)
       : Math.floor(Math.random() * FLOW_RAMP.length),
   );
   const pressureByArchetype = await loadPressureExercises();

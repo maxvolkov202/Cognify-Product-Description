@@ -164,13 +164,13 @@ export default function DayCompleteSummary({
       <ProgressionStrip />
 
       {/* §5.7 Workout Improvement — beginning-to-end of THIS workout. */}
-      {workoutMovement.length > 0 && (
+      {workoutMovement.items.length > 0 && (
         <div className="text-center">
           <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500 mb-1.5">
             This workout
           </div>
           <div className="flex flex-wrap justify-center gap-1.5">
-            {workoutMovement.map((m) => (
+            {workoutMovement.items.map((m) => (
               <span
                 key={m.label}
                 className={cn(
@@ -184,6 +184,11 @@ export default function DayCompleteSummary({
               </span>
             ))}
           </div>
+          {workoutMovement.includesRetries && (
+            <p className="mt-1.5 text-[11px] text-slate-400 dark:text-ink-500">
+              Includes your coached retry, from first take to final take.
+            </p>
+          )}
         </div>
       )}
 
@@ -369,7 +374,15 @@ export default function DayCompleteSummary({
               Train {recommendation.label} in the Skill Lab →
             </Link>
           ) : (
-            recommendation.text
+            <>
+              {recommendation.text}{" "}
+              <Link
+                href={`/skill-lab/${recommendation.lab.applicationId}`}
+                className="font-semibold text-purple-700 dark:text-brand-lavender underline decoration-purple-300 dark:decoration-brand-purple/60 underline-offset-2 hover:text-purple-900 dark:hover:text-white"
+              >
+                Or apply it: {recommendation.lab.label} →
+              </Link>
+            </>
           )}
         </div>
       )}
@@ -767,9 +780,13 @@ function findMostImprovedDim(
  *  quiet per C10. W6: FIRST attempts only, so the beginning-to-end
  *  movement compares fresh takes on each exercise rather than crediting
  *  a coached retry against a cold first rep. */
-function computeWorkoutMovement(
-  reps: DayRepBreakdown[],
-): { label: string; delta: number }[] {
+function computeWorkoutMovement(reps: DayRepBreakdown[]): {
+  items: { label: string; delta: number }[];
+  /** True when the fallback engaged and the delta includes coached
+   *  retries — the UI labels it so a retry gain isn't presented as
+   *  day-level movement (retries score higher almost by construction). */
+  includesRetries: boolean;
+} {
   // W6 — first attempts only, so retry lift doesn't inflate the
   // beginning-to-end story. §5.7 fidelity fallback: with fewer than two
   // first attempts (single-exercise day + retries), fall back to ALL
@@ -778,10 +795,12 @@ function computeWorkoutMovement(
   let normal = reps.filter(
     (r) => !r.isGraduationRep && r.attemptKind === "first",
   );
+  let includesRetries = false;
   if (normal.length < 2) {
     normal = reps.filter((r) => !r.isGraduationRep);
+    includesRetries = normal.some((r) => r.attemptKind !== "first");
   }
-  if (normal.length < 2) return [];
+  if (normal.length < 2) return { items: [], includesRetries: false };
   const first = normal[0]!;
   const last = normal[normal.length - 1]!;
   const out: { label: string; delta: number }[] = [];
@@ -801,7 +820,7 @@ function computeWorkoutMovement(
     )
     .sort((a, b) => b.delta - a.delta)
     .slice(0, 3);
-  return [...out, ...dimDeltas];
+  return { items: [...out, ...dimDeltas], includesRetries };
 }
 
 /** The day's weakest average dimension (graduation rep excluded) — drives
@@ -840,19 +859,24 @@ const DIM_TO_APPLICATION: Record<SkillDimension, ApplicationId> = {
 };
 
 type CoachRecommendation =
-  | { kind: "drill"; text: string }
+  | {
+      kind: "drill";
+      text: string;
+      /** Lab discovery for users still grinding below the drill/lab
+       *  threshold: the related application, offered as a secondary
+       *  line (value-driven replacement for the old even-UTC-day
+       *  alternation, which handed out Lab recommendations by calendar
+       *  parity regardless of weakness). */
+      lab: { applicationId: ApplicationId; label: string };
+    }
   | { kind: "lab"; applicationId: ApplicationId; label: string };
 
-/** Coach recommendation (PRD §5.7): the next highest-value move, from the
- *  day's weakest average dimension. Deterministic Phase 2 copy — Phase 3's
- *  coaching memory replaces this with a personalized recommendation.
- *
- *  W7 branch rule (deterministic, documented): recommend the Skill Lab
- *  when the weakest dim averaged >= 70 (the fundamentals aren't broken,
- *  so the next gain comes from applying them in a real-world context) OR
- *  on even UTC days-of-month (a simple alternating-day cadence so the
- *  Lab still surfaces regularly for users grinding below 70). Otherwise
- *  keep the targeted drill recommendation. */
+/** Coach recommendation (PRD §5.7): the next highest-value development
+ *  opportunity, from the day's weakest average Core Skill. Value-driven
+ *  only (Phase 5 fidelity sweep): weakest skill >= 70 → the next gain
+ *  comes from APPLYING it, so the Lab leads; below 70 → the targeted
+ *  drill leads and the related Lab application rides along as a
+ *  secondary link so Lab discovery doesn't vanish for strugglers. */
 function buildCoachRecommendation(
   reps: DayRepBreakdown[],
 ): CoachRecommendation | null {
@@ -890,8 +914,10 @@ function buildCoachRecommendation(
       label: APPLICATION_LABELS[applicationId],
     };
   }
+  const applicationId = DIM_TO_APPLICATION[weakest.dim];
   return {
     kind: "drill",
-    text: `${label} averaged ${roundedAvg} today — it's the highest-value muscle to hit next.`,
+    text: `${label} averaged ${roundedAvg} today. It's the highest-value muscle to hit next.`,
+    lab: { applicationId, label: APPLICATION_LABELS[applicationId] },
   };
 }

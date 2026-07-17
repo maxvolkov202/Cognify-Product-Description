@@ -118,10 +118,15 @@ export async function fetchPromptCandidates(input: {
       // assessment day count is served, prompt tiers stay broad
       // (general-first); vertical/goal personalization kicks in after.
       try {
+        // Same 30-day lookback the canonical assessment check uses
+        // (isAssessmentActive over recentDays) so a lapsed user being
+        // re-assessed gets breadth again instead of vertical-narrowed
+        // slates mid-re-assessment.
         const [dayRow] = await db.execute<{ n: number }>(drizzleSql`
           SELECT count(*)::int AS n
           FROM cognify_v2.muscle_group_days
           WHERE user_id = ${user.id}
+            AND created_at >= NOW() - INTERVAL '30 days'
         `);
         if ((dayRow?.n ?? 0) < ASSESSMENT_DAYS) {
           userVertical = null;
@@ -187,7 +192,14 @@ export async function fetchPromptCandidates(input: {
             : [],
         );
         if (skippedIds.length > 0) {
-          recentPromptIds = [...new Set([...recentPromptIds, ...skippedIds])];
+          // Practiced ids are capped BEFORE the union: pickPromptCandidates
+          // reads only the head of this list, and an active user's 30
+          // practiced rows would otherwise slice every skipped id off —
+          // silently disabling the skip memory for exactly the users
+          // whose banks most need freshness.
+          recentPromptIds = [
+            ...new Set([...recentPromptIds.slice(0, 20), ...skippedIds]),
+          ].slice(0, 60);
         }
       } catch (err) {
         // Bias signals are nice-to-have. If the queries fail (rare —
