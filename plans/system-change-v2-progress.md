@@ -218,29 +218,29 @@ sessions.*
 - **Verify after merge (Max):** grade 3 reps on dev — feedback arrives noticeably faster, includes
   stronger version, tone score changes when you deliberately speak in monotone vs with energy.
 
-### Phase 4 — Build a Rep edits (the 12) + coaching quality ⬜
+### Phase 4 — Build a Rep edits (the 12) + coaching quality ✅ (2026-07-17, feat/bar-edits)
 *PRD refs: "Edits" section, §7, §4.6–4.7. Fresh session. Depends on Phase 3 (stronger version,
 grading speed already fixed there).*
 
-- [ ] 4.1 (#2) Moment intake honors user-specified questions: when the description names specific
+- [x] 4.1 (#2) Moment intake honors user-specified questions: when the description names specific
       questions/moments, generate ONLY those + clearly-offered "add more" suggestions; full
       configurability (already have add/rename/reorder/delete — fix generation respecting intent).
-- [ ] 4.2 (#3) Rep screen redesign: show just the user's question/moment title as the prompt; add
+- [x] 4.2 (#3) Rep screen redesign: show just the user's question/moment title as the prompt; add
       side notes panel with AI-generated editable speaking structure (persisted per moment).
-- [ ] 4.3 (#1) Context upload: accept images (photo library) — vision parse to text; fix `accept`
+- [x] 4.3 (#1) Context upload: accept images (photo library) — vision parse to text; fix `accept`
       attr (already missing `.pptx`).
-- [ ] 4.4 (#5/#7/#8) Coaching quality: coach's focus grounded in user's transcript with actionable
+- [x] 4.4 (#5/#7/#8) Coaching quality: coach's focus grounded in user's transcript with actionable
       retry insights; implementation-rep insights must be event-relevant (interview prep ≠ generic);
       improvement review reports core-skill movement + how well feedback was implemented + what to
       do next rep.
-- [ ] 4.5 (#6) Core-skill feedback always present in Build a Rep feedback panel (audit why it was
+- [x] 4.5 (#6) Core-skill feedback always present in Build a Rep feedback panel (audit why it was
       absent; likely feedbackVariant/v2 gap).
-- [ ] 4.6 (#10) Post-rep options everywhere in BaR: Retry / Next moment / Back to plan / Exit —
+- [x] 4.6 (#10) Post-rep options everywhere in BaR: Retry / Next moment / Back to plan / Exit —
       audit each screen's CTA set.
-- [ ] 4.7 (#12) Recording playback on Improvement Review + Readiness Review screens.
-- [ ] 4.8 (#4/#9) Copy pass: plain language, no em-dashes, no jargon; "events" section headers;
+- [x] 4.7 (#12) Recording playback on Improvement Review + Readiness Review screens.
+- [x] 4.8 (#4/#9) Copy pass: plain language, no em-dashes, no jargon; "events" section headers;
       kill the "0 critical moments" state (show real count or better empty state).
-- [ ] 4.9 Session summary header (#1's second half): cleaner "what I'm practicing" framing.
+- [x] 4.9 Session summary header (#1's second half): cleaner "what I'm practicing" framing.
 - **Exit criteria:** all 12 edits addressed or explicitly deferred with reason logged here.
 - **Verify after merge (Max):** run a full BaR flow on dev: create event naming 3 specific questions
   → plan shows exactly those 3 → rep screen shows question + notes panel → feedback has core skills +
@@ -420,3 +420,44 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     PROSODY_WORKER_URL in prod (until then prod tone runs the text-conservative tier — no
     breakage); prod flag state otherwise unchanged (v4 pass itself ships unflagged per Max's
     approved clean-break ruling — prod only changes when Phase 6 deploys).
+- **2026-07-17 (session 6, same session as Phase 3) — Phase 4: Build a Rep edits (the 12) on
+  `feat/bar-edits`.** All 12 edits addressed (#5 stronger version + #11 faster grading were
+  Phase 3's; #6 verified fixed by Phase 3's layout convergence).
+  - **#2 user-named questions:** planner rule 1a — named questions become EXACTLY the plan
+    (schema min 4→1, first 9 kept, max_tokens 3200 so long lists can't truncate into the
+    generic fallback); extras persist as source='suggested' (sortOrder band 1000+) in a
+    dismissible "Want to add any of these?" rail; acceptSuggestedMoment promotes them.
+    getPrepEvent splits moments/suggestions so all consumers keep treating moments as the
+    practice list; all-suggested plans are promoted rather than creating zero-practice events.
+  - **#3 rep screen:** RepSurface gained `scoringPromptText` — BaR shows just the question
+    while the grader keeps the full event sentence (format kept byte-identical to pre-branch:
+    promptText is /compare's grouping key). Per-moment speaking notes
+    (critical_moments.notes jsonb, migration 0043, applied to shared DB): auto-drafted via the
+    talking-points generator (moment-specific deterministic fallback when the model's down;
+    failed REGENERATE never overwrites user edits), edited in place via TalkingPointsSidebar,
+    sticky beside the recorder. Pure logic in src/lib/prep/moment-notes.ts (+tests).
+  - **#1 uploads:** accept fixed (.pptx was parseable but not accepted) + image/* for the photo
+    library; images vision-parse to text (OpenAI, best-effort); client-side downscale to
+    1600px JPEG keeps phone photos under the 4MB cap, cuts vision cost, and transcodes HEIC
+    where the browser can decode it (HEIC on Chrome stays unsupported — known limitation).
+  - **#7/#8 coaching:** event-context block now instructs coaching outputs to target THIS
+    event (only-when-present ⇒ reference prompts stay byte-identical; formal replay still
+    queued behind the credits blocker with Phase 3's); Improvement Review renders the v4
+    behavior/why/action focus, per-skill deltas, implementation verdict, and (#12) Listen-back
+    scrubbers for both takes; Readiness Review plays the simulation recording; blob URLs
+    revoked when reviews are left (leak fix).
+  - **#10 CTAs:** first-rep feedback offers Retry (primary) / skip-to-next / back-to-plan;
+    scored retries land on Improvement Review's next/again/plan set. (A naive retry-branch CTA
+    row was caught by review rendering stale navigation under a live recorder — removed.)
+  - **#4/#9 copy:** all user-facing em-dashes out of BaR (incl. ~40 fallback-plan strings;
+    paired dashes → parentheses); planner prompt bans em-dashes in every generated user-facing
+    field; "Events you're preparing for" header; no "0 Critical Moments" (→ "Plan ready to
+    build"); plan header gains the "You're practicing N moments (~M min)" summary line.
+  - **/code-review (6 finder angles) → all verified findings fixed** (headliners in the fix
+    commit: stale CTA row, regenerate-destroys-notes, unreachable fallback, zero-practice
+    plans, promptText identity break, notes dead ends, blob leak, 4MB photo wall).
+    Accepted trade-offs logged: acceptSuggestedMoment does 3 sequential round trips (minor
+    race on concurrent accepts), generateMomentStructure uses two selects not a join.
+  - **Verification limitation: both AI providers are still out of credits**, so plan
+    generation/notes/vision were exercised through their deterministic fallbacks + unit tests
+    only; the LLM paths need a live smoke after re-up (see Max checklist in the PR).

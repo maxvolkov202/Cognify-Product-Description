@@ -81,7 +81,7 @@ export default function PrepHome({
         </h1>
         <p className="mt-3 max-w-2xl text-base text-slate-600 dark:text-ink-300">
           Describe the interview, presentation, pitch, or toast you&apos;re
-          preparing for. Cognify builds your preparation plan — you practice.
+          preparing for. Cognify builds your preparation plan. You practice.
         </p>
       </header>
 
@@ -98,7 +98,7 @@ export default function PrepHome({
           onChange={(e) => setDescription(e.target.value)}
           maxLength={2000}
           rows={3}
-          placeholder="e.g. Final-round product manager interview at Stripe — panel of 4, next Friday"
+          placeholder="e.g. Final-round product manager interview at Stripe, panel of 4, next Friday"
           className="mt-2 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-300"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -138,14 +138,15 @@ export default function PrepHome({
         </button>
         <p className="mt-2 text-[11px] text-slate-400 dark:text-ink-500">
           You can add context (resume, job description, deck outline) on the
-          next screen — optional, but it makes the plan sharper.
+          next screen (optional, but it makes the plan sharper).
         </p>
       </section>
 
       {initialEvents.length > 0 && (
         <section>
+          {/* Edit #9 — clearer section header for the events list. */}
           <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
-            Your events
+            Events you&apos;re preparing for
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {initialEvents.map((e) => (
@@ -167,8 +168,13 @@ export default function PrepHome({
                     </span>
                   )}
                 </div>
+                {/* Edit #9 — never show "0 Critical Moments": a fresh or
+                    still-generating plan reads as an invitation, not a
+                    zero. */}
                 <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
-                  {e.momentCount} Critical Moment{e.momentCount === 1 ? "" : "s"}
+                  {e.momentCount > 0
+                    ? `${e.momentCount} Critical Moment${e.momentCount === 1 ? "" : "s"} to practice`
+                    : "Plan ready to build"}
                 </p>
                 <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-purple-600 dark:text-brand-lavender">
                   Continue preparing

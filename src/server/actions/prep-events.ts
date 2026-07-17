@@ -32,6 +32,15 @@ import {
   type PreparationPlan,
 } from "@/lib/ai/prep/plan-generation";
 import {
+  generateTalkingPoints,
+  defaultTalkingPoints,
+  type TalkingPoints,
+} from "@/lib/ai/talking-points";
+import {
+  sanitizeMomentNotes,
+  fallbackMomentStructure,
+} from "@/lib/prep/moment-notes";
+import {
   generateReadinessReview,
   type ReadinessEvidence,
   type ReadinessReviewContent,
@@ -45,6 +54,10 @@ import { buildCommunicationSnapshot } from "@/lib/profile/snapshot";
 
 const DESCRIPTION_MAX = 2000;
 const MOMENT_TITLE_MAX = 60;
+/** Edit #2 — sortOrder band for source:"suggested" rows so they can
+ *  never interleave with the practice plan. Accepting a suggestion
+ *  re-slots it after the practice moments. */
+const SUGGESTED_SORT_BASE = 1000;
 /** Cached concat of parsed uploads on the event row, for generation. */
 const CONTEXT_SUMMARY_CAP = 8000;
 
@@ -63,6 +76,9 @@ export type PrepMoment = {
   source: string;
   bestComposite: number | null;
   attempts: number;
+  /** Edit #3 — per-moment speaking notes/structure. Null until
+   *  generated or authored. */
+  notes: TalkingPoints | null;
 };
 
 export type PrepUploadMeta = {
@@ -84,7 +100,12 @@ export type PrepEventDetail = {
    *  per-rep scoring eventContext (§7.5) on the client. */
   contextSummary: string | null;
   createdAt: string;
+  /** The practice plan (source generated|user). Suggested additions are
+   *  carried separately — see `suggestions`. */
   moments: PrepMoment[];
+  /** Edit #2 — optional additions the planner offered (source
+   *  "suggested"); user can accept (→ practice plan) or dismiss. */
+  suggestions: PrepMoment[];
   uploads: PrepUploadMeta[];
   latestReview: {
     mode: string;
@@ -245,6 +266,39 @@ async function gatherContextText(eventId: string): Promise<string | null> {
   return parts.length > 0 ? parts.join("\n\n") : null;
 }
 
+function mapMomentRow(m: typeof criticalMoments.$inferSelect): PrepMoment {
+  return {
+    id: m.id,
+    title: m.title,
+    objective: m.objective,
+    coachCue: m.coachCue,
+    scoringHint: m.scoringHint,
+    recommendedSeconds: m.recommendedSeconds,
+    sortOrder: m.sortOrder,
+    source: m.source,
+    bestComposite: m.bestComposite,
+    attempts: m.attempts,
+    notes: m.notes ?? null,
+  };
+}
+
+/** Max sortOrder among PRACTICE moments (excludes the suggested band so
+ *  appended moments land after the plan, not after 1000). */
+async function maxPracticeSortOrder(eventId: string): Promise<number> {
+  const [row] = await db
+    .select({
+      maxOrder: sql<number>`COALESCE(MAX(${criticalMoments.sortOrder}), -1)`,
+    })
+    .from(criticalMoments)
+    .where(
+      and(
+        eq(criticalMoments.eventId, eventId),
+        ne(criticalMoments.source, "suggested"),
+      ),
+    );
+  return row?.maxOrder ?? -1;
+}
+
 async function applyPlanMoments(
   userId: string,
   eventId: string,
@@ -257,29 +311,50 @@ async function applyPlanMoments(
       .where(
         and(
           eq(criticalMoments.eventId, eventId),
-          eq(criticalMoments.source, "generated"),
+          inArray(criticalMoments.source, ["generated", "suggested"]),
         ),
       );
   } else {
     await db.delete(criticalMoments).where(eq(criticalMoments.eventId, eventId));
   }
-  await db.insert(criticalMoments).values(
-    plan.moments.map((m, i) => ({
-      eventId,
-      userId,
-      title: m.title,
-      objective: m.objective,
-      // L4 — Coach's Insight + scoring lens; null when the model omitted
-      // them (fallback plans always carry both).
-      coachCue: m.coachCue ?? null,
-      scoringHint: m.scoringHint ?? null,
-      recommendedSeconds: m.recommendedSeconds,
-      sortOrder: i,
-      source: "generated" as const,
-    })),
-  );
+  // Edit #2 — plans carry two tiers: the practice plan itself, and
+  // clearly-offered optional additions (suggested:true, present when the
+  // user named their own questions). Suggested rows use source
+  // "suggested" and a high sortOrder band so they never interleave with
+  // the practice list; accepting one flips it to source "user".
+  let practiceMoments = plan.moments.filter((m) => !m.suggested);
+  let suggestedMoments = plan.moments.filter((m) => m.suggested);
+  if (practiceMoments.length === 0) {
+    // A model that mis-tags EVERY moment suggested:true would otherwise
+    // persist an event with an empty practice plan (nothing to run in
+    // guided or simulation mode). Treat them all as the plan instead.
+    practiceMoments = plan.moments;
+    suggestedMoments = [];
+  }
+  const toRow = (
+    m: PreparationPlan["moments"][number],
+    sortOrder: number,
+    source: "generated" | "suggested",
+  ) => ({
+    eventId,
+    userId,
+    title: m.title,
+    objective: m.objective,
+    // L4 — Coach's Insight + scoring lens; null when the model omitted
+    // them (fallback plans always carry both).
+    coachCue: m.coachCue ?? null,
+    scoringHint: m.scoringHint ?? null,
+    recommendedSeconds: m.recommendedSeconds,
+    sortOrder,
+    source,
+  });
+  await db.insert(criticalMoments).values([
+    ...practiceMoments.map((m, i) => toRow(m, i, "generated")),
+    ...suggestedMoments.map((m, i) => toRow(m, SUGGESTED_SORT_BASE + i, "suggested")),
+  ]);
   if (keepUserMoments) {
-    // Push user-authored moments after the regenerated plan.
+    // Push user-authored moments after the regenerated practice plan
+    // (but before the suggested band).
     const userMoments = await db
       .select({ id: criticalMoments.id })
       .from(criticalMoments)
@@ -293,7 +368,7 @@ async function applyPlanMoments(
     for (let i = 0; i < userMoments.length; i++) {
       await db
         .update(criticalMoments)
-        .set({ sortOrder: plan.moments.length + i })
+        .set({ sortOrder: practiceMoments.length + i })
         .where(eq(criticalMoments.id, userMoments[i]!.id));
     }
   }
@@ -428,6 +503,7 @@ export async function listPrepEvents(): Promise<
         momentCount: sql<number>`(
           SELECT count(*)::int FROM cognify_v2.critical_moments cm
           WHERE cm.event_id = ${prepEvents.id}
+            AND cm.source <> 'suggested'
         )`,
       })
       .from(prepEvents)
@@ -486,18 +562,16 @@ export async function getPrepEvent(
       readinessScore: event.readinessScore,
       contextSummary: event.contextSummary,
       createdAt: event.createdAt.toISOString(),
-      moments: moments.map((m) => ({
-        id: m.id,
-        title: m.title,
-        objective: m.objective,
-        coachCue: m.coachCue,
-        scoringHint: m.scoringHint,
-        recommendedSeconds: m.recommendedSeconds,
-        sortOrder: m.sortOrder,
-        source: m.source,
-        bestComposite: m.bestComposite,
-        attempts: m.attempts,
-      })),
+      // Edit #2 — suggested rows are optional additions, never part of
+      // the practice plan; keeping them out of `moments` means every
+      // existing consumer (guided flow, simulation framework, readiness
+      // evidence) keeps treating `moments` as the practice list.
+      moments: moments
+        .filter((m) => m.source !== "suggested")
+        .map(mapMomentRow),
+      suggestions: moments
+        .filter((m) => m.source === "suggested")
+        .map(mapMomentRow),
       uploads,
       latestReview: review
         ? {
@@ -549,13 +623,7 @@ export async function addCriticalMoment(input: {
       )
       .limit(1);
     if (!event) return { ok: false };
-    const [orderRow] = await db
-      .select({
-        maxOrder: sql<number>`COALESCE(MAX(${criticalMoments.sortOrder}), -1)`,
-      })
-      .from(criticalMoments)
-      .where(eq(criticalMoments.eventId, input.eventId));
-    const maxOrder = orderRow?.maxOrder ?? -1;
+    const maxOrder = await maxPracticeSortOrder(input.eventId);
     const [row] = await db
       .insert(criticalMoments)
       .values({
@@ -568,6 +636,117 @@ export async function addCriticalMoment(input: {
       })
       .returning({ id: criticalMoments.id });
     return { ok: true, momentId: row?.id };
+  }, { ok: false });
+}
+
+/** Edit #2 — accept a planner suggestion into the practice plan. The
+ *  row keeps its coaching metadata (coachCue/scoringHint) and re-slots
+ *  after the current practice moments as a user-chosen moment. */
+export async function acceptSuggestedMoment(input: {
+  momentId: string;
+}): Promise<{ ok: boolean }> {
+  const g = await gate();
+  if (!g.ok) return { ok: false };
+  return safeDb<{ ok: boolean }>(async () => {
+    const [moment] = await db
+      .select({
+        id: criticalMoments.id,
+        eventId: criticalMoments.eventId,
+        source: criticalMoments.source,
+      })
+      .from(criticalMoments)
+      .where(
+        and(
+          eq(criticalMoments.id, input.momentId),
+          eq(criticalMoments.userId, g.userId),
+        ),
+      )
+      .limit(1);
+    if (!moment || moment.source !== "suggested") return { ok: false };
+    const maxOrder = await maxPracticeSortOrder(moment.eventId);
+    await db
+      .update(criticalMoments)
+      .set({ source: "user", sortOrder: maxOrder + 1 })
+      .where(eq(criticalMoments.id, moment.id));
+    return { ok: true };
+  }, { ok: false });
+}
+
+// ── Edit #3 — per-moment speaking notes/structure ───────────────────────
+// Pure logic (sanitize/clamp + deterministic fallback) lives in
+// src/lib/prep/moment-notes.ts and is unit-tested there.
+
+export async function saveMomentNotes(input: {
+  momentId: string;
+  notes: TalkingPoints | null;
+}): Promise<{ ok: boolean }> {
+  const g = await gate();
+  if (!g.ok) return { ok: false };
+  const sanitized = sanitizeMomentNotes(input.notes);
+  return safeDb<{ ok: boolean }>(async () => {
+    await db
+      .update(criticalMoments)
+      .set({ notes: sanitized })
+      .where(
+        and(
+          eq(criticalMoments.id, input.momentId),
+          eq(criticalMoments.userId, g.userId),
+        ),
+      );
+    return { ok: true };
+  }, { ok: false });
+}
+
+/** Edit #3 — generate (or regenerate) the speaking structure for a
+ *  moment and persist it. generateTalkingPoints never throws — it
+ *  returns its own GENERIC default on any model failure, which we
+ *  detect by deep-equality so failure handling can be moment-aware:
+ *  a failed regenerate keeps the user's existing notes untouched; a
+ *  failed first draft falls back to a structure built from the
+ *  moment's own objective + coach cue (never generic boilerplate). */
+export async function generateMomentStructure(input: {
+  momentId: string;
+}): Promise<{ ok: boolean; notes?: TalkingPoints }> {
+  const g = await gate();
+  if (!g.ok) return { ok: false };
+  return safeDb<{ ok: boolean; notes?: TalkingPoints }>(async () => {
+    const [moment] = await db
+      .select()
+      .from(criticalMoments)
+      .where(
+        and(
+          eq(criticalMoments.id, input.momentId),
+          eq(criticalMoments.userId, g.userId),
+        ),
+      )
+      .limit(1);
+    if (!moment) return { ok: false };
+    const [event] = await db
+      .select()
+      .from(prepEvents)
+      .where(eq(prepEvents.id, moment.eventId))
+      .limit(1);
+    if (!event) return { ok: false };
+
+    const generated = await generateTalkingPoints({
+      scenario: `${moment.title} (${event.title}, ${event.eventType}). ${moment.objective ?? ""}`,
+      context: event.contextSummary?.slice(0, 4000) ?? undefined,
+      timePressure: `${moment.recommendedSeconds} seconds of speaking time`,
+    });
+    const modelFailed =
+      JSON.stringify(generated) === JSON.stringify(defaultTalkingPoints());
+    const sanitized = modelFailed ? null : sanitizeMomentNotes(generated);
+
+    if (!sanitized && moment.notes) {
+      // Failed regenerate: never destroy the user's existing notes.
+      return { ok: true, notes: moment.notes };
+    }
+    const notes = sanitized ?? fallbackMomentStructure(moment);
+    await db
+      .update(criticalMoments)
+      .set({ notes })
+      .where(eq(criticalMoments.id, moment.id));
+    return { ok: true, notes };
   }, { ok: false });
 }
 

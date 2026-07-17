@@ -744,6 +744,9 @@ export function renderEventContextBlock(
     ec.momentHint
       ? `Scoring lens for this moment (operator note): ${ec.momentHint.slice(0, 300)}`
       : null,
+    // Edit #7 — coaching for prep reps must be about SUCCEEDING AT THIS
+    // EVENT. Same only-when-present block ⇒ calibration-safe.
+    `Coaching relevance rule: the coachFocus (behavior/why/action), strongerVersion, and per-skill feedback must be written for succeeding at THIS ${ec.eventType} — reference its stakes and audience, never generic communication advice that ignores the event.`,
   ]
     .filter(Boolean)
     .join("\n");

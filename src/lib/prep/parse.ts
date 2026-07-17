@@ -20,6 +20,34 @@ export const PREP_ACCEPTED_EXTENSIONS = [
   ".pptx",
   ".txt",
   ".md",
+  // Edit #1 — photo-library uploads (job postings, slides, whiteboards,
+  // schedules). Parsed to text via vision at upload time.
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+] as const;
+
+/** The file-picker accept attribute. `image/*` (not just extensions)
+ *  is what makes iOS offer the photo library. */
+export const PREP_ACCEPT_ATTR = ".pdf,.docx,.pptx,.txt,.md,image/*";
+
+/** Single source of truth for vision-parseable images — drives the
+ *  extension detection here, the client-side downscaler's passthrough
+ *  check, and the vision module's mime gate. (HEIC is NOT here: the
+ *  vision API doesn't take it; the client downscaler transcodes HEIC
+ *  to JPEG on browsers that can decode it.) */
+export const IMAGE_MIME_BY_EXT = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+} as const;
+
+export const VISION_IMAGE_MIMES = [
+  ...new Set(Object.values(IMAGE_MIME_BY_EXT)),
 ] as const;
 
 export type ParseResult =
@@ -83,6 +111,21 @@ export async function parseContextFile(
           ? { status: "parsed", text: normalized }
           : { status: "failed", text: null };
       }
+      case "image": {
+        // Edit #1 — vision extraction (transcribed text + a short
+        // prep-relevant description). Model unavailable → "failed",
+        // never blocks the upload.
+        const { extractImageContextText } = await import(
+          "@/lib/ai/prep/image-context"
+        );
+        const mime = normalizeImageMime(mimeType, lower);
+        if (!mime) return { status: "unsupported", text: null };
+        const text = await extractImageContextText(buffer, mime);
+        const normalized = normalize(text ?? "");
+        return normalized.length > 0
+          ? { status: "parsed", text: `[From image ${fileName}]\n${normalized}` }
+          : { status: "failed", text: null };
+      }
       default:
         return { status: "unsupported", text: null };
     }
@@ -91,10 +134,28 @@ export async function parseContextFile(
   }
 }
 
+/** Resolve a usable image mime from the browser mime or extension
+ *  (some pickers hand over empty mime types for photos). */
+function normalizeImageMime(
+  mimeType: string | null,
+  lowerName: string,
+): string | null {
+  if (
+    mimeType &&
+    (VISION_IMAGE_MIMES as readonly string[]).includes(mimeType)
+  ) {
+    return mimeType;
+  }
+  for (const [ext, mime] of Object.entries(IMAGE_MIME_BY_EXT)) {
+    if (lowerName.endsWith(ext)) return mime;
+  }
+  return null;
+}
+
 function detectKind(
   mimeType: string | null,
   lowerName: string,
-): "pdf" | "docx" | "pptx" | "text" | "unsupported" {
+): "pdf" | "docx" | "pptx" | "text" | "image" | "unsupported" {
   if (mimeType === "application/pdf" || lowerName.endsWith(".pdf")) {
     return "pdf";
   }
@@ -118,6 +179,12 @@ function detectKind(
     lowerName.endsWith(".md")
   ) {
     return "text";
+  }
+  if (
+    mimeType?.startsWith("image/") ||
+    /\.(jpe?g|png|webp|gif)$/.test(lowerName)
+  ) {
+    return "image";
   }
   return "unsupported";
 }

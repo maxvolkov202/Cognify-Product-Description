@@ -37,6 +37,8 @@ import {
   type SkillDimension,
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
+import { TalkingPointsSidebar } from "@/components/product/TalkingPointsSidebar";
+import { RepAudioScrubber } from "@/components/product/feedback/RepAudioScrubber";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import ImprovementReview, {
   type AttemptPayload,
@@ -49,7 +51,10 @@ import {
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
+  acceptSuggestedMoment,
   addCriticalMoment,
+  generateMomentStructure,
+  saveMomentNotes,
   archivePrepEvent,
   finishPrepSession,
   getPrepEvent,
@@ -63,6 +68,8 @@ import {
   type PrepMoment,
   type PrepWeakMoment,
 } from "@/server/actions/prep-events";
+import { PREP_ACCEPT_ATTR } from "@/lib/prep/parse";
+import { downscaleImageForUpload } from "@/lib/prep/image-downscale";
 import type { ReadinessReviewContent } from "@/lib/ai/prep/readiness-review";
 
 type View =
@@ -82,6 +89,10 @@ type View =
       review: ReadinessReviewContent;
       /** L5 (§8.3.8) — server-computed "Sharpen next" targets. */
       weakestMoments: PrepWeakMoment[];
+      /** Edit #12 — the simulation recording (session-lifetime blob
+       *  URL) so the review can play it back. Null after guided mode
+       *  (per-moment recordings were released between moments). */
+      recording: { url: string; durationMs: number } | null;
     };
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
@@ -95,6 +106,19 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   other: "Event",
 };
 
+/** Edit #3 — what the USER sees on the rep screen: just their question/
+ *  moment title, the way it would be asked in the real event. */
+function momentDisplayPrompt(moment: PrepMoment): string {
+  return moment.title;
+}
+
+/** What the GRADER sees (RepSurface scoringPromptText): the moment plus
+ *  full event context, so scoring stays event-aware while the screen
+ *  stays clean. NOTE: this string is persisted as reps.promptText and is
+ *  the identity key for rep grouping (/compare groups by exact
+ *  promptText equality) — keep the format byte-stable across deploys;
+ *  the no-em-dash copy rule doesn't apply because the user never sees
+ *  this string (they see momentDisplayPrompt). */
 function momentPrompt(event: PrepEventDetail, moment: PrepMoment): string {
   const base = `${moment.title} — ${event.title}.`;
   const objective = moment.objective ? ` ${moment.objective}` : "";
@@ -153,11 +177,53 @@ export default function PrepEventClient({
   // §7.7 — "Users may edit the recommended time before beginning";
   // per-moment override edited on the rep screen (MomentInsight).
   const [momentSeconds, setMomentSeconds] = useState<number | null>(null);
+  // Edit #3 — per-moment speaking notes. Auto-drafted once per moment
+  // per mount; failures clear the attempted mark so the placeholder's
+  // manual "Draft speaking notes" button (and a later re-open) can try
+  // again. User edits flow through the sidebar.
+  const [notesGenerating, setNotesGenerating] = useState(false);
+  const notesAttempted = useRef<Set<string>>(new Set());
 
   const refreshEvent = useCallback(async () => {
     const fresh = await getPrepEvent(event.id);
     if (fresh) setEvent(fresh);
   }, [event.id]);
+
+  /** Edit #3 — draft/redraft one moment's notes and patch it into local
+   *  state (the action returns the persisted notes; a full event
+   *  refetch here would double every draft's latency for data we
+   *  already have). Failure clears the attempted mark so retries stay
+   *  possible. */
+  const draftNotes = useCallback((momentId: string) => {
+    notesAttempted.current.add(momentId);
+    setNotesGenerating(true);
+    void generateMomentStructure({ momentId })
+      .then((res) => {
+        if (res.ok && res.notes) {
+          setEvent((prev) => ({
+            ...prev,
+            moments: prev.moments.map((m) =>
+              m.id === momentId ? { ...m, notes: res.notes! } : m,
+            ),
+          }));
+        } else {
+          notesAttempted.current.delete(momentId);
+        }
+      })
+      .catch(() => notesAttempted.current.delete(momentId))
+      .finally(() => setNotesGenerating(false));
+  }, []);
+
+  // Edit #3 — auto-draft speaking notes the first time a moment is
+  // opened without any; afterwards the sidebar's edit/regenerate (and
+  // the placeholder's manual button) own the lifecycle.
+  useEffect(() => {
+    if (view.kind !== "moment") return;
+    const id = view.moment.id;
+    const live = event.moments.find((m) => m.id === id);
+    if (!live || live.notes || notesAttempted.current.has(id)) return;
+    draftNotes(id);
+  }, [view, event.moments, draftNotes]);
 
   const ensureSession = useCallback(async (): Promise<string | null> => {
     if (sessionId) return sessionId;
@@ -215,17 +281,39 @@ export default function PrepEventClient({
 
   // ── Guided practice ──────────────────────────────────────────────────
 
-  const startMoment = useCallback((moment: PrepMoment) => {
-    setAttempts({ first: null, retry: null });
-    setMomentSeconds(null);
-    setView({ kind: "moment", moment, stage: "insight", attempt: "first" });
+  /** Edit #12 — the attempt blob URLs are only needed while their
+   *  moment's review surfaces are reachable; revoke them when the
+   *  attempts are discarded or a new moment starts, otherwise every
+   *  recording stays pinned in browser memory for the tab's lifetime. */
+  const releaseAttempts = useCallback(() => {
+    setAttempts((prev) => {
+      for (const a of [prev.first, prev.retry]) {
+        if (a?.audioUrl) URL.revokeObjectURL(a.audioUrl);
+      }
+      return { first: null, retry: null };
+    });
   }, []);
+
+  const startMoment = useCallback(
+    (moment: PrepMoment) => {
+      releaseAttempts();
+      setMomentSeconds(null);
+      setView({ kind: "moment", moment, stage: "insight", attempt: "first" });
+    },
+    [releaseAttempts],
+  );
 
   const onMomentRepComplete = useCallback(
     (
       moment: PrepMoment,
       attempt: "first" | "retry" | "again",
-      payload: { score: RepScore; repId: string; transcript: string },
+      payload: {
+        score: RepScore;
+        repId: string;
+        transcript: string;
+        audioUrl?: string | null;
+        audioDurationMs?: number;
+      },
     ) => {
       accumulateScore(payload.score);
       void recordMomentPractice({
@@ -236,6 +324,10 @@ export default function PrepEventClient({
         repId: payload.repId,
         score: payload.score,
         transcript: payload.transcript,
+        // Edit #12 — keep the session-lifetime blob URL so the
+        // Improvement Review can play both takes.
+        audioUrl: payload.audioUrl ?? null,
+        audioDurationMs: payload.audioDurationMs,
       };
       if (attempt === "first") {
         setAttempts({ first: attemptPayload, retry: null });
@@ -274,7 +366,8 @@ export default function PrepEventClient({
     dimAcc.current = new Map();
     calloutAcc.current = [];
     setPracticedThisSession(false);
-  }, []);
+    releaseAttempts();
+  }, [releaseAttempts]);
 
   const finishGuided = useCallback(async () => {
     setView({ kind: "finishing" });
@@ -291,6 +384,7 @@ export default function PrepEventClient({
         kind: "readiness",
         review: res.review,
         weakestMoments: res.weakestMoments,
+        recording: null,
       });
       void refreshEvent();
     } else {
@@ -299,7 +393,12 @@ export default function PrepEventClient({
   }, [event.id, sessionId, dimensionAverages, refreshEvent, resetSessionState]);
 
   const onSimulationComplete = useCallback(
-    async (payload: { score: RepScore; repId: string; transcript: string }) => {
+    async (payload: {
+      score: RepScore;
+      repId: string;
+      transcript: string;
+      recording?: { url: string; durationMs: number } | null;
+    }) => {
       accumulateScore(payload.score);
       setView({ kind: "finishing" });
       const dims: Partial<Record<string, number>> = {};
@@ -342,6 +441,7 @@ export default function PrepEventClient({
           kind: "readiness",
           review: res.review,
           weakestMoments: res.weakestMoments,
+          recording: payload.recording ?? null,
         });
         void refreshEvent();
       } else {
@@ -369,7 +469,13 @@ export default function PrepEventClient({
         event={event}
         review={view.review}
         weakestMoments={view.weakestMoments}
-        onBackToPlan={backToPlan}
+        recording={view.recording}
+        onBackToPlan={() => {
+          // Edit #12 — the simulation blob is only needed while this
+          // review is on screen.
+          if (view.recording) URL.revokeObjectURL(view.recording.url);
+          backToPlan();
+        }}
         // L5 — "Sharpen next" re-enters the existing startMoment flow for
         // that moment (fresh session, same as PlanScreen's Practice).
         onPracticeMoment={async (m) => {
@@ -386,6 +492,10 @@ export default function PrepEventClient({
 
   if (view.kind === "moment" || view.kind === "moment-review") {
     const moment = view.moment;
+    // view.moment is a snapshot taken when the moment was opened; notes
+    // land on the event via refreshEvent, so read them live.
+    const liveMoment =
+      event.moments.find((m) => m.id === moment.id) ?? moment;
     const skillDim = coachFocus ? muscleGroupToSkillDim(coachFocus.dimension) : null;
     const isRetryAttempt = view.kind === "moment" && view.attempt !== "first";
     // L2 (§7.5) — every moment rep (first attempts included) carries the
@@ -450,9 +560,11 @@ export default function PrepEventClient({
         )}
 
         {view.kind === "moment" && view.stage === "rep" && (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
           <RepSurface
             key={`${moment.id}:${view.attempt}`}
-            prompt={momentPrompt(event, moment)}
+            prompt={momentDisplayPrompt(moment)}
+            scoringPromptText={momentPrompt(event, moment)}
             mode="build_a_rep"
             topic={moment.title}
             sessionId={sessionId}
@@ -503,6 +615,8 @@ export default function PrepEventClient({
                 score: payload.score,
                 repId: payload.repId,
                 transcript: payload.transcript,
+                audioUrl: payload.recording.url,
+                audioDurationMs: payload.recording.durationMs,
               });
             }}
             onNext={() => {
@@ -516,28 +630,78 @@ export default function PrepEventClient({
               view.attempt === "first" ? "Start your Retry →" : "Improvement Review →"
             }
           />
+          {/* Edit #3 — the speaking-notes panel: an AI-drafted structure
+              the user edits freely and keeps beside them during the rep. */}
+          <aside className="self-start lg:sticky lg:top-4">
+            {liveMoment.notes ? (
+              <TalkingPointsSidebar
+                talkingPoints={liveMoment.notes}
+                onEdit={(next) => {
+                  // Optimistic local patch; the server clamps with the
+                  // same sanitizer the sidebar shape already satisfies.
+                  setEvent((prev) => ({
+                    ...prev,
+                    moments: prev.moments.map((m) =>
+                      m.id === moment.id ? { ...m, notes: next } : m,
+                    ),
+                  }));
+                  void saveMomentNotes({ momentId: moment.id, notes: next });
+                }}
+                onRegenerate={() => draftNotes(moment.id)}
+                regenerating={notesGenerating}
+              />
+            ) : (
+              <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 text-xs text-slate-500 dark:text-ink-400">
+                {notesGenerating ? (
+                  "Drafting your speaking notes…"
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => draftNotes(moment.id)}
+                    className="min-h-[44px] w-full rounded-xl border border-dashed border-slate-300 dark:border-ink-600 text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:bg-purple-50/50 dark:hover:bg-ink-800"
+                  >
+                    Draft speaking notes
+                  </button>
+                )}
+              </div>
+            )}
+          </aside>
+          </div>
         )}
 
-        {/* §7.7 — the first-feedback screen's "Continue to Next Critical
-            Moment" branch (retry stays the primary CTA; it's optional
-            here, unlike Daily Workout). */}
+        {/* Edit #10 (§7.7) — after the scored FIRST rep the user has real
+            options, not just Retry: continue to the next moment, or go
+            back to the plan (exit). Retry stays the primary CTA on the
+            feedback surface itself. Scored retries route straight to the
+            Improvement Review, which carries its own next/again/plan
+            options — gating on attempts.retry here would render stale
+            CTAs under a live recorder on "run it again" attempts. */}
         {view.kind === "moment" &&
           view.stage === "rep" &&
           view.attempt === "first" &&
           attempts.first != null &&
           (() => {
             const next = nextMomentAfter(moment);
-            return next ? (
-              <div className="text-center">
+            return (
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+                {next && (
+                  <button
+                    type="button"
+                    onClick={() => startMoment(next)}
+                    className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+                  >
+                    Skip the retry, continue to “{next.title}” →
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => startMoment(next)}
-                  className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+                  onClick={backToPlan}
+                  className="min-h-[44px] text-sm font-semibold text-slate-500 dark:text-ink-400 hover:underline"
                 >
-                  Skip the retry — continue to “{next.title}” →
+                  Back to plan
                 </button>
               </div>
-            ) : null;
+            );
           })()}
 
         {view.kind === "moment-review" &&
@@ -758,10 +922,14 @@ function PlanScreen({
     );
   };
 
-  const upload = async (file: File) => {
+  const upload = async (rawFile: File) => {
     setBusy("upload");
     setUploadNote(null);
     try {
+      // Edit #1 — shrink photos client-side: keeps phone camera shots
+      // under the 4MB cap, cuts vision cost, and transcodes HEIC to
+      // JPEG on browsers that can decode it.
+      const file = await downscaleImageForUpload(rawFile);
       const form = new FormData();
       form.set("eventId", event.id);
       form.set("file", file);
@@ -771,18 +939,18 @@ function PlanScreen({
         setUploadNote(
           data.error === "file_too_large"
             ? "That file is too large (4MB max)."
-            : "Upload failed — try again.",
+            : "Upload failed. Try again.",
         );
       } else if (data.parseStatus !== "parsed") {
         setUploadNote(
-          "Uploaded, but we couldn't read text from that file (PDF, DOCX, TXT and MD work best).",
+          "Uploaded, but we couldn't read that file (PDF, DOCX, PPTX, TXT, MD and photos work best).",
         );
       } else {
         // §7.5 — "As additional context is provided, the preparation
         // experience should become increasingly specific." Regenerate
         // automatically instead of waiting for a manual click; the
         // user's own moments survive (regenerate keeps source=user).
-        setUploadNote("Context read — updating your plan with it…");
+        setUploadNote("Context read. Updating your plan with it…");
         await regeneratePreparationPlan({ eventId: event.id });
         setUploadNote(null);
       }
@@ -817,6 +985,24 @@ function PlanScreen({
               </span>
             )}
           </div>
+          {/* Edit #1 — a clean one-line summary of what's being practiced. */}
+          {event.moments.length > 0 && (
+            <p className="mt-2 text-xs text-slate-500 dark:text-ink-400">
+              You&apos;re practicing {event.moments.length} Critical Moment
+              {event.moments.length === 1 ? "" : "s"} (~
+              {Math.max(
+                1,
+                Math.round(
+                  event.moments.reduce(
+                    (s, m) => s + m.recommendedSeconds,
+                    0,
+                  ) / 60,
+                ),
+              )}{" "}
+              min of speaking) for this{" "}
+              {(EVENT_TYPE_LABEL[event.eventType] ?? "event").toLowerCase()}.
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -835,14 +1021,15 @@ function PlanScreen({
               Context
             </h2>
             <p className="text-xs text-slate-500 dark:text-ink-400">
-              Optional — resume, job description, deck outline, agenda. The more
-              you add, the more personal your plan gets.
+              Optional: resume, job description, deck outline, agenda, or a
+              photo of any of them. The more you add, the more personal your
+              plan gets.
             </p>
           </div>
           <input
             ref={fileInput}
             type="file"
-            accept=".pdf,.docx,.txt,.md"
+            accept={PREP_ACCEPT_ATTR}
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -935,7 +1122,7 @@ function PlanScreen({
         <p className="text-xs text-slate-500 dark:text-ink-400 mb-3">
           {/* C11 — define Critical Moments at first use. */}
           Critical Moments are the parts of your event most likely to determine
-          how it goes. Practice them in any order — edit the plan freely.
+          how it goes. Practice them in any order and edit the plan freely.
         </p>
         <ul className="space-y-2">
           {event.moments.map((m, i) => (
@@ -1107,6 +1294,65 @@ function PlanScreen({
         </form>
       </section>
 
+      {/* Edit #2 — planner suggestions: offered separately, added only on
+          an explicit tap, dismissible. Present when the user named their
+          own questions and the planner had extra ideas. */}
+      {event.suggestions.length > 0 && (
+        <section>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            Want to add any of these?
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-ink-400 mb-3">
+            Your plan has exactly what you asked for. These are extra moments
+            your coach thinks could help. Add the ones you want.
+          </p>
+          <ul className="space-y-2">
+            {event.suggestions.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 dark:border-ink-600 bg-slate-50/60 dark:bg-ink-900/60 p-3.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {s.title}
+                  </p>
+                  {s.objective && (
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-ink-400">
+                      {s.objective}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={busy != null}
+                  onClick={() =>
+                    void run("accept-suggestion", () =>
+                      acceptSuggestedMoment({ momentId: s.id }),
+                    )
+                  }
+                  className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-40"
+                >
+                  <Plus className="w-4 h-4" /> Add
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Dismiss suggestion ${s.title}`}
+                  disabled={busy != null}
+                  onClick={() =>
+                    void run("dismiss-suggestion", () =>
+                      removeCriticalMoment({ momentId: s.id }),
+                    )
+                  }
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-ink-700 text-slate-400 hover:text-slate-600 dark:hover:text-ink-200 disabled:opacity-40"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Mode CTAs (PRD §7.6 — Cognify recommends, user chooses) */}
       <section className="grid gap-3 sm:grid-cols-2">
         <div
@@ -1126,7 +1372,7 @@ function PlanScreen({
             )}
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
-            One Critical Moment at a time — coaching after every rep, retry
+            One Critical Moment at a time: coaching after every rep, retry
             until it clicks. Hit “Practice” on any moment above.
           </p>
           <button
@@ -1160,7 +1406,7 @@ function PlanScreen({
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
             The whole event, start to finish, no interruptions. Feedback only at
-            the end — that&apos;s the point.
+            the end. That&apos;s the point.
           </p>
           <button
             type="button"
@@ -1237,7 +1483,7 @@ function MomentInsight({
           aria-label="Recommended speaking time in seconds"
           className="w-16 min-h-[36px] rounded-md border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-1.5 text-center text-xs font-bold text-slate-800 dark:text-white"
         />
-        seconds — match your real moment
+        seconds. Match your real moment
       </div>
       <div className="mt-5">
         <button
@@ -1245,7 +1491,7 @@ function MomentInsight({
           onClick={onReady}
           className="min-h-[48px] rounded-xl bg-pink-500 hover:bg-pink-400 px-6 py-3 font-semibold text-white"
         >
-          I&apos;m ready — start the rep
+          I&apos;m ready, start the rep
         </button>
       </div>
     </div>
@@ -1272,6 +1518,7 @@ function SimulationView({
     score: RepScore;
     repId: string;
     transcript: string;
+    recording?: { url: string; durationMs: number } | null;
   }) => void;
   /** Phase 11.E2 (§7.8) — commit an inline section edit (write-through). */
   onMomentTitleChange: (momentId: string, title: string) => void;
@@ -1317,7 +1564,7 @@ function SimulationView({
         </button>
         <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6 shadow-sm">
           <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
-            Full Simulation — {event.title}
+            Full Simulation: {event.title}
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-ink-400">
             Start to finish, no interruptions. Your framework stays beside you.
@@ -1378,7 +1625,7 @@ function SimulationView({
               ))}
             </ol>
             <p className="mt-2 text-[11px] text-slate-400 dark:text-ink-500">
-              Edits update your plan too — or ignore the framework entirely
+              Edits update your plan too, or ignore the framework entirely
               and deliver it your way.
             </p>
           </div>
@@ -1428,6 +1675,10 @@ function SimulationView({
               score: payload.score,
               repId: payload.repId,
               transcript: payload.transcript,
+              recording: {
+                url: payload.recording.url,
+                durationMs: payload.recording.durationMs,
+              },
             })
           }
         />
@@ -1457,15 +1708,19 @@ function ReadinessReviewScreen({
   event,
   review,
   weakestMoments,
+  recording,
   onBackToPlan,
   onPracticeMoment,
 }: {
   event: PrepEventDetail;
   review: ReadinessReviewContent;
   weakestMoments: PrepWeakMoment[];
+  /** Edit #12 — simulation recording for playback (null after guided). */
+  recording: { url: string; durationMs: number } | null;
   onBackToPlan: () => void;
   onPracticeMoment: (m: PrepMoment) => void | Promise<void>;
 }) {
+  const reviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const dims = SKILL_DIMENSIONS.filter((d) => review.coreSkills[d] != null);
   // L5 — resolve the server's weakest-moment ids against the live plan
   // (a moment deleted mid-session simply drops off the list).
@@ -1477,7 +1732,7 @@ function ReadinessReviewScreen({
     <div className="space-y-5">
       <div className="text-center">
         <div className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
-          Readiness Review — {event.title}
+          Readiness Review: {event.title}
         </div>
         <div className="mt-3 text-6xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">
           {review.overallScore != null ? Math.round(review.overallScore) : "—"}
@@ -1487,9 +1742,23 @@ function ReadinessReviewScreen({
         </div>
       </div>
 
+      {/* Edit #12 — hear the simulation back while reading the review. */}
+      {recording && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4">
+          <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500">
+            Your simulation
+          </div>
+          <RepAudioScrubber
+            src={recording.url}
+            durationMs={recording.durationMs}
+            audioRef={reviewAudioRef}
+          />
+        </div>
+      )}
+
       <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-500/15 dark:to-ink-900 p-4 shadow-sm">
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender mb-1">
-          Coach feedback — your one focus
+          Coach feedback: your one focus
         </div>
         <p className="text-sm text-slate-800 dark:text-ink-100 leading-snug">
           {review.coachFeedback}
