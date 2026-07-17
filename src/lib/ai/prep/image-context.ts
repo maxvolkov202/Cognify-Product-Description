@@ -10,7 +10,7 @@
 // provider-fallback machinery). Failure of any kind returns null and
 // the upload records parse_status="failed".
 
-import { VISION_IMAGE_MIMES } from "@/lib/prep/parse";
+import { VISION_IMAGE_MIMES } from "@/lib/prep/parse-constants";
 
 const VISION_MODEL = process.env.OPENAI_VISION_MODEL ?? "gpt-4o";
 const VISION_TIMEOUT_MS = 25_000;

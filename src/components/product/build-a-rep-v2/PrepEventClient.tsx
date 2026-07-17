@@ -68,7 +68,7 @@ import {
   type PrepMoment,
   type PrepWeakMoment,
 } from "@/server/actions/prep-events";
-import { PREP_ACCEPT_ATTR } from "@/lib/prep/parse";
+import { PREP_ACCEPT_ATTR } from "@/lib/prep/parse-constants";
 import { downscaleImageForUpload } from "@/lib/prep/image-downscale";
 import type { ReadinessReviewContent } from "@/lib/ai/prep/readiness-review";
 

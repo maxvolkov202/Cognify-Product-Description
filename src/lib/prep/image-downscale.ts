@@ -8,7 +8,7 @@
 // Any failure returns the original file — the server stays the
 // authority on what it can parse.
 
-import { VISION_IMAGE_MIMES } from "./parse";
+import { VISION_IMAGE_MIMES } from "./parse-constants";
 
 const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.85;

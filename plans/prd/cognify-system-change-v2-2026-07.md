@@ -1537,7 +1537,17 @@ Structure
 * Positive score movement should be celebrated.  
 * Users should see both short-term and long-term progress.  
 * Progress visualization should reinforce consistency and effort.  
-* 
+* Negative score movement is softened (see Score Movement Display Rule below): improvement is highly visible, but large single-attempt drops are not shown as a raw numeral.
+
+### **Score Movement Display Rule (D24)**
+
+"Highly visible" applies to improvement. Large negative single-attempt movement is deliberately softened so a noisy retry does not read as "this system is bogus". Implemented in `softenScoreDelta` (Owen C10):
+
+* delta of +1 or more: show the number, celebrate proportionally.  
+* delta from 0 down to -3: show the small number, neutral framing.  
+* delta below -3: hide the numeral, show soft coaching copy instead.  
+
+The direction of movement is always communicated; only the raw numeral for a large drop is withheld. Score noise between two attempts of the same rep is real, so a -12 on one retry is treated as coaching signal, not a verdict. See decision log D24.
 
 ---
 
