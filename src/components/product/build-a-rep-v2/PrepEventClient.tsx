@@ -49,6 +49,7 @@ import {
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import type { ScoreRepModeContext } from "@/lib/ai/score";
 import {
+  acceptSuggestedMoment,
   addCriticalMoment,
   archivePrepEvent,
   finishPrepSession,
@@ -1106,6 +1107,65 @@ function PlanScreen({
           </button>
         </form>
       </section>
+
+      {/* Edit #2 — planner suggestions: offered separately, added only on
+          an explicit tap, dismissible. Present when the user named their
+          own questions and the planner had extra ideas. */}
+      {event.suggestions.length > 0 && (
+        <section>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            Want to add any of these?
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-ink-400 mb-3">
+            Your plan has exactly what you asked for. These are extra moments
+            your coach thinks could help. Add the ones you want.
+          </p>
+          <ul className="space-y-2">
+            {event.suggestions.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 dark:border-ink-600 bg-slate-50/60 dark:bg-ink-900/60 p-3.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {s.title}
+                  </p>
+                  {s.objective && (
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-ink-400">
+                      {s.objective}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={busy != null}
+                  onClick={() =>
+                    void run("accept-suggestion", () =>
+                      acceptSuggestedMoment({ momentId: s.id }),
+                    )
+                  }
+                  className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-40"
+                >
+                  <Plus className="w-4 h-4" /> Add
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Dismiss suggestion ${s.title}`}
+                  disabled={busy != null}
+                  onClick={() =>
+                    void run("dismiss-suggestion", () =>
+                      removeCriticalMoment({ momentId: s.id }),
+                    )
+                  }
+                  className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-ink-700 text-slate-400 hover:text-slate-600 dark:hover:text-ink-200 disabled:opacity-40"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Mode CTAs (PRD §7.6 — Cognify recommends, user chooses) */}
       <section className="grid gap-3 sm:grid-cols-2">

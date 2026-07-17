@@ -47,6 +47,11 @@ const momentSchema = z.object({
    *  into the rep's eventContext as momentHint. Same optionality
    *  rationale as coachCue. */
   scoringHint: z.string().min(1).max(300).optional(),
+  /** Edit #2 — when the user named their own questions/moments, the
+   *  plan contains EXACTLY those plus clearly-offered extras carrying
+   *  suggested:true. Suggested moments render in a separate "add if
+   *  you want" rail, never mixed into the practice list. */
+  suggested: z.boolean().optional(),
 });
 
 const planSchema = z.object({
@@ -54,7 +59,11 @@ const planSchema = z.object({
   eventType: z.enum(PREP_EVENT_TYPES),
   recommendedMode: z.enum(["guided", "simulation"]),
   recommendedDurationSec: z.number().int().min(60).max(1800),
-  moments: z.array(momentSchema).min(4).max(8),
+  // min is 1, not 4: when the user names two specific questions, the
+  // plan is those two questions — padding to four would override their
+  // stated intent (Edit #2). The prompt still asks for 4-8 when the
+  // user didn't specify.
+  moments: z.array(momentSchema).min(1).max(12),
 });
 
 export type PreparationPlan = z.infer<typeof planSchema>;
@@ -73,8 +82,9 @@ DEFINITION (shown to users elsewhere): a Critical Moment is one part of the even
 
 RULES
 1. 4-8 Critical Moments, in the order they'd naturally occur.
-2. Each moment: a SHORT title (2-6 words, the way a coach would say it), an objective (one sentence: what a strong version accomplishes), a recommended speaking time in seconds (30-600, realistic for that moment), a coachCue, and a scoringHint.
-2a. coachCue: 1-2 sentences of practical behavioral coaching for THIS moment — what great looks like AND the trap most people fall into. Coach's voice, second person, immediately usable ("Land the result in your first sentence — most people bury it under three sentences of setup."). No theory names, no frameworks, no jargon.
+1a. USER-NAMED MOMENTS OVERRIDE RULE 1: if the description names, lists, or quotes specific questions or moments the user wants to practice ("I want to practice X, Y and Z", numbered lists, quoted questions), the plan is EXACTLY those moments — same order, titles faithful to the user's wording (trim to title length, never reinterpret) — even if that means fewer than 4. Do NOT invent additional practice moments alongside them. You may ALSO offer up to 3 extra moments the user might want, each carrying "suggested": true; suggested moments are shown separately as optional additions, never mixed into the practice plan.
+2. Each moment: a SHORT title (2-6 words, the way a coach would say it; for user-named questions, the user's own words), an objective (one sentence: what a strong version accomplishes), a recommended speaking time in seconds (30-600, realistic for that moment), a coachCue, and a scoringHint.
+2a. coachCue: 1-2 sentences of practical behavioral coaching for THIS moment: what great looks like AND the trap most people fall into. Coach's voice, second person, immediately usable ("Land the result in your first sentence. Most people bury it under three sentences of setup."). No theory names, no frameworks, no jargon, plain words, and never use em-dashes.
 2b. scoringHint: ONE operator-facing line telling the evaluator what to weigh for this moment ("Weigh whether the answer ends on a concrete, quantified result; penalize setup that outweighs outcome."). Third person, about the response — never addressed to the user.
 3. Moments must be PRACTICEABLE as solo spoken reps — things the user themselves says. No "listen actively" moments.
 4. If context documents are provided (resume, job description, deck outline, agenda), make the moments SPECIFIC to them: name the actual company, role, product, audience, or stories from the resume where relevant.
@@ -91,7 +101,8 @@ OUTPUT: ONLY valid JSON, no prose:
   "recommendedMode": "guided",
   "recommendedDurationSec": 600,
   "moments": [
-    { "title": "...", "objective": "...", "recommendedSeconds": 90, "coachCue": "...", "scoringHint": "..." }
+    { "title": "...", "objective": "...", "recommendedSeconds": 90, "coachCue": "...", "scoringHint": "..." },
+    { "title": "...", "objective": "...", "recommendedSeconds": 90, "coachCue": "...", "scoringHint": "...", "suggested": true }
   ]
 }`;
 
