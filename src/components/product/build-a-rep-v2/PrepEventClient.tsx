@@ -38,6 +38,7 @@ import {
 } from "@/types/domain";
 import { RepSurface } from "@/components/product/RepSurface";
 import { TalkingPointsSidebar } from "@/components/product/TalkingPointsSidebar";
+import { RepAudioScrubber } from "@/components/product/feedback/RepAudioScrubber";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import ImprovementReview, {
   type AttemptPayload,
@@ -87,6 +88,10 @@ type View =
       review: ReadinessReviewContent;
       /** L5 (§8.3.8) — server-computed "Sharpen next" targets. */
       weakestMoments: PrepWeakMoment[];
+      /** Edit #12 — the simulation recording (session-lifetime blob
+       *  URL) so the review can play it back. Null after guided mode
+       *  (per-moment recordings were released between moments). */
+      recording: { url: string; durationMs: number } | null;
     };
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
@@ -259,7 +264,13 @@ export default function PrepEventClient({
     (
       moment: PrepMoment,
       attempt: "first" | "retry" | "again",
-      payload: { score: RepScore; repId: string; transcript: string },
+      payload: {
+        score: RepScore;
+        repId: string;
+        transcript: string;
+        audioUrl?: string | null;
+        audioDurationMs?: number;
+      },
     ) => {
       accumulateScore(payload.score);
       void recordMomentPractice({
@@ -270,6 +281,10 @@ export default function PrepEventClient({
         repId: payload.repId,
         score: payload.score,
         transcript: payload.transcript,
+        // Edit #12 — keep the session-lifetime blob URL so the
+        // Improvement Review can play both takes.
+        audioUrl: payload.audioUrl ?? null,
+        audioDurationMs: payload.audioDurationMs,
       };
       if (attempt === "first") {
         setAttempts({ first: attemptPayload, retry: null });
@@ -325,6 +340,7 @@ export default function PrepEventClient({
         kind: "readiness",
         review: res.review,
         weakestMoments: res.weakestMoments,
+        recording: null,
       });
       void refreshEvent();
     } else {
@@ -333,7 +349,12 @@ export default function PrepEventClient({
   }, [event.id, sessionId, dimensionAverages, refreshEvent, resetSessionState]);
 
   const onSimulationComplete = useCallback(
-    async (payload: { score: RepScore; repId: string; transcript: string }) => {
+    async (payload: {
+      score: RepScore;
+      repId: string;
+      transcript: string;
+      recording?: { url: string; durationMs: number } | null;
+    }) => {
       accumulateScore(payload.score);
       setView({ kind: "finishing" });
       const dims: Partial<Record<string, number>> = {};
@@ -376,6 +397,7 @@ export default function PrepEventClient({
           kind: "readiness",
           review: res.review,
           weakestMoments: res.weakestMoments,
+          recording: payload.recording ?? null,
         });
         void refreshEvent();
       } else {
@@ -403,6 +425,7 @@ export default function PrepEventClient({
         event={event}
         review={view.review}
         weakestMoments={view.weakestMoments}
+        recording={view.recording}
         onBackToPlan={backToPlan}
         // L5 — "Sharpen next" re-enters the existing startMoment flow for
         // that moment (fresh session, same as PlanScreen's Practice).
@@ -543,6 +566,8 @@ export default function PrepEventClient({
                 score: payload.score,
                 repId: payload.repId,
                 transcript: payload.transcript,
+                audioUrl: payload.recording.url,
+                audioDurationMs: payload.recording.durationMs,
               });
             }}
             onNext={() => {
@@ -587,26 +612,38 @@ export default function PrepEventClient({
           </div>
         )}
 
-        {/* §7.7 — the first-feedback screen's "Continue to Next Critical
-            Moment" branch (retry stays the primary CTA; it's optional
-            here, unlike Daily Workout). */}
+        {/* Edit #10 (§7.7) — after any scored rep the user has real
+            options, not just Retry: continue to the next moment, or go
+            back to the plan (exit). Retry stays the primary CTA on the
+            feedback surface itself. */}
         {view.kind === "moment" &&
           view.stage === "rep" &&
-          view.attempt === "first" &&
-          attempts.first != null &&
+          ((view.attempt === "first" && attempts.first != null) ||
+            (view.attempt !== "first" && attempts.retry != null)) &&
           (() => {
             const next = nextMomentAfter(moment);
-            return next ? (
-              <div className="text-center">
+            return (
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+                {next && (
+                  <button
+                    type="button"
+                    onClick={() => startMoment(next)}
+                    className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+                  >
+                    {view.attempt === "first"
+                      ? `Skip the retry, continue to “${next.title}” →`
+                      : `Continue to “${next.title}” →`}
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => startMoment(next)}
-                  className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
+                  onClick={backToPlan}
+                  className="min-h-[44px] text-sm font-semibold text-slate-500 dark:text-ink-400 hover:underline"
                 >
-                  Skip the retry — continue to “{next.title}” →
+                  Back to plan
                 </button>
               </div>
-            ) : null;
+            );
           })()}
 
         {view.kind === "moment-review" &&
@@ -1401,6 +1438,7 @@ function SimulationView({
     score: RepScore;
     repId: string;
     transcript: string;
+    recording?: { url: string; durationMs: number } | null;
   }) => void;
   /** Phase 11.E2 (§7.8) — commit an inline section edit (write-through). */
   onMomentTitleChange: (momentId: string, title: string) => void;
@@ -1557,6 +1595,10 @@ function SimulationView({
               score: payload.score,
               repId: payload.repId,
               transcript: payload.transcript,
+              recording: {
+                url: payload.recording.url,
+                durationMs: payload.recording.durationMs,
+              },
             })
           }
         />
@@ -1586,15 +1628,19 @@ function ReadinessReviewScreen({
   event,
   review,
   weakestMoments,
+  recording,
   onBackToPlan,
   onPracticeMoment,
 }: {
   event: PrepEventDetail;
   review: ReadinessReviewContent;
   weakestMoments: PrepWeakMoment[];
+  /** Edit #12 — simulation recording for playback (null after guided). */
+  recording: { url: string; durationMs: number } | null;
   onBackToPlan: () => void;
   onPracticeMoment: (m: PrepMoment) => void | Promise<void>;
 }) {
+  const reviewAudioRef = useRef<HTMLAudioElement | null>(null);
   const dims = SKILL_DIMENSIONS.filter((d) => review.coreSkills[d] != null);
   // L5 — resolve the server's weakest-moment ids against the live plan
   // (a moment deleted mid-session simply drops off the list).
@@ -1615,6 +1661,20 @@ function ReadinessReviewScreen({
           Overall Communication Score
         </div>
       </div>
+
+      {/* Edit #12 — hear the simulation back while reading the review. */}
+      {recording && (
+        <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4">
+          <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500">
+            Your simulation
+          </div>
+          <RepAudioScrubber
+            src={recording.url}
+            durationMs={recording.durationMs}
+            audioRef={reviewAudioRef}
+          />
+        </div>
+      )}
 
       <div className="rounded-2xl border border-purple-200 dark:border-brand-purple/40 bg-gradient-to-br from-purple-50/80 to-white dark:from-purple-500/15 dark:to-ink-900 p-4 shadow-sm">
         <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-purple-600 dark:text-brand-lavender mb-1">

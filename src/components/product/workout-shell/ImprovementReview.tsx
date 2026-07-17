@@ -8,8 +8,10 @@
 // positive deltas loudly, keep small negatives numeric-but-neutral, and
 // hide big negative numbers behind soft copy.
 
+import { useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, RotateCcw, TrendingUp } from "lucide-react";
+import { RepAudioScrubber } from "@/components/product/feedback/RepAudioScrubber";
 import CelebrationSparkles from "./CelebrationSparkles";
 import CountUpScore from "./CountUpScore";
 import type { RepScore, SkillDimension } from "@/types/domain";
@@ -32,6 +34,11 @@ export type AttemptPayload = {
   repId: string;
   score: RepScore;
   transcript: string;
+  /** Edit #12 — session-lifetime blob URL of the attempt's recording so
+   *  the review can play both takes. Optional: hosts that don't hold
+   *  the recording simply render no player. */
+  audioUrl?: string | null;
+  audioDurationMs?: number;
 };
 
 export type ImprovementReviewProps = {
@@ -286,6 +293,30 @@ export default function ImprovementReview({
         </div>
       )}
 
+      {/* Edit #12 — hear both takes. Session-lifetime blob URLs; rows
+          render only when the host held onto the recordings. */}
+      {(first?.audioUrl || retry?.audioUrl) && (
+        <div className="rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 space-y-3">
+          <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 dark:text-ink-500">
+            Listen back
+          </div>
+          {first?.audioUrl && (
+            <AttemptPlayback
+              label="First take"
+              src={first.audioUrl}
+              durationMs={first.audioDurationMs ?? 0}
+            />
+          )}
+          {retry?.audioUrl && (
+            <AttemptPlayback
+              label="Retry"
+              src={retry.audioUrl}
+              durationMs={retry.audioDurationMs ?? 0}
+            />
+          )}
+        </div>
+      )}
+
       {/* PRD §4.7.1 — "The same Core Skill Breakdown appears in both
           feedback screens." Per-skill first→retry movement on top
           (§4.7.2 examples show multi-skill deltas), C10-softened: big
@@ -373,6 +404,28 @@ export default function ImprovementReview({
           {quitLabel ?? "End session here"}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Edit #12 — one labeled playback row (its own audio ref so the two
+ *  takes scrub independently). */
+function AttemptPlayback({
+  label,
+  src,
+  durationMs,
+}: {
+  label: string;
+  src: string;
+  durationMs: number;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  return (
+    <div>
+      <div className="mb-1 text-[11px] font-semibold text-slate-500 dark:text-ink-400">
+        {label}
+      </div>
+      <RepAudioScrubber src={src} durationMs={durationMs} audioRef={audioRef} />
     </div>
   );
 }
