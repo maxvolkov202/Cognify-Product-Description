@@ -10,20 +10,14 @@
 // provider-fallback machinery). Failure of any kind returns null and
 // the upload records parse_status="failed".
 
+import { VISION_IMAGE_MIMES } from "@/lib/prep/parse";
+
 const VISION_MODEL = process.env.OPENAI_VISION_MODEL ?? "gpt-4o";
 const VISION_TIMEOUT_MS = 25_000;
 const VISION_MAX_TOKENS = 900;
 
-const SUPPORTED_IMAGE_MIME = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-
-export function isSupportedImageMime(mime: string | null): boolean {
-  return mime != null && SUPPORTED_IMAGE_MIME.has(mime);
-}
+// Single source of truth lives in src/lib/prep/parse.ts.
+const SUPPORTED_IMAGE_MIME = new Set<string>(VISION_IMAGE_MIMES);
 
 /**
  * Extract prep-relevant text from an uploaded image. Returns plain text

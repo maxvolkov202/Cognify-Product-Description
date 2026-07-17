@@ -31,7 +31,15 @@ import {
   inferEventType,
   type PreparationPlan,
 } from "@/lib/ai/prep/plan-generation";
-import { generateTalkingPoints } from "@/lib/ai/talking-points";
+import {
+  generateTalkingPoints,
+  defaultTalkingPoints,
+  type TalkingPoints,
+} from "@/lib/ai/talking-points";
+import {
+  sanitizeMomentNotes,
+  fallbackMomentStructure,
+} from "@/lib/prep/moment-notes";
 import {
   generateReadinessReview,
   type ReadinessEvidence,
@@ -68,9 +76,9 @@ export type PrepMoment = {
   source: string;
   bestComposite: number | null;
   attempts: number;
-  /** Edit #3 — per-moment speaking notes/structure (TalkingPoints
-   *  shape). Null until generated or authored. */
-  notes: { sections: { header: string; bullets: string[] }[] } | null;
+  /** Edit #3 — per-moment speaking notes/structure. Null until
+   *  generated or authored. */
+  notes: TalkingPoints | null;
 };
 
 export type PrepUploadMeta = {
@@ -314,8 +322,15 @@ async function applyPlanMoments(
   // user named their own questions). Suggested rows use source
   // "suggested" and a high sortOrder band so they never interleave with
   // the practice list; accepting one flips it to source "user".
-  const practiceMoments = plan.moments.filter((m) => !m.suggested);
-  const suggestedMoments = plan.moments.filter((m) => m.suggested);
+  let practiceMoments = plan.moments.filter((m) => !m.suggested);
+  let suggestedMoments = plan.moments.filter((m) => m.suggested);
+  if (practiceMoments.length === 0) {
+    // A model that mis-tags EVERY moment suggested:true would otherwise
+    // persist an event with an empty practice plan (nothing to run in
+    // guided or simulation mode). Treat them all as the plan instead.
+    practiceMoments = plan.moments;
+    suggestedMoments = [];
+  }
   const toRow = (
     m: PreparationPlan["moments"][number],
     sortOrder: number,
@@ -658,47 +673,12 @@ export async function acceptSuggestedMoment(input: {
 }
 
 // ── Edit #3 — per-moment speaking notes/structure ───────────────────────
-
-const MOMENT_NOTES_LIMITS = {
-  sections: 8,
-  headerChars: 80,
-  bullets: 12,
-  bulletChars: 240,
-} as const;
-
-/** Clamp + sanitize a client-supplied notes structure. Returns null for
- *  structurally-empty input (used to clear the notes). */
-function sanitizeMomentNotes(
-  notes: unknown,
-): { sections: { header: string; bullets: string[] }[] } | null {
-  if (!notes || typeof notes !== "object") return null;
-  const raw = (notes as { sections?: unknown }).sections;
-  if (!Array.isArray(raw)) return null;
-  const sections = raw
-    .slice(0, MOMENT_NOTES_LIMITS.sections)
-    .map((s) => {
-      const header =
-        typeof (s as { header?: unknown })?.header === "string"
-          ? ((s as { header: string }).header ?? "")
-              .trim()
-              .slice(0, MOMENT_NOTES_LIMITS.headerChars)
-          : "";
-      const bullets = Array.isArray((s as { bullets?: unknown })?.bullets)
-        ? ((s as { bullets: unknown[] }).bullets ?? [])
-            .filter((b): b is string => typeof b === "string")
-            .map((b) => b.trim().slice(0, MOMENT_NOTES_LIMITS.bulletChars))
-            .filter((b) => b.length > 0)
-            .slice(0, MOMENT_NOTES_LIMITS.bullets)
-        : [];
-      return { header, bullets };
-    })
-    .filter((s) => s.header.length > 0 || s.bullets.length > 0);
-  return sections.length > 0 ? { sections } : null;
-}
+// Pure logic (sanitize/clamp + deterministic fallback) lives in
+// src/lib/prep/moment-notes.ts and is unit-tested there.
 
 export async function saveMomentNotes(input: {
   momentId: string;
-  notes: { sections: { header: string; bullets: string[] }[] } | null;
+  notes: TalkingPoints | null;
 }): Promise<{ ok: boolean }> {
   const g = await gate();
   if (!g.ok) return { ok: false };
@@ -717,54 +697,19 @@ export async function saveMomentNotes(input: {
   }, { ok: false });
 }
 
-/** Deterministic structure when the model is unavailable — built from
- *  the moment's own objective + coach cue so it's never generic
- *  boilerplate. */
-function fallbackMomentStructure(moment: {
-  title: string;
-  objective: string | null;
-  coachCue: string | null;
-}): { sections: { header: string; bullets: string[] }[] } {
-  return {
-    sections: [
-      {
-        header: "Open",
-        bullets: [
-          "Answer the question in your first sentence",
-          ...(moment.objective ? [moment.objective] : []),
-        ],
-      },
-      {
-        header: "Support",
-        bullets: [
-          "One concrete example or number that proves it",
-          ...(moment.coachCue ? [moment.coachCue] : []),
-        ],
-      },
-      {
-        header: "Close",
-        bullets: ["End on the point, then stop"],
-      },
-    ],
-  };
-}
-
 /** Edit #3 — generate (or regenerate) the speaking structure for a
- *  moment and persist it. Uses the legacy talking-points generator with
- *  the event as context; any model failure falls back to a structure
- *  built from the moment's own objective + coach cue. */
+ *  moment and persist it. generateTalkingPoints never throws — it
+ *  returns its own GENERIC default on any model failure, which we
+ *  detect by deep-equality so failure handling can be moment-aware:
+ *  a failed regenerate keeps the user's existing notes untouched; a
+ *  failed first draft falls back to a structure built from the
+ *  moment's own objective + coach cue (never generic boilerplate). */
 export async function generateMomentStructure(input: {
   momentId: string;
-}): Promise<{
-  ok: boolean;
-  notes?: { sections: { header: string; bullets: string[] }[] };
-}> {
+}): Promise<{ ok: boolean; notes?: TalkingPoints }> {
   const g = await gate();
   if (!g.ok) return { ok: false };
-  return safeDb<{
-    ok: boolean;
-    notes?: { sections: { header: string; bullets: string[] }[] };
-  }>(async () => {
+  return safeDb<{ ok: boolean; notes?: TalkingPoints }>(async () => {
     const [moment] = await db
       .select()
       .from(criticalMoments)
@@ -783,18 +728,20 @@ export async function generateMomentStructure(input: {
       .limit(1);
     if (!event) return { ok: false };
 
-    let notes = fallbackMomentStructure(moment);
-    try {
-      const generated = await generateTalkingPoints({
-        scenario: `${moment.title} (${event.title}, ${event.eventType}). ${moment.objective ?? ""}`,
-        context: event.contextSummary?.slice(0, 4000) ?? undefined,
-        timePressure: `${moment.recommendedSeconds} seconds of speaking time`,
-      });
-      const sanitized = sanitizeMomentNotes(generated);
-      if (sanitized) notes = sanitized;
-    } catch {
-      // Model unavailable — the deterministic fallback stands.
+    const generated = await generateTalkingPoints({
+      scenario: `${moment.title} (${event.title}, ${event.eventType}). ${moment.objective ?? ""}`,
+      context: event.contextSummary?.slice(0, 4000) ?? undefined,
+      timePressure: `${moment.recommendedSeconds} seconds of speaking time`,
+    });
+    const modelFailed =
+      JSON.stringify(generated) === JSON.stringify(defaultTalkingPoints());
+    const sanitized = modelFailed ? null : sanitizeMomentNotes(generated);
+
+    if (!sanitized && moment.notes) {
+      // Failed regenerate: never destroy the user's existing notes.
+      return { ok: true, notes: moment.notes };
     }
+    const notes = sanitized ?? fallbackMomentStructure(moment);
     await db
       .update(criticalMoments)
       .set({ notes })

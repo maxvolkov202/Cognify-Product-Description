@@ -69,6 +69,7 @@ import {
   type PrepWeakMoment,
 } from "@/server/actions/prep-events";
 import { PREP_ACCEPT_ATTR } from "@/lib/prep/parse";
+import { downscaleImageForUpload } from "@/lib/prep/image-downscale";
 import type { ReadinessReviewContent } from "@/lib/ai/prep/readiness-review";
 
 type View =
@@ -113,9 +114,13 @@ function momentDisplayPrompt(moment: PrepMoment): string {
 
 /** What the GRADER sees (RepSurface scoringPromptText): the moment plus
  *  full event context, so scoring stays event-aware while the screen
- *  stays clean. */
+ *  stays clean. NOTE: this string is persisted as reps.promptText and is
+ *  the identity key for rep grouping (/compare groups by exact
+ *  promptText equality) — keep the format byte-stable across deploys;
+ *  the no-em-dash copy rule doesn't apply because the user never sees
+ *  this string (they see momentDisplayPrompt). */
 function momentPrompt(event: PrepEventDetail, moment: PrepMoment): string {
-  const base = `${moment.title} (${event.title}).`;
+  const base = `${moment.title} — ${event.title}.`;
   const objective = moment.objective ? ` ${moment.objective}` : "";
   return `${base}${objective} Deliver it exactly as you would in the real ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"}.`.slice(
     0,
@@ -124,7 +129,7 @@ function momentPrompt(event: PrepEventDetail, moment: PrepMoment): string {
 }
 
 function simulationPrompt(event: PrepEventDetail): string {
-  return `Full simulation: ${event.title}. Deliver the entire ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"} from beginning to end without stopping. Your framework is beside you as a guide. Use it or ignore it.`.slice(
+  return `Full simulation: ${event.title}. Deliver the entire ${EVENT_TYPE_LABEL[event.eventType]?.toLowerCase() ?? "event"} from beginning to end without stopping. Your framework is beside you as a guide — use it or ignore it.`.slice(
     0,
     500,
   );
@@ -172,10 +177,11 @@ export default function PrepEventClient({
   // §7.7 — "Users may edit the recommended time before beginning";
   // per-moment override edited on the rep screen (MomentInsight).
   const [momentSeconds, setMomentSeconds] = useState<number | null>(null);
-  // Edit #3 — per-moment speaking notes. Auto-generated once per moment
-  // per mount (attempted set guards the failure-retry loop), then
-  // user-edited via the sidebar.
-  const [notesBusy, setNotesBusy] = useState<"generate" | "save" | null>(null);
+  // Edit #3 — per-moment speaking notes. Auto-drafted once per moment
+  // per mount; failures clear the attempted mark so the placeholder's
+  // manual "Draft speaking notes" button (and a later re-open) can try
+  // again. User edits flow through the sidebar.
+  const [notesGenerating, setNotesGenerating] = useState(false);
   const notesAttempted = useRef<Set<string>>(new Set());
 
   const refreshEvent = useCallback(async () => {
@@ -183,20 +189,41 @@ export default function PrepEventClient({
     if (fresh) setEvent(fresh);
   }, [event.id]);
 
+  /** Edit #3 — draft/redraft one moment's notes and patch it into local
+   *  state (the action returns the persisted notes; a full event
+   *  refetch here would double every draft's latency for data we
+   *  already have). Failure clears the attempted mark so retries stay
+   *  possible. */
+  const draftNotes = useCallback((momentId: string) => {
+    notesAttempted.current.add(momentId);
+    setNotesGenerating(true);
+    void generateMomentStructure({ momentId })
+      .then((res) => {
+        if (res.ok && res.notes) {
+          setEvent((prev) => ({
+            ...prev,
+            moments: prev.moments.map((m) =>
+              m.id === momentId ? { ...m, notes: res.notes! } : m,
+            ),
+          }));
+        } else {
+          notesAttempted.current.delete(momentId);
+        }
+      })
+      .catch(() => notesAttempted.current.delete(momentId))
+      .finally(() => setNotesGenerating(false));
+  }, []);
+
   // Edit #3 — auto-draft speaking notes the first time a moment is
-  // opened without any (the attempted set guards the failure-retry
-  // loop); afterwards the sidebar's edit/regenerate own the lifecycle.
+  // opened without any; afterwards the sidebar's edit/regenerate (and
+  // the placeholder's manual button) own the lifecycle.
   useEffect(() => {
     if (view.kind !== "moment") return;
     const id = view.moment.id;
     const live = event.moments.find((m) => m.id === id);
     if (!live || live.notes || notesAttempted.current.has(id)) return;
-    notesAttempted.current.add(id);
-    setNotesBusy("generate");
-    void generateMomentStructure({ momentId: id })
-      .then(() => refreshEvent())
-      .finally(() => setNotesBusy(null));
-  }, [view, event.moments, refreshEvent]);
+    draftNotes(id);
+  }, [view, event.moments, draftNotes]);
 
   const ensureSession = useCallback(async (): Promise<string | null> => {
     if (sessionId) return sessionId;
@@ -254,11 +281,27 @@ export default function PrepEventClient({
 
   // ── Guided practice ──────────────────────────────────────────────────
 
-  const startMoment = useCallback((moment: PrepMoment) => {
-    setAttempts({ first: null, retry: null });
-    setMomentSeconds(null);
-    setView({ kind: "moment", moment, stage: "insight", attempt: "first" });
+  /** Edit #12 — the attempt blob URLs are only needed while their
+   *  moment's review surfaces are reachable; revoke them when the
+   *  attempts are discarded or a new moment starts, otherwise every
+   *  recording stays pinned in browser memory for the tab's lifetime. */
+  const releaseAttempts = useCallback(() => {
+    setAttempts((prev) => {
+      for (const a of [prev.first, prev.retry]) {
+        if (a?.audioUrl) URL.revokeObjectURL(a.audioUrl);
+      }
+      return { first: null, retry: null };
+    });
   }, []);
+
+  const startMoment = useCallback(
+    (moment: PrepMoment) => {
+      releaseAttempts();
+      setMomentSeconds(null);
+      setView({ kind: "moment", moment, stage: "insight", attempt: "first" });
+    },
+    [releaseAttempts],
+  );
 
   const onMomentRepComplete = useCallback(
     (
@@ -323,7 +366,8 @@ export default function PrepEventClient({
     dimAcc.current = new Map();
     calloutAcc.current = [];
     setPracticedThisSession(false);
-  }, []);
+    releaseAttempts();
+  }, [releaseAttempts]);
 
   const finishGuided = useCallback(async () => {
     setView({ kind: "finishing" });
@@ -426,7 +470,12 @@ export default function PrepEventClient({
         review={view.review}
         weakestMoments={view.weakestMoments}
         recording={view.recording}
-        onBackToPlan={backToPlan}
+        onBackToPlan={() => {
+          // Edit #12 — the simulation blob is only needed while this
+          // review is on screen.
+          if (view.recording) URL.revokeObjectURL(view.recording.url);
+          backToPlan();
+        }}
         // L5 — "Sharpen next" re-enters the existing startMoment flow for
         // that moment (fresh session, same as PlanScreen's Practice).
         onPracticeMoment={async (m) => {
@@ -588,38 +637,49 @@ export default function PrepEventClient({
               <TalkingPointsSidebar
                 talkingPoints={liveMoment.notes}
                 onEdit={(next) => {
-                  setNotesBusy("save");
-                  void saveMomentNotes({ momentId: moment.id, notes: next })
-                    .then(() => refreshEvent())
-                    .finally(() => setNotesBusy(null));
+                  // Optimistic local patch; the server clamps with the
+                  // same sanitizer the sidebar shape already satisfies.
+                  setEvent((prev) => ({
+                    ...prev,
+                    moments: prev.moments.map((m) =>
+                      m.id === moment.id ? { ...m, notes: next } : m,
+                    ),
+                  }));
+                  void saveMomentNotes({ momentId: moment.id, notes: next });
                 }}
-                onRegenerate={() => {
-                  setNotesBusy("generate");
-                  void generateMomentStructure({ momentId: moment.id })
-                    .then(() => refreshEvent())
-                    .finally(() => setNotesBusy(null));
-                }}
-                regenerating={notesBusy === "generate"}
+                onRegenerate={() => draftNotes(moment.id)}
+                regenerating={notesGenerating}
               />
             ) : (
               <div className="rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-4 text-xs text-slate-500 dark:text-ink-400">
-                {notesBusy === "generate"
-                  ? "Drafting your speaking notes…"
-                  : "Speaking notes will appear here."}
+                {notesGenerating ? (
+                  "Drafting your speaking notes…"
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => draftNotes(moment.id)}
+                    className="min-h-[44px] w-full rounded-xl border border-dashed border-slate-300 dark:border-ink-600 text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:bg-purple-50/50 dark:hover:bg-ink-800"
+                  >
+                    Draft speaking notes
+                  </button>
+                )}
               </div>
             )}
           </aside>
           </div>
         )}
 
-        {/* Edit #10 (§7.7) — after any scored rep the user has real
+        {/* Edit #10 (§7.7) — after the scored FIRST rep the user has real
             options, not just Retry: continue to the next moment, or go
             back to the plan (exit). Retry stays the primary CTA on the
-            feedback surface itself. */}
+            feedback surface itself. Scored retries route straight to the
+            Improvement Review, which carries its own next/again/plan
+            options — gating on attempts.retry here would render stale
+            CTAs under a live recorder on "run it again" attempts. */}
         {view.kind === "moment" &&
           view.stage === "rep" &&
-          ((view.attempt === "first" && attempts.first != null) ||
-            (view.attempt !== "first" && attempts.retry != null)) &&
+          view.attempt === "first" &&
+          attempts.first != null &&
           (() => {
             const next = nextMomentAfter(moment);
             return (
@@ -630,9 +690,7 @@ export default function PrepEventClient({
                     onClick={() => startMoment(next)}
                     className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
                   >
-                    {view.attempt === "first"
-                      ? `Skip the retry, continue to “${next.title}” →`
-                      : `Continue to “${next.title}” →`}
+                    Skip the retry, continue to “{next.title}” →
                   </button>
                 )}
                 <button
@@ -864,10 +922,14 @@ function PlanScreen({
     );
   };
 
-  const upload = async (file: File) => {
+  const upload = async (rawFile: File) => {
     setBusy("upload");
     setUploadNote(null);
     try {
+      // Edit #1 — shrink photos client-side: keeps phone camera shots
+      // under the 4MB cap, cuts vision cost, and transcodes HEIC to
+      // JPEG on browsers that can decode it.
+      const file = await downscaleImageForUpload(rawFile);
       const form = new FormData();
       form.set("eventId", event.id);
       form.set("file", file);

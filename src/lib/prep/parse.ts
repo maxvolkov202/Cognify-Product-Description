@@ -33,6 +33,23 @@ export const PREP_ACCEPTED_EXTENSIONS = [
  *  is what makes iOS offer the photo library. */
 export const PREP_ACCEPT_ATTR = ".pdf,.docx,.pptx,.txt,.md,image/*";
 
+/** Single source of truth for vision-parseable images — drives the
+ *  extension detection here, the client-side downscaler's passthrough
+ *  check, and the vision module's mime gate. (HEIC is NOT here: the
+ *  vision API doesn't take it; the client downscaler transcodes HEIC
+ *  to JPEG on browsers that can decode it.) */
+export const IMAGE_MIME_BY_EXT = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+} as const;
+
+export const VISION_IMAGE_MIMES = [
+  ...new Set(Object.values(IMAGE_MIME_BY_EXT)),
+] as const;
+
 export type ParseResult =
   | { status: "parsed"; text: string }
   | { status: "failed"; text: null }
@@ -125,15 +142,13 @@ function normalizeImageMime(
 ): string | null {
   if (
     mimeType &&
-    ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mimeType)
+    (VISION_IMAGE_MIMES as readonly string[]).includes(mimeType)
   ) {
     return mimeType;
   }
-  if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg"))
-    return "image/jpeg";
-  if (lowerName.endsWith(".png")) return "image/png";
-  if (lowerName.endsWith(".webp")) return "image/webp";
-  if (lowerName.endsWith(".gif")) return "image/gif";
+  for (const [ext, mime] of Object.entries(IMAGE_MIME_BY_EXT)) {
+    if (lowerName.endsWith(ext)) return mime;
+  }
   return null;
 }
 

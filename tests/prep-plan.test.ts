@@ -22,6 +22,11 @@ import {
 } from "@/lib/ai/prep/readiness-review";
 import { parseContextFile, PREP_PARSED_TEXT_CAP } from "@/lib/prep/parse";
 import { renderEventContextBlock } from "@/lib/ai/score";
+import {
+  sanitizeMomentNotes,
+  fallbackMomentStructure,
+  MOMENT_NOTES_LIMITS,
+} from "@/lib/prep/moment-notes";
 
 let pass = 0;
 let fail = 0;
@@ -187,18 +192,21 @@ async function main() {
       "parsed text capped",
     );
 
-    // Edit #1 — images are a supported kind now (vision-parsed). In the
-    // test environment there's no usable vision call for a 3-byte stub,
-    // so the parse degrades to "failed" (never "unsupported", never a
-    // throw); with a live key + real photo it returns "parsed".
+    // Edit #1 — images are a supported kind now (vision-parsed). Force
+    // the no-key path so the test is deterministic and never fires a
+    // live network call: extraction returns null → "failed" (never
+    // "unsupported", never a throw).
+    const savedKey = process.env.OPENAI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
     const image = await parseContextFile(
       Buffer.from([0xff, 0xd8, 0xff]),
       "image/jpeg",
       "photo.jpg",
     );
+    if (savedKey != null) process.env.OPENAI_API_KEY = savedKey;
     assert(
-      image.status === "failed" || image.status === "parsed",
-      "image → vision kind (failed-or-parsed, not unsupported)",
+      image.status === "failed",
+      "image kind without a vision key → failed, not unsupported",
     );
     const bmp = await parseContextFile(
       Buffer.from([0x42, 0x4d]),
@@ -317,6 +325,71 @@ async function main() {
     assert(
       renderEventContextBlock(undefined) === null,
       "non-prep prompts still render no event block",
+    );
+  }
+
+  section("Edit #3 — moment notes sanitize + fallback");
+  {
+    assert(sanitizeMomentNotes(null) === null, "null input → null");
+    assert(sanitizeMomentNotes("nope") === null, "non-object → null");
+    assert(
+      sanitizeMomentNotes({ sections: [] }) === null,
+      "empty sections → null (clears notes)",
+    );
+    assert(
+      sanitizeMomentNotes({
+        sections: [{ header: "  ", bullets: ["   "] }],
+      }) === null,
+      "whitespace-only content prunes to null",
+    );
+    const clamped = sanitizeMomentNotes({
+      sections: [
+        {
+          header: "H".repeat(200),
+          bullets: [
+            ...Array.from({ length: 20 }, (_, i) => `bullet ${i}`),
+            42,
+            "",
+          ],
+        },
+        ...Array.from({ length: 20 }, () => ({
+          header: "extra",
+          bullets: ["x"],
+        })),
+      ],
+    });
+    assert(
+      clamped != null && clamped.sections.length === MOMENT_NOTES_LIMITS.sections,
+      "sections clamped to the limit",
+    );
+    assert(
+      clamped != null &&
+        clamped.sections[0]!.header.length === MOMENT_NOTES_LIMITS.headerChars,
+      "header clamped to the char limit",
+    );
+    assert(
+      clamped != null &&
+        clamped.sections[0]!.bullets.length === MOMENT_NOTES_LIMITS.bullets &&
+        clamped.sections[0]!.bullets.every((b) => typeof b === "string" && b.length > 0),
+      "bullets clamped, non-strings and empties dropped",
+    );
+
+    const fb = fallbackMomentStructure({
+      title: "Why this role?",
+      objective: "Connect your energy to the role's needs.",
+      coachCue: "Name one concrete match.",
+    });
+    assert(
+      fb.sections.length === 3 &&
+        fb.sections.some((s) =>
+          s.bullets.includes("Connect your energy to the role's needs."),
+        ) &&
+        fb.sections.some((s) => s.bullets.includes("Name one concrete match.")),
+      "fallback structure is built from the moment's own objective + cue",
+    );
+    assert(
+      sanitizeMomentNotes(fb) != null,
+      "fallback structure round-trips through the sanitizer",
     );
   }
 

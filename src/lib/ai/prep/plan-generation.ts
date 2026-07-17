@@ -82,7 +82,7 @@ DEFINITION (shown to users elsewhere): a Critical Moment is one part of the even
 
 RULES
 1. 4-8 Critical Moments, in the order they'd naturally occur.
-1a. USER-NAMED MOMENTS OVERRIDE RULE 1: if the description names, lists, or quotes specific questions or moments the user wants to practice ("I want to practice X, Y and Z", numbered lists, quoted questions), the plan is EXACTLY those moments — same order, titles faithful to the user's wording (trim to title length, never reinterpret) — even if that means fewer than 4. Do NOT invent additional practice moments alongside them. You may ALSO offer up to 3 extra moments the user might want, each carrying "suggested": true; suggested moments are shown separately as optional additions, never mixed into the practice plan.
+1a. USER-NAMED MOMENTS OVERRIDE RULE 1: if the description names, lists, or quotes specific questions or moments the user wants to practice ("I want to practice X, Y and Z", numbered lists, quoted questions), the plan is EXACTLY those moments — same order, titles faithful to the user's wording (trim to title length, never reinterpret) — even if that means fewer than 4. If they name more than 9, keep the first 9. Do NOT invent additional practice moments alongside them, and NEVER mark a user-named moment "suggested". You may ALSO offer up to 3 extra moments the user might want, each carrying "suggested": true; suggested moments are shown separately as optional additions, never mixed into the practice plan.
 2. Each moment: a SHORT title (2-6 words, the way a coach would say it; for user-named questions, the user's own words), an objective (one sentence: what a strong version accomplishes), a recommended speaking time in seconds (30-600, realistic for that moment), a coachCue, and a scoringHint.
 2a. coachCue: 1-2 sentences of practical behavioral coaching for THIS moment: what great looks like AND the trap most people fall into. Coach's voice, second person, immediately usable ("Land the result in your first sentence. Most people bury it under three sentences of setup."). No theory names, no frameworks, no jargon, plain words, and never use em-dashes.
 2b. scoringHint: ONE operator-facing line telling the evaluator what to weigh for this moment ("Weigh whether the answer ends on a concrete, quantified result; penalize setup that outweighs outcome."). Third person, about the response — never addressed to the user.
@@ -92,7 +92,8 @@ RULES
 6. eventType: one of interview | presentation | pitch | toast | demo | meeting | speech | other.
 7. recommendedMode: "guided" when the event is question-driven or benefits from moment-by-moment coaching (interviews, meetings); "simulation" when flow and pacing matter most (toasts, speeches, rehearsed presentations).
 8. recommendedDurationSec: the realistic total duration of the real event's spoken content (60-1800), used for Full Simulation.
-9. title: a clean short name for the event ("SDR Interview — Salesforce"), max 80 chars.
+9. title: a clean short name for the event ("SDR Interview at Salesforce"), max 80 chars.
+10. Plain language in every user-facing field (title, objective, coachCue): simple words, no jargon, and never use em-dashes anywhere.
 
 OUTPUT: ONLY valid JSON, no prose:
 {
@@ -122,7 +123,10 @@ export async function generatePreparationPlan(
   try {
     const response = await anthropic.messages.create({
       model: MODELS.framework,
-      max_tokens: 1600,
+      // 12 moments x (title + objective + coachCue + scoringHint) can
+      // exceed the old 1600 budget once rule 1a admits user-named lists;
+      // a truncated JSON would silently fall back to the generic plan.
+      max_tokens: 3200,
       system: [
         {
           type: "text",
