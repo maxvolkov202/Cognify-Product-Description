@@ -1,4 +1,13 @@
-# Job 2 — Prosody worker prod deploy: BLOCKED (2 blockers for Max)
+# Job 2 — Prosody worker prod deploy
+
+> **Update (2026-07-20, later):** Blocker 2 (sync path never sent `audioUrl`) is **FIXED in code**
+> — `RepSurface.tsx` now uploads audio first and passes the signed `audioUrl` to `/api/score`
+> when `NEXT_PUBLIC_PROSODY_SYNC=true` (default off → byte-identical to old behavior). Blocker 1
+> (Modal auth) is the only thing still outstanding: Modal is installed but has **no credentials** —
+> run `modal token new` (interactive) or provide a token-id/secret pair. Activation sequence at the
+> bottom. Original write-up below.
+
+# (original) Prosody worker prod deploy: BLOCKED (2 blockers for Max)
 
 Status at 2026-07-20: **not deployed / flag not flipped.** Two independent blockers, both
 Max-owned. Neither is a code defect in the grading pipeline — the audio-tone grading itself is

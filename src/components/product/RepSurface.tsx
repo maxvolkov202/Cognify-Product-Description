@@ -564,6 +564,48 @@ export function RepSurface({
       ...(optimisticDims ? { optimisticDims } : {}),
     });
 
+    // Ch.3b prosody — when the sync path is prosody-enabled
+    // (NEXT_PUBLIC_PROSODY_SYNC=true, set once the prod worker is deployed
+    // and FF_PROSODY_WORKER=true), upload the audio BEFORE scoring so
+    // /api/score receives a signed audioUrl and can call the prosody
+    // worker for real Tone grading. When off (default) we keep the
+    // latency-optimized order — upload AFTER scoring — so the score returns
+    // without waiting on the upload round-trip. `audioPath` (storage path)
+    // is what saveRep persists either way; `audioScoreUrl` (short-lived
+    // signed URL) is what the scorer + worker consume.
+    const prosodySync = process.env.NEXT_PUBLIC_PROSODY_SYNC === "true";
+    let audioPath: string | null = null;
+    let audioScoreUrl: string | null = null;
+    const uploadRepAudio = async () => {
+      try {
+        const fd = new FormData();
+        fd.append(
+          "audio",
+          new File([result.blob], "rep.webm", { type: result.mimeType }),
+        );
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+        });
+        if (uploadRes.ok) {
+          const up = (await uploadRes.json()) as {
+            path: string | null;
+            url: string | null;
+          };
+          audioPath = up.path;
+          audioScoreUrl = up.url;
+        }
+      } catch {
+        // Upload failure must never block scoring — tone degrades to the
+        // text tier and saveRep persists a null audio path.
+        audioPath = null;
+        audioScoreUrl = null;
+      }
+    };
+
+    // Prosody-sync ON: upload first so a signed audioUrl reaches the scorer.
+    if (prosodySync) await uploadRepAudio();
+
     // Body for /api/score (the unified single-call pipeline).
     const scoreBody = {
       transcript:
@@ -589,6 +631,10 @@ export function RepSurface({
       ...(exerciseId ? { exerciseId } : {}),
       ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
       ...(isGraduationRep ? { isGraduationRep: true } : {}),
+      // Ch.3b — signed audio URL for prosody Tone grading. Present only
+      // when the prosody-sync upload above succeeded. The server ignores
+      // it unless FF_PROSODY_WORKER=true, so sending it is always safe.
+      ...(audioScoreUrl ? { audioUrl: audioScoreUrl } : {}),
     };
 
     // Client-side timeout so Claude hangs don't trap the user. Bumped from
@@ -626,25 +672,11 @@ export function RepSurface({
       return;
     }
 
-    // Persist the Supabase Storage path (not the signed URL) so we can
-    // regenerate short-lived signed URLs on demand. Same-session playback
-    // uses the local Blob URL from RecordingResult.url, so no signed URL
-    // needed here.
-    let audioUrl: string | null = null;
-    try {
-      const fd = new FormData();
-      fd.append(
-        "audio",
-        new File([result.blob], "rep.webm", { type: result.mimeType }),
-      );
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-      if (uploadRes.ok) {
-        const up = (await uploadRes.json()) as { path: string | null };
-        audioUrl = up.path;
-      }
-    } catch {
-      audioUrl = null;
-    }
+    // Prosody-sync OFF (default): upload AFTER scoring so the score isn't
+    // delayed by the upload round-trip. Persist the Storage path (not the
+    // signed URL) so short-lived signed URLs can be regenerated on demand;
+    // same-session playback uses the local Blob URL from RecordingResult.
+    if (!prosodySync) await uploadRepAudio();
 
     setPhase({ kind: "saving" });
     let savedRepId: string | null = null;
@@ -656,7 +688,7 @@ export function RepSurface({
         promptText: scoringPromptText ?? prompt,
         durationMs: result.durationMs,
         transcript,
-        audioUrl,
+        audioUrl: audioPath,
         score,
         framework: framework ?? null,
         topic: topic ?? null,
