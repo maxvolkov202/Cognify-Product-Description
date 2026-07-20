@@ -641,3 +641,25 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (1) the Modal token in the prompt was the literal placeholder `<PASTE MODAL TOKEN HERE>`;
     (2) the prod SYNC path (`RepSurface.tsx:568-609`) never sends `audioUrl` to `/api/score`, so
     flipping `FF_PROSODY_WORKER=true` alone is a no-op for tone — fix + latency tradeoff documented.
+
+- **2026-07-20 (session 10, cont.) — Job 1 SHIPPED after OpenAI re-up.** Max re-upped OpenAI;
+  prod + local confirmed non-mock. Resumed and completed all gates:
+  - 3× calibration replay (0 mock, **0 independence failures**) → `reauthor-expectations.mjs`
+    re-baselined the 29 band reps (upper tier +8-12, low/mid ±2-6). Post-reauthor
+    `calibrate-scoring` **1/48** (indep-earnings-explainer thk 65>60, documented aspirational),
+    0 mock — within ≤5. `verify-scoring` all-pass (v4.1.0, non-mock). `phase-baseline` p50/p95
+    **9.1s/9.9s**, 0 mock, not regressed. `calibrate-audio-tone` **4/4 tone pairs +25**, prosody
+    end-to-end (worker :8080), 1 documented per-clip TTS boundary noise.
+  - `/code-review high` → 1 low-severity DEFERRED finding: edge rule 3 (>170 wpm docks delivery)
+    vs deterministic `scorePacing` (penalizes only >220) — each governs a different path
+    (deterministic override wins when words present), so no wrong behavior; left for a future
+    decision on whether to add a 170-220 band to scorePacing.
+  - **PR #17 merged → main** (`08e29d52`). `next build` green. `vercel deploy --prod` →
+    `dpl_FGrqmk2kNU1Qcd89nGBb3Lp8rKQA` (production, READY). **Prod smoke: elite pitch composite
+    81, non-mock (openai:gpt-4o), rubricVersion v4.1.0 live, rep-specific headline.** Max's target
+    (excellent reps reach 80+) is met in prod. Text-only tone still caps ~70 by design → elite
+    85-90 remains audio-gated (Job 2).
+  - **Incident postmortem:** the mid-session prod mock-fallback was OpenAI quota exhaustion (429)
+    from the validation burst + Anthropic fallback also out of credits; resolved by Max's re-up.
+    Consider raising the OpenAI spend cap and re-upping Anthropic so the fallback can absorb the
+    next quota event instead of dropping to mock.
