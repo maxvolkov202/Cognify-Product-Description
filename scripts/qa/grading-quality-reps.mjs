@@ -270,4 +270,104 @@ export const REPS = [
       note: "EDGE: one giant comma-spliced run-on (~880 chars). PRIMARY TEST: must NOT mock-fallback (the strongerVersion.quote cap bug — verbatim quote could exceed old 400 cap). Confirm modelVersion != mock-fallback-v1 and a real strongerVersion. Content is actually decent (own-it-fast), so mid score; structure/conciseness low.",
     },
   },
+
+  // ======================================================================
+  // Part C — fresh genuinely-excellent / elite reps added for the 2026-07-20
+  // grading recalibration (rubric v4.1.0). Purpose: validate that the
+  // recalibrated ladder lets EXCELLENT reps clear 80 and ELITE reps clear
+  // 85 across varied response types — WITHOUT over-fitting to Part B. New
+  // transcripts, new prompts. Text-only (no words) so delivery/tone are the
+  // conservative text tier; the caliber signal lives in the content dims.
+  // ======================================================================
+
+  // ---------- ELITE: second investor pitch (different domain) ----------
+  {
+    id: "elite-investor-pitch-climate",
+    kind: "elite",
+    promptText: "Give your 90-second investor pitch.",
+    transcript:
+      "Commercial buildings waste a third of the energy they buy, and the reason isn't old equipment, it's that nobody is watching the equipment minute to minute. A building has thousands of sensors, but the data goes to a dashboard a facilities manager checks once a week, if that. We built Cadence. Cadence reads every sensor stream in real time and retunes the heating and cooling automatically, the same way a thermostat learns your house, but for a four hundred thousand square foot tower. In our first fourteen buildings we cut energy spend by eighteen percent with no new hardware — we use the sensors that are already there. For a typical tower that's about three hundred thousand dollars a year, and we charge sixty thousand, so the building pays us back in ten weeks. There are ninety thousand buildings over that size in the US. We've converted nine of the fourteen pilots to multi-year contracts, revenue is up twenty-two percent month over month, and we're raising six million to build the deployment team that turns our pipeline of two hundred buildings into signed contracts. Today we sell energy savings. Tomorrow we're the operating system every large building runs on.",
+    durationMs: 94000,
+    expected: {
+      composite: [85, 94],
+      dimGoal: "thinking_quality HIGH (>=85), clarity/structure/conciseness HIGH (>=82)",
+      weakest: ["tone"],
+      note: "ELITE: fully-realized pitch — problem sized + mechanism + proof w/ numbers + unit economics + market + ask + vision. Content dims should be high 80s/low 90s; thinking_quality must NOT settle at 75-78. Text-only tone caps ~70 by design. Target composite 85+.",
+    },
+  },
+  // ---------- ELITE: behavioral interview answer ----------
+  {
+    id: "elite-behavioral-answer",
+    kind: "elite",
+    promptText: "Tell me about a time you had to make a decision without all the information you wanted.",
+    transcript:
+      "Our biggest customer threatened to churn on a Friday, and the renewal was due Monday. I had two hours before the exec call and I couldn't reach the account team. The information I was missing was the real reason they were leaving — was it price, or was it the outage we'd had in March? Those need opposite responses. So instead of guessing, I pulled their support tickets and their usage graph. Usage had actually climbed after the outage, which told me the outage wasn't it — if they'd lost trust, usage falls. But their tickets were all about one missing export feature. So I walked into the exec call and said: this isn't a price problem, it's a product gap, and here's the one feature that closes it. We committed to a six-week delivery, kept the account, and shipped the feature in five. The lesson was that when you can't get the answer directly, you can often infer it from behavior that people don't think to fake — usage doesn't lie the way a complaint does.",
+    durationMs: 68000,
+    expected: {
+      composite: [82, 92],
+      dimGoal: "thinking_quality HIGH (>=82) — inferring cause from behavior is real reasoning; structure HIGH",
+      weakest: ["tone", "delivery"],
+      note: "ELITE behavioral answer: clean situation, a genuine inference (usage-up rules out trust loss), decisive action, quantified outcome, transferable lesson. thinking_quality must reward the causal inference. Target composite 82+.",
+    },
+  },
+  // ---------- ELITE: masterful objection handling ----------
+  {
+    id: "elite-objection-switching-cost",
+    kind: "elite",
+    promptText: "A prospect says: 'We already use a competitor and switching would be too disruptive.' Respond.",
+    transcript:
+      "That's the right worry, and honestly if switching were a big-bang cutover I'd tell you not to do it. So let me tell you how it actually goes, because disruption is a design choice, not a law. We run in parallel for the first month. Your competitor keeps handling live traffic while we mirror it in the background, and your team compares the two side by side on your own data. Nobody moves until you've seen us handle a full billing cycle without a hiccup. The one team that pushed back hardest on exactly this ran the parallel month, found two edge cases we fixed, and cut over on a Tuesday afternoon with zero downtime. The real question isn't whether switching is disruptive — we've engineered that risk down to a month of watching. The question is whether staying on a tool your team has already outgrown is quietly costing you more than one careful month would.",
+    durationMs: 58000,
+    expected: {
+      composite: [82, 92],
+      dimGoal: "thinking_quality HIGH (>=80) — reframes 'disruption' as a design choice; structure/clarity HIGH",
+      weakest: ["tone", "delivery"],
+      note: "ELITE objection handling: validates, reframes the objection ('disruption is a design choice'), de-risks with a concrete parallel-run mechanism, proof point, low-pressure close. Reframing IS depth. Target composite 82+.",
+    },
+  },
+  // ---------- EXCELLENT: teaching a hard concept simply ----------
+  {
+    id: "excellent-teaching-opportunity-cost",
+    kind: "excellent",
+    promptText: "Explain 'opportunity cost' to a teenager who has never heard the term.",
+    transcript:
+      "Say you have twenty dollars and a free Saturday. You could spend the day and the money at the movies, or you could work a shift and make forty. Most people think the cost of the movie is the ticket price. It isn't. The real cost is the movie ticket PLUS the forty dollars you didn't earn because you were in the theater. That second part — the best thing you gave up — is the opportunity cost, and it's invisible, which is exactly why it fools people. Every yes is also a no to whatever else that time or money could have done. So the trick isn't to never spend, it's to make the thing you gave up worth less to you than the thing you chose. Once you can see the invisible cost, you make sharper choices, because you're finally comparing the real prices, not just the ones on the tag.",
+    durationMs: 52000,
+    expected: {
+      composite: [80, 90],
+      dimGoal: "clarity HIGH (>=85), thinking_quality HIGH (>=78) — names the invisible-cost mechanism",
+      weakest: ["tone", "delivery"],
+      note: "EXCELLENT teaching: concrete relatable example, isolates the exact misconception, names the mechanism (invisible cost), lands an actionable rule. Analytical framing counts as thinking depth. Target composite 80+.",
+    },
+  },
+  // ---------- EXCELLENT: wedding toast (genre-strong, genuinely elite for its format) ----------
+  {
+    id: "excellent-wedding-toast-2",
+    kind: "excellent",
+    promptText: "Give a short wedding toast for your sister.",
+    transcript:
+      "When Maya was nine, she gave away her bike to a kid down the street because his was stolen, and then told our parents she'd simply 'decided to walk more.' She has been quietly making other people's problems disappear ever since, and she never once wanted credit for it. So the thing I want you to know, Tom, is that you didn't just marry someone kind — you married someone who will fix things when you aren't even looking, and then pretend the weather did it. Maya, for thirty years I've watched you give the best of yourself to everyone around you. Tonight the whole room gets to watch someone show up to do the same for you. To Maya and Tom — may you always walk more, together. Raise your glasses.",
+    durationMs: 44000,
+    expected: {
+      composite: [74, 88],
+      dimGoal: "clarity/structure/tone-text HIGH; thinking_quality NOT the right lens — must not be penalized as 'shallow'",
+      weakest: ["thinking_quality"],
+      note: "EXCELLENT toast for its genre, but the 6-dim analytical rubric structurally caps a toast text-only: thinking_quality (weight 20) is not what a toast optimizes, so composite ceilings ~76-80 even when the toast is perfect. PASS CONDITION: thinking_quality must NOT be actively punished as a 'flaw' (no 'lacks depth/add evidence' coachFocus), and clarity/structure/tone stay high. Tests genre-appropriate grading at the top.",
+    },
+  },
+  // ---------- EXCELLENT: technical explainer for a non-technical audience (contrast to jargon-tangled) ----------
+  {
+    id: "excellent-technical-explainer-plain",
+    kind: "excellent",
+    promptText: "Explain to a non-technical executive what your team shipped this sprint.",
+    transcript:
+      "Two weeks ago, when a customer placed an order, our system checked their payment, their inventory, and their shipping address one after another, in a line. If any single check was slow, the whole order waited. This sprint we changed it so all three checks run at the same time instead of in sequence. The result the customer feels is that checkout went from about four seconds to just under one. The result you'll feel is that we can now handle roughly three times the order volume on the same servers, which matters directly for the holiday peak — we were going to have to buy more capacity in November, and now we don't. There's no new feature to announce, so it's invisible on a screen, but it's the difference between the site staying up on our busiest day and not.",
+    durationMs: 50000,
+    expected: {
+      composite: [80, 90],
+      dimGoal: "clarity HIGH (>=85) for the stated audience; thinking_quality decent (translates tech->business impact)",
+      weakest: ["tone", "delivery"],
+      note: "EXCELLENT technical explainer: zero jargon, before/after concrete, translates the change into business impact (holiday peak, no new servers). The audience-appropriate mirror of indep-jargon-tangled — clarity should be HIGH here, not low. Target composite 80+.",
+    },
+  },
 ];
