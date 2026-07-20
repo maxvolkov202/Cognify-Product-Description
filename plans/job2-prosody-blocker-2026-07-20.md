@@ -1,4 +1,4 @@
-# Job 2 — Prosody worker prod deploy
+# Job 2 — Prosody worker prod deploy — ✅ SHIPPED 2026-07-20 (prosody tone live in prod)
 
 > **Update (2026-07-20, later):** Blocker 2 (sync path never sent `audioUrl`) is **FIXED in code**
 > — `RepSurface.tsx` now uploads audio first and passes the signed `audioUrl` to `/api/score`
