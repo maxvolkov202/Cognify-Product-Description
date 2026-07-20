@@ -58,39 +58,12 @@ export type ExtractWorkerProsodyInput = {
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
-/** Returns the worker-derived subset of ProsodyFeatures, or null on any
- *  failure. Caller merges into inline-derived features via
- *  `mergeProsody()` from prosody-inline.ts.
- *
- *  Provider selection (in order):
- *   1. HUME_API_KEY set → call Hume.ai's prosody model (Ch.S5)
- *   2. PROSODY_WORKER_URL set → call self-hosted Praat worker (Ch.3b)
- *   3. Neither set → return null (degrades to inline-only Tone signals)
- *
- *  Both providers populate the same `ProsodyFeatures` shape so the
- *  downstream score path is provider-agnostic. */
-export async function extractWorkerProsody(
+/** Call the self-hosted Praat worker (Ch.3b). Returns its prosody subset,
+ *  or null on timeout / non-2xx / malformed payload. */
+async function callPraatWorker(
+  url: string,
   input: ExtractWorkerProsodyInput,
 ): Promise<Partial<ProsodyFeatures> | null> {
-  if (process.env.FF_PROSODY_WORKER !== "true") return null;
-
-  // Ch.S5 — Hume.ai path (preferred when key is set).
-  if (process.env.HUME_API_KEY) {
-    return extractHumeProsody({
-      audioUrl: input.audioUrl,
-      durationMs: input.durationMs,
-      timeoutMs: input.timeoutMs,
-    });
-  }
-
-  const url = process.env.PROSODY_WORKER_URL;
-  if (!url) {
-    console.warn(
-      "[prosody-worker] FF_PROSODY_WORKER=true but neither HUME_API_KEY nor PROSODY_WORKER_URL is set; skipping",
-    );
-    return null;
-  }
-
   const controller = new AbortController();
   const timeout = setTimeout(
     () => controller.abort(),
@@ -140,4 +113,55 @@ export async function extractWorkerProsody(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/** Returns the worker-derived subset of ProsodyFeatures, or null on any
+ *  failure. Caller merges into inline-derived features via
+ *  `mergeProsody()` from prosody-inline.ts.
+ *
+ *  Provider selection (Ch.3.1 spike chose the Praat worker as primary;
+ *  Hume is optional/additive — grading-v3-design.md §3.1):
+ *   1. PROSODY_WORKER_URL set → call the self-hosted Praat worker (Ch.3b).
+ *      This is the PRIMARY path because the spike selected it.
+ *   2. If the worker is unavailable OR yields nothing, AND HUME_API_KEY is
+ *      set → fall back to Hume.ai's prosody model (Ch.S5).
+ *   3. Neither available → return null (degrades to inline-only Tone).
+ *
+ *  A prior bug preferred Hume whenever HUME_API_KEY was set and returned
+ *  its result even when null, silently short-circuiting the Praat worker
+ *  (so a broken/empty Hume key disabled prosody entirely). Praat-first with
+ *  Hume-as-fallback fixes that and matches the spike decision.
+ *
+ *  Both providers populate the same `ProsodyFeatures` shape so the
+ *  downstream score path is provider-agnostic. */
+export async function extractWorkerProsody(
+  input: ExtractWorkerProsodyInput,
+): Promise<Partial<ProsodyFeatures> | null> {
+  if (process.env.FF_PROSODY_WORKER !== "true") return null;
+
+  const url = process.env.PROSODY_WORKER_URL;
+  const hasHume = Boolean(process.env.HUME_API_KEY);
+
+  // Primary: the Praat worker (the spike winner).
+  if (url) {
+    const worker = await callPraatWorker(url, input);
+    if (worker) return worker;
+    // Worker unreachable / empty — fall through to Hume if configured.
+  }
+
+  // Fallback (or sole provider when no worker URL): Hume.ai (Ch.S5).
+  if (hasHume) {
+    return extractHumeProsody({
+      audioUrl: input.audioUrl,
+      durationMs: input.durationMs,
+      timeoutMs: input.timeoutMs,
+    });
+  }
+
+  if (!url) {
+    console.warn(
+      "[prosody-worker] FF_PROSODY_WORKER=true but neither PROSODY_WORKER_URL nor HUME_API_KEY is set; skipping",
+    );
+  }
+  return null;
 }
