@@ -663,3 +663,25 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     from the validation burst + Anthropic fallback also out of credits; resolved by Max's re-up.
     Consider raising the OpenAI spend cap and re-upping Anthropic so the fallback can absorb the
     next quota event instead of dropping to mock.
+
+- **2026-07-20 (session 10, cont.) — Job 2 SHIPPED: prosody audio-tone grading LIVE in prod.**
+  Max authed Modal (`modal token new`). Executed:
+  - **Modal worker deployed** (`cognify-prosody-worker`, URL
+    `https://maxvolkov202--cognify-prosody-worker-fastapi-app.modal.run`) from
+    `infra/prosody-worker/modal_app.py`. Hardened with a shared-secret (`cognify-prosody-secret`)
+    so a leaked URL can't burn credits; worker verified returning real prosody for wav + mp3.
+  - **PR #19** — sync path now uploads audio BEFORE scoring and sends the signed `audioUrl` to
+    `/api/score` (gated by `NEXT_PUBLIC_PROSODY_SYNC`, default off = byte-identical). This closed the
+    original blocker (sync path never sent audioUrl).
+  - **PR #20** — `extractWorkerProsody` now tries the Praat worker FIRST, Hume as fallback. Prod had
+    a stale `HUME_API_KEY` that returned null and short-circuited the worker (tone fell to text tier
+    despite a healthy worker). Fixed + latent "Hume-null-no-fallback" bug removed.
+  - **Prod env set** (verified via `vercel env pull`): `PROSODY_WORKER_URL`, `PROSODY_WORKER_TOKEN`,
+    `NEXT_PUBLIC_PROSODY_SYNC=true`, `FF_PROSODY_WORKER=true`. Two `vercel deploy --prod` cycles.
+  - **Smoke PASS:** prod `/api/score` with a signed audioUrl → `toneSource: prosody`,
+    `prosodyAvailable:true`, non-mock; tone REACTS — expressive clip 65 vs flat clip 35 (+30).
+  - **Watch-items for Max:** (1) `min_containers=1` on the worker = continuous Modal credit burn
+    against ~$30 — consider `min_containers=0` (graceful cold-start degradation to text) after
+    handoff. (2) sync reps now upload before scoring → slightly slower perceived scoring. (3) the
+    stale `HUME_API_KEY` is now inert (Praat is primary); remove it if Hume is truly dead.
+  - **Job 3 (Max-owned) still open:** manual auth + mic smoke matrix.
