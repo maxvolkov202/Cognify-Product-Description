@@ -56,6 +56,11 @@ app = modal.App(name="cognify-prosody-worker", image=image)
     # response p99 stays under the Node fetch timeout (5s).
     min_containers=1,
     timeout=30,
+    # Shared-secret auth so a leaked URL can't burn worker credits. The
+    # secret injects PROSODY_WORKER_TOKEN into the container env; main.py
+    # enforces `Authorization: Bearer <token>` when it is present. Cognify
+    # sends the matching header via PROSODY_WORKER_TOKEN in its own env.
+    secrets=[modal.Secret.from_name("cognify-prosody-secret")],
 )
 @modal.asgi_app()
 def fastapi_app():
