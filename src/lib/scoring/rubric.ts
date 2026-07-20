@@ -62,7 +62,25 @@ import {
  * absolute score levels → reference-bank expectations re-authored on
  * this version (2026-07-16 replay, anchored prompt).
  */
-export const RUBRIC_VERSION = "v4.0.0";
+/**
+ * v4.1.0 (grading recalibration, 2026-07-20): deliberate anti-compression
+ * + depth recalibration. The v4.0.0 prompt systematically under-rated the
+ * top tier (elite reps clustered 75-78; a textbook investor pitch scored
+ * 75) via three mechanisms, all fixed here in the scoring prompt/rubric:
+ *   (a) anti-middle-compression instruction — the model piled strong reps
+ *       into 68-78 out of caution; the middle band must now be earned by a
+ *       nameable flaw.
+ *   (b) thinking_quality no longer conflates depth with evidence-count —
+ *       causal insight, correct framing, and non-replicability reasoning
+ *       count as depth even without numbers (edge rules 5 + 7 reinforced).
+ *   (c) delivery well-paced band widened 150-160 → ~130-165, and a
+ *       no-audio delivery-grounding rule stops text-only reps free-falling
+ *       delivery into the 40s-50s.
+ * Composite math + weights unchanged; the prompt shift raises absolute
+ * upper-tier levels, so the reference-bank upper-tier expectations are
+ * re-authored on this version (sanctioned re-baseline per PRD §3.6 / D22).
+ */
+export const RUBRIC_VERSION = "v4.1.0";
 
 export type DimensionGroup = "content" | "delivery";
 
@@ -167,7 +185,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "delivery",
     group: "delivery",
     definition:
-      "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions. Stable WPM in the 150-160 range, intentional pauses for cognitive bookmarking, low filler frequency, finishes cleanly within time.",
+      "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions. Stable WPM in the ~130-165 range, intentional pauses for cognitive bookmarking, low filler frequency, finishes cleanly within time.",
     lowScoreSignals: [
       "Speech rate well outside 130-170 wpm range",
       "High filler rate (> 5 per minute) — um, uh, like, you know",
@@ -176,7 +194,7 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
       "Going significantly over or under time budget",
     ],
     highScoreSignals: [
-      "Consistent WPM across rep quartiles, ~150-160 average",
+      "Consistent WPM across rep quartiles, ~130-165 average",
       "Purposeful 1-3 second pauses after key points",
       "Filler rate < 2 per minute",
       "Finishes within 10% of time budget",

@@ -98,9 +98,9 @@ export const RUBRIC_ANCHORS: Record<SkillDimension, readonly string[]> = {
     // 41-60
     "Most claims have some support; reasoning addresses the prompt but stops at the surface. The 'why' is implicit, not stated.",
     // 61-80
-    "Every major claim is supported by reason, example, or evidence. Reasoning addresses 'why' and 'so what' — not just 'what'.",
+    "The reasoning does real work: claims connect to reasons, the 'why' and 'so what' are addressed, OR the response reframes the problem / names the load-bearing variable. Support can be explicit evidence or a sound causal chain — numbers are not required.",
     // 81-100
-    "Engages the deep 'why.' Acknowledges complexity, addresses counterarguments, goes beyond the predictable first answer.",
+    "Insight that changes how you see the problem — names the deciding variable, distinguishes the cases that flip the answer, or surfaces a non-obvious mechanism (a selection effect, a hidden cost, a second-order consequence). Depth is measured by the QUALITY of the reasoning, not by the presence of statistics or explicit counterarguments; brief or disorganized packaging does not lower it.",
   ],
   delivery: [
     // 1-20
@@ -110,7 +110,7 @@ export const RUBRIC_ANCHORS: Record<SkillDimension, readonly string[]> = {
     // 41-60
     "WPM in the 140-170 range most of the time. Filler under 4/min. Some intentional pauses but rhythm is uneven.",
     // 61-80
-    "Stable WPM around 150-160. Pauses placed after key points. Filler under 2/min. Within 10% of time budget.",
+    "Stable WPM anywhere in ~130-165. Pauses placed after key points. Filler under 2/min. Within 10% of time budget.",
     // 81-100
     "Locked-in pacing across all four quartiles. Pauses are intentional bookmarks. Filler under 1/min. Final sentence lands cleanly.",
   ],

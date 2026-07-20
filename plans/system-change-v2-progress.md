@@ -603,3 +603,41 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Handed to Max (blocked/follow-up):** `supabase functions deploy process-rep` (CLI unauthenticated;
     non-critical while async scoring is off), prosody-worker prod deploy (Modal), drift-cron hold, and the
     Anthropic-fallback low-credit flag. `/code-review` + PR + self-merge as usual.
+
+- **2026-07-20 (session 10) — Phase 7 grading recalibration (rubric v4.1.0) + PROD INCIDENT.**
+  Branch `fix/grading-recalibration-v4-1` (NOT merged, NOT deployed). Addresses the upper-tier
+  under-rating from `plans/verification-2026-07-20-holistic.md` (elite reps clustered 75-78).
+  - **🔴 PROD SCORING INCIDENT (needs Max — billing):** midway through local validation, OpenAI
+    returned `429 "You exceeded your current quota"` and Anthropic fallback is still out of credits
+    → **prod `/api/score` is serving `mock-fallback-v1` (composite 70, canned coaching) to real
+    users.** Prod was confirmed non-mock at session start (18-rep baseline, 0 mock), so the quota
+    was exhausted DURING this session — the ~250+ gpt-4o validation calls I ran (local + prod share
+    the OpenAI account) are the overwhelmingly likely cause. **Fix = re-up OpenAI quota (or Anthropic
+    credits so the fallback works).** I stopped all scoring calls on detection.
+  - **Rubric changes (DONE, typecheck+lint+contract-tests green, code reviewed by eye):**
+    `score.ts` — anti-middle-compression rule; a clarity/structure "clean-arc ceiling" rule;
+    thinking_quality "depth ≠ evidence-count" recalibration (edge rules 5/7 reinforced, 2b
+    strengthened for disorganized-but-deep, 2 strengthened for numbered-scaffold structure);
+    widened delivery band 150-160 → 130-165 with a >170-wpm fast-penalty retained and a no-audio
+    delivery-grounding rule. `rubric.ts` — RUBRIC_VERSION v4.0.0 → **v4.1.0**, delivery def/​signals
+    130-165. `rubric-anchors.ts` — thinking 61-100 + delivery 61-80 anchors rewritten.
+    `scripts/qa/grading-quality-reps.mjs` — +6 fresh excellent/elite reps (2nd pitch, behavioral,
+    objection, teaching, toast, technical explainer).
+  - **Validation captured BEFORE quota died (local, 24-rep QA, averaged):** junk 16 / poor 26 held;
+    independence gaps clean (org-empty str−thk +15, clear-shallow cla−thk +15, concise-vague
+    con−thk +53); deep-but-disorganized FIXED — thinking 62-72 > structure 42-45 (was thk40<str50),
+    5/5 runs; excellent reps clear 80 (teaching 81, technical 81, investor 84); elite reps 82-85
+    (climate pitch hit 85). The calibration bank replay (run 1 of 3, 48 reps, 0 mock) showed the
+    intended upper-tier lift: interview-excellent-leadership-failure 59→71 (thinking 47→72),
+    band-exceptional 70→79, +7 more upper-tier band reps drifting UP — these are the sanctioned
+    re-baseline targets, not drift.
+  - **⚠️ BLOCKED on credits — remaining Job-1 gates NOT done:** (a) finish the 3× calibration replay
+    → `reauthor-expectations.mjs` re-baseline of upper-tier band reps; (b) full `calibrate-scoring` /
+    `verify-scoring` / `phase-baseline` / `calibrate-audio-tone` suite; (c) `/code-review high`;
+    (d) PR + self-merge + `next build` + `vercel deploy --prod` + prod elite-rep smoke. Resume once
+    OpenAI/Anthropic credits are restored. Text-only tone caps ~70 by design, so text-only elite
+    tops ~85; 85-90 elite is audio-gated (needs Job 2 prosody).
+  - **Job 2 (prosody worker) — DOUBLE BLOCKED, see `plans/job2-prosody-blocker-2026-07-20.md`:**
+    (1) the Modal token in the prompt was the literal placeholder `<PASTE MODAL TOKEN HERE>`;
+    (2) the prod SYNC path (`RepSurface.tsx:568-609`) never sends `audioUrl` to `/api/score`, so
+    flipping `FF_PROSODY_WORKER=true` alone is a no-op for tone — fix + latency tradeoff documented.
