@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils/cn";
 import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
-import { clearRepDraftNotes } from "@/components/product/RepFrameworkStrip";
 import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import {
@@ -485,12 +484,6 @@ function ActiveRep({
           } catch {
             // Tagging is best-effort; the rep is already saved.
           }
-          // The rep is scored — drop its jotted-notes draft so it doesn't
-          // bleed into the next recording. notesKey mirrors RepSurface's
-          // `${muscleGroupDayId}:${exerciseId}` (shared by the first attempt
-          // AND its required Retry), so clearing here stops first-attempt
-          // notes reappearing on the retry / next rep at this station.
-          clearRepDraftNotes(`${muscleGroupDayId}:${station.exerciseId}`);
         }
         onRepScored?.({
           composite: payload.score?.composite ?? null,

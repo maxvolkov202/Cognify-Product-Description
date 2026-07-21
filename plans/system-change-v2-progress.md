@@ -765,7 +765,10 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     a deliberate fresh mic. **Session machine untouched — F-6 auto-advance + revert stay intact.**
   - **Notes carryover.** `clearRepDraftNotes` had ZERO callers; notes are keyed
     `${muscleGroupDayId}:${exerciseId}`, shared by the first attempt AND its retry, and restored on
-    every RepSurface mount. Now cleared in `RepControls.ActiveRep.onComplete` once the rep is scored.
+    every RepSurface mount. Per Max, notes must SURVIVE first → retry → "again" (all Coach's Focus
+    redos of the same exercise) and clear only when the STATION changes — so cleared in
+    `WorkoutShell.onAdvanceNow` (the ADVANCE transition) for the leaving station's exercise, not
+    per-rep. Same exercise on a future day starts blank.
   - **Resume at rep 1.** Both resume paths used `activeSession…index ?? completedReps` — but
     `current_station_index` is created as `0` and a persisted `0` is not nullish, so `??` defeated the
     fallback. Changed `startMuscleGroupDay` (workout-day.ts) and the server-render math (workout/page.tsx)

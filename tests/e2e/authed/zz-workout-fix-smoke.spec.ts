@@ -123,15 +123,18 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
   await awaitFeedback(page, /Start your Retry/i);
   await assertScoreRevealHolds(page);
 
-  // Symptom 2: the jotted note is cleared once the rep is scored.
+  // Symptom 2 (revised per Max): notes must SURVIVE into the required Retry
+  // — the retry is a Coach's Focus redo of the SAME exercise (same
+  // notesKey), so clearing per-rep would wipe the anchor the user wrote.
+  // They clear later, when the station changes (asserted after the advance).
   if (notesKey) {
-    await expect
-      .poll(
-        async () =>
-          await page.evaluate((k) => localStorage.getItem(k), notesKey),
-        { timeout: 10_000, message: "jotted note must be cleared after scoring" },
-      )
-      .toBeFalsy();
+    const afterFirst = await page.evaluate(
+      (k) => localStorage.getItem(k),
+      notesKey,
+    );
+    expect(afterFirst ?? "", "notes should survive into the retry").toContain(
+      "SMOKE-NOTE-KEEPME",
+    );
   }
 
   // Finish station 1 (retry → review → advance).
@@ -152,6 +155,19 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
   await expect(page.getByTestId("prompt-card").first()).toBeVisible({
     timeout: 60_000,
   });
+
+  // Station changed (different exercise) → station 1's jotted note is now
+  // cleared, so the same exercise on a future day starts blank.
+  if (notesKey) {
+    await expect
+      .poll(
+        async () =>
+          await page.evaluate((k) => localStorage.getItem(k), notesKey),
+        { timeout: 10_000, message: "notes must clear once the station changes" },
+      )
+      .toBeFalsy();
+  }
+
   const progressBefore = await page
     .getByText(/Rep \d+ of \d+/i)
     .first()

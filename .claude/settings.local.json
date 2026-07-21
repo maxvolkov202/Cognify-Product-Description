@@ -65,7 +65,14 @@
       "Bash(grep -r \"dotenvx\\\\|dotenv-vault\\\\|DOTENV_KEY\" .env*)",
       "Bash(npx dotenv-cli *)",
       "Bash(node -e \"const fs=require\\('fs'\\); const lines=fs.readFileSync\\('.env.local','utf8'\\).split\\('\\\\n'\\); for\\(const l of lines\\){const m=l.match\\(/^\\([^#=]+\\)=\\(.*\\)$/\\); if\\(m\\) process.env[m[1]]=m[2];} console.log\\('set',Object.keys\\(process.env\\).filter\\(k=>k.startsWith\\('ANTHROPIC'\\)\\).join\\(', '\\)\\)\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel deploy:*)",
+      "Bash(vercel:*)",
+      "Bash(node scripts/*)"
     ]
   },
   "disabledMcpjsonServers": [

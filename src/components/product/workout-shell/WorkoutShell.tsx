@@ -35,6 +35,7 @@ import TrainingList from "./TrainingList";
 import WorkoutProgressBar from "./WorkoutProgressBar";
 import RepControls from "./RepControls";
 import MissedDayModal from "./MissedDayModal";
+import { clearRepDraftNotes } from "@/components/product/RepFrameworkStrip";
 import { useMediaSession } from "@/hooks/use-media-session";
 import { cn } from "@/lib/utils/cn";
 
@@ -151,6 +152,15 @@ function WorkoutShellInner({
   );
 
   const onAdvanceNow = useCallback(() => {
+    // Station done — we're leaving this exercise for the next one (or the
+    // day summary). Clear its jotted-notes draft HERE, not per-rep: notes
+    // must survive first → retry → "again" (all Coach's Focus redos of the
+    // SAME exercise, same notesKey) and only drop when the user actually
+    // moves on, so the same exercise on a future day starts blank.
+    const leaving = state.stations[state.currentStationIndex];
+    if (payload.dayId && leaving) {
+      clearRepDraftNotes(`${payload.dayId}:${leaving.exerciseId}`);
+    }
     if (process.env.NODE_ENV !== "production") {
       console.log(
         JSON.stringify({
@@ -162,7 +172,7 @@ function WorkoutShellInner({
       );
     }
     send({ type: "ADVANCE" });
-  }, [send, state.phase, state.currentStationIndex]);
+  }, [send, state.phase, state.currentStationIndex, state.stations, payload.dayId]);
   const onAcceptGraduation = useCallback(
     () => send({ type: "ACCEPT_GRADUATION" }),
     [send],
