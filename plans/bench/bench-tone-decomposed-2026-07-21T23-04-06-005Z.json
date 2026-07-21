@@ -1,0 +1,260 @@
+{
+  "arm": "tone-decomposed",
+  "baseUrl": "http://127.0.0.1:3334",
+  "generatedAt": "2026-07-21T23:04:06.005Z",
+  "accuracy": {
+    "bandReps": 12,
+    "maeComposite": 3,
+    "maeByDimension": {
+      "clarity": 5.8,
+      "structure": 4.3,
+      "conciseness": 3.6,
+      "thinking_quality": 3.8,
+      "delivery": 2.2,
+      "tone": 12.3
+    },
+    "bandMatchRate": 1
+  },
+  "feedbackQuality": {
+    "reps": 12,
+    "avgGroundedFraction": 0,
+    "avgPairwiseSimilarity": 0.09,
+    "repsWithGenericPairs": 0,
+    "totalBannedFiller": 0,
+    "strongerVersionRate": 1
+  },
+  "latencyMs": {
+    "p50": 6795,
+    "p95": 11035,
+    "mean": 7277
+  },
+  "variance": {
+    "n": 5,
+    "worstDimSwing": {
+      "value": 10,
+      "where": "band-poor-mic-test/conciseness"
+    },
+    "perRep": [
+      {
+        "id": "band-poor-mic-test",
+        "kind": "band",
+        "composite": {
+          "mean": 19.8,
+          "stddev": 1.47,
+          "min": 17,
+          "max": 21,
+          "maxSwing": 4
+        },
+        "dims": {
+          "clarity": {
+            "mean": 23,
+            "stddev": 2.45,
+            "min": 20,
+            "max": 25,
+            "maxSwing": 5
+          },
+          "structure": {
+            "mean": 14,
+            "stddev": 2,
+            "min": 10,
+            "max": 15,
+            "maxSwing": 5
+          },
+          "conciseness": {
+            "mean": 20,
+            "stddev": 3.16,
+            "min": 15,
+            "max": 25,
+            "maxSwing": 10
+          },
+          "thinking_quality": {
+            "mean": 9,
+            "stddev": 2,
+            "min": 5,
+            "max": 10,
+            "maxSwing": 5
+          },
+          "delivery": {
+            "mean": 33,
+            "stddev": 4,
+            "min": 25,
+            "max": 35,
+            "maxSwing": 10
+          },
+          "tone": {
+            "mean": 28,
+            "stddev": 0,
+            "min": 28,
+            "max": 28,
+            "maxSwing": 0
+          }
+        }
+      },
+      {
+        "id": "band-competent-okay-pitch",
+        "kind": "band",
+        "composite": {
+          "mean": 79.2,
+          "stddev": 0.4,
+          "min": 79,
+          "max": 80,
+          "maxSwing": 1
+        },
+        "dims": {
+          "clarity": {
+            "mean": 84.4,
+            "stddev": 1.2,
+            "min": 82,
+            "max": 85,
+            "maxSwing": 3
+          },
+          "structure": {
+            "mean": 76.8,
+            "stddev": 2.4,
+            "min": 72,
+            "max": 78,
+            "maxSwing": 6
+          },
+          "conciseness": {
+            "mean": 90.8,
+            "stddev": 0.98,
+            "min": 90,
+            "max": 92,
+            "maxSwing": 2
+          },
+          "thinking_quality": {
+            "mean": 74.4,
+            "stddev": 2.24,
+            "min": 72,
+            "max": 78,
+            "maxSwing": 6
+          },
+          "delivery": {
+            "mean": 65,
+            "stddev": 1.9,
+            "min": 62,
+            "max": 68,
+            "maxSwing": 6
+          },
+          "tone": {
+            "mean": 76.2,
+            "stddev": 2.4,
+            "min": 75,
+            "max": 81,
+            "maxSwing": 6
+          }
+        }
+      },
+      {
+        "id": "edge-shallow-but-organized",
+        "kind": "independence",
+        "composite": {
+          "mean": 52.2,
+          "stddev": 0.75,
+          "min": 51,
+          "max": 53,
+          "maxSwing": 2
+        },
+        "dims": {
+          "clarity": {
+            "mean": 45,
+            "stddev": 0,
+            "min": 45,
+            "max": 45,
+            "maxSwing": 0
+          },
+          "structure": {
+            "mean": 50,
+            "stddev": 0,
+            "min": 50,
+            "max": 50,
+            "maxSwing": 0
+          },
+          "conciseness": {
+            "mean": 76.8,
+            "stddev": 1.47,
+            "min": 75,
+            "max": 78,
+            "maxSwing": 3
+          },
+          "thinking_quality": {
+            "mean": 35,
+            "stddev": 4.47,
+            "min": 30,
+            "max": 40,
+            "maxSwing": 10
+          },
+          "delivery": {
+            "mean": 78,
+            "stddev": 0,
+            "min": 78,
+            "max": 78,
+            "maxSwing": 0
+          },
+          "tone": {
+            "mean": 48.2,
+            "stddev": 2.4,
+            "min": 47,
+            "max": 53,
+            "maxSwing": 6
+          }
+        }
+      },
+      {
+        "id": "edge-short-but-deep",
+        "kind": "independence",
+        "composite": {
+          "mean": 77.6,
+          "stddev": 0.49,
+          "min": 77,
+          "max": 78,
+          "maxSwing": 1
+        },
+        "dims": {
+          "clarity": {
+            "mean": 85,
+            "stddev": 0,
+            "min": 85,
+            "max": 85,
+            "maxSwing": 0
+          },
+          "structure": {
+            "mean": 73.2,
+            "stddev": 3.92,
+            "min": 70,
+            "max": 78,
+            "maxSwing": 8
+          },
+          "conciseness": {
+            "mean": 90,
+            "stddev": 0,
+            "min": 90,
+            "max": 90,
+            "maxSwing": 0
+          },
+          "thinking_quality": {
+            "mean": 74.6,
+            "stddev": 3.2,
+            "min": 70,
+            "max": 78,
+            "maxSwing": 8
+          },
+          "delivery": {
+            "mean": 53,
+            "stddev": 4,
+            "min": 45,
+            "max": 55,
+            "maxSwing": 10
+          },
+          "tone": {
+            "mean": 81,
+            "stddev": 0,
+            "min": 81,
+            "max": 81,
+            "maxSwing": 0
+          }
+        }
+      }
+    ]
+  }
+}

@@ -86,9 +86,24 @@ async function main() {
     process.exit(2);
   }
   // Accuracy needs expected composite + per-dim scores → band reps only.
-  const bandReps = (parsed.reps ?? []).filter(
+  let bandReps = (parsed.reps ?? []).filter(
     (r) => r.kind === "band" && r.expected,
   );
+  // --accuracy-ids=a,b,c slims the accuracy pass to a stratified subset
+  // (keeps the call budget bounded when sweeping many arms). Variance still
+  // uses its own DEFAULT_VARIANCE_SUBSET.
+  const accuracyIds = parseArg("--accuracy-ids");
+  if (accuracyIds) {
+    const want = new Set(accuracyIds.split(",").map((s) => s.trim()));
+    const before = bandReps.length;
+    bandReps = bandReps.filter((r) => want.has(r.id));
+    const missing = [...want].filter((w) => !bandReps.some((r) => r.id === w));
+    if (missing.length) {
+      console.error(`--accuracy-ids: no band rep matched: ${missing.join(", ")}`);
+      process.exit(2);
+    }
+    console.log(`accuracy subset: ${bandReps.length}/${before} band reps\n`);
+  }
 
   console.log(
     `Grading eval bench · arm=${armLabel} · ${bandReps.length} band reps · ${baseUrl}\n`,
