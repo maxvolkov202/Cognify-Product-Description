@@ -15,17 +15,19 @@ import { rankFromXp, type RankInfo } from "@/lib/progression/rank";
  * tables. Three scopes backed by the same shape so the client just
  * toggles between pre-computed entry arrays:
  *
- *  - `global`:    top users by avg composite across the last 30 days of
- *                 reps. 30-day window keeps the board fresh — a user
- *                 who trained hard a year ago and stopped shouldn't
- *                 anchor the #1 slot forever.
+ *  - `global`:    top users by avg composite across ALL their reps
+ *                 (all-time, decided 2026-07-21). With a small user base
+ *                 a rolling window silently dropped real users who'd
+ *                 gone quiet for a few weeks; the board should always
+ *                 reflect everyone who has trained.
  *  - `this_week`: avg composite across the current ISO week only. The
  *                 "climb" feature lives here — weekly leaders rotate.
- *  - `team`:      same as `global` but filtered to the current user's
- *                 team(s). If the user isn't in a team, the caller
+ *  - `team`:      same as `global` (all-time) but filtered to the current
+ *                 user's team(s). If the user isn't in a team, the caller
  *                 renders an empty-state CTA instead of this array.
  *
- * A user with zero reps in the scope is excluded.
+ * A user with zero reps in the scope is excluded. Internal `@cognify.test`
+ * accounts (e2e/demo harness) are excluded from every scope.
  */
 
 export type LeaderboardEntry = {
@@ -74,6 +76,14 @@ export type LeaderboardMetric =
 /** Limit — deliberately ~match the mock leaderboard the page previously
  *  rendered so the UI doesn't shrink when the real query lands. */
 const DEFAULT_LIMIT = 15;
+
+/** Internal test/e2e/demo accounts live on the `@cognify.test` domain
+ *  (auth.setup + seed-demo-user). Their reps are harness noise — keep
+ *  them out of every public ranking surface. NULL emails (shouldn't
+ *  happen for a real signup) are kept rather than dropped. */
+function excludeInternalAccounts() {
+  return sql`(${users.email} IS NULL OR ${users.email} NOT ILIKE '%@cognify.test')`;
+}
 
 function isoWeekStart(now: Date = new Date()): Date {
   const dayOfWeek = (now.getUTCDay() + 6) % 7; // 0 = Monday
@@ -274,11 +284,17 @@ export async function getLeaderboard(opts: {
 
   return safeDb(async () => {
     // 1. Scope → time window + optional team filter.
+    //
+    // Global + team boards are ALL-TIME (decided 2026-07-21). With a small
+    // user base, a 30-day window silently dropped real users who trained a
+    // few weeks/months ago (Hunter stayed, but Anthony/Aidan/Owen aged
+    // off) — the board should always reflect everyone who's trained. The
+    // weekly tab (`this_week`) remains the fresh, rotating-competition view.
     let since: Date;
     if (scope === "this_week") {
       since = isoWeekStart();
     } else {
-      since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      since = new Date(0); // epoch → all-time
     }
 
     let teamFilterUserIds: string[] | null = null;
@@ -295,7 +311,14 @@ export async function getLeaderboard(opts: {
     }
 
     // 2. Aggregate avg composite + count per user within the window.
-    const whereClauses = [gte(reps.createdAt, since)];
+    const whereClauses = [
+      gte(reps.createdAt, since),
+      // Internal test/e2e/demo accounts (@cognify.test) train the harness,
+      // not the product — keep their reps out of every public ranking
+      // surface (board, self row, top-streak + biggest-climb callouts, all
+      // of which read this same aggregate). NULL emails are kept.
+      excludeInternalAccounts(),
+    ];
     if (teamFilterUserIds) {
       whereClauses.push(inArray(reps.userId, teamFilterUserIds));
     }

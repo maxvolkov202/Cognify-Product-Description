@@ -16,7 +16,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { leagueMembership } from "@/lib/db/schema";
+import { leagueMembership, users } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import {
   weekStartUtc,
@@ -159,9 +159,24 @@ export async function getCohortLeaderboard(
 ): Promise<LeagueMember[]> {
   return safeDb<LeagueMember[]>(async () => {
     const rows = await db
-      .select()
+      .select({
+        userId: leagueMembership.userId,
+        weekStart: leagueMembership.weekStart,
+        tier: leagueMembership.tier,
+        leagueId: leagueMembership.leagueId,
+        weeklyXp: leagueMembership.weeklyXp,
+      })
       .from(leagueMembership)
-      .where(eq(leagueMembership.leagueId, leagueId))
+      // Join users so internal `@cognify.test` accounts (e2e/demo harness)
+      // can be kept out of the cohort board — same exclusion as the main
+      // leaderboard, so "hide the test accounts" holds everywhere.
+      .innerJoin(users, eq(users.id, leagueMembership.userId))
+      .where(
+        and(
+          eq(leagueMembership.leagueId, leagueId),
+          sql`(${users.email} IS NULL OR ${users.email} NOT ILIKE '%@cognify.test')`,
+        ),
+      )
       .orderBy(sql`${leagueMembership.weeklyXp} DESC`);
     return rows.map((r) => ({
       userId: r.userId,

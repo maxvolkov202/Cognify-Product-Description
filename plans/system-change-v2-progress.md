@@ -712,18 +712,37 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     `161a90a8` — optimistic preview removed; `computeOptimisticDims` now has zero callers in `src/`).
     No new code change. Root cause of Max still seeing it: **stale cached PWA bundle** — needs a hard
     refresh / installed-app update to pick up the deployed fix.
-  - **(2) "Proceed anyway" (and any scored first rep) jumped straight to redo, skipping the score.**
-    `session-machine.ts finishRepWithScore` had a buffered-retry fast-path (F-6 `pendingBeginRetry`)
-    that sent a just-scored first attempt directly to `recording`, skipping `score-reveal`. Removed
-    the auto-jump: a scored first attempt ALWAYS lands on `score-reveal`; the buffered flag is
-    consumed there and the same "Start your Retry" CTA is one deliberate tap away (PRD §4.6:
-    score → read → then retry). F-6 test rewritten; 100 machine tests green.
+  - **(2) "Proceed anyway" jumped to redo, skipping the score — REVERTED (misdiagnosis).** First
+    attempt: removed the F-6 `pendingBeginRetry` auto-advance in `finishRepWithScore`, thinking it
+    skipped `score-reveal`. **This was wrong and regressed the real retry flow** — the authed
+    workout-loop e2e (`AUTHED=1`, fake mic) failed: a fast "Start your Retry" tap (which races ahead
+    of `SCORE_DONE` during the ~200ms `tagWorkoutRep` round-trip) now needed a second tap. The
+    auto-advance is CORRECT: tapping "Start your Retry" is an explicit post-feedback choice to retry.
+    Restored the original logic + F-6 test. The e2e's `recordRep` helper clicks "Proceed anyway" on
+    every rep, so the passing loop proves proceed-anyway → score → retry → improvement-review works
+    in current code — Max's reported jump does not reproduce (likely stale PWA bundle or a
+    scoring-error/async-path condition). **Need a concrete repro from Max to fix the actual #2.**
   - **(3) Jot-notes room too small.** `RepFrameworkStrip.tsx` per-section input `maxLength` 60 → 120;
-    helper copy "a word or two" → "a few words".
-  - **(4) Exiting mid-workout restarted at rep 1.** `startMuscleGroupDay` now returns
-    `resumeStationIndex` (persisted session index, else `completedReps`, clamped) and
-    `WorkoutShell.onStartWorkout` uses it (was hard-coded `currentStationIndex: 0` with all statuses
-    rebuilt fresh) — Start on the landing card now resumes the first not-yet-completed station,
-    matching the server-render math in `workout/page.tsx`. Progress itself was persisting correctly
-    server-side; only the client resume threw it away.
-  - tsc + lint + full unit suite green. Verify checklist handed to Max.
+    helper copy "a word or two" → "a few words". (shipped in PR #24, kept.)
+  - **(4) Exiting mid-workout restarted at rep 1.** `startMuscleGroupDay` returns `resumeStationIndex`
+    (persisted session index, else `completedReps`, clamped); `WorkoutShell.onStartWorkout` uses it
+    (was hard-coded 0). **Runtime-verified e2e** (fresh clean user): clear station 1 → advance to
+    "Rep 2 of 3" → leave `/workout` → return → Start → resumes "Rep 2 of 3", not rep 1. (shipped
+    PR #24, kept.)
+  - Also shipped in PR #24 (kept): deleted dead `deterministic-client.ts` (`computeOptimisticDims`
+    zero callers).
+  - **PR #24 merged + deployed to prod** (`cognify-v2-kbd1kft3m`, alias `cognify-v2-neon` auto-followed)
+    — but it carried the wrong #2. Correction (revert #2) ships next.
+
+- **2026-07-21 (session 12b) — #2 revert + leaderboard cleanup.**
+  - **Revert #2** (above) — restore F-6 auto-advance; 99 machine tests green.
+  - **Leaderboard: hide test accounts.** `@cognify.test` (e2e-harness, demo, e2e-resume-verify — my
+    e2e runs wrote reps straight to the **prod** Supabase via `.env.local`) now excluded from every
+    scope in `leaderboard.ts` + the leagues cohort board (`leagues.ts` `getCohortLeaderboard`).
+  - **Leaderboard: real users were missing** (Anthony Hausfeld, Aidan Holt, Owen Brown — last trained
+    May 2026). Root cause: the global board was a **30-day rolling window**; nothing disconnected
+    (0 orphaned reps). Per Max, changed `global` + `team` scopes to **all-time** (`since = epoch`);
+    `this_week` unchanged. Verified: new board = Owen, Hunter, Anthony, Max, Aidan (no test accts).
+    Note: all-time + `HAVING count>=1` lets a low-rep account top the board (Owen #1 on 6 reps) —
+    add a min-rep floor if that ever feels off.
+  - tsc + lint + full unit suite + authed workout-loop e2e green.
