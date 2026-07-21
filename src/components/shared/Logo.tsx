@@ -16,16 +16,19 @@ export function Logo({
   href = "/",
   size = 36,
 }: LogoProps) {
+  // Use the detailed brand mark (matches the app icon / PWA icons) so the
+  // logo is consistent everywhere it renders — nav, footer, loading, etc.
+  // next/image optimizes + resizes the 1024px source down to the rendered
+  // size, so the payload stays tiny despite the large master asset.
   const content = (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
-        src="/logo/mark.svg"
-        alt=""
-        aria-hidden="true"
+        src="/logo/mark.png"
+        alt={variant === "mark" ? "Cognify" : ""}
+        aria-hidden={variant === "full" ? "true" : undefined}
         width={size}
         height={size}
         priority
-        unoptimized
         className="shrink-0"
       />
       {variant === "full" && (
