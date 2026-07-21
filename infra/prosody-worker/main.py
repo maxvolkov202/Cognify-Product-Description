@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import math
 import os
+import subprocess
 import tempfile
 from typing import Any
 
@@ -86,11 +87,11 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
 
     audio_path = _download(req.audioUrl)
     try:
-        sound = parselmouth.Sound(audio_path)
+        sound = _load_sound(audio_path)
     except Exception as exc:  # noqa: BLE001
-        # Bad codec / unreadable file → return all nulls so the Node side
-        # falls back to inline-only without breaking.
-        print(f"[prosody-worker] parselmouth failed to load audio: {exc}")
+        # Bad codec / unreadable file (even after ffmpeg transcode) → return
+        # all nulls so the Node side falls back to inline-only without breaking.
+        print(f"[prosody-worker] failed to load audio: {exc}")
         return Response(
             pitchMeanHz=None,
             pitchStdSemitones=None,
@@ -124,10 +125,59 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
 
 # ——— Implementation helpers —————————————————————————————
 
+def _load_sound(audio_path: str) -> "parselmouth.Sound":
+    """Load audio into a parselmouth Sound.
+
+    Praat's own readers cover WAV/AIFF/FLAC/MP3/Ogg-Vorbis but NOT the
+    WebM/Matroska container that browsers record by default
+    (audio/webm;codecs=opus). So: try Praat directly (fast path for the
+    formats it groks), and on ANY failure transcode to a normalized
+    16kHz mono WAV with ffmpeg (present in the Modal image) and retry.
+    This is what makes real user recordings — not just the wav/mp3
+    calibration fixtures — actually produce prosody.
+    """
+    try:
+        return parselmouth.Sound(audio_path)
+    except Exception as direct_exc:  # noqa: BLE001
+        print(
+            f"[prosody-worker] direct load failed ({direct_exc}); "
+            "transcoding with ffmpeg"
+        )
+        wav_path = _transcode_to_wav(audio_path)
+        try:
+            return parselmouth.Sound(wav_path)
+        finally:
+            _safe_unlink(wav_path)
+
+
+def _transcode_to_wav(src_path: str) -> str:
+    """Transcode any container/codec ffmpeg understands (webm/opus, ogg,
+    mp4/aac, …) to a 16kHz mono PCM WAV parselmouth can always read.
+    Raises CalledProcessError/FileNotFoundError if ffmpeg is missing or
+    the input is undecodable — the caller turns that into an all-null
+    response (graceful text-tier fallback on the Node side)."""
+    fd, wav_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    subprocess.run(
+        [
+            "ffmpeg", "-nostdin", "-y",
+            "-i", src_path,
+            "-ar", "16000",  # 16kHz is plenty for F0/intensity/spectral work
+            "-ac", "1",      # mono
+            "-f", "wav",
+            wav_path,
+        ],
+        check=True,
+        capture_output=True,
+        timeout=20,
+    )
+    return wav_path
+
+
 def _download(url: str) -> str:
     """Download the signed URL to a temp file. Caller is responsible
     for cleanup."""
-    suffix = ".webm"  # MediaRecorder default; parselmouth/ffmpeg auto-detect
+    suffix = ".webm"  # MediaRecorder default; ffmpeg transcode handles the rest
     fd, path = tempfile.mkstemp(suffix=suffix)
     os.close(fd)
     with httpx.Client(timeout=DOWNLOAD_TIMEOUT_S) as client:
