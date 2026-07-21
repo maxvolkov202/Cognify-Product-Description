@@ -69,4 +69,31 @@ what runs the follow-ups.
 3. **tone-decomposed:** recalibrate the ordinal→points rollup against human tone scores + require the
    prosody worker before re-benching. Shelve until then.
 4. **Widen the accuracy set** to the full 29 band reps before any promote decision — 12 reps can't
-   separate a 0.2 MAE difference.
+   separate a 0.2 MAE difference. *(done — see below.)*
+
+## Addendum — full 29-rep control vs all-llm (same run, N=3 variance)
+
+| metric | control-29 | all-llm-29 |
+|---|---:|---:|
+| composite MAE | 1.7 | **1.4** |
+| clarity / structure / conciseness | 1.7 / 1.9 / 2.3 | 1.8 / 1.9 / 2.4 |
+| thinking | 3.2 | **2.9** |
+| **delivery** | 1.4 | 1.4 (tie) |
+| tone | 2.9 | 2.8 |
+| band-match | 1.0 | 1.0 |
+| worst-dim var swing | 22 | 20 |
+| latency p50 | 8.3s | **7.7s** |
+
+Across both runs (12-rep: all-llm 1.3 vs control 1.1; 29-rep: 1.4 vs 1.7), **all-llm ≈ control on text
+accuracy and never meaningfully worse** — equal-or-better on every dimension at 29 reps, identical
+delivery, marginally more stable. The 12-rep run's fine ordering was noise; the 29-rep run erases any
+"control is more accurate" claim.
+
+**This does NOT clear all-llm to ship.** The delivery parity (1.4 = 1.4) is on *text* reps, where both
+arms read the same transcript pace signals. The deterministic pacing override exists for **audio** WPM
+precision, which no run here tested (the 15 audio-tone reps carry no `audioUrl`, and `PROSODY_WORKER_URL`
+is unset). The determinism question stays formally open until the audio rerun. Everything text says:
+determinism is not helping — but text can't see the case determinism was built for.
+
+Accuracy caveat: each rep is scored once per accuracy pass, so single-rep noise (±10–20 on some reps)
+means a 0.3 composite gap is suggestive, not decisive. A multi-sample accuracy pass would firm it.
