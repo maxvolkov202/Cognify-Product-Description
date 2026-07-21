@@ -775,9 +775,12 @@ export async function startMuscleGroupDay(input: {
       // Resume position: prefer the persisted session index (the exact
       // station the user was on when they left), falling back to the
       // count of completed reps. Clamp into range so a stale/over-count
-      // index can't push past the last station. Matches the server-render
-      // math in workout/page.tsx so tapping Start lands where the landing
-      // card already said the user is.
+      // index can't push past the last station. This lands the user on the
+      // station whose loop is still owed — the right place to drop back in.
+      // Close to, but not always byte-identical to, the landing card's
+      // status math in workout/page.tsx (that derives purely from
+      // completed_reps, so it can differ by one mid-rep); resuming here is
+      // still strictly better than the old hard-coded station 0.
       const lastStationIdx = Math.max(0, stations.length - 1);
       const rawResume =
         activeSession?.currentStationIndex ?? existing.completedReps ?? 0;
