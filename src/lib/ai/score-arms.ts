@@ -49,12 +49,31 @@ export async function runScoringArm(
       return runGroupedFanout(input);
     case "tone-decomposed":
       return runGroupedFanout(input, { toneDecomposition: true });
-    // "all-llm" and the grouped fan-out arms are not implemented yet; the
-    // dispatcher's IMPLEMENTED_VARIANT_ARMS gate prevents them reaching
-    // here, so this is a defensive fallback, not a live path.
+    case "all-llm":
+      return runAllLlm(input);
+    // Any arm not switched above (or an unrecognized flag value) is a
+    // defensive fallback to control, not a live path — the dispatcher's
+    // IMPLEMENTED_VARIANT_ARMS gate keeps unimplemented arms from reaching here.
     default:
       return control(input);
   }
+}
+
+/**
+ * All-LLM arm — the control single-call flow with BOTH deterministic layers
+ * turned off: the model's raw delivery (pacing) and thinking_quality scores
+ * pass straight through instead of the deterministic pacing override and the
+ * 60/40 thinking blend. This is the head-to-head answer to "can we drop
+ * determinism?" on the CURRENT architecture: same prompt, same cost (one
+ * call), the only variable is who owns delivery/thinking — the LLM or the
+ * math. The variance harness decides whether the stability loss is tolerable.
+ */
+async function runAllLlm(input: ScoreRepInput): Promise<ScoreRepResult> {
+  const result = await runSingleCallScore(input, {
+    config: { deliveryMode: "llm", thinkingMode: "llm" },
+  });
+  result.metrics.llmCallCount = 1;
+  return result;
 }
 
 /**

@@ -7,6 +7,7 @@
 
 import { runScoringArm } from "@/lib/ai/score-arms";
 import { selectScoringArm } from "@/lib/ai/score";
+import { applyHybridLayer } from "@/lib/ai/score-shared";
 import type { ScoreRepInput, ScoreRepResult } from "@/lib/ai/score";
 import type { SkillDimension } from "@/types/domain";
 
@@ -184,7 +185,10 @@ async function run() {
     check("percent 100 + tone-decomposed arm → tone-decomposed", selectScoringArm("user-1") === "tone-decomposed");
 
     process.env.FF_SCORING_VARIANT_ARM = "all-llm";
-    check("unimplemented arm → control", selectScoringArm("user-1") === "control");
+    check("all-llm arm → all-llm", selectScoringArm("user-1") === "all-llm");
+
+    process.env.FF_SCORING_VARIANT_ARM = "not-a-real-arm";
+    check("unrecognized arm → control", selectScoringArm("user-1") === "control");
 
     process.env.FF_SCORING_VARIANT_ARM = "median-of-n";
     process.env.FF_SCORING_VARIANT_PERCENT = "0";
@@ -215,6 +219,56 @@ async function run() {
     delete process.env.FF_SCORING_VARIANT;
     delete process.env.FF_SCORING_VARIANT_PERCENT;
     delete process.env.FF_SCORING_VARIANT_ARM;
+  }
+
+  // ── all-llm arm: config bypasses BOTH deterministic layers ──
+  // The whole point of all-llm (Max's "can we drop determinism?" Q): with
+  // word timings present, the control config overrides delivery (pacing math)
+  // and blends thinking_quality, while the all-llm config lets the model's raw
+  // numbers pass straight through. This proves the config switch is load-bearing
+  // — runAllLlm just calls runSingleCallScore with this config, so the model
+  // call itself needs no coverage here.
+  {
+    const RAW_DELIVERY = 82;
+    const RAW_THINKING = 88;
+    const dims = DIMS.map((d) => ({
+      dimension: d,
+      score: d === "delivery" ? RAW_DELIVERY : d === "thinking_quality" ? RAW_THINKING : 70,
+      signals: [],
+      feedback: `f ${d}`,
+      subSkill: null,
+    }));
+    // ~30 words over 60s ≈ 30 wpm — far slower than any "well-paced" band, so
+    // the deterministic pacing override lands well below the raw 82.
+    const words = Array.from({ length: 30 }, (_, i) => ({
+      word: `w${i}`,
+      startMs: i * 2000,
+      endMs: i * 2000 + 400,
+    }));
+    const hybridInput = {
+      transcript: Array.from({ length: 30 }, (_, i) => `w${i}`).join(" "),
+      durationMs: 60000,
+      words,
+      promptText: "p",
+    } as unknown as ScoreRepInput;
+
+    const control = applyHybridLayer({
+      dims: dims as never,
+      input: hybridInput,
+      config: { deliveryMode: "deterministic", thinkingMode: "blend" },
+    });
+    const allLlm = applyHybridLayer({
+      dims: dims as never,
+      input: hybridInput,
+      config: { deliveryMode: "llm", thinkingMode: "llm" },
+    });
+    const dGet = (r: { finalDimensions: { dimension: string; score: number }[] }, dim: string) =>
+      r.finalDimensions.find((x) => x.dimension === dim)!.score;
+
+    check("control config overrides delivery (≠ raw)", dGet(control, "delivery") !== RAW_DELIVERY, `got ${dGet(control, "delivery")}`);
+    check("control config blends thinking (≠ raw)", dGet(control, "thinking_quality") !== RAW_THINKING, `got ${dGet(control, "thinking_quality")}`);
+    check("all-llm config preserves raw delivery", dGet(allLlm, "delivery") === RAW_DELIVERY, `got ${dGet(allLlm, "delivery")}`);
+    check("all-llm config preserves raw thinking", dGet(allLlm, "thinking_quality") === RAW_THINKING, `got ${dGet(allLlm, "thinking_quality")}`);
   }
 
   console.log("\n════════════════════════════════════════════════════════════");

@@ -69,6 +69,7 @@ const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
   "reference-anchored",
   "grouped-fanout",
   "tone-decomposed",
+  "all-llm",
 ];
 
 /**
