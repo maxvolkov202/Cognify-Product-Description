@@ -685,3 +685,24 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     handoff. (2) sync reps now upload before scoring → slightly slower perceived scoring. (3) the
     stale `HUME_API_KEY` is now inert (Praat is primary); remove it if Hume is truly dead.
   - **Job 3 (Max-owned) still open:** manual auth + mic smoke matrix.
+
+- **2026-07-21 (session 11) — WebM prosody decode + unified scoring display SHIPPED (PR #22 →
+  `2e235342`).** Verification found the Job-2 prosody worker couldn't decode the real browser format:
+  it called `parselmouth.Sound()` directly, but Praat has no WebM/Matroska reader, so
+  `audio/webm;codecs=opus` (the format `capture.ts:24` records) returned all-null prosody and tone
+  silently fell back to text tier — only the wav/mp3 calibration fixtures ever worked. Proven 3 ways
+  (local parselmouth `PraatError: Not an audio file`, live worker all-null, prod `/api/score` with a
+  real webm → `[toneSource: text]`).
+  - **Fix:** `infra/prosody-worker/main.py` `_load_sound()` tries Praat directly (fast path for
+    wav/mp3/flac/ogg) then transcodes to 16kHz mono WAV via the ffmpeg already in the Modal image on
+    any failure. `modal deploy` done. **Verified end-to-end:** real webm → non-null prosody
+    (pitchMeanHz 141.6) and prod `/api/score` → `[toneSource: prosody]` (was text), non-mock.
+  - **Scoring display:** removed the optimistic deterministic preview in `RepSurface.tsx` (showed
+    delivery + a thinking_quality BASELINE 85 that the LLM blends down to ~71 — users watched a score
+    "drop"). Now one skeleton runs during grading and all six FINAL dims appear together when
+    `/api/score` returns. Pure scorers unchanged; UI-only. `computeOptimisticDims`/
+    `OptimisticDimensionPreview` removed from the UI.
+  - build + lint + tsc green. PR #22 merged, `vercel deploy --prod` (`cognify-v2-pkb8s0o6x`) + alias
+    repointed, prod health green. **Remaining launch gate: Google OAuth** (needs Max's `GOCSPX-`
+    secret in Supabase — a wrong non-Google value was in the field). Modal `min_containers=1` cost
+    still open. Prompt-bank expansion is the next workstream (`plans/prompt-bank-holistic-brief.md`).
