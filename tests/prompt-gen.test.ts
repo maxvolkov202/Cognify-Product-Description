@@ -68,6 +68,34 @@ section("dedupe within batch");
   assert(out.length === 1, "in-batch duplicates collapse");
 }
 
+section("near-dupe guard is symmetric");
+{
+  // A candidate that EXTENDS an existing prompt dilutes its own overlap
+  // ratio below the candidate-side threshold. Both real bank survivors.
+  const out = qaFilterPrompts(
+    [
+      "What's worth fighting for in a friendship?",
+      "Is honesty always the right call in a relationship?",
+    ],
+    ["What's worth fighting for?", "Is honesty always the right call?"],
+  );
+  assert(
+    out.length === 0,
+    `extensions of existing prompts are rejected (got ${JSON.stringify(out)})`,
+  );
+}
+
+section("short existing prompts don't veto everything");
+{
+  // The reverse direction must not let a terse stub reject unrelated
+  // candidates that happen to contain its words.
+  const out = qaFilterPrompts(
+    ["What's the point of learning a language you'll rarely speak?"],
+    ["What's the point?"],
+  );
+  assert(out.length === 1, `short-stub containment is not a dupe (got ${out.length})`);
+}
+
 section("whitespace normalization");
 {
   const out = qaFilterPrompts(

@@ -160,6 +160,12 @@ export function qaFilterPrompts(
   existingTexts: string[],
 ): string[] {
   const seen = new Set(existingTexts.map(normalize));
+  // Word sets are built ONCE per corpus entry rather than re-split for
+  // every candidate — this path is user-blocking and a mature exercise
+  // bank runs to several hundred prompts.
+  const seenWords: Array<Set<string>> = [...seen].map(
+    (s) => new Set(s.split(" ")),
+  );
   const out: string[] = [];
   for (const raw of candidates) {
     const text = raw.trim().replace(/\s+/g, " ");
@@ -173,21 +179,37 @@ export function qaFilterPrompts(
     if (/as an ai|here (is|are)|prompt:|option \d/i.test(text)) continue;
     const norm = normalize(text);
     if (norm.length === 0 || seen.has(norm)) continue;
-    // Near-duplicate guard: reject when ≥80% of the words already appear
-    // in one existing prompt (cheap Jaccard-ish check, no embeddings).
+    // Near-duplicate guard: reject when ≥80% of EITHER prompt's words
+    // appear in the other (cheap containment check, no embeddings).
+    //
+    // Checking only the candidate side missed the dominant real-world
+    // dupe shape — a candidate that EXTENDS an existing prompt. The bank
+    // is full of survivors: "What's worth fighting for?" alongside
+    // "What's worth fighting for in a friendship?", "Is honesty always
+    // the right call?" alongside "…the right call in a relationship?".
+    // The longer text dilutes its own overlap ratio below the threshold
+    // and sails through. The reverse direction only applies to existing
+    // prompts of ≥5 words, so a terse stub ("What's the point?") can't
+    // veto every candidate that happens to contain it. At 4 tokens the
+    // 0.8 threshold demands FULL containment, which is a real dupe
+    // signal; 3-token stubs stay exempt.
     const words = new Set(norm.split(" "));
+    const REVERSE_MIN_WORDS = 4;
     let dup = false;
-    for (const ex of seen) {
-      const exWords = new Set(ex.split(" "));
+    for (const exWords of seenWords) {
       let overlap = 0;
       for (const w of words) if (exWords.has(w)) overlap++;
-      if (overlap / Math.max(1, words.size) >= 0.8) {
+      if (
+        overlap / Math.max(1, words.size) >= 0.8 ||
+        (exWords.size >= REVERSE_MIN_WORDS && overlap / exWords.size >= 0.8)
+      ) {
         dup = true;
         break;
       }
     }
     if (dup) continue;
     seen.add(norm);
+    seenWords.push(words);
     out.push(text);
   }
   return out;

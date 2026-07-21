@@ -159,10 +159,23 @@ export async function fetchPromptCandidates(input: {
         `);
         recentDimComposite = compRow?.avg ?? null;
 
+        // Join scoped to the SAME exercise (and to servable rows). Prompt
+        // text is not unique across the catalog — sibling exercises carry
+        // near-identical and occasionally identical prompts (e.g. "Should
+        // you stay in a city you hate for a job you love?" exists under
+        // both Conciseness/No Hedging and Structure/Bottom Line First).
+        // An unscoped text join fans one rep out into several rows, so the
+        // LIMIT covered fewer than PROMPT_BIAS_WINDOW distinct reps and the
+        // list filled with prompt ids belonging to OTHER exercises — which
+        // then consumed slots in the .slice(0, 20) cap below, silently
+        // shrinking the anti-repetition window it exists to provide.
         const recentRows = await db.execute<{ prompt_id: string | null }>(drizzleSql`
           SELECT r.prompt_text, ep.prompt_id
           FROM cognify_v2.reps r
-          LEFT JOIN cognify_v2.exercise_prompts ep ON ep.prompt_text = r.prompt_text
+          LEFT JOIN cognify_v2.exercise_prompts ep
+            ON ep.prompt_text = r.prompt_text
+           AND ep.exercise_id = r.exercise_id
+           AND ep.is_active = true
           WHERE r.user_id = ${userId}
             AND r.exercise_id = ${input.exerciseId}
           ORDER BY r.created_at DESC
@@ -521,7 +534,15 @@ export async function logPromptSelection(
   input: LogPromptSelectionInput,
 ): Promise<{ persisted: boolean }> {
   const user = await currentUser();
-  const userId = user?.id ?? "anonymous";
+  // prompt_selection_events.user_id is uuid NOT NULL with an FK to
+  // users.id, so the "anonymous" placeholder used elsewhere in this file
+  // cannot be written: the insert fails on invalid uuid syntax, safeDb
+  // swallows it, and the caller sees a plain { persisted: false }. Guests
+  // have no telemetry to record — skip the round trip instead of firing a
+  // guaranteed-failing insert on every prompt pick. (Same guard as
+  // src/lib/profile/snapshot.ts:363 and src/server/actions/reps.ts:404.)
+  if (!user) return { persisted: false };
+  const userId = user.id;
 
   return safeDb<{ persisted: boolean }>(async () => {
     await db.insert(promptSelectionEvents).values({
