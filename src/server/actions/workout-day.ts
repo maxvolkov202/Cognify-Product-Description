@@ -628,6 +628,12 @@ export type StartMuscleGroupDayResult = {
    *  passed to saveRep/insertPendingRep (reps.session_id FK). */
   practiceSessionId: string | null;
   alreadyExisted: boolean;
+  /** Station index the caller should drop the user into when (re)starting.
+   *  0 for a brand-new day; for a resumed day it's the first not-yet-
+   *  completed station (clamped to the last index) so exiting mid-day and
+   *  coming back lands on the right rep instead of restarting at rep 1.
+   *  Mirrors the server-render resume math in app/(app)/workout/page.tsx. */
+  resumeStationIndex: number;
   persisted: boolean;
 };
 
@@ -645,6 +651,7 @@ export async function startMuscleGroupDay(input: {
     workoutSessionId: null,
     practiceSessionId: null,
     alreadyExisted: false,
+    resumeStationIndex: 0,
     persisted: false,
   };
 
@@ -751,6 +758,7 @@ export async function startMuscleGroupDay(input: {
         .select({
           id: workoutSessions.id,
           practiceSessionId: workoutSessions.practiceSessionId,
+          currentStationIndex: workoutSessions.currentStationIndex,
         })
         .from(workoutSessions)
         .where(eq(workoutSessions.muscleGroupDayId, existing.id))
@@ -763,6 +771,21 @@ export async function startMuscleGroupDay(input: {
         workoutSessionId = created.workoutSessionId;
         practiceSessionId = created.persisted ? created.sessionId : null;
       }
+
+      // Resume position: prefer the persisted session index (the exact
+      // station the user was on when they left), falling back to the
+      // count of completed reps. Clamp into range so a stale/over-count
+      // index can't push past the last station. Matches the server-render
+      // math in workout/page.tsx so tapping Start lands where the landing
+      // card already said the user is.
+      const lastStationIdx = Math.max(0, stations.length - 1);
+      const rawResume =
+        activeSession?.currentStationIndex ?? existing.completedReps ?? 0;
+      const resumeStationIndex = Math.min(
+        Math.max(0, rawResume),
+        lastStationIdx,
+      );
+
       return {
         dayId: existing.id,
         dimension: existing.dimension as MuscleGroupId,
@@ -770,6 +793,7 @@ export async function startMuscleGroupDay(input: {
         workoutSessionId,
         practiceSessionId,
         alreadyExisted: true,
+        resumeStationIndex,
         persisted: true,
       };
     }
@@ -889,6 +913,8 @@ export async function startMuscleGroupDay(input: {
       workoutSessionId: sessionResult.workoutSessionId,
       practiceSessionId: sessionResult.persisted ? sessionResult.sessionId : null,
       alreadyExisted: false,
+      // Brand-new day → always station 0.
+      resumeStationIndex: 0,
       persisted: true,
     };
   }, fallback);

@@ -294,12 +294,14 @@ export function reduce(
     }
   }
 
-  // Phase 12 F-6 — the mirror image of the hoist above: BEGIN_RETRY can
-  // arrive BEFORE this machine sees SCORE_DONE (RepSurface shows the v2
-  // feedback + "Start your Retry" from its own local state; the async
-  // rep path delays onComplete until the pending rep resolves). Without
-  // this, the tap lands in "recording"/"scoring" and is silently
-  // dropped — the user (or the e2e spec) is left on a dead screen.
+  // Phase 12 F-6 — BEGIN_RETRY can arrive BEFORE this machine sees
+  // SCORE_DONE (RepSurface renders the "Start your Retry" CTA from its
+  // own local `done` state; the async rep path delays onComplete until
+  // the pending rep resolves). We record the intent on `pendingBeginRetry`
+  // so the tap isn't a hard no-op, but finishRepWithScore deliberately
+  // does NOT auto-advance into the retry: the score-reveal must render
+  // first (the user hasn't seen the grade yet). The flag is consumed
+  // there and the same CTA is one tap away on the score screen.
   if (
     event.type === "BEGIN_RETRY" &&
     state.loop === "v2" &&
@@ -572,21 +574,14 @@ function finishRepWithScore(
       retryOutcomes: [...state.retryOutcomes, outcome],
     };
   }
-  // A buffered early BEGIN_RETRY starts the retry the moment the score
-  // lands — unless scoring failed (the degraded path offers ADVANCE, and
-  // forcing a retry against a scoring hiccup punishes the user twice).
-  if (state.pendingBeginRetry && !scoreFailure) {
-    return {
-      ...state,
-      phase: "recording",
-      attempt: "retry",
-      pendingBeginRetry: false,
-      lastScore: composite,
-      lastScoreFailure: scoreFailure,
-      firstOutcome: { repId, composite },
-      outcomes: [...state.outcomes, outcome],
-    };
-  }
+  // A scored first attempt ALWAYS lands on score-reveal so the user can
+  // read the full grade before anything moves. A buffered early
+  // BEGIN_RETRY (pendingBeginRetry — a "Start your Retry" tap that raced
+  // ahead of SCORE_DONE) is NOT auto-honored here: jumping straight to
+  // `recording` would skip the score the user hasn't seen yet. We just
+  // consume the flag; the score-reveal renders the same "Start your
+  // Retry" CTA, so the retry is one deliberate tap away — required
+  // sequencing per PRD §4.6 (score → read → then retry).
   return {
     ...state,
     phase: "score-reveal",
