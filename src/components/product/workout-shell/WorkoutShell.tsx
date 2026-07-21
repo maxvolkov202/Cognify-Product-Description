@@ -35,6 +35,7 @@ import TrainingList from "./TrainingList";
 import WorkoutProgressBar from "./WorkoutProgressBar";
 import RepControls from "./RepControls";
 import MissedDayModal from "./MissedDayModal";
+import { clearRepDraftNotes } from "@/components/product/RepFrameworkStrip";
 import { useMediaSession } from "@/hooks/use-media-session";
 import { cn } from "@/lib/utils/cn";
 
@@ -151,6 +152,15 @@ function WorkoutShellInner({
   );
 
   const onAdvanceNow = useCallback(() => {
+    // Station done — we're leaving this exercise for the next one (or the
+    // day summary). Clear its jotted-notes draft HERE, not per-rep: notes
+    // must survive first → retry → "again" (all Coach's Focus redos of the
+    // SAME exercise, same notesKey) and only drop when the user actually
+    // moves on, so the same exercise on a future day starts blank.
+    const leaving = state.stations[state.currentStationIndex];
+    if (payload.dayId && leaving) {
+      clearRepDraftNotes(`${payload.dayId}:${leaving.exerciseId}`);
+    }
     if (process.env.NODE_ENV !== "production") {
       console.log(
         JSON.stringify({
@@ -162,7 +172,7 @@ function WorkoutShellInner({
       );
     }
     send({ type: "ADVANCE" });
-  }, [send, state.phase, state.currentStationIndex]);
+  }, [send, state.phase, state.currentStationIndex, state.stations, payload.dayId]);
   const onAcceptGraduation = useCallback(
     () => send({ type: "ACCEPT_GRADUATION" }),
     [send],
@@ -243,6 +253,24 @@ function WorkoutShellInner({
     state.stations[state.currentStationIndex] ??
     state.stations[0] ??
     null;
+
+  // AnimatePresence surface key. recording / transcribing / scoring /
+  // score-reveal all render the SAME <ActiveRep> (RepSurface), and
+  // RepSurface owns the record→score→feedback UI in its OWN local state.
+  // Keying the wrapper on raw `state.phase` remounts RepSurface the moment
+  // SCORE_DONE flips the machine recording→score-reveal — discarding the
+  // just-computed feedback and dropping the user back on the record screen
+  // (the reported "jumps straight back to the rep start page"). Collapse
+  // those four phases to one key so the surface is STABLE across the score
+  // reveal; the key still changes on attempt (first→retry) so the required
+  // Retry gets a deliberate fresh mic. All other phases keep their own key.
+  const surfaceKey =
+    state.phase === "recording" ||
+    state.phase === "transcribing" ||
+    state.phase === "scoring" ||
+    state.phase === "score-reveal"
+      ? `active-${state.attempt}`
+      : state.phase;
 
   // PRD v3 Phase 2.1 — v2 days run 3 exercises but each is two
   // recordings (First Rep + required Retry), so the fallback count and
@@ -402,7 +430,7 @@ function WorkoutShellInner({
             </motion.div>
           ) : (
             <motion.div
-              key={`controls-${state.phase}`}
+              key={`controls-${surfaceKey}`}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}

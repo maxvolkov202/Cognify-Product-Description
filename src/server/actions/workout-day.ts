@@ -782,8 +782,16 @@ export async function startMuscleGroupDay(input: {
       // completed_reps, so it can differ by one mid-rep); resuming here is
       // still strictly better than the old hard-coded station 0.
       const lastStationIdx = Math.max(0, stations.length - 1);
-      const rawResume =
-        activeSession?.currentStationIndex ?? existing.completedReps ?? 0;
+      // Both the persisted session index and completedReps are LOWER bounds
+      // on real progress, so take the max — never the raw session index via
+      // `??`. `current_station_index` is created as 0 and isn't persisted
+      // until the session id lands, so a `?? ` on it can read a stale 0 and
+      // defeat the completedReps fallback, dropping a mid-day user back on
+      // rep 1 (the reported "restarted me to the first rep of the day").
+      const rawResume = Math.max(
+        activeSession?.currentStationIndex ?? 0,
+        existing.completedReps ?? 0,
+      );
       const resumeStationIndex = Math.min(
         Math.max(0, rawResume),
         lastStationIdx,
