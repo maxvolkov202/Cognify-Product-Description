@@ -213,7 +213,7 @@ export function RepFrameworkStrip({
       {allowNotes && notesOpen && (
         <div className="border-t border-ink-100 dark:border-ink-700 bg-ink-50/50 dark:bg-ink-800/50 px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">
-            Jot a word or two per section · optional · anchors your rep
+            Jot a few words per section · optional · anchors your rep
           </p>
           <div className="mt-2 grid gap-2">
             {framework.sections.map((s, i) => (
@@ -234,7 +234,7 @@ export function RepFrameworkStrip({
                       })
                     }
                     placeholder={s.label}
-                    maxLength={60}
+                    maxLength={120}
                     className="w-full rounded-md border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2.5 py-1 text-xs text-ink-900 dark:text-white placeholder:text-ink-400 dark:placeholder:text-ink-500 focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple"
                   />
                 </label>

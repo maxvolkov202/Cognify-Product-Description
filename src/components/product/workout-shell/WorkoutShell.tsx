@@ -192,6 +192,13 @@ function WorkoutShellInner({
         if (typeof window !== "undefined") window.location.reload();
         return;
       }
+      // Resume position. A brand-new day starts at station 0; a resumed
+      // day (Start tapped on the landing card after exiting mid-workout)
+      // drops back onto the first not-yet-completed station the server
+      // computed, so progress isn't thrown away and the user doesn't get
+      // restarted at rep 1. Station statuses derive from the same index:
+      // everything before it is done, that one is current, the rest lock.
+      const resumeIndex = result.resumeStationIndex ?? 0;
       const hydrated: ShellStation[] = result.stations.map((s, i) => ({
         index: s.index,
         exerciseId: s.exerciseId,
@@ -199,7 +206,8 @@ function WorkoutShellInner({
         exerciseName: s.exerciseName,
         rule: s.rule,
         why: s.why,
-        status: i === 0 ? "current" : "locked",
+        status:
+          i < resumeIndex ? "complete" : i === resumeIndex ? "current" : "locked",
         compositeScore: null,
         objective: s.objective ?? null,
         constraintTypes: s.constraintTypes ?? null,
@@ -210,7 +218,11 @@ function WorkoutShellInner({
         // I5 — "last time on this dim" line for the Insight screen.
         recentFocus: s.recentFocus ?? null,
       }));
-      send({ type: "HYDRATE_DAY", stations: hydrated, currentStationIndex: 0 });
+      send({
+        type: "HYDRATE_DAY",
+        stations: hydrated,
+        currentStationIndex: resumeIndex,
+      });
       send({ type: "START" });
       // Update payload (workoutSessionId, rationale, lastDay, streak)
       // without unmounting the React tree.

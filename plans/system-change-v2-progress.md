@@ -706,3 +706,24 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     repointed, prod health green. **Remaining launch gate: Google OAuth** (needs Max's `GOCSPX-`
     secret in Supabase — a wrong non-Google value was in the field). Modal `min_containers=1` cost
     still open. Prompt-bank expansion is the next workstream (`plans/prompt-bank-holistic-brief.md`).
+
+- **2026-07-21 (session 12) — workout-loop UX bug sweep (4 issues from Max, uncommitted).**
+  - **(1) "Thinking Quality + Pacing score before the rest."** Already fixed in code + prod (PR #22,
+    `161a90a8` — optimistic preview removed; `computeOptimisticDims` now has zero callers in `src/`).
+    No new code change. Root cause of Max still seeing it: **stale cached PWA bundle** — needs a hard
+    refresh / installed-app update to pick up the deployed fix.
+  - **(2) "Proceed anyway" (and any scored first rep) jumped straight to redo, skipping the score.**
+    `session-machine.ts finishRepWithScore` had a buffered-retry fast-path (F-6 `pendingBeginRetry`)
+    that sent a just-scored first attempt directly to `recording`, skipping `score-reveal`. Removed
+    the auto-jump: a scored first attempt ALWAYS lands on `score-reveal`; the buffered flag is
+    consumed there and the same "Start your Retry" CTA is one deliberate tap away (PRD §4.6:
+    score → read → then retry). F-6 test rewritten; 100 machine tests green.
+  - **(3) Jot-notes room too small.** `RepFrameworkStrip.tsx` per-section input `maxLength` 60 → 120;
+    helper copy "a word or two" → "a few words".
+  - **(4) Exiting mid-workout restarted at rep 1.** `startMuscleGroupDay` now returns
+    `resumeStationIndex` (persisted session index, else `completedReps`, clamped) and
+    `WorkoutShell.onStartWorkout` uses it (was hard-coded `currentStationIndex: 0` with all statuses
+    rebuilt fresh) — Start on the landing card now resumes the first not-yet-completed station,
+    matching the server-render math in `workout/page.tsx`. Progress itself was persisting correctly
+    server-side; only the client resume threw it away.
+  - tsc + lint + full unit suite green. Verify checklist handed to Max.

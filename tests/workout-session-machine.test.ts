@@ -284,11 +284,15 @@ section("v2: insight phase between pick and recording");
   assert(s.phase === "recording", "INSIGHT_DONE → recording");
 }
 
-section("v2: early BEGIN_RETRY buffers until the score lands (F-6)");
+section("v2: early BEGIN_RETRY never skips the score-reveal (F-6)");
 {
   // RepSurface renders the feedback CTA from its own local state, so a
   // fast tap (or the async rep path) can dispatch BEGIN_RETRY while this
-  // machine is still in "recording". It must buffer, not drop.
+  // machine is still in "recording". It must buffer (not hard-drop) —
+  // but it must NOT auto-jump into the retry: the score-reveal has to
+  // render first so the user actually reads the grade. The buffered flag
+  // is consumed at score-reveal; the same "Start your Retry" CTA there
+  // is one deliberate tap away.
   let s = startV2();
   s = reduce(s, { type: "START" });
   s = reduce(s, { type: "PICK_PROMPT", promptId: "p1", text: "Explain X", mode: "shuffle" });
@@ -298,11 +302,14 @@ section("v2: early BEGIN_RETRY buffers until the score lands (F-6)");
   assert(s.phase === "recording", "early BEGIN_RETRY stays in recording");
   assert(s.pendingBeginRetry === true, "early BEGIN_RETRY is buffered");
   s = reduce(s, { type: "SCORE_DONE", composite: 70, repId: "r1" });
-  assert(s.phase === "recording", "buffered retry starts when score lands");
-  assert(s.attempt === "retry", "attempt=retry after buffered start");
-  assert(s.pendingBeginRetry === false, "buffer consumed");
+  assert(s.phase === "score-reveal", "score-reveal renders first — retry does NOT skip it");
+  assert(s.attempt === "first", "still the first attempt until the user taps retry from score-reveal");
+  assert(s.pendingBeginRetry === false, "buffer consumed at score-reveal");
   assert(s.firstOutcome?.repId === "r1", "first outcome still captured");
   assert(s.outcomes.length === 1, "first attempt still appended");
+  // From the score-reveal, the CTA still takes the user into the retry.
+  s = reduce(s, { type: "BEGIN_RETRY" });
+  assert(s.phase === "recording" && s.attempt === "retry", "retry begins on a deliberate tap from score-reveal");
 
   // A buffered retry must NOT fire against a failed score.
   let f = startV2();
