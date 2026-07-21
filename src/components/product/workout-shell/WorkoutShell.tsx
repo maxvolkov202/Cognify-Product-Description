@@ -244,6 +244,24 @@ function WorkoutShellInner({
     state.stations[0] ??
     null;
 
+  // AnimatePresence surface key. recording / transcribing / scoring /
+  // score-reveal all render the SAME <ActiveRep> (RepSurface), and
+  // RepSurface owns the record→score→feedback UI in its OWN local state.
+  // Keying the wrapper on raw `state.phase` remounts RepSurface the moment
+  // SCORE_DONE flips the machine recording→score-reveal — discarding the
+  // just-computed feedback and dropping the user back on the record screen
+  // (the reported "jumps straight back to the rep start page"). Collapse
+  // those four phases to one key so the surface is STABLE across the score
+  // reveal; the key still changes on attempt (first→retry) so the required
+  // Retry gets a deliberate fresh mic. All other phases keep their own key.
+  const surfaceKey =
+    state.phase === "recording" ||
+    state.phase === "transcribing" ||
+    state.phase === "scoring" ||
+    state.phase === "score-reveal"
+      ? `active-${state.attempt}`
+      : state.phase;
+
   // PRD v3 Phase 2.1 — v2 days run 3 exercises but each is two
   // recordings (First Rep + required Retry), so the fallback count and
   // time estimate differ by loop variant.
@@ -402,7 +420,7 @@ function WorkoutShellInner({
             </motion.div>
           ) : (
             <motion.div
-              key={`controls-${state.phase}`}
+              key={`controls-${surfaceKey}`}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}

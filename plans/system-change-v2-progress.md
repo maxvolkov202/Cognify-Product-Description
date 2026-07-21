@@ -746,3 +746,31 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     Note: all-time + `HAVING count>=1` lets a low-rep account top the board (Owen #1 on 6 reps) —
     add a min-rep floor if that ever feels off.
   - tsc + lint + full unit suite + authed workout-loop e2e green.
+
+- **2026-07-21 (session 12c) — the ACTUAL #2 fix + two more loop bugs (branch `fix/workout-loop-score-reveal-notes-resume`).**
+  Max re-reported three symptoms on the live daily workout: (1) after a rep the score/transcribe
+  screen flashes then **jumps straight back to the rep start (record) page**; (2) jotted notes
+  **carry into the next rep**; (3) on rep 3, the score-jump **restarted the day at rep 1**.
+  - **#2 real root cause (NOT the machine).** `WorkoutShell.tsx` keyed the in-workout
+    `<AnimatePresence mode="wait">` wrapper on `controls-${state.phase}`. `recording` and
+    `score-reveal` render the SAME `<ActiveRep>`/`RepSurface`, which holds the record→score→feedback
+    UI in its OWN local `done` state. When `SCORE_DONE` flips the machine recording→score-reveal, the
+    key changed → AnimatePresence **remounted RepSurface fresh at idle**, discarding the feedback and
+    showing the record screen. `onComplete` awaits `tagWorkoutRep` (~200ms) before `SCORE_DONE`, so
+    the feedback paints then vanishes ~200ms later. **The retry e2e survived only because it clicks
+    "Start your Retry" inside the ~0.32s exit-animation window** — a human reading the grade misses
+    it. This is why session 12's machine-level "fix" was a misdiagnosis and the F-6 revert was right.
+    Fix: collapse recording/transcribing/scoring/score-reveal to ONE surface key (`active-${attempt}`)
+    so the surface is stable across the score reveal; first→retry still remounts (attempt changes) for
+    a deliberate fresh mic. **Session machine untouched — F-6 auto-advance + revert stay intact.**
+  - **Notes carryover.** `clearRepDraftNotes` had ZERO callers; notes are keyed
+    `${muscleGroupDayId}:${exerciseId}`, shared by the first attempt AND its retry, and restored on
+    every RepSurface mount. Now cleared in `RepControls.ActiveRep.onComplete` once the rep is scored.
+  - **Resume at rep 1.** Both resume paths used `activeSession…index ?? completedReps` — but
+    `current_station_index` is created as `0` and a persisted `0` is not nullish, so `??` defeated the
+    fallback. Changed `startMuscleGroupDay` (workout-day.ts) and the server-render math (workout/page.tsx)
+    to `Math.max(sessionIndex, completedReps)` (both are progress lower bounds), clamped to last station.
+  - tsc + lint + full unit suite (all green) + prod build green. **Needs Max eyes-on** on the real
+    loop (unit/e2e can't catch #2 — the e2e passed even with the bug) + `/code-review` before PR.
+    Note: `.claude/settings.local.json` was already malformed (missing commas/dupes) at session start —
+    unrelated, left untouched.

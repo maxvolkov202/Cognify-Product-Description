@@ -296,8 +296,14 @@ async function fetchTodaysDayPayload(
       dayDate: day.dayDate,
       stations,
       sessionPhase: phase,
-      currentStationIndex:
-        activeSession?.index ?? Math.min(day.completedReps, dayTarget - 1),
+      // Max, not `??`: a stale persisted session index of 0 must not beat
+      // completedReps and restart a mid-day user at rep 1. Both are lower
+      // bounds on progress; clamp the larger to the last station. Mirrors
+      // the resume math in startMuscleGroupDay (workout-day.ts).
+      currentStationIndex: Math.min(
+        Math.max(activeSession?.index ?? 0, day.completedReps),
+        dayTarget - 1,
+      ),
       workoutSessionId: activeSession?.id ?? null,
       practiceSessionId: activeSession?.practiceSessionId ?? null,
       previousDayComposite: previousDay?.composite ?? null,
