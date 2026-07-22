@@ -175,8 +175,9 @@ export async function getActivityFeedForUser(
       userId: r.userId,
       // 4.2 — show the actor's registered name; fall back to their email's
       // local part so a nameless account isn't shown as "Someone". "Someone"
-      // (rendered in the row) only when both are genuinely absent.
-      userName: r.userName ?? emailLocalPart(r.userEmail),
+      // (rendered in the row) only when both are genuinely absent. A blank/
+      // whitespace-only name is treated as absent so it doesn't render empty.
+      userName: (r.userName?.trim() || null) ?? emailLocalPart(r.userEmail),
       topCoreSkill: topSkillByUser.get(r.userId) ?? null,
       type: r.type as ActivityEventType,
       payload: r.payload as ActivityPayload,
