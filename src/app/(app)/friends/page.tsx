@@ -222,47 +222,54 @@ function RealFriendsView({
         </div>
       )}
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-            Your friends
+      {/* Friends span the full width in a responsive grid so a small crew
+          fills the row instead of stacking into a tall left column with dead
+          space beside the feed. */}
+      <section className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+          Your friends
+        </h2>
+        {friends.length === 0 ? (
+          <div className="mt-4">
+            <EmptyCard text="No accepted friends yet. Pending requests appear above." />
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {friends.map((f) => (
+              <RealFriendCard key={f.userId} friend={f} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Challenges + Live feed sit side by side below, each bounded, so
+          neither column runs away vertically. */}
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        <section>
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+            <Swords className="size-3.5" /> Challenges
           </h2>
           <div className="mt-4 space-y-3">
-            {friends.length === 0 ? (
-              <EmptyCard text="No accepted friends yet. Pending requests appear above." />
+            {challenges.length === 0 ? (
+              <EmptyCard text="No challenges yet. Start one by clicking the swords icon on a friend." />
             ) : (
-              friends.map((f) => <RealFriendCard key={f.userId} friend={f} />)
+              challenges.map((c) => <RealChallengeCard key={c.id} c={c} />)
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="space-y-8">
-          <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              <Swords className="size-3.5" /> Challenges
-            </h2>
-            <div className="mt-4 space-y-3">
-              {challenges.length === 0 ? (
-                <EmptyCard text="No challenges yet. Start one by clicking the swords icon on a friend." />
-              ) : (
-                challenges.map((c) => <RealChallengeCard key={c.id} c={c} />)
-              )}
-            </div>
+        <section>
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+            <Activity className="size-3.5" /> Live feed
+          </h2>
+          <div className="mt-4">
+            {activity.length === 0 ? (
+              <EmptyCard text="Activity lights up as your crew records reps." />
+            ) : (
+              <LiveFeed rows={activity} />
+            )}
           </div>
-
-          <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              <Activity className="size-3.5" /> Live feed
-            </h2>
-            <div className="mt-4">
-              {activity.length === 0 ? (
-                <EmptyCard text="Activity lights up as your crew records reps." />
-              ) : (
-                <LiveFeed rows={activity} />
-              )}
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
     </>
   );
