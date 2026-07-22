@@ -121,9 +121,9 @@ export default function ProgressionStrip({
             <span className="text-sm font-extrabold text-slate-900 dark:text-white">
               {rank.label}
             </span>
-            {rank.nextLabel && (
-              <span className="text-[11px] text-slate-400 dark:text-ink-500">
-                next: {rank.nextLabel}
+            {rank.nextLabel && rank.xpToNext != null && (
+              <span className="text-[11px] text-slate-400 dark:text-ink-500 tabular-nums">
+                {rank.xpToNext.toLocaleString()} XP to {rank.nextLabel}
               </span>
             )}
             {summary.streakDays > 0 && (
@@ -132,7 +132,8 @@ export default function ProgressionStrip({
               </span>
             )}
           </div>
-          {/* §10.5.2 — progress bar, never raw XP numbers. */}
+          {/* §10.5.2 (amended, DEC-2) — progress bar toward the next rank,
+              with XP-to-next now shown above (rank XP is visible). */}
           <div
             className="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden"
             role="progressbar"

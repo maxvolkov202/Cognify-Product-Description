@@ -12,10 +12,10 @@
 import {
   RANK_FLOORS,
   RANK_TIERS,
+  TIER_DIVISION_XP,
   rankFromXp,
   rankChanged,
 } from "@/lib/progression/rank";
-import { xpForLevel, levelFromXp } from "@/lib/progression/levels";
 import {
   computeXpGrant,
   implementationMultiplier,
@@ -44,10 +44,12 @@ function section(label: string): void {
   console.log(`\n── ${label} ──`);
 }
 
-section("rank floors");
+section("rank floors — flat per-division, progressive per tier (P3 §3.3)");
 {
   assert(RANK_FLOORS.length === 32, "32 ranks (8 tiers × 4 divisions)");
   assert(RANK_FLOORS[0]!.floorXp === 0, "Bronze I starts at 0 XP");
+
+  // (c) strictly ascending across all 32.
   let ascending = true;
   for (let i = 1; i < RANK_FLOORS.length; i++) {
     if (RANK_FLOORS[i]!.floorXp <= RANK_FLOORS[i - 1]!.floorXp) {
@@ -55,45 +57,95 @@ section("rank floors");
       break;
     }
   }
-  assert(ascending, "floors strictly ascend");
-  // Non-linear (§10.5.4): reaching Grandmaster takes an order of
-  // magnitude more total XP than clearing Bronze, and each division at
-  // the top costs more than the whole first tier.
+  assert(ascending, "(c) floors strictly ascend across all 32");
+
+  // Per-tier division deltas: (a) equal within a tier, (b) strictly
+  // increasing tier over tier.
+  const tierDeltas: number[] = [];
+  let equalWithinTier = true;
+  for (let t = 0; t < 8; t++) {
+    const base = t * 4;
+    const d1 = RANK_FLOORS[base + 1]!.floorXp - RANK_FLOORS[base]!.floorXp;
+    const d2 = RANK_FLOORS[base + 2]!.floorXp - RANK_FLOORS[base + 1]!.floorXp;
+    const d3 = RANK_FLOORS[base + 3]!.floorXp - RANK_FLOORS[base + 2]!.floorXp;
+    if (!(d1 === d2 && d2 === d3)) equalWithinTier = false;
+    tierDeltas.push(d1);
+  }
+  assert(equalWithinTier, "(a) all four divisions in a tier cost the same");
+  assert(
+    tierDeltas.every((d, i) => i === 0 || d > tierDeltas[i - 1]!),
+    `(b) per-division cost increases every tier (${tierDeltas.join(" < ")})`,
+  );
+  assert(
+    tierDeltas[0] === TIER_DIVISION_XP.bronze &&
+      tierDeltas[7] === TIER_DIVISION_XP.grandmaster,
+    "tier deltas equal the declared TIER_DIVISION_XP costs",
+  );
+
+  // Still non-linear (§10.5.4): reaching Grandmaster costs an order of
+  // magnitude more total XP than clearing Bronze.
   const bronzeCleared = RANK_FLOORS[4]!.floorXp; // Silver I entry
   const grandmasterEntry = RANK_FLOORS[28]!.floorXp;
   assert(
     grandmasterEntry > bronzeCleared * 10,
-    `curve is non-linear (Bronze cleared at ${bronzeCleared}, Grandmaster entry ${grandmasterEntry})`,
-  );
-  const topDivisionSpan = RANK_FLOORS[29]!.floorXp - RANK_FLOORS[28]!.floorXp;
-  assert(
-    topDivisionSpan > bronzeCleared / 4,
-    "one Grandmaster division costs more than a Bronze division",
+    `curve stays non-linear (Bronze cleared at ${bronzeCleared}, Grandmaster entry ${grandmasterEntry})`,
   );
 }
 
-section("rank ↔ level consistency (D4)");
+section("rank well-formedness + visible XP labels (DEC-2)");
 {
   assert(rankFromXp(0).label === "Bronze I", "0 XP = Bronze I");
-  // Level 16 is Silver's minLevel → the XP for level 16 must be Silver I.
-  const silverI = rankFromXp(xpForLevel(16));
-  assert(silverI.label === "Silver I", `level 16 → Silver I (got ${silverI.label})`);
-  const gm = rankFromXp(xpForLevel(100) + 50_000);
-  assert(gm.tierId === "grandmaster", "past level 100 stays Grandmaster");
-  assert(gm.progress === 1 || gm.nextFloorXp != null, "top of ladder well-formed");
   const top = rankFromXp(10_000_000);
-  assert(top.label === "Grandmaster IV" && top.nextLabel === null, "ceiling is Grandmaster IV");
-  // Every tier's minLevel XP lands in that tier.
-  for (const tier of RANK_TIERS) {
-    const r = rankFromXp(xpForLevel(tier.minLevel));
+  assert(
+    top.label === "Grandmaster IV" && top.nextLabel === null,
+    "ceiling is Grandmaster IV",
+  );
+  assert(
+    top.progress === 1 && top.xpToNext === null,
+    "max rank has no 'to next'",
+  );
+
+  // xpInRank / xpToNext drive the "N XP · M to <next>" copy DEC-2 surfaces.
+  const silverIIFloor = RANK_FLOORS[5]!.floorXp;
+  const r = rankFromXp(silverIIFloor + 300);
+  assert(r.label === "Silver II", `XP inside Silver II band → Silver II (got ${r.label})`);
+  assert(r.xpInRank === 300, `xpInRank counts up from the floor (got ${r.xpInRank})`);
+  assert(
+    r.xpToNext === RANK_FLOORS[6]!.floorXp - (silverIIFloor + 300),
+    `xpToNext counts down to the next floor (got ${r.xpToNext})`,
+  );
+  assert(
+    Math.abs(r.progress - r.xpInRank / (r.xpInRank + (r.xpToNext ?? 0))) < 1e-9,
+    "progress matches the xpInRank / division ratio",
+  );
+}
+
+section("re-floor safety — no demotions vs live prod XP (2026-07-22)");
+{
+  // The Overhaul-P3 retune re-labels ranks at the same XP. Validated
+  // against the prod distribution (718 users, 710 at 0 XP, top user
+  // 3,400 XP): every real user must stay at their prior division or
+  // promote — never demote. These are the only non-Bronze-I users and
+  // their PRE-retune divisions.
+  const order = RANK_FLOORS.map((f) => {
+    const roman = ["I", "II", "III", "IV"][f.division - 1];
+    return `${RANK_TIERS[f.tier]!.label} ${roman}`;
+  });
+  const idxOf = (label: string) => order.indexOf(label);
+  const historical: [number, string][] = [
+    [0, "Bronze I"],
+    [423, "Bronze I"],
+    [1781, "Bronze III"],
+    [2663, "Bronze III"],
+    [3400, "Bronze IV"],
+  ];
+  for (const [xp, was] of historical) {
+    const now = rankFromXp(xp).label;
     assert(
-      r.tierId === tier.id && r.division === 1,
-      `level ${tier.minLevel} → ${tier.label} I (got ${r.label})`,
+      idxOf(now) >= idxOf(was),
+      `xp ${xp}: ${was} → ${now} must not be a demotion`,
     );
   }
-  // levelFromXp agreement spot-check.
-  const midXp = xpForLevel(40);
-  assert(levelFromXp(midXp) === 40, "level math sanity");
 }
 
 section("permanent-forward + change detection");
