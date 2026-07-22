@@ -11,7 +11,9 @@ type Props = {
 
 export function SkillTrendChart({ trends }: Props) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    // Phones: 2 charts per row so the page doesn't scroll forever.
+    // Desktop unchanged (3-up on lg).
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
       {trends.map((trend) => (
         <TrendTile key={trend.dimension} trend={trend} />
       ))}
@@ -60,9 +62,9 @@ function TrendTile({ trend }: { trend: SkillTrend }) {
   const fillGradientId = `trend-fill-${trend.dimension}`;
 
   return (
-    <div className="surface-card p-5">
-      <div className="flex items-baseline justify-between">
-        <span className="text-sm font-semibold text-ink-800 dark:text-ink-200">{label}</span>
+    <div className="surface-card p-4 sm:p-5">
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="truncate text-sm font-semibold text-ink-800 dark:text-ink-200">{label}</span>
         {latest !== null ? (
           <span className="brand-gradient-text text-2xl font-extrabold tabular-nums">
             {Math.round(latest)}
