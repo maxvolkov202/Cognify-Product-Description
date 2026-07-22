@@ -58,6 +58,10 @@ export async function runScoringArm(
     case "lean-split":
       // lever (a) × (b) — lean output ON the clarity-safe parallel decode.
       return runGroupedFanout(input, { lean: true });
+    case "holistic-split":
+      // The fan-out CALIBRATION fix — split only the output decode, keep full
+      // rep context in both passes so tone isn't starved (PIVOT 2026-07-22).
+      return runHolisticSplit(input);
     case "per-skill-fanout":
       // Six single-dim calls in parallel + synthesis — the strongest form of
       // the parallel-decode latency lever (PIVOT 2026-07-21).
@@ -135,6 +139,28 @@ async function runSignalsDrop(input: ScoreRepInput): Promise<ScoreRepResult> {
   const result = await runSingleCallScore(input, { leanFeedbackCap: 400 });
   result.metrics.llmCallCount = 1;
   return result;
+}
+
+/**
+ * holistic-split arm — the fan-out CALIBRATION fix (PIVOT 2026-07-22). Same
+ * two-parallel-passes-plus-synthesis shape as grouped-fanout, but neither pass
+ * is told to ignore the other half of the rep: both reason over the full
+ * transcript/prosody/RAG context exactly as control does, and each merely
+ * EMITS its dimension subset. This splits the ~2500-tok decode across two
+ * concurrent calls (the real latency lever) WITHOUT the calibration loss that
+ * sank grouped-fanout and per-skill-fanout — those isolated the tone/content
+ * passes, and on text reps that starved tone of the transcript cues control
+ * reads it from (control tone MAE 3.8 vs grouped 4.5).
+ *
+ * Direct bench (12 reps × 2, gpt-4o, text/no-prosody, RAG off): composite MAE
+ * 2.1 vs control 3.1, clarity 1.9 vs 4.0 (grouped's blowup GONE), structure
+ * 3.8 vs 5.4, thinking 4.1 vs 6.5 — better than control on content dims; tone
+ * 4.5 (still ~0.7 over control, not fully recovered); latency p50 −17%, output
+ * −18%. Three calls (cost OK per Max). See
+ * plans/bench/LATENCY-2026-07-21-lean-output.md.
+ */
+async function runHolisticSplit(input: ScoreRepInput): Promise<ScoreRepResult> {
+  return runGroupedFanout(input, { holistic: true });
 }
 
 /**

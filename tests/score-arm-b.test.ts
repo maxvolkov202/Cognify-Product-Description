@@ -24,6 +24,8 @@ const {
   CONTENT_SCOPE,
   CONTENT_SCOPE_LEAN,
   DELIVERY_SCOPE_LEAN,
+  CONTENT_SCOPE_HOLISTIC,
+  DELIVERY_SCOPE_HOLISTIC,
   CONTENT_DIMS,
   DELIVERY_DIMS,
 } = __armBForTests;
@@ -277,6 +279,59 @@ function deliveryJson() {
     "lean delivery scope drops signals + asks 1 sentence",
     !DELIVERY_SCOPE_LEAN.includes(`"signals":["..."]`) &&
       DELIVERY_SCOPE_LEAN.includes('"feedback":"1 sentence"'),
+  );
+}
+
+// ── holistic-split scopes: the fan-out CALIBRATION fix ──
+{
+  // The base delivery scope ISOLATES the tone pass from content — this is the
+  // calibration loss the holistic arm fixes.
+  check(
+    "base delivery scope forbids content reasoning (the loss)",
+    __armBForTests.DELIVERY_SCOPE.includes("never the argument's content"),
+  );
+  // The holistic delivery scope must NOT carry that isolation, and must
+  // explicitly license reading the transcript for tone evidence.
+  check(
+    "holistic delivery scope removes the content-isolation ban",
+    !DELIVERY_SCOPE_HOLISTIC.includes("never the argument's content") &&
+      !DELIVERY_SCOPE_HOLISTIC.includes("reason ONLY about voice"),
+  );
+  check(
+    "holistic delivery scope licenses transcript cues for tone",
+    /transcript/i.test(DELIVERY_SCOPE_HOLISTIC) &&
+      /phrasing|word-choice|word choice/i.test(DELIVERY_SCOPE_HOLISTIC),
+  );
+  check(
+    "holistic delivery scope still emits ONLY delivery + tone",
+    DELIVERY_SCOPE_HOLISTIC.includes('"delivery"|"tone"') &&
+      DELIVERY_SCOPE_HOLISTIC.includes("Do NOT include content dimensions"),
+  );
+  // Holistic content scope: keeps the anti-nitpick guard (like lean) but NOT
+  // the rich-feedback pressure that drove grouped-fanout's clarity blowup.
+  check(
+    "holistic content scope drops the rich-feedback pressure",
+    !CONTENT_SCOPE_HOLISTIC.includes("full token budget on rich"),
+  );
+  check(
+    "holistic content scope carries an anti-nitpick guard",
+    /do not hunt for nitpicks/i.test(CONTENT_SCOPE_HOLISTIC),
+  );
+  check(
+    "holistic content scope names the four content dims + emits only them",
+    ["clarity", "structure", "conciseness", "thinking_quality"].every((d) =>
+      CONTENT_SCOPE_HOLISTIC.includes(d),
+    ) && CONTENT_SCOPE_HOLISTIC.includes("Do NOT include delivery, tone"),
+  );
+  // Both holistic passes emit the SAME JSON shape as the base scopes, so the
+  // existing parser round-trips them unchanged.
+  check(
+    "parser round-trips a holistic content pass",
+    parseScoringPass(contentJson(), CONTENT_DIMS) != null,
+  );
+  check(
+    "parser round-trips a holistic delivery pass",
+    parseScoringPass(deliveryJson(), DELIVERY_DIMS) != null,
   );
 }
 

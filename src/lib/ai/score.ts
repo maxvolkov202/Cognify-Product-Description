@@ -50,6 +50,24 @@ export async function scoreRep(input: ScoreRepInput): Promise<RepScore> {
 }
 
 /**
+ * Grading Engine V2 — control-PINNED scorer for the calibration/drift path.
+ * The calibration-drift cron (and any reference-rep scoring) MUST bypass the
+ * A/B dispatcher and always run the byte-identical control path. Otherwise a
+ * variant at FF_SCORING_VARIANT_PERCENT>=100 — which the dispatcher applies
+ * even to anonymous (no-userId) reps — would score reference reps with the
+ * variant prompt and contaminate the drift baseline, breaking the calibration
+ * guardrail (reference reps must stay byte-identical). This entry point is
+ * immune to FF_SCORING_VARIANT regardless of its percent, so signals-drop can
+ * ramp to 100% without ever touching the drift cron.
+ */
+export async function scoreRepForCalibration(
+  input: ScoreRepInput,
+): Promise<RepScore> {
+  const { score } = await scoreRepControl(input);
+  return score;
+}
+
+/**
  * Grading Engine V2 — the set of A/B scoring arms. "control" is today's
  * single-call scorer; the rest are variants gated behind FF_SCORING_VARIANT.
  */
@@ -63,6 +81,7 @@ export type ScoringArm =
   | "lean-output"
   | "lean-split"
   | "per-skill-fanout"
+  | "holistic-split"
   | "signals-drop";
 
 /** Arms `runScoringArm` can actually execute today. A flag value naming an
@@ -77,6 +96,7 @@ const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
   "lean-output",
   "lean-split",
   "per-skill-fanout",
+  "holistic-split",
   "signals-drop",
 ];
 

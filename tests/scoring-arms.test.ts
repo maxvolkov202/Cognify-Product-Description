@@ -205,6 +205,9 @@ async function run() {
     process.env.FF_SCORING_VARIANT_ARM = "signals-drop";
     check("signals-drop arm → signals-drop", selectScoringArm("user-1") === "signals-drop");
 
+    process.env.FF_SCORING_VARIANT_ARM = "holistic-split";
+    check("holistic-split arm → holistic-split", selectScoringArm("user-1") === "holistic-split");
+
     process.env.FF_SCORING_VARIANT_ARM = "not-a-real-arm";
     check("unrecognized arm → control", selectScoringArm("user-1") === "control");
 
