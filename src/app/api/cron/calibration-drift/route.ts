@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { calibrationRuns, cronRuns } from "@/lib/db/schema";
-import { scoreRep } from "@/lib/ai/score";
+import { scoreRepForCalibration } from "@/lib/ai/score";
 import { getAudioSignedUrl } from "@/lib/audio/upload";
 import { log, serializeErr } from "@/lib/log";
 
@@ -453,7 +453,11 @@ async function scoreOne(rep: ReferenceRep): Promise<ScoreResponse> {
       });
     }
   }
-  const score = await scoreRep({
+  // Control-PINNED: the drift baseline must always be the byte-identical
+  // control path, immune to FF_SCORING_VARIANT (a variant at percent>=100
+  // would otherwise score these anon reference reps and corrupt drift
+  // detection). See scoreRepForCalibration.
+  const score = await scoreRepForCalibration({
     transcript: rep.transcript,
     promptText: rep.promptText,
     durationMs: rep.durationMs,
