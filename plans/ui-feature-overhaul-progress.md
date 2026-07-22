@@ -84,6 +84,7 @@ hard gate — it is how you confirm a phase landed properly before moving on.
 | 20 | Library: real video thumbnails, bigger headers, smaller bubbles | P8 |
 | 21 | Settings: split General / Personalization + dedupe theme | P8 |
 | 22 | Onboarding "How to / What this is" spotlight walkthrough | P9 |
+| 23 | Temporarily hide the Daily Workout General/Personalized switch — general-only for now | P10 |
 
 ---
 
@@ -179,12 +180,12 @@ row extraction (visual diff).
 **Smoke test:** dev — nav shows "Application Lab"; `/skill-lab` 308-redirects to `/application-lab`; start an
 Application Lab session, set stepper to 1 and to 5, complete a fake-mic rep; the 5-card grid is symmetric at
 desktop width. `npm run build` (catches broken imports/route refs).
-**Prod verify checklist:**
-- [ ] Nav item reads "Application Lab" on cognifygym.com.
-- [ ] Visiting `/skill-lab` redirects to `/application-lab` (no 404).
-- [ ] Rep stepper shows 1–5, defaults to 3, +/- clamps; chosen count drives the session length.
-- [ ] On a wide screen the 5 application cards are visually centered/symmetric (no lone left-aligned pair).
-- [ ] No stray "Skill Lab" text anywhere (dashboard tile, badges, OG image, pricing).
+**Prod verify checklist:** ✅ all confirmed by Max on cognifygym.com 2026-07-22.
+- [x] Nav item reads "Application Lab" on cognifygym.com.
+- [x] Visiting `/skill-lab` redirects to `/application-lab` (no 404).
+- [x] Rep stepper shows 1–5, defaults to 3, +/- clamps; chosen count drives the session length.
+- [x] On a wide screen the 5 application cards are visually centered/symmetric (no lone left-aligned pair).
+- [x] No stray "Skill Lab" text anywhere (dashboard tile, badges, OG image, pricing).
 **Handoff prompt:**
 > Read `plans/ui-feature-overhaul-progress.md`. Execute **Phase 2 — Dashboard content polish** (Last-5 copy,
 > Communication Score wording, remove Last sessions, resize heatmap). Files are in the phase. Smoke test the
@@ -552,6 +553,60 @@ spotlight aligns to the real elements at desktop and mobile widths; reduced-moti
 
 ---
 
+## Phase 10 — Daily Workout: general-only prompt mode (temporary)  ⬜
+
+**Added by Max 2026-07-22 (ask #23).** Temporarily hide the Daily Workout **General | Personalized** switch and
+force **General** for everyone in prod, "until we dial more into vertical-specific." This is a **reversible
+gate, not a deletion** — the personalization pipeline stays intact; we just stop exposing the toggle to users
+and stop defaulting onboarded users into Personalized. Flip one prod env var to bring it back. Independent of
+P2–P9; can be **pulled forward** ahead of the remaining phases if Max wants it live sooner.
+
+**Where it lives (from the codebase):**
+- `PersonalizeSwitch` (the General|Personalized segmented control) + the `personalize` state are in
+  `src/components/product/workout-shell/WorkoutShell.tsx` (`:302-327` state, `:398-401` the switch render,
+  `:449` where `personalize` is passed down into prompt selection). Default today = `payload.hasPersonalizationProfile`
+  (ON for onboarded users), no localStorage persistence.
+- The `personalize` boolean flows into prompt/rep selection; forcing it `false` makes the workout use the
+  **general** prompt bank (see `prompt-gen.ts` vertical-bias block `:283`, gated on the vertical context that
+  General mode omits).
+
+**Files/tasks:**
+- [ ] 10.1 **Add a server-resolved flag** — `FF_WORKOUT_PERSONALIZE_SWITCH` in `src/lib/flags.ts` via
+      `defaultOnOutsideProduction(...)` (switch **visible in dev/preview** so we can still test vertical
+      prompts; **hidden in prod** = general-only now). Resolve it server-side and thread a
+      `personalizeSwitchEnabled: boolean` into the workout `payload` (the shell is a client component and must
+      not read env directly — PRD/CLAUDE convention).
+- [ ] 10.2 **Force General + hide the switch when the flag is off** — in `WorkoutShell.tsx`: seed
+      `useState(personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false)`, and render
+      `PersonalizeSwitch` only when `personalizeSwitchEnabled`. When hidden, `personalize` stays `false` for
+      the page lifetime and cannot be toggled. Keep the "Prompt mode" eyebrow + summary hidden too so the
+      landing chrome doesn't leave an empty slot.
+- [ ] 10.3 **Confirm downstream is truly general** — verify that with `personalize=false` the prompt-selection
+      path (`:449` → selection/prompt-gen) receives no vertical context, so the reps are vertical-neutral. No
+      change to the personalization *storage* (profile/vertical stay saved for when we re-enable).
+- [ ] 10.4 **No regression to the rest of the workout** — the full fake-mic day loop still runs; only the
+      prompt source changes. Abort/retry/advance unaffected.
+
+**Flag:** `FF_WORKOUT_PERSONALIZE_SWITCH` (new; `defaultOnOutsideProduction`). To restore the switch in prod
+later, set the prod env var truthy — no code change.
+**Calibration:** no scoring prompt/model change — prompt *selection* only. XP/rank ≠ score. No calibration re-run.
+**Smoke test:** dev with the flag OFF (simulate prod): the workout landing shows **no** General/Personalized
+switch; an onboarded user's day uses general prompts; a full fake-mic day loop completes. Flip flag ON → switch
+returns and Personalized works as before.
+**Prod verify checklist:**
+- [ ] On cognifygym.com the Daily Workout landing shows **no** General/Personalized switch.
+- [ ] An onboarded user's workout prompts read as general (not vertical-tuned).
+- [ ] A full workout day still completes normally (rep → coaching → retry → review).
+- [ ] Personalization data is untouched (vertical still set in Settings) so it can be re-enabled by env flip.
+**Handoff prompt:**
+> Read `plans/ui-feature-overhaul-progress.md`. Execute **Phase 10 — Daily Workout general-only prompt mode**.
+> Gate the `PersonalizeSwitch` in `WorkoutShell.tsx` behind a new server-resolved `FF_WORKOUT_PERSONALIZE_SWITCH`
+> (default ON outside prod, OFF in prod so it's general-only now), forcing `personalize=false` when hidden.
+> Smoke test the workout with the switch hidden, `/code-review`, PR, deploy, update tracker, give me the Phase
+> 10 prod verify checklist.
+
+---
+
 ## Wave-wide prod verification — section by section
 
 Run on cognifygym.com with a real account once all phases ship and flags are promoted. (Consolidated from
@@ -600,8 +655,10 @@ the per-phase checklists for a single end-to-end pass.)
 - **Calibration guardrail unaffected:** nothing in this wave changes scoring prompts/models. XP/rank ≠ score.
   No calibration re-run required — note this explicitly in each PR so review doesn't block on it.
 - **Flags added this wave:** `FF_DASHBOARD_SOCIAL`, `FF_REP_FRAMEWORK_EDIT`, `FF_PROGRESS_RELISTEN`,
-  `FF_ONBOARDING_TOUR` (+ reuse `FF_SKILL_LAB_APPS`, `FF_RANK_SYSTEM`). Default ON outside prod, OFF in prod
-  until Max promotes.
+  `FF_ONBOARDING_TOUR`, `FF_WORKOUT_PERSONALIZE_SWITCH` (+ reuse `FF_SKILL_LAB_APPS`, `FF_RANK_SYSTEM`). Default
+  ON outside prod, OFF in prod until Max promotes. **Note the inversion for P10:** `FF_WORKOUT_PERSONALIZE_SWITCH`
+  OFF-in-prod is the *intended shipped state* (general-only now) — restoring the switch means flipping it ON,
+  the opposite direction from the other new flags.
 
 ## Session log
 
@@ -637,3 +694,8 @@ the per-phase checklists for a single end-to-end pass.)
   error), both consciously accepted (no cleaner Tailwind fix; non-regression rare path), no correctness bugs.
   No calibration impact — XP/rank is not score; no scoring prompt/model touched. Deployed to prod via
   `vercel deploy --prod` (cognifygym.com). Prod verify checklist handed to Max; Phase 2 gated on his sign-off.
+- 2026-07-22 — **Phase 1 prod verify PASSED** — Max confirmed all 5 boxes on cognifygym.com (nav copy, 308
+  redirect, 1–5 stepper drives length, centered 5-card grid, no stray "Skill Lab"). Phase 1 fully closed.
+- 2026-07-22 — Added **ask #23 → Phase 10** (Max): temporarily hide the Daily Workout General/Personalized
+  switch and force general-only in prod until vertical-specific is dialed in. Reversible env-flag gate
+  (`FF_WORKOUT_PERSONALIZE_SWITCH`, OFF-in-prod = shipped state), independent + pull-forward-able. No code yet.
