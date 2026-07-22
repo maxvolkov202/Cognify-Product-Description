@@ -6,6 +6,7 @@ import {
   getCurrentSkillScores,
   getActivityHeatmap,
   getRecentReps,
+  getRecentRepsWithAudio,
   getPressureRepStats,
   getDailyCompositeTrend,
   getBeforeAfterReps,
@@ -14,6 +15,7 @@ import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import { hasDatabase } from "@/lib/db/safe";
 import { SkillTrendChart } from "@/components/product/SkillTrendChart";
 import { StreakHeatmap } from "@/components/product/StreakHeatmap";
+import { RecentRepsList } from "@/components/product/RecentRepsList";
 import { SkillRadar } from "@/components/product/SkillRadar";
 import { WeeklyNarrativeCard } from "@/components/product/WeeklyNarrativeCard";
 import { ImprovementCurve } from "@/components/product/ImprovementCurve";
@@ -41,6 +43,7 @@ export default async function ProgressPage() {
     currentScores,
     activity,
     recentReps,
+    relistenReps,
     streakStatus,
     pressureStats,
     dailyCompositeTrend,
@@ -50,6 +53,8 @@ export default async function ProgressPage() {
     getCurrentSkillScores(userId),
     getActivityHeatmap(userId, 84),
     getRecentReps(userId, 12),
+    // Recent-reps relisten list — last 30 days, capped, with signed audio.
+    getRecentRepsWithAudio(userId, { days: 30, limit: 30 }),
     getStreakStatus(userId),
     getPressureRepStats(userId, 60),
     getDailyCompositeTrend(userId, 90),
@@ -384,48 +389,38 @@ export default async function ProgressPage() {
         </div>
       </div>
 
-      {/* Recent reps — full-width list. */}
+      {/* Recent reps — full-width list. Last 30 days, with relisten
+          playback + the score for each rep. */}
       <div className="mt-8 surface-card p-5 sm:p-8">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
+            <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Last 30 days. Press play to hear how you did.
+            </p>
+          </div>
           <Link
             href="/workout"
-            className="text-xs font-semibold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
+            className="shrink-0 text-xs font-semibold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
           >
             Run another →
           </Link>
         </div>
-        {recentReps.length === 0 ? (
+        {relistenReps.length === 0 ? (
           <div className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center dark:border-ink-700">
-            <p className="text-sm text-ink-500 dark:text-ink-400">No reps yet. Your first rep becomes your baseline.</p>
+            <p className="text-sm text-ink-500 dark:text-ink-400">
+              {recentReps.length === 0
+                ? "No reps yet. Your first rep becomes your baseline."
+                : "No reps in the last 30 days. Run another to see it here."}
+            </p>
             <div className="mt-4">
               <GradientButton href="/workout" size="md">
-                Start your first rep
+                {recentReps.length === 0 ? "Start your first rep" : "Run a rep"}
               </GradientButton>
             </div>
           </div>
         ) : (
-          <ul className="mt-4 divide-y divide-ink-100 dark:divide-ink-700">
-            {recentReps.map((rep) => (
-              <li
-                key={rep.id}
-                className="flex items-start justify-between gap-3 py-3 text-sm"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 break-words font-medium text-ink-800 dark:text-ink-100">
-                    {rep.promptText}
-                  </p>
-                  <p className="mt-0.5 break-words text-[11px] text-ink-400 dark:text-ink-500">
-                    {new Date(rep.createdAt).toLocaleString()} ·{" "}
-                    {(rep.durationMs / 1000).toFixed(0)}s
-                  </p>
-                </div>
-                <span className="shrink-0 brand-gradient-text text-lg font-extrabold tabular-nums">
-                  {Math.round(rep.compositeScore)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <RecentRepsList reps={relistenReps} />
         )}
       </div>
       </>
