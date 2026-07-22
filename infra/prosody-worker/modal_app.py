@@ -52,9 +52,12 @@ app = modal.App(name="cognify-prosody-worker", image=image)
     memory=2048,
     # CPU-bound; one core is fine, two helps if we batch later.
     cpu=1.0,
-    # Cold starts dominate UX. Keep one warm-pool instance so the
-    # response p99 stays under the Node fetch timeout (5s).
-    min_containers=1,
+    # Cold starts dominate UX, but with near-zero traffic an always-warm
+    # instance just bleeds Modal credits 24/7. Run scale-to-zero for now;
+    # the first rep after idle cold-starts and gracefully degrades to text
+    # tone if it exceeds the 5s Node fetch timeout, then warms up. Flip back
+    # to 1 once steady traffic makes warm latency worth the burn.
+    min_containers=0,
     timeout=30,
     # Shared-secret auth so a leaked URL can't burn worker credits. The
     # secret injects PROSODY_WORKER_TOKEN into the container env; main.py
