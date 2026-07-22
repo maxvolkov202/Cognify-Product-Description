@@ -233,7 +233,7 @@ Empty-state path (`page.tsx:218-275`) still renders.
 
 ---
 
-## Phase 3 — Rank & XP visualization + progressive curve + bug-report XP  ✅ merged + deployed 2026-07-22 (`feat/overhaul-p3-rank-xp`, PR #44) · ⏳ awaiting Max's prod verify
+## Phase 3 — Rank & XP visualization + progressive curve + bug-report XP  ✅ merged + deployed + prod-verified 2026-07-22 (`feat/overhaul-p3-rank-xp`, PR #44)
 
 **Goal:** make rank progress legible (XP earned in rank, XP to next, on the card and the bar), tune the curve
 so higher tiers graduate slower, and award 10 XP for bug reports.
@@ -269,12 +269,12 @@ choose floors that preserve current placements at the current XP median. Note th
 step XP across a division boundary → labels + bar update, rank-up detection (`rankChanged`) fires. Submit a
 bug report as a signed-in user → `users.xp` increases by exactly 10; submit anonymously → no award, no error.
 Unit tests for the new floors pass.
-**Prod verify checklist:**
-- [ ] Rank card shows XP earned in the current rank and XP remaining to the next rank.
-- [ ] Progress bar fill matches the XP ratio (0% just after promotion, ~100% just before next).
-- [ ] Grandmaster IV shows "Max rank" with no negative "to next".
-- [ ] Higher tiers visibly need more XP per division than lower tiers (spot-check Bronze vs Gold spacing).
-- [ ] Submitting a bug report while signed in grants +10 XP (check profile XP before/after); anonymous does not.
+**Prod verify checklist:** ✅ all confirmed by Max on cognifygym.com 2026-07-22.
+- [x] Rank card shows XP earned in the current rank and XP remaining to the next rank.
+- [x] Progress bar fill matches the XP ratio (0% just after promotion, ~100% just before next).
+- [x] Grandmaster IV shows "Max rank" with no negative "to next".
+- [x] Higher tiers visibly need more XP per division than lower tiers (spot-check Bronze vs Gold spacing).
+- [x] Submitting a bug report while signed in grants +10 XP (check profile XP before/after); anonymous does not.
 **Handoff prompt:**
 > Read `plans/ui-feature-overhaul-progress.md`. Execute **Phase 4 — Social on dashboard + live-feed fixes +
 > leaderboard centering**. The friend graph + `getActivityFeedForUser` already exist; mount the extracted
@@ -781,3 +781,6 @@ the per-phase checklists for a single end-to-end pass.)
   (dpl_66Jq1TpcwBAHAwm18TLDQ5fTjcde, aliased www.cognifygym.com 200; bug-reports route live — empty POST →
   400). Rank surfaces stay gated by existing `FF_RANK_SYSTEM` (a prod var per the promotion runbook); bug XP
   is unflagged. **Prod verify checklist handed to Max; Phase 4 gated on his sign-off.**
+- 2026-07-22 — **Phase 3 prod verify PASSED** — Max confirmed all 5 boxes on cognifygym.com (rank card shows
+  XP-in-rank + XP-to-next, bar matches the ratio, Grandmaster shows "Max rank", higher tiers cost more per
+  division, signed-in bug report grants +10 XP / anonymous none). Phase 3 fully closed; Phase 4 is next.
