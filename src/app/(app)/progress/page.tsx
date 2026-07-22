@@ -371,7 +371,7 @@ export default async function ProgressPage() {
       </div>
 
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_1.3fr]">
-        <div className="surface-card p-8">
+        <div className="surface-card p-5 sm:p-8">
           <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Activity</h2>
           <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">12-week heat map of your reps.</p>
           <div className="mt-6">
@@ -379,7 +379,7 @@ export default async function ProgressPage() {
           </div>
         </div>
 
-        <div className="surface-card p-8">
+        <div className="surface-card p-5 sm:p-8">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
             <Link
@@ -403,16 +403,18 @@ export default async function ProgressPage() {
               {recentReps.map((rep) => (
                 <li
                   key={rep.id}
-                  className="flex items-center justify-between gap-4 py-3 text-sm"
+                  className="flex items-start justify-between gap-3 py-3 text-sm"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-ink-800 dark:text-ink-100">{rep.promptText}</p>
-                    <p className="mt-0.5 text-[11px] text-ink-400 dark:text-ink-500">
+                    <p className="line-clamp-2 break-words font-medium text-ink-800 dark:text-ink-100">
+                      {rep.promptText}
+                    </p>
+                    <p className="mt-0.5 break-words text-[11px] text-ink-400 dark:text-ink-500">
                       {new Date(rep.createdAt).toLocaleString()} ·{" "}
                       {(rep.durationMs / 1000).toFixed(0)}s
                     </p>
                   </div>
-                  <span className="brand-gradient-text text-lg font-extrabold tabular-nums">
+                  <span className="shrink-0 brand-gradient-text text-lg font-extrabold tabular-nums">
                     {Math.round(rep.compositeScore)}
                   </span>
                 </li>

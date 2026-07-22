@@ -20,12 +20,15 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 // reframed as a focused "Practice" surface for targeted drills,
 // framework practice, and custom reps. The URL stays /skill-lab so
 // links + bookmarks don't break.
+// `primary: true` items stay as inline desktop tabs; the rest collapse into
+// a "More" dropdown so the header stays uncluttered (mobile shows all in the
+// hamburger panel regardless).
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/workout", label: "Workout" },
+  { href: "/dashboard", label: "Dashboard", primary: true },
+  { href: "/workout", label: "Workout", primary: true },
   // D6 — PRD terminology: the mode is "Skill Lab", not "Practice".
-  { href: "/skill-lab", label: "Skill Lab" },
-  { href: "/build-a-rep", label: "Build a Rep" },
+  { href: "/skill-lab", label: "Skill Lab", primary: true },
+  { href: "/build-a-rep", label: "Build a Rep", primary: true },
   { href: "/library", label: "Library" },
   { href: "/progress", label: "Progress" },
   { href: "/leaderboard", label: "Leaderboard" },

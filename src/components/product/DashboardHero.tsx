@@ -122,8 +122,15 @@ export function DashboardHero({
           </p>
         </div>
 
-        {/* Right: vital signs */}
-        <div className="grid grid-cols-3 gap-2 md:gap-3">
+        {/* Right: vital signs. With the optional Communication Score tile
+            there are 4 tiles — lay them out as a symmetric 2×2 block so the
+            4th never drops to a lonely second row. Without it, 3 tiles sit
+            in a single row. */}
+        <div
+          className={`grid gap-2 md:gap-3 ${
+            communicationScore != null ? "grid-cols-2" : "grid-cols-3"
+          }`}
+        >
           <VitalSign
             label="Streak"
             href="/progress"

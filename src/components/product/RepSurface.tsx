@@ -1093,16 +1093,29 @@ export function RepSurface({
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-ink-200 dark:border-ink-700 p-10">
-          <RecordButton
-            maxDurationMs={effectiveMaxDurationMs}
-                responseWindow={responseWindow}
-            onComplete={handleRecordingComplete}
-            disabled={isWorking || !frameworkVisible}
-            {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
+        <div className="brand-gradient relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl px-6 py-8 text-center text-white shadow-[var(--shadow-glow)] sm:px-10">
+          <div
+            className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10 blur-2xl"
+            aria-hidden="true"
           />
+          <div
+            className="pointer-events-none absolute -bottom-16 -left-8 size-56 rounded-full bg-brand-magenta/30 blur-3xl"
+            aria-hidden="true"
+          />
+          <p className="relative text-2xl font-extrabold leading-tight tracking-tight md:text-3xl">
+            Your turn. Speak your answer.
+          </p>
+          <div className="relative">
+            <RecordButton
+              maxDurationMs={effectiveMaxDurationMs}
+              responseWindow={responseWindow}
+              onComplete={handleRecordingComplete}
+              disabled={isWorking || !frameworkVisible}
+              {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
+            />
+          </div>
           {!frameworkVisible && framework && revealFrameworkAfterMs > 0 && (
-            <p className="text-xs text-ink-400 dark:text-ink-500">
+            <p className="relative text-xs font-medium text-white/85 drop-shadow-sm">
               Wait for the framework to appear before recording.
             </p>
           )}
