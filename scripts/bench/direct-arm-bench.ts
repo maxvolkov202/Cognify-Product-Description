@@ -27,7 +27,6 @@ import { fileURLToPath } from "node:url";
 config({ path: ".env.local" });
 process.env.FF_RAG_RETRIEVE = "false";
 process.env.FF_PROSODY_WORKER = "false";
-process.env.AI_PROVIDER = process.env.AI_PROVIDER ?? "openai";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +43,31 @@ function argNum(name: string, fallback: number): number {
 const ARMS = argStr("--arms", "control,lean-output,lean-split").split(",").map((s) => s.trim());
 const N_REPS = argNum("--reps", 10);
 const SAMPLES = argNum("--samples", 1);
+
+// ── Model / provider override (experiment 2: faster-model sweep) ──────────
+// claude.ts reads these env vars at MODULE LOAD, and the arm modules are
+// dynamically imported inside main() below — so setting them here (before any
+// import of score-shared/claude) is what makes the override take effect. The
+// provider is inferred from the model id unless --provider is given.
+const MODEL_OVERRIDE = argStr("--model", "");
+const PROVIDER_OVERRIDE = argStr("--provider", "");
+function inferProvider(model: string): "openai" | "anthropic" {
+  return /claude|haiku|sonnet|opus/i.test(model) ? "anthropic" : "openai";
+}
+const PROVIDER =
+  (PROVIDER_OVERRIDE as "openai" | "anthropic") ||
+  (MODEL_OVERRIDE ? inferProvider(MODEL_OVERRIDE) : "") ||
+  (process.env.AI_PROVIDER as "openai" | "anthropic") ||
+  "openai";
+process.env.AI_PROVIDER = PROVIDER;
+if (MODEL_OVERRIDE) {
+  if (PROVIDER === "anthropic") {
+    process.env.ANTHROPIC_SCORING_MODEL = MODEL_OVERRIDE;
+  } else {
+    process.env.OPENAI_SCORING_MODEL = MODEL_OVERRIDE;
+  }
+}
+const MODEL_LABEL = MODEL_OVERRIDE || (PROVIDER === "anthropic" ? "claude(default)" : "gpt-4o");
 
 const DIMS = [
   "clarity",
@@ -85,12 +109,20 @@ function median(xs: number[]): number {
 }
 
 async function main() {
-  if (!process.env.OPENAI_API_KEY?.startsWith("sk")) {
-    console.error("OPENAI_API_KEY not loaded — aborting.");
+  const keyOk =
+    PROVIDER === "anthropic"
+      ? !!process.env.ANTHROPIC_API_KEY
+      : process.env.OPENAI_API_KEY?.startsWith("sk");
+  if (!keyOk) {
+    console.error(
+      `${PROVIDER === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} not loaded — aborting.`,
+    );
     process.exit(1);
   }
   const { runSingleCallScore } = await import("../../src/lib/ai/score-shared");
-  const { runGroupedFanout } = await import("../../src/lib/ai/score-arm-b");
+  const { runGroupedFanout, runPerSkillFanout } = await import(
+    "../../src/lib/ai/score-arm-b"
+  );
 
   type ArmFn = (
     input: Parameters<typeof runSingleCallScore>[0],
@@ -100,6 +132,15 @@ async function main() {
     "lean-output": (i) => runSingleCallScore(i, { lean: true }),
     "lean-split": (i) => runGroupedFanout(i, { lean: true }),
     "grouped-fanout": (i) => runGroupedFanout(i),
+    "per-skill-fanout": (i) => runPerSkillFanout(i),
+    // Milder feedback-trim sweep (experiment 1). `lean-400` = signals-only
+    // floor (invisible field dropped, feedback prose byte-identical to
+    // control); 320/280/240/160 = progressively tighter feedback caps.
+    "lean-400": (i) => runSingleCallScore(i, { leanFeedbackCap: 400 }),
+    "lean-320": (i) => runSingleCallScore(i, { leanFeedbackCap: 320 }),
+    "lean-280": (i) => runSingleCallScore(i, { leanFeedbackCap: 280 }),
+    "lean-240": (i) => runSingleCallScore(i, { leanFeedbackCap: 240 }),
+    "lean-160": (i) => runSingleCallScore(i, { leanFeedbackCap: 160 }),
   };
 
   const refPath = resolve(__dirname, "..", "calibration", "reference-reps.json");
@@ -108,7 +149,7 @@ async function main() {
   const reps = pickStratified(bandReps, N_REPS);
 
   console.log(
-    `direct-arm bench · arms=[${ARMS.join(", ")}] · ${reps.length} reps × ${SAMPLES} samples · gpt-4o · RAG off\n`,
+    `direct-arm bench · arms=[${ARMS.join(", ")}] · ${reps.length} reps × ${SAMPLES} samples · ${PROVIDER}:${MODEL_LABEL} · RAG off\n`,
   );
 
   type ArmAcc = {

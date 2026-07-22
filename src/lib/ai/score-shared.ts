@@ -513,29 +513,94 @@ function leanEdit(source: string, find: string, replace: string): string {
   return source.replace(find, replace);
 }
 
-export const LEAN_SYSTEM_PROMPT: string = (() => {
+/**
+ * Grading Engine V2 (latency, PIVOT 2026-07-21) — build a lean system prompt
+ * at a PARAMETERIZED per-dimension feedback char cap. The 2026-07-21 lean
+ * sweep shipped a fixed 160-char cap; Max judged that "too lean to get to
+ * prod" (feedback must stay helpful). This factory lets the bench sweep
+ * milder caps (400→320/280/240) to find the least-aggressive trim that still
+ * saves tokens without a quality loss.
+ *
+ * Two independent levers, composed by `feedbackCap`:
+ *   - `signals`-drop: ALWAYS applied (the field is never rendered in any UI —
+ *     pure dead output, zero quality cost). `feedbackCap === 400` therefore
+ *     yields the strictly-safe "signals-only" floor: the invisible field is
+ *     gone, but the feedback prose is byte-identical to control (same ≤400
+ *     cap, same "1-2 sentences").
+ *   - feedback-cap: applied only when `feedbackCap < 400`. Below ~200 chars a
+ *     single sentence is the honest instruction, so the "1-2 sentences" hints
+ *     tighten to "1 sentence" too; at 240-320 the two-sentence framing is
+ *     kept (there is room for it) and ONLY the char ceiling drops.
+ *
+ * Derived from control's `systemPrompt` by anchored `leanEdit` subs (guarded:
+ * a broken anchor logs + returns source unchanged rather than throwing at
+ * module load — see leanEdit), so every untouched rule tracks control.
+ */
+function buildLeanSystemPrompt(feedbackCap: number): string {
   let p = systemPrompt;
-  // 1) Output schema line: drop the `signals` field, tighten the feedback hint.
+  const oneSentence = feedbackCap <= 200;
+  // 1) Output schema line: ALWAYS drop the never-rendered `signals` field;
+  //    tighten the feedback-count hint only when the cap is single-sentence.
   p = leanEdit(
     p,
     `, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
-    `, "feedback": "1 sentence, see PER-SKILL FEEDBACK RULES"`,
+    `, "feedback": "${oneSentence ? "1 sentence" : "1-2 sentences"}, see PER-SKILL FEEDBACK RULES"`,
   );
-  // 2) PER-SKILL FEEDBACK RULES — one sentence, not two.
-  p = leanEdit(
-    p,
-    `  - 1-2 tight sentences per dimension: WHY this score`,
-    `  - 1 tight sentence per dimension: WHY this score`,
-  );
-  // 3) PER-SKILL FEEDBACK RULES — halve the char cap (feedback quality is
-  //    length-insensitive here: groundedness is ~0 either way).
-  p = leanEdit(
-    p,
-    `  - Second-person, present-tense, no hedging, ≤400 chars.`,
-    `  - Second-person, present-tense, no hedging, ≤160 chars.`,
-  );
+  // 2) PER-SKILL FEEDBACK RULES — collapse to one sentence only at tight caps.
+  if (oneSentence) {
+    p = leanEdit(
+      p,
+      `  - 1-2 tight sentences per dimension: WHY this score`,
+      `  - 1 tight sentence per dimension: WHY this score`,
+    );
+  }
+  // 3) PER-SKILL FEEDBACK RULES — drop the char cap only when tighter than
+  //    control's 400 (feedbackCap===400 is signals-only, prose untouched).
+  if (feedbackCap < 400) {
+    p = leanEdit(
+      p,
+      `  - Second-person, present-tense, no hedging, ≤400 chars.`,
+      `  - Second-person, present-tense, no hedging, ≤${feedbackCap} chars.`,
+    );
+  }
   return p;
-})();
+}
+
+/** Default lean feedback cap — the shipped `lean-output` arm's cap. The
+ *  2026-07-21 PIVOT recommends NOT shipping 160 (too lean); the milder-cap
+ *  bench decides the value that replaces this. */
+export const LEAN_FEEDBACK_CAP_DEFAULT = 160;
+
+const leanPromptCache = new Map<number, string>();
+/** Memoized lean-prompt builder — one string per cap, rendered once. */
+export function leanSystemPromptFor(feedbackCap: number): string {
+  let cached = leanPromptCache.get(feedbackCap);
+  if (cached === undefined) {
+    cached = buildLeanSystemPrompt(feedbackCap);
+    leanPromptCache.set(feedbackCap, cached);
+  }
+  return cached;
+}
+
+/** The default (160-char) lean prompt — the shipped lean-output arm + all
+ *  existing `lean: true` call sites. Byte-identical to the pre-parameterized
+ *  IIFE. */
+export const LEAN_SYSTEM_PROMPT: string = leanSystemPromptFor(
+  LEAN_FEEDBACK_CAP_DEFAULT,
+);
+
+/** Resolve which system prompt a scoring call uses from the two lean knobs.
+ *  `leanFeedbackCap` (explicit cap, for the milder-trim sweep) wins over the
+ *  boolean `lean` (=default 160 cap). Returns null when neither is set → the
+ *  caller uses the control `systemPrompt` (byte-identical control path). */
+function resolveLeanPrompt(opts: {
+  lean?: boolean;
+  leanFeedbackCap?: number;
+}): string | null {
+  if (opts.leanFeedbackCap != null) return leanSystemPromptFor(opts.leanFeedbackCap);
+  if (opts.lean) return LEAN_SYSTEM_PROMPT;
+  return null;
+}
 
 /**
  * Compact rubric block — definitions + signals for the four LLM-scored
@@ -1184,9 +1249,12 @@ export function computeScoringPromptBytes(opts: {
   /** lean-output arm — count the (shorter) lean system prompt so per-arm
    *  telemetry reflects the real payload. Absent/false on control. */
   lean?: boolean;
+  /** milder-trim sweep — explicit lean feedback char cap (wins over `lean`).
+   *  Absent on control + the default lean arm. */
+  leanFeedbackCap?: number;
 }): number {
   const systemTextBytes = [
-    opts.lean ? LEAN_SYSTEM_PROMPT : systemPrompt,
+    resolveLeanPrompt(opts) ?? systemPrompt,
     opts.rubricBlock,
     COMPACT_KNOWLEDGE,
     SUB_SKILL_REFERENCE,
@@ -1219,6 +1287,9 @@ export function buildSystemBlocks(opts: {
    *  cache prefix's first block differs. Absent/false on control → the
    *  control `system` array stays byte-identical. */
   lean?: boolean;
+  /** milder-trim sweep — explicit lean feedback char cap (wins over `lean`).
+   *  Absent on control + the default lean arm. */
+  leanFeedbackCap?: number;
 }): Anthropic.Messages.TextBlockParam[] {
   const rubricBlock = opts.rubricBlock;
   const input = {
@@ -1228,7 +1299,7 @@ export function buildSystemBlocks(opts: {
   const blocks: Anthropic.Messages.TextBlockParam[] = [
       {
         type: "text",
-        text: opts.lean ? LEAN_SYSTEM_PROMPT : systemPrompt,
+        text: resolveLeanPrompt(opts) ?? systemPrompt,
         cache_control: { type: "ephemeral" },
       },
       {
@@ -1562,12 +1633,20 @@ export function assembleRepScore(opts: {
  */
 export async function runSingleCallScore(
   input: ScoreRepInput,
-  opts?: { anchorsBlock?: string | null; config?: HybridConfig; lean?: boolean },
+  opts?: {
+    anchorsBlock?: string | null;
+    config?: HybridConfig;
+    lean?: boolean;
+    /** milder-trim sweep — explicit lean feedback char cap (wins over
+     *  `lean`). Absent on control + the default lean arm. */
+    leanFeedbackCap?: number;
+  },
 ): Promise<ScoreRepResult> {
   const config: HybridConfig =
     opts?.config ?? { deliveryMode: "deterministic", thinkingMode: "blend" };
   const anchorsBlock = opts?.anchorsBlock ?? null;
   const lean = opts?.lean ?? false;
+  const leanFeedbackCap = opts?.leanFeedbackCap;
 
   const prep = await buildUserPrompt(input);
   const system = buildSystemBlocks({
@@ -1576,6 +1655,7 @@ export async function runSingleCallScore(
     coachingMemory: input.coachingMemory,
     anchorsBlock,
     lean,
+    leanFeedbackCap,
   });
   const promptSizeBytes = computeScoringPromptBytes({
     rubricBlock: prep.rubricBlock,
@@ -1584,6 +1664,7 @@ export async function runSingleCallScore(
     userPrompt: prep.userPrompt,
     anchorsBlock,
     lean,
+    leanFeedbackCap,
   });
 
   const scoreRepStart = Date.now();

@@ -10,8 +10,10 @@ import { selectScoringArm } from "@/lib/ai/score";
 import {
   applyHybridLayer,
   LEAN_SYSTEM_PROMPT,
+  leanSystemPromptFor,
   scoringResponseSchema,
 } from "@/lib/ai/score-shared";
+import { __armBForTests } from "@/lib/ai/score-arm-b";
 import type { ScoreRepInput, ScoreRepResult } from "@/lib/ai/score";
 import type { SkillDimension } from "@/types/domain";
 
@@ -197,6 +199,9 @@ async function run() {
     process.env.FF_SCORING_VARIANT_ARM = "lean-split";
     check("lean-split arm → lean-split", selectScoringArm("user-1") === "lean-split");
 
+    process.env.FF_SCORING_VARIANT_ARM = "per-skill-fanout";
+    check("per-skill-fanout arm → per-skill-fanout", selectScoringArm("user-1") === "per-skill-fanout");
+
     process.env.FF_SCORING_VARIANT_ARM = "not-a-real-arm";
     check("unrecognized arm → control", selectScoringArm("user-1") === "control");
 
@@ -312,6 +317,57 @@ async function run() {
       "lean prompt keeps the strongerVersion contract",
       LEAN_SYSTEM_PROMPT.includes("STRONGER VERSION RULES"),
     );
+  }
+
+  // ── milder-trim sweep: parameterized lean feedback cap ──
+  // The PIVOT (2026-07-21) needs caps between control's 400 and the shipped
+  // 160. Assert each cap's prompt is shaped correctly: signals ALWAYS dropped;
+  // cap===400 = signals-only (prose byte-identical to control); mild caps keep
+  // "1-2 sentences" but tighten the ceiling; tight caps (≤200) collapse to one
+  // sentence. LEAN_SYSTEM_PROMPT must stay === the 160 build (no drift).
+  {
+    const p400 = leanSystemPromptFor(400);
+    const p280 = leanSystemPromptFor(280);
+    const p160 = leanSystemPromptFor(160);
+
+    check("all caps drop the signals field", [p400, p280, p160].every((p) => !p.includes(`"signals": ["..."]`)));
+
+    // 400 = signals-only: feedback prose untouched (still ≤400, still 1-2).
+    check("cap 400 keeps ≤400 char rule", p400.includes("no hedging, ≤400 chars."));
+    check("cap 400 keeps 1-2 sentences", p400.includes("1-2 tight sentences per dimension"));
+
+    // 280 = mild: tighter ceiling, but two-sentence framing kept.
+    check(
+      "cap 280 sets ≤280 and drops ≤400",
+      p280.includes("no hedging, ≤280 chars.") && !p280.includes("no hedging, ≤400 chars."),
+    );
+    check("cap 280 keeps 1-2 sentences", p280.includes("1-2 tight sentences per dimension"));
+
+    // 160 = tight: one sentence + ≤160, and identical to the shipped const.
+    check(
+      "cap 160 collapses to one sentence",
+      p160.includes("1 tight sentence per dimension") && p160.includes("no hedging, ≤160 chars."),
+    );
+    check("LEAN_SYSTEM_PROMPT === leanSystemPromptFor(160)", LEAN_SYSTEM_PROMPT === p160);
+
+    // Every cap keeps the load-bearing user-visible contracts.
+    check(
+      "all caps keep coachFocus + strongerVersion contracts",
+      [p400, p280, p160].every((p) => p.includes("COACH'S FOCUS RULES") && p.includes("STRONGER VERSION RULES")),
+    );
+  }
+
+  // ── per-skill-fanout: single-dim scope shaping ──
+  // Each pass must scope to exactly ONE dimension and steer voice vs content
+  // reasoning correctly; the anti-compression guard rides on content dims so a
+  // short single-dim feedback can't manufacture nitpicks that drag the score.
+  {
+    const clarity = __armBForTests.renderPerSkillScope("clarity", false);
+    const tone = __armBForTests.renderPerSkillScope("tone", false);
+    check("clarity scope names only clarity", clarity.includes("SINGLE DIMENSION PASS: clarity") && clarity.includes("IGNORE delivery and tone"));
+    check("clarity scope carries the anti-compression guard", clarity.includes("NEVER pull the score down"));
+    check("tone scope grounds in voice/prosody", tone.includes("PROSODY EVIDENCE") && tone.includes("reason ONLY about voice"));
+    check("scopes forbid a coachFocus in the per-dim pass", clarity.includes("do NOT include a headline, coachFocus"));
   }
 
   // ── schema tolerates a dimension with no `signals` (lean output) ──

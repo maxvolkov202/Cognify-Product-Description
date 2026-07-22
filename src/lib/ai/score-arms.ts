@@ -31,7 +31,7 @@ import {
   selectAnchors,
   renderReferenceAnchorsBlock,
 } from "./reference-anchors";
-import { runGroupedFanout } from "./score-arm-b";
+import { runGroupedFanout, runPerSkillFanout } from "./score-arm-b";
 
 type ControlFn = (input: ScoreRepInput) => Promise<ScoreRepResult>;
 
@@ -56,6 +56,10 @@ export async function runScoringArm(
     case "lean-split":
       // lever (a) × (b) — lean output ON the clarity-safe parallel decode.
       return runGroupedFanout(input, { lean: true });
+    case "per-skill-fanout":
+      // Six single-dim calls in parallel + synthesis — the strongest form of
+      // the parallel-decode latency lever (PIVOT 2026-07-21).
+      return runPerSkillFanout(input);
     // Any arm not switched above (or an unrecognized flag value) is a
     // defensive fallback to control, not a live path — the dispatcher's
     // IMPLEMENTED_VARIANT_ARMS gate keeps unimplemented arms from reaching here.

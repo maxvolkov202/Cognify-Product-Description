@@ -612,9 +612,173 @@ export async function runGroupedFanout(
   return { score, metrics };
 }
 
+// ── Per-skill fan-out (arm `per-skill-fanout`) ───────────────────────────
+// Six single-dimension scoring calls in PARALLEL + one synthesis call.
+// Wall-clock ≈ slowest single-dim decode + synthesis, and each single-dim
+// output is tiny (one score + one feedback line), so the decode budget per
+// call is a fraction of control's six-in-one. The thesis: max out the
+// parallel-decode latency win while giving every dimension its own focused
+// reasoning frame and full (small) token budget.
+//
+// WATCH (Max flagged, quality is the gate): per-dimension isolation is the
+// STRONGEST form of the split that regressed tone/conciseness in
+// grouped-fanout. Each voice dim (delivery/tone) is now judged with zero
+// content context and vice-versa — the bench decides whether the calibration
+// holds. Content dims keep the anti-compression guard from the lean CONTENT
+// scope (the reusable clarity-fix asset) so short single-dim feedback can't
+// manufacture nitpicks that drag a score down.
+function renderPerSkillScope(dim: SkillDimension, lean: boolean): string {
+  const isVoice = dim === "delivery" || dim === "tone";
+  const feedbackShape = lean ? "1 sentence" : "1-2 sentences";
+  return [
+    `ARM SCOPE — SINGLE DIMENSION PASS: ${dim}.`,
+    `Score ONLY ${dim} (0-100). Apply the SCORE CALIBRATION, ANTI-COMPRESSION, DIMENSION INDEPENDENCE, and EDGE-CASE rules from the system prompt EXACTLY — do NOT let any other dimension's strength or weakness move this score.`,
+    isVoice
+      ? `Ground ${dim} in the PROSODY EVIDENCE and MEASURED RATE lines and the transcript's fluency; reason ONLY about voice and pacing, never the argument's content (mediocre content delivered with genuinely expressive prosody is still HIGH tone). Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules.`
+      : `Judge ${dim} from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone — a separate pass grades voice. Write tight, specific feedback; the feedback being short must NEVER pull the score down — if you cannot name a real deficiency, the score is ≥80 per the calibration rules, not a hedged middle.`,
+    `Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"${dim}","score":0-100,"feedback":"${feedbackShape} per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE for ${dim}"|null}]}`,
+    `Include exactly one entry for ${dim}. Do NOT score any other dimension, and do NOT include a headline, coachFocus, or strongerVersion.`,
+  ].join("\n");
+}
+
+/**
+ * Arm entry point — per-skill fan-out. Contract-identical to control:
+ * returns `{score, metrics}` with all six dimensions + composite. Graceful
+ * degradation mirrors grouped-fanout: any single-dim pass failing to cover
+ * its dimension → the full single-call scorer; synthesis failing → the
+ * deterministic envelope.
+ */
+export async function runPerSkillFanout(
+  input: ScoreRepInput,
+  opts?: { lean?: boolean },
+): Promise<ScoreRepResult> {
+  const config = resolveArmBConfig();
+  const lean = opts?.lean ?? false;
+  const scoreRepStart = Date.now();
+
+  const prep = await buildUserPrompt(input);
+  const system = buildSystemBlocks({
+    rubricBlock: prep.rubricBlock,
+    userCalibration: input.userCalibration,
+    coachingMemory: input.coachingMemory,
+    lean,
+  });
+  const bytesFor = (userText: string) =>
+    computeScoringPromptBytes({
+      rubricBlock: prep.rubricBlock,
+      userCalibration: input.userCalibration,
+      coachingMemory: input.coachingMemory,
+      userPrompt: userText,
+      lean,
+    });
+
+  // Six single-dim calls, concurrent. allSettled so one failure degrades to
+  // the single-call scorer rather than collapsing to mock-fallback.
+  const settled = await Promise.allSettled(
+    ALL_SIX.map((dim) => {
+      const user = `${renderPerSkillScope(dim, lean)}\n\n${prep.userPrompt}`;
+      return callScoped(system, user, bytesFor(user));
+    }),
+  );
+
+  const dims6: ArmDimension[] = [];
+  const dimMetrics: ScoreRepResult["metrics"][] = [];
+  for (let i = 0; i < ALL_SIX.length; i++) {
+    const dim = ALL_SIX[i]!;
+    const s = settled[i]!;
+    const parsed =
+      s.status === "fulfilled" ? parseScoringPass(s.value.text, [dim]) : null;
+    if (!parsed) {
+      // Graceful degradation: a full, real score via the single-call path.
+      const fb = await runSingleCallScore(input, { config });
+      fb.metrics.fallbackFired = true;
+      fb.metrics.llmCallCount = (fb.metrics.llmCallCount ?? 1) + (i + 1);
+      return fb;
+    }
+    dims6.push(parsed[0]!);
+    if (s.status === "fulfilled") dimMetrics.push(s.value.metrics);
+  }
+
+  // Synthesis — reuse the grouped-fanout envelope pass verbatim.
+  const synthUser = `${renderSynthesisScope(dims6)}\n\n${prep.userPrompt}`;
+  let synthCall: ArmCall | null = null;
+  let synthesis: SynthesisEnvelope;
+  try {
+    synthCall = await callScoped(system, synthUser, bytesFor(synthUser));
+    synthesis = synthesisPassSchema.parse(extractJson(synthCall.text));
+  } catch {
+    synthesis = deriveSynthesisFallback(dims6);
+    synthCall = null;
+  }
+
+  const merged = {
+    dimensions: dims6.map((d) => ({
+      dimension: d.dimension,
+      score: d.score,
+      signals: d.signals ?? [],
+      ...(d.feedback ? { feedback: d.feedback } : {}),
+      subSkill: d.subSkill ?? null,
+    })),
+    headline: synthesis.headline,
+    coachFocus: synthesis.coachFocus,
+    strongerVersion: synthesis.strongerVersion ?? null,
+    headlineTone: synthesis.headlineTone,
+    nextRepHint: synthesis.nextRepHint,
+    ...(synthesis.structuralAdherence != null
+      ? { structuralAdherence: synthesis.structuralAdherence }
+      : {}),
+    ...(synthesis.implementationReview
+      ? { implementationReview: synthesis.implementationReview }
+      : {}),
+  };
+
+  const validationStart = Date.now();
+  const { validated, sanitizedCoachFocus, sanitizedStrongerVersion, sanitizedDimFeedback } =
+    parseAndValidate(JSON.stringify(merged), input.transcript);
+
+  const { finalDimensions, dimensionMap } = applyHybridLayer({
+    dims: sanitizedDimFeedback,
+    input,
+    config,
+  });
+
+  const modelUsed = dimMetrics[0]?.modelUsed ?? synthCall?.metrics.modelUsed;
+
+  const score = assembleRepScore({
+    finalDimensions,
+    dimensionMap,
+    validated,
+    input,
+    sanitizedCoachFocus,
+    sanitizedStrongerVersion,
+    prosodyFeatures: prep.prosodyFeatures,
+    signalsFlagOn: prep.signalsFlagOn,
+    textSignals: prep.textSignals,
+    modelUsed,
+  });
+
+  const validationDurationMs = Date.now() - validationStart;
+  const scoreRepTotalMs = Date.now() - scoreRepStart;
+
+  const callMetrics = [...dimMetrics, synthCall?.metrics].filter(
+    (m): m is ScoreRepResult["metrics"] => m != null,
+  );
+  const metrics = mergeArmMetrics(callMetrics[0]!, callMetrics, {
+    validationDurationMs,
+    scoreRepTotalMs,
+    ragDurationMs: prep.ragResult.durationMs,
+    ragChunkCount: prep.ragResult.chunks.length,
+    fallbackFired: callMetrics.some((m) => m.fallbackFired),
+    llmCallCount: callMetrics.length,
+  });
+
+  return { score, metrics };
+}
+
 /** Test-only surface for the pure Arm B internals (parsing, fallback,
  *  config, scope rendering) — the LLM calls can't run headless. */
 export const __armBForTests = {
+  renderPerSkillScope,
   parseScoringPass,
   parseDeliveryToneDecomp,
   measuredToneScores,

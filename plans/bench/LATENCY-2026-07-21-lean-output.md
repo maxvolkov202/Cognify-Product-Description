@@ -141,3 +141,73 @@ split is ever revisited. **Do not promote.**
   costs accuracy. Clarity-safe fix retained as a building block.
 - Both flag-gated OFF → prod grading unchanged. Nothing to revert.
 
+---
+
+## PIVOT experiments — quality-preserving latency (2026-07-21, Max)
+
+Max judged the shipped `lean-output@160` "too lean to get to prod" (feedback must stay
+helpful). New mandate: latency levers that PRESERVE output quality (quality is the gate,
+latency the goal), **cost no longer a constraint**. Three experiments, each benched vs
+control on quality (per-dim + composite MAE vs human) AND latency via
+`scripts/bench/direct-arm-bench.ts` (server-free, RAG off).
+
+**All the machinery is built, tested (tsc + lint + scoring-arms 51 + score-arm-b 34 green),
+flag-OFF, prod-safe:**
+- **Exp 1** — parameterized lean feedback cap: `leanSystemPromptFor(cap)` +
+  `leanFeedbackCap` threaded through `runSingleCallScore`/`buildSystemBlocks`. Bench arms
+  `lean-400` (signals-only floor, feedback prose byte-identical to control), `lean-320`,
+  `lean-280`, `lean-240`, `lean-160`. Signals-drop is applied at every cap (free — never
+  rendered).
+- **Exp 2** — `--model` / `--provider` overrides on the bench (sets `OPENAI_SCORING_MODEL`
+  / `ANTHROPIC_SCORING_MODEL` + `AI_PROVIDER` before the dynamic import). Not yet run.
+- **Exp 3** — new arm `per-skill-fanout` (`runPerSkillFanout` in score-arm-b.ts): 6 parallel
+  single-dim scoring calls + synthesis. Wired into the dispatcher + `IMPLEMENTED_VARIANT_ARMS`.
+
+### Exp 3 — `per-skill-fanout`: COMPLETE. Quality FAIL, do NOT promote.
+
+`direct-arm-bench.ts`, 12 reps × N=3, gpt-4o, RAG off:
+
+| arm | comp | clarity | struct | concise | think | deliv | tone | out | latP50 | calls |
+|-----|-----:|--------:|-------:|--------:|------:|------:|-----:|----:|-------:|------:|
+| control | 3.0 | 3.4 | 4.4 | 2.9 | 6.0 | 2.6 | 3.0 | 644 | 7022ms | 1 |
+| per-skill-fanout | 4.8 | 5.7 | 5.8 | 4.3 | 10.5 | 2.9 | **12.7** | 516 | **4022ms** | 7 |
+| grouped-fanout | 2.9 | 6.0 | 4.3 | 3.8 | 6.4 | 1.3 | 5.3 | 540 | 5976ms | 3 |
+
+**Read.** Per-skill fan-out is the FASTEST arm ever benched — **−43% p50 (7.0s → 4.0s)**;
+the six tiny single-dim calls decode in ~1.5s each concurrently, then a ~2-6s synthesis.
+But per-dimension isolation destroys calibration exactly as Max flagged: **tone MAE 12.7 vs
+3.0** (each voice dim judged with zero content context on text reps with no audio — the
+grouped-fanout tone leak, amplified), **thinking 10.5 vs 6.0**, composite 4.8 vs 3.0, and
+clarity/structure both worse. This is the same accuracy-for-latency trade grouped-fanout and
+lean-split were rejected for, at its most extreme. **Fails the quality gate.** Keep committed
++ dormant (flag OFF) as a proven building block; the −43% latency is real if a future arm can
+close the calibration loss (e.g. give each voice call the sibling dim's context, or only
+fan-out the content dims and keep delivery+tone in one holistic call).
+
+### Exp 1 — milder feedback-trim sweep: PARTIAL, INCONCLUSIVE (blocked mid-run).
+
+The run crashed at rep 6/12 when the **OpenAI spend quota was exhausted (429 "exceeded your
+current quota") and the Anthropic fallback hit "credit balance too low"** — running Exp 1 and
+Exp 3 concurrently burned through the OpenAI cap. The N=3 aggregate MAE table is computed only
+at run end, so it was lost on crash; only noisy single-sample per-rep composite deltas
+survived (6 reps), which the docs note carry ±10-20 noise — too muddy to conclude. One rep
+(`interview-below-why-this-role`) showed lean caps drifting up (160: cΔ11 vs control cΔ3), but
+that is exactly the single-sample noise N=3 exists to clear. **No conclusion — needs a clean
+rerun once API quota is restored.** Token/latency savings per cap are the deterministic part
+and were not in doubt; the open question is purely the quality floor (which cap still reads
+useful with no MAE loss).
+
+### Exp 2 — faster model: NOT STARTED (blocked by the same quota wall).
+
+`--model gpt-4o-mini` / `gpt-4.1-mini` / `claude-haiku-4-5-20251001` and the
+gpt-4o-scores + fast-model-synthesis split remain to run. Each needs ISOLATED (non-concurrent)
+execution for clean latency, since the comparison is cross-run (model X vs gpt-4o baseline).
+
+### BLOCKER (2026-07-21)
+
+**Scoring API quota exhausted on BOTH providers** — OpenAI `insufficient_quota` (429) +
+Anthropic `credit_balance_too_low`. No further benches (or prod scoring) can run until Max
+tops up. Nothing shipped, control unchanged, all new code flag-OFF and green. When quota is
+back: rerun Exp 1 clean (single bench, 12 reps × N≥3, arms control,lean-400,lean-320,lean-280,
+lean-240,lean-160), then Exp 2 models one-at-a-time.
+
