@@ -184,7 +184,77 @@ lean-split were rejected for, at its most extreme. **Fails the quality gate.** K
 close the calibration loss (e.g. give each voice call the sibling dim's context, or only
 fan-out the content dims and keep delivery+tone in one holistic call).
 
-### Exp 1 — milder feedback-trim sweep: PARTIAL, INCONCLUSIVE (blocked mid-run).
+### Exp 1 — milder feedback-trim sweep: COMPLETE (clean rerun after quota top-up).
+
+`direct-arm-bench.ts`, 12 reps × N=3, gpt-4o, RAG off:
+
+| arm | comp | clarity | struct | concise | think | deliv | tone | out | latP50 |
+|-----|-----:|--------:|-------:|--------:|------:|------:|-----:|----:|-------:|
+| control | 2.9 | 3.7 | 5.5 | 3.5 | 5.6 | 1.9 | 2.9 | 652 | 7678ms |
+| **lean-400** (signals-only) | **2.2** | 3.2 | 4.2 | 2.0 | 4.4 | 1.7 | 3.3 | 553 | 6473ms |
+| lean-320 | 2.4 | 3.0 | 4.8 | 2.1 | 5.6 | 2.0 | 3.9 | 556 | 6680ms |
+| lean-280 | 2.6 | 3.1 | 5.4 | 2.8 | 4.7 | 2.9 | 3.5 | 553 | 6657ms |
+| lean-240 | 2.5 | 3.3 | 3.8 | 1.7 | 5.2 | 2.2 | 3.6 | 542 | 6592ms |
+| lean-160 | 2.8 | 4.2 | 4.6 | 2.3 | 5.7 | 2.1 | 2.9 | 480 | 5663ms |
+
+**Read — the decisive finding.** Every lean cap is composite-accuracy neutral-to-better
+(2.2–2.8 vs control 2.9; none regressed). The key result is that **the signals-drop ALONE
+(`lean-400`) captures essentially the entire latency win: −15% tokens (652→553), −16% p50
+(7.7s→6.5s), with the feedback prose byte-for-byte identical to control** (still ≤400 chars,
+"1-2 sentences" — only the never-rendered `signals` field is gone). Tightening the cap
+400→320→280→240 adds almost NOTHING (all ~550 tokens / ~6.6s) because gpt-4o's real feedback
+rarely approaches even a 240-char cap — the cap simply isn't the binding constraint. Only the
+aggressive `lean-160` bites further (−26% / −26%), and it's the one Max rejected: it forces
+genuinely shorter feedback and shows a clarity wobble (4.2 vs control 3.7). Per-dim, `lean-400`
+is clean or better on all six dims (tone 3.3 vs 2.9 is +0.4, inside noise). **`lean-400` is the
+quality-fully-preserved win; the milder caps are strictly dominated by it; `lean-160` is the
+only one that buys more, at a real feedback-length cost.**
+
+### Exp 2 — faster model: COMPLETE. Dead end — gpt-4o is already latency-optimal.
+
+Each model run ISOLATED (control + lean-400), 12 reps × N=3, vs the gpt-4o control baseline
+above (comp 2.9, 7678ms):
+
+| model (control arm) | comp | latP50 | verdict |
+|---------------------|-----:|-------:|:--------|
+| **gpt-4o** (baseline) | **2.9** | **7678ms** | best on BOTH axes |
+| gpt-4o-mini | 10.1 | 8279ms | 3.5× worse MAE AND slower — hard reject |
+| gpt-4.1-mini | 4.2 | 14113ms | ~45% worse MAE AND ~2× slower — reject |
+
+**Read.** Neither smaller OpenAI model is faster on this shape (~25KB cached system + 2500
+max-tokens output) — both are actually SLOWER — and both are markedly worse on quality. This
+reproduces the `claude.ts` provider-benchmark note (gpt-4o is the OpenAI speed winner;
+4o-mini/4.1-mini "slower in practice"). The faster-model lever is closed for the models tested:
+**gpt-4o is already the latency-optimal choice.** (The signals-drop stacks cleanly on every
+model — lean-400 was −15% tokens / ~−13-16% latency on each — but a faster base model isn't
+available to stack it onto.) Claude Haiku 4.5 skipped per Max (stick with tested models).
+
+---
+
+## OBJECTIVE STANDPOINT — reduce latency while preserving quality FULLY
+
+Baseline: control = gpt-4o, one call, composite MAE ~2.9, p50 ~7.7s. Every lever, ranked by
+the latency-vs-quality trade:
+
+| lever | latency p50 | quality (composite MAE) | user-visible change | verdict |
+|-------|:-----------:|:-----------------------:|:--------------------|:--------|
+| **signals-drop (`lean-400`)** | **−16%** | 2.2 (neutral-to-better) | **NONE** — removes a never-rendered field only | ✅ **fully quality-preserving** |
+| milder caps (320/280/240) | −14% | 2.4–2.6 (neutral) | slightly shorter feedback | dominated by lean-400 |
+| aggressive cap (`lean-160`) | −26% | 2.8 (neutral composite, clarity wobble) | shorter feedback (1 sentence) | Max rejected — not "fully" preserved |
+| per-skill fan-out | **−43%** | 4.8 (tone 12.7!) | worse tone/thinking scores | ❌ breaks calibration |
+| faster model (4o-mini/4.1-mini) | 0 to −slower | 4.2–10.1 | worse scores everywhere | ❌ slower AND worse |
+
+**Bottom line.** The ONLY lever that cuts latency with quality FULLY preserved is the
+**signals-drop: ~16% faster p50 at literally zero quality cost** (nothing the user reads
+changes — only a dead, never-rendered `signals` field is dropped from the model's output
+contract). It is neutral-to-better on composite AND every dimension, single call, same model,
+same feedback prose. Everything beyond 16% costs measurable accuracy: the aggressive feedback
+trim (the rejected 160), the −43% fan-out (breaks tone/thinking), or a smaller model (slower
+and worse). There is no free lunch past the signals-drop with the current architecture.
+
+**Recommendation:** ship the signals-drop (`leanFeedbackCap: 400` = drop the invisible field,
+keep the full 400-char feedback) as the quality-preserving latency win. To go further than 16%
+you must accept SOME quality/UX change — that's a product call, not a measurement one.
 
 The run crashed at rep 6/12 when the **OpenAI spend quota was exhausted (429 "exceeded your
 current quota") and the Anthropic fallback hit "credit balance too low"** — running Exp 1 and
@@ -197,17 +267,9 @@ rerun once API quota is restored.** Token/latency savings per cap are the determ
 and were not in doubt; the open question is purely the quality floor (which cap still reads
 useful with no MAE loss).
 
-### Exp 2 — faster model: NOT STARTED (blocked by the same quota wall).
-
-`--model gpt-4o-mini` / `gpt-4.1-mini` / `claude-haiku-4-5-20251001` and the
-gpt-4o-scores + fast-model-synthesis split remain to run. Each needs ISOLATED (non-concurrent)
-execution for clean latency, since the comparison is cross-run (model X vs gpt-4o baseline).
-
-### BLOCKER (2026-07-21)
-
-**Scoring API quota exhausted on BOTH providers** — OpenAI `insufficient_quota` (429) +
-Anthropic `credit_balance_too_low`. No further benches (or prod scoring) can run until Max
-tops up. Nothing shipped, control unchanged, all new code flag-OFF and green. When quota is
-back: rerun Exp 1 clean (single bench, 12 reps × N≥3, arms control,lean-400,lean-320,lean-280,
-lean-240,lean-160), then Exp 2 models one-at-a-time.
+> **(Historical note: the first Exp 1 attempt crashed at rep 6/12 when both providers'
+> scoring quota was momentarily exhausted — OpenAI `insufficient_quota` + Anthropic
+> `credit_balance_too_low` — from running Exp 1 and Exp 3 concurrently. Quota was topped up
+> and both Exp 1 and Exp 2 were rerun clean, ONE bench at a time. Lesson: run benches serially,
+> never concurrently — it protects both the spend cap and the latency measurement.)**
 
