@@ -65,3 +65,18 @@ export function isRankSystemEnabled(): boolean {
 export function isPromptGenEnabled(): boolean {
   return defaultOnOutsideProduction("FF_PROMPT_GEN");
 }
+
+/**
+ * UI overhaul Phase 10 — expose the Daily Workout General|Personalized switch.
+ *
+ * NOTE the intentional inversion vs the other overhaul flags: OFF-in-prod is
+ * the *shipped* state. When off we hide the PersonalizeSwitch and force
+ * General (vertical-neutral) prompts for everyone. Visible in dev/preview so
+ * vertical-specific prompts can still be tested. To restore the switch in
+ * production later, set FF_WORKOUT_PERSONALIZE_SWITCH=true on Vercel — no code
+ * change. The personalization pipeline (profile/vertical) stays intact either
+ * way; this only gates the toggle + its default.
+ */
+export function isWorkoutPersonalizeSwitchEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_WORKOUT_PERSONALIZE_SWITCH");
+}

@@ -308,8 +308,11 @@ function WorkoutShellInner({
   // workouts should reflect it by default every visit." Toggle clicks
   // still work for the current page lifetime; next visit resets to
   // the server-derived default.
+  // UI overhaul Phase 10 — when the switch is gated off (the shipped prod
+  // state), personalize is forced false for the page lifetime so the workout
+  // uses general (vertical-neutral) prompts and the toggle is never shown.
   const [personalize, setPersonalize] = useState(
-    payload.hasPersonalizationProfile,
+    payload.personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false,
   );
   // One-time migration: clear any value persisted by older toggle
   // logic so stale "false" values don't survive in the wild after
@@ -394,14 +397,19 @@ function WorkoutShellInner({
               streakFreezes={payload.streakFreezes ?? null}
             />
           </div>
-          <div className="mt-4">
-            <PersonalizeSwitch
-              value={personalize}
-              onChange={onTogglePersonalize}
-              summary={payload.personalizationSummary}
-              hasProfile={payload.hasPersonalizationProfile}
-            />
-          </div>
+          {/* UI overhaul Phase 10 — the General|Personalized switch (and its
+              "Prompt mode" eyebrow + summary, all internal to PersonalizeSwitch)
+              is hidden when gated off, leaving no empty slot. */}
+          {payload.personalizeSwitchEnabled && (
+            <div className="mt-4">
+              <PersonalizeSwitch
+                value={personalize}
+                onChange={onTogglePersonalize}
+                summary={payload.personalizationSummary}
+                hasProfile={payload.hasPersonalizationProfile}
+              />
+            </div>
+          )}
         </>
       )}
 
