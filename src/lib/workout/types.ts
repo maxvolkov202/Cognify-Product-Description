@@ -131,6 +131,12 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
   hasPersonalizationProfile: z.boolean().default(false),
   /** Surfaced label for the toggle. e.g. "Law · Partner/GC · Negotiation". */
   personalizationSummary: z.string().nullable().default(null),
+  /** UI overhaul Phase 10 — whether the General|Personalized switch is
+   *  exposed. Resolved server-side from isWorkoutPersonalizeSwitchEnabled().
+   *  When false (the shipped prod state) the shell hides the switch and
+   *  forces personalize=false (general, vertical-neutral prompts). Defaults
+   *  true so the switch shows if a caller forgets to set it (pre-P10 behavior). */
+  personalizeSwitchEnabled: z.boolean().default(true),
   /** PRD v3 engine — which learning loop the session machine runs.
    *  Resolved server-side from isTrainingEngineV2Enabled(). */
   loopVariant: LoopVariantSchema.default("v1"),
@@ -159,5 +165,6 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   rationale: null,
   hasPersonalizationProfile: false,
   personalizationSummary: null,
+  personalizeSwitchEnabled: true,
   loopVariant: "v1",
 };

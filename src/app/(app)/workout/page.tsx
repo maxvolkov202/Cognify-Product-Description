@@ -35,6 +35,7 @@ import { getStreakStatus } from "@/lib/db/queries/streak-freeze";
 import {
   isMuscleGroupWorkoutEnabled,
   isTrainingEngineV2Enabled,
+  isWorkoutPersonalizeSwitchEnabled,
 } from "@/lib/flags";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { todayYmdInTz } from "@/lib/time/user-day";
@@ -324,6 +325,8 @@ async function fetchTodaysDayPayload(
       // Filled in by the parent (WorkoutPage) using fetchPersonalizationContext.
       hasPersonalizationProfile: false,
       personalizationSummary: null,
+      // Filled in by the parent (WorkoutPage) from isWorkoutPersonalizeSwitchEnabled().
+      personalizeSwitchEnabled: true,
       // Filled in by the parent (WorkoutPage) from isTrainingEngineV2Enabled().
       loopVariant: "v1",
     };
@@ -355,6 +358,11 @@ export default async function WorkoutPage() {
   // PRD v3 engine — resolve the learning-loop variant server-side so the
   // pure session machine never reads env vars.
   payload.loopVariant = isTrainingEngineV2Enabled() ? "v2" : "v1";
+  // UI overhaul Phase 10 — resolve the personalize-switch gate server-side
+  // (the shell is a client component and must not read env). OFF in prod =
+  // hide the switch + force general prompts until vertical-specific is dialed
+  // in; flip FF_WORKOUT_PERSONALIZE_SWITCH=true to restore it, no code change.
+  payload.personalizeSwitchEnabled = isWorkoutPersonalizeSwitchEnabled();
 
   // Lightweight viewed-telemetry log.
   if (process.env.NODE_ENV !== "production") {
