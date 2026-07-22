@@ -434,11 +434,11 @@ and confirm a late submit is rejected.
 - [ ] 7.1 **Remove rubric version** — `progress/page.tsx`: delete the "Rubric version" `StatCard`
       (`:307-313`) + the `RUBRIC_VERSION` import (`:3`); change the stat grid from `md:grid-cols-4` to
       `md:grid-cols-3` (`:284`) so the remaining three balance.
-- [ ] 7.2 **Relisten** — extend `getRecentReps` (`progress.ts:377`) to also select `reps.audioUrl`, and sign
-      it server-side with `getAudioSignedUrl` (`upload.ts:53`). In the recent-reps list (`page.tsx:402-423`)
-      add an `<audio>`/play button per row (reuse the `BeforeAfterAudio` play UI). **Fix** the latent
-      `BeforeAfterAudio` bug at the same time: `getBeforeAfterReps` (`progress.ts:889,924`) must return a
-      **signed** URL, not the raw path (`BeforeAfterAudio.tsx:179`).
+- [~] 7.2 **Relisten** — **recent-reps playback SHIPPED early in Phase 2c** (PR #42): `getRecentRepsWithAudio`
+      returns signed audio URLs (last 30 days, batch-signed via `getAudioSignedUrls`) and `RecentRepsList` renders
+      a per-row play button + score on the Progress page. **Still remaining for Phase 7:** fix the latent
+      `BeforeAfterAudio` bug — `getBeforeAfterReps` (`progress.ts` ~889,924) must return a **signed** URL, not the
+      raw path (`BeforeAfterAudio.tsx:179`) — and decide whether the recent-reps list also needs retry (7.3).
 - [ ] 7.3 **Retry a past rep** — add a "Retry" action per recent rep that routes into the practice flow with
       the original prompt prefilled and `parentRepId` passed into the scoring call so lineage
       (`attemptKind:'again'` + `parentRepId`, `reps.ts:729-742`) and the improvement/implementation XP
@@ -744,3 +744,16 @@ the per-phase checklists for a single end-to-end pass.)
   + radar/heatmap side by side, no runtime error from the change (a pre-existing `<title>`-array dev warning is
   unrelated). `/code-review` (high): no findings. No calibration impact — presentational only. Deployed to prod
   via `vercel deploy --prod` (cognifygym.com/progress 200). **Prod verify handed to Max.**
+- 2026-07-22 — **Phase 2c (Progress heatmap + Recent-reps relisten)** on `feat/overhaul-p2c-relisten-heatmap`
+  (PR #42, squash-merged). Max: the heatmap was "still small". Root cause — the `flex-1` week columns had no
+  definite width to divide (root was shrink-to-fit inside a centering flex), so `aspect-square` cells collapsed
+  to min-content; fixed with `w-full` on `StreakHeatmap`'s root → cells now fill the Activity card on web +
+  mobile. Also: **Recent reps** gained relisten playback + visible scores, scoped to the **last 30 days** (cap
+  30) — new `RecentRepsList` client component (single `<audio>`, one-at-a-time) + `getRecentRepsWithAudio` query
+  returning owner-scoped **signed** audio URLs, batch-signed in one request via new `getAudioSignedUrls`
+  (`upload.ts`). Gate green (lint/test/build). Verified the signing pipeline against a real audio rep: batch sign
+  → HTTP 206 `audio/mp4` (playable); null/bogus paths → null slots. `/code-review` (high): 1 efficiency finding
+  (N sign calls) → **fixed** (batch). No calibration impact. Deployed to prod (cognifygym.com/progress 200).
+  **This early-ships part of Phase 7.2 (recent-reps relisten).** Process note: accidentally committed to local
+  `main`; caught it (origin/main untouched), moved the commit to a clean branch + reset local main before the
+  PR. **Prod verify handed to Max.**
