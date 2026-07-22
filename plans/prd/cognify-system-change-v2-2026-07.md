@@ -8109,6 +8109,13 @@ The badge serves as the user’s primary visual representation of long-term prog
 
 ## **10.5.2 Rank Progress**
 
+> **Amended 2026-07-22 (DEC-2, UI + Feature Overhaul Wave — reverses the original "hide XP" rule below).**
+> Rank XP is now **visible**. Beneath the current rank, Cognify shows the raw progression as
+> "X XP this rank / Y XP to <next rank>" and fills the progress bar to that exact ratio (0% just after a
+> promotion, ~100% just before the next). At the top rank (Grandmaster IV) the card reads "Max rank" with
+> no negative "to next" figure. See `plans/ui-feature-overhaul-progress.md` (DEC-2) and Phase 3 for the
+> implementation. The paragraphs below are the superseded original and are kept for history.
+
 Progress toward the next rank should always be visible.
 
 Rather than displaying experience points or numerical progression values, Cognify presents a simple progress bar beneath the user’s current rank.
@@ -8842,7 +8849,12 @@ The **Cognify Training System** is the universal learning process used across ev
 
 ## **Skill Lab**
 
-**Skill Lab** is the application-based Training Mode where users practice applying communication skills in realistic scenarios like Storytelling, Presenting, and Interviewing.
+> **Renamed 2026-07-22 (DEC-4, UI + Feature Overhaul Wave): the user-facing name is now "Application Lab"
+> and the route is `/application-lab` (with a 308 redirect from `/skill-lab`). Code identifiers and the DB
+> value `mode = 'skill_lab'` are unchanged — the rename is name-only. "Skill Lab" throughout this PRD should
+> be read as "Application Lab". See `plans/prd/terminology-map.md` and `plans/ui-feature-overhaul-progress.md`.**
+
+**Skill Lab** (now **Application Lab**) is the application-based Training Mode where users practice applying communication skills in realistic scenarios like Storytelling, Presenting, and Interviewing.
 
 ---
 

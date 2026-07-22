@@ -40,6 +40,13 @@ phase) → check the phase off here. Never commit to main directly.
   while a noisy retry's large negative reads as "this system is bogus" and is softened. Direction is
   always shown; only the numeral for a big drop is withheld. Do NOT restore visible large negatives.
   PRD §4.7.2 amended with the display rule so code and doc agree.
+- **D25 — UI + Feature Overhaul Wave (confirmed by Max 2026-07-22).** A separate 10-phase wave tracked in
+  `plans/ui-feature-overhaul-progress.md` (DEC-1…7). Two rulings amend this PRD and are recorded here so
+  code and doc agree: (a) **rank XP is now visible** — PRD §10.5.2 amended to show "X XP this rank / Y to
+  next" and fill the bar to that ratio, reversing the original "hide XP" rule (DEC-2); (b) **Skill Lab →
+  Application Lab** — user-facing name + route `/application-lab` (308 redirect from `/skill-lab`), DB
+  `mode = 'skill_lab'` unchanged (DEC-4); terminology map updated. This wave changes no scoring
+  prompt/model — XP/rank ≠ score, so no calibration re-run. See that tracker for phase status.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
