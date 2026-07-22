@@ -1,0 +1,2904 @@
+{
+  "vertical": "education",
+  "threshold": 5,
+  "totalGaps": 493,
+  "exercises": [
+    {
+      "exerciseId": "356bad8e-e086-4e3c-a11a-15d63c23c417",
+      "exerciseSlug": "answer-the-confusion",
+      "exerciseName": "Answer the Confusion",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "1552dddb-4271-4d01-b856-03977f55a54a",
+      "exerciseSlug": "explain-like-im-12",
+      "exerciseName": "Explain Like I'm 12",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "6d7d217a-1214-4382-8ea6-d18b7fcef0a0",
+      "exerciseSlug": "headline-first",
+      "exerciseName": "Headline First",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "ff0dd223-030f-4d57-8bd1-4be0059efa7c",
+      "exerciseSlug": "make-it-real",
+      "exerciseName": "Make It Real",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "fc70b6be-fa53-4105-b004-583c8635eda4",
+      "exerciseSlug": "no-jargon-allowed",
+      "exerciseName": "No Jargon Allowed",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "5a40abe8-a2c0-4201-80ff-edf02b7aac51",
+      "exerciseSlug": "one-point-only",
+      "exerciseName": "One Point Only",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "d7f75d21-8c28-4d0c-8c28-7939ce2ad8f8",
+      "exerciseSlug": "prove-it",
+      "exerciseName": "Prove It",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "dbb00e13-4b7c-46d5-8fb9-a407b485d4dc",
+      "exerciseSlug": "the-analogy-bridge",
+      "exerciseName": "The Analogy Bridge",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "da7d52dc-2940-4427-94b6-21b485ffec7d",
+      "exerciseSlug": "the-word-budget",
+      "exerciseName": "The Word Budget",
+      "dimension": "clarity",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "25ecc46f-1289-4ca8-acfc-4e2198682d2c",
+      "exerciseSlug": "cut-by-half",
+      "exerciseName": "Cut by Half",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "ea146ffd-930f-4863-ac6c-691eee278afa",
+      "exerciseSlug": "kill-the-filler",
+      "exerciseName": "Kill the Filler",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "bbc6a768-a867-4b63-bcea-ae5328071e0c",
+      "exerciseSlug": "no-hedging",
+      "exerciseName": "No Hedging",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "53e773c1-8b0e-4b79-8d59-04e1be4dedc8",
+      "exerciseSlug": "no-throat-clearing",
+      "exerciseName": "No Throat Clearing",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "4b713e0c-e1f2-4407-876c-77a91ba9df1e",
+      "exerciseSlug": "one-idea-per-response",
+      "exerciseName": "One Idea Per Response",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "56a5039f-4aa8-476e-bac4-67a89ebab25f",
+      "exerciseSlug": "subject-verb-object",
+      "exerciseName": "Subject Verb Object",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "889c7763-734a-4f25-bea5-d1780eb3e1bf",
+      "exerciseSlug": "the-30-second-rule",
+      "exerciseName": "The 30 Second Rule",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "c6aab98c-ca91-4d90-9970-5de3eb4f6c47",
+      "exerciseSlug": "the-hard-stop",
+      "exerciseName": "The Hard Stop",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "401835a9-4965-4a8c-844c-82ec703c8711",
+      "exerciseSlug": "the-single-sentence",
+      "exerciseName": "The Single Sentence",
+      "dimension": "conciseness",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "138586bf-ffab-484b-bebd-43a635ea7fba",
+      "exerciseSlug": "beat-the-buzzer",
+      "exerciseName": "Beat the Buzzer",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "9473a1ba-3ae9-4bf7-9e99-8ae5f050cd3a",
+      "exerciseSlug": "metronome",
+      "exerciseName": "Metronome",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "cc89d3b3-3836-42a5-be43-cdc4f75cd5b5",
+      "exerciseSlug": "punctuation-breathing",
+      "exerciseName": "Punctuation Breathing",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "e1ee54a2-5049-49e6-bb4b-bd77398a2462",
+      "exerciseSlug": "silence-over-filler",
+      "exerciseName": "Silence Over Filler",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "9d022261-fee9-43ec-9802-92c8301f6935",
+      "exerciseSlug": "slow-cooker",
+      "exerciseName": "Slow Cooker",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "1fc0d19a-42a8-43be-988f-8ce162065274",
+      "exerciseSlug": "strategic-pause",
+      "exerciseName": "Strategic Pause",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "856e37be-eeaf-43f7-b34a-a8fc49e00462",
+      "exerciseSlug": "tempo-shift",
+      "exerciseName": "Tempo Shift",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "3f0611e6-83f6-40fd-8b83-698311ed7eb9",
+      "exerciseSlug": "the-stretch",
+      "exerciseName": "The Stretch",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "7f8dc771-05b6-4ad4-8ba8-ea1c3dfad4a3",
+      "exerciseSlug": "two-beat-landing",
+      "exerciseName": "Two-Beat Landing",
+      "dimension": "pacing",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "219aa9fe-4859-443e-aec7-0780940c3cfc",
+      "exerciseSlug": "bottom-line-first",
+      "exerciseName": "Bottom Line First",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "172dff8c-6fc3-4f2c-8081-4d610b0e587a",
+      "exerciseSlug": "compare-and-contrast",
+      "exerciseName": "Compare and Contrast",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "945e8b60-f772-4d9f-8b61-a058e0232216",
+      "exerciseSlug": "monroes-motivated-sequence",
+      "exerciseName": "Monroe's Motivated Sequence",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "9ae9c48c-a249-4a96-b423-03b70c2a1221",
+      "exerciseSlug": "question-then-answer",
+      "exerciseName": "Question Then Answer",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "9bf310eb-4984-44c4-a399-2483fe2bf226",
+      "exerciseSlug": "signpost-first",
+      "exerciseName": "Signpost First",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "d025cab4-4218-4482-978f-6749fa454270",
+      "exerciseSlug": "the-3-point-rule",
+      "exerciseName": "The 3 Point Rule",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "8ff15249-eaa3-49a8-88a9-24f6adbd1033",
+      "exerciseSlug": "the-problem-solution-frame",
+      "exerciseName": "The Problem Solution Frame",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "1f18d1ae-ed8e-45c5-b53d-3dd284b64f15",
+      "exerciseSlug": "the-story-arc",
+      "exerciseName": "The Story Arc",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "fbdcc738-c4d1-42d3-ba63-e351773ef1df",
+      "exerciseSlug": "two-then-one",
+      "exerciseName": "Two Then One",
+      "dimension": "structure",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "8165221e-a7a4-4e9d-8713-15509e1e29be",
+      "exerciseSlug": "disconfirm-yourself",
+      "exerciseName": "Disconfirm Yourself",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "26452489-bf9d-4d6b-a887-9ba00c642f6a",
+      "exerciseSlug": "draw-the-line",
+      "exerciseName": "Draw the Line",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "ce1be58f-c902-469c-9897-a1b4e6a1d1cb",
+      "exerciseSlug": "first-principles",
+      "exerciseName": "First Principles",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "bfd1c3d8-dc45-44f8-b8f5-9af1a7f99cdc",
+      "exerciseSlug": "name-the-assumption",
+      "exerciseName": "Name the Assumption",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "53fb4662-ca92-4666-8629-1bcca71cfccd",
+      "exerciseSlug": "order-of-magnitude",
+      "exerciseName": "Order of Magnitude",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "4282a205-fac7-446f-ad82-d64267f03834",
+      "exerciseSlug": "the-claim-and-proof",
+      "exerciseName": "The Claim and Proof",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "2f253681-6a8f-49e5-ac00-e01e978c94ff",
+      "exerciseSlug": "the-perspective-shift",
+      "exerciseName": "The Perspective Shift",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "4cd239f7-8139-49f6-b9bd-4ae5c36a32bb",
+      "exerciseSlug": "the-so-what-test",
+      "exerciseName": "The So What Test",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "e6558bfc-6fcc-44b7-9ab7-3677bac47a1c",
+      "exerciseSlug": "the-steel-man",
+      "exerciseName": "The Steel Man",
+      "dimension": "thinking_quality",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "438598d2-f0c3-4ece-a2a7-4c89f01bd0dd",
+      "exerciseSlug": "authority-voice",
+      "exerciseName": "Authority Voice",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "faa61e19-c5af-43bb-ac34-735e2b2b21b1",
+      "exerciseSlug": "conviction-floor",
+      "exerciseName": "Conviction Floor",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "68cb0d1b-f30b-4272-a24b-277a24203796",
+      "exerciseSlug": "curiosity-lift",
+      "exerciseName": "Curiosity Lift",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "7ce7235f-1d14-4ef5-9067-6c2d32437197",
+      "exerciseSlug": "downward-landing",
+      "exerciseName": "Downward Landing",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "36adc9bb-4ecf-4495-b60e-3ce75ff5ee52",
+      "exerciseSlug": "pivot-tone",
+      "exerciseName": "Pivot Tone",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "bca5b416-922e-4f25-a0ac-56cd2b8293d8",
+      "exerciseSlug": "read-the-room",
+      "exerciseName": "Read the Room",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "f3cf3a92-b3a0-4bce-8ffd-b3ab95267072",
+      "exerciseSlug": "the-monotone-breaker",
+      "exerciseName": "The Monotone Breaker",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 4,
+          "need": 1
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "storytelling",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "0d545cf5-c5fc-4a5f-8b96-3e740bce48d8",
+      "exerciseSlug": "volume-dial",
+      "exerciseName": "Volume Dial",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    },
+    {
+      "exerciseId": "a4cd088d-718c-49d4-8ba0-612ecea5ec6d",
+      "exerciseSlug": "warmth-switch",
+      "exerciseName": "Warmth Switch",
+      "dimension": "tone",
+      "gaps": [
+        {
+          "goal": "explaining",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "handling_objections",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "confidence",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "thinking_on_the_spot",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "giving_feedback",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "negotiation",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "presenting",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "persuasion",
+          "have": 3,
+          "need": 2
+        },
+        {
+          "goal": "asking_questions",
+          "have": 3,
+          "need": 2
+        }
+      ]
+    }
+  ]
+}

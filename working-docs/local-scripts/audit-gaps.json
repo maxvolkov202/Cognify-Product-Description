@@ -1,0 +1,48 @@
+{
+  "threshold": 3,
+  "totalGaps": 0,
+  "totalTriples": 4320,
+  "perVertical": {
+    "sales": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4357
+    },
+    "consulting": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4439
+    },
+    "finance": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4227
+    },
+    "healthcare": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4276
+    },
+    "law": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4256
+    },
+    "education": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4354
+    },
+    "leadership": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4392
+    },
+    "other": {
+      "gaps": 0,
+      "total": 540,
+      "sumSize": 4335
+    }
+  },
+  "gaps": []
+}

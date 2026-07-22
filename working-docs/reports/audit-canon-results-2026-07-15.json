@@ -1,0 +1,3478 @@
+[
+  {
+    "promptRowId": "44438bf8-5d30-47c1-85fd-ab2ee9750bc8",
+    "promptId": "vertical-consulting-2b23db0e",
+    "text": "Give a 30-second status on workstream three to the partner in the hallway.",
+    "violations": [
+      "jargon-wall",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8134a122-a072-4318-a501-27aa76acc90d",
+    "promptId": "vertical-consulting-3ebdb341",
+    "text": "Update the engagement team on where the savings model lands today.",
+    "violations": [
+      "jargon-wall",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "288b75fa-bdec-44c0-8790-c6a96e0dca27",
+    "promptId": "vertical-consulting-ca801b37",
+    "text": "Brief the exec sponsor on yesterday's working session.",
+    "violations": [
+      "jargon-wall",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "9f04d947-a8b9-4e8a-82b1-44a0499228cb",
+    "promptId": "vertical-consulting-d914fdc7",
+    "text": "Recap the steering committee for the partner who couldn't attend.",
+    "violations": [
+      "jargon-wall",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "1f18d059-d9fd-43fa-b85b-b4bc1a49da45",
+    "promptId": "vertical-consulting-5bab5499",
+    "text": "Explain why the deliverable date slipped a week.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "279eb59c-cb65-431d-bef1-d4b7cabc7bee",
+    "promptId": "vertical-consulting-0ec9882f",
+    "text": "Brief the MD on a workstream the CFO is now openly challenging.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c86117a1-5728-418e-a626-ca9b7253fa74",
+    "promptId": "vertical-consulting-f58cb95a",
+    "text": "Update the client team on the new operating-model recommendation in 30 seconds.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "84c8f261-1fda-4752-9ada-60d51cea612b",
+    "promptId": "vertical-consulting-33a19b1a",
+    "text": "Brief the CEO on the recommendation at risk before the board meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "154fa65a-9f7f-4742-9f68-7c1afbf32928",
+    "promptId": "vertical-consulting-5b0a93ff",
+    "text": "Update the board on why your savings forecast just dropped 30%.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8fe19bc7-0456-4cac-b3a1-25620698a53c",
+    "promptId": "vertical-education-eb82a1a4",
+    "text": "Give a 30-second status on the new reading rollout to your principal.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "899f449f-ea59-4c15-97b7-a541b0b696ac",
+    "promptId": "vertical-education-1c1e66fb",
+    "text": "Update your team on where the curriculum review stands.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "480053af-2a9d-4e1e-a9a2-d8d10969a1e2",
+    "promptId": "vertical-education-e380a46b",
+    "text": "Brief the principal on yesterday's hallway incident before homeroom.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "299d8b9c-918f-4fca-96af-0329637237a5",
+    "promptId": "vertical-education-96083f69",
+    "text": "Recap the staff meeting for a teacher who was out.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c3856d40-a0ac-48a4-8e9b-b3371338f4a7",
+    "promptId": "vertical-education-29f10506",
+    "text": "Explain why third period got cut short yesterday.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d3caac05-3b40-46ec-a5e5-25660dcfe798",
+    "promptId": "vertical-education-7fd73cac",
+    "text": "Walk the IEP team through where the eval results stand.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7565e56f-0cdd-4ae9-aa50-df26ad7f50a0",
+    "promptId": "vertical-education-7f12cd48",
+    "text": "Update the board on this quarter's chronic absenteeism numbers.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fc3ade30-89c7-4e00-8a55-346d12aea203",
+    "promptId": "vertical-education-85f86a1a",
+    "text": "Brief the dean before he steps into the parent meeting at 2.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a54996a9-ff33-452a-8136-d539f3215ccb",
+    "promptId": "vertical-education-618aab49",
+    "text": "Brief your sub on what just happened with Jordan before you leave the room.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "08d30a3a-418f-4765-ab63-6d4c226c0a16",
+    "promptId": "vertical-education-6822cf44",
+    "text": "Brief the superintendent on a lockdown drill that went badly.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "19242c05-93c0-4bf0-9717-1a1794d716d4",
+    "promptId": "vertical-finance-15fb246f",
+    "text": "Give a 30-second status on the deal heading to IC Wednesday.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9c6e1e24-a4a9-4b21-8a10-137348f09a3f",
+    "promptId": "vertical-finance-9f7a1d68",
+    "text": "Update your VP on where the credit memo stands.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "80537bda-265f-45c5-b29a-fb32594c242c",
+    "promptId": "vertical-finance-7576ec7e",
+    "text": "Brief the CFO on yesterday's variance review with the business unit.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ce3f86e6-a71e-4d28-9e0f-e4e74d39c3ca",
+    "promptId": "vertical-finance-08882911",
+    "text": "Recap the earnings call for someone covering for you.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "74e5d97c-7cb8-4462-9824-f5ae7c889517",
+    "promptId": "vertical-finance-93115217",
+    "text": "Explain why the model's IRR dropped 200 bps overnight.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1b25cc93-fba2-4635-87d4-c9755462ecba",
+    "promptId": "vertical-finance-0e09c397",
+    "text": "Brief the partner on a competitive bid you're losing on price.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "59797859-a35a-4dc5-9fb9-8ec2629c3e7d",
+    "promptId": "vertical-finance-041e41d0",
+    "text": "Brief the audit committee chair the morning before the meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f4d2911d-1e24-4024-8de3-1567b26369ce",
+    "promptId": "vertical-finance-549749e1",
+    "text": "Update the LP base on the markdown ahead of the quarterly letter.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9725e84b-9c52-4187-9aca-04f89232f5f9",
+    "promptId": "vertical-finance-e76ea090",
+    "text": "Brief the board the morning after your forecast missed by 12%.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6ea394ba-385c-438f-aec9-cd7fd5aee9bf",
+    "promptId": "vertical-healthcare-0eb2b3a0",
+    "text": "Give a 30-second update to the attending on bed 7.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1d246a39-f1f1-4a09-8d1b-15f4614937b1",
+    "promptId": "vertical-healthcare-2c2996a1",
+    "text": "Update the family on grandma's overnight course in 30 seconds.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e6129602-067d-47b2-907b-63a601d6cf1b",
+    "promptId": "vertical-healthcare-f9e477d1",
+    "text": "Brief the OR team on the patient walking in for emergent surgery.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bb4adb5f-96d1-451e-bd25-256cd01b6387",
+    "promptId": "vertical-healthcare-618a9d5e",
+    "text": "Recap the morning's complications for the relief resident.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6bdcfed5-4c38-446b-88e8-b00a61520251",
+    "promptId": "vertical-healthcare-7e7138bb",
+    "text": "Explain why you canceled the discharge in 30 seconds.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b84d0aed-03dc-4d85-831b-77ea02aec0ab",
+    "promptId": "vertical-healthcare-2db48baf",
+    "text": "Brief the rapid response team in the hallway as they arrive.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d72e5536-0bdc-4163-84d2-82db0bb4d017",
+    "promptId": "vertical-healthcare-f6dd89e3",
+    "text": "Update the chief on the unit's overnight admissions.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "cbe6f9a2-7d2d-48db-89df-fcc370b526c6",
+    "promptId": "vertical-healthcare-70124eab",
+    "text": "Brief the next shift charge nurse before you sign out.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7484ade7-23e3-4126-9b43-ca8f6b3ebe46",
+    "promptId": "vertical-healthcare-62925e5e",
+    "text": "Brief the press officer before they take a hospital incident to the local paper.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f047d799-5de2-4ffa-971e-a4be101fee5d",
+    "promptId": "vertical-law-f277981e",
+    "text": "Give a 30-second status on the discovery dispute pending before the magistrate.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a8dd26b9-776b-4727-b468-16190638029d",
+    "promptId": "vertical-law-71237d8c",
+    "text": "Update the partner on where mediation stands this morning.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "8db2f02a-61a1-4b7e-9cb8-34a485caa31f",
+    "promptId": "vertical-law-0bc3b52d",
+    "text": "Brief your supervising partner on yesterday's witness prep session.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "66883700-42db-46e1-848c-e26bdcd8b47c",
+    "promptId": "vertical-law-ba3e28ff",
+    "text": "Recap the deposition for co-counsel who is covering the next session.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "1440eaa6-1d21-4eb6-bfc5-3d7b97890eb7",
+    "promptId": "vertical-law-a3321c45",
+    "text": "Explain why the judge denied the motion to compel last night.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "520c0982-e07d-4051-8fb9-e63c80f8d797",
+    "promptId": "vertical-law-aeb56f92",
+    "text": "Brief the GC on a competing class action filed this morning in Delaware.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "51573746-5051-4771-80c0-117b0e061e1c",
+    "promptId": "vertical-law-1e81a9fb",
+    "text": "Update the team on the new protective order rules in 30 seconds.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "27b26ec6-e3a8-4ff1-9c2a-17c46016781e",
+    "promptId": "vertical-law-dd84912d",
+    "text": "Status report on the largest matter in your litigation portfolio.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "5de7b8db-d479-4227-b423-6df186271e9a",
+    "promptId": "vertical-law-6fe7221a",
+    "text": "Brief the CEO on the regulatory subpoena before the audit committee call.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f5441394-cdee-4a7e-aa4c-c45cc2c3e187",
+    "promptId": "vertical-law-0b34cf37",
+    "text": "Update the board on why your firm's billing in the matter just doubled.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "74ad80ce-5763-4acc-a28f-659c8af0042c",
+    "promptId": "vertical-leadership-1002058b",
+    "text": "Give your direct report a 30-second status on their promotion case.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8727e631-899e-4c1c-ac6f-7da933fc7947",
+    "promptId": "vertical-leadership-068f5e98",
+    "text": "Brief your peer in 30 seconds on what came out of staff meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3f3d7ce3-26a2-4f7f-ab7d-47782e3de797",
+    "promptId": "vertical-leadership-30d8e335",
+    "text": "30 seconds: brief the team on tomorrow's exec visit.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "115a5f31-3cc6-43d8-a0c2-4f780d4abd4d",
+    "promptId": "vertical-leadership-bd83346c",
+    "text": "Brief the CEO on the brewing exec resignation in 30 seconds.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f591ee98-6bd4-45d4-bcde-5898732ec1fd",
+    "promptId": "vertical-leadership-58db1448",
+    "text": "Recap a skip-level's career conversation for HR in 30 seconds.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "9f79b060-a27e-453c-978f-d3f45f1eda71",
+    "promptId": "vertical-leadership-14db37c6",
+    "text": "30 seconds: tell the exec team where the hiring plan stands.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a6ae6848-de74-4b75-a24e-8b5bffdeb581",
+    "promptId": "vertical-leadership-161991bb",
+    "text": "Brief an external partner in 30 seconds on a delayed milestone.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c525621e-49ec-40c2-a5d0-e826ca9b7877",
+    "promptId": "vertical-leadership-4109e8dd",
+    "text": "30 seconds: update the team on a contract loss before they hear it elsewhere.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "de1b3cc0-034d-46b5-9a64-05a9a1363245",
+    "promptId": "vertical-leadership-de890028",
+    "text": "Brief the board chair in 30 seconds on a brewing media story.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "040f55de-6a90-4fdb-a95a-7ba0cc3d4705",
+    "promptId": "vertical-leadership-15d3a977",
+    "text": "30 seconds: open the layoff all-hands.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6af65895-7328-4ab3-8908-be522475761e",
+    "promptId": "vertical-other-014be9a2",
+    "text": "Brief your team on yesterday's leadership meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "eb723512-d0fe-46a1-b06f-13dbab10c64b",
+    "promptId": "vertical-other-7645212a",
+    "text": "Recap the all-hands for a teammate who missed it.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "95472e6e-46a0-477e-8cc6-a6764d9e18d7",
+    "promptId": "vertical-other-9b8e9d2a",
+    "text": "Brief your skip-level on the blocker your team is facing.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c8f4ce37-0f76-4827-a413-f32ab47750e2",
+    "promptId": "vertical-other-843c96d9",
+    "text": "Update the board on this quarter's wins and misses.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "70695f07-87bc-4bd1-ac0e-068d0952aba7",
+    "promptId": "vertical-other-b5464a4c",
+    "text": "Brief a cross-functional partner on a launch they need to support.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fba2e6b9-8599-411f-b2a5-9840d1d14154",
+    "promptId": "vertical-other-61a835a5",
+    "text": "Recap a difficult 1:1 to HR before the formal review.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d94eb5b0-23eb-4448-9344-69ed5aec9286",
+    "promptId": "vertical-other-180a0d5e",
+    "text": "Brief the press on the layoff before the article posts.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4756e899-46a1-4074-8e9a-611884bd58ae",
+    "promptId": "vertical-other-8f24b094",
+    "text": "Brief the CEO on a brewing exec conflict in the hallway before the board meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c118705a-3a7f-4960-b56b-35c042380f55",
+    "promptId": "vertical-sales-46ed0952",
+    "text": "Update the team on this quarter's commit number.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bcf71971-020f-4aec-bc14-b4080bf953f3",
+    "promptId": "vertical-sales-3363ca56",
+    "text": "Brief your manager on yesterday's CFO meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "081aba6b-86b8-435a-b57d-7394d40a2d25",
+    "promptId": "vertical-sales-3699efda",
+    "text": "Recap the discovery call for someone covering for you.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f54dea96-9d29-4fa0-853d-43c5ccd677bb",
+    "promptId": "vertical-sales-9febb155",
+    "text": "Brief the VP of Sales on a competitive bake-off you're losing.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "cbd17a9c-d1cd-476b-a7f1-00733c5f8ebc",
+    "promptId": "vertical-sales-63e83c07",
+    "text": "Status report on the largest deal in your pipeline.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "2328fa0b-cd4e-4a77-9af2-5f3a7d2901fe",
+    "promptId": "vertical-sales-0c5a85c8",
+    "text": "Brief the CEO on the renewal at risk before the all-hands.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "90a40592-ea59-426d-b1b2-8ba51be3fe36",
+    "promptId": "vertical-sales-5f01330b",
+    "text": "Update the board on why your forecast just dropped 20%.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8c730d4e-0855-4d80-b5ef-cf65fb842442",
+    "promptId": "vertical-consulting-b6d8c130",
+    "text": "Give the partner a status report on the engagement's most-at-risk milestone.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c6d1e057-f69c-4f27-89d4-55f4f9ec9650",
+    "promptId": "vertical-finance-90e7d392",
+    "text": "Give a status report on the QofE workstream before the IC pre-meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fc86f471-d749-4269-b270-a0750325aa96",
+    "promptId": "vertical-consulting-22a93cb9",
+    "text": "Describe the biggest client win of your career.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "19721551-f506-424f-ac68-da585b136ca2",
+    "promptId": "vertical-consulting-f3023ef9",
+    "text": "Tell me about a champion who made the engagement work.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9b67f76a-edff-48fc-ae15-e542e4949d72",
+    "promptId": "vertical-consulting-e6c25a03",
+    "text": "Share a piece of feedback from a partner that changed how you consult.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c3de156d-dce8-4557-8299-857ef812663d",
+    "promptId": "vertical-consulting-91e8e0b1",
+    "text": "Describe a client SME who consistently undermined your recommendation.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "bf15db32-60ba-4b56-8fe9-cf1088040826",
+    "promptId": "vertical-consulting-dda86dbb",
+    "text": "Talk about the hardest pushback you've fielded in a steering committee.",
+    "violations": [
+      "not-universal",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a72118e6-9acd-4dc7-a35d-c9381bc48a94",
+    "promptId": "vertical-consulting-d2da2029",
+    "text": "Pitch the firm to a hostile prospect with no warm-up.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3d2cab51-9de5-41e8-a51f-9b133754808e",
+    "promptId": "vertical-consulting-92ca2183",
+    "text": "Defend your interim recommendation on a live partner-review call.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bd1b4862-2293-439d-ab47-f8afee12caff",
+    "promptId": "vertical-education-7c339c63",
+    "text": "Describe your proudest moment as an educator.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d23d819e-2191-4f2d-9af8-16954ddd25a2",
+    "promptId": "vertical-education-85ed0438",
+    "text": "Talk about a hobby you've kept up despite the school year.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bf933363-415e-45fb-b7cc-8316e3620ec4",
+    "promptId": "vertical-education-c778297a",
+    "text": "Pitch your school to a family touring tomorrow.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "04c34fa6-4b58-4310-a0f0-04963f4cbb44",
+    "promptId": "vertical-education-afd84989",
+    "text": "Deliver the news of a colleague's death to your faculty at 7:30 AM.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6313a048-058a-40dc-8fc4-77f76dee8108",
+    "promptId": "vertical-finance-6e9a5b24",
+    "text": "Tell me about a deal that died in IC.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f3ed8189-6cfa-44bb-ba3e-6e22afe781cc",
+    "promptId": "vertical-finance-c0bdcccb",
+    "text": "Tell me about an LP relationship that almost ended in non-renewal.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5f28ede3-f015-4005-86ae-edc8485f496a",
+    "promptId": "vertical-finance-cdcc15e7",
+    "text": "Share a piece of feedback from your MD that changed how you build models.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "484e336c-5b18-4fb1-bfba-39ae01b35d4d",
+    "promptId": "vertical-finance-aab11762",
+    "text": "Describe an audit dispute you couldn't resolve at the manager level.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0f48432a-0288-4287-8ed3-04a78053668c",
+    "promptId": "vertical-finance-0cd09aed",
+    "text": "Defend your sell rating on a live call with a hostile portfolio manager.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "acf4a9bd-0572-4116-a9fa-435415113134",
+    "promptId": "vertical-finance-60cbeca3",
+    "text": "Defend your fund's quarterly NAV in front of the LP advisory board.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7bcd2292-85b2-4c37-8175-c6effead4c57",
+    "promptId": "vertical-healthcare-56495cdf",
+    "text": "Describe your toughest call as a resident.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "024ec690-660a-4eee-bfd8-007ec3759058",
+    "promptId": "vertical-healthcare-d0de7b48",
+    "text": "Tell me about a patient who changed how you practice.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e0e69df8-4e94-4ae9-b59c-0df2388fb80f",
+    "promptId": "vertical-healthcare-f881762e",
+    "text": "Address the unit after a colleague's death by suicide.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "60fc97d9-5f93-418e-b209-68dc68bdf358",
+    "promptId": "vertical-law-3d1cb80f",
+    "text": "Defend your billing on a fee dispute before the managing partner.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f3c582ea-c59c-432b-b8a6-cf6bea64ba13",
+    "promptId": "vertical-consulting-fab9f1ab",
+    "text": "Will the engagement close on time?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "068c7ab5-1230-46c5-843c-a8ec8849fd71",
+    "promptId": "vertical-consulting-11405792",
+    "text": "Is the client champion actually going to push the recommendation?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c42e0cf1-091e-486a-a946-0efcdfe99500",
+    "promptId": "vertical-consulting-69d9bc2c",
+    "text": "Is the operating-model recommendation the right call?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c38dce4b-6dd2-4bbc-9e13-7d3a4562cef0",
+    "promptId": "vertical-consulting-940c93d3",
+    "text": "Should we kill workstream four?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "dd4163c5-5601-41ff-a16e-4392ff3e5e1f",
+    "promptId": "vertical-consulting-4f743df1",
+    "text": "Was the partner right to challenge our cost baseline?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "ec74601f-e0bd-4590-a576-3456d34500a0",
+    "promptId": "vertical-consulting-3ce2f875",
+    "text": "Is extending the engagement the right move for the client?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8edce10e-d8c4-401b-af2f-04504ea3a138",
+    "promptId": "vertical-consulting-a25393df",
+    "text": "Is the new sponsor going to back the implementation?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9f7cbabb-36e9-4744-bad6-9ae3c604596f",
+    "promptId": "vertical-consulting-3157c520",
+    "text": "Will the steering committee approve the workforce plan?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a3c06d28-f295-448f-b21c-160fd832af61",
+    "promptId": "vertical-education-c44802da",
+    "text": "Is the new teacher working out?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "12558c92-bdf2-4990-b1d6-0e4ccd252063",
+    "promptId": "vertical-education-54fe4d75",
+    "text": "Was the curriculum adoption a good call?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "602c0d81-5caa-4536-aa70-bfd20a36bb02",
+    "promptId": "vertical-education-09f8beb8",
+    "text": "Should the district fire the underperforming principal?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "87ecda84-1688-4905-9b53-510c99207cd4",
+    "promptId": "vertical-education-56d77772",
+    "text": "Should your department drop the textbook entirely next year?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a9cd2d74-74e4-4f46-8715-ae8e7a126d10",
+    "promptId": "vertical-finance-eda7e58a",
+    "text": "Will the LP base re-up at the next vintage?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c9a0cb17-42ee-4437-b577-4ee250bc2882",
+    "promptId": "vertical-finance-b38dda6e",
+    "text": "Will the deal clear IC on Wednesday?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b004586e-ce7e-4e69-8673-ab2e71a5c446",
+    "promptId": "vertical-finance-35c990e7",
+    "text": "Is management's FY guidance achievable?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d12d74c6-40c0-4e75-90fb-7f3a67bcc3b5",
+    "promptId": "vertical-finance-7363315c",
+    "text": "Should we mark the position to fair value this quarter?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3e2256a2-4514-4328-b71a-f833d5d4c6d4",
+    "promptId": "vertical-finance-513f01f5",
+    "text": "Should we recommend a sell on the name?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3f368ff5-bfc8-4f80-a55d-4ee7ccf83af9",
+    "promptId": "vertical-finance-7c179aad",
+    "text": "Is discounting our hurdle rate the right call on this deal?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "23572dbc-143d-4d3e-8133-9d195a61c132",
+    "promptId": "vertical-finance-891fbd97",
+    "text": "Should we replace the portco CFO before next audit cycle?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "93e83f92-6940-45cf-b346-01dea618c8fe",
+    "promptId": "vertical-finance-024eee07",
+    "text": "Is the going-concern flag the right call this cycle?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b140d82c-1491-4067-b746-6066fd16c542",
+    "promptId": "vertical-finance-eafc3ebf",
+    "text": "Should the firm pull back from leveraged loans entirely?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9c2ad229-0432-460f-9de0-8d3e64bb476f",
+    "promptId": "vertical-healthcare-d1045fd9",
+    "text": "Is this patient ready for discharge?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4381ed8e-8f3d-48f8-b81b-9203fb7508b2",
+    "promptId": "vertical-consulting-b01d9248",
+    "text": "What's the main reason the deliverable slipped?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f934227f-6034-40bc-ab34-d765aea4f76b",
+    "promptId": "vertical-consulting-dc85c208",
+    "text": "Why did the pilot region miss its savings target?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "b349bfb6-a6a4-4b79-a693-3f5f69e39d75",
+    "promptId": "vertical-consulting-a6ad32a5",
+    "text": "What's the biggest risk to next month's steering committee?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "82d63f8b-03a1-4018-a4f5-62c2df412274",
+    "promptId": "vertical-consulting-38fd4034",
+    "text": "What's the one thing the engagement team needs to do differently next week?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c2dd949c-4dc6-466f-a2ae-f23fe700a4d3",
+    "promptId": "vertical-consulting-eb75c517",
+    "text": "What's the single objection holding up the org redesign?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "57467682-1f2d-4443-992b-534fbeccb864",
+    "promptId": "vertical-consulting-8e025ad6",
+    "text": "Why are associates missing on the synthesis step?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "69e62213-11b7-43e8-9bea-3548ed623607",
+    "promptId": "vertical-consulting-19c6e0ed",
+    "text": "What's driving the slip in your savings forecast?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "2af060c8-1063-4872-b367-bec80c5368ce",
+    "promptId": "vertical-consulting-ad747a23",
+    "text": "Why is the client's change lead threatening to step off the program?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c28123c3-c11c-4f79-94d8-d40341c09dc2",
+    "promptId": "vertical-consulting-38806b0d",
+    "text": "What's the central reason the CFO won't accept our recommendation?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7018d305-4ee9-4fdd-a710-b761c6d6aea6",
+    "promptId": "vertical-consulting-d79d681b",
+    "text": "Why should the board approve the transformation budget over the COO's objection?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0002a648-cc03-4ba1-9cc7-3071c5fc3cb7",
+    "promptId": "vertical-education-fad3f0c1",
+    "text": "Why did the unit run a week long?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1d457e9c-adaa-4efd-8987-01000fa561af",
+    "promptId": "vertical-education-8822de56",
+    "text": "Why are teachers leaving the middle school faster than the high school?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e7e3ab9e-4b9c-4e58-80be-48209315e808",
+    "promptId": "vertical-education-3777c58c",
+    "text": "What's driving the IEP backlog this year?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5c4351d3-0ebe-4ffa-ba10-ffbd17cfac82",
+    "promptId": "vertical-education-ef7db953",
+    "text": "What's the central goal of this IEP for Marcus?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b36e5073-ebb2-4231-a486-9eb85c4cda6b",
+    "promptId": "vertical-education-6306a4cf",
+    "text": "Why has parent engagement at conferences dropped two years running?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "25c01338-002c-4f87-b634-3335048d1369",
+    "promptId": "vertical-finance-15b5a2f8",
+    "text": "What's the main reason the deal slipped past IC last cycle?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8ec05640-636b-40f4-a959-92fedeedb4c4",
+    "promptId": "vertical-finance-d7e9fd85",
+    "text": "Why did the model's IRR drop in the latest build?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7bfda37b-1587-4f85-9e35-4306f36df4a3",
+    "promptId": "vertical-finance-5b0f20d9",
+    "text": "What's the one thing the deal team needs to do differently before IC?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fe9105dd-33c9-4581-8f4f-70761e4746c9",
+    "promptId": "vertical-finance-f0f42717",
+    "text": "What's the single objection holding up the audit signoff?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "98ba22a3-6524-4a58-805a-0d1ebdb0f852",
+    "promptId": "vertical-finance-910812c2",
+    "text": "Why is FP&A's variance commentary missing the mark?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "54cb8b45-50c7-4dd5-8095-58c1d959507b",
+    "promptId": "vertical-finance-f7e6744d",
+    "text": "What's driving the slip in your covenant cushion this quarter?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "923cf493-287a-4006-832f-8dd8fb763a45",
+    "promptId": "vertical-finance-4c0cd548",
+    "text": "Why is the top LP threatening to skip the next vintage?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "cba896f9-228d-47a4-b34d-4f4478a3f1db",
+    "promptId": "vertical-finance-0f7f84ba",
+    "text": "What's the central reason to bet next year on private credit?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c4b8f646-dd62-47f0-b5c2-1ab4b478ac88",
+    "promptId": "vertical-finance-d53b96f8",
+    "text": "Why should the board double the fund's deployment pace next year?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "defd1eef-21b7-4d26-a9c7-f5107020c738",
+    "promptId": "vertical-healthcare-7a5d0c9e",
+    "text": "Why did this discharge fail at 48 hours?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "179efaac-434b-4599-850a-793d9b438e77",
+    "promptId": "vertical-healthcare-771c12fe",
+    "text": "What's the single biggest risk to this patient overnight?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e77a5a14-e436-49b8-88a2-b19cba44b10e",
+    "promptId": "vertical-healthcare-3625cdad",
+    "text": "What's the one thing the resident needs to fix?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f26b5274-5823-4fcd-80ef-96b810be5484",
+    "promptId": "vertical-healthcare-4e6991e6",
+    "text": "What's the root cause of the missed sepsis diagnosis?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "35343c93-5f54-4651-8fae-41cd3a2a9f68",
+    "promptId": "vertical-healthcare-0f853cf4",
+    "text": "Why are nurses leaving the step-down unit?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f8d82be9-a748-4491-ba97-491c7c0fc305",
+    "promptId": "vertical-healthcare-f05434be",
+    "text": "What's driving the readmission rate for CHF?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e332f8b3-95e7-4d55-94fe-742e641b34ee",
+    "promptId": "vertical-healthcare-0fd6d784",
+    "text": "Why is the family losing trust in the team?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c49e76af-c9b7-4c5f-9c34-60ebdf856bf5",
+    "promptId": "vertical-healthcare-c17cfa73",
+    "text": "What's the central finding of the M&M case?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "15991c3f-2a05-44ff-9400-1c48317a601c",
+    "promptId": "vertical-healthcare-ee879bc4",
+    "text": "Why should the board fund the new ICU build over the cancer center expansion?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6c80b3b7-67c4-402b-b10e-9f38099f7855",
+    "promptId": "vertical-law-89600ec6",
+    "text": "What's the main reason the deposition went badly?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9388e7c6-357f-49b1-8865-e4060d0e6cd8",
+    "promptId": "vertical-law-8a46e7cf",
+    "text": "Why did the judge deny the motion to compel?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4a7470e2-342c-40e3-829c-5f35f94bf66d",
+    "promptId": "vertical-law-d4994041",
+    "text": "What's the biggest risk to closing the deal next week?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "10e8eeca-3ced-41be-96e2-ab88676e6b0d",
+    "promptId": "vertical-law-0da60bc3",
+    "text": "What's the one thing the trial team needs to do differently?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3a09dbcb-530e-4441-a755-06a9decf7cb6",
+    "promptId": "vertical-law-9a80dc3e",
+    "text": "What's the single objection holding up summary judgment?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b5c127fa-fff2-4088-a5d5-732eb83f049c",
+    "promptId": "vertical-law-b4f3002a",
+    "text": "Why are associates missing the deadlines on discovery responses?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b31d4070-867e-4eda-92dd-0e6f36e78aac",
+    "promptId": "vertical-law-dcc0fca6",
+    "text": "What's driving the surge in pro se filings against your client?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "efec4231-621d-45f2-8d28-8ac59d713eb0",
+    "promptId": "vertical-law-d9c81004",
+    "text": "Why is your client threatening to fire the firm?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c1d0a790-739b-4c05-bbec-10e9f3e13a22",
+    "promptId": "vertical-law-76d73df0",
+    "text": "What's the central reason to take the equal-protection challenge en banc?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "2b2678f8-3b47-4f41-93fc-4df971ba5387",
+    "promptId": "vertical-law-99b38c71",
+    "text": "Why should the board double the litigation reserves this quarter?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5af346e5-a0a7-434e-b176-8ca948f20545",
+    "promptId": "vertical-leadership-f5c50b37",
+    "text": "What's the single reason your top report is unhappy?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4d1f4dd5-b694-4d18-a0f4-0925a1cb72ec",
+    "promptId": "vertical-leadership-a37fa5f6",
+    "text": "What's the one thing your peer needs to hear from you?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c5838afb-22bb-41e3-b73d-2755a6ab3bec",
+    "promptId": "vertical-leadership-26976f7e",
+    "text": "What's the biggest risk to your team next quarter?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fea69614-b0e8-40a9-b3c4-8cc12a2436f6",
+    "promptId": "vertical-leadership-9937ec23",
+    "text": "What's the one reason this hire isn't working out?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f9946beb-e3f4-45a8-9077-7c4639517cf2",
+    "promptId": "vertical-leadership-7f20a16d",
+    "text": "What's the single barrier holding your skip-level back?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "948ea716-4882-4843-a4d7-8b5cf356360f",
+    "promptId": "vertical-leadership-bda18116",
+    "text": "What's the one reason the partnership is underperforming?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "50bedf15-6ce4-4c66-b727-c6601095045f",
+    "promptId": "vertical-leadership-fe65f456",
+    "text": "What's the central message of tomorrow's all-hands?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "63e40672-0715-4f16-bd84-e14f95630093",
+    "promptId": "vertical-consulting-807d128d",
+    "text": "Extend or hand off?",
+    "violations": [
+      "persona",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9b7ce7a5-f0c4-429c-a1fc-6cf5d13f98a8",
+    "promptId": "vertical-consulting-dff5348e",
+    "text": "Push Thursday's readout or let it slip?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "85c341c6-fa28-4550-96da-1f2a71796ee3",
+    "promptId": "vertical-consulting-0ee3ab73",
+    "text": "Senior associate or experienced engagement manager?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "3635bb51-d5b2-4ea0-98af-52a1d77ad55f",
+    "promptId": "vertical-consulting-21027c40",
+    "text": "Diagnostic first or full transformation up front?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "92bd752e-1440-4d01-be4f-b3542c536f34",
+    "promptId": "vertical-consulting-3573eb55",
+    "text": "Walk away from the scope creep or absorb it?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c8df5a03-3565-4018-b38b-71235e93ecc5",
+    "promptId": "vertical-consulting-b55b8595",
+    "text": "Escalate to the CEO or keep working the sponsor?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "6e23f750-db9e-4197-8233-730a166a0763",
+    "promptId": "vertical-consulting-9ed7c40b",
+    "text": "Cut the recommendation 30% or hold the position?",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "0a18e746-e371-4e13-be6e-cb1b09432aae",
+    "promptId": "vertical-consulting-857f6321",
+    "text": "Replace the associate or coach them through next week?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d0d37bd5-e9be-4e1c-9b75-5907d2993761",
+    "promptId": "vertical-consulting-b2cec848",
+    "text": "Accept the multi-year extension at a thinner fee or hold for full rates?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9b26c8bb-4d8a-4a75-a2b7-465499d3f060",
+    "promptId": "vertical-consulting-68c46d91",
+    "text": "Cancel the engagement or push it past the audit committee?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0940a759-60c6-4840-99e4-7a1cf68defba",
+    "promptId": "vertical-education-1387e719",
+    "text": "Move Maya up or hold her back?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "51c983c2-f545-49e7-baf1-16220edab86e",
+    "promptId": "vertical-education-d894f017",
+    "text": "Suspend the student or assign restorative work?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fff2c4c0-3e38-4f5b-9aa0-23d6496ffa90",
+    "promptId": "vertical-education-7f210790",
+    "text": "Keep the textbook or drop it?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a5ab44f2-f7f9-4adb-b1c3-6402c86a889c",
+    "promptId": "vertical-education-54b5ae78",
+    "text": "Field trip or testing-prep day?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "155d9042-95c7-49e0-b32f-c23e6805e207",
+    "promptId": "vertical-education-c26cda38",
+    "text": "Promote internally or hire a new department chair from outside?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "10f6269d-ddf4-4710-873a-3af7ba742653",
+    "promptId": "vertical-education-4dec7574",
+    "text": "Approve the IEP eligibility or recommend a 504?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "554b40d0-1a63-4de2-9721-1972dc33831a",
+    "promptId": "vertical-education-889050eb",
+    "text": "Cut the music program or extend day care?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "de33335e-1fc3-40ac-873d-050ec335cce7",
+    "promptId": "vertical-education-9bbf1faf",
+    "text": "Keep the struggling teacher or non-renew?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e1e0fd93-1798-4477-b174-65af4e3e8986",
+    "promptId": "vertical-education-0fa26bf3",
+    "text": "Stay at the school or take the principal job in the next district?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1f4b3082-9f7c-4ac0-9196-f15721d708a1",
+    "promptId": "vertical-education-2e72dc75",
+    "text": "Pull the book from the 9th-grade list or stand by it?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ac1199ea-bb7c-4a1d-9701-0b36f2f99342",
+    "promptId": "vertical-finance-817fcad6",
+    "text": "IC this Wednesday or wait until next cycle?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fa29385c-bc40-444b-84a4-3ca882189bc3",
+    "promptId": "vertical-finance-2e1751aa",
+    "text": "Mark down or hold at cost?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a32ac0d5-e4e5-42c6-ae5b-6029854e88e8",
+    "promptId": "vertical-finance-51f536fb",
+    "text": "Hire a senior associate or two analysts?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ef929c5a-cab7-4a43-b88e-21e57b06063b",
+    "promptId": "vertical-finance-7821d6bb",
+    "text": "Buy or sell into the print?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "33102d9e-4737-4b3f-911a-bb70a0d33a1f",
+    "promptId": "vertical-finance-65cd0199",
+    "text": "Walk from the deal or counter at a lower price?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "2693f7a6-05e5-4487-b858-584a10293a0c",
+    "promptId": "vertical-finance-fc030b03",
+    "text": "Escalate to the CFO or work it through the controller?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "dab2d449-5e2e-46c1-ab16-59a312407e55",
+    "promptId": "vertical-finance-5060713a",
+    "text": "Refinance now or wait for the next coupon reset?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1555e198-781f-469a-ba87-20a8235a356e",
+    "promptId": "vertical-finance-e9c0b3a1",
+    "text": "Issue the going-concern or accept management's plan?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "be628d96-d5fc-476f-9872-359da13f962d",
+    "promptId": "vertical-finance-ef4a3c2a",
+    "text": "Accept the seller's earnout or push for cash up front?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8187babc-5b15-4268-8a35-425819fc843e",
+    "promptId": "vertical-finance-a060c983",
+    "text": "Restate the prior period or correct in the current?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "49188b51-6907-4972-9e8c-181b5d4e12a7",
+    "promptId": "vertical-healthcare-24f87662",
+    "text": "Admit or send home?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c4370924-3b03-4f43-b389-490e32bed8fb",
+    "promptId": "vertical-healthcare-b5fc19c9",
+    "text": "Operate now or wait until morning?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bd80fe66-17d1-4504-872f-f8f898c88df9",
+    "promptId": "vertical-healthcare-ff6fc5e4",
+    "text": "Page the attending or handle it yourself?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "721db11f-1fa4-4875-8a4b-70b3feca4079",
+    "promptId": "vertical-healthcare-84a4d040",
+    "text": "Transfuse or watch the hemoglobin?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "8cb641ef-3774-4d0e-a724-3859e3ec13ac",
+    "promptId": "vertical-healthcare-3fdb6a1e",
+    "text": "Antibiotics or watchful waiting?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "5d9832b6-6910-41e1-ac48-ebff234f1b7a",
+    "promptId": "vertical-healthcare-d786e69c",
+    "text": "Comfort care or push for another round of chemo?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a4e790e3-2d7a-4d7c-ab85-76163b382a64",
+    "promptId": "vertical-healthcare-f31bf02b",
+    "text": "Approve the peer-to-peer escalation or accept the denial?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "de72157f-ccb4-4aeb-b097-4403de197463",
+    "promptId": "vertical-healthcare-f1190825",
+    "text": "Pull the resident from call or coach in place?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a27a198b-f767-4f64-9b95-b2141b635e66",
+    "promptId": "vertical-healthcare-9993a8f3",
+    "text": "Report the impaired colleague or talk to them first?",
+    "violations": [
+      "jury-wall"
+    ]
+  },
+  {
+    "promptRowId": "ce7de9d9-ba01-41fa-8ffb-7c3ed7ebfb14",
+    "promptId": "vertical-healthcare-af948208",
+    "text": "Close the unit for the weekend or staff at unsafe ratios?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f51751c2-68ab-480d-94f7-78b7036975fa",
+    "promptId": "vertical-law-c120649f",
+    "text": "Object or let the question go?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a14e7b5b-5a6d-466c-9d68-c13340ce4d59",
+    "promptId": "vertical-law-adc62fff",
+    "text": "Push for trial Monday or take the continuance?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a29d9044-f7d5-4fdc-87f7-04cbc59e8b0a",
+    "promptId": "vertical-law-20b1d6df",
+    "text": "Hire the senior litigator or two junior associates?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "130901ba-f8bb-4755-845e-6032ac57cef9",
+    "promptId": "vertical-law-73348238",
+    "text": "Mediate first or file the complaint?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "d8064596-810f-4f6f-9f81-f4290023955d",
+    "promptId": "vertical-law-b099c6d6",
+    "text": "Walk away or sign the indemnification carve-out?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "93f018f0-8001-4046-9c23-d17900d887a0",
+    "promptId": "vertical-law-c94f57a6",
+    "text": "Escalate to the judge or work it out with opposing counsel?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a3c823f7-413d-4420-a6e9-374d0e3443e4",
+    "promptId": "vertical-law-6c638797",
+    "text": "Take the plea today or hold for trial?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "8d86b492-ef49-4af9-956b-225042430bf4",
+    "promptId": "vertical-law-5fe50ae2",
+    "text": "Fire the underperforming senior associate or coach them another quarter?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "fb55d9ee-c44c-451b-b6a1-e849f0e92196",
+    "promptId": "vertical-law-1df96ef2",
+    "text": "Accept the carved-out settlement or hold for the en banc petition?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "fc1e1641-b970-4d00-96ca-d42eb0fe2c3d",
+    "promptId": "vertical-law-2d98ed71",
+    "text": "Withdraw from representation or push through the conflict-of-interest motion?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "3c6c63a9-a30c-45db-8f9c-5063251ea4e8",
+    "promptId": "vertical-leadership-692240b6",
+    "text": "Promote Priya now or wait one more cycle?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "05726e78-effd-48f6-9acb-34b9c87dc867",
+    "promptId": "vertical-leadership-1973ed97",
+    "text": "Take the meeting with your difficult peer or skip it?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8dbcbdcf-c530-43bc-b68c-96291fe69a93",
+    "promptId": "vertical-leadership-35582f4c",
+    "text": "Reorg in Q1 or Q2?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "e0ebaa3d-907f-4ffc-9092-d34793714579",
+    "promptId": "vertical-leadership-45c08983",
+    "text": "Coach the underperformer one more quarter or move them out now?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "45de3282-1b57-41ea-ae9e-b7b3f783b69d",
+    "promptId": "vertical-leadership-5c51ea80",
+    "text": "Sponsor the skip-level for the program or hold them back another year?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5002a5a5-ef38-4b46-af86-9cf5271439f4",
+    "promptId": "vertical-leadership-6dbffc31",
+    "text": "Renew the partner or go to RFP?",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f63dade0-87d6-4602-ba98-7052df5b9c00",
+    "promptId": "vertical-leadership-bddfe188",
+    "text": "Announce the layoffs Monday or Thursday?",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "49fed468-b244-4387-b96d-b799029b7f83",
+    "promptId": "general-a1f8cbe1",
+    "text": "Describe the kind of partner you'd want to be.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "02e3c0aa-80bf-4261-bd4f-49c9b8f0dfd3",
+    "promptId": "general-a0e6ba24",
+    "text": "Describe a time you realized someone you looked up to was just a person.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "19adad18-dd57-46be-b48c-ea24e11c4cde",
+    "promptId": "vertical-consulting-5c963bb7",
+    "text": "Pitch the engagement scope to a new exec sponsor.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "618e20eb-2ce1-49e7-8b4d-6c2da1b4059f",
+    "promptId": "vertical-consulting-35130514",
+    "text": "Explain why the kickoff matters more than people think.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "abbead2f-5415-4963-9746-f620feb00436",
+    "promptId": "vertical-consulting-8d8e2452",
+    "text": "Describe what makes a strong client champion.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "fe0c6562-c381-4e02-a53f-51352d5e92e6",
+    "promptId": "vertical-consulting-e814dda3",
+    "text": "Pitch the case for adding a change-management workstream.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "3bc005f6-0290-474c-ac25-ca7f53be1f6e",
+    "promptId": "vertical-consulting-e71d10e3",
+    "text": "Explain how phased rollouts protect both sides on a big transformation.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "ad8a80e8-1b86-4719-9f45-c714c7fd9a08",
+    "promptId": "vertical-consulting-7d3c2d76",
+    "text": "Describe how to handle a CFO objection live in a working session.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "09005ff6-6d45-4439-8b9e-d22f6d3037a8",
+    "promptId": "vertical-consulting-e9aa1bae",
+    "text": "Pitch the value of a six-week diagnostic to a skeptical CEO.",
+    "violations": [
+      "persona",
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "25d5a562-777c-43df-b2be-1190a0a7b042",
+    "promptId": "vertical-consulting-ea19641b",
+    "text": "Explain why the firm should walk away from this engagement.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5734abb8-5b68-487c-b8d9-c68d99888a42",
+    "promptId": "vertical-consulting-9de400fa",
+    "text": "Pitch the recommendation to a board you've never met.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "858df2b0-3b2e-402d-a16f-4a41c4288857",
+    "promptId": "vertical-consulting-6bd5eb8e",
+    "text": "Defend your savings model to a CFO who thinks it's inflated.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f7c4fe2b-50e9-4e5a-a0ac-479093e14ee0",
+    "promptId": "vertical-education-66b9b440",
+    "text": "Describe how decoding instruction actually works.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "197139f1-f16f-465c-9dc0-a23532170c88",
+    "promptId": "vertical-education-cb73672a",
+    "text": "Explain what executive function looks like in a 5th grader.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "d05aa50f-4316-42e9-ad4b-8298baafd8c0",
+    "promptId": "vertical-education-d977e5ed",
+    "text": "Pitch the value of early-grade investment to a tight budget.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "55867897-e76d-43d7-abcf-a36180f5bfd5",
+    "promptId": "vertical-education-1e55067d",
+    "text": "Describe why direct instruction belongs in your toolkit.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "a0eacd65-5166-46de-8946-69cbf025daad",
+    "promptId": "vertical-education-f2c9234e",
+    "text": "Explain your school's behavior framework to a touring family.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3385900f-be00-4908-8ee0-b26127a69493",
+    "promptId": "vertical-education-e776e324",
+    "text": "Defend your grading philosophy to a board parent who thinks you're too lenient.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "52d78c19-813c-4d84-a2da-26ae393b2355",
+    "promptId": "vertical-finance-6d5384a0",
+    "text": "Pitch our fund to a first-time LP.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "6258f25a-41fe-4a08-84e0-bc4581c2379a",
+    "promptId": "vertical-finance-b72dc31b",
+    "text": "Explain why the deal's leverage is appropriate.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "cc9fe766-0149-450f-9fbe-ed8f1baf8c04",
+    "promptId": "vertical-finance-6deb21bc",
+    "text": "Describe how a sensitivity table reads in the IC deck.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "985d19ce-32f5-4541-be6f-49bd51ad2d93",
+    "promptId": "vertical-finance-0b7a18c6",
+    "text": "Pitch the case for raising the hurdle rate.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "508fa471-eac6-476f-b20e-7cb441a51b09",
+    "promptId": "vertical-finance-b8fdcb22",
+    "text": "Explain how a covenant waiver protects both sides.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "9770faa1-9066-42ca-bb4d-deedf81f5d34",
+    "promptId": "vertical-finance-6f4a0c8e",
+    "text": "Describe how to defend a buy rating on a live earnings call.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ca0bad0b-35e8-4a9a-9478-41e11e2eb11b",
+    "promptId": "vertical-finance-b3c39e72",
+    "text": "Pitch the value of bringing QofE in-house to your CFO.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "cf057afa-5fd0-4458-b9dc-a3bf1a95b78f",
+    "promptId": "vertical-finance-12c62006",
+    "text": "Explain why we should walk away from a deal sitting on the IC table.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "0d6c15ed-9088-4161-9579-22a3cc331a72",
+    "promptId": "vertical-finance-5facd7be",
+    "text": "Pitch our flagship strategy to an LP board you've never met.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "d4e2b615-1462-4089-bdf3-385c947158ba",
+    "promptId": "vertical-finance-51ef36d2",
+    "text": "Defend the FY forecast to a CFO who thinks it's inflated.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "7813c2b9-99c5-495b-b760-35c3d91f76f9",
+    "promptId": "vertical-healthcare-66d60d83",
+    "text": "Explain why early mobility matters in the ICU.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "aab04a76-8a70-44ed-8767-4a3d0da54948",
+    "promptId": "vertical-healthcare-e09a22a6",
+    "text": "Pitch why bedside teaching matters more than the lecture hall.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f9aeeabf-bf61-415d-9625-3fd8cd6152b5",
+    "promptId": "vertical-healthcare-74144017",
+    "text": "Describe how the sepsis bundle works.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9e794545-8b72-4bc5-9535-97e9caf009d4",
+    "promptId": "vertical-healthcare-8dffe698",
+    "text": "Explain what palliative care actually does.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4d108241-3f67-46ff-81b5-17d3ade04677",
+    "promptId": "vertical-healthcare-2509156a",
+    "text": "Describe how prior authorization works to a confused patient.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5dda9174-bfb4-4182-a089-928c7d339d5d",
+    "promptId": "vertical-healthcare-4c4cf02a",
+    "text": "Defend the surgical approach you chose to a skeptical chief.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "39219a6d-19c2-42a0-9a5e-45f1e8ba1295",
+    "promptId": "vertical-law-cf94d2c4",
+    "text": "Pitch your trial theory to the jury.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0a16dd32-3731-4eb0-857a-ab53a1ba3ece",
+    "promptId": "vertical-law-b2fa4620",
+    "text": "Explain how a deferred prosecution agreement protects both sides.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "48ac3efe-f95c-47c1-bdcd-784cf52ac42e",
+    "promptId": "vertical-law-de142622",
+    "text": "Describe how to handle a hearsay objection on a live direct.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "5919adbf-4e97-4854-bd9f-a6092af18b73",
+    "promptId": "vertical-law-58b198f2",
+    "text": "Explain why we should withdraw the third counterclaim.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5a7ffc87-1ab6-450f-86e0-1e1d12236078",
+    "promptId": "vertical-law-c17c055f",
+    "text": "Pitch the firm's litigation team to a Fortune 100 GC you've never met.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "82709cec-205a-442b-9ea5-69dec90411ae",
+    "promptId": "vertical-law-4b630597",
+    "text": "Defend your case theory to a partner who thinks it's overreaching.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "845271ca-eb73-4d14-988e-920b66012966",
+    "promptId": "vertical-leadership-73e37b3c",
+    "text": "Explain why your direct report deserves a stretch project.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0f59ed3e-4465-4655-8f8d-c260ed0a2a48",
+    "promptId": "vertical-leadership-134ff601",
+    "text": "Pitch your peer on co-owning a cross-functional initiative.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8b5a18c2-79ce-45f2-9596-c1e5ccd53eb4",
+    "promptId": "vertical-leadership-2cafb640",
+    "text": "Explain why your skip-level deserves a sponsor.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "517ef7e3-6ba0-4c07-a447-ae31404081cd",
+    "promptId": "vertical-leadership-e2080d88",
+    "text": "Explain why this partnership is worth doubling down on.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "debde256-ccf6-43bc-8df2-a99ac09e4ee7",
+    "promptId": "vertical-leadership-9b2b0599",
+    "text": "Pitch the board on a multi-year platform investment.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a99b9ce4-4608-4d20-95ad-6fd421050cf8",
+    "promptId": "vertical-other-7cf36e03",
+    "text": "Explain why you want this job.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ae483f14-9908-4a8a-98ee-163ecb514340",
+    "promptId": "vertical-other-649e954f",
+    "text": "Pitch why your skip-level should care about your team's project.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "05c07ec5-35a0-4d4c-9cbf-efbcad6424ca",
+    "promptId": "vertical-other-e22d3390",
+    "text": "Pitch the case for cutting the project nobody wants to defend.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "59d205a2-64cb-4ca3-a821-4b8a5ca823ec",
+    "promptId": "vertical-other-1c7febcd",
+    "text": "Explain why your team needs to double headcount next year.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "14912d27-6065-485b-a670-9c16f2578710",
+    "promptId": "vertical-other-800eeda4",
+    "text": "Pitch the entire company in 60 seconds to a journalist.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ce6a3d5a-62d6-4ce3-88ce-7fe2578e48cc",
+    "promptId": "vertical-sales-d2300bef",
+    "text": "Pitch our product to a buyer.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fd8760a2-fddf-4be6-b345-880f51588046",
+    "promptId": "vertical-sales-e41bae45",
+    "text": "Pitch the case for raising prices next year.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0291d549-ccb5-49ad-978b-339e6913531c",
+    "promptId": "vertical-sales-555248d9",
+    "text": "Explain how multi-year contracts protect both sides.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0d7360fe-d87a-4607-82d5-8e0d02588fbe",
+    "promptId": "vertical-sales-e85d694c",
+    "text": "Describe how to handle a price objection on a live call.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0425ba2e-d52b-4645-b9d8-b576a29ac8a2",
+    "promptId": "vertical-sales-ae866438",
+    "text": "Pitch the value of a paid pilot to a skeptical CFO.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "01523e0f-6c28-4730-b36f-82f9d66e556d",
+    "promptId": "vertical-sales-90631d37",
+    "text": "Explain why we should walk away from a stalled deal.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4b222bb2-6bd1-4593-a1c5-266689325e3e",
+    "promptId": "vertical-sales-776f6260",
+    "text": "Pitch our flagship product to a board you've never met.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ed98cfe5-d360-44d3-a9ba-3e47bf36c1e3",
+    "promptId": "vertical-sales-e6b3696d",
+    "text": "Defend your forecast to a CFO who thinks it's inflated.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6761fc47-e749-4e8e-8454-ef30e371fcf3",
+    "promptId": "vertical-consulting-0da2d5f9",
+    "text": "Explain how the engagement's workstreams are structured.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "3ddff017-1453-4e48-b62b-7adb15818b25",
+    "promptId": "vertical-consulting-96c13981",
+    "text": "Describe how a steering committee decision actually gets made.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "94765e39-ff28-4206-b6bb-c5da73af0218",
+    "promptId": "vertical-consulting-01c9380c",
+    "text": "Walk through how the savings model bridges from gross to net.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "0e2c6a22-7c48-4255-8106-4864d71a52a3",
+    "promptId": "vertical-consulting-18c04d00",
+    "text": "Explain how the partner-review loop reshapes a deck overnight.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "901f63e4-c890-4a05-be2a-5086e6e3673b",
+    "promptId": "vertical-consulting-ef18dce7",
+    "text": "Describe how a hypothesis tree narrows the diagnostic over three weeks.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f53e9194-e983-4d58-8464-ea3d8c934fbd",
+    "promptId": "vertical-consulting-b71f8d5a",
+    "text": "Explain how the firm's change-management approach hands off to the client.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "85837094-fcac-4580-a90a-4395694520c3",
+    "promptId": "vertical-consulting-716732b3",
+    "text": "Walk through how our scope-of-work clauses limit out-of-scope requests.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "ef4754d1-3985-43b1-89a9-18baee51356e",
+    "promptId": "vertical-consulting-da0b160d",
+    "text": "Describe how we forecast value capture across the rollout waves.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "acd52e95-27f5-4bee-9e4c-7d7f3c6b894f",
+    "promptId": "vertical-consulting-866474aa",
+    "text": "Explain how partner discounting authority cascades up the firm.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "8065ec41-0d68-4678-a5da-6500162b9e3f",
+    "promptId": "vertical-consulting-636fc8da",
+    "text": "Walk through how a multi-firm engagement coordinates deliverables.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "ea85c609-0f24-4efd-b74b-5b687d591ffb",
+    "promptId": "vertical-education-14181f5f",
+    "text": "Explain how your gradebook is set up.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c23023ba-102f-4496-9e80-31ab9b6b89ba",
+    "promptId": "vertical-education-26d02e68",
+    "text": "Describe how attendance gets reported to the district.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fb95646a-1c26-4140-8eec-d747fc436b2b",
+    "promptId": "vertical-education-da3209d5",
+    "text": "Explain how your weekly lesson planning cycle works.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "df230833-29cd-4344-8656-0e850f407f76",
+    "promptId": "vertical-education-c58c936a",
+    "text": "Describe how the IEP referral process flows from teacher concern to eval.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4fcd7276-4ed0-439f-a14a-b91732b6882c",
+    "promptId": "vertical-education-b14369f6",
+    "text": "Explain how the school's discipline ladder escalates.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9230834e-35bb-449a-b9f8-030af0d62ffa",
+    "promptId": "vertical-education-81546da8",
+    "text": "Walk through how state testing scores translate into school report cards.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "901c64f2-f2a3-47f2-b6fa-7c8de4f5cb80",
+    "promptId": "vertical-education-05a1a070",
+    "text": "Describe how your new writing rubric scores a paragraph.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "a5a02d6b-060a-4149-b577-461b222b7336",
+    "promptId": "vertical-education-e8fcc65a",
+    "text": "Explain how IEP minutes get tracked across pull-out and push-in.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "8129e6d7-e3b7-45c2-859e-b37ba9a1f057",
+    "promptId": "vertical-education-e8307124",
+    "text": "Walk through how Title I funding gets allocated across grade levels.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "6a9b5b36-d32f-43d3-8705-19c2268d5a52",
+    "promptId": "vertical-finance-f2a75890",
+    "text": "Explain how the waterfall distributes proceeds.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "554a53d4-09a4-4a68-96cb-0f8e6e8620c6",
+    "promptId": "vertical-finance-c859b61a",
+    "text": "Describe how a deal moves from sourcing to IC.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "fe924eb8-dd4b-4ed3-b2e6-46f1622b542c",
+    "promptId": "vertical-finance-e9d6067b",
+    "text": "Walk through how working-capital adjustments settle post-close.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "72b6e58f-3203-4c1c-929a-a1f2bde73070",
+    "promptId": "vertical-finance-e465828d",
+    "text": "Explain how the monthly close cadence runs at our shop.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f5a532f5-5adc-405e-9ca0-892cacd6d91a",
+    "promptId": "vertical-finance-b4e030da",
+    "text": "Describe how a 10-K signoff sequence unfolds.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "52434dda-6615-4509-9b67-87d1f9ffb47b",
+    "promptId": "vertical-finance-ff453a28",
+    "text": "Explain how our carry pays out on a single deal exit.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "d5dc6c16-2ce0-420a-9584-69883c638405",
+    "promptId": "vertical-finance-9a013c23",
+    "text": "Walk through how the audit committee reviews KAMs.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "e9df9d53-c36c-4b69-9a35-b95f9bbfefe1",
+    "promptId": "vertical-finance-2894dd79",
+    "text": "Describe how a rating agency rolls a sector through a downgrade.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "1cd3b5f0-554c-43eb-84b5-d94ce88bb00f",
+    "promptId": "vertical-finance-66291a0a",
+    "text": "Explain how a continuation vehicle gets structured.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "679f842c-83ea-4803-a3d9-d16e5bd58d33",
+    "promptId": "vertical-finance-7f60e01f",
+    "text": "Walk through how covenant cushions reset after a quarter of EBITDA growth.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "cf1c55e5-9afc-4872-b96c-5ecb1283ceff",
+    "promptId": "vertical-healthcare-65c08dc6",
+    "text": "Explain how the ICU admission process works.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "0323c054-41be-4089-a748-7041c5f58380",
+    "promptId": "vertical-healthcare-395dc2b4",
+    "text": "Describe how a code blue gets called on the floor.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "7e30324e-e504-4bdd-a76d-9be7d423b719",
+    "promptId": "vertical-healthcare-722670f5",
+    "text": "Walk through how an order set gets activated.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c9136f63-d12d-4deb-b78b-7f324361dd60",
+    "promptId": "vertical-healthcare-5273b7e3",
+    "text": "Explain how the EHR routes labs back to the ordering physician.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5a4090b7-3e17-47a8-9f14-8c6bd53eba9a",
+    "promptId": "vertical-healthcare-0a913b6e",
+    "text": "Describe how a rapid response team mobilizes overnight.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "38ad77e4-6d16-4541-bca4-1a1a585875b1",
+    "promptId": "vertical-healthcare-7c79f55e",
+    "text": "Walk through how a STEMI alert moves from EMS to cath lab.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8e9e8413-72cf-46d9-901a-212482e99726",
+    "promptId": "vertical-healthcare-950040d7",
+    "text": "Describe how the new discharge huddle scores patient readiness.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "39c14deb-b014-451d-98d3-86f084d4daa2",
+    "promptId": "vertical-healthcare-b035dd46",
+    "text": "Walk through how a hospital negotiates a payer contract.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "1c8d57e8-78bc-40d5-b2fa-ea68f0d885e1",
+    "promptId": "vertical-law-7dfbd9e9",
+    "text": "Explain how a motion to compel works.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "b282616a-22c8-4f73-a248-d5183fc0db41",
+    "promptId": "vertical-law-fbfbfe26",
+    "text": "Describe how a case moves from complaint to discovery.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "9dd710d5-1eac-46c3-bcb1-af6efee269b4",
+    "promptId": "vertical-law-ac776c3e",
+    "text": "Walk through how a deposition gets scheduled and noticed.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c8582fe8-54b0-475e-9b65-2d99ac3a1a99",
+    "promptId": "vertical-law-5f1d1757",
+    "text": "Explain how grand jury secrecy works in plain language.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "21644f2e-387a-48fd-81c1-0eea7876adf1",
+    "promptId": "vertical-law-6b6025e3",
+    "text": "Describe how representations and warranties translate into indemnity payments.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "c05a9427-022a-4480-a655-3f832e86160b",
+    "promptId": "vertical-law-3b06cf7b",
+    "text": "Walk through how the protective order routes confidential documents.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "ac770353-d53c-46f2-ace6-1c036f4ed673",
+    "promptId": "vertical-law-99ca080e",
+    "text": "Describe how an internal investigation scopes its first interviews.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "955dfb90-317e-4e27-af66-10eaf1019557",
+    "promptId": "vertical-law-ff332e91",
+    "text": "Explain how an interlocutory appeal disrupts the trial calendar.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "4778d866-d176-40c0-9af4-985b0a2dc842",
+    "promptId": "vertical-law-c1b04aca",
+    "text": "Walk through how a Section 363 sale bypasses ordinary creditor rights.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "f2bb4b55-2841-4232-b53e-da997f029a99",
+    "promptId": "vertical-leadership-459f4f8b",
+    "text": "Walk through how the promotion calibration meeting runs.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3cde966e-2eda-46cd-a3df-afd3b21b7c97",
+    "promptId": "vertical-leadership-290f9133",
+    "text": "Walk through how a strategic partnership gets reviewed quarterly.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c497abd8-8e13-47f6-8df6-de2a87325f69",
+    "promptId": "vertical-leadership-06067761",
+    "text": "Explain how your team makes an offer decision after the panel.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e6a9a1dd-aec2-4852-99ae-02bb093efdd3",
+    "promptId": "vertical-leadership-861b7201",
+    "text": "Walk through how a board update is prepped and delivered.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "cf8c028b-ad5c-4cbf-a62f-e68bc27e70a5",
+    "promptId": "vertical-leadership-016976e7",
+    "text": "Explain how a layoff gets executed without leaks.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "fd3e38cb-e769-4f78-bafd-07302909a571",
+    "promptId": "vertical-other-db938a1b",
+    "text": "Explain how your team works with the rest of the company.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "65fc9f0f-be35-4cb5-b9f5-813aa8ffd8a3",
+    "promptId": "vertical-other-70b83735",
+    "text": "Describe how project decisions move from idea to launch.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "1210bc7d-c552-463f-84fe-474c044f357a",
+    "promptId": "vertical-other-03b536fa",
+    "text": "Walk through how your weekly planning works.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "ba7668c4-5c4d-42a1-ba53-0d09d6d76dad",
+    "promptId": "vertical-other-336d8020",
+    "text": "Describe how a candidate moves through your interview loop.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "3b7ac223-0efe-4be5-a141-b76333615c84",
+    "promptId": "vertical-other-6101512c",
+    "text": "Explain how you grade performance at review time.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "51183fbc-f578-40ce-8e88-73470fa07557",
+    "promptId": "vertical-other-9062f601",
+    "text": "Walk through how budget approvals flow through your org.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "e08b3ef4-1102-4e2c-9659-993675adec13",
+    "promptId": "vertical-other-2da4fb64",
+    "text": "Describe how a client escalation gets handled end to end.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "1c929e55-38f0-4b3a-a2f2-e8614cb5aef5",
+    "promptId": "vertical-other-69d80ee4",
+    "text": "Explain how the board decides on a CEO succession plan.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "cc60bbe7-3e29-4eab-b386-05d472d7f296",
+    "promptId": "vertical-other-ef9caf34",
+    "text": "Walk through how a public company files its quarterly earnings.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "05bdb422-15f5-45ad-a6c9-f666f8fbab6c",
+    "promptId": "vertical-sales-8dec52b0",
+    "text": "Describe how a deal moves through your pipeline.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "56eb0053-9053-4bf4-91ec-2fefa5a69704",
+    "promptId": "vertical-sales-63eb61cd",
+    "text": "Walk through how renewal terms get negotiated.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "d3c5f061-a711-4b41-a28d-d9ff551a5957",
+    "promptId": "vertical-sales-8f5449db",
+    "text": "Explain how lead routing works on our team.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "3cbbc4b8-6f14-4beb-8cb5-da177fffa249",
+    "promptId": "vertical-sales-ff4b5028",
+    "text": "Describe how a champion gets escalated to executive sponsor.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "a725a828-0115-4f94-ac5c-6fd5b2f326f3",
+    "promptId": "vertical-sales-eaa1907a",
+    "text": "Explain how our commission plan pays out by deal type.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "86bd03b3-30f6-486b-9c36-dcf60aa5e19f",
+    "promptId": "vertical-sales-8f7889e6",
+    "text": "Walk through how our security review process unfolds.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "a8e34053-daa9-4aeb-9197-e76c1e087fa3",
+    "promptId": "vertical-sales-9ce69e73",
+    "text": "Describe how we forecast pipeline by stage.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "8f71c480-a386-4fbe-a5bd-f9abe2f30db1",
+    "promptId": "vertical-sales-302af113",
+    "text": "Explain how enterprise discounting authority cascades up the chain.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "b13f3f5e-e5cf-4038-a917-4241cf249532",
+    "promptId": "vertical-sales-670e04c4",
+    "text": "Walk through how a multi-product bundled discount calculates.",
+    "violations": [
+      "jargon-wall"
+    ]
+  },
+  {
+    "promptRowId": "9402e42b-fede-4c5b-99b9-a372e8bac358",
+    "promptId": "vertical-other-b80d3992",
+    "text": "Explain how urgent issues get handled on your team after hours.",
+    "violations": [
+      "required-setup"
+    ]
+  },
+  {
+    "promptRowId": "44659942-33ef-449c-999c-27b11d103a15",
+    "promptId": "vertical-consulting-427c7148",
+    "text": "Tell me about your toughest workstream.",
+    "violations": [
+      "required-setup",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "57656da9-eddb-4f25-bcc5-7a5d0ae38f38",
+    "promptId": "vertical-consulting-f6f67398",
+    "text": "Walk me through your week on the client site.",
+    "violations": [
+      "required-setup",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "c77d6488-5a59-486b-956e-1ab5b1a02d73",
+    "promptId": "vertical-consulting-3113c2df",
+    "text": "Introduce yourself to a new client sponsor.",
+    "violations": [
+      "required-setup",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "6db6f401-fade-4806-aba6-52a196dfe508",
+    "promptId": "vertical-consulting-401b23ab",
+    "text": "Tell me about your engagement portfolio.",
+    "violations": [
+      "required-setup",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8f170c79-f0fe-4c95-aa16-67a0b8dce8ea",
+    "promptId": "vertical-consulting-643d6eee",
+    "text": "Open the steering committee with the agenda.",
+    "violations": [
+      "required-setup",
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "88ae9100-a1ab-4ad8-9777-1188ba451d0f",
+    "promptId": "vertical-education-af91367e",
+    "text": "Tell me about your day teaching.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ce2a83cd-1489-4598-b939-5b008fd14bc6",
+    "promptId": "vertical-education-4d1b4535",
+    "text": "Walk me through your teaching experience.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6036ce4b-c9fc-4499-a0ad-9a39421a7dec",
+    "promptId": "vertical-education-516f3420",
+    "text": "Introduce yourself to the new staff at the August meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6441d05d-6e91-49e8-abcf-737f9a4edb39",
+    "promptId": "vertical-education-eb81340e",
+    "text": "Tell me about your weekend.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6d2e472e-fd30-4cc6-a6a0-8eebd332d04f",
+    "promptId": "vertical-education-c5f34e2b",
+    "text": "Open the IEP meeting with your recommendation.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1aacbb98-48a4-4ebb-9326-3fba13beb322",
+    "promptId": "vertical-education-07ab99c8",
+    "text": "Start the conference with your assessment of the student.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "82870709-4542-447a-b8cc-457858c364c6",
+    "promptId": "vertical-education-8e3e3d75",
+    "text": "Open the morning announcement to a divided school after a fight Friday.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "b3299993-d25e-41e9-9674-b42d981d5dff",
+    "promptId": "vertical-finance-627ebe8e",
+    "text": "Tell me about your top deal.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "facc8714-16fa-4274-8ee9-7b8f9c4f9aec",
+    "promptId": "vertical-finance-689a6ea2",
+    "text": "Walk me through your week on the desk.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1c0db933-be0f-47d8-bbdc-acad31b94346",
+    "promptId": "vertical-finance-41f45a74",
+    "text": "Introduce yourself to a new LP at the annual meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "315728a0-ae71-42a9-a0a7-9d2914ee47fb",
+    "promptId": "vertical-finance-f23966d4",
+    "text": "Tell me about the pipeline at the next pipeline meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1c1c4308-4f7c-4b69-8a58-ee48cfbb441d",
+    "promptId": "vertical-finance-ab63cb45",
+    "text": "Open the annual investor day to a roomful of skeptical LPs.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fb05532e-cb4a-4e7f-b3a5-580353bdfba7",
+    "promptId": "vertical-healthcare-929a2ef5",
+    "text": "Open the patient handoff to the night team.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "a4ae2990-dd6f-4293-a07c-efcfc675ed57",
+    "promptId": "vertical-healthcare-d073cc86",
+    "text": "Open morning rounds with the most important update.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f73af9f6-9607-478b-8e6c-2a82c095a48f",
+    "promptId": "vertical-healthcare-acf311e3",
+    "text": "Introduce yourself to the patient's family in the ICU waiting room.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "9fb8b567-7467-4e52-965a-7e7de3fd74d7",
+    "promptId": "vertical-healthcare-aac161f1",
+    "text": "Open the family meeting with the headline.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "d759ca5b-25dd-4e9c-ae78-8a5df1cb7384",
+    "promptId": "vertical-healthcare-705ec88e",
+    "text": "Kick off the M&M case with the central question.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "2627194a-2272-4ffc-bba9-af08bb780180",
+    "promptId": "vertical-healthcare-3f5a4e03",
+    "text": "Open the code debrief by naming the central decision point.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "248f35d2-e94d-482a-a737-0641f97e4959",
+    "promptId": "vertical-healthcare-743792c8",
+    "text": "Open the peer-to-peer call by stating the ask.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "0d52a706-ffe0-4d2f-b23d-3fc65f5a0d26",
+    "promptId": "vertical-healthcare-fd211bd3",
+    "text": "Open the consent conversation with the procedure name.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f4670578-c2f6-4ed0-b383-943e8cbfffbe",
+    "promptId": "vertical-healthcare-f0554eba",
+    "text": "Open testimony in front of a state regulator after a patient death.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "6d43ebf6-4a0f-4069-81c6-42584659ead3",
+    "promptId": "vertical-law-8935e58c",
+    "text": "Tell me about your top case.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "e74de5db-9d5c-4204-8851-3b4fb4530b16",
+    "promptId": "vertical-law-a7a1db36",
+    "text": "Walk me through your week.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1bbe3331-7bcc-4f83-9b96-b8d9a1d56f3e",
+    "promptId": "vertical-law-02c80442",
+    "text": "Introduce yourself to a new client at the intake meeting.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "3628f14e-7e2c-4208-91c8-d88e7dae77d2",
+    "promptId": "vertical-law-7d2aeb5a",
+    "text": "Tell me about your litigation docket.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ab6ca2e4-5a03-489c-a2a1-15e6936e4c42",
+    "promptId": "vertical-law-f675aa87",
+    "text": "Open the pretrial conference with the agenda.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "b2f97348-0d3b-4204-abe1-cfafa0d63be6",
+    "promptId": "vertical-law-cd8b513e",
+    "text": "Kick off the deposition with the ground rules.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "2adcdb44-6c6d-4c84-b788-169a2d250cbd",
+    "promptId": "vertical-law-b6aff0fd",
+    "text": "Open the case status call with the most important development.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8c4cbd41-1420-4f2a-849e-d18beeff678b",
+    "promptId": "vertical-law-1cd4629a",
+    "text": "Start the closing argument with your trial theme.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "d9f63234-a128-4f01-ad10-79c8bc4bee98",
+    "promptId": "vertical-law-52fbdef9",
+    "text": "Open oral argument before a hot panel without a windup.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "12987794-fbd3-48fc-b4a8-ccef8c594210",
+    "promptId": "vertical-law-05ca6316",
+    "text": "Open the all-firm meeting after the firm just lost its largest matter.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "440ff071-d9f8-47cf-ad65-37d7976d5886",
+    "promptId": "vertical-leadership-7f12bdec",
+    "text": "Open the one-on-one with your top direct report.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f39e8dc9-4fec-4829-9149-92a84c5a9965",
+    "promptId": "vertical-leadership-3481b59e",
+    "text": "Open a coffee chat with a peer you've avoided for a month.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "5a7deabb-3ff0-4711-9249-8566348edb91",
+    "promptId": "vertical-leadership-6e43cbf1",
+    "text": "Introduce yourself to the team you just inherited.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "eebc1f53-cd7f-4d42-95f3-d80f64a89766",
+    "promptId": "vertical-leadership-dbca8a49",
+    "text": "Start the skip-level meeting with the question you actually care about.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "e2d7907d-22f6-4a60-9ecb-3a176dfff24b",
+    "promptId": "vertical-leadership-2d4afad9",
+    "text": "Open the exec meeting with the most important news.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8429fa0b-4348-4075-9334-d068bbb4099e",
+    "promptId": "vertical-leadership-d2739b34",
+    "text": "Kick off the partner QBR with what matters most.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "2ac71e8a-0e94-4db9-9625-6bacac3690a0",
+    "promptId": "vertical-other-41fa4eea",
+    "text": "Tell me about your week.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "8f30b679-a84c-47ab-b059-92d887ddb759",
+    "promptId": "vertical-other-80106ce9",
+    "text": "Walk me through your career so far.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "96114858-0e16-4bb3-b9f2-a4618c344815",
+    "promptId": "vertical-sales-627ebe8e",
+    "text": "Tell me about your top deal.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "5b18c31c-acfe-4fb9-9763-a26bdaab17c1",
+    "promptId": "vertical-sales-a7a1db36",
+    "text": "Walk me through your week.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "16cfa061-9ece-404e-b471-e04359696c0d",
+    "promptId": "vertical-sales-80b0c33a",
+    "text": "Tell me about your pipeline.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "ce77ec28-5155-4bde-8ce8-14d550fa08bd",
+    "promptId": "vertical-consulting-8f9ff19c",
+    "text": "Summarize the engagement's central finding in one sentence.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "9caed955-702a-46ef-9b50-8955d6a51787",
+    "promptId": "vertical-consulting-cba6ed0f",
+    "text": "Describe your role on the engagement.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bf6536b1-0707-4301-a6a8-8adb630961f9",
+    "promptId": "vertical-consulting-b7a85cfa",
+    "text": "Define what the firm does for the client at a cocktail party.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "17503079-63a7-40c6-8e20-6c6787dbbe69",
+    "promptId": "vertical-consulting-c4d7392a",
+    "text": "Sum up this week's work in one sentence.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d3cfd072-dfce-4166-8055-785a6b47bdb0",
+    "promptId": "vertical-consulting-fa6c7731",
+    "text": "Summarize the CFO's central objection.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "27ef4bb0-b373-4340-b511-fea9726c88c9",
+    "promptId": "vertical-consulting-8c700450",
+    "text": "State the engagement's central risk.",
+    "violations": [
+      "jargon-wall",
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "4b8c2bd7-dc41-487d-9491-2c82e0bf8c43",
+    "promptId": "vertical-healthcare-506e3432",
+    "text": "Sum up the shift in one sentence for the relief team.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "78b59bb6-4843-46dd-b1db-3b82157bcfbd",
+    "promptId": "vertical-healthcare-6862b4e7",
+    "text": "Define what your unit does in one sentence to a visitor.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "41292574-5ec1-4344-9636-4df2c2c68872",
+    "promptId": "vertical-healthcare-22b53caf",
+    "text": "Summarize the family's biggest fear after the meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "bde8c6e6-fba6-4c8d-b161-ab86cae10fd5",
+    "promptId": "vertical-healthcare-cb1795a9",
+    "text": "State the clinical question the M&M case turns on.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "16ca8844-c7ea-4fba-a628-daccffc44425",
+    "promptId": "vertical-healthcare-3e5e35c2",
+    "text": "Define why this patient needs ICU-level care in one line.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "c00cda04-d04a-44ee-90f7-9bd8bd61c350",
+    "promptId": "vertical-healthcare-c1f59625",
+    "text": "Summarize the consent risks in one sentence for the patient.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "dcb6705d-462a-4d23-8816-8d3a41c82ab5",
+    "promptId": "vertical-healthcare-4e035aa4",
+    "text": "Summarize the entire peer-to-peer denial appeal in one line.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "d979438b-916e-4c88-a449-bfa559c541bd",
+    "promptId": "vertical-healthcare-0d11f1ad",
+    "text": "State the hospital's reason to exist for the next board meeting.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "14fbbb84-adbb-4b9d-a420-c3f79a438d78",
+    "promptId": "vertical-law-3299e3df",
+    "text": "Summarize the case theory in one sentence.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "1d173d31-10d8-475f-a357-2f74b77979e4",
+    "promptId": "vertical-law-7a66dd43",
+    "text": "Describe your litigation practice.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "f70a8f81-1b51-42f4-bed3-8ff558e65363",
+    "promptId": "vertical-law-e0e33e2b",
+    "text": "Define what your firm does to a stranger at a bar association event.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "be230761-01d1-406f-a295-3ce189120f25",
+    "promptId": "vertical-law-309d5af2",
+    "text": "Sum up the deposition in one sentence.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "f0f81782-fa33-4d7c-a6c6-05813bb9af0e",
+    "promptId": "vertical-law-5402f843",
+    "text": "Summarize opposing counsel's strongest argument.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8e8e22df-0527-4da0-b348-7a45c99a0753",
+    "promptId": "vertical-law-8614bda7",
+    "text": "State the matter's central risk to your client.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "a88b7de8-d32f-4f98-8607-f1252add245e",
+    "promptId": "vertical-law-90cac5a1",
+    "text": "Define why the jury should believe your client over the prosecutor's witness.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "299603e5-7d3b-46a3-af6d-8276a657e724",
+    "promptId": "vertical-law-6e3cd494",
+    "text": "Sum up the mediation outcome in one sentence for the GC.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "00a83449-2f70-4aa7-8781-313f0252675a",
+    "promptId": "vertical-law-8dfc850f",
+    "text": "Summarize a billion-dollar trial outcome in one sentence for the firm-wide email.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "baad8c0b-fe22-420e-8bbd-1b6a69946564",
+    "promptId": "vertical-law-27f957fb",
+    "text": "State the appellate brief's core argument in a single sentence for the cover page.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "50155a08-03f7-4bf0-86b1-41cbe57a452e",
+    "promptId": "vertical-leadership-8cf94f99",
+    "text": "Sum up your team's quarter in one sentence.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "6a02b3c3-3ba2-4131-ba48-114ddbda9982",
+    "promptId": "vertical-leadership-cff17573",
+    "text": "Describe what your team owns in one sentence to a new peer.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "3836f71a-683a-4709-8d8d-77a01dc25dc1",
+    "promptId": "vertical-leadership-f5af6487",
+    "text": "State the one piece of feedback your top report needs to hear.",
+    "violations": [
+      "persona"
+    ]
+  },
+  {
+    "promptRowId": "8d49c855-0ba6-4520-bba2-c6c9c123d2ae",
+    "promptId": "vertical-leadership-b002bfe6",
+    "text": "Sum up your skip-level's development goal for the year in one sentence.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "dbba3741-0f8c-421b-a695-6b3579c3c233",
+    "promptId": "vertical-leadership-44c6b9e9",
+    "text": "State the central reason this reorg is happening.",
+    "violations": [
+      "not-universal"
+    ]
+  },
+  {
+    "promptRowId": "fd457fe2-37bd-4321-928b-4e26517c4767",
+    "promptId": "vertical-leadership-d305dd8c",
+    "text": "Sum up the case for renewing the partnership in one sentence.",
+    "violations": [
+      "not-universal"
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+import postgres from "postgres";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+const sql = postgres(process.env.DATABASE_URL, { max: 4, prepare: false });
+const exerciseId = "1552dddb-4271-4d01-b856-03977f55a54a";
+const vertical = "law";
+const personas = ["peer","manager"];
+const goals = ["thinking_on_the_spot","negotiation","confidence","persuasion","asking_questions","giving_feedback","explaining"];
+const legacy = ["business","current events"];
+const [r1] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND jsonb_exists(tags, ${vertical})`;
+console.log("v (jsonb_exists):", r1.n);
+const [r2] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND jsonb_exists_any(tags, ${personas}::text[])`;
+console.log("p (jsonb_exists_any):", r2.n);
+const [r3] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND (jsonb_exists(tags, ${vertical}) OR jsonb_exists_any(tags, ${legacy}::text[]))`;
+console.log("v+legacy union:", r3.n);
+const [r4] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND jsonb_exists(tags, 'general')`;
+console.log("general:", r4.n);
+const [r5] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND jsonb_exists_any(tags, ${goals}::text[])`;
+console.log("g (jsonb_exists_any):", r5.n);
+// Combined v+p+g
+const [r6] = await sql`SELECT COUNT(*)::int n FROM cognify_v2.exercise_prompts WHERE exercise_id = ${exerciseId} AND is_active = true AND (jsonb_exists(tags, ${vertical}) OR jsonb_exists_any(tags, ${legacy}::text[])) AND jsonb_exists_any(tags, ${personas}::text[]) AND jsonb_exists_any(tags, ${goals}::text[])`;
+console.log("v+p+g combined:", r6.n);
+await sql.end();
