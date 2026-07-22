@@ -299,7 +299,7 @@ function LabShell({
         <div className="flex items-center gap-2 rounded-full border border-ink-200 bg-white/90 px-3 py-1.5 backdrop-blur dark:border-ink-700 dark:bg-ink-900/90">
           <Beaker className="size-3.5 text-brand-purple dark:text-brand-lavender" strokeWidth={2.5} />
           <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-ink-700 dark:text-ink-200">
-            Skill Lab
+            Application Lab
           </p>
         </div>
         {showHomeLink && (
@@ -365,7 +365,7 @@ function Lobby({ onPick }: { onPick: (s: Style) => void }) {
     <div>
       <div className="mb-8">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-purple dark:text-brand-lavender">
-          Skill Lab
+          Application Lab
         </p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-[-0.02em] text-ink-900 md:text-5xl dark:text-white">
           Choose how you want to train.

@@ -3,7 +3,7 @@
 // PRD v3 Phase 4 — Skill Lab v2 application session runner (PRD §6).
 //
 // The user picked the APPLICATION (route param); this client runs:
-//   length pick (3/5/10) → per exercise: prompt pick → Coach's Insight →
+//   rep count pick (1–5 stepper) → per exercise: prompt pick → Coach's Insight →
 //   First Rep → feedback ("Start your Retry") → required Retry →
 //   Improvement Review → next exercise → Session Complete.
 //
@@ -48,6 +48,7 @@ import CountUpScore from "@/components/product/workout-shell/CountUpScore";
 import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 import { RepSurface } from "@/components/product/RepSurface";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
+import { Stepper } from "@/components/ui/Stepper";
 import {
   deriveCoachFocus,
   deriveRetryFocus,
@@ -249,7 +250,7 @@ export default function AppSessionClient({
       // screen, no banking an empty session. (An open session's resume
       // snapshot stays intact, so it can still be resumed later.)
       if (finalOutcomes.length === 0) {
-        router.push("/skill-lab");
+        router.push("/application-lab");
         return;
       }
       const composites = [
@@ -397,7 +398,7 @@ export default function AppSessionClient({
       <header className="mb-5">
         <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
           <FlaskConical className="w-3.5 h-3.5" />
-          Skill Lab · {label}
+          Application Lab · {label}
         </div>
         {phase.kind !== "length-pick" && phase.kind !== "complete" && (
           <p className="mt-1 text-xs text-slate-500 dark:text-ink-400">
@@ -598,6 +599,8 @@ function ResumeOffer({
   );
 }
 
+/** Session length picker — a 1–5 rep stepper (default 3) plus a Start
+ *  CTA. Replaces the old fixed 3/5/10 buttons (overhaul P1, DEC-7). */
 function LengthPick({
   label,
   description,
@@ -609,33 +612,38 @@ function LengthPick({
   error: string | null;
   onPick: (count: number) => void;
 }) {
+  const [count, setCount] = useState(3);
   return (
-    <div className="flex flex-col items-center text-center gap-3 py-4">
+    <div className="flex flex-col items-center text-center gap-4 py-4">
       <h2 className="text-xl font-bold text-slate-900 dark:text-white">
         {label} session
       </h2>
       <p className="text-sm text-slate-500 dark:text-ink-400 max-w-md">
-        {description} Every exercise runs the full loop: rep → coaching →
+        {description} Every rep runs the full loop: rep → coaching →
         retry → improvement review.
       </p>
-      <div className="mt-2 flex flex-wrap justify-center gap-2">
-        {[3, 5, 10].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onPick(n)}
-            className={cn(
-              "min-h-[48px] px-5 py-3 rounded-xl font-semibold",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
-              n === 3
-                ? "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow"
-                : "border border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800",
-            )}
-          >
-            {n} exercises{n === 3 ? " · recommended" : ""}
-          </button>
-        ))}
+      <div className="mt-2 w-full max-w-xs rounded-2xl border border-slate-200 dark:border-ink-700 bg-slate-50/60 dark:bg-ink-900 px-5 py-4">
+        <Stepper
+          value={count}
+          onChange={setCount}
+          min={1}
+          max={5}
+          label="How many reps?"
+          helper="3 · recommended"
+        />
       </div>
+      <button
+        type="button"
+        onClick={() => onPick(count)}
+        className={cn(
+          "min-h-[48px] px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-1.5",
+          "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
+        )}
+      >
+        Start session
+        <ArrowRight className="w-4 h-4" />
+      </button>
       {error && (
         <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">
           {error}
@@ -872,14 +880,14 @@ function SessionComplete({
 
       <div className="flex gap-2 mt-2">
         <Link
-          href="/skill-lab"
+          href="/application-lab"
           className={cn(
             "min-h-[44px] px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-1.5",
             "brand-gradient text-white shadow-[var(--shadow-glow-sm)] hover:shadow-[var(--shadow-glow-md)] transition-shadow",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900",
           )}
         >
-          Back to Skill Lab <ArrowRight className="w-4 h-4" />
+          Back to Application Lab <ArrowRight className="w-4 h-4" />
         </Link>
         <Link
           href="/dashboard"

@@ -56,7 +56,17 @@ export type StartSkillLabSessionResult =
     }
   | { ok: false; reason: "invalid_input" | "no_user" | "no_catalog" | "db_error" | "flag_off" };
 
-const SESSION_LENGTHS = new Set([3, 5, 10]);
+// Overhaul P1 (DEC-7): the picker is now a 1–5 stepper (was fixed
+// 3/5/10). Accept any integer rep count in [1, 5].
+const MIN_SESSION_LENGTH = 1;
+const MAX_SESSION_LENGTH = 5;
+function isValidSessionLength(count: number): boolean {
+  return (
+    Number.isInteger(count) &&
+    count >= MIN_SESSION_LENGTH &&
+    count <= MAX_SESSION_LENGTH
+  );
+}
 /** Exercises used in the user's Skill Lab reps within this window are
  *  deprioritized (PRD §6.6: recently completed exercises deprioritized). */
 const APP_DEDUPE_DAYS = 7;
@@ -66,7 +76,7 @@ export async function startSkillLabSessionV2(input: {
   count: number;
 }): Promise<StartSkillLabSessionResult> {
   if (!isSkillLabAppsEnabled()) return { ok: false, reason: "flag_off" };
-  if (!isApplicationId(input.applicationId) || !SESSION_LENGTHS.has(input.count)) {
+  if (!isApplicationId(input.applicationId) || !isValidSessionLength(input.count)) {
     return { ok: false, reason: "invalid_input" };
   }
   const user = await currentUser();

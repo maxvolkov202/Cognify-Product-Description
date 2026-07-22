@@ -8,7 +8,7 @@ const modes = [
   },
   {
     icon: Beaker,
-    title: "Skill Lab",
+    title: "Application Lab",
     body: "Applied practice. Train the real-world applications of communication — storytelling, presenting, teaching, interviewing, persuasion — until they click.",
   },
   {

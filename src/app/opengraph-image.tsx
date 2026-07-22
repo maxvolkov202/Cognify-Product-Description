@@ -91,7 +91,7 @@ export default async function Image() {
           <div style={{ display: "flex", gap: 32 }}>
             <span>Daily Workout</span>
             <span style={{ opacity: 0.5 }}>·</span>
-            <span>Skill Lab</span>
+            <span>Application Lab</span>
             <span style={{ opacity: 0.5 }}>·</span>
             <span>Build a Rep</span>
           </div>

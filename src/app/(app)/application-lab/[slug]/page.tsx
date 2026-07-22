@@ -27,7 +27,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const label = isApplicationId(slug) ? APPLICATION_LABELS[slug] : "Session";
   return {
-    title: `${label} · Skill Lab · Cognify`,
+    title: `${label} · Application Lab · Cognify`,
     description: `Train ${label} with focused reps, coaching, and retries.`,
   };
 }
@@ -44,7 +44,7 @@ export default async function SkillLabApplicationPage({
     }
     notFound();
   }
-  if (!isSkillLabAppsEnabled()) redirect("/skill-lab");
+  if (!isSkillLabAppsEnabled()) redirect("/application-lab");
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900">

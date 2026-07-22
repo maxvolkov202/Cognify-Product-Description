@@ -57,7 +57,7 @@ export const WEEKLY_CHALLENGE_BANK: readonly WeeklyChallenge[] = [
   {
     id: "wc_lab_reps_6",
     title: "Lab hours",
-    description: "Complete 6 Skill Lab reps this week.",
+    description: "Complete 6 Application Lab reps this week.",
     target: 6,
     bonusXp: 100,
     increment: (e) => (e.mode === "skill_lab" ? 1 : 0),

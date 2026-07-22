@@ -19,8 +19,8 @@ const OUT =
 const PAGES: { route: string; name: string; desktopToo?: boolean }[] = [
   { route: "/dashboard", name: "dashboard", desktopToo: true },
   { route: "/workout", name: "workout", desktopToo: true },
-  { route: "/skill-lab", name: "skill-lab" },
-  { route: "/skill-lab/storytelling", name: "skill-lab-storytelling" },
+  { route: "/application-lab", name: "application-lab" },
+  { route: "/application-lab/storytelling", name: "application-lab-storytelling" },
   { route: "/build-a-rep", name: "build-a-rep" },
   { route: "/progress", name: "progress", desktopToo: true },
   { route: "/achievements", name: "achievements" },

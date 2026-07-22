@@ -33,6 +33,27 @@ const CSP_DIRECTIVES = [
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // Skill Lab → Application Lab route rename (overhaul P1, DEC-4). The
+  // surface moved from /skill-lab to /application-lab; keep the old paths
+  // working (bookmarks, old share links, `/skill-lab/storytelling`,
+  // `/skill-lab/clarity/exemplars`) with a permanent 308 redirect that
+  // preserves the sub-path. Query strings (e.g. ?focus=) are carried
+  // through automatically. DB `mode='skill_lab'` + code identifiers are
+  // unchanged — this is a URL + copy rename only.
+  async redirects() {
+    return [
+      {
+        source: "/skill-lab",
+        destination: "/application-lab",
+        permanent: true,
+      },
+      {
+        source: "/skill-lab/:path*",
+        destination: "/application-lab/:path*",
+        permanent: true,
+      },
+    ];
+  },
   // typedRoutes: intentionally DISABLED. It's an experimental feature
   // that caused more type friction (Footer/GradientButton/Logo all hit
   // RouteImpl errors) than it shipped value. We use Next.js Link with

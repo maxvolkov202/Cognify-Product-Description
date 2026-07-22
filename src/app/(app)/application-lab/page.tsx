@@ -36,7 +36,7 @@ import {
 import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 
 export const metadata: Metadata = {
-  title: "Skill Lab · Cognify",
+  title: "Application Lab · Cognify",
   description:
     "Train real-world communication applications — Storytelling, Presenting, Teaching, Interviewing, Persuasion — with focused reps and coaching.",
 };
@@ -125,7 +125,7 @@ async function ApplicationsHub() {
         <header className="mb-8">
           <p className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-purple-600 dark:text-brand-lavender">
             <FlaskConical className="size-3.5" strokeWidth={2.5} />
-            Skill Lab
+            Application Lab
           </p>
           <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Master the{" "}
@@ -140,16 +140,21 @@ async function ApplicationsHub() {
           </p>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {APPLICATION_IDS.map((appId) => {
+        {/* 5 applications in a symmetric grid. On desktop we use a 6-col
+            track so each card spans 2 columns (3 per row); the 4th card
+            starts at column 2 so the trailing pair (Interviewing +
+            Persuasion) centers under the top three instead of hugging the
+            left edge. At sm the plain 2-col flow is unaffected. */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {APPLICATION_IDS.map((appId, i) => {
             const Icon = APPLICATION_ICONS[appId];
             const est = appScores[appId];
             const accent = APPLICATION_ACCENTS[appId];
             return (
               <Link
                 key={appId}
-                href={`/skill-lab/${appId}`}
-                className={`group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${accent.hoverBorder}`}
+                href={`/application-lab/${appId}`}
+                className={`group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg lg:col-span-2 ${i === 3 ? "lg:col-start-2" : ""} ${accent.hoverBorder}`}
               >
                 {/* Per-application gradient wash, revealed on hover. */}
                 <div
@@ -197,8 +202,8 @@ async function ApplicationsHub() {
         </div>
 
         <p className="mt-8 text-xs text-slate-400 dark:text-ink-500">
-          Every rep is scored on the six Core Skills — Skill Lab trains how
-          you apply them. Fundamentals live in your{" "}
+          Every rep is scored on the six Core Skills — Application Lab trains
+          how you apply them. Fundamentals live in your{" "}
           <Link
             href="/workout"
             className="inline-flex min-h-[44px] items-center -my-3 align-middle font-semibold text-purple-600 dark:text-brand-lavender hover:underline"

@@ -22,8 +22,8 @@ type Props = {
   /** Ch.12 — when sub-skill data is available for the weakest dimension,
    *  surface "weakest within {dim}: {subSkill} — drill it" as the
    *  headline instead of dimension-level only. The drill CTA targets
-   *  the sub-skill via `/skill-lab?focus={dim}&subSkill={id}` so the
-   *  Skill Lab can pre-bias the slate. Optional + nullable so the
+   *  the sub-skill via `/application-lab?focus={dim}&subSkill={id}` so the
+   *  Application Lab can pre-bias the slate. Optional + nullable so the
    *  card stays back-compat when the FF is off or no sub-skill stats
    *  exist yet. */
   weakestSubSkill?: {
@@ -81,8 +81,8 @@ export function WeakestLinkCard({
   const { dimension, averageScore } = weakest;
   const accent = DIMENSION_ACCENTS[dimension];
   const drillHref = weakestSubSkill
-    ? `/skill-lab?focus=${dimension}&subSkill=${weakestSubSkill.id}`
-    : `/skill-lab?focus=${dimension}`;
+    ? `/application-lab?focus=${dimension}&subSkill=${weakestSubSkill.id}`
+    : `/application-lab?focus=${dimension}`;
   const drillLabel = weakestSubSkill
     ? `Drill ${SUB_SKILL_LABELS[weakestSubSkill.id]}`
     : "Drill now";

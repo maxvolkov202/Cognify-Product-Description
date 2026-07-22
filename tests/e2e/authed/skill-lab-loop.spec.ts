@@ -1,8 +1,11 @@
 /**
- * Phase 11.B4 — Skill Lab application session, LIVE:
- * hub → Storytelling → length pick → prompt → insight → First Rep →
+ * Phase 11.B4 / Overhaul P1 — Application Lab application session, LIVE:
+ * hub → Storytelling → 1–5 rep stepper → prompt → insight → First Rep →
  * required Retry → Improvement Review → quit banks the session →
  * §6.8 Session Complete renders.
+ *
+ * Parametrized over the stepper's range extremes (1 and 5) so the P1
+ * smoke test exercises both clamp ends driving real session length.
  *
  * Run: AUTHED=1 npx playwright test tests/e2e/authed/skill-lab-loop.spec.ts
  */
@@ -10,15 +13,28 @@
 import { test, expect } from "@playwright/test";
 import { recordRep, awaitFeedback } from "./helpers";
 
-test("skill lab session: application loop → banked session complete", async ({
-  page,
-}) => {
-  await page.goto("/skill-lab/storytelling", { waitUntil: "networkidle" });
+/** Drive the stepper (default 3) to `count` via its +/- buttons. */
+async function setRepCount(page: import("@playwright/test").Page, count: number) {
+  const dec = page.getByRole("button", { name: /Decrease How many reps\?/i });
+  const inc = page.getByRole("button", { name: /Increase How many reps\?/i });
+  for (let i = 3; i > count; i--) await dec.click();
+  for (let i = 3; i < count; i++) await inc.click();
+  await expect(page.getByText(String(count), { exact: true })).toBeVisible();
+}
 
-  // Length pick (3 recommended).
-  await page.getByRole("button", { name: /3 exercises/i }).click();
+for (const count of [1, 5]) {
+  test(`application lab session (${count} reps): loop → banked session complete`, async ({
+    page,
+  }) => {
+    await page.goto("/application-lab/storytelling", {
+      waitUntil: "networkidle",
+    });
 
-  // Prompt → insight → first rep.
+    // 1–5 rep stepper (default 3) → set to the target → Start.
+    await setRepCount(page, count);
+    await page.getByRole("button", { name: /Start session/i }).click();
+
+    // Prompt → insight → first rep.
   const promptCard = page.getByTestId("prompt-card").first();
   await expect(promptCard).toBeVisible({ timeout: 60_000 });
   await promptCard.click();
@@ -50,4 +66,5 @@ test("skill lab session: application loop → banked session complete", async ({
   await expect(page.getByText(/Coach's call/i)).toBeVisible({
     timeout: 30_000,
   });
-});
+  });
+}

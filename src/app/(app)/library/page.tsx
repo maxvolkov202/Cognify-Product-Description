@@ -334,7 +334,7 @@ export default async function LibraryPage() {
           Watch one. Train one.
         </h3>
         <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
-          Pick a talk above. Notice the move you want to steal. Then run a Daily Workout or open the Skill Lab and put that move into your body.
+          Pick a talk above. Notice the move you want to steal. Then run a Daily Workout or open the Application Lab and put that move into your body.
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link
@@ -344,10 +344,10 @@ export default async function LibraryPage() {
             Start Daily Workout
           </Link>
           <Link
-            href="/skill-lab"
+            href="/application-lab"
             className="inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-white px-5 py-2.5 text-sm font-bold text-brand-purple dark:bg-ink-900 dark:text-brand-lavender"
           >
-            Open Skill Lab
+            Open Application Lab
           </Link>
         </div>
       </section>

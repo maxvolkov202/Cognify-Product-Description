@@ -85,7 +85,7 @@ export const QUEST_BANK: readonly Quest[] = [
   {
     id: "q_focus_drill",
     title: "Drill day",
-    description: "Complete a Skill Lab focus drill.",
+    description: "Complete an Application Lab focus drill.",
     bonusXp: 25,
     check: (i) => i.isFocusDrill,
   },

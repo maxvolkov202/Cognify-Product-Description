@@ -26,12 +26,12 @@ export const dynamic = "force-dynamic";
  * Focus Drills (PRD v3 D9 — 2026-07-06).
  *
  * The dimension-drill mode that used to BE Skill Lab, relocated here as
- * a Daily Workout extra when Skill Lab became the PRD's application
+ * a Daily Workout extra when the lab became the PRD's application
  * trainer. Entry points: workout-completion "keep going" CTA and the
- * dashboard's weakest-link deep-links (which still target /skill-lab
+ * dashboard's weakest-link deep-links (which still target /application-lab
  * ?focus= — that page redirects here under the flag).
  *
- * Flag OFF: /skill-lab still hosts this mode; bounce back rather than
+ * Flag OFF: /application-lab still hosts this mode; bounce back rather than
  * exposing a duplicate surface.
  */
 export default async function DrillsPage({
@@ -46,8 +46,8 @@ export default async function DrillsPage({
   if (!isSkillLabAppsEnabled()) {
     redirect(
       initialFocus
-        ? `/skill-lab?focus=${initialFocus}${initialSubSkill ? `&subSkill=${initialSubSkill}` : ""}`
-        : "/skill-lab",
+        ? `/application-lab?focus=${initialFocus}${initialSubSkill ? `&subSkill=${initialSubSkill}` : ""}`
+        : "/application-lab",
     );
   }
 

@@ -158,7 +158,7 @@ function DimensionRow({
             ))}
             {weakest && (
               <Link
-                href={`/skill-lab?focus=${dimension}&subSkill=${weakest.id}`}
+                href={`/application-lab?focus=${dimension}&subSkill=${weakest.id}`}
                 className="mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
                 style={{ backgroundColor: accent }}
               >
@@ -214,7 +214,7 @@ function SubSkillRow({
         <TrendIcon trend={stat.trend} />
         {ready && (
           <Link
-            href={`/skill-lab?focus=${dimension}&subSkill=${subSkill}`}
+            href={`/application-lab?focus=${dimension}&subSkill=${subSkill}`}
             className="rounded-full px-2 py-1 text-[10px] font-bold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900 dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white"
             aria-label={`Drill ${SUB_SKILL_LABELS[subSkill]}`}
           >

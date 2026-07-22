@@ -16,18 +16,20 @@ import { getCurrentSkillScores } from "@/lib/db/queries/progress";
 // Nav items. Phase 5: /scenario replaced by /build-a-rep. The /scenario
 // route still exists as a redirect to /build-a-rep for backwards compat
 // until Phase 6 cleanup deletes it.
-// Phase 11 nav reshuffle: Workout is the daily-default; Skill Lab is
-// reframed as a focused "Practice" surface for targeted drills,
-// framework practice, and custom reps. The URL stays /skill-lab so
-// links + bookmarks don't break.
+// Phase 11 nav reshuffle: Workout is the daily-default; Application Lab
+// (formerly Skill Lab) is reframed as a focused "Practice" surface for
+// targeted drills, framework practice, and custom reps. Overhaul P1
+// renamed the surface + route to /application-lab (a 308 redirect keeps
+// old /skill-lab links + bookmarks working).
 // `primary: true` items stay as inline desktop tabs; the rest collapse into
 // a "More" dropdown so the header stays uncluttered (mobile shows all in the
 // hamburger panel regardless).
 const navItems = [
   { href: "/dashboard", label: "Dashboard", primary: true },
   { href: "/workout", label: "Workout", primary: true },
-  // D6 — PRD terminology: the mode is "Skill Lab", not "Practice".
-  { href: "/skill-lab", label: "Skill Lab", primary: true },
+  // D6 — PRD terminology: the mode is "Application Lab" (overhaul P1
+  // rename of "Skill Lab"), not "Practice".
+  { href: "/application-lab", label: "Application Lab", primary: true },
   { href: "/build-a-rep", label: "Build a Rep", primary: true },
   { href: "/library", label: "Library" },
   { href: "/progress", label: "Progress" },

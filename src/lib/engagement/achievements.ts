@@ -62,7 +62,7 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   // ——— Exploration ————————————————————————————————————
   { id: "explore_all_dims", bucket: "exploration", name: "All Six", description: "Score every dimension at least once.", tier: "silver" },
   { id: "explore_pressure", bucket: "exploration", name: "Under Pressure", description: "Complete a pressure-mode rep.", tier: "bronze" },
-  { id: "explore_focus_drill", bucket: "exploration", name: "First Skill Lab Completed", description: "Complete your first Skill Lab session.", tier: "bronze" },
+  { id: "explore_focus_drill", bucket: "exploration", name: "First Application Lab Completed", description: "Complete your first Application Lab session.", tier: "bronze" },
   // PRD framing — id stays stable (DB rows reference it); copy renamed.
   { id: "explore_build_a_rep", bucket: "exploration", name: "First Build a Rep Completed", description: "Complete your first Build a Rep for a real moment.", tier: "bronze" },
   { id: "explore_first_perfect", bucket: "exploration", name: "No Notes", description: "Hit 95+ on every dimension in a single rep.", tier: "platinum" },

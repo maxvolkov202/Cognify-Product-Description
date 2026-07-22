@@ -16,7 +16,7 @@ import {
 } from "@/lib/ai/exemplars";
 
 export const metadata: Metadata = {
-  title: "Exemplars · Skill Lab · Cognify",
+  title: "Exemplars · Application Lab · Cognify",
   description:
     "Hear what each score band sounds like — model lines per dimension authored against the rubric.",
 };
@@ -74,11 +74,11 @@ export default async function ExemplarsPage({
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-10 md:py-14">
       <Link
-        href="/skill-lab"
+        href="/application-lab"
         className="mb-4 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-500 hover:text-ink-900"
       >
         <ArrowLeft className="size-3" strokeWidth={2.5} />
-        Back to Skill Lab
+        Back to Application Lab
       </Link>
 
       <header className="mb-10">

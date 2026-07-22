@@ -191,7 +191,7 @@ export function WhyThisMattersPopover({
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <a
-                  href={`/skill-lab/${dimension}/exemplars`}
+                  href={`/application-lab/${dimension}/exemplars`}
                   className="inline-flex items-center gap-1 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-2.5 py-1 text-[11px] font-bold text-brand-purple hover:bg-brand-purple/15"
                 >
                   Hear what each band sounds like →
