@@ -283,7 +283,22 @@ Unit tests for the new floors pass.
 
 ---
 
-## Phase 4 — Social on dashboard + live-feed fixes + leaderboard centering  ✅ merged 2026-07-22 (`feat/overhaul-p4-social`, PR #47) · ⏳ awaiting prod deploy + Max's prod verify
+## Phase 4 — Social on dashboard + live-feed fixes + leaderboard centering  ✅ merged + **deployed to prod** 2026-07-22 (`feat/overhaul-p4-social` PR #47; layout follow-up `feat/overhaul-p4b-friends-layout` PR #49) · ⏳ Max's prod verify
+
+> **Deploy note (process fix):** P4 was originally marked "done" at *merge* but never deployed — this fork
+> is **not** git-auto-deployed, so cognifygym.com kept serving the pre-P4 build and every fix looked
+> broken. Deployed via `vercel deploy --prod` 2026-07-22 (dpl `2b3RVkWSmtHJoGtn1UuKhTtuDwsW`, aliased to
+> www.cognifygym.com, verified Ready + HTTP 200). **Going forward: a phase is not done until
+> `vercel deploy --prod` runs and the alias is confirmed to serve the new deployment.**
+>
+> **P4b follow-up (PR #49, from Max's prod feedback):** (a) reformatted `/friends` — friends span the full
+> width in a responsive 2/3-up grid, Challenges + Live feed sit side by side below (kills the dead space
+> beside the long feed); (b) leaderboard now opens on **"Top communicators"** (comm_score) as the default +
+> first chip. The "someone"/"delivery"/no-"Show more"/uncentered-empty-state symptoms Max saw were all the
+> stale build — fixed by the deploy, not code.
+>
+> **Still OFF in prod:** the dashboard "Friends activity" card (4.1) is gated by `FF_DASHBOARD_SOCIAL`, which
+> is unset in prod → card hidden. Set `FF_DASHBOARD_SOCIAL=true` (prod env) + redeploy to land it.
 
 **Goal:** put a friends-activity feed on the dashboard, fix the feed showing "someone" and identical
 "strongest: delivery", add 10-entries + "Show more", and center the leaderboard "My team" empty state.
@@ -808,3 +823,16 @@ the per-phase checklists for a single end-to-end pass.)
   (blank-name → email fallback). No calibration impact — social/XP ≠ score. **Pending:** prod deploy (Vercel
   CLI not installed this session) + Max's prod verify; 4.1's two card items need `FF_DASHBOARD_SOCIAL=true` set
   in prod env, 4.2–4.5 are unflagged and go live on deploy.
+- 2026-07-22 — **Phase 4 DEPLOYED + P4b follow-up.** Root cause of Max seeing "someone"/"strongest: delivery"/
+  no-"Show more"/uncentered empty state on cognifygym.com: **P4 was merged but never deployed** (this fork is
+  not git-auto-deployed), so prod served the pre-P4 build. Ran `vercel deploy --prod` (CLI 56.5.0 was actually
+  installed + authed as maxvolkov202 — the SessionStart "CLI not installed" hint was wrong); dpl
+  `2b3RVkWSmtHJoGtn1UuKhTtuDwsW`, aliased to www.cognifygym.com, verified Ready + HTTP 200 + alias points at the
+  new deployment. P4b (PR #49, squash-merged `c1ed0dc0`): made "Top communicators" the default+first leaderboard
+  tab, first `/friends` layout pass. P4c (from Max's follow-up — P4b still left dead space under a short
+  Challenges card beside the tall feed): switched `/friends` to a **main + sidebar** layout — wider main column
+  stacks Friends (responsive 2-up grid) over Challenges, narrower Live-feed sidebar is bounded
+  (`lg:max-h-[34rem]`) and scrolls internally on desktop; mobile stacks full width friends→challenges→feed with
+  no height cap. Gate green (lint/test/build). Manual review (layout only, no logic). **Guard added to the
+  Phase 4 header:** a phase isn't done until `vercel deploy --prod` runs and the alias is verified. Dashboard
+  social card (4.1) still needs `FF_DASHBOARD_SOCIAL=true` in prod env — left to Max's call.
