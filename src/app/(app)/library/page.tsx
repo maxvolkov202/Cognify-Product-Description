@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  BookOpen,
-  Mic,
-  PlayCircle,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { ArrowUpRight, BookOpen, Mic, Trophy, Users } from "lucide-react";
 import { getOgImageUrl, faviconForUrl } from "@/lib/library/og-image";
 import { LibraryTypographicHero } from "@/components/product/LibraryTypographicHero";
+import { LibraryPoster } from "@/components/product/LibraryPoster";
 
 export const metadata: Metadata = {
   title: "Library · Cognify",
@@ -285,33 +278,12 @@ export default async function LibraryPage() {
                         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white transition-all hover:-translate-y-0.5 hover:border-brand-purple/40 hover:shadow-[0_18px_44px_-18px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:bg-ink-900"
                       >
                         {heroImage ? (
-                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-ink-900">
-                            <Image
-                              src={heroImage}
-                              alt=""
-                              fill
-                              sizes="(min-width: 768px) 50vw, 100vw"
-                              unoptimized
-                              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                            />
-                            <div
-                              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-900/70 via-transparent to-transparent"
-                              aria-hidden="true"
-                            />
-                            {isVideo && (
-                              <div className="pointer-events-none absolute inset-0 grid place-items-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                                <PlayCircle
-                                  className="size-14 text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
-                                  strokeWidth={1.5}
-                                />
-                              </div>
-                            )}
-                            <div className="absolute left-3 top-3 flex items-center gap-1.5">
-                              <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
-                                {KIND_LABEL[item.kind]}
-                              </span>
-                            </div>
-                          </div>
+                          <LibraryPoster
+                            src={heroImage}
+                            isVideo={isVideo}
+                            kindLabel={KIND_LABEL[item.kind]}
+                            title={item.title}
+                          />
                         ) : (
                           <div className="relative">
                             <LibraryTypographicHero
