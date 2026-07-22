@@ -34,13 +34,15 @@ export function LeaderboardTabs({
   commScore = null,
 }: Props) {
   const v2 = improvement != null;
-  const [scope, setScope] = useState<TabId>(v2 ? "improvement" : "global");
+  // "Top communicators" (Overall Communication Score) opens by default — it's
+  // the most legible, least volatile board, so it's the first chip too.
+  const [scope, setScope] = useState<TabId>(v2 ? "comm_score" : "global");
 
   const tabs: { id: TabId; label: string }[] = [
     ...(v2
       ? [
-          { id: "improvement" as const, label: "Weekly improvement" },
           { id: "comm_score" as const, label: "Top communicators" },
+          { id: "improvement" as const, label: "Weekly improvement" },
         ]
       : []),
     { id: "global" as const, label: "Global" },
