@@ -65,3 +65,45 @@ export async function getAudioSignedUrl(
   }
   return data?.signedUrl ?? null;
 }
+
+/**
+ * Batch-sign several stored audio paths in a single Storage request (vs one
+ * round trip per path). Returns signed URLs positionally aligned to `paths`:
+ * a null/empty input path, a per-path sign error, or unconfigured storage all
+ * yield `null` in that slot so callers can map 1:1 without reordering.
+ */
+export async function getAudioSignedUrls(
+  paths: (string | null | undefined)[],
+  ttlSeconds = SIGNED_URL_TTL_SECONDS,
+): Promise<(string | null)[]> {
+  if (!hasSupabase() || paths.length === 0) {
+    return paths.map(() => null);
+  }
+  // Sign only the non-empty paths, remembering their original index so the
+  // result can be scattered back into a same-length array.
+  const present = paths
+    .map((p, i) => ({ p, i }))
+    .filter((x): x is { p: string; i: number } => !!x.p);
+  if (present.length === 0) return paths.map(() => null);
+
+  const admin = supabaseAdmin();
+  const { data, error } = await admin.storage
+    .from(BUCKET)
+    .createSignedUrls(
+      present.map((x) => x.p),
+      ttlSeconds,
+    );
+  if (error) {
+    console.error("[audio] batch signed URL generation failed:", error.message);
+    return paths.map(() => null);
+  }
+
+  const out: (string | null)[] = paths.map(() => null);
+  (data ?? []).forEach((entry, k) => {
+    const original = present[k];
+    if (original && entry && !entry.error) {
+      out[original.i] = entry.signedUrl ?? null;
+    }
+  });
+  return out;
+}

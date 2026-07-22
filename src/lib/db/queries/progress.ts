@@ -6,6 +6,7 @@ import {
   progressSnapshots,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { getAudioSignedUrls } from "@/lib/audio/upload";
 import type { SkillDimension } from "@/types/domain";
 import type { RepFeedbackDoc } from "@/lib/scoring/feedback-doc";
 import { ALL_DIMENSIONS } from "@/lib/scoring/rubric";
@@ -400,6 +401,59 @@ export async function getRecentReps(
       createdAt: r.createdAt,
       durationMs: r.durationMs,
       topic: r.topic,
+    }));
+  }, []);
+}
+
+/** A recent rep with a short-lived signed audio URL for relisten. */
+export type RelistenRep = {
+  id: string;
+  promptText: string;
+  compositeScore: number;
+  createdAt: Date;
+  durationMs: number;
+  /** Fresh signed playback URL (1h TTL), or null when the rep has no audio. */
+  audioUrl: string | null;
+};
+
+/**
+ * Recent reps from the last `days` days (default 30) with a signed audio URL
+ * for playback. The day window keeps the Progress "Recent reps" list bounded
+ * as a user accumulates history. Audio paths are signed in parallel; a rep
+ * with no stored audio (or when storage is unconfigured) yields `audioUrl:
+ * null` and simply renders without a play button.
+ */
+export async function getRecentRepsWithAudio(
+  userId: string,
+  { days = 30, limit = 30 }: { days?: number; limit?: number } = {},
+): Promise<RelistenRep[]> {
+  return safeDb(async () => {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const rows = await db
+      .select({
+        id: reps.id,
+        promptText: reps.promptText,
+        compositeScore: reps.compositeScore,
+        createdAt: reps.createdAt,
+        durationMs: reps.durationMs,
+        audioUrl: reps.audioUrl,
+      })
+      .from(reps)
+      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
+      .orderBy(desc(reps.createdAt))
+      .limit(limit);
+
+    // Sign every stored path in ONE batch request (raw path -> 1h signed URL),
+    // positionally aligned to rows; empty/no-audio slots come back null.
+    const signedUrls = await getAudioSignedUrls(rows.map((r) => r.audioUrl));
+
+    return rows.map((r, i) => ({
+      id: r.id,
+      promptText: r.promptText,
+      compositeScore: r.compositeScore ?? 0,
+      createdAt: r.createdAt,
+      durationMs: r.durationMs,
+      audioUrl: signedUrls[i] ?? null,
     }));
   }, []);
 }

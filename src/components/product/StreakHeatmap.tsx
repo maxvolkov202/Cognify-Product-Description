@@ -31,7 +31,10 @@ export function StreakHeatmap({ activity, days = 84 }: Props) {
   }
 
   return (
-    <div>
+    // w-full on the root is load-bearing: the flex-1 week columns can only
+    // divide a definite width, so without it the aspect-square cells collapse
+    // to min-content (a tiny strip). With it, cells scale to fill the card.
+    <div className="w-full">
       {/* Cells scale to fill the card width (each week is a flex-1 column,
           each day an aspect-square that grows with it) so the heatmap reads
           large instead of a strip of tiny fixed squares. */}
