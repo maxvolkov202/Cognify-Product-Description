@@ -7,7 +7,11 @@
 
 import { runScoringArm } from "@/lib/ai/score-arms";
 import { selectScoringArm } from "@/lib/ai/score";
-import { applyHybridLayer } from "@/lib/ai/score-shared";
+import {
+  applyHybridLayer,
+  LEAN_SYSTEM_PROMPT,
+  scoringResponseSchema,
+} from "@/lib/ai/score-shared";
 import type { ScoreRepInput, ScoreRepResult } from "@/lib/ai/score";
 import type { SkillDimension } from "@/types/domain";
 
@@ -187,6 +191,12 @@ async function run() {
     process.env.FF_SCORING_VARIANT_ARM = "all-llm";
     check("all-llm arm → all-llm", selectScoringArm("user-1") === "all-llm");
 
+    process.env.FF_SCORING_VARIANT_ARM = "lean-output";
+    check("lean-output arm → lean-output", selectScoringArm("user-1") === "lean-output");
+
+    process.env.FF_SCORING_VARIANT_ARM = "lean-split";
+    check("lean-split arm → lean-split", selectScoringArm("user-1") === "lean-split");
+
     process.env.FF_SCORING_VARIANT_ARM = "not-a-real-arm";
     check("unrecognized arm → control", selectScoringArm("user-1") === "control");
 
@@ -269,6 +279,66 @@ async function run() {
     check("control config blends thinking (≠ raw)", dGet(control, "thinking_quality") !== RAW_THINKING, `got ${dGet(control, "thinking_quality")}`);
     check("all-llm config preserves raw delivery", dGet(allLlm, "delivery") === RAW_DELIVERY, `got ${dGet(allLlm, "delivery")}`);
     check("all-llm config preserves raw thinking", dGet(allLlm, "thinking_quality") === RAW_THINKING, `got ${dGet(allLlm, "thinking_quality")}`);
+  }
+
+  // ── lean-output arm: the lean prompt cuts the accuracy-neutral output ──
+  // The arm's whole thesis is a leaner OUTPUT contract (drop the never-rendered
+  // `signals` narratives + halve the per-dim feedback cap) with byte-identical
+  // SCORING rules, so the numbers are produced by the same reasoning. Assert the
+  // transforms landed and that no other cut leaked in.
+  {
+    // Signals field is gone from the output schema block...
+    check(
+      "lean prompt drops the signals output field",
+      !LEAN_SYSTEM_PROMPT.includes(`"signals": ["..."]`),
+    );
+    // ...feedback cap is halved (400→160)...
+    check(
+      "lean prompt tightens feedback cap to ≤160 chars",
+      LEAN_SYSTEM_PROMPT.includes("no hedging, ≤160 chars.") &&
+        !LEAN_SYSTEM_PROMPT.includes("no hedging, ≤400 chars."),
+    );
+    check(
+      "lean prompt asks for 1 sentence per dim (not 1-2)",
+      LEAN_SYSTEM_PROMPT.includes("1 tight sentence per dimension") &&
+        !LEAN_SYSTEM_PROMPT.includes("1-2 tight sentences per dimension"),
+    );
+    // ...but the load-bearing outputs the user actually reads are untouched.
+    check(
+      "lean prompt keeps the coachFocus contract",
+      LEAN_SYSTEM_PROMPT.includes("COACH'S FOCUS RULES"),
+    );
+    check(
+      "lean prompt keeps the strongerVersion contract",
+      LEAN_SYSTEM_PROMPT.includes("STRONGER VERSION RULES"),
+    );
+  }
+
+  // ── schema tolerates a dimension with no `signals` (lean output) ──
+  // The lean prompt never emits `signals`, so the parse must default it to []
+  // rather than mock-fallback. Control still emits it, so this is byte-neutral
+  // for control (the value is present → default never fires).
+  {
+    const noSignalsDims = DIMS.map((d) => ({
+      dimension: d,
+      score: 70,
+      // NOTE: no `signals` key — exactly what the lean prompt produces.
+      feedback: `f ${d}`,
+      subSkill: null,
+    }));
+    const parsed = scoringResponseSchema.safeParse({
+      dimensions: noSignalsDims,
+      headline: "h",
+      coachFocus: { dimension: "clarity", behavior: "b", why: "w", action: "a" },
+      strongerVersion: null,
+      headlineTone: "directive",
+      nextRepHint: "hint",
+    });
+    check("schema parses dimensions with no signals", parsed.success, parsed.success ? "" : JSON.stringify(parsed.error.issues[0]));
+    check(
+      "missing signals defaults to []",
+      parsed.success && parsed.data.dimensions.every((d) => Array.isArray(d.signals) && d.signals.length === 0),
+    );
   }
 
   console.log("\n════════════════════════════════════════════════════════════");

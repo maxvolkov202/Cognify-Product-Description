@@ -74,7 +74,16 @@ const dimensionScoreSchema = z.object({
     "tone",
   ]),
   score: z.number().min(0).max(100),
-  signals: z.array(z.string()),
+  // Grading Engine V2 (lean-output arm) — the LLM `signals` narratives are
+  // persisted to `dimension_scores.signals` but NEVER rendered in any UI
+  // (they round-trip into RepScore and stop there). The lean-output prompt
+  // drops the field from its output contract to cut decode tokens, so the
+  // schema must tolerate its absence. Optional-with-default is byte-neutral
+  // for control: control still emits `signals`, so the value is used and the
+  // default never triggers — the parsed object is identical to before.
+  // `.default(() => [])` (function form) returns a FRESH array each parse, so
+  // defaulted dimensions never alias a shared instance.
+  signals: z.array(z.string()).optional().default(() => []),
   /** Grading v3 (§4.5.3) — 1-2 sentence per-skill feedback for the
    *  expanded Core Skill Breakdown card. Lenient: absent on quirky
    *  provider outputs; the card falls back to a neutral line. */
@@ -468,6 +477,65 @@ NEXT REP HINT:
       generic   : "keep building on it"
       specific  : "land the open before the ask"
   - No filler verbs ("focus on", "work on") — give an action.`;
+
+/**
+ * Grading Engine V2 — the lean-output scoring prompt. DERIVED from the
+ * control `systemPrompt` by surgical, anchored substitutions rather than a
+ * forked copy, so every rule the lean arm does NOT touch (scoring
+ * calibration, edge cases, headline/coachFocus/strongerVersion contracts)
+ * tracks the control prompt automatically and can never silently drift.
+ *
+ * It cuts ONLY the accuracy-neutral output-token sources — the never-
+ * rendered per-dimension `signals` array and the over-long per-dimension
+ * `feedback` cap (400→160 chars, 1-2 sentences → 1). Dimension SCORES,
+ * headline, coachFocus, and strongerVersion are all left byte-identical, so
+ * the numbers the user sees are produced by exactly the same reasoning — the
+ * arm trims prose the model writes, not the judgment behind the scores.
+ *
+ * If an anchor no longer matches, `leanEdit` logs and returns the source
+ * UNCHANGED rather than throwing. This is deliberate: throwing here would run
+ * at module load and take down the whole scoring module — 500ing the CONTROL
+ * path (the shipped default) for a break in the dormant lean arm's transform.
+ * Instead the lean prompt degrades toward the control prompt (worst case: the
+ * lean arm stops cutting tokens but still produces valid scores), and the unit
+ * tests that assert each edit landed (tests/scoring-arms.test.ts) turn red in
+ * CI before any such break can merge. Graceful in prod, loud in CI.
+ */
+function leanEdit(source: string, find: string, replace: string): string {
+  if (!source.includes(find)) {
+    console.error(
+      `LEAN_SYSTEM_PROMPT: anchor not found in systemPrompt — a base edit broke a lean transform (lean arm will not cut this token source). Missing anchor: ${JSON.stringify(
+        find.slice(0, 60),
+      )}...`,
+    );
+    return source;
+  }
+  return source.replace(find, replace);
+}
+
+export const LEAN_SYSTEM_PROMPT: string = (() => {
+  let p = systemPrompt;
+  // 1) Output schema line: drop the `signals` field, tighten the feedback hint.
+  p = leanEdit(
+    p,
+    `, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
+    `, "feedback": "1 sentence, see PER-SKILL FEEDBACK RULES"`,
+  );
+  // 2) PER-SKILL FEEDBACK RULES — one sentence, not two.
+  p = leanEdit(
+    p,
+    `  - 1-2 tight sentences per dimension: WHY this score`,
+    `  - 1 tight sentence per dimension: WHY this score`,
+  );
+  // 3) PER-SKILL FEEDBACK RULES — halve the char cap (feedback quality is
+  //    length-insensitive here: groundedness is ~0 either way).
+  p = leanEdit(
+    p,
+    `  - Second-person, present-tense, no hedging, ≤400 chars.`,
+    `  - Second-person, present-tense, no hedging, ≤160 chars.`,
+  );
+  return p;
+})();
 
 /**
  * Compact rubric block — definitions + signals for the four LLM-scored
@@ -1113,9 +1181,12 @@ export function computeScoringPromptBytes(opts: {
    *  per-arm telemetry reflects the real payload it shipped. Absent (null)
    *  on the control path, so control's byte accounting is unchanged. */
   anchorsBlock?: string | null;
+  /** lean-output arm — count the (shorter) lean system prompt so per-arm
+   *  telemetry reflects the real payload. Absent/false on control. */
+  lean?: boolean;
 }): number {
   const systemTextBytes = [
-    systemPrompt,
+    opts.lean ? LEAN_SYSTEM_PROMPT : systemPrompt,
     opts.rubricBlock,
     COMPACT_KNOWLEDGE,
     SUB_SKILL_REFERENCE,
@@ -1141,6 +1212,13 @@ export function buildSystemBlocks(opts: {
    *  marginal cost. Absent (null/undefined) on the control path, so the
    *  control `system` array is byte-identical to the pre-refactor scorer. */
   anchorsBlock?: string | null;
+  /** lean-output arm — swap the first (cached) system block for the lean
+   *  prompt, which drops the never-rendered `signals` field and tightens the
+   *  per-dim feedback cap to cut decode tokens. All other blocks (rubric,
+   *  knowledge, sub-skills, calibration, memory) are unchanged, so only the
+   *  cache prefix's first block differs. Absent/false on control → the
+   *  control `system` array stays byte-identical. */
+  lean?: boolean;
 }): Anthropic.Messages.TextBlockParam[] {
   const rubricBlock = opts.rubricBlock;
   const input = {
@@ -1150,7 +1228,7 @@ export function buildSystemBlocks(opts: {
   const blocks: Anthropic.Messages.TextBlockParam[] = [
       {
         type: "text",
-        text: systemPrompt,
+        text: opts.lean ? LEAN_SYSTEM_PROMPT : systemPrompt,
         cache_control: { type: "ephemeral" },
       },
       {
@@ -1484,11 +1562,12 @@ export function assembleRepScore(opts: {
  */
 export async function runSingleCallScore(
   input: ScoreRepInput,
-  opts?: { anchorsBlock?: string | null; config?: HybridConfig },
+  opts?: { anchorsBlock?: string | null; config?: HybridConfig; lean?: boolean },
 ): Promise<ScoreRepResult> {
   const config: HybridConfig =
     opts?.config ?? { deliveryMode: "deterministic", thinkingMode: "blend" };
   const anchorsBlock = opts?.anchorsBlock ?? null;
+  const lean = opts?.lean ?? false;
 
   const prep = await buildUserPrompt(input);
   const system = buildSystemBlocks({
@@ -1496,6 +1575,7 @@ export async function runSingleCallScore(
     userCalibration: input.userCalibration,
     coachingMemory: input.coachingMemory,
     anchorsBlock,
+    lean,
   });
   const promptSizeBytes = computeScoringPromptBytes({
     rubricBlock: prep.rubricBlock,
@@ -1503,6 +1583,7 @@ export async function runSingleCallScore(
     coachingMemory: input.coachingMemory,
     userPrompt: prep.userPrompt,
     anchorsBlock,
+    lean,
   });
 
   const scoreRepStart = Date.now();

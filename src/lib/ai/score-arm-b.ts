@@ -151,6 +151,34 @@ const DELIVERY_SCOPE = [
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
 
+// ── lean-split scopes (lever a × b — lean output ON the parallel decode) ──
+// Same partition as grouped-fanout, but each scoring pass emits the LEAN
+// output contract (no `signals`, one-sentence feedback). Two deliberate
+// differences from the base scopes fix the clarity regression the lean sweep
+// found in grouped-fanout: (1) the base CONTENT scope told the model to "spend
+// your full token budget on RICH feedback" for only four dims — that flaw-
+// hunting pressure drove clarity DOWN (the model manufactured nitpicks to fill
+// the budget, violating anti-compression); the lean scope removes it, and
+// (2) adds an explicit anti-compression guard so short feedback never drags a
+// score. The pair is why lean-split can keep the parallel-decode latency win
+// without the 1.4→5.6 clarity MAE blowup.
+const CONTENT_SCOPE_LEAN = [
+  "ARM SCOPE — CONTENT PASS.",
+  "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
+  "Judge them from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone entirely — a separate pass grades voice.",
+  "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write ONE tight sentence of feedback per dimension — do not pad, do not hunt for nitpicks to fill space. The feedback being short must NEVER pull a score down: if you cannot name a real deficiency, the score is ≥80 (per the calibration rules), not a hedged middle.",
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"feedback":"1 sentence per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
+  "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
+].join("\n");
+
+const DELIVERY_SCOPE_LEAN = [
+  "ARM SCOPE — DELIVERY & TONE PASS.",
+  "Score ONLY delivery and tone. Ground them in the PROSODY EVIDENCE and MEASURED RATE lines; reason ONLY about voice and pacing, never the argument's content (mediocre content delivered with expressive prosody is still HIGH tone).",
+  "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt.",
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"feedback":"1 sentence","subSkill":"snake_case id"|null}]}',
+  "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
+].join("\n");
+
 /** Arm C — the Delivery+Tone pass, but tone is DECOMPOSED into ordinal
  *  observations (rolled up deterministically downstream) instead of a raw
  *  0-100 tone number. Delivery still scores directly. */
@@ -395,10 +423,11 @@ function mergeArmMetrics(
  */
 export async function runGroupedFanout(
   input: ScoreRepInput,
-  opts?: { toneDecomposition?: boolean },
+  opts?: { toneDecomposition?: boolean; lean?: boolean },
 ): Promise<ScoreRepResult> {
   const config = resolveArmBConfig();
   const toneDecomposition = opts?.toneDecomposition ?? false;
+  const lean = opts?.lean ?? false;
   const scoreRepStart = Date.now();
 
   const prep = await buildUserPrompt(input);
@@ -406,6 +435,7 @@ export async function runGroupedFanout(
     rubricBlock: prep.rubricBlock,
     userCalibration: input.userCalibration,
     coachingMemory: input.coachingMemory,
+    lean,
   });
   const bytesFor = (userText: string) =>
     computeScoringPromptBytes({
@@ -413,12 +443,17 @@ export async function runGroupedFanout(
       userCalibration: input.userCalibration,
       coachingMemory: input.coachingMemory,
       userPrompt: userText,
+      lean,
     });
 
-  const contentUser = `${CONTENT_SCOPE}\n\n${prep.userPrompt}`;
+  const contentUser = `${lean ? CONTENT_SCOPE_LEAN : CONTENT_SCOPE}\n\n${prep.userPrompt}`;
+  // Tone-decomposition and lean are independent levers, but the decomp scope
+  // has its own bespoke JSON shape; lean only slims the plain delivery scope.
   const deliveryScope = toneDecomposition
     ? DELIVERY_TONE_DECOMP_SCOPE
-    : DELIVERY_SCOPE;
+    : lean
+      ? DELIVERY_SCOPE_LEAN
+      : DELIVERY_SCOPE;
   const deliveryUser = `${deliveryScope}\n\n${prep.userPrompt}`;
 
   // Calls 1 + 2 concurrently. allSettled so one failure degrades to the
@@ -589,6 +624,8 @@ export const __armBForTests = {
   synthesisPassSchema,
   CONTENT_SCOPE,
   DELIVERY_SCOPE,
+  CONTENT_SCOPE_LEAN,
+  DELIVERY_SCOPE_LEAN,
   DELIVERY_TONE_DECOMP_SCOPE,
   CONTENT_DIMS,
   DELIVERY_DIMS,

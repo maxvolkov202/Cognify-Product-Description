@@ -59,7 +59,9 @@ export type ScoringArm =
   | "reference-anchored"
   | "grouped-fanout"
   | "tone-decomposed"
-  | "all-llm";
+  | "all-llm"
+  | "lean-output"
+  | "lean-split";
 
 /** Arms `runScoringArm` can actually execute today. A flag value naming an
  *  arm outside this set falls back to control (safe no-op) rather than
@@ -70,6 +72,8 @@ const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
   "grouped-fanout",
   "tone-decomposed",
   "all-llm",
+  "lean-output",
+  "lean-split",
 ];
 
 /**

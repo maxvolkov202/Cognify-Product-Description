@@ -21,6 +21,9 @@ const {
   resolveArmBConfig,
   renderSynthesisScope,
   synthesisPassSchema,
+  CONTENT_SCOPE,
+  CONTENT_SCOPE_LEAN,
+  DELIVERY_SCOPE_LEAN,
   CONTENT_DIMS,
   DELIVERY_DIMS,
 } = __armBForTests;
@@ -233,6 +236,47 @@ function deliveryJson() {
     ["clarity", "structure", "conciseness", "thinking_quality", "delivery", "tone"].every(
       (d) => scope.includes(d),
     ),
+  );
+}
+
+// ── lean-split scopes: leaner output + the clarity-regression fix ──
+{
+  // Content pass drops the `signals` field and asks for ONE sentence...
+  check(
+    "lean content scope drops the signals output field",
+    !CONTENT_SCOPE_LEAN.includes(`"signals":["..."]`) &&
+      !CONTENT_SCOPE_LEAN.includes(`"signals": ["..."]`),
+  );
+  check(
+    "lean content scope asks for 1 sentence of feedback",
+    CONTENT_SCOPE_LEAN.includes("ONE tight sentence"),
+  );
+  // ...and critically REMOVES the 'spend full budget on rich feedback' line
+  // that drove the grouped-fanout clarity regression, replacing it with an
+  // explicit anti-compression guard.
+  check(
+    "base content scope had the rich-feedback pressure",
+    CONTENT_SCOPE.includes("full token budget on rich"),
+  );
+  check(
+    "lean content scope removes the rich-feedback pressure",
+    !CONTENT_SCOPE_LEAN.includes("full token budget on rich"),
+  );
+  check(
+    "lean content scope carries an anti-compression guard",
+    CONTENT_SCOPE_LEAN.includes("NEVER pull a score down") ||
+      CONTENT_SCOPE_LEAN.includes("must NEVER pull a score down"),
+  );
+  check(
+    "lean content scope still names the four content dims",
+    ["clarity", "structure", "conciseness", "thinking_quality"].every((d) =>
+      CONTENT_SCOPE_LEAN.includes(d),
+    ),
+  );
+  check(
+    "lean delivery scope drops signals + asks 1 sentence",
+    !DELIVERY_SCOPE_LEAN.includes(`"signals":["..."]`) &&
+      DELIVERY_SCOPE_LEAN.includes('"feedback":"1 sentence"'),
   );
 }
 

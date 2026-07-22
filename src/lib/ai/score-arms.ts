@@ -51,6 +51,11 @@ export async function runScoringArm(
       return runGroupedFanout(input, { toneDecomposition: true });
     case "all-llm":
       return runAllLlm(input);
+    case "lean-output":
+      return runLeanOutput(input);
+    case "lean-split":
+      // lever (a) × (b) — lean output ON the clarity-safe parallel decode.
+      return runGroupedFanout(input, { lean: true });
     // Any arm not switched above (or an unrecognized flag value) is a
     // defensive fallback to control, not a live path — the dispatcher's
     // IMPLEMENTED_VARIANT_ARMS gate keeps unimplemented arms from reaching here.
@@ -72,6 +77,28 @@ async function runAllLlm(input: ScoreRepInput): Promise<ScoreRepResult> {
   const result = await runSingleCallScore(input, {
     config: { deliveryMode: "llm", thinkingMode: "llm" },
   });
+  result.metrics.llmCallCount = 1;
+  return result;
+}
+
+/**
+ * lean-output arm — the control single-call flow with a leaner OUTPUT
+ * contract: the never-rendered per-dimension `signals` narratives are dropped
+ * and the per-dim `feedback` cap is halved (400→160 chars, 1-2 sentences → 1).
+ * Grading is decode-bound (one gpt-4o call, ~8.2s p50 is almost all output-
+ * token generation), so cutting output tokens is a ~linear latency lever.
+ * Within each dimension the JSON emits `score` BEFORE its prose, so a dim's
+ * own score can't be moved by trimming its feedback; the only channel is
+ * cross-dimension (earlier dims' prose precedes later dims' scores), which
+ * predicts a weak effect. Measured (12 reps × N=3, RAG off): output tokens
+ * −26%, latency p50 −20%, composite MAE 2.5 vs control 2.3 (inside the noise
+ * floor → accuracy-neutral on composite), with minor per-dim reshuffling
+ * (slightly worse tone/conciseness, better thinking/delivery, all ~1 MAE).
+ * Same cost (one call), same determinism (control hybrid config).
+ * See plans/bench/LATENCY-2026-07-21-lean-output.md.
+ */
+async function runLeanOutput(input: ScoreRepInput): Promise<ScoreRepResult> {
+  const result = await runSingleCallScore(input, { lean: true });
   result.metrics.llmCallCount = 1;
   return result;
 }
