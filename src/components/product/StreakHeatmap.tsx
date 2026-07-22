@@ -32,13 +32,16 @@ export function StreakHeatmap({ activity, days = 84 }: Props) {
 
   return (
     <div>
-      <div className="flex gap-1" role="img" aria-label="Practice activity heatmap">
+      {/* Cells scale to fill the card width (each week is a flex-1 column,
+          each day an aspect-square that grows with it) so the heatmap reads
+          large instead of a strip of tiny fixed squares. */}
+      <div className="flex w-full gap-1 sm:gap-1.5" role="img" aria-label="Practice activity heatmap">
         {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-1">
+          <div key={wi} className="flex flex-1 flex-col gap-1 sm:gap-1.5">
             {week.map((cell) => (
               <div
                 key={cell.date}
-                className={`size-3 rounded-sm ${intensityClass(cell.count)}`}
+                className={`aspect-square w-full rounded-sm ${intensityClass(cell.count)}`}
                 title={`${cell.date}: ${cell.count} rep${cell.count === 1 ? "" : "s"}`}
               />
             ))}

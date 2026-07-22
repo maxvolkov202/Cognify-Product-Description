@@ -336,23 +336,27 @@ export default async function ProgressPage() {
         </div>
       )}
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <div className="surface-card p-8">
-          <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Skill trends</h2>
-              <InfoTooltip content="One line per dimension. Trend up = consistent improvement week over week. Each point is a rep." />
-            </div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              last 30 days
-            </span>
+      {/* Skill trends — full width so all six charts breathe (3-up on
+          desktop, 2-up on phones so the page doesn't scroll forever). */}
+      <div className="mt-10 surface-card p-6 sm:p-8">
+        <div className="flex items-baseline justify-between">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Skill trends</h2>
+            <InfoTooltip content="One line per dimension. Trend up = consistent improvement week over week. Each point is a rep." />
           </div>
-          <div className="mt-6">
-            <SkillTrendChart trends={trends} />
-          </div>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+            last 30 days
+          </span>
         </div>
+        <div className="mt-6">
+          <SkillTrendChart trends={trends} />
+        </div>
+      </div>
 
-        <div className="surface-card p-8">
+      {/* Current shape + Activity — two at-a-glance widgets paired side by
+          side (they fit well together); stack on phones. */}
+      <div className="mt-8 grid gap-8 lg:grid-cols-2">
+        <div className="surface-card p-6 sm:p-8">
           <div className="flex items-center gap-1.5">
             <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Current shape</h2>
             <InfoTooltip content="Your latest score on each of the six dimensions. The hexagon shape shows strengths vs. gaps at a glance." />
@@ -368,60 +372,61 @@ export default async function ProgressPage() {
             dimensions. Dents point at where work compounds fastest.
           </p>
         </div>
-      </div>
 
-      <div className="mt-8 grid gap-8 md:grid-cols-[1fr_1.3fr]">
-        <div className="surface-card p-5 sm:p-8">
+        <div className="surface-card flex flex-col p-6 sm:p-8">
           <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Activity</h2>
           <p className="mt-1 text-xs text-ink-500 dark:text-ink-400">12-week heat map of your reps.</p>
-          <div className="mt-6">
+          {/* Center the heatmap in the remaining card height so it visually
+              balances the radar beside it. */}
+          <div className="mt-6 flex flex-1 items-center">
             <StreakHeatmap activity={activity} days={84} />
           </div>
         </div>
+      </div>
 
-        <div className="surface-card p-5 sm:p-8">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
-            <Link
-              href="/workout"
-              className="text-xs font-semibold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
-            >
-              Run another →
-            </Link>
-          </div>
-          {recentReps.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center dark:border-ink-700">
-              <p className="text-sm text-ink-500 dark:text-ink-400">No reps yet. Your first rep becomes your baseline.</p>
-              <div className="mt-4">
-                <GradientButton href="/workout" size="md">
-                  Start your first rep
-                </GradientButton>
-              </div>
-            </div>
-          ) : (
-            <ul className="mt-4 divide-y divide-ink-100 dark:divide-ink-700">
-              {recentReps.map((rep) => (
-                <li
-                  key={rep.id}
-                  className="flex items-start justify-between gap-3 py-3 text-sm"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 break-words font-medium text-ink-800 dark:text-ink-100">
-                      {rep.promptText}
-                    </p>
-                    <p className="mt-0.5 break-words text-[11px] text-ink-400 dark:text-ink-500">
-                      {new Date(rep.createdAt).toLocaleString()} ·{" "}
-                      {(rep.durationMs / 1000).toFixed(0)}s
-                    </p>
-                  </div>
-                  <span className="shrink-0 brand-gradient-text text-lg font-extrabold tabular-nums">
-                    {Math.round(rep.compositeScore)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+      {/* Recent reps — full-width list. */}
+      <div className="mt-8 surface-card p-5 sm:p-8">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-extrabold text-ink-900 dark:text-white">Recent reps</h2>
+          <Link
+            href="/workout"
+            className="text-xs font-semibold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender"
+          >
+            Run another →
+          </Link>
         </div>
+        {recentReps.length === 0 ? (
+          <div className="mt-6 rounded-xl border border-dashed border-ink-200 p-8 text-center dark:border-ink-700">
+            <p className="text-sm text-ink-500 dark:text-ink-400">No reps yet. Your first rep becomes your baseline.</p>
+            <div className="mt-4">
+              <GradientButton href="/workout" size="md">
+                Start your first rep
+              </GradientButton>
+            </div>
+          </div>
+        ) : (
+          <ul className="mt-4 divide-y divide-ink-100 dark:divide-ink-700">
+            {recentReps.map((rep) => (
+              <li
+                key={rep.id}
+                className="flex items-start justify-between gap-3 py-3 text-sm"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 break-words font-medium text-ink-800 dark:text-ink-100">
+                    {rep.promptText}
+                  </p>
+                  <p className="mt-0.5 break-words text-[11px] text-ink-400 dark:text-ink-500">
+                    {new Date(rep.createdAt).toLocaleString()} ·{" "}
+                    {(rep.durationMs / 1000).toFixed(0)}s
+                  </p>
+                </div>
+                <span className="shrink-0 brand-gradient-text text-lg font-extrabold tabular-nums">
+                  {Math.round(rep.compositeScore)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       </>
       ) : null}
