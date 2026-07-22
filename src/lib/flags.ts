@@ -80,3 +80,14 @@ export function isPromptGenEnabled(): boolean {
 export function isWorkoutPersonalizeSwitchEnabled(): boolean {
   return defaultOnOutsideProduction("FF_WORKOUT_PERSONALIZE_SWITCH");
 }
+
+/**
+ * UI overhaul Phase 4 — Friends activity card on the dashboard.
+ *
+ * Same contract as the other overhaul flags: ON in dev/preview, OFF in prod
+ * until Max promotes. Gates only the new dashboard social card (4.1); the
+ * live-feed data fixes (4.2-4.5) ship unflagged as corrections.
+ */
+export function isDashboardSocialEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_DASHBOARD_SOCIAL");
+}

@@ -297,7 +297,7 @@ function EmptyState({
           <h2 className="mt-4 text-2xl font-extrabold text-ink-900 md:text-3xl dark:text-white">
             You&rsquo;re not on a team yet.
           </h2>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
             Team rankings compare you against your coworkers or cohort —
             Cognify uses the team list from your org or university to show
             who&rsquo;s training hardest near you. Ask whoever runs your
@@ -324,7 +324,7 @@ function EmptyState({
               ? "No reps on your team yet this period."
               : "The board activates as users train."}
         </h2>
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-600 dark:text-ink-300">
           {scope === "this_week"
             ? "Run a Daily Workout to put yourself on this week's board."
             : "Once a few users log reps in this period, rankings show up here."}

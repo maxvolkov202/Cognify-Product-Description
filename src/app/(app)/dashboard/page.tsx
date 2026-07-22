@@ -9,7 +9,13 @@ import {
   Target,
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
-import { isRankSystemEnabled, isSkillLabAppsEnabled } from "@/lib/flags";
+import {
+  isDashboardSocialEnabled,
+  isRankSystemEnabled,
+  isSkillLabAppsEnabled,
+} from "@/lib/flags";
+import { getActivityFeedForUser } from "@/lib/db/queries/activity";
+import { DashboardFriendsActivity } from "@/components/product/dashboard/DashboardFriendsActivity";
 import { db } from "@/lib/db/client";
 import { communicationProfile } from "@/lib/db/schema";
 import { eq, sql as drizzleSql } from "drizzle-orm";
@@ -78,6 +84,8 @@ export default async function DashboardPage() {
   // dim" copy where data exists. Off path skips the query entirely so
   // we don't pay the read cost for users who can't see the surface.
   const subSkillUiEnabled = process.env.FF_SUBSKILL_UI === "true";
+  // Phase 4 (4.1) — Friends activity card. Off path skips the feed read.
+  const dashboardSocialEnabled = isDashboardSocialEnabled();
 
   const [
     streakStatus,
@@ -89,6 +97,7 @@ export default async function DashboardPage() {
     todaysQuests,
     leagueMember,
     subSkillStats,
+    friendsFeed,
   ] = await Promise.all([
     getStreakStatus(userId),
     getRecentReps(userId, 5),
@@ -103,6 +112,9 @@ export default async function DashboardPage() {
     user && subSkillUiEnabled
       ? getSubSkillRunningAverages(user.id)
       : Promise.resolve({} as Partial<Record<SubSkillId, SubSkillStat>>),
+    user && dashboardSocialEnabled
+      ? getActivityFeedForUser(user.id, { limit: 10 })
+      : Promise.resolve([]),
   ]);
 
   const subSkillBreakdown = bucketByDimension(subSkillStats);
@@ -388,6 +400,12 @@ export default async function DashboardPage() {
 
       {/* PRD v3 Phase 6 (§10.10/§10.11) — weekly + team challenges. */}
       {user && isRankSystemEnabled() && <WeeklyChallengesCard />}
+
+      {/* Phase 4 (4.1) — Friends activity feed (real names + real strongest
+          Core Skill). Flag-gated; empty state offers a Find friends CTA. */}
+      {user && dashboardSocialEnabled && (
+        <DashboardFriendsActivity rows={friendsFeed} />
+      )}
 
       {/* Skill progress + diagnosis */}
       {profile && (

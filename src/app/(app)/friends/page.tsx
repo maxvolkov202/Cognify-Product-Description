@@ -44,11 +44,11 @@ import Link from "next/link";
 import { InviteFriendForm } from "@/components/product/InviteFriendForm";
 import { AcceptDeclineButtons } from "@/components/product/FriendActionButtons";
 import {
-  ActivityFeedRow,
   Avatar,
   initials,
   relativeTime,
 } from "@/components/product/friends/ActivityFeedRow";
+import { LiveFeed } from "@/components/product/friends/LiveFeed";
 
 export default async function FriendsPage() {
   const me = await currentUser();
@@ -57,7 +57,7 @@ export default async function FriendsPage() {
         getFriendsForUser(me.id),
         getPendingRequestsForUser(me.id),
         getChallengesForUser(me.id),
-        getActivityFeedForUser(me.id, { limit: 20 }),
+        getActivityFeedForUser(me.id, { limit: 30 }),
       ])
     : [
         [] as FriendRow[],
@@ -254,11 +254,11 @@ function RealFriendsView({
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
               <Activity className="size-3.5" /> Live feed
             </h2>
-            <div className="mt-4 space-y-1">
+            <div className="mt-4">
               {activity.length === 0 ? (
                 <EmptyCard text="Activity lights up as your crew records reps." />
               ) : (
-                activity.map((a) => <ActivityFeedRow key={a.id} row={a} />)
+                <LiveFeed rows={activity} />
               )}
             </div>
           </div>
