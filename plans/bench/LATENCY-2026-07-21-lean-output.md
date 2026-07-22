@@ -273,3 +273,52 @@ useful with no MAE loss).
 > and both Exp 1 and Exp 2 were rerun clean, ONE bench at a time. Lesson: run benches serially,
 > never concurrently — it protects both the spend cap and the latency measurement.)**
 
+
+---
+
+## PIVOT 2026-07-22 — separate-LLM-call fan-out, done properly (`holistic-split`)
+
+**Question (Max's step 4):** the earlier `per-skill-fanout` hit −43% p50 but wrecked calibration
+(tone MAE 12.7, thinking 10.5). Can a fan-out that keeps the latency win WITHOUT the calibration
+loss beat `signals-drop`? Fix hypothesis: the loss comes from *isolating* each pass from its
+sibling dims — the base `DELIVERY_SCOPE` says "reason ONLY about voice … never the argument's
+content," which on TEXT reps (no prosody) starves tone of the transcript cues control reads it
+from. Fix = split only the OUTPUT decode (the real latency lever), keep FULL rep context +
+reasoning latitude in both passes (Max's "give each voice call its sibling dim's context").
+
+Built `holistic-split` = `runGroupedFanout(input, { holistic: true })` with two new scopes
+(`CONTENT_SCOPE_HOLISTIC` / `DELIVERY_SCOPE_HOLISTIC`): same JSON output shape as grouped-fanout,
+but the delivery pass is licensed to read the transcript for tone and the content pass keeps the
+anti-nitpick guard (no "spend full budget on rich feedback" — the line that drove grouped's
+clarity blowup). Cache prefix identical to control; `fallback=false` throughout (scopes parse).
+
+**Benched vs control + grouped-fanout, direct/in-process, gpt-4o, text/no-prosody, RAG off, TWO runs:**
+
+| run | arm | comp | clarity | struct | concise | think | deliv | tone | out | latP50 | calls |
+|-----|-----|------|---------|--------|---------|-------|-------|------|-----|--------|-------|
+| A (12×2) | control        | 3.1 | 4.0 | 5.4 | 2.8 | 6.5 | 1.9 | 3.8 | 639 | 7763ms | 1 |
+| A (12×2) | grouped-fanout | 3.4 | 6.1 | 5.7 | 4.4 | 6.7 | 2.8 | 4.5 | 541 | 6799ms | 3 |
+| A (12×2) | holistic-split | 2.1 | 1.9 | 3.8 | 3.8 | 4.1 | 1.7 | 4.5 | 524 | 6402ms | 3 |
+| B (12×3) | control        | 2.6 | 3.1 | 4.7 | 2.4 | 5.2 | 2.4 | 3.2 | 647 | 8646ms | 1 |
+| B (12×3) | holistic-split | 2.5 | 2.4 | 4.1 | 3.8 | 5.4 | 1.4 | 4.3 | 533 | 7029ms | 3 |
+| B (12×3) | grouped-fanout | 3.8 | 7.1 | 5.4 | 4.6 | 7.3 | 2.4 | 6.1 | 538 | 7353ms | 3 |
+
+**CONCLUSION — holistic-split does NOT beat signals-drop; do not promote.**
+- **Composite: NEUTRAL** (B: 2.5 vs 2.6). Run A's "beats control 2.1 vs 3.1" was control on the
+  unlucky end of its known run-to-run swing (1.6–3.1); run B (control 2.6, typical) settles it.
+- **Latency −18%, output −18%** — real and consistent, but only ~2 pts better than signals-drop's
+  −16%, at **3× the LLM cost** (3 calls vs 1).
+- **Per-dim tradeoff is real (consistent both runs): worse conciseness (+1.0/+1.4) and tone
+  (+0.7/+1.1)**, better clarity/structure/delivery. The tone regression fails Max's "quality is
+  the gate" bar — signals-drop clears it with ZERO per-dim regression.
+- **The genuine reusable win:** full-context-split-output ≫ isolated fan-out. It fixes the
+  fan-out *disaster* — grouped-fanout's tone 6.1 / clarity 7.1 and per-skill's tone 12.7 collapse
+  to holistic's tone 4.3 / clarity 2.4. The calibration loss was the isolation, not the fan-out
+  shape. But keeping quality caps the fan-out latency lever at ~−18% (the −43% only existed
+  BECAUSE per-skill broke calibration), so fan-out has no latency advantage over signals-drop.
+
+**Objective standpoint (updated):** the quality-fully-preserved latency lever remains
+**signals-drop (−16%, 1× cost, zero per-dim regression)** — SHIPPED. `holistic-split` is committed
+flag-OFF/dormant as the best-in-class fan-out variant + the "split output not context" finding;
+it is NOT a ship candidate (no latency edge over signals-drop, +tone/conciseness MAE, 3× cost).
+Benches run ONE at a time (the earlier concurrent-bench quota incident held — no repeat).

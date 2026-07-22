@@ -151,6 +151,39 @@ const DELIVERY_SCOPE = [
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
 
+// ── holistic-split scopes (PIVOT 2026-07-22 — the fan-out CALIBRATION fix) ──
+// grouped-fanout and per-skill-fanout both regressed tone/thinking because
+// they ISOLATED each pass from its sibling dims: the base DELIVERY_SCOPE says
+// "reason ONLY about voice and pacing, never the argument's content." That is
+// defensible WITH prosody, but on text reps (no audio) it STARVES tone — the
+// control single call scores tone in the same breath as content, so it reads
+// tone off the transcript's phrasing/assertiveness/word-choice, which the
+// isolation forbids. Result: control tone MAE 2.6 vs grouped-fanout 5.6.
+//
+// The fix (Max's "give each voice call its sibling dim's context"): split only
+// the OUTPUT decode — the actual latency lever — while BOTH passes keep the
+// full rep context and full reasoning latitude, exactly as control reasons.
+// Each pass still emits only its dimension subset (so the 2500-tok decode
+// splits across two concurrent calls), but neither is told to ignore the other
+// half of the rep. The cached system prefix is identical to control, so the
+// only change vs grouped-fanout is these scope prose blocks.
+const CONTENT_SCOPE_HOLISTIC = [
+  "ARM SCOPE — CONTENT PASS (holistic context).",
+  "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
+  "Reason over the WHOLE rep for calibration — transcript, any SIGNALS / RAG CONTEXT, and how it is delivered — but EMIT only these four. (Delivery and tone are finalized by a separate pass; do not output them.)",
+  "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write 1-2 tight sentences of feedback per dimension. Do NOT hunt for nitpicks to fill space: if you cannot name a real deficiency, the score is high (per the calibration rules), not a hedged middle.",
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
+  "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
+].join("\n");
+
+const DELIVERY_SCOPE_HOLISTIC = [
+  "ARM SCOPE — DELIVERY & TONE PASS (holistic context).",
+  "Score ONLY delivery and tone, using ALL available evidence exactly as the system prompt's rubric directs: any PROSODY EVIDENCE and MEASURED RATE lines FIRST, and — when prosody is thin or absent — the transcript's phrasing, word-choice, directness, and fluency. Do NOT refuse to read the transcript for tone: how someone phrases a point is tone evidence, and it is how tone is graded when there is no audio.",
+  "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt. Judge voice and manner, not the argument's substance — but the transcript is legitimate evidence for voice and manner.",
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null}]}',
+  "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
+].join("\n");
+
 // ── lean-split scopes (lever a × b — lean output ON the parallel decode) ──
 // Same partition as grouped-fanout, but each scoring pass emits the LEAN
 // output contract (no `signals`, one-sentence feedback). Two deliberate
@@ -423,11 +456,14 @@ function mergeArmMetrics(
  */
 export async function runGroupedFanout(
   input: ScoreRepInput,
-  opts?: { toneDecomposition?: boolean; lean?: boolean },
+  opts?: { toneDecomposition?: boolean; lean?: boolean; holistic?: boolean },
 ): Promise<ScoreRepResult> {
   const config = resolveArmBConfig();
   const toneDecomposition = opts?.toneDecomposition ?? false;
   const lean = opts?.lean ?? false;
+  // holistic-split: split only the output decode; both passes keep full rep
+  // context (the fan-out calibration fix). Mutually exclusive with lean/decomp.
+  const holistic = opts?.holistic ?? false;
   const scoreRepStart = Date.now();
 
   const prep = await buildUserPrompt(input);
@@ -446,14 +482,22 @@ export async function runGroupedFanout(
       lean,
     });
 
-  const contentUser = `${lean ? CONTENT_SCOPE_LEAN : CONTENT_SCOPE}\n\n${prep.userPrompt}`;
-  // Tone-decomposition and lean are independent levers, but the decomp scope
-  // has its own bespoke JSON shape; lean only slims the plain delivery scope.
+  const contentScope = holistic
+    ? CONTENT_SCOPE_HOLISTIC
+    : lean
+      ? CONTENT_SCOPE_LEAN
+      : CONTENT_SCOPE;
+  const contentUser = `${contentScope}\n\n${prep.userPrompt}`;
+  // Tone-decomposition, holistic, and lean are independent levers, but the
+  // decomp scope has its own bespoke JSON shape; holistic keeps full-context
+  // reasoning; lean only slims the plain delivery scope.
   const deliveryScope = toneDecomposition
     ? DELIVERY_TONE_DECOMP_SCOPE
-    : lean
-      ? DELIVERY_SCOPE_LEAN
-      : DELIVERY_SCOPE;
+    : holistic
+      ? DELIVERY_SCOPE_HOLISTIC
+      : lean
+        ? DELIVERY_SCOPE_LEAN
+        : DELIVERY_SCOPE;
   const deliveryUser = `${deliveryScope}\n\n${prep.userPrompt}`;
 
   // Calls 1 + 2 concurrently. allSettled so one failure degrades to the
@@ -790,6 +834,8 @@ export const __armBForTests = {
   DELIVERY_SCOPE,
   CONTENT_SCOPE_LEAN,
   DELIVERY_SCOPE_LEAN,
+  CONTENT_SCOPE_HOLISTIC,
+  DELIVERY_SCOPE_HOLISTIC,
   DELIVERY_TONE_DECOMP_SCOPE,
   CONTENT_DIMS,
   DELIVERY_DIMS,

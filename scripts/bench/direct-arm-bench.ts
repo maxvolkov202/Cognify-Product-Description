@@ -132,6 +132,10 @@ async function main() {
     "lean-output": (i) => runSingleCallScore(i, { lean: true }),
     "lean-split": (i) => runGroupedFanout(i, { lean: true }),
     "grouped-fanout": (i) => runGroupedFanout(i),
+    // holistic-split (PIVOT 2026-07-22): fan-out CALIBRATION fix — split only
+    // the output decode; both passes keep full rep context so tone isn't
+    // starved of the transcript cues control reads it from.
+    "holistic-split": (i) => runGroupedFanout(i, { holistic: true }),
     "per-skill-fanout": (i) => runPerSkillFanout(i),
     // Milder feedback-trim sweep (experiment 1). `lean-400` = signals-only
     // floor (invisible field dropped, feedback prose byte-identical to

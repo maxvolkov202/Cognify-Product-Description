@@ -63,6 +63,7 @@ export type ScoringArm =
   | "lean-output"
   | "lean-split"
   | "per-skill-fanout"
+  | "holistic-split"
   | "signals-drop";
 
 /** Arms `runScoringArm` can actually execute today. A flag value naming an
@@ -77,6 +78,7 @@ const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
   "lean-output",
   "lean-split",
   "per-skill-fanout",
+  "holistic-split",
   "signals-drop",
 ];
 
