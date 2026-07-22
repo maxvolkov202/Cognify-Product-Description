@@ -151,25 +151,25 @@ row extraction (visual diff).
 
 ---
 
-## Phase 1 — Application Lab rename + 1–5 rep stepper + app-grid symmetry  ⬜
+## Phase 1 — Application Lab rename + 1–5 rep stepper + app-grid symmetry  ✅ (merged 2026-07-22, `feat/overhaul-p1-application-lab`)
 
 **Goal:** rename the surface, replace the length picker with a 1–5 stepper, center the trailing two app cards.
 
 **Files/tasks:**
-- [ ] 1.1 **Rename copy** — change every user-visible "Skill Lab" string to "Application Lab":
+- [x] 1.1 **Rename copy** — change every user-visible "Skill Lab" string to "Application Lab":
       `skill-lab/page.tsx:39,129,200`, `SkillLabClient.tsx:302,368`, `AppSessionClient.tsx:400,882`,
       `layout.tsx:30` (nav), `dashboard/page.tsx:334`, `ModeBadge.tsx:55`, `ModesSection.tsx:11`,
       `pricing/page.tsx:32`, `opengraph-image.tsx:94`, `library/page.tsx:337,350`,
       `workout/page.tsx:391,398`, `DayCompleteSummary.tsx:374`, engagement copy
       (`weekly-challenges.ts:60`, `quests.ts:88`, `achievements.ts:65`), and the `[slug]`/exemplars metadata.
-- [ ] 1.2 **Route rename** — move `src/app/(app)/skill-lab/` → `src/app/(app)/application-lab/`; add a 308
+- [x] 1.2 **Route rename** — move `src/app/(app)/skill-lab/` → `src/app/(app)/application-lab/`; add a 308
       redirect `/skill-lab/:path* → /application-lab/:path*` (Next config or a thin re-export). Update all
       internal `href="/skill-lab…"` (nav, dashboard tile, back links) to `/application-lab`. Keep DB
       `mode='skill_lab'` untouched.
-- [ ] 1.3 **Rep stepper** — replace `LengthPick` fixed `[3,5,10]` buttons (`AppSessionClient.tsx:601-646`)
+- [x] 1.3 **Rep stepper** — replace `LengthPick` fixed `[3,5,10]` buttons (`AppSessionClient.tsx:601-646`)
       with the `Stepper` primitive: range 1–5, default 3, label "How many reps?", helper "3 · recommended".
       `start(count)` unchanged (`:159`). Confirm `completeSkillLabSessionV2` accepts arbitrary 1–5 counts.
-- [ ] 1.4 **App-grid symmetry** — in `ApplicationsHub` (`skill-lab/page.tsx:143`), center the trailing two
+- [x] 1.4 **App-grid symmetry** — in `ApplicationsHub` (`skill-lab/page.tsx:143`), center the trailing two
       cards (Interviewing, Persuasion) under the top three at `lg:grid-cols-3`. Cleanest: keep the grid but
       wrap so the last row centers (e.g. a flex row with `justify-center max-w-[…]`, or `lg:[&>*:nth-child(4)]:col-start-…`
       offset). Verify at sm (2-col) it still reads well.
@@ -615,3 +615,25 @@ the per-phase checklists for a single end-to-end pass.)
   diff rather than a pixel screenshot). `/code-review` (high): no findings. No calibration impact — XP/rank ≠
   score, no scoring prompt/model touched. Deviation: stepper test lives at `tests/stepper.test.ts` (repo
   harness convention), not the doc's `__tests__/*.test.tsx` path.
+- 2026-07-22 — **Phase 1 done** on `feat/overhaul-p1-application-lab`. (1.1) Renamed every user-visible "Skill
+  Lab" to "Application Lab" (nav, hub, session header, ModeBadge, marketing ModesSection, pricing, OG image,
+  library + workout CTAs, DayCompleteSummary, exemplars metadata, and the bug/quest/weekly-challenge/achievement
+  engagement copy); operator-only `/ops/calibration` internal DB-jargon left as-is (not end-user copy). (1.2)
+  Moved `src/app/(app)/skill-lab/` to `application-lab/` (git rename preserved) + a **308** redirect in
+  `next.config.ts` for `/skill-lab` and `/skill-lab/:path*` (query strings carried through); updated every
+  internal href/redirect/router.push including `?focus=` deep-links, robots.ts, root-layout theme-prefix list,
+  and the `TrainingStackRow` href union. DB `mode='skill_lab'` + all code identifiers (`FF_SKILL_LAB_APPS`,
+  `skill-lab-v2`, `@/lib/skill-lab/*`) untouched. (1.3) Replaced the fixed 3/5/10 `LengthPick` buttons with the
+  Phase-0 `Stepper` primitive (range 1-5, default 3, "How many reps?" + "3 · recommended") plus a Start CTA;
+  widened the server guard from `SESSION_LENGTHS` {3,5,10} to `isValidSessionLength` integer [1,5]. (1.4) App
+  grid to `lg:grid-cols-6` with `col-span-2` cards and `col-start-2` on the 4th so Interviewing + Persuasion
+  center under the top three (sm 2-col unchanged). Local gate green (lint / 27-suite unit tests incl. stepper /
+  build exit 0; routes register as `/application-lab*`, no `/skill-lab` route). Smoke (full, live authed): curl
+  confirms `/skill-lab` 308 to `/application-lab` (+ subpath); hub renders "Application Lab" x6, 0 stray "Skill
+  Lab", both grid-symmetry classes present, desktop screenshot shows the trailing pair centered; the authed
+  fake-mic loop (`skill-lab-loop.spec.ts`) **passed for stepper=1 AND stepper=5** — full route to stepper to
+  Start to prompt to insight to First Rep to Retry to Improvement Review to banked Session Complete.
+  `/code-review` (high): 2 low findings (grid index hardcoded to 5 apps; stepper resets to 3 after a rare start
+  error), both consciously accepted (no cleaner Tailwind fix; non-regression rare path), no correctness bugs.
+  No calibration impact — XP/rank is not score; no scoring prompt/model touched. Deployed to prod via
+  `vercel deploy --prod` (cognifygym.com). Prod verify checklist handed to Max; Phase 2 gated on his sign-off.

@@ -318,7 +318,7 @@ export default async function DashboardPage() {
         }
       />
 
-      {/* Modes — Workout / Skill Lab / Build a Rep. */}
+      {/* Modes — Workout / Application Lab / Build a Rep. */}
       <TrainingStackRow
         modes={[
           {
@@ -330,8 +330,8 @@ export default async function DashboardPage() {
             iconKey: "workout",
           },
           {
-            href: "/skill-lab",
-            label: "Skill Lab",
+            href: "/application-lab",
+            label: "Application Lab",
             tagline: isSkillLabAppsEnabled()
               ? "Master real-world applications — storytelling, presenting, teaching, interviewing, persuasion."
               : "Pick one of the six core skills and drill it with focused exercises until it clicks.",

@@ -29,7 +29,7 @@ const individualPlans = [
     tagline: "Unlimited reps, all modes, deeper feedback.",
     features: [
       "Unlimited daily reps",
-      "All three modes unlocked (Daily Workout, Skill Lab, Build a Rep)",
+      "All three modes unlocked (Daily Workout, Application Lab, Build a Rep)",
       "Longitudinal progress dashboard",
       "Rep-to-rep comparison",
       "External validation flow",

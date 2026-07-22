@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/dashboard",
           "/workout",
-          "/skill-lab",
+          "/application-lab",
           "/build-a-rep",
           "/progress",
           "/achievements",

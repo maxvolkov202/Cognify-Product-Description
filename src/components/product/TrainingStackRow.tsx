@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Beaker, Flame, Mic } from "lucide-react";
 
 type Mode = {
-  href: "/workout" | "/skill-lab" | "/build-a-rep";
+  href: "/workout" | "/application-lab" | "/build-a-rep";
   label: string;
   tagline: string;
   repsThisWeek: number;
@@ -20,7 +20,7 @@ type Props = {
  * Three-mode training row (V2 Updates dashboard redesign). Layout is
  * 1.7fr / 1fr / 1fr — Daily Workout reads as the primary action through
  * proportion alone. Daily Workout is full brand gradient with soft orbs
- * and a white CTA. Skill Lab and Build a Rep are white with an outlined
+ * and a white CTA. Application Lab and Build a Rep are white with an outlined
  * CTA so secondary actions stay obvious without being de-emphasized.
  */
 export function TrainingStackRow({ modes }: Props) {

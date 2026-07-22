@@ -29,8 +29,8 @@ const MIN_TAP_TARGET = 44;
 const ROUTES = [
   "/workout",
   "/progress/muscle-groups",
-  // PRD v3 Phase 4 — Skill Lab applications hub + relocated drills.
-  "/skill-lab",
+  // PRD v3 Phase 4 — Application Lab applications hub + relocated drills.
+  "/application-lab",
   "/drills",
 ];
 

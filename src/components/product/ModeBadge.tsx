@@ -52,7 +52,7 @@ const ACCENTS: Record<ModeKind, Accent> = {
     halo: "rgba(106, 163, 255, 0.32)",
     seam: "from-brand-blue/60 via-brand-lavender/40 to-brand-blue/0",
     Icon: Beaker,
-    label: "Skill Lab",
+    label: "Application Lab",
   },
   build_a_rep: {
     pill: "bg-brand-magenta/10",

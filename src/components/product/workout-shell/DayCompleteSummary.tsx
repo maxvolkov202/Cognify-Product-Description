@@ -368,16 +368,16 @@ export default function DayCompleteSummary({
           </span>{" "}
           {recommendation.kind === "lab" ? (
             <Link
-              href={`/skill-lab/${recommendation.applicationId}`}
+              href={`/application-lab/${recommendation.applicationId}`}
               className="font-semibold text-purple-700 dark:text-brand-lavender underline decoration-purple-300 dark:decoration-brand-purple/60 underline-offset-2 hover:text-purple-900 dark:hover:text-white"
             >
-              Train {recommendation.label} in the Skill Lab →
+              Train {recommendation.label} in the Application Lab →
             </Link>
           ) : (
             <>
               {recommendation.text}{" "}
               <Link
-                href={`/skill-lab/${recommendation.lab.applicationId}`}
+                href={`/application-lab/${recommendation.lab.applicationId}`}
                 className="font-semibold text-purple-700 dark:text-brand-lavender underline decoration-purple-300 dark:decoration-brand-purple/60 underline-offset-2 hover:text-purple-900 dark:hover:text-white"
               >
                 Or apply it: {recommendation.lab.label} →

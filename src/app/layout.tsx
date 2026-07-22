@@ -104,7 +104,7 @@ const APPLE_SPLASH = [
 // the prefix list mirrors src/app/(app)/* + onboarding.
 const THEME_SCRIPT = `(function(){try{
   var path = window.location.pathname;
-  var appPrefixes = ['/dashboard','/workout','/skill-lab','/drills','/build-a-rep','/library','/progress','/leaderboard','/friends','/settings','/achievements','/onboarding','/compare','/tutorial','/admin','/dev','/ops','/report','/scenario','/validate'];
+  var appPrefixes = ['/dashboard','/workout','/application-lab','/drills','/build-a-rep','/library','/progress','/leaderboard','/friends','/settings','/achievements','/onboarding','/compare','/tutorial','/admin','/dev','/ops','/report','/scenario','/validate'];
   var inApp = appPrefixes.some(function(p){return path === p || path.indexOf(p + '/') === 0;});
   if (!inApp) { document.documentElement.classList.remove('dark'); return; }
   var stored = null;

@@ -12,7 +12,7 @@ export default function ExemplarsNotFound() {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
       <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-purple">
-        Skill Lab · Exemplars
+        Application Lab · Exemplars
       </p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
         That dimension doesn&rsquo;t exist.
@@ -22,11 +22,11 @@ export default function ExemplarsNotFound() {
         Thinking Quality, Pacing, and Tone. Pick one to see exemplars.
       </p>
       <Link
-        href="/skill-lab"
+        href="/application-lab"
         className="mt-8 inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:border-ink-300 hover:bg-ink-50"
       >
         <ArrowLeft className="size-3.5" strokeWidth={2.5} />
-        Back to Skill Lab
+        Back to Application Lab
       </Link>
     </div>
   );

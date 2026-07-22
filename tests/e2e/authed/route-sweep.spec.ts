@@ -17,7 +17,7 @@ import { DEMO_STORAGE_STATE } from "./helpers";
 const ROUTES = [
   "/dashboard",
   "/workout",
-  "/skill-lab",
+  "/application-lab",
   "/build-a-rep",
   "/library",
   "/progress",

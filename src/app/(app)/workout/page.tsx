@@ -388,14 +388,14 @@ function BetaSoon() {
           soon.
         </p>
         <p className="text-xs text-slate-500">
-          In the meantime, Skill Lab is still up for targeted training
+          In the meantime, Application Lab is still up for targeted training
           and custom reps.
         </p>
         <Link
-          href="/skill-lab"
+          href="/application-lab"
           className="inline-flex min-h-[44px] items-center mt-2 px-4 py-2 rounded-lg bg-pink-500 hover:bg-pink-400 text-white text-sm font-medium"
         >
-          Go to Skill Lab
+          Go to Application Lab
         </Link>
       </div>
     </div>
