@@ -7,7 +7,6 @@ import {
   TrendingDown,
   Activity,
   Target,
-  Mic,
 } from "lucide-react";
 import { currentUser } from "@/lib/session/current-user";
 import { isRankSystemEnabled, isSkillLabAppsEnabled } from "@/lib/flags";
@@ -418,8 +417,6 @@ export default async function DashboardPage() {
 
       {insights.length > 0 && <CoachMemo insights={insights} />}
 
-      {hasAnyReps && <LastSessions recent={recent} />}
-
       <LibraryCallout />
     </div>
   );
@@ -603,82 +600,6 @@ function InsightIcon({
     case "opportunity":
       return <Target className={`${cls} text-brand-magenta`} strokeWidth={2.5} />;
   }
-}
-
-// ——— Last sessions (server-rendered, three cards) ——————————
-
-type RecentRep = Awaited<ReturnType<typeof getRecentReps>>[number];
-
-function LastSessions({ recent }: { recent: RecentRep[] }) {
-  // Show 3 most recent in card form; older live behind /progress.
-  const top = recent.slice(0, 3);
-  return (
-    <section>
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">
-          Last sessions
-        </h2>
-        <Link
-          href="/progress"
-          className="text-xs font-bold text-brand-purple hover:text-brand-magenta dark:text-brand-lavender dark:hover:text-brand-magenta"
-        >
-          See all →
-        </Link>
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {top.map((rep) => (
-          <SessionCard key={rep.id} rep={rep} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function SessionCard({ rep }: { rep: RecentRep }) {
-  const composite = Math.round(rep.compositeScore);
-  // Pill bars proportional to composite — a tiny readout at the bottom of
-  // the card so each session feels alive.
-  const fillPct = Math.max(8, Math.min(100, composite));
-  const date = new Date(rep.createdAt).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-  const seconds = Math.round(rep.durationMs / 1000);
-  return (
-    <Link
-      href={`/progress/rep/${rep.id}` as never}
-      className="group relative flex flex-col gap-3 overflow-hidden rounded-3xl border border-ink-200 bg-gradient-to-br from-white via-white to-brand-lavender/5 p-4 transition-all hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-[0_12px_36px_-16px_rgba(176,114,255,0.45)] dark:border-ink-700 dark:from-ink-900 dark:via-ink-900 dark:to-ink-800 dark:hover:border-brand-purple/40"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-[13px] font-semibold leading-snug text-ink-800 dark:text-ink-100">
-            {rep.promptText}
-          </p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-ink-400 dark:text-ink-500">
-            {date} · {seconds}s
-          </p>
-        </div>
-        <div className="brand-gradient-text shrink-0 text-2xl font-extrabold tabular-nums leading-none">
-          {composite}
-        </div>
-      </div>
-
-      <div className="h-1.5 overflow-hidden rounded-full bg-ink-100 dark:bg-ink-800">
-        <div
-          className="brand-gradient h-full rounded-full"
-          style={{ width: `${fillPct}%` }}
-        />
-      </div>
-
-      <div className="flex items-center justify-between text-[11px] font-bold">
-        <span className="inline-flex items-center gap-1 text-brand-purple opacity-0 transition-opacity group-hover:opacity-100 dark:text-brand-lavender">
-          <Mic className="size-3" strokeWidth={2.5} />
-          Run it back
-        </span>
-        <span className="text-ink-400 dark:text-ink-500">→ progress</span>
-      </div>
-    </Link>
-  );
 }
 
 

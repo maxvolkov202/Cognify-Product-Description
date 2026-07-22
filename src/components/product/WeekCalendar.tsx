@@ -48,7 +48,7 @@ export function WeekCalendar({ activity, todayKey: todayKeyProp }: Props) {
         </p>
         <FullHistoryTrigger variant="calendar" />
       </div>
-      <div className="grid grid-cols-7 gap-2">
+      <div className="mx-auto grid max-w-lg grid-cols-7 gap-2 sm:gap-3">
         {cells.map((d, i) => {
           const isToday = d.date === todayKey;
           const hasReps = d.count > 0;
@@ -73,7 +73,7 @@ export function WeekCalendar({ activity, todayKey: todayKeyProp }: Props) {
                 </span>
                 <span
                   className={[
-                    "grid size-11 place-items-center rounded-full text-sm font-extrabold tabular-nums transition-all",
+                    "grid aspect-square w-full place-items-center rounded-full text-base font-extrabold tabular-nums transition-all",
                     hasReps
                       ? "brand-gradient text-white shadow-[0_8px_22px_-8px_rgba(176,114,255,0.5)]"
                       : "border border-ink-200 bg-ink-50 text-ink-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-400",
@@ -83,7 +83,7 @@ export function WeekCalendar({ activity, todayKey: todayKeyProp }: Props) {
                     .join(" ")}
                 >
                   {hasReps ? (
-                    <Check className="size-4" strokeWidth={3} />
+                    <Check className="size-5" strokeWidth={3} />
                   ) : (
                     dayNum
                   )}

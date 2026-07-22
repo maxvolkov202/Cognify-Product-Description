@@ -165,7 +165,7 @@ export function DashboardHero({
           />
 
           <VitalSign
-            label="Last 5"
+            label="Last 5 reps average"
             href="/progress"
             accent="purple"
             valueNode={
@@ -178,10 +178,10 @@ export function DashboardHero({
               deltaTone === null
                 ? "No baseline yet"
                 : deltaTone === "up"
-                  ? `+${delta} vs baseline`
+                  ? `+${delta} ${Math.abs(delta!) === 1 ? "point" : "points"} from your baseline`
                   : deltaTone === "down"
-                    ? `${delta} vs baseline`
-                    : "Even with baseline"
+                    ? `${delta} ${Math.abs(delta!) === 1 ? "point" : "points"} from your baseline`
+                    : "Even with your baseline"
             }
             footnoteTone={
               deltaTone === "up"
@@ -205,7 +205,7 @@ export function DashboardHero({
               iconNode={
                 <Sparkles className="size-4 text-brand-purple" strokeWidth={2.5} />
               }
-              footnote={communicationScoreNote ?? "All six Core Skills, long-run"}
+              footnote={communicationScoreNote ?? "Your all-time communication average"}
             />
           )}
 
