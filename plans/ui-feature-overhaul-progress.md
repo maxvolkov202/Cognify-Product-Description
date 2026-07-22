@@ -732,3 +732,15 @@ the per-phase checklists for a single end-to-end pass.)
   the full commit → PR → `/code-review` → merge → deploy flow and merges its own reviewed PRs to this fork's
   `main` (the integration branch); no separate human merge step. Reviews still required (Claude performs them).
   Global CLAUDE.md fully detached from Street Diligence.
+- 2026-07-22 — **Phase 2b (Progress-page polish, follow-up to P2/ask #7)** on
+  `feat/overhaul-p2b-mobile-charts-heatmap` (PR #40, squash-merged). Max asks: (a) Skill trends **2 charts per
+  row on phones** (was 1, less scrolling) — desktop unchanged 3-up (`SkillTrendChart` grid → `grid-cols-2 …
+  lg:grid-cols-3`, tighter mobile padding + truncated label); (b) the **Activity heatmap was still small** →
+  `StreakHeatmap` cells now scale to fill the card (`aspect-square w-full`, flex-1 week columns) instead of
+  fixed 12px squares, and the progress layout reflowed so **Current shape (radar) + Activity (heatmap) pair
+  side by side** (Skill trends full-width above, Recent reps full-width below; Recent-reps JSX moved verbatim).
+  Local gate green (lint ✔ / test ✔ / build ✔). Smoke (authed, live, clean dev server after clearing a
+  build-clobbered `.next`): mobile shows 2-up charts + enlarged heatmap, desktop shows full-width Skill trends
+  + radar/heatmap side by side, no runtime error from the change (a pre-existing `<title>`-array dev warning is
+  unrelated). `/code-review` (high): no findings. No calibration impact — presentational only. Deployed to prod
+  via `vercel deploy --prod` (cognifygym.com/progress 200). **Prod verify handed to Max.**
