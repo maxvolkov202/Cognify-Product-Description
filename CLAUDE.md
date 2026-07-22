@@ -27,7 +27,11 @@ the conflict to Max instead of guessing.
 
 ## Engineering conventions
 
-- Never commit to main; branch per phase, PR + review before merge. Run `/code-review` before each PR.
+- Never commit *directly* to main; every change lands via a branch + PR (branch per phase). Run
+  `/code-review` before each PR. **Claude is authorized to run the full flow end to end — commit → PR →
+  `/code-review` → merge → deploy — and to merge its own reviewed PRs into `main`** (this fork's `main` is
+  the integration branch). No separate human merge step is required; the discipline that stays is: a branch
+  and a PR with `/code-review` for every change, never a direct push to `main`.
 - All v2 features are flag-gated (`src/lib/flags.ts`, `FF_*`); flags default ON outside production,
   OFF in prod until Phase 6 promotion. Server-resolve flags — pure client code never reads env.
 - **Calibration guardrail:** scoring prompts must stay byte-identical for reference reps — render

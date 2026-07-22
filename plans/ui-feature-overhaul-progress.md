@@ -555,7 +555,7 @@ spotlight aligns to the real elements at desktop and mobile widths; reduced-moti
 
 ---
 
-## Phase 10 — Daily Workout: general-only prompt mode (temporary)  ⬜
+## Phase 10 — Daily Workout: general-only prompt mode (temporary)  ✅ merged + deployed 2026-07-22 (`feat/overhaul-p10-workout-general-only`, PR #38) · ⏳ awaiting Max's prod verify
 
 **Added by Max 2026-07-22 (ask #23).** Temporarily hide the Daily Workout **General | Personalized** switch and
 force **General** for everyone in prod, "until we dial more into vertical-specific." This is a **reversible
@@ -573,21 +573,21 @@ P2–P9; can be **pulled forward** ahead of the remaining phases if Max wants it
   General mode omits).
 
 **Files/tasks:**
-- [ ] 10.1 **Add a server-resolved flag** — `FF_WORKOUT_PERSONALIZE_SWITCH` in `src/lib/flags.ts` via
-      `defaultOnOutsideProduction(...)` (switch **visible in dev/preview** so we can still test vertical
-      prompts; **hidden in prod** = general-only now). Resolve it server-side and thread a
-      `personalizeSwitchEnabled: boolean` into the workout `payload` (the shell is a client component and must
-      not read env directly — PRD/CLAUDE convention).
-- [ ] 10.2 **Force General + hide the switch when the flag is off** — in `WorkoutShell.tsx`: seed
-      `useState(personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false)`, and render
-      `PersonalizeSwitch` only when `personalizeSwitchEnabled`. When hidden, `personalize` stays `false` for
-      the page lifetime and cannot be toggled. Keep the "Prompt mode" eyebrow + summary hidden too so the
-      landing chrome doesn't leave an empty slot.
-- [ ] 10.3 **Confirm downstream is truly general** — verify that with `personalize=false` the prompt-selection
-      path (`:449` → selection/prompt-gen) receives no vertical context, so the reps are vertical-neutral. No
-      change to the personalization *storage* (profile/vertical stay saved for when we re-enable).
-- [ ] 10.4 **No regression to the rest of the workout** — the full fake-mic day loop still runs; only the
-      prompt source changes. Abort/retry/advance unaffected.
+- [x] 10.1 **Add a server-resolved flag** — `isWorkoutPersonalizeSwitchEnabled()` / `FF_WORKOUT_PERSONALIZE_SWITCH`
+      in `src/lib/flags.ts` via `defaultOnOutsideProduction(...)` (visible in dev/preview, OFF in prod = general-only
+      now). Threaded `personalizeSwitchEnabled: boolean` through `WorkoutShellHydratedPayloadSchema` (+ both build
+      paths + `EMPTY_SHELL_PAYLOAD`) and resolved it in `WorkoutPage` (`payload.personalizeSwitchEnabled = isWorkoutPersonalizeSwitchEnabled()`),
+      so the client shell never reads env. Schema default `true` (pre-P10 behavior) as a safety net.
+- [x] 10.2 **Force General + hide the switch when the flag is off** — `WorkoutShell.tsx` seeds
+      `useState(personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false)` and renders
+      `PersonalizeSwitch` (with its "Prompt mode" eyebrow + summary, all internal to the component) only when
+      `personalizeSwitchEnabled`. Hidden → `personalize` stays `false` for the page lifetime, no empty slot.
+- [x] 10.3 **Confirm downstream is truly general** — no code change needed: `prompt-selection.ts:98`
+      (`if (input.personalize && user)`) already gates ALL vertical/goal resolution, so `personalize=false`
+      leaves `userVertical=null` → general bank. This is the SAME path the pre-existing "General" toggle used,
+      so no new/untested prompt-selection code. Personalization *storage* (vertical/goals) untouched.
+- [x] 10.4 **No regression to the rest of the workout** — loop/record/score/retry/review code is entirely
+      unchanged; only the prompt bank differs. Verified live (see smoke below).
 
 **Flag:** `FF_WORKOUT_PERSONALIZE_SWITCH` (new; `defaultOnOutsideProduction`). To restore the switch in prod
 later, set the prod env var truthy — no code change.
@@ -714,3 +714,21 @@ the per-phase checklists for a single end-to-end pass.)
   prompt/model touched. Deployed to prod via `vercel deploy --prod` (dpl_DVvboazbxjxoYfNHvxPT2exUjkdC, aliased
   www.cognifygym.com, 200 OK). **Prod verify checklist handed to Max; Phase 2 gated on his sign-off before
   any further phase closes.**
+- 2026-07-22 — **Phase 10 done** on `feat/overhaul-p10-workout-general-only` (PR #38, squash-merged, pulled
+  forward at Max's request in the same session as P2). New `FF_WORKOUT_PERSONALIZE_SWITCH`
+  (`defaultOnOutsideProduction`, OFF-in-prod = shipped general-only state) threaded server-side into the
+  workout payload; `WorkoutShell` hides `PersonalizeSwitch` + forces `personalize=false` when off. 10.3 needed
+  no code (the `input.personalize` gate at `prompt-selection.ts:98` already yields the general bank — same
+  path the old "General" toggle used). Local gate green (lint ✔ / test ✔ / build ✔). Smoke (authed, live):
+  flag **OFF** (3334, prod-sim) → workout landing shows **no** switch (`SWITCH_COUNT=0`) AND the **full
+  fake-mic day loop passed** (start → general prompt → insight → first rep → feedback → retry → improvement
+  review, reusing the session to sidestep a Supabase auth rate-limit hit from repeated smoke sign-ins); flag
+  **ON** (3333 dev default) → "Prompt mode General|Personalized" switch renders (tour screenshot). `/code-review`
+  (high): **no findings**. No calibration impact — prompt *selection* only, XP/rank ≠ score. Deployed to prod
+  via `vercel deploy --prod` (dpl_7uuKVh5aten46aEdZumRkkVruUHx, www.cognifygym.com 200). Flag is OFF-in-prod by
+  default (no env var needed); restore the switch later with `FF_WORKOUT_PERSONALIZE_SWITCH=true`. **Prod verify
+  checklist handed to Max.**
+- 2026-07-22 — **Workflow policy update** (Max): CLAUDE.md (repo + global `~/.claude`) relaxed — Claude runs
+  the full commit → PR → `/code-review` → merge → deploy flow and merges its own reviewed PRs to this fork's
+  `main` (the integration branch); no separate human merge step. Reviews still required (Claude performs them).
+  Global CLAUDE.md fully detached from Street Diligence.
