@@ -1,6 +1,7 @@
 import type React from "react";
 import { Flame, Trophy, Swords, UserPlus } from "lucide-react";
 import type { ActivityRow } from "@/lib/db/queries/activity";
+import { DIMENSION_LABELS } from "@/types/domain";
 
 /**
  * Shared friends live-feed row. Extracted verbatim from the inline
@@ -32,8 +33,13 @@ export function ActivityFeedRow({ row }: { row: ActivityRow }) {
   const description: string = (() => {
     switch (row.payload.type) {
       case "workout_complete":
+        // 4.3 — "strongest" reads the actor's real top Core Skill (per-actor,
+        // proper UI label like "Pacing"), dropping the line when unmeasured —
+        // not the raw per-rep dimension code that showed "delivery" for all.
         return `Completed a workout — ${row.payload.composite} composite${
-          row.payload.topDimension ? ` · strongest: ${row.payload.topDimension}` : ""
+          row.topCoreSkill
+            ? ` · strongest: ${DIMENSION_LABELS[row.topCoreSkill]}`
+            : ""
         }`;
       case "new_high":
         return `New personal best — ${row.payload.score} on ${row.payload.dimension}`;

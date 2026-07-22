@@ -2,11 +2,13 @@ import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   activityEvents,
+  communicationProfile,
   friendships,
   reps,
   users,
 } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { SKILL_DIMENSIONS, type SkillDimension } from "@/types/domain";
 
 /**
  * Activity feed — emit + read. Events live in activity_events keyed by
@@ -34,10 +36,49 @@ export type ActivityRow = {
   id: string;
   userId: string;
   userName: string | null;
+  /**
+   * The actor's real strongest Core Skill (highest-scoring dimension in their
+   * communication_profile), sourced per-actor so the feed shows a genuine,
+   * varying skill rather than a hardcoded one. Null when the actor has no
+   * measured skills yet — the row drops the "strongest" line in that case.
+   */
+  topCoreSkill: SkillDimension | null;
   type: ActivityEventType;
   payload: ActivityPayload;
   createdAt: Date;
 };
+
+/** The local part of an email (before "@"), used as a friendly display-name
+ *  fallback when a user never set a name. Null-safe. */
+function emailLocalPart(email: string | null): string | null {
+  if (!email) return null;
+  const at = email.indexOf("@");
+  const local = at === -1 ? email : email.slice(0, at);
+  return local.trim() || null;
+}
+
+/** Pick the actor's strongest Core Skill from their profile's coreSkills map:
+ *  the valid dimension with the highest score that has at least one sample.
+ *  Returns null when there's no measured skill yet. */
+function topCoreSkillFromProfile(
+  coreSkills: Record<
+    string,
+    { score: number; sampleCount: number; updatedAt: string }
+  > | null,
+): SkillDimension | null {
+  if (!coreSkills) return null;
+  let best: SkillDimension | null = null;
+  let bestScore = -Infinity;
+  for (const dim of SKILL_DIMENSIONS) {
+    const entry = coreSkills[dim];
+    if (!entry || entry.sampleCount <= 0) continue;
+    if (entry.score > bestScore) {
+      bestScore = entry.score;
+      best = dim;
+    }
+  }
+  return best;
+}
 
 /** Fire-and-forget event emit. Swallows errors so the caller's primary path
  *  is never blocked by activity bookkeeping. */
@@ -99,6 +140,7 @@ export async function getActivityFeedForUser(
         payload: activityEvents.payload,
         createdAt: activityEvents.createdAt,
         userName: users.name,
+        userEmail: users.email,
       })
       .from(activityEvents)
       .innerJoin(users, eq(users.id, activityEvents.userId))
@@ -111,10 +153,31 @@ export async function getActivityFeedForUser(
       .orderBy(desc(activityEvents.createdAt))
       .limit(limit);
 
+    // 4.3 — source each actor's real strongest Core Skill in one batched read
+    // over the distinct actors present in this page of the feed.
+    const actorIds = Array.from(new Set(rows.map((r) => r.userId)));
+    const topSkillByUser = new Map<string, SkillDimension | null>();
+    if (actorIds.length > 0) {
+      const profiles = await db
+        .select({
+          userId: communicationProfile.userId,
+          coreSkills: communicationProfile.coreSkills,
+        })
+        .from(communicationProfile)
+        .where(inArray(communicationProfile.userId, actorIds));
+      for (const p of profiles) {
+        topSkillByUser.set(p.userId, topCoreSkillFromProfile(p.coreSkills));
+      }
+    }
+
     return rows.map((r) => ({
       id: r.id,
       userId: r.userId,
-      userName: r.userName,
+      // 4.2 — show the actor's registered name; fall back to their email's
+      // local part so a nameless account isn't shown as "Someone". "Someone"
+      // (rendered in the row) only when both are genuinely absent.
+      userName: r.userName ?? emailLocalPart(r.userEmail),
+      topCoreSkill: topSkillByUser.get(r.userId) ?? null,
       type: r.type as ActivityEventType,
       payload: r.payload as ActivityPayload,
       createdAt: r.createdAt,
