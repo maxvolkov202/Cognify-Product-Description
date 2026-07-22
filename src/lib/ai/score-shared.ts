@@ -566,9 +566,12 @@ function buildLeanSystemPrompt(feedbackCap: number): string {
   return p;
 }
 
-/** Default lean feedback cap — the shipped `lean-output` arm's cap. The
- *  2026-07-21 PIVOT recommends NOT shipping 160 (too lean); the milder-cap
- *  bench decides the value that replaces this. */
+/** The `lean-output` arm's feedback cap. NOTE: 160 is the ORIGINAL lean arm
+ *  that Max judged "too lean to ship". The bench since decided the shippable
+ *  variant is `signals-drop` (=leanFeedbackCap 400 — drop the invisible
+ *  `signals` field, keep control's full feedback prose); see the `signals-drop`
+ *  arm in score-arms.ts. This constant remains the cap for the dormant
+ *  `lean-output`/`lean-split` building blocks only. */
 export const LEAN_FEEDBACK_CAP_DEFAULT = 160;
 
 const leanPromptCache = new Map<number, string>();

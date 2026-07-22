@@ -202,6 +202,9 @@ async function run() {
     process.env.FF_SCORING_VARIANT_ARM = "per-skill-fanout";
     check("per-skill-fanout arm → per-skill-fanout", selectScoringArm("user-1") === "per-skill-fanout");
 
+    process.env.FF_SCORING_VARIANT_ARM = "signals-drop";
+    check("signals-drop arm → signals-drop", selectScoringArm("user-1") === "signals-drop");
+
     process.env.FF_SCORING_VARIANT_ARM = "not-a-real-arm";
     check("unrecognized arm → control", selectScoringArm("user-1") === "control");
 

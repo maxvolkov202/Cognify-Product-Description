@@ -53,6 +53,8 @@ export async function runScoringArm(
       return runAllLlm(input);
     case "lean-output":
       return runLeanOutput(input);
+    case "signals-drop":
+      return runSignalsDrop(input);
     case "lean-split":
       // lever (a) × (b) — lean output ON the clarity-safe parallel decode.
       return runGroupedFanout(input, { lean: true });
@@ -103,6 +105,34 @@ async function runAllLlm(input: ScoreRepInput): Promise<ScoreRepResult> {
  */
 async function runLeanOutput(input: ScoreRepInput): Promise<ScoreRepResult> {
   const result = await runSingleCallScore(input, { lean: true });
+  result.metrics.llmCallCount = 1;
+  return result;
+}
+
+/**
+ * signals-drop arm — THE ship candidate (PIVOT 2026-07-21). The control
+ * single-call flow with exactly ONE change to the output contract: the
+ * never-rendered per-dimension `signals` narratives are dropped
+ * (`leanFeedbackCap: 400` keeps the full 400-char / "1-2 sentences" feedback
+ * — byte-identical to control's feedback instruction; only the invisible
+ * `signals` field is removed). This is the subset of `lean-output` that Max
+ * approved: the feedback the user reads does not change AT ALL, so there is
+ * no copy trade-off to review — the arm trims a dead output field, nothing
+ * more.
+ *
+ * Measured (12 reps × N=3, gpt-4o, RAG off): output tokens −15% (652→553),
+ * latency p50 −16% (7.7s→6.5s), composite MAE 2.2 vs control 2.9
+ * (neutral-to-better), no per-dimension regression. It is the only latency
+ * lever in the whole sweep that preserves output quality FULLY — the milder
+ * feedback caps add ~nothing over it (the cap rarely binds), the 160-char cut
+ * costs a clarity wobble, fan-out breaks tone/thinking calibration, and the
+ * smaller models are both slower AND worse.
+ * See plans/bench/LATENCY-2026-07-21-lean-output.md ("OBJECTIVE STANDPOINT").
+ */
+async function runSignalsDrop(input: ScoreRepInput): Promise<ScoreRepResult> {
+  // leanFeedbackCap: 400 → drop the `signals` field, keep control's feedback
+  // prose (≤400, 1-2 sentences). Distinct from lean-output's cap of 160.
+  const result = await runSingleCallScore(input, { leanFeedbackCap: 400 });
   result.metrics.llmCallCount = 1;
   return result;
 }

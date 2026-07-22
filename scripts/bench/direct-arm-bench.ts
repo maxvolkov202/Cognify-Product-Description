@@ -136,6 +136,8 @@ async function main() {
     // Milder feedback-trim sweep (experiment 1). `lean-400` = signals-only
     // floor (invisible field dropped, feedback prose byte-identical to
     // control); 320/280/240/160 = progressively tighter feedback caps.
+    // `signals-drop` is the SHIPPED production arm — same as lean-400.
+    "signals-drop": (i) => runSingleCallScore(i, { leanFeedbackCap: 400 }),
     "lean-400": (i) => runSingleCallScore(i, { leanFeedbackCap: 400 }),
     "lean-320": (i) => runSingleCallScore(i, { leanFeedbackCap: 320 }),
     "lean-280": (i) => runSingleCallScore(i, { leanFeedbackCap: 280 }),

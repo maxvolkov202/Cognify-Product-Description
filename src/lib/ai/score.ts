@@ -62,7 +62,8 @@ export type ScoringArm =
   | "all-llm"
   | "lean-output"
   | "lean-split"
-  | "per-skill-fanout";
+  | "per-skill-fanout"
+  | "signals-drop";
 
 /** Arms `runScoringArm` can actually execute today. A flag value naming an
  *  arm outside this set falls back to control (safe no-op) rather than
@@ -76,6 +77,7 @@ const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
   "lean-output",
   "lean-split",
   "per-skill-fanout",
+  "signals-drop",
 ];
 
 /**
