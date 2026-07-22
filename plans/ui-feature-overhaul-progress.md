@@ -233,20 +233,20 @@ Empty-state path (`page.tsx:218-275`) still renders.
 
 ---
 
-## Phase 3 — Rank & XP visualization + progressive curve + bug-report XP  ⬜
+## Phase 3 — Rank & XP visualization + progressive curve + bug-report XP  ✅ merged + deployed 2026-07-22 (`feat/overhaul-p3-rank-xp`, PR #44) · ⏳ awaiting Max's prod verify
 
 **Goal:** make rank progress legible (XP earned in rank, XP to next, on the card and the bar), tune the curve
 so higher tiers graduate slower, and award 10 XP for bug reports.
 
 **Files/tasks:**
-- [ ] 3.1 **Surface rank XP** — `LevelStreakCard.tsx` rank mode (`:63-102`). `RankInfo` already exposes
+- [x] 3.1 **Surface rank XP** — `LevelStreakCard.tsx` rank mode (`:63-102`). `RankInfo` already exposes
       `floorXp`/`nextFloorXp`/`progress` (`rank.ts:48-54`). Render:
       `xpInRank = xp - floorXp`, `xpToNext = (nextFloorXp ?? xp) - xp`; show e.g. "1,240 XP · 360 to Silver II",
       and fill the progress bar (`:88-94`) to `rank.progress`. At Grandmaster IV (`nextFloorXp === null`) show
       "Max rank". Remove the §10.5.2 XP-hidden guard (`:96-102`) now that P0 amended the PRD.
-- [ ] 3.2 **Progress bar everywhere rank shows** — ensure the same bar+labels appear on the dashboard card;
+- [x] 3.2 **Progress bar everywhere rank shows** — ensure the same bar+labels appear on the dashboard card;
       if rank also renders elsewhere (profile), reuse a small `RankProgress` subcomponent.
-- [ ] 3.3 **Progressive tier costs** — Max wants all Bronze divisions to cost the same, Silver slightly more
+- [x] 3.3 **Progressive tier costs** — Max wants all Bronze divisions to cost the same, Silver slightly more
       each, Gold more, etc. Today `RANK_FLOORS` anchors divisions to levels via `xpForLevel` (`rank.ts:58-73`),
       so within a tier the 4 divisions are *not* equal. Redefine `RANK_FLOORS` as **per-tier flat division
       costs that step up by tier**: define `TIER_DIVISION_XP = { bronze: B, silver: B*k, gold: …}` and build
@@ -255,7 +255,7 @@ so higher tiers graduate slower, and award 10 XP for bug reports.
       test asserting: (a) equal deltas within Bronze, (b) Silver-delta > Bronze-delta > … monotonic by tier,
       (c) floors strictly ascending across all 32. **Do not touch `xp.ts` earn multipliers** (grading/calibration
       unaffected — XP ≠ score). Document the new curve in a comment + the PRD progression section.
-- [ ] 3.4 **Bug-report +10 XP** — `src/app/api/bug-reports/route.ts` after the insert (`:127`), when
+- [x] 3.4 **Bug-report +10 XP** — `src/app/api/bug-reports/route.ts` after the insert (`:127`), when
       `userId` (`:94-95`) is non-null, do a **flat additive** award (copy `awardSessionCompletionXp`'s
       `users.xp += 10` pattern, `xp.ts:85-97`) — **not** `awardXp` (avoids composite curve + `lifetimeReps`).
       Best-effort/try-catch so it never fails the bug submit. Optional toast "+10 XP for the report" in
@@ -757,3 +757,27 @@ the per-phase checklists for a single end-to-end pass.)
   **This early-ships part of Phase 7.2 (recent-reps relisten).** Process note: accidentally committed to local
   `main`; caught it (origin/main untouched), moved the commit to a clean branch + reset local main before the
   PR. **Prod verify handed to Max.**
+- 2026-07-22 — **Phase 3 done** on `feat/overhaul-p3-rank-xp` (PR #44, squash-merged to main). (3.1/3.2)
+  `rankFromXp` now returns `xpInRank`/`xpToNext`; the dashboard rank card (`LevelStreakCard`) shows
+  "N XP this rank" + "M to <next>" beside the badge and fills the bar to `rank.progress`, "Max rank. Top of
+  the ladder." at Grandmaster IV; the old §10.5.2 XP-hidden guard removed (P0 amended the PRD, DEC-2). The
+  completion `ProgressionStrip` also shows XP-to-next so rank XP is visible everywhere rank renders. (3.3)
+  Rebuilt `RANK_FLOORS` from a new `TIER_DIVISION_XP` map — flat per-division cost per tier that steps up by
+  tier (Bronze 800 → Grandmaster 6,400; +100 second differences), decoupled from the Level 1-100 curve;
+  Silver I at 3,200 XP, Grandmaster IV at 97,600. (3.4) Bug-report route grants a flat additive +10 XP to
+  signed-in reporters (mirrors `awardSessionCompletionXp`, not the graded curve — no `lifetime_reps`, no
+  band/streak), best-effort try/catch so it never fails the submit; anonymous awards 0; success modal shows a
+  "+10 XP" chip; route returns `xpAwarded`. **Re-floor safety:** queried the live prod XP distribution (718
+  users, 710 at 0 XP, top real user 3,400) — Bronze 800/div keeps Bronze III at 1,600 below the top users, so
+  **no user demotes** (two low-XP users promote one division; nobody drops). Unit test encodes the no-demotion
+  guard + equal-within-tier / increasing-per-tier / strictly-ascending; curve documented in `rank.ts` + PRD
+  §10.5.4. Local gate green (lint ✔ / test ✔ 46 rank assertions / build ✔ exit 0). Smoke (authed Playwright,
+  `playwright.p3.config.ts`, reused stored session to dodge the auth rate limit): rank card renders "500 XP
+  this rank" / "800 to Silver III" at 5,000 XP and updates to "100 XP this rank" / "1,200 to Silver IV" across
+  the Silver II→III boundary (screenshot verified); bug report grants exactly +10 XP signed-in and 0 anonymous
+  (DB delta asserted, inserted rows cleaned up). `/code-review` (high): 1 conventions finding — a new em dash
+  in "Max rank — top of the ladder." — **fixed** to "Max rank. Top of the ladder." before merge; no
+  correctness bugs. No calibration impact — XP/rank ≠ score. Deployed to prod via `vercel deploy --prod`
+  (dpl_66Jq1TpcwBAHAwm18TLDQ5fTjcde, aliased www.cognifygym.com 200; bug-reports route live — empty POST →
+  400). Rank surfaces stay gated by existing `FF_RANK_SYSTEM` (a prod var per the promotion runbook); bug XP
+  is unflagged. **Prod verify checklist handed to Max; Phase 4 gated on his sign-off.**
