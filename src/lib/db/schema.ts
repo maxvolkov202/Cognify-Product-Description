@@ -1429,6 +1429,9 @@ export const scoringTelemetry = cognifyV2Schema.table(
     exerciseId: uuid("exercise_id"),
     muscleGroupDayId: uuid("muscle_group_day_id"),
     isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
+    // Grading Engine V2 — which A/B scoring arm produced this row.
+    // Nullable; NULL = control / legacy. See selectScoringArm in score.ts.
+    arm: text("arm"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -1439,6 +1442,7 @@ export const scoringTelemetry = cognifyV2Schema.table(
     index("scoring_telemetry_model_idx").on(t.modelUsed),
     index("scoring_telemetry_exercise_idx").on(t.exerciseId, t.createdAt),
     index("scoring_telemetry_mgd_idx").on(t.muscleGroupDayId, t.createdAt),
+    index("scoring_telemetry_arm_idx").on(t.arm, t.createdAt),
     // Per-rep drilldown — added in 0026 as a partial index since rep_id
     // is often NULL on the sync /api/score path.
     index("scoring_telemetry_rep_idx").on(t.repId),

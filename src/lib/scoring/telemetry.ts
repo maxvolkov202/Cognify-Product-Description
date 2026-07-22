@@ -128,6 +128,10 @@ export type WriteTelemetryInput = {
   muscleGroupDayId?: string | null;
   /** Phase 8 — pressure graduation rep flag. */
   isGraduationRep?: boolean;
+  /** Grading Engine V2 — A/B scoring arm. Explicit value wins; otherwise
+   *  read from metrics.scoringArm (stamped by the scoreRepWithMetrics
+   *  dispatcher). NULL/undefined = control. */
+  arm?: string | null;
 };
 
 /**
@@ -181,6 +185,9 @@ export async function writeScoringTelemetry(
       exerciseId: input.exerciseId ?? null,
       muscleGroupDayId: input.muscleGroupDayId ?? null,
       isGraduationRep: input.isGraduationRep ?? false,
+      // Grading Engine V2 — explicit arm wins, else the arm the dispatcher
+      // stamped onto metrics. NULL on the mock-fallback path (no real arm).
+      arm: input.arm ?? input.metrics?.scoringArm ?? null,
     });
     return true;
   }, false);
