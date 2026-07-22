@@ -8175,6 +8175,22 @@ The progression system should be calibrated so users cannot rapidly advance thro
 
 Long-term consistency, implementation of coaching, and continuous improvement should remain the primary drivers of advancement.
 
+> **Implementation note (UI + Feature Overhaul, Phase 3 §3.3 — 2026-07-22).**
+> The curve is realized as a **flat per-division cost that steps up by tier**
+> (`TIER_DIVISION_XP` in `src/lib/progression/rank.ts`). All four divisions
+> within a tier cost the same XP; each tier's per-division cost is strictly
+> greater than the tier below it, so the climb accelerates tier over tier
+> while staying legible within a tier. Costs per division: Bronze 800,
+> Silver 1,300, Gold 1,900, Platinum 2,600, Diamond 3,400, Elite 4,300,
+> Master 5,300, Grandmaster 6,400 — placing Silver I at 3,200 XP and
+> Grandmaster IV at 97,600 XP. This replaces the earlier level-anchored
+> floors (D4), which produced uneven within-tier steps. The retune was
+> validated against the live prod XP distribution so that **no existing
+> user demotes** at the same XP (the top real users hold their division or
+> promote). XP earned in a rank and XP-to-next are now shown per §10.5.2.
+> These floors govern Rank labeling only — XP earn rates (grading) are
+> unchanged, so there is no calibration impact.
+
 # **10.6 Achievements**
 
 Achievements celebrate meaningful milestones throughout a user’s communication journey.

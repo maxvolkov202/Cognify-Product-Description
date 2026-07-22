@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, sql } from "drizzle-orm";
 import { currentUser } from "@/lib/session/current-user";
 import { db } from "@/lib/db/client";
 import { bugReports, users } from "@/lib/db/schema";
@@ -13,6 +13,12 @@ import { getUserProfile } from "@/lib/db/queries/user";
 const MAX_FILES = 4;
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 const MAX_DESCRIPTION_CHARS = 2000;
+// Overhaul P3 (ask #10) — reporting a bug is a small contribution to the
+// product; reward signed-in reporters with a flat XP bump. Flat + additive
+// (like session-completion / quest bonuses), NOT the graded rep curve — so
+// it never touches lifetime_reps or the band/streak multipliers. XP ≠ score,
+// so this has no calibration impact.
+const BUG_REPORT_XP = 10;
 const ALLOWED_MIME = new Set([
   "image/png",
   "image/jpeg",
@@ -126,7 +132,23 @@ export async function POST(req: NextRequest) {
     })
     .returning({ id: bugReports.id });
 
-  return NextResponse.json({ ok: true, id: row?.id });
+  // Best-effort +10 XP for signed-in reporters. Wrapped so a failed award
+  // (or a rate-limited pooler) can never fail the bug submit itself — the
+  // report is already committed above.
+  let xpAwarded = 0;
+  if (userId) {
+    try {
+      await db
+        .update(users)
+        .set({ xp: sql`${users.xp} + ${BUG_REPORT_XP}` })
+        .where(eq(users.id, userId));
+      xpAwarded = BUG_REPORT_XP;
+    } catch {
+      // swallow — XP is a bonus, not part of the report contract.
+    }
+  }
+
+  return NextResponse.json({ ok: true, id: row?.id, xpAwarded });
 }
 
 /** GET /api/bug-reports?status=open  (operator-only) */

@@ -6,31 +6,64 @@
  * construction (XP only grows). Divisions ascend I → IV within a tier
  * (the PRD lists Bronze I first), then promote to the next tier's I.
  *
- * Threshold anchoring: each tier occupies the same level range as its
- * LEVEL_BANDS predecessor (D4: "absorb Level 1-100"), with division
- * floors at evenly spaced level anchors inside that range, converted to
- * XP through the existing `xpForLevel` curve. That inherits the tuned
- * non-linear progression (§10.5.4: early ranks fast, later ranks slow)
- * and makes the levels→ranks mapping exact: a level-16 user IS Silver I.
+ * Threshold curve (Overhaul Phase 3 §3.3 — retunes D4's level-anchored
+ * floors): each tier has a single FLAT per-division cost (TIER_DIVISION_XP)
+ * that STEPS UP by tier. So all four Bronze divisions cost the same, every
+ * Silver division costs more than a Bronze one, every Gold division more
+ * than a Silver one, and so on. Floors are the running sum of those costs.
+ * This makes the progression legible ("each rank in a tier is the same
+ * climb; the next tier is a bigger climb") and preserves §10.5.4's
+ * non-linear shape (later tiers graduate slower) without inheriting the
+ * uneven within-tier deltas the old level-anchoring produced.
  *
- * Users never see XP numbers on rank surfaces (§10.5.2) — only the badge
- * and a progress bar. XP stays internal.
+ * The floors are DECOUPLED from the Level 1-100 curve (`xpForLevel`) — the
+ * two ladders no longer align division-for-level. Re-floor safety: the
+ * Bronze per-division cost (800) was chosen against the live prod XP
+ * distribution (2026-07-22: 718 users, 710 at 0 XP, top user 3,400 XP) so
+ * that NO existing user demotes — the highest real users stay in their
+ * current division or promote. See tests/progression-rank.test.ts.
+ *
+ * Rank XP is now VISIBLE (DEC-2 amends §10.5.2): surfaces show "N XP · M to
+ * <next>" alongside the badge and progress bar. `rankFromXp` returns
+ * `xpInRank`/`xpToNext` for that copy.
  */
 
-import { xpForLevel, MAX_LEVEL } from "./levels";
-
 export const RANK_TIERS = [
-  { id: "bronze", label: "Bronze", minLevel: 1, maxLevel: 15, color: "#b45309" },
-  { id: "silver", label: "Silver", minLevel: 16, maxLevel: 30, color: "#64748b" },
-  { id: "gold", label: "Gold", minLevel: 31, maxLevel: 45, color: "#d97706" },
-  { id: "platinum", label: "Platinum", minLevel: 46, maxLevel: 60, color: "#0891b2" },
-  { id: "diamond", label: "Diamond", minLevel: 61, maxLevel: 74, color: "#2563eb" },
-  { id: "elite", label: "Elite", minLevel: 75, maxLevel: 85, color: "#7c3aed" },
-  { id: "master", label: "Master", minLevel: 86, maxLevel: 95, color: "#c026d3" },
-  { id: "grandmaster", label: "Grandmaster", minLevel: 96, maxLevel: MAX_LEVEL, color: "#e11d48" },
+  { id: "bronze", label: "Bronze", color: "#b45309" },
+  { id: "silver", label: "Silver", color: "#64748b" },
+  { id: "gold", label: "Gold", color: "#d97706" },
+  { id: "platinum", label: "Platinum", color: "#0891b2" },
+  { id: "diamond", label: "Diamond", color: "#2563eb" },
+  { id: "elite", label: "Elite", color: "#7c3aed" },
+  { id: "master", label: "Master", color: "#c026d3" },
+  { id: "grandmaster", label: "Grandmaster", color: "#e11d48" },
 ] as const;
 
 export type RankTierId = (typeof RANK_TIERS)[number]["id"];
+
+/**
+ * Flat XP cost of ONE division within each tier. Constant inside a tier,
+ * strictly increasing across tiers, so higher tiers graduate slower.
+ * A tier's four divisions each add this amount; the jump into the next
+ * tier's division I is one more of the previous tier's cost (i.e. the
+ * fourth division of the current tier completes here).
+ *
+ * Bronze = 800 is the re-floor safety anchor (see file header): with it,
+ * Bronze III sits at 1,600 XP — below the top live users at 1,781 / 2,663
+ * XP — so the retune never demotes anyone. Steps rise by +100 each tier
+ * (500 → 1,100 second differences) for a smooth accelerating climb;
+ * Grandmaster IV lands at 97,600 XP total.
+ */
+export const TIER_DIVISION_XP: Record<RankTierId, number> = {
+  bronze: 800,
+  silver: 1300,
+  gold: 1900,
+  platinum: 2600,
+  diamond: 3400,
+  elite: 4300,
+  master: 5300,
+  grandmaster: 6400,
+};
 
 export const DIVISION_ROMAN = ["I", "II", "III", "IV"] as const;
 
@@ -49,24 +82,29 @@ export type RankInfo = {
   floorXp: number;
   /** Floor of the NEXT rank; null at Grandmaster IV. */
   nextFloorXp: number | null;
+  /** XP earned SINCE entering this rank (xp − floorXp), clamped ≥ 0. */
+  xpInRank: number;
+  /** XP still needed to reach the next rank; null at Grandmaster IV. */
+  xpToNext: number | null;
   /** 0-1 toward the next rank; 1 at the ceiling. */
   progress: number;
   nextLabel: string | null;
 };
 
-/** 32 cumulative XP floors, strictly ascending. Computed once. */
+/**
+ * 32 cumulative XP floors, strictly ascending. Computed once from
+ * TIER_DIVISION_XP: each tier's four divisions add the same flat cost,
+ * and the running total carries into the next tier. Bronze I = 0.
+ */
 export const RANK_FLOORS: readonly { floorXp: number; tier: number; division: number }[] =
   (() => {
     const floors: { floorXp: number; tier: number; division: number }[] = [];
+    let cumulative = 0;
     RANK_TIERS.forEach((tier, t) => {
-      const span = tier.maxLevel - tier.minLevel + 1;
+      const divisionCost = TIER_DIVISION_XP[tier.id];
       for (let d = 0; d < 4; d++) {
-        const anchorLevel = tier.minLevel + Math.floor((span * d) / 4);
-        floors.push({
-          floorXp: t === 0 && d === 0 ? 0 : xpForLevel(anchorLevel),
-          tier: t,
-          division: d + 1,
-        });
+        floors.push({ floorXp: cumulative, tier: t, division: d + 1 });
+        cumulative += divisionCost;
       }
     });
     return floors;
@@ -104,6 +142,8 @@ export function rankFromXp(xp: number): RankInfo {
     label: `${tier.label} ${DIVISION_ROMAN[floor.division - 1]}`,
     floorXp: floor.floorXp,
     nextFloorXp: next?.floorXp ?? null,
+    xpInRank: clamped - floor.floorXp,
+    xpToNext: next ? next.floorXp - clamped : null,
     progress,
     nextLabel:
       next && nextTier

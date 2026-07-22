@@ -37,6 +37,7 @@ export function ReportBugModal({ onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);
+  const [xpAwarded, setXpAwarded] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cleanup object URLs to avoid leaks.
@@ -155,6 +156,7 @@ export function ReportBugModal({ onClose }: Props) {
         throw new Error(json?.error ?? `Submit failed (${res.status})`);
       }
       setSuccessId(json?.id ?? "ok");
+      setXpAwarded(typeof json?.xpAwarded === "number" ? json.xpAwarded : 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -226,6 +228,11 @@ export function ReportBugModal({ onClose }: Props) {
               <p className="max-w-sm text-sm text-ink-600">
                 Your report is in the queue. We&rsquo;ll fix it.
               </p>
+              {xpAwarded > 0 && (
+                <span className="brand-gradient inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-extrabold text-white shadow-sm">
+                  +{xpAwarded} XP for the report
+                </span>
+              )}
               <button
                 type="button"
                 onClick={onClose}

@@ -93,13 +93,24 @@ export function LevelStreakCard({
                 transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
               />
             </div>
-            {/* §10.5.2 — rank mode never shows raw XP numbers. */}
+            {/* DEC-2 (§10.5.2 amended, Overhaul P0) — rank XP is VISIBLE:
+                XP earned in this rank on the left, XP to the next rank on
+                the right, mirroring the bar's fill ratio. */}
             {showRank ? (
-              <p className="mt-2 text-[11px] text-ink-500 dark:text-ink-400">
-                {rank.nextLabel
-                  ? `Every session moves you toward ${rank.nextLabel}.`
-                  : "Top of the ladder — hold the line."}
-              </p>
+              rank.nextLabel && rank.xpToNext != null ? (
+                <p className="mt-2 flex items-baseline justify-between gap-2 text-[11px] text-ink-500 dark:text-ink-400">
+                  <span className="tabular-nums">
+                    {rank.xpInRank.toLocaleString()} XP this rank
+                  </span>
+                  <span className="tabular-nums">
+                    {rank.xpToNext.toLocaleString()} to {rank.nextLabel}
+                  </span>
+                </p>
+              ) : (
+                <p className="mt-2 text-[11px] text-ink-500 dark:text-ink-400">
+                  Max rank. Top of the ladder.
+                </p>
+              )
             ) : (
               <p className="mt-2 flex items-baseline justify-between text-[11px] text-ink-500 dark:text-ink-400">
                 <span className="tabular-nums">
