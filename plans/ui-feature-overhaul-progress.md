@@ -193,26 +193,28 @@ desktop width. `npm run build` (catches broken imports/route refs).
 
 ---
 
-## Phase 2 — Dashboard content polish  ⬜
+## Phase 2 — Dashboard content polish  ✅ merged + deployed 2026-07-22 (`feat/overhaul-p2-dashboard-polish`, PR #36) · ⏳ awaiting Max's prod verify
 
 **Goal:** clearer baseline/score copy, remove redundant section, tighten the heatmap.
 
 **Files/tasks:**
-- [ ] 2.1 **"Last 5" → "Last 5 reps average"** — `DashboardHero.tsx:168` label; footnote copy
-      (`:181-184`) → `"+${delta} from your baseline"` / `"${delta} from your baseline"` /
-      `"Even with your baseline"` / `"No baseline yet"`. (Matches Max's "-25 points from your baseline".)
-      Consider appending "points" only if it fits the tile; keep tabular-nums.
-- [ ] 2.2 **Communication Score wording** — `DashboardHero.tsx:197,208`. Keep label "Communication Score";
-      change the default footnote from "All six Core Skills, long-run" to plainer copy, e.g. "Your all-time
-      communication average" (the metric is a weighted long-run EMA; wording should read as an all-time/
-      overall figure, per Max). Leave the `benchmarkNote` override path intact.
-- [ ] 2.3 **Remove "Last sessions"** — `dashboard/page.tsx`: delete the render (`:421`) and the local
-      `LastSessions` (612-635) + `SessionCard` (637-682) + `RecentRep` type (610). **Keep** the
-      `getRecentReps(userId,5)` fetch — still feeds `avgRecent` and `totalSessions`.
-- [ ] 2.4 **Heatmap dead space** — `WeekCalendar.tsx`. The `grid-cols-7 gap-2` columns stretch while cells
-      are fixed `size-11` circles, leaving gutters. Fix: let cells scale to the column (`w-full aspect-square`
-      up to a `max-w`), or constrain the grid width (`mx-auto max-w-md`) and increase cell size, so the row
-      fills its `surface-card` with minimal dead space. Preserve the count/avg-composite tooltip and a11y.
+- [x] 2.1 **"Last 5" → "Last 5 reps average"** — `DashboardHero.tsx` label; footnote copy →
+      `"+N points from your baseline"` / `"N points from your baseline"` / `"Even with your baseline"` /
+      `"No baseline yet"`. Kept "points" per Max's phrasing and made it grammatically correct
+      (`Math.abs(delta) === 1 ? "point" : "points"`, fixing the `/code-review` ±1 finding); tabular-nums intact.
+- [x] 2.2 **Communication Score wording** — `DashboardHero.tsx`. Label "Communication Score" unchanged;
+      default footnote "All six Core Skills, long-run" → **"Your all-time communication average"**. The
+      `benchmarkNote` override path (`communicationScoreNote ?? …`) is intact and still wins when present
+      (verified in prod smoke: demo user still shows "Typical manager band: 60-75").
+- [x] 2.3 **Remove "Last sessions"** — `dashboard/page.tsx`: deleted the render + local `LastSessions` /
+      `SessionCard` / `RecentRep` type, and the now-unused `Mic` import. **Kept** the `getRecentReps(userId,5)`
+      fetch — still feeds `avgRecent` and `totalSessions`.
+- [x] 2.4 **Heatmap dead space** — `WeekCalendar.tsx`. Cells now scale to fill their column
+      (`aspect-square w-full`, `Check` bumped to `size-5`, number to `text-base`) and the grid is centered +
+      constrained (`mx-auto max-w-lg`, `sm:gap-3`) so the row reads as a dense band instead of small circles
+      floating in wide columns. aria-label count/avg-composite tooltip + today-ring preserved. **Trade-off
+      noted for Max:** `max-w-lg` centers the strip, so a very wide card keeps symmetric side margins; bump the
+      max-width if you want it edge-to-edge.
 
 **Flag:** none (copy + layout on a shipped surface).
 **Smoke test:** dev dashboard with ≥5 reps: Last-5 tile reads "Last 5 reps average" with "… from your
@@ -699,3 +701,16 @@ the per-phase checklists for a single end-to-end pass.)
 - 2026-07-22 — Added **ask #23 → Phase 10** (Max): temporarily hide the Daily Workout General/Personalized
   switch and force general-only in prod until vertical-specific is dialed in. Reversible env-flag gate
   (`FF_WORKOUT_PERSONALIZE_SWITCH`, OFF-in-prod = shipped state), independent + pull-forward-able. No code yet.
+- 2026-07-22 — **Phase 2 done** on `feat/overhaul-p2-dashboard-polish` (PR #36, squash-merged to main). (2.1)
+  Last-5 tile relabeled "Last 5 reps average" + footnote "±N points from your baseline / Even with your
+  baseline / No baseline yet" (grammatical point/points). (2.2) Communication Score default footnote → "Your
+  all-time communication average", benchmarkNote override preserved. (2.3) Removed the "Last sessions" block
+  (+ its `LastSessions`/`SessionCard`/`RecentRep`/`Mic`), kept `getRecentReps` for avgRecent/totalSessions.
+  (2.4) Heatmap cells scale to fill columns (`aspect-square w-full`, larger check) + centered `mx-auto
+  max-w-lg` band. Local gate green (lint ✔ / test ✔ 27 suites / build ✔). Smoke (authed, live 3333): populated
+  dashboard desktop+mobile shows all four changes + no "Last sessions" + no app error; a fresh **0-rep** user
+  renders the empty state cleanly (`FRESH_EMPTY_STATE=YES APP_ERROR=0`). `/code-review` (high): 1 low finding
+  (±1 delta pluralization) — **fixed** before merge. No calibration impact — XP/rank ≠ score, no scoring
+  prompt/model touched. Deployed to prod via `vercel deploy --prod` (dpl_DVvboazbxjxoYfNHvxPT2exUjkdC, aliased
+  www.cognifygym.com, 200 OK). **Prod verify checklist handed to Max; Phase 2 gated on his sign-off before
+  any further phase closes.**
