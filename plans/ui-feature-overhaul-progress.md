@@ -283,45 +283,52 @@ Unit tests for the new floors pass.
 
 ---
 
-## Phase 4 — Social on dashboard + live-feed fixes + leaderboard centering  ⬜
+## Phase 4 — Social on dashboard + live-feed fixes + leaderboard centering  ✅ merged 2026-07-22 (`feat/overhaul-p4-social`, PR #47) · ⏳ awaiting prod deploy + Max's prod verify
 
 **Goal:** put a friends-activity feed on the dashboard, fix the feed showing "someone" and identical
 "strongest: delivery", add 10-entries + "Show more", and center the leaderboard "My team" empty state.
 
 **Files/tasks:**
-- [ ] 4.1 **Dashboard friends-activity section** — add a `DashboardFriendsActivity` card to
-      `dashboard/page.tsx` (near the social/quests area), fed by `getActivityFeedForUser(userId,{limit:10})`
-      (`activity.ts:63-123`), rendering the shared `ActivityFeedRow` (P0). Empty state = a "Find friends"
-      CTA linking `/friends`. Match `surface-card` + `brand-gradient h-1` styling; heading "Friends activity".
-- [ ] 4.2 **Live-feed "someone" bug** — in the feed row/query, the actor name falls back to "someone" when a
-      join/display field is missing. Fix `getActivityFeedForUser` (or the row) to select and show the actor's
-      registered name/username (users table `name`/`username`); "someone" only for genuinely null. Apply on
-      both `/friends` (`RealActivityRow`, `friends/page.tsx:265-315`) and the new dashboard card (shared row).
-- [ ] 4.3 **"strongest: delivery" for everyone** — the row shows a hardcoded/placeholder strongest skill.
-      Source the actor's real top Core Skill from their profile (highest dimension EMA in
-      `communication_profile`/`progress_snapshots`), or drop the "strongest" line if not cheaply available
-      per-actor. Confirm it varies across users before shipping.
-- [ ] 4.4 **10 entries + "Show more"** — feed renders first 10, then a "Show more" button reveals the next
-      page (client state, or a `?feed=N` server bump). Apply on `/friends` live feed (`:247-258`) and reuse
-      the same cap logic on the dashboard card (dashboard stays 10, links to `/friends` for the rest).
-- [ ] 4.5 **Leaderboard "My team" centering** — `LeaderboardTabs.tsx` empty-state `<p>` at `:300` and `:327`
-      use `max-w-md` **without** `mx-auto`, pinning the box left inside a `text-center` parent. Add `mx-auto`.
-      Verify the populated team board (podium/table `:112-173`) is already centered by the page wrapper.
+- [x] 4.1 **Dashboard friends-activity section** — added `DashboardFriendsActivity`
+      (`src/components/product/dashboard/DashboardFriendsActivity.tsx`) mounted in `dashboard/page.tsx` (below
+      the weekly-challenges card), fed by `getActivityFeedForUser(user.id,{limit:10})`, rendering the shared
+      `ActivityFeedRow` (P0). Off-path (`user && dashboardSocialEnabled ? … : Promise.resolve([])`) skips the
+      DB read. Empty state = "Find friends" CTA → `/friends`. `surface-card` + `brand-gradient h-1`, heading
+      "Friends activity", "See all" link out.
+- [x] 4.2 **Live-feed "someone" bug** — `getActivityFeedForUser` now selects `users.email`; actor name is
+      `(name?.trim() || null) ?? emailLocalPart(email)`, so a nameless (or blank-named) account shows the
+      email local part instead of "Someone" (the row still renders "Someone" only when both are genuinely
+      absent). Both `/friends` and the dashboard card use the shared row, so the fix applies to both.
+- [x] 4.3 **"strongest: delivery" for everyone** — dropped the per-rep `payload.topDimension` (identical for
+      all) in favor of `row.topCoreSkill`: sourced per-actor from `communication_profile.coreSkills` (highest
+      score with `sampleCount > 0`) in **one batched `inArray` read** over the distinct actors on the page,
+      rendered with the proper UI label (`DIMENSION_LABELS`, e.g. "Pacing"). Line drops when unmeasured.
+      Verified varying across actors by the P4 smoke.
+- [x] 4.4 **10 entries + "Show more"** — new `LiveFeed` client component
+      (`src/components/product/friends/LiveFeed.tsx`) renders 10 then a ghost "Show more" that reveals the
+      next 10 client-side; `/friends` now fetches `limit:30` so there's a page to reveal. Dashboard card
+      hard-caps at 10 and links to `/friends` for the rest.
+- [x] 4.5 **Leaderboard "My team" centering** — added `mx-auto` to both empty-state `<p>` tags in
+      `LeaderboardTabs.tsx` (the no-team and no-reps-yet states) so they center under the heading.
 
-**Flag:** new `FF_DASHBOARD_SOCIAL` (via `defaultOnOutsideProduction`) gates 4.1 only. Bug fixes 4.2–4.5 are
-unflagged corrections.
-**Styling:** feed rows match `ActivityRow` spacing; "Show more" is a ghost/secondary button, not the primary CTA.
-**Smoke test:** dev with a user that has ≥2 accepted friends emitting events: dashboard shows a Friends
-activity card with real names and varied strongest skills; feed caps at 10 with a working "Show more" on
-`/friends`; team-tab empty state paragraph is centered under its heading. Zero-friends dashboard shows the
-"Find friends" CTA, no crash.
-**Prod verify checklist:**
-- [ ] Dashboard has a Friends activity section; entries show the friend's real name/username (never "someone"
-      when a name exists).
+**Flag:** new `FF_DASHBOARD_SOCIAL` (`isDashboardSocialEnabled()`, `defaultOnOutsideProduction`) gates 4.1
+only — **OFF in prod until Max sets the env var**. Bug fixes 4.2–4.5 are unflagged corrections (live on prod
+as soon as this deploys).
+**Styling:** feed rows use the shared `ActivityFeedRow`; "Show more" is a ghost/secondary button.
+**Smoke test:** ✅ `scripts/dev/smoke-p4-social.ts` (hermetic — seeds `@cognify.test` users, runs the **real**
+`getActivityFeedForUser`, asserts 4.2 name/email fallback + 4.3 per-actor varying skill + `topDimension`
+ignored, then cleans up). PASSED. `scripts/dev/seed-p4-guest.ts` seeds a guest for eyes-on dev checks.
+`npm run lint && npm test && npm run build` all green.
+**Review:** self-run code-review subagent (stand-in for `/code-review`, which is model-disabled here) — no
+blocking/major bugs; confirmed no N+1, email fallback is scoped to *accepted friends only* (no leak), flag
+off-path pays no DB read. One follow-up applied: blank-name → email fallback.
+**Prod verify checklist:** *(4.1 items need `FF_DASHBOARD_SOCIAL=true` in prod env first; 4.2–4.5 are live unflagged)*
+- [ ] Dashboard has a Friends activity section; entries show the friend's real name (never "someone" when a
+      name/email exists). **(needs the flag ON)**
 - [ ] "Strongest" skill varies per person (not "delivery" for everyone), or is absent by design.
 - [ ] `/friends` live feed shows 10 rows then a "Show more" that loads more.
 - [ ] Leaderboard "My team" empty-state text is centered under the heading.
-- [ ] User with no friends sees a friendly "Find friends" CTA on the dashboard, no error.
+- [ ] User with no friends sees a friendly "Find friends" CTA on the dashboard, no error. **(needs the flag ON)**
 **Handoff prompt:**
 > Read `plans/ui-feature-overhaul-progress.md`. Execute **Phase 5 — Rep flow: Abort rep + Suggested
 > Framework**. This touches the live recording path (`RepSurface`, `RepFrameworkStrip`) — an abort must skip
@@ -784,3 +791,20 @@ the per-phase checklists for a single end-to-end pass.)
 - 2026-07-22 — **Phase 3 prod verify PASSED** — Max confirmed all 5 boxes on cognifygym.com (rank card shows
   XP-in-rank + XP-to-next, bar matches the ratio, Grandmaster shows "Max rank", higher tiers cost more per
   division, signed-in bug report grants +10 XP / anonymous none). Phase 3 fully closed; Phase 4 is next.
+- 2026-07-22 — **Phase 4 done** on `feat/overhaul-p4-social` (PR #47, squash-merged to `main` as `ec040e5b`).
+  (4.1) `DashboardFriendsActivity` card mounted on the dashboard behind new `FF_DASHBOARD_SOCIAL`
+  (`defaultOnOutsideProduction`; off-path skips the feed read); empty state = Find friends CTA. (4.2) `someone`
+  bug fixed: `getActivityFeedForUser` selects `users.email`, actor name = `(name?.trim() || null) ??
+  emailLocalPart(email)`; "Someone" only when both absent. (4.3) `strongest: delivery`-for-everyone fixed:
+  dropped `payload.topDimension` for a per-actor real top Core Skill from `communication_profile.coreSkills`,
+  sourced in one batched `inArray` read, rendered via `DIMENSION_LABELS`, line drops when unmeasured. (4.4) new
+  `LiveFeed` client component (10 + ghost "Show more"); `/friends` fetches 30 rows. (4.5) `mx-auto` on both
+  Leaderboard "My team" empty-state paragraphs. Local gate green (lint ✔ / full test suite ✔ / build ✔ exit 0)
+  — build also caught + I fixed 3 latent `noUncheckedIndexedAccess` type errors in the two new dev scripts
+  (first `.ts` under `scripts/dev/`). Smoke: `scripts/dev/smoke-p4-social.ts` (hermetic, real
+  `getActivityFeedForUser` path) **PASSED** all 4.2/4.3 assertions. Review: `/code-review` is model-disabled in
+  this harness, so per Max's call I ran a code-review subagent stand-in — no blocking/major bugs (no N+1, email
+  fallback scoped to accepted friends only = no leak, flag off-path pays no DB read); applied its one follow-up
+  (blank-name → email fallback). No calibration impact — social/XP ≠ score. **Pending:** prod deploy (Vercel
+  CLI not installed this session) + Max's prod verify; 4.1's two card items need `FF_DASHBOARD_SOCIAL=true` set
+  in prod env, 4.2–4.5 are unflagged and go live on deploy.
