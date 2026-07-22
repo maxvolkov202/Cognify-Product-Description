@@ -15,7 +15,7 @@ identifiers where no legacy identifier exists.
 | Overall Communication Score | — (net-new) | — (Phase 3) | new: `communication_profile.overall_score`; UI "Communication Score". |
 | Fundamental Scores | dimension running averages | `progress_snapshots` | UI: "Core Skills"; profile-backed from Phase 3. |
 | Application / Application Skills | — (net-new) | — (Phase 4) | new tables `applications`, `application_skills`. |
-| Skill Lab (PRD also says "The Lab") | `/skill-lab` route (currently dimension drills) | `mode = 'skill_lab'` | Name stays **Skill Lab**. Semantics change in Phase 4 (applications). Current dimension drills → "Focus drills" (fate decided at Phase 4 start). |
+| **Application Lab** (was "Skill Lab"; PRD also said "The Lab") | route **`/application-lab`** (was `/skill-lab`; 308 redirect kept) | `mode = 'skill_lab'` (**unchanged**) | Renamed user-facing term + route to **Application Lab** (DEC-4, UI + Feature Overhaul Wave 2026-07-22). **Code identifiers and DB `mode = 'skill_lab'` stay stable** — bridge is name-only. Semantics change in Phase 4 (applications). Current dimension drills → "Focus drills". |
 | Build a Rep | `/build-a-rep` (scenario + talking points) | `mode = 'scenario_training'` | Name stays. Phase 5 adds `mode = 'build_a_rep'` for event-prep sessions; legacy scenario mode value untouched for history. |
 | Exercise Framework | `exercises` row + code-side `EXERCISE_RUBRIC_HINTS` | `exercises` table | Phase 2.2 enriches `exercises` into full frameworks (objective, hiddenSkills, scoringLens, retryObjective, promptRules, responseWindow, constraintTypes). |
 | Prompt | `exercisePrompts` / prompt banks | `exercise_prompts` | aligned |
