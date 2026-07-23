@@ -23,8 +23,8 @@ async function isUserInTeam(userId: string): Promise<boolean> {
 export default async function LeaderboardPage() {
   const user = await currentUser();
   const userId = user?.id ?? null;
-  // PRD v3 Phase 6 (§10.9) — under FF_RANK_SYSTEM the default board is
-  // weekly IMPROVEMENT and a Communication Score board joins the tabs.
+  // Under FF_RANK_SYSTEM the leaderboard is the fair rank board ("Top
+  // communicators", default — Cognify Rank then composite) + "My Team".
   const v2 = isRankSystemEnabled();
 
   const [global, thisWeek, team, userInTeam, rankBoard] = await Promise.all([
