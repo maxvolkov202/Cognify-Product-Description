@@ -84,3 +84,12 @@ Build_mobile_apps_*.txt
 
 # Playwright auth storage state (contains session tokens)
 tests/e2e/authed/.auth/
+
+# stale Vite build output (this app is Next.js; dist/ + root index.html are
+# a leftover experimental build, not used or served)
+/dist
+/index.html
+
+# python bytecode cache (prosody worker)
+__pycache__/
+*.pyc
