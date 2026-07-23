@@ -24,17 +24,23 @@ export default function MissedDayModal() {
     fetchPendingDayNotification().then((res) => {
       if (cancelled) return;
       setNotif(res);
+      // Mark read the instant it's shown, not on dismiss. The modal must
+      // appear exactly once — earlier we only marked read inside the
+      // dismiss handler, so exiting Daily Workout (or any navigation)
+      // before that async write landed left the row unread and the
+      // "Streak reset" modal fired again on the next entry. Marking on
+      // display is best-effort and fire-and-forget; the visual stays up
+      // until the user dismisses it.
+      if (res) void markNotificationRead({ id: res.id });
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const onClose = useCallback(async () => {
-    if (!notif) return;
+  const onClose = useCallback(() => {
     setDismissed(true);
-    await markNotificationRead({ id: notif.id });
-  }, [notif]);
+  }, []);
 
   if (!notif || dismissed) return null;
 
