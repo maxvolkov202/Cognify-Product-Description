@@ -7,9 +7,7 @@ import {
   Lightbulb,
   Target,
   AlertTriangle,
-  X,
 } from "lucide-react";
-import { canAbortAtStage } from "@/lib/rep/abort";
 import type {
   Framework,
   RepScore,
@@ -971,12 +969,16 @@ export function RepSurface({
     phase.kind === "saving" ||
     phase.kind === "processing-async";
 
-  // Mockup #3 two-column layout: used for Daily Workout idle/ready
-  // state so the framework-with-notes sits beside the gradient record
-  // card. Other modes (Build-a-Rep, /try) and other phases continue to
-  // render the classic single-column stack.
+  // Modes that show the Suggested Framework strip alongside the prompt:
+  // Daily Workout AND Application Lab (Phase 5b). Other modes (Build-a-Rep,
+  // /try) continue to render the classic single-column stack.
+  const showsFrameworkStrip =
+    mode === "daily_workout" || mode === "skill_lab";
+
+  // Mockup #3 two-column layout: idle/ready state so the framework-with-notes
+  // sits beside the gradient record card.
   const twoColumnLayout =
-    mode === "daily_workout" && phase.kind === "idle" && repTypeFramework;
+    showsFrameworkStrip && phase.kind === "idle" && repTypeFramework;
 
   return (
     <div
@@ -1048,11 +1050,11 @@ export function RepSurface({
           />
         )}
 
-      {/* ——— Daily Workout framework strip (legacy cheat sheet) ———
-          Only shown in non-idle Daily Workout phases (error). The idle
-          state gets the fuller two-column layout below, which embeds
-          the same framework component on the left side. */}
-      {mode === "daily_workout" &&
+      {/* ——— Framework strip (error phase) ———
+          Shown in the non-idle error phase for the framework modes (Daily
+          Workout + Application Lab). The idle state gets the fuller
+          two-column layout below, which embeds the same component. */}
+      {showsFrameworkStrip &&
         repTypeFramework &&
         phase.kind === "error" && (
           <RepFrameworkStrip
@@ -1218,22 +1220,6 @@ export function RepSurface({
               "Scoring in the background. Realtime updates incoming…"}
           </div>
           <LoadingEvidence />
-          {/* Phase 5 (5.1) — abort while the rep is still pre-save. Only the
-              transcribing/scoring stages are abortable (canAbortAtStage); once
-              we hit "saving"/"processing-async" the row is being written and
-              the control disappears. Discarding here writes nothing. */}
-          {canAbortAtStage(phase.kind) && (
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={abortRep}
-                className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 transition-colors hover:border-rose-300 hover:text-rose-600 dark:hover:border-rose-700 dark:hover:text-rose-400"
-              >
-                <X className="size-3.5" strokeWidth={2.5} />
-                Discard this rep
-              </button>
-            </div>
-          )}
           {/* All six dimensions are revealed together once the full grade
               returns (no split deterministic preview) — the user sees a
               single skeleton while grading runs, then final scores at once,

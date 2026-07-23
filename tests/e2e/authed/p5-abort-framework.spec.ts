@@ -55,9 +55,9 @@ test("Phase 5: framework relabel + abort (no grade/advance) + full loop + resume
   const startRecording = page.getByRole("button", { name: "Start recording" });
   await expect(startRecording).toBeVisible({ timeout: 30_000 });
   await startRecording.click();
-  // 3s countdown + ~3s of recording, then discard.
+  // 3s countdown + ~3s of recording, then discard (the red "Discard rep" pill).
   await page.waitForTimeout(3_500 + 3_000);
-  const discard = page.getByRole("button", { name: /^Discard$/ });
+  const discard = page.getByRole("button", { name: /Discard this rep/i });
   await expect(discard).toBeVisible({ timeout: 10_000 });
   await discard.click({ force: true });
 
@@ -113,4 +113,52 @@ test("Phase 5: framework relabel + abort (no grade/advance) + full loop + resume
   await expect(
     page.getByRole("button", { name: /Start your first workout/i }),
   ).toHaveCount(0);
+});
+
+test("Phase 5b: Application Lab shows a Suggested Framework + abort + grades", async ({
+  page,
+}) => {
+  await page.goto("/application-lab/storytelling", { waitUntil: "networkidle" });
+
+  // An in-progress session offers a resume — start fresh so we hit the picker.
+  const startFresh = page.getByRole("button", { name: /Start fresh/i });
+  if (await startFresh.count()) await startFresh.first().click();
+
+  // 1-rep session (keep it cheap) → Start.
+  const dec = page.getByRole("button", { name: /Decrease How many reps\?/i });
+  await expect(dec).toBeVisible({ timeout: 15_000 });
+  await dec.click();
+  await dec.click(); // 3 → 1
+  await page.getByRole("button", { name: /Start session/i }).click();
+
+  // Prompt → insight → rep screen.
+  const promptCard = page.getByTestId("prompt-card").first();
+  await expect(promptCard).toBeVisible({ timeout: 60_000 });
+  await promptCard.click();
+  await page.getByTestId("insight-ready").click();
+
+  // Phase 5b — the Suggested Framework strip now renders in Application Lab.
+  await expect(page.getByText(/Suggested Framework/i).first()).toBeVisible({
+    timeout: 30_000,
+  });
+
+  // Abort mid-recording → back to idle, no grade/advance.
+  const startRecording = page.getByRole("button", { name: "Start recording" });
+  await expect(startRecording).toBeVisible({ timeout: 30_000 });
+  await startRecording.click();
+  await page.waitForTimeout(3_500 + 3_000);
+  const discard = page.getByRole("button", { name: /Discard this rep/i });
+  await expect(discard).toBeVisible({ timeout: 10_000 });
+  await discard.click({ force: true });
+  await expect(
+    page.getByRole("button", { name: "Start recording" }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(
+    page.getByRole("button", { name: /Start your Retry/i }),
+  ).toHaveCount(0);
+
+  // Re-record → it grades normally (Coach's feedback reached).
+  await recordRep(page);
+  await awaitFeedback(page, /Start your Retry/i);
+  await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
 });

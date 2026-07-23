@@ -7,6 +7,7 @@ import {
   EyeOff,
   Lightbulb,
   PenLine,
+  StickyNote,
   Shuffle,
   Check,
   X,
@@ -14,6 +15,7 @@ import {
   Trash2,
   RotateCcw,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { REP_TYPES, type RepTypeFramework } from "@/lib/ai/rep-types";
 import { cn } from "@/lib/utils/cn";
 
@@ -193,88 +195,73 @@ export function RepFrameworkStrip({
 
   return (
     <div className="surface-card overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-ink-100 dark:border-ink-700 px-4 py-2.5">
-        <div className="brand-gradient grid size-6 shrink-0 place-items-center rounded-md">
-          <Layers className="size-3 text-white" strokeWidth={2.5} />
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-ink-100 dark:border-ink-700 px-4 py-3">
+        <div className="brand-gradient grid size-7 shrink-0 place-items-center rounded-lg shadow-sm">
+          <Layers className="size-3.5 text-white" strokeWidth={2.5} />
         </div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:text-ink-400">
-          Suggested Framework
-        </p>
-        <p className="text-xs font-bold text-ink-900 dark:text-white">
-          {activeFramework.name}
-        </p>
-        {isModified && (
-          <span className="rounded-full bg-brand-purple/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
-            Custom
-          </span>
-        )}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+            Suggested Framework
+          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-sm font-bold text-ink-900 dark:text-white">
+              {activeFramework.name}
+            </p>
+            {isModified && (
+              <span className="rounded-full bg-brand-purple/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
+                Custom
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-0.5">
           {editEnabled && (
             <>
-              <button
-                type="button"
+              <ToolButton
+                icon={<Shuffle className="size-3.5" strokeWidth={2.5} />}
+                label="Shuffle"
                 onClick={handleShuffle}
-                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-ink-500 dark:text-ink-400 transition hover:bg-ink-50 dark:hover:bg-ink-800"
                 title="Swap in a different framework"
-              >
-                <Shuffle className="size-3" strokeWidth={2.5} />
-                Shuffle
-              </button>
-              <button
-                type="button"
+              />
+              <ToolButton
+                icon={<PenLine className="size-3.5" strokeWidth={2.5} />}
+                label="Edit"
+                active={editing}
+                ariaExpanded={editing}
                 onClick={() => {
                   setEditing((v) => !v);
                   setActiveIndex(null);
                   setShowExample(false);
                 }}
-                aria-expanded={editing}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition",
-                  editing
-                    ? "bg-brand-purple/10 text-brand-purple dark:text-brand-lavender"
-                    : "text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800",
-                )}
                 title="Edit or build your own"
-              >
-                <PenLine className="size-3" strokeWidth={2.5} />
-                Edit
-              </button>
+              />
+              <span
+                className="mx-1 hidden h-4 w-px bg-ink-200 dark:bg-ink-700 sm:block"
+                aria-hidden="true"
+              />
             </>
           )}
           {allowNotes && (
-            <button
-              type="button"
+            <ToolButton
+              icon={<StickyNote className="size-3.5" strokeWidth={2.5} />}
+              label={notesOpen ? "Hide notes" : "Jot notes"}
+              active={notesOpen}
+              ariaExpanded={notesOpen}
               onClick={() => setNotesOpen((v) => !v)}
-              aria-expanded={notesOpen}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition",
-                notesOpen
-                  ? "bg-brand-purple/10 text-brand-purple dark:text-brand-lavender"
-                  : "text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800",
-              )}
               title="Jot a word per section"
-            >
-              <PenLine className="size-3" strokeWidth={2.5} />
-              {notesOpen ? "Hide notes" : "Jot notes"}
-            </button>
+            />
           )}
-          <button
-            type="button"
+          <ToolButton
+            icon={<Lightbulb className="size-3.5" strokeWidth={2.5} />}
+            label={showExample ? "Hide example" : "See example"}
+            active={showExample}
+            ariaExpanded={showExample}
             onClick={() => setShowExample((v) => !v)}
-            aria-expanded={showExample}
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold transition",
-              showExample
-                ? "bg-brand-purple/10 text-brand-purple dark:text-brand-lavender"
-                : "text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800",
-            )}
             title="See an example"
-          >
-            <Lightbulb className="size-3" strokeWidth={2.5} />
-            {showExample ? "Hide example" : "See example"}
-          </button>
-          <button
-            type="button"
+          />
+          <ToolButton
+            icon={<EyeOff className="size-3.5" strokeWidth={2.5} />}
+            label="Hide"
             onClick={() => {
               setExpanded(false);
               setActiveIndex(null);
@@ -282,12 +269,8 @@ export function RepFrameworkStrip({
               setNotesOpen(false);
               setEditing(false);
             }}
-            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800"
             title="Hide framework"
-          >
-            <EyeOff className="size-3" strokeWidth={2.5} />
-            Hide
-          </button>
+          />
         </div>
       </div>
 
@@ -565,5 +548,44 @@ function FrameworkEditor({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * A single framework-strip tool button (Shuffle / Edit / Jot notes / See
+ * example / Hide). One shared shape so the row reads as a coherent, tidy
+ * toolbar. Active state uses the brand tint; icons are distinct per action.
+ */
+function ToolButton({
+  icon,
+  label,
+  onClick,
+  title,
+  active = false,
+  ariaExpanded,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  title: string;
+  active?: boolean;
+  ariaExpanded?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      {...(ariaExpanded !== undefined ? { "aria-expanded": ariaExpanded } : {})}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition",
+        active
+          ? "bg-brand-purple/10 text-brand-purple dark:text-brand-lavender"
+          : "text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200",
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 }

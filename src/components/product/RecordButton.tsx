@@ -132,6 +132,11 @@ export function RecordButton({
         setCountdown(remaining);
         if (remaining <= 0) {
           if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+          // Zero the clock now: the recorder was started before the countdown
+          // (instant capture), so the 3s of countdown pre-roll must not count.
+          // The on-screen timer + scored duration both start at 0:00 here.
+          controllerRef.current?.markStart();
+          setElapsedMs(0);
           setPhase("recording");
           animationRef.current = requestAnimationFrame(tick);
           maxStopMsRemainingRef.current = maxDurationMs;
@@ -384,23 +389,26 @@ export function RecordButton({
       )}
 
       {isRecording && !onPause && (
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           <button
             type="button"
             onClick={stop}
-            className="text-xs font-semibold uppercase tracking-wider text-white hover:text-white drop-shadow-sm"
+            className="text-xs font-semibold uppercase tracking-wider text-white/90 hover:text-white drop-shadow-sm"
           >
             Stop &amp; submit
           </button>
-          {/* Phase 5 (5.1) — abort while recording. Discards the take, releases
-              the mic, returns to idle. Nothing is transcribed, scored, or saved. */}
+          {/* Phase 5 (5.1) — abort while recording. A clear, on-theme red pill
+              (destructive) that only appears during the rep. Discards the
+              take, releases the mic, returns to idle — nothing is transcribed,
+              scored, or saved. */}
           <button
             type="button"
             onClick={abort}
-            className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/75 underline decoration-white/40 underline-offset-2 drop-shadow-sm hover:text-white"
+            aria-label="Discard this rep"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-rose-600 shadow-[0_6px_20px_-6px_rgba(225,29,72,0.5)] ring-1 ring-rose-200 transition hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-300"
           >
-            <X className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
-            Discard
+            <X className="size-4" strokeWidth={2.75} aria-hidden="true" />
+            Discard rep
           </button>
         </div>
       )}
