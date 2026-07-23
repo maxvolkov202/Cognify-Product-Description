@@ -404,7 +404,7 @@ graded). Run the full fake-mic workout loop to confirm normal (non-abort) reps s
 > loads. Add a token-scoped public audio route, verify submit end-to-end, and notify the sender. Smoke the
 > full send→listen→rank→results loop, `/code-review`, PR, update tracker, give me the checklist.
 
-### Phase 5b — Rep-flow polish + Paused-screen escape hatch  🔜 (branch `feat/overhaul-p5b-polish`)
+### Phase 5b — Rep-flow polish + Paused-screen escape hatch  ✅ merged + **deployed to prod** 2026-07-23 (`feat/overhaul-p5b-polish`, PR #57, dpl `6cbdEtP1g1Z5ViTC45zThX2QZDwx`) · ⏳ Max's prod verify
 
 **Follow-up to Phase 5 from Max's prod feedback + a reported bug.** Four items, one PR:
 
@@ -926,3 +926,27 @@ the per-phase checklists for a single end-to-end pass.)
   `onAbort`) — **all fixed** before merge. No calibration impact — XP/rank/framework ≠ score. **Prod flags:**
   `FF_DASHBOARD_SOCIAL=true` + `FF_REP_FRAMEWORK_EDIT=true` set in prod (plaintext, verified) so the friends
   card + shuffle/edit are live for Max's verify. **Prod verify checklist handed to Max.**
+- 2026-07-23 — **Phase 5b done + deployed** on `feat/overhaul-p5b-polish` (PR #57, squash-merged to `main`
+  as `fdbca1ec`; dpl `6cbdEtP1g1Z5ViTC45zThX2QZDwx`, READY, aliased www.cognifygym.com + cognifygym.com,
+  all 200). **(5b.1 Paused-screen bug, Max-reported)** a workout tab hidden mid-rep dispatched `PAUSE` but
+  **nothing dispatched `RESUME`** → dead-end Paused screen with no way out. Fixed: auto-`RESUME` on
+  tab-visible (`use-workout-session.tsx`) + a first-class "Resume workout" button (`RepControls` → `onResume`
+  → `WorkoutShell` `send RESUME`). The machine already restored `resumePhase` (`session-machine.ts:254`,
+  unit-tested `workout-session-machine.test.ts:174-188`) — it was simply unreachable. **(5b.2)** `markStart()`
+  on the RecordingController (`capture.ts`) zeroes the clock when the 3-2-1 countdown ends so the pre-roll
+  counts toward neither the timer nor the scored duration. **(5b.3)** mid-recording abort is now a red
+  "Discard rep" pill; removed the redundant scoring-phase abort in `RepSurface` (abort is recording-only),
+  `abortRep` still wired via `onAbort`. **(5b.4)** `getFrameworkForExercise(slug, dim)` maps all 102
+  canonical exercises to a best-fitting framework (dimension fallback for unknown slugs) — validated 102/102
+  covered, all RepType ids valid (type-checked); the Suggested Framework strip + abort now render in
+  **Application Lab** too (`FF_REP_FRAMEWORK_EDIT` gates shuffle/edit), strip toolbar tidied into a shared
+  `ToolButton`. Display-only, never sent to scoring → zero calibration impact. Local gate green (lint ✔ /
+  test ✔ 43+25+14+14 incl. rep-abort + session-machine RESUME / build ✔ exit 0). Review: thorough
+  self-review + validated the one lead (slug coverage 102/102 — a subagent's `the-speed-shift` flag was a
+  false positive, it derives from the real name "The Speed Shift"); the code-review subagent died on a
+  transient network error, substantive checks finished by hand. **Housekeeping (same branch, 2nd commit):**
+  saved all loose untracked working docs before machine return — design docs (homepage/recording/config
+  redesigns, framework workspace), reports (grading, evaluation-v2, rep-lifecycle, AI-feedback pipeline),
+  ATTRIBUTIONS, dev-setup, guidelines, prompt-bank brief, calibration baselines, canon audit results,
+  .vscode team config — and gitignored the stale Vite build (`dist/` + root `index.html`) + `__pycache__`
+  cruft (the "separate folder that isn't actually used"). **Prod verify checklist handed to Max.**
