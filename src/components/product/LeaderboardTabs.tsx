@@ -16,43 +16,49 @@ type Props = {
    *  the "My team" tab's empty-state copy — "no team yet" is different
    *  from "nobody on your team has reps yet". */
   userInTeam: boolean;
-  /** PRD v3 Phase 6 (§10.9) — when provided (FF_RANK_SYSTEM), weekly
-   *  improvement becomes the DEFAULT board and a Communication Score
-   *  board joins the tabs. */
-  improvement?: LeaderboardBoard | null;
+  /** PRD v3 Phase 6 (§10.9) — Overall Communication Score board ("Top
+   *  communicators"). When provided (FF_RANK_SYSTEM) it doubles as the
+   *  global board and the fairness-focused tab set turns on. */
   commScore?: LeaderboardBoard | null;
+  /** All-time board ranked by lifetime XP (Cognify Rank / seniority) —
+   *  the fairest default: one lucky rep can't top it. Its presence is the
+   *  v2 (FF_RANK_SYSTEM) signal. */
+  rankBoard?: LeaderboardBoard | null;
 };
 
-type TabId = LeaderboardScope | "improvement" | "comm_score";
+type TabId = LeaderboardScope | "comm_score" | "rank";
 
 export function LeaderboardTabs({
   global,
   thisWeek,
   team,
   userInTeam,
-  improvement = null,
   commScore = null,
+  rankBoard = null,
 }: Props) {
-  const v2 = improvement != null;
-  // "Top communicators" (Overall Communication Score) opens by default — it's
-  // the most legible, least volatile board, so it's the first chip too.
-  const [scope, setScope] = useState<TabId>(v2 ? "comm_score" : "global");
+  const v2 = rankBoard != null;
+  // The XP / Cognify Rank board opens by default — it's the fairest board
+  // (lifetime XP rewards seniority + sustained training, so a single lucky
+  // high-scoring rep can't jump to #1), so it's the first chip too. "Top
+  // communicators" (Overall Communication Score) is the all-comers global
+  // board — no separate "Global" tab. Weekly-improvement is off for now.
+  const [scope, setScope] = useState<TabId>(v2 ? "rank" : "global");
 
-  const tabs: { id: TabId; label: string }[] = [
-    ...(v2
-      ? [
-          { id: "comm_score" as const, label: "Top communicators" },
-          { id: "improvement" as const, label: "Weekly improvement" },
-        ]
-      : []),
-    { id: "global" as const, label: "Global" },
-    ...(v2 ? [] : [{ id: "this_week" as const, label: "This week" }]),
-    { id: "team" as const, label: "My team" },
-  ];
+  const tabs: { id: TabId; label: string }[] = v2
+    ? [
+        { id: "rank" as const, label: "By rank" },
+        { id: "comm_score" as const, label: "Top communicators" },
+        { id: "team" as const, label: "My team" },
+      ]
+    : [
+        { id: "global" as const, label: "Global" },
+        { id: "this_week" as const, label: "This week" },
+        { id: "team" as const, label: "My team" },
+      ];
 
   const activeBoard =
-    scope === "improvement"
-      ? (improvement ?? thisWeek)
+    scope === "rank"
+      ? (rankBoard ?? global)
       : scope === "comm_score"
         ? (commScore ?? global)
         : scope === "global"
@@ -62,26 +68,30 @@ export function LeaderboardTabs({
             : team;
   const top3 = activeBoard.entries.slice(0, 3);
 
+  // The rank board is sorted by XP, so it must DISPLAY xp (not composite) or
+  // the value column would look out of order.
+  const showXp = scope === "rank";
+
   const title =
-    scope === "improvement"
-      ? "Most improved this week."
+    scope === "rank"
+      ? "The gym's most seasoned."
       : scope === "comm_score"
         ? "The strongest communicators."
         : scope === "global"
-          ? "The gym's best, last 30 days."
+          ? "The gym's best, all-time."
           : scope === "this_week"
             ? "The gym's best this week."
             : "Your team's leaders.";
   const subtitle =
-    scope === "improvement"
-      ? "Ranked by this week's improvement over last week — everyone can win this board, whatever their starting point."
+    scope === "rank"
+      ? "Ranked by total XP — your Cognify Rank. Seniority and sustained training win here, so one lucky high-scoring rep can't jump to the top."
       : scope === "comm_score"
-        ? "Ranked by Overall Communication Score — Cognify's long-run estimate across all six Core Skills."
+        ? "Ranked by Overall Communication Score — Cognify's long-run estimate across all six Core Skills. The all-comers board."
         : scope === "global"
-          ? "Ranked by average composite across the last 30 days of reps. A fresh board — stop training and you fall off."
+          ? "Ranked by average composite across all reps, all-time. Rewards a high average — even off a single strong rep."
           : scope === "this_week"
             ? "Ranked by average composite for the current ISO week (Monday → now). Weekly leaders rotate every Monday."
-            : "Ranked by average composite within your team over the last 30 days.";
+            : "Ranked by average composite within your team, all-time.";
 
   return (
     <>
@@ -113,11 +123,16 @@ export function LeaderboardTabs({
         <>
           <div className="mt-10 grid gap-4 md:grid-cols-3 md:items-end">
             {top3.map((entry, i) => (
-              <PodiumCard key={entry.userId} entry={entry} position={i} />
+              <PodiumCard
+                key={entry.userId}
+                entry={entry}
+                position={i}
+                showXp={showXp}
+              />
             ))}
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <div className="mt-10">
             <HighlightCard
               icon={<Flame className="size-5 text-white" />}
               label="Longest streak"
@@ -128,20 +143,6 @@ export function LeaderboardTabs({
                   : "No streak yet"
               }
             />
-            <HighlightCard
-              icon={<Trophy className="size-5 text-white" />}
-              label={
-                scope === "this_week"
-                  ? "Biggest climb this week"
-                  : "Biggest climb vs last week"
-              }
-              name={activeBoard.biggestClimb?.name ?? "—"}
-              value={
-                activeBoard.biggestClimb
-                  ? `+${activeBoard.biggestClimb.delta} points`
-                  : "No climbs yet"
-              }
-            />
           </div>
 
           <div className="mt-10">
@@ -150,7 +151,11 @@ export function LeaderboardTabs({
             </h2>
             <div className="mt-4">
               {/* Rank badge column is v2-only (FF_RANK_SYSTEM). */}
-              <LeaderboardTable entries={activeBoard.entries} showRank={v2} />
+              <LeaderboardTable
+                entries={activeBoard.entries}
+                showRank={v2}
+                showXp={showXp}
+              />
             </div>
 
             {activeBoard.selfEntry &&
@@ -165,8 +170,11 @@ export function LeaderboardTabs({
                     <strong className="text-ink-900 dark:text-white">
                       #{activeBoard.selfEntry.rank}
                     </strong>{" "}
-                    · composite {activeBoard.selfEntry.composite} ·{" "}
-                    {activeBoard.selfEntry.reps} rep
+                    ·{" "}
+                    {showXp
+                      ? `${activeBoard.selfEntry.xp.toLocaleString()} XP`
+                      : `composite ${activeBoard.selfEntry.composite}`}{" "}
+                    · {activeBoard.selfEntry.reps} rep
                     {activeBoard.selfEntry.reps === 1 ? "" : "s"} ·{" "}
                     {activeBoard.selfEntry.streak}-day streak
                   </p>
@@ -206,9 +214,17 @@ function FilterChip({
 function PodiumCard({
   entry,
   position,
+  showXp = false,
 }: {
-  entry: { rank: number; name: string; team: string; composite: number };
+  entry: {
+    rank: number;
+    name: string;
+    team: string;
+    composite: number;
+    xp: number;
+  };
   position: number;
+  showXp?: boolean;
 }) {
   const isFirst = position === 0;
   const heights = ["h-52", "h-40", "h-36"];
@@ -244,9 +260,11 @@ function PodiumCard({
       </div>
       <div className="mt-3 flex items-baseline gap-3">
         <span className="brand-gradient-text text-3xl font-extrabold tabular-nums">
-          {entry.composite}
+          {showXp ? entry.xp.toLocaleString() : entry.composite}
         </span>
-        <span className="text-xs text-ink-500 dark:text-ink-400">composite</span>
+        <span className="text-xs text-ink-500 dark:text-ink-400">
+          {showXp ? "XP" : "composite"}
+        </span>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Flame, TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { Flame } from "lucide-react";
 import { RankBadge } from "@/components/product/progression/RankBadge";
 import type { RankInfo } from "@/lib/progression/rank";
 
@@ -6,9 +6,10 @@ type Entry = {
   rank: number;
   name: string;
   composite: number;
+  /** Lifetime XP — shown instead of composite on the XP/Rank board. */
+  xp?: number;
   streak: number;
   reps: number;
-  delta: number;
   team: string;
   /** PRD §10.5.1 — permanent Cognify Rank badge data (from lifetime XP). */
   rankBadge?: {
@@ -23,9 +24,15 @@ type Props = {
   entries: readonly Entry[];
   /** Render the Cognify Rank shield next to names (FF_RANK_SYSTEM on). */
   showRank?: boolean;
+  /** Show lifetime XP as the value column instead of composite (rank board). */
+  showXp?: boolean;
 };
 
-export function LeaderboardTable({ entries, showRank = false }: Props) {
+export function LeaderboardTable({
+  entries,
+  showRank = false,
+  showXp = false,
+}: Props) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-ink-200 dark:border-ink-700">
       <table className="w-full">
@@ -34,10 +41,9 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
             <th className="px-6 py-4 text-left">Rank</th>
             <th className="px-6 py-4 text-left">Name</th>
             <th className="hidden px-6 py-4 text-left md:table-cell">Team</th>
-            <th className="px-4 py-4 text-right">Composite</th>
+            <th className="px-4 py-4 text-right">{showXp ? "XP" : "Composite"}</th>
             <th className="hidden px-4 py-4 text-right sm:table-cell">Streak</th>
             <th className="hidden px-4 py-4 text-right sm:table-cell">Reps</th>
-            <th className="px-4 py-4 text-right">Δ</th>
           </tr>
         </thead>
         <tbody>
@@ -74,7 +80,7 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
               <td className="hidden px-6 py-4 text-ink-600 md:table-cell dark:text-ink-300">{e.team}</td>
               <td className="px-4 py-4 text-right">
                 <span className="text-lg font-extrabold tabular-nums text-ink-900 dark:text-white">
-                  {e.composite}
+                  {showXp ? (e.xp ?? 0).toLocaleString() : e.composite}
                 </span>
               </td>
               <td className="hidden px-4 py-4 text-right sm:table-cell">
@@ -86,38 +92,11 @@ export function LeaderboardTable({ entries, showRank = false }: Props) {
               <td className="hidden px-4 py-4 text-right text-xs text-ink-600 sm:table-cell dark:text-ink-300">
                 {e.reps}
               </td>
-              <td className="px-4 py-4 text-right">
-                <DeltaBadge delta={e.delta} />
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  );
-}
-
-function DeltaBadge({ delta }: { delta: number }) {
-  if (delta === 0) {
-    return (
-      <span className="inline-flex items-center gap-0.5 text-xs text-ink-400">
-        <Minus className="size-3" />
-        0
-      </span>
-    );
-  }
-  if (delta > 0) {
-    return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-success">
-        <TrendingUp className="size-3" />+{delta}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-danger">
-      <TrendingDown className="size-3" />
-      {delta}
-    </span>
   );
 }
 

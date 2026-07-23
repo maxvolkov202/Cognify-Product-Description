@@ -27,21 +27,25 @@ export default async function LeaderboardPage() {
   // weekly IMPROVEMENT and a Communication Score board joins the tabs.
   const v2 = isRankSystemEnabled();
 
-  const [global, thisWeek, team, userInTeam, improvement, commScore] =
+  const [global, thisWeek, team, userInTeam, commScore, rankBoard] =
     await Promise.all([
       getLeaderboard({ scope: "global", userId }),
       getLeaderboard({ scope: "this_week", userId }),
       getLeaderboard({ scope: "team", userId }),
       userId ? isUserInTeam(userId) : Promise.resolve(false),
-      v2
-        ? getLeaderboard({ scope: "this_week", userId, metric: "improvement" })
-        : Promise.resolve(null),
+      // "Top communicators" — Overall Communication Score, all-comers. This
+      // doubles as the global board (no separate "Global" tab in v2).
       v2
         ? getLeaderboard({
             scope: "global",
             userId,
             metric: "communication_score",
           })
+        : Promise.resolve(null),
+      // Fairest default (§10.5.1): all-time board ranked by lifetime XP /
+      // Cognify Rank, so seniority + sustained training win, not one rep.
+      v2
+        ? getLeaderboard({ scope: "global", userId, metric: "xp" })
         : Promise.resolve(null),
     ]);
 
@@ -52,8 +56,8 @@ export default async function LeaderboardPage() {
         thisWeek={thisWeek}
         team={team}
         userInTeam={userInTeam}
-        improvement={improvement}
         commScore={commScore}
+        rankBoard={rankBoard}
       />
     </div>
   );

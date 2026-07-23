@@ -222,60 +222,58 @@ function RealFriendsView({
         </div>
       )}
 
-      {/* Main + sidebar: the wider main column stacks Friends (a responsive
-          grid so a small crew fills the row) over Challenges, so its height
-          grows with content; the narrower Live-feed sidebar is bounded and
-          scrolls internally on desktop instead of towering over a short
-          Challenges card and leaving dead space. On mobile everything stacks
-          full width (friends → challenges → feed) with no height cap. */}
-      <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              Your friends
-            </h2>
-            {friends.length === 0 ? (
-              <div className="mt-4">
-                <EmptyCard text="No accepted friends yet. Pending requests appear above." />
-              </div>
-            ) : (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {friends.map((f) => (
-                  <RealFriendCard key={f.userId} friend={f} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section>
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-              <Swords className="size-3.5" /> Challenges
-            </h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {challenges.length === 0 ? (
-                <div className="sm:col-span-2 lg:col-span-1 xl:col-span-2">
-                  <EmptyCard text="No challenges yet. Start one by clicking the swords icon on a friend." />
-                </div>
-              ) : (
-                challenges.map((c) => <RealChallengeCard key={c.id} c={c} />)
-              )}
-            </div>
-          </section>
-        </div>
-
-        <section>
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
-            <Activity className="size-3.5" /> Live feed
-          </h2>
-          <div className="mt-4 lg:max-h-[34rem] lg:overflow-y-auto lg:pr-1">
-            {activity.length === 0 ? (
-              <EmptyCard text="Activity lights up as your crew records reps." />
-            ) : (
-              <LiveFeed rows={activity} />
-            )}
+      {/* Full-width stacked sections. Each section fills the row via its own
+          responsive grid (friends, challenges, and the live feed all flow
+          into columns), so nothing sits in a narrow column with dead space
+          beside it — and no section needs an internal scrollbar. The page's
+          own scroll is the only scroll. Mobile collapses each grid to one
+          column and the sections stack friends → challenges → feed. */}
+      <section className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+          Your friends
+        </h2>
+        {friends.length === 0 ? (
+          <div className="mt-4">
+            <EmptyCard text="No accepted friends yet. Pending requests appear above." />
           </div>
-        </section>
-      </div>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {friends.map((f) => (
+              <RealFriendCard key={f.userId} friend={f} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+          <Swords className="size-3.5" /> Challenges
+        </h2>
+        {challenges.length === 0 ? (
+          <div className="mt-4">
+            <EmptyCard text="No challenges yet. Start one by clicking the swords icon on a friend." />
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {challenges.map((c) => (
+              <RealChallengeCard key={c.id} c={c} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-ink-400 dark:text-ink-500">
+          <Activity className="size-3.5" /> Live feed
+        </h2>
+        <div className="mt-4">
+          {activity.length === 0 ? (
+            <EmptyCard text="Activity lights up as your crew records reps." />
+          ) : (
+            <LiveFeed rows={activity} />
+          )}
+        </div>
+      </section>
     </>
   );
 }
