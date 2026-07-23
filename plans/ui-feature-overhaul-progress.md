@@ -836,3 +836,15 @@ the per-phase checklists for a single end-to-end pass.)
   no height cap. Gate green (lint/test/build). Manual review (layout only, no logic). **Guard added to the
   Phase 4 header:** a phase isn't done until `vercel deploy --prod` runs and the alias is verified. Dashboard
   social card (4.1) still needs `FF_DASHBOARD_SOCIAL=true` in prod env — left to Max's call.
+- 2026-07-22 — **Phase 4d (fairer leaderboard + /friends no-scrollbar), deployed.** From Max's follow-ups.
+  Leaderboard: new **"By rank"** board sorts by lifetime XP (Cognify Rank / seniority) so a single lucky
+  high-scoring rep can't top it — now the DEFAULT + first tab, displays XP in podium/table/self-row
+  (`leaderboard.ts` new `"xp"` metric + `LeaderboardEntry.xp`). "Top communicators" (Overall Comm Score) now
+  doubles as the global board — **removed the separate "Global" tab**; **removed "Weekly improvement"** tab
+  (v2 signal moved from `improvement != null` → `rankBoard != null`; page stops computing the improvement
+  board); **removed the delta (Δ) column + delta-based "Biggest climb" highlight** (Longest streak spans the
+  row). `/friends`: replaced the p4c main+sidebar (which had an internal feed scrollbar) with **full-width
+  stacked sections** — Your friends / Challenges / Live feed each a responsive grid so they fill width and stay
+  short; the live feed flows into a 2/3-up grid; page scroll is the only scroll. PRs #51 (+copy fix), merged
+  `2ca50a0d`, deployed dpl `m3pjnbso4…` (verified Ready + HTTP 200 + alias). Gate green; review subagent — no
+  blockers. Layout + ranking-metric only, no calibration impact.
