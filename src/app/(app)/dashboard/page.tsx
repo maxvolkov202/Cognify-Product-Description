@@ -113,7 +113,7 @@ export default async function DashboardPage() {
       ? getSubSkillRunningAverages(user.id)
       : Promise.resolve({} as Partial<Record<SubSkillId, SubSkillStat>>),
     user && dashboardSocialEnabled
-      ? getActivityFeedForUser(user.id, { limit: 10 })
+      ? getActivityFeedForUser(user.id, { limit: 3 })
       : Promise.resolve([]),
   ]);
 
@@ -401,12 +401,6 @@ export default async function DashboardPage() {
       {/* PRD v3 Phase 6 (§10.10/§10.11) — weekly + team challenges. */}
       {user && isRankSystemEnabled() && <WeeklyChallengesCard />}
 
-      {/* Phase 4 (4.1) — Friends activity feed (real names + real strongest
-          Core Skill). Flag-gated; empty state offers a Find friends CTA. */}
-      {user && dashboardSocialEnabled && (
-        <DashboardFriendsActivity rows={friendsFeed} />
-      )}
-
       {/* Skill progress + diagnosis */}
       {profile && (
         <WeakestLinkCard
@@ -434,6 +428,14 @@ export default async function DashboardPage() {
       />
 
       {insights.length > 0 && <CoachMemo insights={insights} />}
+
+      {/* Phase 4 (4.1) / Phase 5 — Friends activity feed, kept slim (3 rows)
+          and placed near the bottom, just above Library. Real names + real
+          strongest Core Skill. Flag-gated; empty state offers a Find friends
+          CTA; "See all" links to /friends for the full feed. */}
+      {user && dashboardSocialEnabled && (
+        <DashboardFriendsActivity rows={friendsFeed} />
+      )}
 
       <LibraryCallout />
     </div>

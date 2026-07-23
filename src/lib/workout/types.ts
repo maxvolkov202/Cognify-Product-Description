@@ -137,6 +137,12 @@ export const WorkoutShellHydratedPayloadSchema = z.object({
    *  forces personalize=false (general, vertical-neutral prompts). Defaults
    *  true so the switch shows if a caller forgets to set it (pre-P10 behavior). */
   personalizeSwitchEnabled: z.boolean().default(true),
+  /** UI overhaul Phase 5 (5.3/5.4) — whether the Suggested Framework strip
+   *  exposes shuffle + inline edit. Resolved server-side from
+   *  isRepFrameworkEditEnabled(). Display-only affordance (the framework never
+   *  reaches scoring); defaults false so a caller that forgets to set it gets
+   *  the plain read-only strip. */
+  repFrameworkEditEnabled: z.boolean().default(false),
   /** PRD v3 engine — which learning loop the session machine runs.
    *  Resolved server-side from isTrainingEngineV2Enabled(). */
   loopVariant: LoopVariantSchema.default("v1"),
@@ -166,5 +172,6 @@ export const EMPTY_SHELL_PAYLOAD: WorkoutShellHydratedPayload = {
   hasPersonalizationProfile: false,
   personalizationSummary: null,
   personalizeSwitchEnabled: true,
+  repFrameworkEditEnabled: false,
   loopVariant: "v1",
 };

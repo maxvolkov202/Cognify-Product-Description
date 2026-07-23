@@ -36,6 +36,7 @@ import {
   isMuscleGroupWorkoutEnabled,
   isTrainingEngineV2Enabled,
   isWorkoutPersonalizeSwitchEnabled,
+  isRepFrameworkEditEnabled,
 } from "@/lib/flags";
 import { getUserProfile } from "@/lib/db/queries/user";
 import { todayYmdInTz } from "@/lib/time/user-day";
@@ -327,6 +328,8 @@ async function fetchTodaysDayPayload(
       personalizationSummary: null,
       // Filled in by the parent (WorkoutPage) from isWorkoutPersonalizeSwitchEnabled().
       personalizeSwitchEnabled: true,
+      // Filled in by the parent (WorkoutPage) from isRepFrameworkEditEnabled().
+      repFrameworkEditEnabled: false,
       // Filled in by the parent (WorkoutPage) from isTrainingEngineV2Enabled().
       loopVariant: "v1",
     };
@@ -363,6 +366,10 @@ export default async function WorkoutPage() {
   // hide the switch + force general prompts until vertical-specific is dialed
   // in; flip FF_WORKOUT_PERSONALIZE_SWITCH=true to restore it, no code change.
   payload.personalizeSwitchEnabled = isWorkoutPersonalizeSwitchEnabled();
+  // UI overhaul Phase 5 — resolve the framework shuffle/edit gate server-side
+  // (the shell + strip are client components). OFF in prod until Max promotes;
+  // display-only affordance with no scoring/calibration impact.
+  payload.repFrameworkEditEnabled = isRepFrameworkEditEnabled();
 
   // Lightweight viewed-telemetry log.
   if (process.env.NODE_ENV !== "production") {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Mic, Square, RotateCcw, Pause as PauseIcon, Play as PlayIcon, Check } from "lucide-react";
+import { Mic, Square, RotateCcw, Pause as PauseIcon, Play as PlayIcon, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
   startRecording,
@@ -31,6 +31,10 @@ type Props = {
    *  to let the user resume the workout later. Redo + Submit are
    *  handled internally. */
   onPause?: () => void;
+  /** Phase 5 (5.1) — Abort rep. Fired after the in-progress recording is
+   *  cancelled + the mic released (internal reset()), so the parent can clear
+   *  any rep-flow state. No audio is submitted; the rep is discarded. */
+  onAbort?: () => void;
 };
 
 export function RecordButton({
@@ -41,6 +45,7 @@ export function RecordButton({
   onComplete,
   disabled,
   onPause,
+  onAbort,
 }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [countdown, setCountdown] = useState(countdownSeconds);
@@ -168,6 +173,15 @@ export function RecordButton({
     maxStopMsRemainingRef.current = null;
     maxStopAnchorRef.current = null;
   }, [cleanup, countdownSeconds]);
+
+  // Phase 5 (5.1) — Abort the in-progress recording: reset() cancels the
+  // MediaRecorder + releases the mic (controller.cancel → stream tracks
+  // stopped), then notify the parent so it can clear rep-flow state. No audio
+  // is submitted; nothing is scored or saved.
+  const abort = useCallback(() => {
+    reset();
+    onAbort?.();
+  }, [reset, onAbort]);
 
   const togglePause = useCallback(() => {
     const controller = controllerRef.current;
@@ -370,13 +384,25 @@ export function RecordButton({
       )}
 
       {isRecording && !onPause && (
-        <button
-          type="button"
-          onClick={stop}
-          className="text-xs font-semibold uppercase tracking-wider text-white hover:text-white drop-shadow-sm"
-        >
-          Stop &amp; submit
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={stop}
+            className="text-xs font-semibold uppercase tracking-wider text-white hover:text-white drop-shadow-sm"
+          >
+            Stop &amp; submit
+          </button>
+          {/* Phase 5 (5.1) — abort while recording. Discards the take, releases
+              the mic, returns to idle. Nothing is transcribed, scored, or saved. */}
+          <button
+            type="button"
+            onClick={abort}
+            className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/75 underline decoration-white/40 underline-offset-2 drop-shadow-sm hover:text-white"
+          >
+            <X className="size-3.5" strokeWidth={2.5} aria-hidden="true" />
+            Discard
+          </button>
+        </div>
       )}
 
       {/* 3-tile action row — mockup #4. Only rendered when onPause is
@@ -398,8 +424,9 @@ export function RecordButton({
             subLabel="Start over"
             onClick={() => {
               // Redo: drop audio + reset to idle so the user can tap
-              // the record button again for a fresh take.
-              reset();
+              // the record button again for a fresh take. Same discard path
+              // as the classic-UX "Discard" — notifies the parent (onAbort).
+              abort();
             }}
           />
           <ActionTile

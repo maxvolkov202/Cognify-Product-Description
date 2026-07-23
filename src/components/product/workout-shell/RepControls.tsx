@@ -61,6 +61,9 @@ export type RepControlsProps = {
   lastScoreFailure: boolean;
   /** Phase HB-3 — personalize-toggle state from the landing screen. */
   personalize?: boolean;
+  /** UI overhaul Phase 5 (5.3/5.4) — expose Suggested Framework shuffle/edit.
+   *  Server-resolved from FF_REP_FRAMEWORK_EDIT; forwarded to RepSurface. */
+  frameworkEditEnabled?: boolean;
   /** PRD v3 engine — loop variant + attempt state from the machine. */
   loop?: LoopVariant;
   attempt?: AttemptKind;
@@ -112,6 +115,7 @@ export default function RepControls({
   lastScore,
   lastScoreFailure,
   personalize = false,
+  frameworkEditEnabled = false,
   loop = "v1",
   attempt = "first",
   firstAttempt = null,
@@ -192,6 +196,7 @@ export default function RepControls({
             practiceSessionId={practiceSessionId}
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
+            frameworkEditEnabled={frameworkEditEnabled}
             loop={loop}
             attempt={attempt}
             firstAttempt={firstAttempt}
@@ -252,6 +257,7 @@ export default function RepControls({
             muscleGroupDayId={muscleGroupDayId}
             dimension={dimension}
             graduation
+            frameworkEditEnabled={frameworkEditEnabled}
             totalStations={totalStations}
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
@@ -324,6 +330,7 @@ function ActiveRep({
   muscleGroupDayId,
   dimension,
   graduation,
+  frameworkEditEnabled = false,
   loop = "v1",
   attempt = "first",
   firstAttempt = null,
@@ -339,6 +346,7 @@ function ActiveRep({
   muscleGroupDayId: string | null;
   dimension: MuscleGroupId | null;
   graduation?: boolean;
+  frameworkEditEnabled?: boolean;
   loop?: LoopVariant;
   attempt?: AttemptKind;
   firstAttempt?: AttemptPayload | null;
@@ -442,6 +450,7 @@ function ActiveRep({
       muscleGroupDayId={muscleGroupDayId}
       isGraduationRep={!!graduation}
       {...(framework ? { repTypeFramework: framework } : {})}
+      frameworkEditEnabled={frameworkEditEnabled}
       {...(retryFocus ? { retryFocus } : {})}
       {...(isEngineRetry && baseAttempt && firstAttempt
         ? {
