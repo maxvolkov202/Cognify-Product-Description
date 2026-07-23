@@ -113,7 +113,11 @@ export function WorkoutSessionProvider({
     };
   }, [state.phase, send]);
 
-  // 3) PAUSE on tab-hidden mid-recording (Safari kills the mic anyway).
+  // 3) PAUSE on tab-hidden mid-recording (Safari kills the mic anyway), and
+  //    auto-RESUME when the tab comes back so the user is never stranded on
+  //    the Paused screen (there was previously no RESUME dispatch anywhere —
+  //    a paused session had no way out; a manual Resume button in RepControls
+  //    is the fallback for when the tab is already visible).
   useEffect(() => {
     if (typeof document === "undefined") return;
     function onVisibility() {
@@ -124,6 +128,11 @@ export function WorkoutSessionProvider({
           state.phase === "scoring")
       ) {
         send({ type: "PAUSE" });
+      } else if (
+        document.visibilityState === "visible" &&
+        state.phase === "paused"
+      ) {
+        send({ type: "RESUME" });
       }
     }
     document.addEventListener("visibilitychange", onVisibility);

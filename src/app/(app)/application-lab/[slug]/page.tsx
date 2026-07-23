@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { isSkillLabAppsEnabled } from "@/lib/flags";
+import { isSkillLabAppsEnabled, isRepFrameworkEditEnabled } from "@/lib/flags";
 import {
   APPLICATION_LABELS,
   isApplicationId,
@@ -48,7 +48,10 @@ export default async function SkillLabApplicationPage({
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-gradient-to-b from-ink-50/40 via-white to-ink-50/30 dark:from-ink-900 dark:via-ink-900 dark:to-ink-900">
-      <AppSessionClient applicationId={slug} />
+      <AppSessionClient
+        applicationId={slug}
+        frameworkEditEnabled={isRepFrameworkEditEnabled()}
+      />
     </div>
   );
 }

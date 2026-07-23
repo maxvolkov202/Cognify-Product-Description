@@ -18,6 +18,11 @@ export type RecordingController = {
   getLevel: () => number;
   /** Active recording time in ms — excludes time spent paused. */
   getElapsedMs: () => number;
+  /** Reset the elapsed clock to zero. Called the instant the countdown ends
+   *  so the on-screen timer AND the scored duration start at 0:00 — the
+   *  recorder is started before the 3-2-1 countdown (for an instant capture),
+   *  but that pre-roll is silence and must not count as speaking time. */
+  markStart: () => void;
 };
 
 const PREFERRED_MIME_TYPES = [
@@ -179,6 +184,10 @@ export async function startRecording(): Promise<RecordingController> {
     },
     isPaused() {
       return recorder.state === "paused";
+    },
+    markStart() {
+      accumulatedMs = 0;
+      resumedAt = performance.now();
     },
     getLevel() {
       if (recorder.state === "paused") return 0;

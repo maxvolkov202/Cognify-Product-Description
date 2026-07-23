@@ -101,6 +101,7 @@ function WorkoutShellInner({
   const onBeginRetry = useCallback(() => send({ type: "BEGIN_RETRY" }), [send]);
   const onRetryAgain = useCallback(() => send({ type: "RETRY_AGAIN" }), [send]);
   const onQuit = useCallback(() => send({ type: "QUIT" }), [send]);
+  const onResume = useCallback(() => send({ type: "RESUME" }), [send]);
 
   // Phase HB-4 — Cancel workout. UI-only escape hatch: a local override
   // that flips us back to landing-shape rendering even though the
@@ -477,6 +478,7 @@ function WorkoutShellInner({
                 onBeginRetry={onBeginRetry}
                 onRetryAgain={onRetryAgain}
                 onQuit={onQuit}
+                onResume={onResume}
               />
             </motion.div>
           )}

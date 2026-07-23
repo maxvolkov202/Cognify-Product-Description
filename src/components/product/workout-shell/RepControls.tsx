@@ -15,7 +15,7 @@
 
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import { useEffect, useState, useTransition } from "react";
-import { Mic, Sparkles, Trophy, X } from "lucide-react";
+import { ArrowRight, Mic, Sparkles, Trophy, X } from "lucide-react";
 import type {
   AttemptKind,
   LoopVariant,
@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils/cn";
 import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import PromptPicker from "@/components/product/workout/PromptPicker";
 import { RepSurface } from "@/components/product/RepSurface";
-import { getFrameworkForDimension } from "@/lib/workout/exercise-framework";
+import { getFrameworkForExercise } from "@/lib/workout/exercise-framework";
 import { muscleGroupToSkillDim } from "@/lib/scoring/dimension-aliases";
 import {
   deriveCoachFocus,
@@ -102,6 +102,9 @@ export type RepControlsProps = {
   onBeginRetry?: () => void;
   onRetryAgain?: () => void;
   onQuit?: () => void;
+  /** Resume a session paused by tab-hidden mid-rep. Auto-resume fires on
+   *  tab-visible, but this manual control covers the already-visible case. */
+  onResume?: () => void;
 };
 
 export default function RepControls({
@@ -135,6 +138,7 @@ export default function RepControls({
   onBeginRetry,
   onRetryAgain,
   onQuit,
+  onResume,
 }: RepControlsProps) {
   return (
     <div
@@ -181,7 +185,7 @@ export default function RepControls({
             station={station}
             promptText={selectedPrompt.text}
             dimension={dimension}
-            framework={getFrameworkForDimension(dimension)}
+            framework={getFrameworkForExercise(station.exerciseSlug, dimension)}
             onReady={() => onInsightDone?.()}
           />
         )}
@@ -273,11 +277,22 @@ export default function RepControls({
         )}
 
         {phase === "paused" && (
-          <PlaceholderControls
-            icon={null}
-            title="Paused"
-            sub="Resume to keep going."
-          />
+          <div className="flex flex-col items-center gap-4 text-center">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+              Paused
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-ink-400">
+              You stepped away mid-rep. Pick up right where you left off.
+            </p>
+            <button
+              type="button"
+              onClick={() => onResume?.()}
+              className="brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+            >
+              Resume workout
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -374,7 +389,7 @@ function ActiveRep({
     );
   }
 
-  const framework = getFrameworkForDimension(dimension);
+  const framework = getFrameworkForExercise(station?.exerciseSlug, dimension);
 
   // PRD v3 engine — retry wiring. On retry/again attempts (v2 loop,
   // never graduation reps) the surface carries the first attempt's

@@ -47,6 +47,7 @@ import CelebrationSparkles from "@/components/product/workout-shell/CelebrationS
 import CountUpScore from "@/components/product/workout-shell/CountUpScore";
 import { APPLICATION_ACCENTS } from "@/lib/skill-lab/application-accents";
 import { RepSurface } from "@/components/product/RepSurface";
+import { getFrameworkForExercise } from "@/lib/workout/exercise-framework";
 import ProgressionStrip from "@/components/product/progression/ProgressionStrip";
 import { Stepper } from "@/components/ui/Stepper";
 import {
@@ -88,8 +89,10 @@ function toLiteOutcome(o: ExerciseOutcome): LiteOutcome {
 
 export default function AppSessionClient({
   applicationId,
+  frameworkEditEnabled = false,
 }: {
   applicationId: ApplicationId;
+  frameworkEditEnabled?: boolean;
 }) {
   const [phase, setPhase] = useState<Phase>({ kind: "length-pick" });
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -488,6 +491,14 @@ export default function AppSessionClient({
             feedbackModeLabel={phase.attempt === "first" ? "SKILL LAB" : "RETRY"}
             exerciseId={exercise.exerciseId}
             applicationId={applicationId}
+            frameworkEditEnabled={frameworkEditEnabled}
+            {...(() => {
+              const fw = getFrameworkForExercise(
+                exercise.slug,
+                exercise.dimension as MuscleGroupId,
+              );
+              return fw ? { repTypeFramework: fw } : {};
+            })()}
             hideRunItAgain
             {...(phase.attempt !== "first" && retryFocus
               ? { retryFocus }

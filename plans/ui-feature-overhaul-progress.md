@@ -404,6 +404,39 @@ graded). Run the full fake-mic workout loop to confirm normal (non-abort) reps s
 > loads. Add a token-scoped public audio route, verify submit end-to-end, and notify the sender. Smoke the
 > full send→listen→rank→results loop, `/code-review`, PR, update tracker, give me the checklist.
 
+### Phase 5b — Rep-flow polish + Paused-screen escape hatch  🔜 (branch `feat/overhaul-p5b-polish`)
+
+**Follow-up to Phase 5 from Max's prod feedback + a reported bug.** Four items, one PR:
+
+- [x] 5b.1 **Paused-screen bug (Max-reported)** — the workout could drop to a "Paused" screen when the tab went
+      hidden mid-rep and **there was no way out**: `visibilitychange` dispatched `PAUSE` but **nothing ever
+      dispatched `RESUME`**, so the session was stranded. Fix: auto-`RESUME` on tab-visible
+      (`use-workout-session.tsx`), plus a first-class **"Resume workout"** button on the Paused screen
+      (`RepControls.tsx` → `onResume` → `WorkoutShell` `send({type:"RESUME"})`) for the already-visible case.
+      The state machine already restored `resumePhase` on `RESUME` (`session-machine.ts:254`,
+      unit-tested `workout-session-machine.test.ts:174-188`) — it was simply never reachable.
+- [x] 5b.2 **Timer starts at 0:00** — `capture.ts` gains `markStart()` (zeroes `accumulatedMs`, resets
+      `resumedAt`); `RecordButton` calls it the instant the 3-2-1 countdown ends, so the countdown pre-roll
+      (silence) counts toward **neither** the on-screen timer **nor** the scored duration.
+- [x] 5b.3 **Discard-rep affordance** — the mid-recording abort is now a clear red "Discard rep" pill
+      (was a faint underline); the redundant scoring-phase abort button in `RepSurface` was removed (abort is
+      recording-only). `abortRep` stays wired via `onAbort`.
+- [x] 5b.4 **Per-exercise Suggested Framework + Application Lab parity** — replaced the coarse per-*dimension*
+      framework map with `getFrameworkForExercise(slug, dim)` (per-exercise map across the full 102-exercise
+      catalog, dimension fallback for unknown slugs — validated: 102/102 canonical slugs covered, all RepType
+      ids valid). The Suggested Framework strip + abort now also render in **Application Lab** (`skill_lab`
+      mode), gated by `FF_REP_FRAMEWORK_EDIT` for shuffle/edit; strip toolbar tidied into a shared `ToolButton`.
+      Display-only — never sent to scoring (zero calibration impact).
+
+**Flag:** reuse `FF_REP_FRAMEWORK_EDIT` (shuffle/edit in App Lab). 5b.1–5b.3 unflagged (bug fix + UX).
+**Local gate:** lint ✔ / test ✔ (43+25+14+14, incl. rep-abort + session-machine RESUME) / build ✔ exit 0.
+**Prod verify checklist:**
+- [ ] Start a workout rep, switch to another browser tab for a few seconds, come back → the workout **auto-resumes** (no stuck Paused screen). If it shows "Paused", a **"Resume workout"** button returns you to the rep.
+- [ ] The recording timer starts at **0:00** after the 3-2-1 countdown (the countdown does not eat into your time).
+- [ ] While recording, a clear red **"Discard rep"** pill discards with no grade/XP/streak; re-recording grades normally.
+- [ ] **Application Lab** now shows a "Suggested Framework" strip (with shuffle/edit), and a rep there still grades.
+- [ ] The suggested framework fits the specific drill (e.g. a concise-answer drill suggests a BLUF/concise shape, not a two-audience one).
+
 ---
 
 ## Phase 6 — Blind ranking (validation) end-to-end fix  ⬜
