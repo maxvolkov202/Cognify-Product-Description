@@ -848,3 +848,14 @@ the per-phase checklists for a single end-to-end pass.)
   short; the live feed flows into a 2/3-up grid; page scroll is the only scroll. PRs #51 (+copy fix), merged
   `2ca50a0d`, deployed dpl `m3pjnbso4…` (verified Ready + HTTP 200 + alias). Gate green; review subagent — no
   blockers. Layout + ranking-metric only, no calibration impact.
+- 2026-07-22 — **Phase 4e (leaderboard restructured to rank→composite), deployed.** Max's spec. Leaderboard
+  now: PRIMARY sort by Cognify Rank (rankIndex from lifetime XP), SECONDARY by avg composite WITHIN a rank
+  (`leaderboard.ts` `"rank"` metric). Just two tabs in v2: **"Top communicators"** (this rank board, default) +
+  **"My Team"** (capitalized) — removed the separate Overall-Comm-Score board/tab. Table columns now **#, Name,
+  Team, Rank, Streak, Reps**: Cognify Rank is its own column (badge + label) replacing the XP/composite value
+  column; inline name badge dropped; podium + self-row show the rank. My Team uses the same rank→composite
+  ordering/columns in v2. Non-v2 (rank system off) unchanged (Global/This week/My Team by composite). PR #53
+  (+comment fix), merged `36ada7b4` (retried after a transient "base branch modified"), deployed dpl
+  `iufep4w82…` (verified Ready + HTTP 200 + alias). Gate green; review subagent — no correctness bugs. Note:
+  composite orders people *within* a rank but isn't a standalone column (per Max's column list). No calibration
+  impact. `/friends` layout confirmed good by Max.
