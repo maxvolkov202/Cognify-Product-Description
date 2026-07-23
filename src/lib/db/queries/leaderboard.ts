@@ -36,9 +36,6 @@ export type LeaderboardEntry = {
   name: string;
   team: string;
   composite: number;
-  /** Lifetime XP — the sort key + displayed value for the rank board
-   *  ("xp" metric). Always populated; ignored by composite/score boards. */
-  xp: number;
   reps: number;
   streak: number;
   delta: number;
@@ -75,11 +72,11 @@ export type LeaderboardMetric =
   | "composite"
   | "improvement"
   | "communication_score"
-  /** "xp": rank by LIFETIME XP (Cognify Rank / seniority). The fairest
-   *  default board — XP accrues across every rep, so a single lucky
-   *  high-scoring rep can't jump you to the top the way avg-composite or
-   *  Overall Score can. */
-  | "xp";
+  /** "rank": PRIMARY sort by Cognify Rank (lifetime-XP tier/division, so
+   *  seniority + sustained training lead), SECONDARY sort by avg composite
+   *  WITHIN a rank (communication quality breaks ties). The fairest board —
+   *  a single lucky high-scoring rep can't jump you a whole rank. */
+  | "rank";
 
 /** Limit — deliberately ~match the mock leaderboard the page previously
  *  rendered so the UI doesn't shrink when the real query lands. */
@@ -355,11 +352,15 @@ export async function getLeaderboard(opts: {
     // sort key (and, for communication_score, the displayed number).
     let rankedRows = aggregateRows;
     let overallScores: Map<string, number> | null = null;
-    if (metric === "xp") {
-      // Fairest board: order by lifetime XP (Cognify Rank / seniority).
-      rankedRows = [...aggregateRows].sort(
-        (a, b) => (b.xp ?? 0) - (a.xp ?? 0),
-      );
+    if (metric === "rank") {
+      // Fairest board: primary sort by Cognify Rank (rankIndex from lifetime
+      // XP), secondary sort by avg composite within the same rank.
+      rankedRows = [...aggregateRows].sort((a, b) => {
+        const ra = rankFromXp(a.xp ?? 0).rankIndex;
+        const rb = rankFromXp(b.xp ?? 0).rankIndex;
+        if (rb !== ra) return rb - ra; // higher rank first
+        return (b.composite ?? 0) - (a.composite ?? 0); // then composite desc
+      });
     } else if (metric === "improvement") {
       const deltaMap = await computeDeltas(aggregateRows.map((r) => r.userId));
       rankedRows = [...aggregateRows].sort(
@@ -430,7 +431,6 @@ export async function getLeaderboard(opts: {
         composite: Math.round(
           overallScores?.get(row.userId) ?? row.composite ?? 0,
         ),
-        xp: row.xp ?? 0,
         reps: row.reps,
         streak: streaks.get(row.userId) ?? 0,
         delta: deltas.get(row.userId) ?? 0,

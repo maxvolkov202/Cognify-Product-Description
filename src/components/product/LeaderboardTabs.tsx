@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Trophy, Flame, Users } from "lucide-react";
 import { LeaderboardTable } from "@/components/product/LeaderboardTable";
+import { RankBadge } from "@/components/product/progression/RankBadge";
+import type { RankInfo } from "@/lib/progression/rank";
 import type {
   LeaderboardBoard,
   LeaderboardScope,
@@ -13,84 +15,73 @@ type Props = {
   thisWeek: LeaderboardBoard;
   team: LeaderboardBoard;
   /** True when the authenticated user is in at least one team. Drives
-   *  the "My team" tab's empty-state copy — "no team yet" is different
+   *  the "My Team" tab's empty-state copy — "no team yet" is different
    *  from "nobody on your team has reps yet". */
   userInTeam: boolean;
-  /** PRD v3 Phase 6 (§10.9) — Overall Communication Score board ("Top
-   *  communicators"). When provided (FF_RANK_SYSTEM) it doubles as the
-   *  global board and the fairness-focused tab set turns on. */
-  commScore?: LeaderboardBoard | null;
-  /** All-time board ranked by lifetime XP (Cognify Rank / seniority) —
-   *  the fairest default: one lucky rep can't top it. Its presence is the
-   *  v2 (FF_RANK_SYSTEM) signal. */
+  /** The fair default board: primary sort by Cognify Rank, secondary by
+   *  composite within each rank. Its presence is the v2 (FF_RANK_SYSTEM)
+   *  signal — when set, the leaderboard is "Top communicators" + "My Team". */
   rankBoard?: LeaderboardBoard | null;
 };
 
-type TabId = LeaderboardScope | "comm_score" | "rank";
+type TabId = LeaderboardScope | "rank";
 
 export function LeaderboardTabs({
   global,
   thisWeek,
   team,
   userInTeam,
-  commScore = null,
   rankBoard = null,
 }: Props) {
   const v2 = rankBoard != null;
-  // The XP / Cognify Rank board opens by default — it's the fairest board
-  // (lifetime XP rewards seniority + sustained training, so a single lucky
-  // high-scoring rep can't jump to #1), so it's the first chip too. "Top
-  // communicators" (Overall Communication Score) is the all-comers global
-  // board — no separate "Global" tab. Weekly-improvement is off for now.
+  // The rank board opens by default — the fairest board (primary sort by
+  // Cognify Rank so seniority + sustained training lead; composite breaks
+  // ties within a rank). Labeled "Top communicators". Only two tabs in v2:
+  // Top communicators + My Team.
   const [scope, setScope] = useState<TabId>(v2 ? "rank" : "global");
 
   const tabs: { id: TabId; label: string }[] = v2
     ? [
-        { id: "rank" as const, label: "By rank" },
-        { id: "comm_score" as const, label: "Top communicators" },
-        { id: "team" as const, label: "My team" },
+        { id: "rank" as const, label: "Top communicators" },
+        { id: "team" as const, label: "My Team" },
       ]
     : [
         { id: "global" as const, label: "Global" },
         { id: "this_week" as const, label: "This week" },
-        { id: "team" as const, label: "My team" },
+        { id: "team" as const, label: "My Team" },
       ];
 
   const activeBoard =
     scope === "rank"
       ? (rankBoard ?? global)
-      : scope === "comm_score"
-        ? (commScore ?? global)
-        : scope === "global"
-          ? global
-          : scope === "this_week"
-            ? thisWeek
-            : team;
+      : scope === "global"
+        ? global
+        : scope === "this_week"
+          ? thisWeek
+          : team;
   const top3 = activeBoard.entries.slice(0, 3);
 
-  // The rank board is sorted by XP, so it must DISPLAY xp (not composite) or
-  // the value column would look out of order.
-  const showXp = scope === "rank";
+  // v2 boards (rank + team) show a dedicated Cognify Rank column in place of
+  // the composite value; non-v2 boards keep the composite value column.
+  const showRank = v2;
 
   const title =
     scope === "rank"
-      ? "The gym's most seasoned."
-      : scope === "comm_score"
-        ? "The strongest communicators."
-        : scope === "global"
-          ? "The gym's best, all-time."
-          : scope === "this_week"
-            ? "The gym's best this week."
-            : "Your team's leaders.";
+      ? "Top communicators."
+      : scope === "global"
+        ? "The gym's best, all-time."
+        : scope === "this_week"
+          ? "The gym's best this week."
+          : "Your team's leaders.";
   const subtitle =
     scope === "rank"
-      ? "Ranked by total XP — your Cognify Rank. Seniority and sustained training win here, so one lucky high-scoring rep can't jump to the top."
-      : scope === "comm_score"
-        ? "Ranked by Overall Communication Score — Cognify's long-run estimate across all six Core Skills. The all-comers board."
-        : scope === "global"
-          ? "Ranked by average composite across all reps, all-time. Rewards a high average — even off a single strong rep."
-          : scope === "this_week"
-            ? "Ranked by average composite for the current ISO week (Monday → now). Weekly leaders rotate every Monday."
+      ? "Ranked by Cognify Rank first, then by composite score within each rank — so seniority and sustained training lead, and communication quality breaks the ties."
+      : scope === "global"
+        ? "Ranked by average composite across all reps, all-time. Rewards a high average — even off a single strong rep."
+        : scope === "this_week"
+          ? "Ranked by average composite for the current ISO week (Monday → now). Weekly leaders rotate every Monday."
+          : showRank
+            ? "Your team, ranked by Cognify Rank then composite within each rank."
             : "Ranked by average composite within your team, all-time.";
 
   return (
@@ -127,7 +118,7 @@ export function LeaderboardTabs({
                 key={entry.userId}
                 entry={entry}
                 position={i}
-                showXp={showXp}
+                showRank={showRank}
               />
             ))}
           </div>
@@ -150,11 +141,11 @@ export function LeaderboardTabs({
               Full rankings
             </h2>
             <div className="mt-4">
-              {/* Rank badge column is v2-only (FF_RANK_SYSTEM). */}
+              {/* Cognify Rank column is v2-only (FF_RANK_SYSTEM); it replaces
+                  the composite value column. */}
               <LeaderboardTable
                 entries={activeBoard.entries}
-                showRank={v2}
-                showXp={showXp}
+                showRank={showRank}
               />
             </div>
 
@@ -171,8 +162,8 @@ export function LeaderboardTabs({
                       #{activeBoard.selfEntry.rank}
                     </strong>{" "}
                     ·{" "}
-                    {showXp
-                      ? `${activeBoard.selfEntry.xp.toLocaleString()} XP`
+                    {showRank
+                      ? activeBoard.selfEntry.rankBadge.label
                       : `composite ${activeBoard.selfEntry.composite}`}{" "}
                     · {activeBoard.selfEntry.reps} rep
                     {activeBoard.selfEntry.reps === 1 ? "" : "s"} ·{" "}
@@ -214,17 +205,22 @@ function FilterChip({
 function PodiumCard({
   entry,
   position,
-  showXp = false,
+  showRank = false,
 }: {
   entry: {
     rank: number;
     name: string;
     team: string;
     composite: number;
-    xp: number;
+    rankBadge: {
+      label: string;
+      tierColor: string;
+      rankIndex: number;
+      divisionRoman: RankInfo["divisionRoman"];
+    };
   };
   position: number;
-  showXp?: boolean;
+  showRank?: boolean;
 }) {
   const isFirst = position === 0;
   const heights = ["h-52", "h-40", "h-36"];
@@ -258,14 +254,26 @@ function PodiumCard({
       <div className="mt-1 text-lg font-extrabold text-ink-900 dark:text-white">
         {entry.name}
       </div>
-      <div className="mt-3 flex items-baseline gap-3">
-        <span className="brand-gradient-text text-3xl font-extrabold tabular-nums">
-          {showXp ? entry.xp.toLocaleString() : entry.composite}
-        </span>
-        <span className="text-xs text-ink-500 dark:text-ink-400">
-          {showXp ? "XP" : "composite"}
-        </span>
-      </div>
+      {showRank ? (
+        <div className="mt-3 flex items-center gap-2">
+          <RankBadge rank={entry.rankBadge} size={28} />
+          <span
+            className="text-lg font-extrabold"
+            style={{ color: entry.rankBadge.tierColor }}
+          >
+            {entry.rankBadge.label}
+          </span>
+        </div>
+      ) : (
+        <div className="mt-3 flex items-baseline gap-3">
+          <span className="brand-gradient-text text-3xl font-extrabold tabular-nums">
+            {entry.composite}
+          </span>
+          <span className="text-xs text-ink-500 dark:text-ink-400">
+            composite
+          </span>
+        </div>
+      )}
     </div>
   );
 }

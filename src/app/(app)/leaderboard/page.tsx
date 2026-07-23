@@ -23,31 +23,28 @@ async function isUserInTeam(userId: string): Promise<boolean> {
 export default async function LeaderboardPage() {
   const user = await currentUser();
   const userId = user?.id ?? null;
-  // PRD v3 Phase 6 (§10.9) — under FF_RANK_SYSTEM the default board is
-  // weekly IMPROVEMENT and a Communication Score board joins the tabs.
+  // Under FF_RANK_SYSTEM the leaderboard is the fair rank board ("Top
+  // communicators", default — Cognify Rank then composite) + "My Team".
   const v2 = isRankSystemEnabled();
 
-  const [global, thisWeek, team, userInTeam, commScore, rankBoard] =
-    await Promise.all([
-      getLeaderboard({ scope: "global", userId }),
-      getLeaderboard({ scope: "this_week", userId }),
-      getLeaderboard({ scope: "team", userId }),
-      userId ? isUserInTeam(userId) : Promise.resolve(false),
-      // "Top communicators" — Overall Communication Score, all-comers. This
-      // doubles as the global board (no separate "Global" tab in v2).
-      v2
-        ? getLeaderboard({
-            scope: "global",
-            userId,
-            metric: "communication_score",
-          })
-        : Promise.resolve(null),
-      // Fairest default (§10.5.1): all-time board ranked by lifetime XP /
-      // Cognify Rank, so seniority + sustained training win, not one rep.
-      v2
-        ? getLeaderboard({ scope: "global", userId, metric: "xp" })
-        : Promise.resolve(null),
-    ]);
+  const [global, thisWeek, team, userInTeam, rankBoard] = await Promise.all([
+    getLeaderboard({ scope: "global", userId }),
+    getLeaderboard({ scope: "this_week", userId }),
+    // In v2 the team board uses the same fair rank→composite ordering as the
+    // main board so both tabs read consistently.
+    getLeaderboard({
+      scope: "team",
+      userId,
+      metric: v2 ? "rank" : "composite",
+    }),
+    userId ? isUserInTeam(userId) : Promise.resolve(false),
+    // "Top communicators" (default): primary sort by Cognify Rank, secondary
+    // by composite within each rank (§10.5.1) — seniority + sustained training
+    // lead, communication quality breaks ties. One lucky rep can't top it.
+    v2
+      ? getLeaderboard({ scope: "global", userId, metric: "rank" })
+      : Promise.resolve(null),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
@@ -56,7 +53,6 @@ export default async function LeaderboardPage() {
         thisWeek={thisWeek}
         team={team}
         userInTeam={userInTeam}
-        commScore={commScore}
         rankBoard={rankBoard}
       />
     </div>
