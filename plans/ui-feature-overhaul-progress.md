@@ -352,13 +352,16 @@ off-path pays no DB read. One follow-up applied: blank-name → email fallback.
 
 ---
 
-## Phase 5 — Rep flow: Abort rep + Suggested Framework (shuffle / edit / custom)  ⬜
+## Phase 5 — Rep flow: Abort rep + Suggested Framework (shuffle / edit / custom)  ✅ merged + **deployed to prod** 2026-07-22 (`feat/overhaul-p5-abort-framework`, PR #55, dpl `6cxg6a7pQHX2viMbhfcyzEjhU1YX`) · ⏳ Max's prod verify
 
-**Goal:** let a user abort a rep mid-flow without grading it, and reframe the framework as an editable
-suggestion (shuffle for a new one, pencil to edit/create your own).
+> **Dashboard follow-up (folded in per Max):** the Phase 4.1 Friends-activity card was slimmed to **3 rows**
+> and moved to the bottom of the dashboard, **just above Library**. Both `FF_DASHBOARD_SOCIAL` **and**
+> `FF_REP_FRAMEWORK_EDIT` were set to `true` in the prod env (plaintext, `--no-sensitive`, verified via
+> `env pull`) so the friends card + shuffle/edit are visible on cognifygym.com for verification. Both are
+> reversible env flips; abort (5.1) + the "Suggested Framework" relabel (5.2) are unflagged and live regardless.
 
 **Files/tasks:**
-- [ ] 5.1 **Abort rep** — `RepSurface.tsx`. Add an "Abort" / "Discard rep" control available while recording
+- [x] 5.1 **Abort rep** — `RepSurface.tsx`. Add an "Abort" / "Discard rep" control available while recording
       and immediately after (before scoring). Wire it to reset the phase machine to `idle` **without** calling
       `runScoringPath` (`:457`) — i.e. skip `/api/transcribe` (`:411`), `/api/score` (`:619`), `saveRep`
       (`:655`) / `insertPendingRep` (`:492`), and `onComplete` (`:684`). Mirror the existing `handleDiscard`
@@ -366,15 +369,15 @@ suggestion (shuffle for a new one, pencil to edit/create your own).
       ensure abort does **not** advance the session: workout `tagWorkoutRep`/`advanceExercise`
       (`RepControls.tsx:476`) and Application Lab `onRepComplete` must be skipped so earlier reps stay intact
       and the same slot can be re-recorded. Confirm mic stream is stopped/released on abort.
-- [ ] 5.2 **"Suggested Framework" relabel** — `RepFrameworkStrip.tsx:128` header "Framework" →
+- [x] 5.2 **"Suggested Framework" relabel** — `RepFrameworkStrip.tsx:128` header "Framework" →
       "Suggested Framework"; soften `RepSurface.tsx:1026` "Hold this structure" and `InsightScreen.tsx:131-138`
       "Structure to hold" to recommendation language ("Suggested structure — a shape you can follow, you're
       not graded on it"). Keep the existing disclaimer footnote (`:280`).
-- [ ] 5.3 **Shuffle** — add a shuffle affordance to `RepFrameworkStrip` that swaps to an alternate framework.
+- [x] 5.3 **Shuffle** — add a shuffle affordance to `RepFrameworkStrip` that swaps to an alternate framework.
       Source alternates from `frameworks-library.ts` / `REP_TYPES` (`rep-types.ts`) rather than the single
       `getFrameworkForDimension` lookup (`exercise-framework.ts:20-27`). Hold the choice in local state around
       `repTypeFramework` (the strip already imports `PenLine`). Never blocks recording.
-- [ ] 5.4 **Edit / create your own** — pencil icon opens an inline editor to rename the framework and edit its
+- [x] 5.4 **Edit / create your own** — pencil icon opens an inline editor to rename the framework and edit its
       steps/nodes (the numbered list). Persist per-rep in local state (session-scoped is fine; optional:
       persist a user's custom frameworks to a lightweight store if Max wants them to stick — flag as a
       follow-up, not required this phase). Custom framework flows through the same display path; it is
@@ -859,3 +862,34 @@ the per-phase checklists for a single end-to-end pass.)
   `iufep4w82…` (verified Ready + HTTP 200 + alias). Gate green; review subagent — no correctness bugs. Note:
   composite orders people *within* a rank but isn't a standalone column (per Max's column list). No calibration
   impact. `/friends` layout confirmed good by Max.
+- 2026-07-22 — **Phase 5 done + deployed** on `feat/overhaul-p5-abort-framework` (PR #55, squash-merged to
+  `main` as `5cb71550`; dpl `6cxg6a7pQHX2viMbhfcyzEjhU1YX`, aliased www.cognifygym.com + cognifygym.com +
+  cognify-v2-neon, verified Ready + HTTP 200). **(5.1 Abort)** `RecordButton` gains a during-recording
+  "Discard" (classic UX) + wires the Daily Workout "Redo" tile to the same `reset()` (cancels MediaRecorder,
+  releases mic via `controller.cancel → track.stop`). `RepSurface` guards `handleRecordingComplete`/
+  `runScoringPath` at every await boundary with `abortedRef` (transcribe boundary, scoring entry, insert-pending
+  window, `/api/score` catch, final pre-persist checkpoint) + cancels the in-flight score fetch + revokes the
+  blob; abort skips transcribe/score/`saveRep`/`insertPendingRep`/`onComplete` → **no rep row, XP, streak
+  fold, coaching event, or session advance**. Since callers advance only on `onComplete`, the slot stays
+  intact + re-recordable and the day's `completed_reps` is untouched (mid-day exit resumes at the same/next
+  station — verified for rep 2 AND rep 3 via the reset-day math `max(activeSession.index, completedReps)`).
+  New pure `src/lib/rep/abort.ts` (`canAbortAtStage`) + `tests/rep-abort.test.ts` (14 assertions) lock the
+  invariant. **(5.2 relabel, unflagged)** "Framework" → "Suggested Framework" on the strip + softened the
+  RepSurface inline block ("A shape you can follow. You're not graded on it.") + InsightScreen ("a guide, not
+  graded"); no em-dashes. **(5.3/5.4 shuffle+edit, `FF_REP_FRAMEWORK_EDIT`)** the strip can shuffle to another
+  built-in framework or open a pencil editor to rename/add/remove/edit steps (session-scoped, per-step
+  metadata preserved) — **display-only, never sent to scoring** (verified `scoreBody` reads the separate
+  `framework` prop). Flag server-resolved through the workout payload (`flags.ts` → `types.ts` → `workout/
+  page.tsx` → `WorkoutShell` → `RepControls`/`ActiveRep` → `RepSurface` → `RepFrameworkStrip`). **Dashboard:**
+  Friends card slimmed to 3 rows + moved above Library. Local gate green (lint ✔ / test ✔ 28 suites incl.
+  rep-abort / build ✔ exit 0). **Smoke:** authed fake-mic `playwright.p5.config.ts` (reuses stored session,
+  fake mic, dodges the rate limit) **PASSED** the full loop (record → grade → **Coach's Focus feedback** →
+  required retry → Improvement Review → advance), the abort (Discard mid-recording → back to idle, no CTA/
+  advance, then re-record grades normally), the "Suggested Framework" relabel, AND mid-day resume (reload
+  after a station → day resumes with progress). *(One flaky re-run was a build-clobbered `.next` — I'd run
+  `npm run build` while the dev server was live; cleared `.next` + restarted dev → passed clean.)* **Review:**
+  code-review subagent — 1 Major (missing abort guard after `insertPendingRep` on the async path) + 4 minor
+  (em-dash, notes-persistence wipe on shuffle, editor step-metadata index misalignment, single-column
+  `onAbort`) — **all fixed** before merge. No calibration impact — XP/rank/framework ≠ score. **Prod flags:**
+  `FF_DASHBOARD_SOCIAL=true` + `FF_REP_FRAMEWORK_EDIT=true` set in prod (plaintext, verified) so the friends
+  card + shuffle/edit are live for Max's verify. **Prod verify checklist handed to Max.**
