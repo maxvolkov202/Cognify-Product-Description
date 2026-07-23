@@ -6,8 +6,6 @@ type Entry = {
   rank: number;
   name: string;
   composite: number;
-  /** Lifetime XP — shown instead of composite on the XP/Rank board. */
-  xp?: number;
   streak: number;
   reps: number;
   team: string;
@@ -22,26 +20,25 @@ type Entry = {
 
 type Props = {
   entries: readonly Entry[];
-  /** Render the Cognify Rank shield next to names (FF_RANK_SYSTEM on). */
+  /** v2 (FF_RANK_SYSTEM): show a dedicated Cognify Rank column IN PLACE OF the
+   *  composite value column. Off → show the composite column, no rank. */
   showRank?: boolean;
-  /** Show lifetime XP as the value column instead of composite (rank board). */
-  showXp?: boolean;
 };
 
-export function LeaderboardTable({
-  entries,
-  showRank = false,
-  showXp = false,
-}: Props) {
+export function LeaderboardTable({ entries, showRank = false }: Props) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-ink-200 dark:border-ink-700">
       <table className="w-full">
         <thead className="bg-ink-50 text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:bg-ink-900 dark:text-ink-400">
           <tr>
-            <th className="px-6 py-4 text-left">Rank</th>
+            <th className="px-6 py-4 text-left">#</th>
             <th className="px-6 py-4 text-left">Name</th>
             <th className="hidden px-6 py-4 text-left md:table-cell">Team</th>
-            <th className="px-4 py-4 text-right">{showXp ? "XP" : "Composite"}</th>
+            {showRank ? (
+              <th className="px-4 py-4 text-left">Rank</th>
+            ) : (
+              <th className="px-4 py-4 text-right">Composite</th>
+            )}
             <th className="hidden px-4 py-4 text-right sm:table-cell">Streak</th>
             <th className="hidden px-4 py-4 text-right sm:table-cell">Reps</th>
           </tr>
@@ -61,28 +58,35 @@ export function LeaderboardTable({
                 <div className="flex items-center gap-3">
                   <Avatar name={e.name} />
                   <span className="font-semibold text-ink-900 dark:text-white">{e.name}</span>
-                  {showRank && e.rankBadge && (
+                </div>
+              </td>
+              <td className="hidden px-6 py-4 text-ink-600 md:table-cell dark:text-ink-300">{e.team}</td>
+              {showRank ? (
+                <td className="px-4 py-4">
+                  {e.rankBadge ? (
                     <span
-                      className="inline-flex items-center gap-1"
+                      className="inline-flex items-center gap-1.5"
                       title={e.rankBadge.label}
                     >
                       <RankBadge rank={e.rankBadge} size={20} />
                       <span
-                        className="hidden text-[11px] font-bold md:inline"
+                        className="text-xs font-bold"
                         style={{ color: e.rankBadge.tierColor }}
                       >
                         {e.rankBadge.label}
                       </span>
                     </span>
+                  ) : (
+                    <span className="text-ink-400">—</span>
                   )}
-                </div>
-              </td>
-              <td className="hidden px-6 py-4 text-ink-600 md:table-cell dark:text-ink-300">{e.team}</td>
-              <td className="px-4 py-4 text-right">
-                <span className="text-lg font-extrabold tabular-nums text-ink-900 dark:text-white">
-                  {showXp ? (e.xp ?? 0).toLocaleString() : e.composite}
-                </span>
-              </td>
+                </td>
+              ) : (
+                <td className="px-4 py-4 text-right">
+                  <span className="text-lg font-extrabold tabular-nums text-ink-900 dark:text-white">
+                    {e.composite}
+                  </span>
+                </td>
+              )}
               <td className="hidden px-4 py-4 text-right sm:table-cell">
                 <span className="inline-flex items-center gap-1 text-xs text-ink-600 dark:text-ink-300">
                   <Flame className="size-3 text-brand-purple" />
