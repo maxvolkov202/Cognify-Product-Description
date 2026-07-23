@@ -78,7 +78,7 @@ export function LeaderboardTabs({
       : scope === "comm_score"
         ? "The strongest communicators."
         : scope === "global"
-          ? "The gym's best, last 30 days."
+          ? "The gym's best, all-time."
           : scope === "this_week"
             ? "The gym's best this week."
             : "Your team's leaders.";
