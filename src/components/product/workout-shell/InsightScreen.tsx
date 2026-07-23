@@ -130,9 +130,12 @@ export default function InsightScreen({
         <p className="text-sm text-slate-800 dark:text-ink-100">{promptText}</p>
         {framework && (
           <p className="mt-2 text-xs text-slate-500 dark:text-ink-400">
-            Structure to hold:{" "}
+            Suggested shape:{" "}
             <span className="font-semibold">
               {framework.sections.map((s) => s.label).join(" → ")}
+            </span>{" "}
+            <span className="text-slate-400 dark:text-ink-500">
+              (a guide, not graded)
             </span>
           </p>
         )}

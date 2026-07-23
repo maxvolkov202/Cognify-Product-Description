@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   RotateCcw,
   Loader2,
   Lightbulb,
   Target,
   AlertTriangle,
+  X,
 } from "lucide-react";
+import { canAbortAtStage } from "@/lib/rep/abort";
 import type {
   Framework,
   RepScore,
@@ -71,6 +73,11 @@ type Props = {
   /** Rep-type-specific framework cheat-sheet. Shown as a compact strip above
    *  the prompt in Daily Workout mode only. No effect if not provided. */
   repTypeFramework?: RepTypeFramework;
+  /** Phase 5 (5.3/5.4) — when true, the Suggested Framework strip exposes
+   *  shuffle + inline-edit affordances. Server-resolved from
+   *  FF_REP_FRAMEWORK_EDIT and threaded through the workout path. The strip
+   *  is display-only (never sent to scoring), so this is purely a UI toggle. */
+  frameworkEditEnabled?: boolean;
   /** Enforces word-count + duration-ratio floor. Triggers a modal gate. */
   speakingThreshold?: SpeakingThreshold;
   /** External retry handler. If provided, RepSurface calls this instead
@@ -223,6 +230,7 @@ export function RepSurface({
   previousRepSummary,
   repTypeFramework,
   speakingThreshold,
+  frameworkEditEnabled = false,
   onRetry,
   onDiscard,
   feedbackMode = "full",
@@ -267,6 +275,18 @@ export function RepSurface({
     revealFrameworkAfterMs === 0,
   );
   const [readingProgress, setReadingProgress] = useState(0);
+
+  // Phase 5 (5.1) — Abort rep. Aborting mid-flow must skip transcribe/score/
+  // save/onComplete entirely so no row, XP, streak, coaching event, or session
+  // advance happens. `abortedRef` is checked at every await boundary in the
+  // scoring path (a click while /api/score is in flight still bails before
+  // saveRep). `scoringControllerRef` lets abort cancel the in-flight score
+  // fetch; `currentRecordingRef` lets abort revoke the blob URL of the
+  // in-progress attempt so we don't leak it. Refs (not state) so the guards
+  // read the latest value synchronously inside the running async function.
+  const abortedRef = useRef(false);
+  const scoringControllerRef = useRef<AbortController | null>(null);
+  const currentRecordingRef = useRef<RecordingResult | null>(null);
 
   // Realtime subscription for the async scoring path. Always called (React
   // hook rules) but only subscribes when phase is processing-async. Returns
@@ -401,6 +421,11 @@ export function RepSurface({
     let transcript = `[No transcript — Phase B placeholder]`;
     let words: { word: string; startMs: number; endMs: number }[] = [];
 
+    // Fresh attempt — clear any prior abort intent and track this recording so
+    // an abort can revoke its blob URL.
+    abortedRef.current = false;
+    currentRecordingRef.current = result;
+
     setPhase({ kind: "transcribing" });
     try {
       const fd = new FormData();
@@ -420,6 +445,11 @@ export function RepSurface({
     } catch {
       // fall through
     }
+
+    // Abort fired during transcription — bail before the gate / scoring. The
+    // transcribe fetch above isn't cancellable, but nothing has been persisted
+    // and abortRep already returned us to idle.
+    if (abortedRef.current) return;
 
     // ——— Speaking threshold gate ——————————————————————
     // Softer floor (60% of time budget + minWords). Failing surfaces a
@@ -459,6 +489,11 @@ export function RepSurface({
     transcript: string,
     words: { word: string; startMs: number; endMs: number }[],
   ) => {
+    // Abort may have fired between the transcribe gate and here (or before the
+    // speaking-gate "Proceed" click). Bail before touching any network/DB.
+    if (abortedRef.current) return;
+    currentRecordingRef.current = result;
+
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
     // Supabase session, skip the blocking /api/score call and instead:
@@ -489,6 +524,9 @@ export function RepSurface({
         audioUrl = null;
       }
 
+      // Abort during the upload window — don't write a pending row.
+      if (abortedRef.current) return;
+
       const pending = await insertPendingRep({
         mode,
         promptText: scoringPromptText ?? prompt,
@@ -506,6 +544,12 @@ export function RepSurface({
         ...(muscleGroupDayId ? { muscleGroupDayId } : {}),
         ...(isGraduationRep ? { isGraduationRep: true } : {}),
       });
+
+      // Abort fired while insertPendingRep was in flight. The row was
+      // written, but do NOT invoke the edge function or enter processing-async
+      // (which would fire onComplete + advance the session). The pending row
+      // is inert — it's never scored, so it never surfaces as a completed rep.
+      if (abortedRef.current) return;
 
       if (pending) {
         // Fire-and-forget Edge Function invocation. The realtime
@@ -613,6 +657,8 @@ export function RepSurface({
     // server finish + adds network buffer; server-side timeout is still
     // the true ceiling.
     const controller = new AbortController();
+    // Expose the controller so abortRep() can cancel this fetch immediately.
+    scoringControllerRef.current = controller;
     const timeoutId = setTimeout(() => controller.abort(), 45_000);
 
     try {
@@ -630,6 +676,10 @@ export function RepSurface({
       score = (await res.json()) as RepScore;
     } catch (err) {
       clearTimeout(timeoutId);
+      scoringControllerRef.current = null;
+      // User aborted — abortRep() already reset us to idle. Swallow the
+      // AbortError so we don't surface the "scoring failed" error card.
+      if (abortedRef.current) return;
       const isTimeout =
         err instanceof DOMException && err.name === "AbortError";
       const message = isTimeout
@@ -640,6 +690,12 @@ export function RepSurface({
       setPhase({ kind: "error", message, recording: result });
       return;
     }
+
+    scoringControllerRef.current = null;
+    // Last abort checkpoint before we persist. A click during scoring that
+    // resolved just as the score returned still bails here — nothing is
+    // uploaded, saved, or reported to onComplete.
+    if (abortedRef.current) return;
 
     // Prosody-sync OFF (default): upload AFTER scoring so the score isn't
     // delayed by the upload round-trip. Persist the Storage path (not the
@@ -717,6 +773,7 @@ export function RepSurface({
     if (phase.kind === "speaking-gate")
       URL.revokeObjectURL(phase.recording.url);
 
+    abortedRef.current = false;
     // External retry handler takes precedence. If provided, the parent
     // (WorkoutSession) will force-remount this component with a new key.
     if (onRetry) {
@@ -726,9 +783,30 @@ export function RepSurface({
     setPhase({ kind: "idle" });
   };
 
+  // Phase 5 (5.1) — Abort / Discard rep. A first-class discard available while
+  // recording (via RecordButton) and through the pre-save working phases
+  // (transcribing / scoring). Sets the abort flag (every await boundary in the
+  // scoring path checks it), cancels the in-flight score fetch, releases the
+  // recording's blob URL, and returns to idle WITHOUT calling saveRep /
+  // insertPendingRep / onComplete — so no rep row, XP, streak fold, coaching
+  // event, or session advance. The caller (workout / Application Lab) only
+  // advances on onComplete, so the current slot stays intact and re-recordable.
+  const abortRep = () => {
+    abortedRef.current = true;
+    scoringControllerRef.current?.abort();
+    scoringControllerRef.current = null;
+    if (currentRecordingRef.current) {
+      URL.revokeObjectURL(currentRecordingRef.current.url);
+      currentRecordingRef.current = null;
+    }
+    setPersistFailed(false);
+    setPhase({ kind: "idle" });
+  };
+
   const handleDiscard = () => {
     if (phase.kind === "speaking-gate")
       URL.revokeObjectURL(phase.recording.url);
+    abortedRef.current = false;
     if (onDiscard) {
       onDiscard();
       return;
@@ -979,6 +1057,7 @@ export function RepSurface({
         phase.kind === "error" && (
           <RepFrameworkStrip
             framework={repTypeFramework}
+            editEnabled={frameworkEditEnabled}
             allowNotes
             notesKey={
               muscleGroupDayId && exerciseId
@@ -1023,8 +1102,11 @@ export function RepSurface({
             <div className="mt-6 border-t border-ink-200 dark:border-ink-700 pt-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-brand-purple dark:text-brand-lavender">
                 <Lightbulb className="size-3.5" />
-                Hold this structure · {framework.name}
+                Suggested structure · {framework.name}
               </div>
+              <p className="mt-1 text-[11px] text-ink-400 dark:text-ink-500">
+                A shape you can follow. You&rsquo;re not graded on it.
+              </p>
               <ol className="mt-4 space-y-2.5">
                 {framework.nodes.map((node, i) => (
                   <li
@@ -1059,6 +1141,7 @@ export function RepSurface({
         <div className="flex flex-col gap-5">
           <RepFrameworkStrip
             framework={repTypeFramework!}
+            editEnabled={frameworkEditEnabled}
             allowNotes
             notesKey={
               muscleGroupDayId && exerciseId
@@ -1083,6 +1166,7 @@ export function RepSurface({
                 maxDurationMs={effectiveMaxDurationMs}
                 responseWindow={responseWindow}
                 onComplete={handleRecordingComplete}
+                onAbort={abortRep}
                 disabled={isWorking || !frameworkVisible}
                 {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
               />
@@ -1110,6 +1194,7 @@ export function RepSurface({
               maxDurationMs={effectiveMaxDurationMs}
               responseWindow={responseWindow}
               onComplete={handleRecordingComplete}
+              onAbort={abortRep}
               disabled={isWorking || !frameworkVisible}
               {...(onMidRepPause ? { onPause: onMidRepPause } : {})}
             />
@@ -1133,6 +1218,22 @@ export function RepSurface({
               "Scoring in the background. Realtime updates incoming…"}
           </div>
           <LoadingEvidence />
+          {/* Phase 5 (5.1) — abort while the rep is still pre-save. Only the
+              transcribing/scoring stages are abortable (canAbortAtStage); once
+              we hit "saving"/"processing-async" the row is being written and
+              the control disappears. Discarding here writes nothing. */}
+          {canAbortAtStage(phase.kind) && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={abortRep}
+                className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-4 py-2 text-xs font-semibold text-ink-600 dark:text-ink-300 transition-colors hover:border-rose-300 hover:text-rose-600 dark:hover:border-rose-700 dark:hover:text-rose-400"
+              >
+                <X className="size-3.5" strokeWidth={2.5} />
+                Discard this rep
+              </button>
+            </div>
+          )}
           {/* All six dimensions are revealed together once the full grade
               returns (no split deterministic preview) — the user sees a
               single skeleton while grading runs, then final scores at once,

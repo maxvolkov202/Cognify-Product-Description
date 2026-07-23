@@ -5,14 +5,15 @@ import { ActivityFeedRow } from "@/components/product/friends/ActivityFeedRow";
 
 /**
  * Dashboard "Friends activity" card (Phase 4, task 4.1). Mounts the shared
- * `ActivityFeedRow` on the dashboard, fed by `getActivityFeedForUser`. Hard
- * caps at 10 rows and links out to /friends for the full feed (the "Show more"
- * pagination lives there). Empty state is a "Find friends" CTA.
+ * `ActivityFeedRow` on the dashboard, fed by `getActivityFeedForUser`. Kept
+ * slim — 3 rows near the bottom of the dashboard (above Library) — and links
+ * out to /friends for the full feed (the "Show more" pagination lives there).
+ * Empty state is a "Find friends" CTA.
  *
  * Gated by FF_DASHBOARD_SOCIAL at the call site.
  */
 export function DashboardFriendsActivity({ rows }: { rows: ActivityRow[] }) {
-  const shown = rows.slice(0, 10);
+  const shown = rows.slice(0, 3);
 
   return (
     <section className="surface-card overflow-hidden">

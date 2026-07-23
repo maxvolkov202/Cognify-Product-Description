@@ -91,3 +91,17 @@ export function isWorkoutPersonalizeSwitchEnabled(): boolean {
 export function isDashboardSocialEnabled(): boolean {
   return defaultOnOutsideProduction("FF_DASHBOARD_SOCIAL");
 }
+
+/**
+ * UI overhaul Phase 5 — Suggested-Framework shuffle + inline edit.
+ *
+ * Same contract as the other overhaul flags: ON in dev/preview, OFF in prod
+ * until Max promotes. Gates ONLY the shuffle/edit affordances on the Daily
+ * Workout framework strip (tasks 5.3-5.4). The "Abort rep" control (5.1) and
+ * the "Suggested Framework" relabel (5.2) ship unflagged — abort is a safety
+ * feature and the relabel is copy. The framework strip is display-only and
+ * never reaches scoring, so this flag has no calibration impact.
+ */
+export function isRepFrameworkEditEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_REP_FRAMEWORK_EDIT");
+}

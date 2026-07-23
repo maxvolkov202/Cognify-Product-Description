@@ -455,6 +455,7 @@ function WorkoutShellInner({
                 lastScore={state.lastScore}
                 lastScoreFailure={state.lastScoreFailure}
                 personalize={personalize}
+                frameworkEditEnabled={payload.repFrameworkEditEnabled}
                 loop={state.loop}
                 attempt={state.attempt}
                 firstAttempt={attemptData.first}
