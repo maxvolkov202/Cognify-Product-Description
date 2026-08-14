@@ -65,7 +65,7 @@ export function Footer() {
       </div>
       <div className="border-t border-ink-200/60">
         <p className="mx-auto max-w-6xl px-6 py-6 text-center text-xs text-ink-500">
-          © 2026 Cognify. A communication training gym. One rep closer to clarity.
+          © 2026 Cognify. A communication training gym. One rep closer to clarity every day.
         </p>
       </div>
     </footer>
