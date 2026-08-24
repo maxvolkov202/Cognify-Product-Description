@@ -2,9 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service · Cognify",
-  description: "The rules for using Cognify, in plain English.",
+  title: "Terms & Conditions · Cognify",
+  description:
+    "The terms and conditions for using Cognify, in plain English.",
 };
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-ink-900">{title}</h2>
+      <div className="mt-2 space-y-2 leading-relaxed">{children}</div>
+    </div>
+  );
+}
 
 export default function TermsPage() {
   return (
@@ -13,102 +29,166 @@ export default function TermsPage() {
         Legal
       </p>
       <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-ink-900 md:text-5xl">
-        Terms of Service
+        Terms &amp; Conditions
       </h1>
-      <p className="mt-3 text-sm text-ink-500">
-        Last updated: April 2026.
-      </p>
+      <p className="mt-3 text-sm text-ink-500">Last updated: August 2026.</p>
 
       <section className="mt-10 space-y-8 text-ink-700">
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">
-            What Cognify is
-          </h2>
-          <p className="mt-2 leading-relaxed">
-            Cognify is a communication training platform. You record short
-            speaking reps; we score them and give you feedback. Your progress
-            is yours. You own what you record.
+        <Section title="1. Agreement to these terms">
+          <p>
+            These Terms &amp; Conditions are a binding agreement between you
+            and Cognify (&quot;Cognify&quot;, &quot;we&quot;, &quot;us&quot;).
+            By creating an account, checking the agreement box at signup, or
+            using the service in any way, you accept these terms and our{" "}
+            <Link
+              href="/privacy"
+              className="font-semibold text-brand-purple hover:underline"
+            >
+              Privacy Policy
+            </Link>
+            . If you do not agree, do not use Cognify. When you check the
+            agreement box at signup we record the date and time of your
+            acceptance.
           </p>
-        </div>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">Your account</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-            <li>You must be at least 13 years old to use Cognify.</li>
+        <Section title="2. Who can use Cognify">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>You must be at least 13 years old.</li>
             <li>
-              You&apos;re responsible for what you record and for keeping your
-              account credentials private.
+              If you are under the age of majority where you live, you may only
+              use Cognify with the consent of a parent or legal guardian who
+              agrees to these terms on your behalf.
             </li>
             <li>
-              One account per person. Don&apos;t share logins or try to game
-              the scoring system.
+              You must not have been previously suspended or removed from the
+              service.
             </li>
           </ul>
-        </div>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">What you can do</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
+        <Section title="3. Your account">
+          <ul className="list-disc space-y-1 pl-5">
             <li>
-              Use Cognify for personal communication training: practice, review your reps, track progress.
+              You are responsible for your account, for everything recorded
+              under it, and for keeping your credentials private.
             </li>
             <li>
-              Share your scores or individual reps with whoever you want. That
-              data is yours.
+              One account per person. Do not share logins, impersonate others,
+              or misrepresent who you are.
             </li>
             <li>
-              Export your data at any time (email{" "}
+              Tell us immediately at{" "}
               <a
                 href="mailto:support@cognifygym.com"
                 className="font-semibold text-brand-purple hover:underline"
               >
                 support@cognifygym.com
-              </a>
-              ).
+              </a>{" "}
+              if you believe your account has been compromised.
             </li>
           </ul>
-        </div>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">
-            What you can&apos;t do
-          </h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
-            <li>
-              Don&apos;t record other people without their consent. Cognify
-              reps are meant to be your own practice audio.
-            </li>
-            <li>
-              Don&apos;t use the platform to harass, threaten, or impersonate
-              anyone.
-            </li>
-            <li>
-              Don&apos;t scrape, reverse-engineer, or attempt to extract data
-              from other users&apos; reps.
-            </li>
-            <li>
-              Don&apos;t abuse the scoring or API endpoints (rate limits are in
-              place; repeated abuse = suspension).
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">
-            Our obligations
-          </h2>
-          <p className="mt-2 leading-relaxed">
-            We&apos;ll keep your data secure, keep the service running as best
-            we can, and give you reasonable notice of material changes. If we
-            ever shut down, we&apos;ll give you 30 days to export your data
-            first. Service is provided &quot;as is&quot;. We don&apos;t guarantee scoring accuracy for any specific use case.
+        <Section title="4. What Cognify is (and is not)">
+          <p>
+            Cognify is a communication training platform. You record short
+            speaking reps; we score them with automated systems and give you
+            feedback. Cognify is a practice tool for self-improvement.
           </p>
-        </div>
+          <p>
+            Cognify is <strong>not</strong> professional advice. Scores,
+            feedback, coaching copy, and progress metrics are generated by
+            automated AI systems and are provided for informational and
+            training purposes only. They are not career, legal, medical,
+            psychological, or financial advice, and they are not an assessment
+            of your fitness for any job, role, or opportunity. Do not make
+            significant decisions based solely on Cognify output. AI-generated
+            feedback can be wrong, incomplete, or inconsistent.
+          </p>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">Payments</h2>
-          <p className="mt-2 leading-relaxed">
-            Free tier is free. Paid plans (when launched) will have clear
+        <Section title="5. Your content">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              You own the audio you record, the transcripts of it, and your
+              practice history.
+            </li>
+            <li>
+              You give us a limited license to store, process, transcribe, and
+              analyze your recordings solely to operate and improve the service
+              for you (scoring, feedback, progress tracking). We do not train
+              AI models on your audio or transcripts.
+            </li>
+            <li>
+              You are solely responsible for what you record. Do not record
+              other people without their consent, and do not record content
+              that is unlawful, confidential, or that you do not have the right
+              to record.
+            </li>
+            <li>
+              You can export your data or delete your account at any time.
+            </li>
+          </ul>
+        </Section>
+
+        <Section title="6. Acceptable use">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              Do not use Cognify to harass, threaten, defame, or impersonate
+              anyone, or to create or share unlawful content.
+            </li>
+            <li>
+              Do not scrape the service, reverse-engineer it, probe or
+              circumvent security, or attempt to access other users&apos; data.
+            </li>
+            <li>
+              Do not abuse scoring or API endpoints, evade rate limits, resell
+              access, or use automated agents to farm scores, XP, or ranks.
+            </li>
+            <li>
+              Do not upload malware or content designed to break the service or
+              its AI systems.
+            </li>
+          </ul>
+          <p>
+            We may suspend or terminate accounts that violate these rules,
+            with or without notice, and remove offending content.
+          </p>
+        </Section>
+
+        <Section title="7. Third-party services">
+          <p>
+            Cognify is built on third-party infrastructure and AI providers
+            (including Supabase, Vercel, Anthropic, OpenAI, Deepgram, and
+            Resend). Their availability affects ours. We are not responsible
+            for outages, errors, or data handling failures caused by
+            third-party providers, though we choose and configure them with
+            care. The{" "}
+            <Link
+              href="/privacy"
+              className="font-semibold text-brand-purple hover:underline"
+            >
+              Privacy Policy
+            </Link>{" "}
+            lists who processes what.
+          </p>
+        </Section>
+
+        <Section title="8. Cognify's intellectual property">
+          <p>
+            The service itself (software, design, branding, scoring
+            methodology, exercise content, and coaching frameworks) belongs to
+            Cognify or its licensors. These terms give you a personal,
+            non-exclusive, non-transferable right to use the service. They do
+            not give you any right to copy, resell, or build competing products
+            from our content or methodology.
+          </p>
+        </Section>
+
+        <Section title="9. Payments">
+          <p>
+            The free tier is free. Paid plans (when launched) will have clear
             pricing at{" "}
             <Link
               href="/pricing"
@@ -116,29 +196,105 @@ export default function TermsPage() {
             >
               /pricing
             </Link>
-            . Cancel anytime; refunds are handled case-by-case. Email support.
+            . Prices may change with notice before your next billing cycle.
+            Cancel anytime; refunds are handled case by case. Taxes may apply
+            depending on where you live.
           </p>
-        </div>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">
-            Termination
-          </h2>
-          <p className="mt-2 leading-relaxed">
-            You can delete your account anytime. We can suspend accounts that
-            violate these terms, but we&apos;ll warn you first when possible
-            and give you a chance to export your data.
+        <Section title="10. Termination">
+          <p>
+            You can stop using Cognify and delete your account at any time
+            from settings. We can suspend or terminate accounts that violate
+            these terms or create risk for us or other users. When reasonably
+            possible we will warn you first and give you a chance to export
+            your data. If we ever shut the service down, we will give you 30
+            days to export your data first. Sections 4, 5, 8, and 11 through
+            14 survive termination.
           </p>
-        </div>
+        </Section>
 
-        <div>
-          <h2 className="text-lg font-semibold text-ink-900">Changes</h2>
-          <p className="mt-2 leading-relaxed">
-            If we materially change these terms, we&apos;ll email active users
-            and update the &quot;Last updated&quot; date. Continued use after
-            changes means you accept the new terms.
+        <Section title="11. Disclaimer of warranties">
+          <p>
+            Cognify is provided <strong>&quot;as is&quot;</strong> and{" "}
+            <strong>&quot;as available&quot;</strong>, without warranties of
+            any kind, express or implied, including fitness for a particular
+            purpose, merchantability, non-infringement, accuracy, or
+            availability. We do not warrant that the service will be
+            uninterrupted, error-free, or secure, that scores or feedback will
+            be accurate or useful for any specific purpose, or that any defect
+            will be corrected. Some jurisdictions do not allow certain warranty
+            exclusions, so parts of this section may not apply to you.
           </p>
-        </div>
+        </Section>
+
+        <Section title="12. Limitation of liability">
+          <p>
+            To the maximum extent permitted by law, Cognify and its officers,
+            employees, and suppliers will not be liable for any indirect,
+            incidental, special, consequential, exemplary, or punitive damages,
+            or for lost profits, lost data, lost opportunities, reputational
+            harm, or the cost of substitute services, arising out of or
+            related to your use of (or inability to use) the service, even if
+            we have been advised such damages are possible.
+          </p>
+          <p>
+            Our total aggregate liability for all claims relating to the
+            service is limited to the greater of (a) the amount you paid us in
+            the 12 months before the claim arose, or (b) 100 US dollars. Some
+            jurisdictions do not allow certain limitations of liability, so
+            parts of this section may not apply to you.
+          </p>
+        </Section>
+
+        <Section title="13. Indemnification">
+          <p>
+            You agree to defend and hold Cognify harmless from claims, damages,
+            and expenses (including reasonable legal fees) arising from your
+            content, your use of the service in violation of these terms, or
+            your violation of any law or third-party right (including recording
+            someone without their consent).
+          </p>
+        </Section>
+
+        <Section title="14. Governing law and disputes">
+          <p>
+            These terms are governed by the laws of the State of Delaware,
+            USA, without regard to conflict-of-law rules. Before filing any
+            claim, you agree to contact us at{" "}
+            <a
+              href="mailto:support@cognifygym.com"
+              className="font-semibold text-brand-purple hover:underline"
+            >
+              support@cognifygym.com
+            </a>{" "}
+            and give us 30 days to work it out informally. Claims that cannot
+            be resolved informally must be brought individually; you waive any
+            right to participate in a class action to the extent permitted by
+            law. Either party may bring qualifying claims in small-claims
+            court.
+          </p>
+        </Section>
+
+        <Section title="15. Changes to these terms">
+          <p>
+            If we materially change these terms, we will email active users
+            and update the &quot;Last updated&quot; date above. Continued use
+            after changes take effect means you accept the new terms. If you
+            do not agree, stop using the service and delete your account.
+          </p>
+        </Section>
+
+        <Section title="16. Everything else">
+          <p>
+            If any part of these terms is found unenforceable, the rest stays
+            in effect. These terms plus the Privacy Policy are the entire
+            agreement between you and Cognify about the service. Our failure to
+            enforce a provision is not a waiver. You may not assign these terms;
+            we may assign them as part of a merger, acquisition, or sale of
+            assets.
+          </p>
+        </Section>
 
         <div className="rounded-xl border border-ink-200 bg-ink-50 p-5">
           <p className="text-sm leading-relaxed text-ink-700">

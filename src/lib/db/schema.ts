@@ -132,6 +132,13 @@ export const users = cognifyV2Schema.table("users", {
   improvementGoals: jsonb("improvement_goals").$type<string[]>().default([]),
   onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
   tutorialSeenAt: timestamp("tutorial_seen_at", { withTimezone: true }),
+  /** Legal consent (migration 0046) — set when the user checks the required
+   *  "I agree to the terms and conditions and privacy policy" box at signup.
+   *  Boolean mirrors the checkbox for at-a-glance reads in Supabase; the
+   *  timestamp is the record of WHEN they agreed. Null/false for accounts
+   *  created before this feature shipped. */
+  termsAccepted: boolean("terms_accepted").notNull().default(false),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   isOperator: boolean("is_operator").notNull().default(false),
   /** The user's baseline rep — their first-ever 60-second self-introduction.
    *  Referenced by dashboard + /progress to show how far they've come.

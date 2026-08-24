@@ -11,6 +11,27 @@ import { recordAuthDegraded } from "@/lib/ops/counters";
 
 export const GUEST_COOKIE = "cognify_guest_id";
 
+/** Set client-side at signup when the user checks the required
+ *  terms-and-conditions box. Value is the ISO timestamp of the click. */
+export const TERMS_COOKIE = "cognify_terms_accepted";
+
+/** Read the signup consent timestamp: cookie first (set just before the
+ *  signup call, survives the OAuth redirect), then Supabase user metadata
+ *  (set on email signup, survives email confirmation on another device).
+ *  Returns null when neither is present (pre-feature accounts). */
+function readTermsConsent(
+  store: Awaited<ReturnType<typeof cookies>>,
+  authUser: { user_metadata?: { terms_accepted_at?: string } },
+): Date | null {
+  const raw =
+    store.get(TERMS_COOKIE)?.value ??
+    authUser.user_metadata?.terms_accepted_at ??
+    null;
+  if (!raw) return null;
+  const parsed = new Date(decodeURIComponent(raw));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export type ResolvedUser = {
   id: string;
   kind: "authenticated" | "guest";
@@ -76,7 +97,13 @@ export const currentUser = cache(async (): Promise<ResolvedUser | null> => {
 async function resolveSupabaseUser(authUser: {
   id: string;
   email?: string | null;
-  user_metadata?: { name?: string; full_name?: string; avatar_url?: string; picture?: string };
+  user_metadata?: {
+    name?: string;
+    full_name?: string;
+    avatar_url?: string;
+    picture?: string;
+    terms_accepted_at?: string;
+  };
 }): Promise<ResolvedUser | null> {
   try {
     // 1. Already linked?
@@ -103,8 +130,16 @@ async function resolveSupabaseUser(authUser: {
       null;
     const email = authUser.email ?? null;
 
-    // 2. Guest promotion path
+    // Signup consent (terms + privacy checkbox). Applied on all three
+    // creation/link paths below so the acceptance record lands no matter
+    // how the app user row comes into existence.
     const store = await cookies();
+    const termsAcceptedAt = readTermsConsent(store, authUser);
+    const consentFields = termsAcceptedAt
+      ? { termsAccepted: true, termsAcceptedAt }
+      : {};
+
+    // 2. Guest promotion path
     const guestId = store.get(GUEST_COOKIE)?.value;
     if (guestId) {
       const guest = await db.query.users.findFirst({
@@ -120,6 +155,7 @@ async function resolveSupabaseUser(authUser: {
             image: image ?? guest.image,
             isGuest: false,
             emailVerified: new Date(),
+            ...consentFields,
           })
           .where(eq(users.id, guestId))
           .returning({ id: users.id });
@@ -145,7 +181,12 @@ async function resolveSupabaseUser(authUser: {
       if (byEmail) {
         await db
           .update(users)
-          .set({ authUserId: authUser.id, name: name ?? byEmail.name, image: image ?? byEmail.image })
+          .set({
+            authUserId: authUser.id,
+            name: name ?? byEmail.name,
+            image: image ?? byEmail.image,
+            ...consentFields,
+          })
           .where(eq(users.id, byEmail.id));
         await convertPendingCrewInvites(byEmail.id, email);
         return {
@@ -168,6 +209,7 @@ async function resolveSupabaseUser(authUser: {
         image,
         isGuest: false,
         emailVerified: new Date(),
+        ...consentFields,
       })
       .returning();
     if (!created) return null;
