@@ -1,3 +1,11 @@
+> **SUPERSEDED — do not use this file to settle product questions.**
+> The current spec is `plans/prd/cognify-system-change-v2-2026-07.md` (see `CLAUDE.md`). This document
+> is kept for history only, and parts of it now contradict shipped behavior — for example it still
+> describes the Retry as required, which decision D26 (2026-08-23) reversed to encouraged-but-optional
+> in Daily Workout and Application Lab. Its "single source of truth" line below refers to its own era.
+> Anything read here must be confirmed against the v2 PRD and the decision log in
+> `plans/system-change-v2-progress.md` before acting on it.
+
 # How to Build
 # How to Use This Document
 ## Purpose
