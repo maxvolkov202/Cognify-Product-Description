@@ -5,7 +5,7 @@
  *   1. Score reveal must HOLD after a rep is scored — the app must not jump
  *      back to the record screen. The old bug remounted RepSurface when the
  *      machine flipped recording→score-reveal; the prior loop e2e never
- *      caught it because it clicked "Start your Retry" inside the ~0.32s exit
+ *      caught it because it clicked "Retry this rep" inside the ~0.32s exit
  *      window. This spec PAUSES like a human, then asserts the feedback is
  *      still there — the assertion that actually reproduces the bug.
  *   2. Every rep reaches scoring — both a proper-length rep AND a short rep
@@ -26,7 +26,7 @@ test.describe.configure({ timeout: 600_000 });
 /** Symptom 1 guard: after scoring, the feedback CTA must survive a
  *  human-length pause and the record screen must NOT reappear. */
 async function assertScoreRevealHolds(page: Page): Promise<void> {
-  const cta = page.getByRole("button", { name: /Start your Retry/i }).first();
+  const cta = page.getByRole("button", { name: /Retry this rep/i }).first();
   await expect(cta).toBeVisible();
   // Pause well past the exit animation (~0.32s) + the tagWorkoutRep
   // round-trip (~200ms) that delayed SCORE_DONE in the bug.
@@ -62,14 +62,14 @@ async function completeStationHoldingFeedback(
   // First rep — reaches scoring (short reps route through Proceed anyway
   // inside recordRep; long reps skip the gate). Either way: feedback.
   await recordRep(page, seconds);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
   await assertScoreRevealHolds(page);
 
-  // Required retry.
+  // Choose the encouraged retry.
   await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    .click({ force: true, timeout: 30_000 });
+    .getByRole("button", { name: /Retry this rep/i })
+    .first()
+    .click({ timeout: 30_000 });
   await expect(
     page.getByText(/What one change creates the biggest improvement/i),
   ).toBeVisible({ timeout: 20_000 });
@@ -120,10 +120,10 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
 
   // Short rep → the speaking-threshold gate → Proceed anyway → scoring.
   await recordRep(page, 12);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
   await assertScoreRevealHolds(page);
 
-  // Symptom 2 (revised per Max): notes must SURVIVE into the required Retry
+  // Symptom 2 (revised per Max): notes must SURVIVE into the chosen Retry
   // — the retry is a Coach's Focus redo of the SAME exercise (same
   // notesKey), so clearing per-rep would wipe the anchor the user wrote.
   // They clear later, when the station changes (asserted after the advance).
@@ -139,9 +139,9 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
 
   // Finish station 1 (retry → review → advance).
   await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    .click({ force: true, timeout: 30_000 });
+    .getByRole("button", { name: /Retry this rep/i })
+    .first()
+    .click({ timeout: 30_000 });
   await expect(
     page.getByText(/What one change creates the biggest improvement/i),
   ).toBeVisible({ timeout: 20_000 });

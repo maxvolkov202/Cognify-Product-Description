@@ -13,12 +13,19 @@
 // During in-workout phases (prompt-selecting, recording, etc.) the
 // StartCard is replaced by RepControls in the same slot.
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
+import { closeWorkoutDayAfterRetrySkip } from "@/server/actions/workout-session";
 import type { ShellStation } from "@/lib/workout/types";
 import type { RepScore } from "@/types/domain";
 import type { AttemptPayload } from "./ImprovementReview";
@@ -122,6 +129,8 @@ function WorkoutShellInner({
       failure: boolean;
       score?: RepScore | null;
       transcript?: string;
+      audioUrl?: string | null;
+      audioDurationMs?: number;
     }) => {
       // PRD v3 engine — stash the full attempt payload BEFORE dispatching
       // so the next render (score-reveal / improvement-review) has it.
@@ -132,6 +141,8 @@ function WorkoutShellInner({
           repId: params.repId,
           score: params.score,
           transcript: params.transcript,
+          audioUrl: params.audioUrl,
+          audioDurationMs: params.audioDurationMs,
         };
         setAttemptData((prev) =>
           state.attempt === "first"
@@ -172,6 +183,12 @@ function WorkoutShellInner({
         }),
       );
     }
+    // D26 note: the day close does NOT happen here. Continue can be tapped
+    // from RepSurface's local done screen while the rep is still scoring, in
+    // which case this ADVANCE only buffers and the rep has not been counted
+    // into completed_reps yet — closing now would silently no-op. The close
+    // is anchored to the machine actually reaching day-complete (effect
+    // below), which is always after tagWorkoutRep has landed.
     send({ type: "ADVANCE" });
   }, [send, state.phase, state.currentStationIndex, state.stations, payload.dayId]);
   const onAcceptGraduation = useCallback(
@@ -273,9 +290,9 @@ function WorkoutShellInner({
       ? `active-${state.attempt}`
       : state.phase;
 
-  // PRD v3 Phase 2.1 — v2 days run 3 exercises but each is two
-  // recordings (First Rep + required Retry), so the fallback count and
-  // time estimate differ by loop variant.
+  // PRD v3 Phase 2.1 + D26 — v2 days run 3 exercises. Budget the time
+  // estimate for the encouraged Retry path even though users may Continue
+  // after the first attempt, so the estimate remains conservative.
   const isV2 = payload.loopVariant === "v2";
   const stationCount = state.stations.length || (isV2 ? 3 : 4);
   const estimatedMinutes = Math.round((stationCount * (isV2 ? 110 : 45)) / 60);
@@ -315,6 +332,29 @@ function WorkoutShellInner({
   const [personalize, setPersonalize] = useState(
     payload.personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false,
   );
+  // D26 — close the v2 day once the machine actually reaches the end of the
+  // last station. tagWorkoutRep only closes the day on a RETRY attempt (the
+  // final first attempt has to stay open because Retry is still on offer),
+  // so a Continue-only day would otherwise never get composite_at_close,
+  // status='complete', or the session-completion XP.
+  //
+  // This is deliberately an effect on the terminal phase rather than a call
+  // inside onAdvanceNow: Continue can be tapped from RepSurface's local done
+  // screen before SCORE_DONE reaches the machine, and on that buffered path
+  // the rep has not been counted into completed_reps yet, so a tap-time close
+  // silently no-ops and never gets retried. By the time this phase is
+  // reached, tagWorkoutRep has always landed. The server action is guarded
+  // (target reached + status <> 'complete') so the retry path, the v1 path,
+  // and repeat renders are all safe no-ops.
+  const dayClosedRef = useRef(false);
+  useEffect(() => {
+    const atEndOfDay =
+      state.phase === "day-complete-prompt" || state.phase === "day-complete";
+    if (!isV2 || !payload.dayId || !atEndOfDay || dayClosedRef.current) return;
+    dayClosedRef.current = true;
+    void closeWorkoutDayAfterRetrySkip(payload.dayId);
+  }, [isV2, payload.dayId, state.phase]);
+
   // One-time migration: clear any value persisted by older toggle
   // logic so stale "false" values don't survive in the wild after
   // users update.

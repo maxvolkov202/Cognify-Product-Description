@@ -82,6 +82,11 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
+  /** D26 — trimmed first-attempt reveal: score + Coach's Focus only, so
+   *  the moment between the first rep and the Retry is a quick read. The
+   *  comparison, playback, and skill breakdown live on the post-retry
+   *  Improvement Review. */
+  compact?: boolean;
 };
 
 const STAGGER_SEC = 0.06;
@@ -105,6 +110,7 @@ export function FeedbackPanel({
   lastRepFocus,
   onSaveExit,
   modeSignals,
+  compact = false,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -210,7 +216,7 @@ export function FeedbackPanel({
           </Section>
         )}
 
-        {lastRepFocus && (
+        {lastRepFocus && !compact && (
           <Section delay={1}>
             <LastRepFocusBanner
               dimension={lastRepFocus.dimension}
@@ -245,19 +251,21 @@ export function FeedbackPanel({
             />
           </Section>
         )}
-        <Section delay={4}>
-          <div className="surface-card relative overflow-hidden">
-            <div className="p-5 md:p-6">
-              <DimensionGrid
-                ref={gridRef}
-                dimensions={score.dimensions}
-                callouts={score.callouts}
-                primaryFocusDimension={score.primaryFocusDimension}
-                modeSignals={modeSignals}
-              />
+        {!compact && (
+          <Section delay={4}>
+            <div className="surface-card relative overflow-hidden">
+              <div className="p-5 md:p-6">
+                <DimensionGrid
+                  ref={gridRef}
+                  dimensions={score.dimensions}
+                  callouts={score.callouts}
+                  primaryFocusDimension={score.primaryFocusDimension}
+                  modeSignals={modeSignals}
+                />
+              </div>
             </div>
-          </div>
-        </Section>
+          </Section>
+        )}
 
         <ExemplarModal
           open={exemplarOpen}
@@ -265,7 +273,7 @@ export function FeedbackPanel({
           onClose={() => setExemplarOpen(false)}
         />
 
-        {audioUrl && (
+        {audioUrl && !compact && (
           <Section delay={6}>
             <RepAudioScrubber
               src={audioUrl}
@@ -275,7 +283,9 @@ export function FeedbackPanel({
           </Section>
         )}
 
-        {/* ——— Calibration & flywheel (demoted) ———————————————— */}
+        {/* ——— Calibration & flywheel (demoted; hidden on the compact
+            first-attempt reveal) ———————————————— */}
+        {!compact && (
         <Section delay={7}>
           <div className="space-y-3 border-t border-ink-200 dark:border-ink-700 pt-5">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
@@ -316,6 +326,7 @@ export function FeedbackPanel({
             )}
           </div>
         </Section>
+        )}
       </div>
     </AudioControlProvider>
   );

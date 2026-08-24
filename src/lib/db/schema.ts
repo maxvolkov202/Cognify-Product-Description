@@ -338,7 +338,7 @@ export const reps = cognifyV2Schema.table(
     isGraduationRep: boolean("is_graduation_rep").notNull().default(false),
     scoreFailureFlag: boolean("score_failure_flag").notNull().default(false),
     // PRD v3 Phase 1 (migration 0028) — Universal Training Engine attempt
-    // lineage. Every exercise now produces a First Rep and a required Retry;
+    // lineage. Every exercise produces a First Rep; D26 makes Retry optional.
     // "again" covers optional extra attempts after the Improvement Review.
     // Default 'first' keeps all historical rows valid.
     attemptKind: text("attempt_kind").notNull().default("first"),
@@ -1531,7 +1531,7 @@ export const exercises = cognifyV2Schema.table(
     /** What the evaluator should key on — absorbed from the code-side
      *  EXERCISE_RUBRIC_HINTS so the lens lives with the framework. */
     scoringLens: text("scoring_lens"),
-    /** What the required Retry should target when the rule was broken. */
+    /** What a chosen Retry should target when the rule was broken. */
     retryObjective: text("retry_objective"),
     /** Rules for AI prompt generation from this framework (Phase 8). */
     promptRules: text("prompt_rules"),

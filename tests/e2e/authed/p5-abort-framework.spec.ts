@@ -3,7 +3,7 @@
  *
  * Proves the whole rep flow still works after the abort + Suggested-Framework
  * changes, plus the two safety invariants Max called out:
- *   1. Full loop: record → grade → Coach's feedback → required Retry →
+ *   1. Full loop: record → grade → Coach's feedback → encouraged Retry →
  *      Improvement Review → advance to the next station.
  *   2. Abort: discard a rep mid-recording → returns to idle, NOTHING scored,
  *      NO session advance; then re-record the same slot → it grades normally.
@@ -59,7 +59,7 @@ test("Phase 5: framework relabel + abort (no grade/advance) + full loop + resume
   await page.waitForTimeout(3_500 + 3_000);
   const discard = page.getByRole("button", { name: /Discard this rep/i });
   await expect(discard).toBeVisible({ timeout: 10_000 });
-  await discard.click({ force: true });
+  await discard.click();
 
   // Back to idle: the record button returns and NO feedback CTA appeared
   // (nothing was transcribed / scored / saved / advanced).
@@ -67,19 +67,19 @@ test("Phase 5: framework relabel + abort (no grade/advance) + full loop + resume
     page.getByRole("button", { name: "Start recording" }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(
-    page.getByRole("button", { name: /Start your Retry/i }),
+    page.getByRole("button", { name: /Retry this rep/i }),
   ).toHaveCount(0);
 
   // ── Re-record the SAME slot → it grades normally (Coach's feedback) ───
   await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
   await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
 
-  // ── Required Retry → Improvement Review (full loop) ───────────────────
+  // ── Encouraged Retry → Improvement Review (full loop) ─────────────────
   await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    .click({ force: true, timeout: 30_000 });
+    .getByRole("button", { name: /Retry this rep/i })
+    .first()
+    .click({ timeout: 30_000 });
   await expect(
     page.getByText(/What one change creates the biggest improvement/i),
   ).toBeVisible({ timeout: 20_000 });
@@ -87,6 +87,8 @@ test("Phase 5: framework relabel + abort (no grade/advance) + full loop + resume
   await expect(page.getByTestId("improvement-review")).toBeVisible({
     timeout: 240_000,
   });
+  await expect(page.getByText(/Listen back/i)).toBeVisible();
+  await expect(page.getByText(/Core Skill breakdown/i)).toBeVisible();
 
   // Advance → next station's prompt picker. Station 1 is now fully logged,
   // so the day's completedReps has moved past station 1.
@@ -149,16 +151,16 @@ test("Phase 5b: Application Lab shows a Suggested Framework + abort + grades", a
   await page.waitForTimeout(3_500 + 3_000);
   const discard = page.getByRole("button", { name: /Discard this rep/i });
   await expect(discard).toBeVisible({ timeout: 10_000 });
-  await discard.click({ force: true });
+  await discard.click();
   await expect(
     page.getByRole("button", { name: "Start recording" }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(
-    page.getByRole("button", { name: /Start your Retry/i }),
+    page.getByRole("button", { name: /Retry this rep/i }),
   ).toHaveCount(0);
 
   // Re-record → it grades normally (Coach's feedback reached).
   await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
   await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
 });

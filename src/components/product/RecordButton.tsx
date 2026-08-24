@@ -390,24 +390,28 @@ export function RecordButton({
 
       {isRecording && !onPause && (
         <div className="flex flex-col items-center gap-3">
+          {/* Primary action while recording. Solid white pill so it pops
+              against the gradient card — users were missing the old faint
+              text link and hitting Discard by mistake. */}
           <button
             type="button"
             onClick={stop}
-            className="text-xs font-semibold uppercase tracking-wider text-white/90 hover:text-white drop-shadow-sm"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-extrabold text-brand-purple shadow-[0_10px_30px_-8px_rgba(0,0,0,0.35)] ring-1 ring-white/60 transition hover:bg-ink-50 hover:shadow-[0_14px_36px_-8px_rgba(0,0,0,0.4)]"
           >
+            <Check className="size-4" strokeWidth={3} aria-hidden="true" />
             Stop &amp; submit
           </button>
-          {/* Phase 5 (5.1) — abort while recording. A clear, on-theme red pill
-              (destructive) that only appears during the rep. Discards the
-              take, releases the mic, returns to idle — nothing is transcribed,
-              scored, or saved. */}
+          {/* Phase 5 (5.1) — abort while recording. Deliberately quiet
+              (plain text link) so the destructive action never outshines
+              Stop & submit. Discards the take, releases the mic, returns
+              to idle — nothing is transcribed, scored, or saved. */}
           <button
             type="button"
             onClick={abort}
             aria-label="Discard this rep"
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-rose-600 shadow-[0_6px_20px_-6px_rgba(225,29,72,0.5)] ring-1 ring-rose-200 transition hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-300"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-white/70 underline-offset-2 transition hover:text-white hover:underline"
           >
-            <X className="size-4" strokeWidth={2.75} aria-hidden="true" />
+            <X className="size-3.5" strokeWidth={2.75} aria-hidden="true" />
             Discard rep
           </button>
         </div>

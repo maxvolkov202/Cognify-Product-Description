@@ -100,7 +100,8 @@ curl -H "authorization: Bearer $CRON_SECRET" "https://<prod>/api/cron/committed-
 curl -H "authorization: Bearer $CRON_SECRET" "https://<prod>/api/cron/calibration-drift?dryRun=1"
 ```
 Then a REAL account: signup → 5-step onboarding → /workout → Insight →
-First Rep → score → required Retry → Improvement Review. DB checks: rep
+First Rep → compact feedback. Verify both D26 branches: Continue → next
+station, and Retry → Improvement Review. DB checks: rep
 rows with `attempt_kind`, a `coaching_events` row, `communication_profile`
 row, XP moved, day `completed_reps` correct.
 

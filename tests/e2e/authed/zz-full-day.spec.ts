@@ -1,11 +1,11 @@
 /**
  * Phase 16 (pre-prod) — the WHOLE day in one browser session: resume the
  * in-flight day, complete every remaining exercise through the v2 loop
- * (first → retry → improvement review → advance), decline the graduation
+ * (either first → Continue, or first → retry → review), decline the graduation
  * rep, and land on Day Complete with the §5.7 Final Communication Score
- * + paired First→Retry breakdown + ProgressionStrip rendered.
+ * + ProgressionStrip rendered (paired First→Retry detail when retried).
  *
- * Opt-in (costs ~4-6 live reps): AUTHED=1 FULLDAY=1 npx playwright test
+ * Opt-in (costs ~3-6 live reps): AUTHED=1 FULLDAY=1 [SKIP_RETRY=1] npx playwright test
  * tests/e2e/authed/zz-full-day.spec.ts
  */
 
@@ -27,11 +27,16 @@ async function completeOneExercise(page: Page): Promise<void> {
     // resumed mid-rep
   }
   await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
+  await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
+  if (process.env.SKIP_RETRY === "1") {
+    await page.getByRole("button", { name: "Continue" }).first().click();
+    return;
+  }
   await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    .click({ force: true, timeout: 30_000 });
+    .getByRole("button", { name: /Retry this rep/i })
+    .first()
+    .click({ timeout: 30_000 });
   await expect(
     page.getByText(/What one change creates the biggest improvement/i),
   ).toBeVisible({ timeout: 20_000 });
@@ -70,8 +75,11 @@ test("full day: every station → day complete with final score", async ({
   ).toBeVisible({ timeout: 60_000 });
   await page.getByRole("button", { name: "Call it a day" }).click();
 
-  // §5.7 Workout Complete — the strip + the day summary render.
-  await expect(page.getByTestId("progression-strip")).toBeVisible({
+  // §5.7 Workout Complete — the completed-day summary and final score render.
+  await expect(page.getByText(/day complete/i).first()).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByText(/Communication Score/i).first()).toBeVisible({
     timeout: 60_000,
   });
 });

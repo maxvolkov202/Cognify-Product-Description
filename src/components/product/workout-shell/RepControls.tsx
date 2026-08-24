@@ -91,6 +91,8 @@ export type RepControlsProps = {
      *  attempt payloads for the retry context / Improvement Review. */
     score?: RepScore | null;
     transcript?: string;
+    audioUrl?: string | null;
+    audioDurationMs?: number;
   }) => void;
   onAdvanceNow?: () => void;
   onAcceptGraduation?: () => void;
@@ -373,6 +375,10 @@ function ActiveRep({
     failure: boolean;
     score?: RepScore | null;
     transcript?: string;
+    /** D26 — session-lifetime blob URL so the Improvement Review can play
+     *  back both takes once the user chooses Retry. */
+    audioUrl?: string | null;
+    audioDurationMs?: number;
   }) => void;
   onAdvanceNow?: () => void;
   onBeginRetry?: () => void;
@@ -432,8 +438,8 @@ function ActiveRep({
         }
       : null;
 
-  // v2 first attempts route "next" into the required Retry; retry
-  // attempts never render their own done screen (the machine moves to
+  // v2 first attempts route the primary action into Retry; retry attempts
+  // never render their own done screen (the machine moves to
   // improvement-review the moment scoring lands).
   const isEngineFirst = loop === "v2" && !graduation && attempt === "first";
 
@@ -489,6 +495,18 @@ function ActiveRep({
         : {})}
       {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
       {...(isEngineFirst || isEngineRetry ? { hideRunItAgain: true } : {})}
+      // D26 — the Retry is encouraged, not required: the first-attempt
+      // reveal is a quick read (compact feedback) with a colorful Retry
+      // primary + a gray Continue that advances the station.
+      {...(isEngineFirst ? { feedbackCompact: true } : {})}
+      {...(isEngineFirst && onAdvanceNow
+        ? {
+            secondaryAction: {
+              label: "Continue",
+              onClick: () => onAdvanceNow(),
+            },
+          }
+        : {})}
       onComplete={async (payload) => {
         if (muscleGroupDayId) {
           try {
@@ -512,9 +530,11 @@ function ActiveRep({
         onRepScored?.({
           composite: payload.score?.composite ?? null,
           repId: payload.repId,
-          failure: !payload.score?.composite,
+          failure: payload.score == null || payload.score.composite == null,
           score: payload.score ?? null,
           transcript: payload.transcript,
+          audioUrl: payload.recording.url,
+          audioDurationMs: payload.recording.durationMs,
         });
       }}
       onNext={() => {
@@ -525,7 +545,7 @@ function ActiveRep({
         graduation
           ? "Finish workout"
           : isEngineFirst
-            ? "Start your Retry →"
+            ? "Retry this rep →"
             : "Next station →"
       }
     />

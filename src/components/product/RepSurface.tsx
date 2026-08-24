@@ -145,6 +145,14 @@ type Props = {
   }) => void;
   onNext?: () => void;
   nextLabel?: string;
+  /** D26 — optional gray secondary action rendered next to the primary
+   *  next button on the done screen. The v2 first-attempt reveal uses it
+   *  for "Continue" (skip the retry) while Retry stays the loud primary. */
+  secondaryAction?: { label: string; onClick: () => void } | null;
+  /** D26 — compact first-attempt feedback: score + Coach's Focus only.
+   *  Comparison, playback, and the skill breakdown live on the post-retry
+   *  Improvement Review instead. */
+  feedbackCompact?: boolean;
   /** Phase 8 — muscle-group context. Threaded into insertPendingRep +
    *  saveRep + /api/score-internal body so the scoring pipeline gets
    *  the exercise XML + rubric hint. NULL/undefined for legacy callers. */
@@ -247,6 +255,8 @@ export function RepSurface({
   onComplete,
   onNext,
   nextLabel = "Next rep",
+  secondaryAction = null,
+  feedbackCompact = false,
   exerciseId,
   muscleGroupDayId,
   isGraduationRep,
@@ -908,6 +918,18 @@ export function RepSurface({
             {nextLabel}
           </GradientButton>
         )}
+        {/* D26 — quiet gray secondary ("Continue" on v2 first attempts).
+            Deliberately muted so the colorful primary stays the obvious
+            choice. */}
+        {secondaryAction && (
+          <button
+            type="button"
+            onClick={secondaryAction.onClick}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-ink-100 dark:bg-ink-800 px-6 py-3 text-sm font-semibold text-ink-500 dark:text-ink-400 transition-colors hover:bg-ink-200 hover:text-ink-700 dark:hover:bg-ink-700 dark:hover:text-ink-200"
+          >
+            {secondaryAction.label}
+          </button>
+        )}
         {!hideRunItAgain && (
           <button
             type="button"
@@ -927,6 +949,7 @@ export function RepSurface({
         {navButtons}
         <FeedbackPanel
           score={phase.score}
+          compact={feedbackCompact}
           audioUrl={phase.recording.url}
           durationMs={phase.recording.durationMs}
           transcript={phase.transcript}

@@ -2,8 +2,8 @@
 
 // PRD v3 Phase 1 — Improvement Review screen (PRD §4.7).
 //
-// Rendered at session phase "improvement-review", after the required
-// Retry is scored. Answers one question: did implementing the Coach's
+// Rendered at session phase "improvement-review" when the user chooses
+// to Retry and that attempt is scored. Answers one question: did implementing the Coach's
 // Focus improve the rep? Score movement follows Owen C10 — celebrate
 // positive deltas loudly, keep small negatives numeric-but-neutral, and
 // hide big negative numbers behind soft copy.

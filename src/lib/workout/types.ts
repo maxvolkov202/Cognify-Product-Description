@@ -82,8 +82,8 @@ export type SessionPhase = z.infer<typeof SessionPhaseSchema>;
 
 /** Which learning loop the session machine runs.
  *  - "v1": legacy muscle-group flow (one rep per station).
- *  - "v2": PRD Universal Training Engine (Insight → First Rep → Feedback →
- *    required Retry → Improvement Review). Chosen server-side from
+ *  - "v2": PRD Universal Training Engine (Insight → First Rep → compact
+ *    Feedback → encouraged optional Retry → Improvement Review when retried). Chosen server-side from
  *    isTrainingEngineV2Enabled() and passed into the machine so the
  *    reducer stays pure/flag-agnostic. */
 export const LoopVariantSchema = z.enum(["v1", "v2"]);

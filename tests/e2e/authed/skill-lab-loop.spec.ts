@@ -1,7 +1,7 @@
 /**
  * Phase 11.B4 / Overhaul P1 — Application Lab application session, LIVE:
  * hub → Storytelling → 1–5 rep stepper → prompt → insight → First Rep →
- * required Retry → Improvement Review → quit banks the session →
+ * compact feedback → Continue or Retry → optional Improvement Review →
  * §6.8 Session Complete renders.
  *
  * Parametrized over the stepper's range extremes (1 and 5) so the P1
@@ -23,12 +23,14 @@ async function setRepCount(page: import("@playwright/test").Page, count: number)
 }
 
 for (const count of [1, 5]) {
-  test(`application lab session (${count} reps): loop → banked session complete`, async ({
+  test(`application lab session (${count} reps): optional retry flow completes`, async ({
     page,
   }) => {
     await page.goto("/application-lab/storytelling", {
       waitUntil: "networkidle",
     });
+    const startFresh = page.getByRole("button", { name: /Start fresh/i });
+    if (await startFresh.count()) await startFresh.first().click();
 
     // 1–5 rep stepper (default 3) → set to the target → Start.
     await setRepCount(page, count);
@@ -40,31 +42,38 @@ for (const count of [1, 5]) {
   await promptCard.click();
   await page.getByTestId("insight-ready").click();
 
-  await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
-  await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
+    await recordRep(page);
+    await awaitFeedback(page, /Retry this rep/i);
+    await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
+    await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
 
-  // Required retry → Improvement Review.
-  // Two copies render (top nav + bottom); the bottom one is the
-  // stable click target once the panel settles.
-  await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    // force: the gradient CTA animates continuously, so Playwright's
-    // stability check never settles; visibility is asserted above.
-    .click({ force: true, timeout: 30_000 });
-  await recordRep(page);
-  await expect(page.getByTestId("improvement-review")).toBeVisible({
-    timeout: 240_000,
-  });
-
-  // Quit banks the session → §6.8 Session Complete.
-  await page.getByTestId("review-quit").click();
-  await expect(page.getByText(/Storytelling session banked/i)).toBeVisible({
-    timeout: 60_000,
-  });
-  await expect(page.getByText(/Coach's call/i)).toBeVisible({
-    timeout: 30_000,
-  });
+    if (count === 1) {
+      // D26 Continue branch: skip the retry and complete the one-rep session.
+      await page.getByRole("button", { name: "Continue" }).first().click();
+      await expect(page.getByText(/Storytelling session complete/i)).toBeVisible({
+        timeout: 60_000,
+      });
+    } else {
+      // Encouraged Retry branch → Improvement Review, then quit and bank.
+      await page
+        .getByRole("button", { name: /Retry this rep/i })
+        .first()
+        .click({ timeout: 30_000 });
+      await expect(page).toHaveURL(/\/application-lab\/storytelling/);
+      await recordRep(page);
+      await expect(page.getByTestId("improvement-review")).toBeVisible({
+        timeout: 240_000,
+      });
+      await expect(page.getByText(/Listen back/i)).toBeVisible();
+      await expect(page.getByText(/Core Skill breakdown/i)).toBeVisible();
+      await page.getByTestId("review-quit").click();
+      await expect(page.getByText(/Storytelling session banked/i)).toBeVisible({
+        timeout: 60_000,
+      });
+    }
+    await expect(page.getByText(/Coach's call/i)).toBeVisible({
+      timeout: 30_000,
+    });
   });
 }
