@@ -4,6 +4,14 @@ Verified against the actual scripts/migrations by the Phase 16 audit.
 Every command was checked for existence + prod-safety. Personnel gates
 (Vercel access, prod env vars) are Max/Bob-side.
 
+> **Standing hazard — dev and production share ONE Supabase project.** Confirmed 2026-08-24: the
+> project id in the production bundle (`dunnoccrvrqzsgxsfjuv`) is the same one `.env.local` points at.
+> So local runs are not isolated — a local e2e run, seed script, or migration writes the rows
+> production reads, and "verify in prod" and "verify on dev" inspect the same data. Two consequences
+> to keep in mind: a Daily Workout completed locally is completed in production too (one day per user
+> per day, so a local run can consume the day you meant to demo), and anything destructive run
+> "locally" is a production operation. Splitting these into separate projects is the real fix.
+
 ## Gate 0 — before touching prod
 - [ ] AI credits confirmed (OpenAI live; Anthropic optional — Phase 14 makes either provider primary)
 - [ ] Max eyes-on tour on dev complete (demo@cognify.test / cognify-demo-7h2p9w!D)
@@ -104,6 +112,22 @@ First Rep → compact feedback. Verify both D26 branches: Continue → next
 station, and Retry → Improvement Review. DB checks: rep
 rows with `attempt_kind`, a `coaching_events` row, `communication_profile`
 row, XP moved, day `completed_reps` correct.
+
+**Automated alternative to the manual rep tour.** The persisted-auth fake-mic config takes a base URL
+and a storage state, and has no `setup` dependency, so it can drive production without touching
+`auth.setup.ts` (whose production guard must stay in place):
+```
+# 1. sign in once against prod OUTSIDE the repo and save the state to
+#    tests/e2e/authed/.auth/prod.json (gitignored) — a ~20-line playwright script
+# 2. point the config at prod
+PW_BASE_URL=https://www.cognifygym.com PW_STORAGE_STATE=tests/e2e/authed/.auth/prod.json \
+  npx playwright test tests/e2e/authed/skill-lab-loop.spec.ts --config playwright.p5.config.ts
+FULLDAY=1 SKIP_RETRY=1 PW_BASE_URL=... PW_STORAGE_STATE=... \
+  npx playwright test tests/e2e/authed/zz-full-day.spec.ts --config playwright.p5.config.ts
+# 3. delete the prod storage state afterwards — it holds a live session token
+```
+Costs real grading calls and consumes that user's Daily Workout day (shared DB — see the hazard note
+at the top). Application Lab is not day-limited, so prefer it when a day is already spent.
 
 Next morning:
 ```
