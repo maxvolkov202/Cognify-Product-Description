@@ -23,12 +23,23 @@ function SignInInner() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<"google" | "email" | null>(null);
   const [resetSent, setResetSent] = useState<string | null>(null);
 
   function capitalize(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  /** Persist consent so the server can record it when the app user row is
+   *  created. The cookie survives the Google OAuth redirect (same browser);
+   *  for email signup the timestamp also rides along in user metadata so it
+   *  survives email confirmation opened on another device. */
+  function stampTermsConsent(): string {
+    const acceptedAt = new Date().toISOString();
+    document.cookie = `cognify_terms_accepted=${encodeURIComponent(acceptedAt)}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+    return acceptedAt;
   }
 
   const handleForgotPassword = async () => {
@@ -52,9 +63,16 @@ function SignInInner() {
   };
 
   const handleGoogle = async () => {
+    if (mode === "signup" && !agreeTerms) {
+      setFormError(
+        "Please agree to the terms and conditions and privacy policy to create an account.",
+      );
+      return;
+    }
     setSubmitting("google");
     setFormError(null);
     setRememberMePreference(rememberMe);
+    if (mode === "signup") stampTermsConsent();
     const supabase = createSupabaseBrowserClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -74,17 +92,24 @@ function SignInInner() {
       setFormError("Passwords don't match. Double-check and try again.");
       return;
     }
+    if (mode === "signup" && !agreeTerms) {
+      setFormError(
+        "Please agree to the terms and conditions and privacy policy to create an account.",
+      );
+      return;
+    }
     setSubmitting("email");
     setFormError(null);
     setRememberMePreference(rememberMe);
     const supabase = createSupabaseBrowserClient();
     if (mode === "signup") {
+      const acceptedAt = stampTermsConsent();
       const fullName = `${capitalize(firstName.trim())} ${capitalize(lastName.trim())}`;
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName },
+          data: { full_name: fullName, terms_accepted_at: acceptedAt },
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
         },
       });
@@ -265,6 +290,36 @@ function SignInInner() {
                 </button>
               )}
             </div>
+            {mode === "signup" && (
+              <label className="flex cursor-pointer items-start gap-2 text-xs text-ink-600">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-0.5 size-4 shrink-0 rounded border-ink-300 text-brand-purple focus:ring-brand-purple"
+                />
+                <span>
+                  I agree to Cognify&rsquo;s{" "}
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="font-semibold text-brand-purple underline-offset-2 hover:underline"
+                  >
+                    terms and conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="font-semibold text-brand-purple underline-offset-2 hover:underline"
+                  >
+                    privacy policy
+                  </Link>
+                  .
+                </span>
+              </label>
+            )}
             {resetSent && (
               <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
                 Sent a reset link to {resetSent}. Check your inbox.
@@ -295,6 +350,7 @@ function SignInInner() {
               setEmail("");
               setPassword("");
               setPasswordConfirm("");
+              setAgreeTerms(false);
               setResetSent(null);
             }}
             className="mt-3 text-xs text-ink-500 hover:text-ink-700"

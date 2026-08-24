@@ -27,8 +27,8 @@ const groups = [
       { href: "/help", label: "Help & support" },
       { href: "/help#contact", label: "Contact" },
       { href: "/about/references", label: "Research" },
-      { href: "/privacy", label: "Privacy" },
-      { href: "/terms", label: "Terms" },
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms & Conditions" },
     ],
   },
 ] as const;
