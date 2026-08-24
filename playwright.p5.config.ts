@@ -15,7 +15,7 @@ const FAKE_AUDIO = resolve(__dirname, "tests/fixtures/spoken-rep.wav");
 export default defineConfig({
   testDir: "./tests/e2e/authed",
   testMatch:
-    /(p5-abort-framework|skill-lab-loop|workout-loop|zz-full-day)\.spec\.ts/,
+    /(p5-abort-framework|skill-lab-loop|workout-loop|build-a-rep-loop|zz-full-day)\.spec\.ts/,
   fullyParallel: false,
   workers: 1,
   reporter: "list",

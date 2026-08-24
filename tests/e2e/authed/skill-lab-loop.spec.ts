@@ -46,7 +46,8 @@ for (const count of [1, 5]) {
     await awaitFeedback(page, /Retry this rep/i);
     await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
-    await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
+    // PRD §4.5.3 — six-skill breakdown is on the first feedback screen too.
+    await expect(page.getByTestId("core-skill-grid")).toBeVisible();
 
     if (count === 1) {
       // D26 Continue branch: skip the retry and complete the one-rep session.
