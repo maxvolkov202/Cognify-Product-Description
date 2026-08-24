@@ -317,8 +317,8 @@ export default function ImprovementReview({
         </div>
       )}
 
-      {/* PRD §4.7.1 — "The same Core Skill Breakdown appears in both
-          feedback screens." Per-skill first→retry movement on top
+      {/* The §4.5.3 Core Skill Breakdown, shown on this screen as well as
+          the first-attempt one. Per-skill first→retry movement on top
           (§4.7.2 examples show multi-skill deltas), C10-softened: big
           negatives render as the score alone, no scary number. */}
       {retry && (

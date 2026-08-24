@@ -52,7 +52,17 @@ phase) → check the phase off here. Never commit to main directly.
   decision D2. Daily Workout and Application Lab show compact first-attempt feedback (score + one Coach's
   Focus), then a colorful primary **Retry this rep** action beside a muted gray **Continue** action.
   Continue advances without an Improvement Review; Retry preserves the complete implementation loop
-  and moves comparison, playback, and the Core Skill Breakdown to the post-retry review.
+  and moves the first→retry comparison to the post-retry review.
+  **Amended 2026-08-24 (Max):** the first-attempt reveal keeps the expandable Core Skill Breakdown and
+  playback. Trimming those was an overcorrection and also broke PRD §4.5.3, which puts the breakdown in
+  the Stage 3 Feedback surface: "Each skill displays a score and can be expanded for additional
+  feedback… Expanded feedback explains why the score was earned and provides skill-specific coaching,"
+  collapsed by default. Compact now means only: no previous-exercise focus reminder, no rating widget,
+  no share CTA. §4.5 was corrected from "two components" to three to match.
+  Citation hazard worth remembering: the code comments justifying this behavior cited "§4.7.1 — the same
+  Core Skill Breakdown appears in both feedback screens," but that sentence exists only in the
+  SUPERSEDED `cognify-system-change-prd.md`, not the v2 PRD. Stale pointers survive in comments long
+  after the doc is retired; confirm section numbers against the v2 PRD before relying on them.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
@@ -797,9 +807,11 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - Classic recorder controls make **Stop & submit** the dominant white action and demote
     **Discard rep** to a quiet text action.
   - Daily Workout, Application Lab, and Build a Rep now show compact first-attempt feedback:
-    Communication Score + one Coach's Focus. **Retry this rep** is the brand primary; gray
-    **Continue** advances without a retry. A chosen retry opens the Improvement Review with
-    comparison, both recordings, and the full Core Skill Breakdown.
+    Communication Score + one Coach's Focus + the expandable Core Skill Breakdown + playback.
+    **Retry this rep** is the brand primary; gray **Continue** advances without a retry. A chosen
+    retry opens the Improvement Review with the first→retry comparison and both recordings.
+    (The breakdown and playback were briefly trimmed here; restored 2026-08-24 — see the D26
+    amendment above.)
   - Session-machine Continue is race-safe (`pendingAdvance`), including scoring failure,
     dual-action, and last-station cases. Final-station Continue explicitly closes the owner-scoped
     workout day with a server-computed average and awards completion XP exactly once.

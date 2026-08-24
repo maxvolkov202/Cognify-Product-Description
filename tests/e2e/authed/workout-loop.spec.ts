@@ -40,13 +40,26 @@ test("daily workout loop: rep → focus → retry → improvement review", async
   await recordRep(page);
   await awaitFeedback(page, /Retry this rep/i);
 
-  // D26 feedback contract: ONE Coach's Focus, no legacy split or full
-  // breakdown before the retry; Retry is primary and Continue is available.
+  // D26 feedback contract: ONE Coach's Focus, no legacy split; Retry is
+  // primary and Continue is available.
   await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
   await expect(page.getByText("What you did well")).toHaveCount(0);
   await expect(page.getByText("What didn't land")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
-  await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
+
+  // PRD §4.5.3 — the six Core Skills are scored on THIS screen too, each
+  // card collapsed until tapped, then showing why-this-score + how to
+  // improve. Trimming this was the D26 overcorrection; it is back.
+  const skillGrid = page.getByTestId("core-skill-grid");
+  await expect(skillGrid).toBeVisible();
+  const clarityCard = skillGrid.getByRole("button", { name: /Clarity/i }).first();
+  await expect(clarityCard).toHaveAttribute("aria-expanded", "false");
+  await clarityCard.click();
+  await expect(clarityCard).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#dim-panel-clarity")).toBeVisible();
+
+  // Playback is available before the retry as well.
+  await expect(page.getByRole("button", { name: "Play" }).first()).toBeVisible();
 
   // Choose the encouraged Retry branch.
   // Two copies render (top nav + bottom); the bottom one is the

@@ -1326,14 +1326,17 @@ The First Rep should reflect how the user would naturally communicate without in
 
 # **4.5 Stage 3: Feedback**
 
-## First-attempt Coach Feedback consists of two components:
+## First-attempt Coach Feedback consists of three components:
 
 * ## Communication Score, which measures overall performance.
 
 * ## Coach’s Focus, which identifies the single highest-impact improvement opportunity.
 
-The Core Skill Breakdown is deferred to the Improvement Review when the user
-chooses Retry (D26), reducing the reading required before implementation.
+* ## Core Skill Breakdown (§4.5.3), collapsed by default, so a user can see every skill score at a glance and expand any one of them for why it scored that way and how to improve it.
+
+What the compact first-attempt view drops is housekeeping only: the previous
+exercise's focus reminder, the feedback rating widget, and the share prompt
+(D26, amended 2026-08-24).
 
 ## **Feedback Structure**
 
@@ -1342,6 +1345,10 @@ Communication Score
 ↓
 
 Coach’s Focus
+
+↓
+
+Core Skill Breakdown (collapsed)
 
 The purpose of the Feedback stage is to help users understand how they performed and identify the single change most likely to improve the next attempt.
 
@@ -1461,10 +1468,12 @@ The Retry should feel like a second attempt at the same challenge rather than a 
 * The Retry should focus on implementation rather than evaluation.  
 * The Retry should target a single coaching objective.
 * **D26:** The Retry is strongly encouraged but optional. The first-attempt
-  screen stays compact (score + one Coach's Focus), presents Retry as the
-  colorful primary action, and places a muted Continue action beside it.
-  Choosing Continue advances without an Improvement Review; choosing Retry
-  unlocks the comparison, playback, and full Core Skill Breakdown.
+  screen presents Retry as the colorful primary action with a muted Continue
+  beside it. It stays compact by dropping housekeeping (previous-exercise focus
+  reminder, rating widget, share prompt) while keeping everything needed to judge
+  and fix the rep: Communication Score, one Coach's Focus, the expandable Core
+  Skill Breakdown (§4.5.3), and playback. Choosing Continue advances without an
+  Improvement Review; choosing Retry unlocks the first→retry comparison.
 
 ---
 
@@ -1503,8 +1512,8 @@ The review should clearly show whether implementation resulted in improved perfo
 * Users receive an updated Communication Score.  
 * Score movement should be highly visible.  
 * Coach’s Focus becomes the next development opportunity.  
-* The full Core Skill Breakdown appears in the Improvement Review, not the
-  compact first-attempt feedback (D26).
+* The Core Skill Breakdown (§4.5.3) appears on both feedback screens. The
+  Improvement Review adds the first→retry movement on top of it.
 * Users can continue practicing or move forward.
 
 ### **Next Actions**
@@ -8947,9 +8956,9 @@ The **First Rep** is the user’s initial spoken attempt at an Exercise. It serv
 ## **Coach Feedback**
 
 **Coach Feedback** is the AI-generated evaluation delivered after the First
-Rep. The compact first-attempt view includes the user’s Communication Score and
-Coach’s Focus. The full Core Skill Breakdown appears in the Improvement Review
-when the user chooses Retry (D26).
+Rep. It includes the user’s Communication Score, Coach’s Focus, the expandable
+Core Skill Breakdown, and playback. The Improvement Review adds the first→retry
+comparison on top of it when the user chooses Retry (D26).
 
 ---
 

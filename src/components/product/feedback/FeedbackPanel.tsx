@@ -82,10 +82,13 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
-  /** D26 — trimmed first-attempt reveal: score + Coach's Focus only, so
-   *  the moment between the first rep and the Retry is a quick read. The
-   *  comparison, playback, and skill breakdown live on the post-retry
-   *  Improvement Review. */
+  /** D26 — trimmed first-attempt reveal. The user still gets everything
+   *  they need to judge and fix the rep: Communication Score, Coach's
+   *  Focus, the six-skill breakdown (each expandable to why-this-score +
+   *  how-to-improve), and playback. What's trimmed is the housekeeping —
+   *  the previous exercise's focus reminder, the rating widget, and the
+   *  share CTA — which is noise in the moment before a Retry and lives on
+   *  the post-retry Improvement Review instead. */
   compact?: boolean;
 };
 
@@ -251,21 +254,23 @@ export function FeedbackPanel({
             />
           </Section>
         )}
-        {!compact && (
-          <Section delay={4}>
-            <div className="surface-card relative overflow-hidden">
-              <div className="p-5 md:p-6">
-                <DimensionGrid
-                  ref={gridRef}
-                  dimensions={score.dimensions}
-                  callouts={score.callouts}
-                  primaryFocusDimension={score.primaryFocusDimension}
-                  modeSignals={modeSignals}
-                />
-              </div>
+        {/* Shown on the compact first-attempt reveal too: the six skill
+            scores are how the user judges the rep, and each card expands
+            to why-this-score + how-to-improve. Collapsed by default, so it
+            costs one line of reading unless the user opts in. */}
+        <Section delay={4}>
+          <div className="surface-card relative overflow-hidden">
+            <div className="p-5 md:p-6">
+              <DimensionGrid
+                ref={gridRef}
+                dimensions={score.dimensions}
+                callouts={score.callouts}
+                primaryFocusDimension={score.primaryFocusDimension}
+                modeSignals={modeSignals}
+              />
             </div>
-          </Section>
-        )}
+          </div>
+        </Section>
 
         <ExemplarModal
           open={exemplarOpen}
@@ -273,7 +278,7 @@ export function FeedbackPanel({
           onClose={() => setExemplarOpen(false)}
         />
 
-        {audioUrl && !compact && (
+        {audioUrl && (
           <Section delay={6}>
             <RepAudioScrubber
               src={audioUrl}

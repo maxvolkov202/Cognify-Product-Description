@@ -38,7 +38,8 @@ test("build a rep: intake → plan → guided moment → readiness review", asyn
   await recordRep(page);
   await awaitFeedback(page, /Retry this rep/i);
   await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
-  await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
+  // PRD §4.5.3 — six-skill breakdown is on the first feedback screen too.
+  await expect(page.getByTestId("core-skill-grid")).toBeVisible();
 
   // Retry is OPTIONAL here (§7.7) — return to the plan instead.
   await page

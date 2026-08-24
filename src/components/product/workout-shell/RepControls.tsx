@@ -496,8 +496,10 @@ function ActiveRep({
       {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
       {...(isEngineFirst || isEngineRetry ? { hideRunItAgain: true } : {})}
       // D26 — the Retry is encouraged, not required: the first-attempt
-      // reveal is a quick read (compact feedback) with a colorful Retry
-      // primary + a gray Continue that advances the station.
+      // reveal trims housekeeping (previous-focus reminder, rating, share)
+      // but keeps score, Coach's Focus, the expandable six-skill breakdown
+      // (PRD §4.5.3), and playback, with a colorful Retry primary + a gray
+      // Continue that advances the station.
       {...(isEngineFirst ? { feedbackCompact: true } : {})}
       {...(isEngineFirst && onAdvanceNow
         ? {

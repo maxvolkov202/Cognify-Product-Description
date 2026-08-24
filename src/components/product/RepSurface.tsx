@@ -149,9 +149,12 @@ type Props = {
    *  next button on the done screen. The v2 first-attempt reveal uses it
    *  for "Continue" (skip the retry) while Retry stays the loud primary. */
   secondaryAction?: { label: string; onClick: () => void } | null;
-  /** D26 — compact first-attempt feedback: score + Coach's Focus only.
-   *  Comparison, playback, and the skill breakdown live on the post-retry
-   *  Improvement Review instead. */
+  /** D26 — compact first-attempt feedback. Keeps everything the user
+   *  needs to judge and fix the rep (score, Coach's Focus, the expandable
+   *  six-skill breakdown per PRD §4.5.3, playback) and drops only the
+   *  housekeeping: the previous exercise's focus reminder, the rating
+   *  widget, and the share CTA. The first→retry comparison still lives on
+   *  the post-retry Improvement Review. */
   feedbackCompact?: boolean;
   /** Phase 8 — muscle-group context. Threaded into insertPendingRep +
    *  saveRep + /api/score-internal body so the scoring pipeline gets
