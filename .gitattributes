@@ -1,0 +1,7 @@
+# The knowledge markdown is embedded verbatim into src/lib/ai/knowledge/
+# generated.ts at build time, so its line endings become prompt bytes. A
+# CRLF checkout on any machine would silently change every prompt the
+# scoring pipeline sends. Pin these sources to LF so the generated output
+# is identical on every platform.
+src/lib/ai/knowledge/**/*.md text eol=lf
+src/lib/ai/knowledge/generated.ts text eol=lf
