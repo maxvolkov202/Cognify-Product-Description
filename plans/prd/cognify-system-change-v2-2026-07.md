@@ -1251,6 +1251,9 @@ Retry
 Improvement Review
 
 The objective of the learning loop is simple: help users improve between attempts.
+Per D26, Retry is the recommended path, not a gate. Users may choose Continue
+after Coach Feedback; in that branch the loop advances without an Improvement
+Review.
 
 ---
 
@@ -1323,13 +1326,14 @@ The First Rep should reflect how the user would naturally communicate without in
 
 # **4.5 Stage 3: Feedback**
 
-## Coach Feedback consists of three components:
+## First-attempt Coach Feedback consists of two components:
 
 * ## Communication Score, which measures overall performance.
 
 * ## Coach’s Focus, which identifies the single highest-impact improvement opportunity.
 
-* ## Core Skill Breakdown, which provides a deeper view of performance across the six Core Skills.
+The Core Skill Breakdown is deferred to the Improvement Review when the user
+chooses Retry (D26), reducing the reading required before implementation.
 
 ## **Feedback Structure**
 
@@ -1338,10 +1342,6 @@ Communication Score
 ↓
 
 Coach’s Focus
-
-↓
-
-Core Skill Breakdown
 
 The purpose of the Feedback stage is to help users understand how they performed and identify the single change most likely to improve the next attempt.
 
@@ -1446,7 +1446,9 @@ The purpose of the Retry Stage is to help users immediately apply the coaching t
 
 The Retry is where implementation occurs.
 
-After receiving feedback, users immediately attempt the exercise again with the goal of applying the coaching they just received.
+After receiving feedback, users are encouraged to immediately attempt the
+exercise again with the goal of applying the coaching they just received. They
+may instead choose Continue (D26).
 
 The Retry should feel like a second attempt at the same challenge rather than a completely new exercise.
 
@@ -1458,6 +1460,11 @@ The Retry should feel like a second attempt at the same challenge rather than a 
 * A Stronger Version demonstrates what stronger execution looks like.  
 * The Retry should focus on implementation rather than evaluation.  
 * The Retry should target a single coaching objective.
+* **D26:** The Retry is strongly encouraged but optional. The first-attempt
+  screen stays compact (score + one Coach's Focus), presents Retry as the
+  colorful primary action, and places a muted Continue action beside it.
+  Choosing Continue advances without an Improvement Review; choosing Retry
+  unlocks the comparison, playback, and full Core Skill Breakdown.
 
 ---
 
@@ -1496,7 +1503,8 @@ The review should clearly show whether implementation resulted in improved perfo
 * Users receive an updated Communication Score.  
 * Score movement should be highly visible.  
 * Coach’s Focus becomes the next development opportunity.  
-* The same Core Skill Breakdown appears in both feedback screens.  
+* The full Core Skill Breakdown appears in the Improvement Review, not the
+  compact first-attempt feedback (D26).
 * Users can continue practicing or move forward.
 
 ### **Next Actions**
@@ -1578,13 +1586,17 @@ While the framework remains consistent across the platform, each mode applies th
 
 ### **Daily Workout**
 
-Retries are required.
+Retries are strongly encouraged but optional (D26).
 
-Users must complete the Retry before advancing to the next exercise.
+Users may continue to the next exercise after the compact first-attempt
+feedback. Retry remains the visually dominant action because immediate
+implementation is Cognify's highest-value learning behavior.
 
 ### **The Lab**
 
-Users complete a required Retry and may continue practicing additional repetitions if they choose.
+Users are strongly encouraged to Retry, but may continue after the compact
+first-attempt feedback. If they Retry, they may continue practicing additional
+repetitions after the Improvement Review.
 
 The objective is mastery through repetition.
 
@@ -8853,7 +8865,7 @@ A **Training Mode** is one of the three primary ways users train within Cognify.
 
 ## **Cognify Training System**
 
-The **Cognify Training System** is the universal learning process used across every Training Mode. Every exercise follows the same learning loop: Coach’s Insight → First Rep → Coach Feedback → Retry → Improvement Review.
+The **Cognify Training System** is the universal learning process used across every Training Mode. Every exercise follows the same learning loop: Coach’s Insight → First Rep → Coach Feedback → encouraged optional Retry → Improvement Review when retried (D26).
 
 ---
 
@@ -8934,7 +8946,10 @@ The **First Rep** is the user’s initial spoken attempt at an Exercise. It serv
 
 ## **Coach Feedback**
 
-**Coach Feedback** is the AI-generated evaluation delivered after the First Rep. It includes the user’s Communication Score, Coach’s Focus, and Core Skill Breakdown.
+**Coach Feedback** is the AI-generated evaluation delivered after the First
+Rep. The compact first-attempt view includes the user’s Communication Score and
+Coach’s Focus. The full Core Skill Breakdown appears in the Improvement Review
+when the user chooses Retry (D26).
 
 ---
 
@@ -8958,7 +8973,9 @@ The **Core Skill Breakdown** shows how the user performed across the six Core Sk
 
 ## **Retry**
 
-A **Retry** is the user’s immediate second attempt at the same Exercise after receiving Coach Feedback. Its purpose is to implement the coaching while the feedback is still fresh.
+A **Retry** is the user’s optional immediate second attempt at the same Exercise
+after receiving Coach Feedback. Its purpose is to implement the coaching while
+the feedback is still fresh, so it remains the visually recommended action.
 
 ---
 
@@ -8970,7 +8987,8 @@ The **Improvement Review** compares the First Rep and Retry, highlighting what i
 
 ## **Rep**
 
-A **Rep** is a single spoken response completed by the user. Every Exercise includes at least a First Rep and one Retry.
+A **Rep** is a single spoken response completed by the user. Every Exercise
+includes a First Rep and offers a Retry (D26).
 
 # **3\. Content Terminology**
 

@@ -240,6 +240,65 @@ export async function completeWorkoutSession(
   }
 }
 
+/**
+ * D26 — close a v2 day when the user chooses Continue instead of Retry on
+ * the last station. The first attempts have already incremented
+ * completed_reps; this action only closes when the full planned exercise
+ * target is present, and computes the final composite from server-owned reps.
+ */
+export async function closeWorkoutDayAfterRetrySkip(
+  muscleGroupDayId: string,
+): Promise<{ persisted: boolean; closed: boolean }> {
+  try {
+    const user = await assertUser();
+    const dayId = z.string().uuid().parse(muscleGroupDayId);
+    await assertOwnsDay(dayId, user.id);
+
+    const result = await safeDb<{ persisted: boolean; closed: boolean }>(
+      async () => {
+        const closed = await db.execute<{ id: string }>(drizzleSql`
+          UPDATE cognify_v2.muscle_group_days d
+          SET composite_at_close = sub.avg_composite,
+              status = 'complete',
+              completed_at = COALESCE(d.completed_at, NOW())
+          FROM (
+            SELECT AVG(r.composite_score)::real AS avg_composite
+            FROM cognify_v2.reps r
+            WHERE r.muscle_group_day_id = ${dayId}
+              AND r.composite_score IS NOT NULL
+              AND r.is_graduation_rep = false
+          ) sub
+          WHERE d.id = ${dayId}
+            AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)
+            AND d.status <> 'complete'
+            AND sub.avg_composite IS NOT NULL
+          RETURNING d.id
+        `);
+        return { persisted: true, closed: closed.length > 0 };
+      },
+      { persisted: false, closed: false },
+      { write: "workout_day_retry_skip_close" },
+    );
+
+    if (result.persisted && result.closed) {
+      const bonus = await awardSessionCompletionXp(user.id, "daily_workout");
+      log.info({
+        event: "workout_day.retry_skip_completion_bonus",
+        muscleGroupDayId: dayId,
+        granted: bonus.granted,
+      });
+    }
+    return result;
+  } catch (err) {
+    log.error({
+      event: "workout_day.retry_skip_close_failed",
+      muscleGroupDayId,
+      err: serializeErr(err),
+    });
+    return { persisted: false, closed: false };
+  }
+}
+
 // ─── Graduation rep ──────────────────────────────────────────────────────
 
 export type RecordGraduationRepInput = {
@@ -503,13 +562,13 @@ export async function tagWorkoutRep(
         // Phase 15 W-1 (§5.7 Final Communication Score) + Phase 16 fix:
         // close the day on the rep that ENDS it, not the one that merely
         // reaches the exercise target. In the v2 loop the 3rd exercise's
-        // FIRST attempt hits completed_reps=3 while its required Retry is
-        // still ahead — closing there flipped the server payload to
+        // FIRST attempt hits completed_reps=3 while the user is still
+        // choosing Retry or Continue — closing there flipped the server payload to
         // day-complete MID-EXERCISE and a background refresh yanked the
         // UI out of the loop (caught by the live full-day run). Gate:
         //   • v2 (attemptKind present): close on retry/again attempts —
-        //     the attempt that finishes an exercise loop. A skip-retry
-        //     degraded day stays open for the rollover cron (by design).
+        //     the attempt that finishes a retried exercise loop. D26's
+        //     Continue path closes through closeWorkoutDayAfterRetrySkip.
         //   • v1 legacy (attemptKind never sent): close on the first
         //     attempt that reaches the target — v1 has no retries.
         // completeWorkoutSession still has zero callers; this is the one

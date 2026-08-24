@@ -1,8 +1,8 @@
 /**
  * Phase 11.B4 — the Daily Workout engine loop, LIVE end to end:
  * start day → prompt pick → Coach's Insight → First Rep (fake mic →
- * Deepgram → live scoring) → v2 feedback (ONE Coach's Focus) → required
- * Retry → Improvement Review (verdict + breakdown) → next exercise.
+ * Deepgram → live scoring) → compact feedback (ONE Coach's Focus) →
+ * encouraged Retry → Improvement Review (verdict + breakdown) → next exercise.
  *
  * Run: AUTHED=1 npx playwright test tests/e2e/authed/workout-loop.spec.ts
  * Costs real transcription + scoring credits (~2 reps).
@@ -38,22 +38,23 @@ test("daily workout loop: rep → focus → retry → improvement review", async
 
   // First Rep — live pipeline.
   await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
 
-  // v2 feedback contract: ONE Coach's Focus, no legacy split.
+  // D26 feedback contract: ONE Coach's Focus, no legacy split or full
+  // breakdown before the retry; Retry is primary and Continue is available.
   await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
   await expect(page.getByText("What you did well")).toHaveCount(0);
   await expect(page.getByText("What didn't land")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
+  await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
 
-  // Required Retry.
+  // Choose the encouraged Retry branch.
   // Two copies render (top nav + bottom); the bottom one is the
   // stable click target once the panel settles.
   await page
-    .getByRole("button", { name: /Start your Retry/i })
-    .last()
-    // force: the gradient CTA animates continuously, so Playwright's
-    // stability check never settles; visibility is asserted above.
-    .click({ force: true, timeout: 30_000 });
+    .getByRole("button", { name: /Retry this rep/i })
+    .first()
+    .click({ timeout: 30_000 });
   // The FocusOverlay always renders the §4.6 framing line (host-agnostic).
   await expect(
     page.getByText(/What one change creates the biggest improvement/i),

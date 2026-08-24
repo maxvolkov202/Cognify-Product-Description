@@ -58,9 +58,9 @@ import { createWorkoutSession } from "@/server/actions/sessions";
 
 const RECENT_DAY_LOOKBACK = 30; // enough to cover six dims × past few weeks
 
-/** PRD v3 Phase 2.1 — exercises per day. The v2 engine runs 3 exercises
- *  × (First Rep + required Retry) ≈ the same session effort as the
- *  legacy 4 single-rep stations (PRD §5.2 prescribes three). */
+/** PRD v3 Phase 2.1 + D26 — the v2 engine runs 3 exercises and strongly
+ *  encourages a Retry after each First Rep. The station count stays three
+ *  even when a user chooses Continue (PRD §5.2 prescribes three). */
 function stationsPerDay(): number {
   return isTrainingEngineV2Enabled() ? 3 : 4;
 }

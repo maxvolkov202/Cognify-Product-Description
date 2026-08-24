@@ -36,7 +36,9 @@ test("build a rep: intake → plan → guided moment → readiness review", asyn
   await page.getByRole("button", { name: /start the rep/i }).click();
 
   await recordRep(page);
-  await awaitFeedback(page, /Start your Retry/i);
+  await awaitFeedback(page, /Retry this rep/i);
+  await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
+  await expect(page.getByText(/Core Skill breakdown/i)).toHaveCount(0);
 
   // Retry is OPTIONAL here (§7.7) — return to the plan instead.
   await page

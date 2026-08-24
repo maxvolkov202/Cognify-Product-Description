@@ -626,8 +626,21 @@ export default function PrepEventClient({
                 setView({ kind: "moment-review", moment });
               }
             }}
+            {...(view.attempt === "first"
+              ? {
+                  feedbackCompact: true,
+                  secondaryAction: {
+                    label: "Continue",
+                    onClick: () => {
+                      const next = nextMomentAfter(moment);
+                      if (next) startMoment(next);
+                      else backToPlan();
+                    },
+                  },
+                }
+              : {})}
             nextLabel={
-              view.attempt === "first" ? "Start your Retry →" : "Improvement Review →"
+              view.attempt === "first" ? "Retry this rep →" : "Improvement Review →"
             }
           />
           {/* Edit #3 — the speaking-notes panel: an AI-drafted structure
@@ -669,10 +682,9 @@ export default function PrepEventClient({
           </div>
         )}
 
-        {/* Edit #10 (§7.7) — after the scored FIRST rep the user has real
-            options, not just Retry: continue to the next moment, or go
-            back to the plan (exit). Retry stays the primary CTA on the
-            feedback surface itself. Scored retries route straight to the
+        {/* Edit #10 (§7.7) / D26 — after the scored FIRST rep, Continue
+            now sits beside the primary Retry CTA inside RepSurface. Keep
+            Back to plan as the separate exit action. Scored retries route straight to the
             Improvement Review, which carries its own next/again/plan
             options — gating on attempts.retry here would render stale
             CTAs under a live recorder on "run it again" attempts. */}
@@ -681,18 +693,8 @@ export default function PrepEventClient({
           view.attempt === "first" &&
           attempts.first != null &&
           (() => {
-            const next = nextMomentAfter(moment);
             return (
               <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-                {next && (
-                  <button
-                    type="button"
-                    onClick={() => startMoment(next)}
-                    className="min-h-[44px] text-sm font-semibold text-purple-600 dark:text-brand-lavender hover:underline"
-                  >
-                    Skip the retry, continue to “{next.title}” →
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={backToPlan}

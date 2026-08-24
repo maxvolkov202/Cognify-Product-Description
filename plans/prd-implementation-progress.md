@@ -14,7 +14,7 @@ Decisions that shape everything downstream. D1–D4 confirmed by Max 2026-07-02 
 | # | Decision | Status | Choice |
 |---|----------|--------|--------|
 | D1 | Roadmap sequencing | ✅ MAX 2026-07-02 | **Engine-first, adapted.** Existing app = Phase 1 foundation done. Universal Training Engine inside Daily Workout first, then Skill Lab → Build a Rep → progression → intelligence. |
-| D2 | Daily Workout loop fidelity | ✅ MAX 2026-07-02 | **Full PRD loop** — 3 exercises × (First Rep + required Retry + Improvement Review), graduation/pressure rep kept as optional finisher. |
+| D2 | Daily Workout loop fidelity | ↪ superseded by D26 2026-08-23 | **Full PRD loop remains available**, but Retry is now encouraged and optional: First Rep → compact feedback → Retry + Improvement Review, or Continue. Graduation/pressure rep remains an optional finisher. |
 | D3 | Prompt strategy | ✅ MAX 2026-07-02 | **Hybrid** — curated banks as backbone + runtime AI generation for refresh/personalization/Build-a-Rep, validated against framework rules, cached back into bank. |
 | D4 | Rank vs Levels/Leagues | ✅ MAX 2026-07-02 | **Adopt PRD Rank ladder (Bronze I-IV → Grandmaster), absorb Level 1-100** (XP feeds rank; migration maps levels→ranks; weekly league tiers renamed/folded into leaderboards). |
 | D5 | Legacy features kept | ✅ default | Keep mascot, pressure archetypes, daily quests, friend challenges (no PRD conflict). Sub-skill UI (`FF_SUBSKILL_UI`) retired — PRD hides sub-skills from users. |

@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Flame, Sparkles, Mic, Zap } from "lucide-react";
 import { DIMENSION_LABELS } from "@/types/domain";
 import type { SkillDimension } from "@/types/domain";
+import { dashboardMomentumCopy } from "@/lib/dashboard-momentum-copy";
 
 function timeOfDayGreeting(date = new Date()): string {
   const h = date.getHours();
@@ -116,9 +117,7 @@ export function DashboardHero({
             <span className="brand-gradient-text">Time to train.</span>
           </h1>
           <p className="mt-3 text-sm text-ink-600 dark:text-ink-300 md:text-base">
-            {avgRecent !== null
-              ? "Your reps are warm. Keep the streak alive."
-              : "Pick up where you left off."}
+            {dashboardMomentumCopy(avgRecent, streakDays)}
           </p>
         </div>
 

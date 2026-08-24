@@ -47,10 +47,17 @@ phase) → check the phase off here. Never commit to main directly.
   Application Lab** — user-facing name + route `/application-lab` (308 redirect from `/skill-lab`), DB
   `mode = 'skill_lab'` unchanged (DEC-4); terminology map updated. This wave changes no scoring
   prompt/model — XP/rank ≠ score, so no calibration re-run. See that tracker for phase status.
+- **D26 — Retry encouraged, not required (confirmed by Max 2026-08-23).** This overrides the
+  mandatory-retry language in PRD §§4.2, 4.5–4.7, 4.9, the glossary, and historical implementation
+  decision D2. Daily Workout and Application Lab show compact first-attempt feedback (score + one Coach's
+  Focus), then a colorful primary **Retry this rep** action beside a muted gray **Continue** action.
+  Continue advances without an Improvement Review; Retry preserves the complete implementation loop
+  and moves comparison, playback, and the Core Skill Breakdown to the post-retry review.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
-- **Training engine v2** (insight → first rep → feedback → required retry → improvement review) built,
+- **Training engine v2** (insight → first rep → compact feedback → encouraged optional retry →
+  improvement review when retried) built,
   flag-gated `FF_TRAINING_ENGINE_V2`; pure FSM `src/lib/workout/session-machine.ts`.
 - **Daily Workout**: 6 core skills as muscle groups, assessment phase, weighted rotation, hidden-skill
   aware sampling (`src/server/lib/workout/assignment.ts`), slate=5, adaptive windows. Flag
@@ -784,3 +791,19 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     loop (unit/e2e can't catch #2 — the e2e passed even with the bug) + `/code-review` before PR.
     Note: `.claude/settings.local.json` was already malformed (missing commas/dupes) at session start —
     unrelated, left untouched.
+
+- **2026-08-23 — rep-flow UX pass (branch `feat/rep-flow-ux`, D26, in progress).**
+  - Zero-streak dashboard copy now invites the user to start a streak instead of saying to keep one.
+  - Classic recorder controls make **Stop & submit** the dominant white action and demote
+    **Discard rep** to a quiet text action.
+  - Daily Workout, Application Lab, and Build a Rep now show compact first-attempt feedback:
+    Communication Score + one Coach's Focus. **Retry this rep** is the brand primary; gray
+    **Continue** advances without a retry. A chosen retry opens the Improvement Review with
+    comparison, both recordings, and the full Core Skill Breakdown.
+  - Session-machine Continue is race-safe (`pendingAdvance`), including scoring failure,
+    dual-action, and last-station cases. Final-station Continue explicitly closes the owner-scoped
+    workout day with a server-computed average and awards completion XP exactly once.
+  - Local verification: typecheck, lint, unit suite, and production build green. Live fake-mic
+    browser runs green for recorder abort/re-record, Daily Workout Retry, Application Lab Continue,
+    Application Lab Retry, and a full Daily Workout completed through Continue on every remaining
+    station. Production verification remains pending until PR review and deployment.

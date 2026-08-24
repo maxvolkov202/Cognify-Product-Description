@@ -267,7 +267,7 @@ section("unhandled events are no-ops");
 
 // ─── 11. PRD v3 engine loop (loop === "v2") ──────────────────────────────
 // plans/prd/phase1-engine-design.md — Insight → First Rep → Feedback →
-// required Retry → Improvement Review.
+// Retry (encouraged, optional per D26) → Improvement Review.
 
 function startV2(): SessionMachineState {
   return initialMachineState(STATIONS, "idle", 0, "v2");
@@ -304,6 +304,59 @@ section("v2: early BEGIN_RETRY buffers until the score lands (F-6)");
   assert(s.firstOutcome?.repId === "r1", "first outcome still captured");
   assert(s.outcomes.length === 1, "first attempt still appended");
 
+  // D26 — same race for the optional Continue: an ADVANCE tapped before
+  // SCORE_DONE lands must buffer and advance the station on score.
+  let a = startV2();
+  a = reduce(a, { type: "START" });
+  a = reduce(a, { type: "PICK_PROMPT", promptId: "p1", text: "Explain X", mode: "shuffle" });
+  a = reduce(a, { type: "INSIGHT_DONE" });
+  a = reduce(a, { type: "ADVANCE" });
+  assert(a.phase === "recording", "early ADVANCE stays in recording");
+  assert(a.pendingAdvance === true, "early ADVANCE is buffered");
+  a = reduce(a, { type: "SCORE_DONE", composite: 70, repId: "r1" });
+  assert(a.phase === "walking", "buffered ADVANCE advances when score lands");
+  assert(a.pendingAdvance === false, "advance buffer consumed");
+  assert(a.outcomes.length === 1, "first attempt still appended on buffered advance");
+
+  let lastEarly = initialMachineState(STATIONS, "idle", STATIONS.length - 1, "v2");
+  lastEarly = reduce(lastEarly, { type: "START" });
+  lastEarly = reduce(lastEarly, {
+    type: "PICK_PROMPT",
+    promptId: "p-last",
+    text: "Explain the last prompt",
+    mode: "shuffle",
+  });
+  lastEarly = reduce(lastEarly, { type: "INSIGHT_DONE" });
+  lastEarly = reduce(lastEarly, { type: "ADVANCE" });
+  lastEarly = reduce(lastEarly, {
+    type: "SCORE_DONE",
+    composite: 74,
+    repId: "r-last",
+  });
+  assert(
+    lastEarly.phase === "day-complete-prompt",
+    "buffered Continue on the final station → day-complete prompt",
+  );
+
+  // If a user manages to tap both duplicated nav copies before SCORE_DONE,
+  // Retry wins deterministically so we never skip a requested implementation.
+  let both = startV2();
+  both = reduce(both, { type: "START" });
+  both = reduce(both, {
+    type: "PICK_PROMPT",
+    promptId: "p1",
+    text: "Explain X",
+    mode: "shuffle",
+  });
+  both = reduce(both, { type: "INSIGHT_DONE" });
+  both = reduce(both, { type: "ADVANCE" });
+  both = reduce(both, { type: "BEGIN_RETRY" });
+  assert(both.pendingAdvance && both.pendingBeginRetry, "both early actions are buffered");
+  both = reduce(both, { type: "SCORE_DONE", composite: 70, repId: "r1" });
+  assert(both.phase === "recording", "Retry wins when both early actions were tapped");
+  assert(both.attempt === "retry", "dual-tap resolution starts the retry");
+  assert(!both.pendingAdvance && !both.pendingBeginRetry, "both buffers are consumed");
+
   // A buffered retry must NOT fire against a failed score.
   let f = startV2();
   f = reduce(f, { type: "START" });
@@ -314,9 +367,29 @@ section("v2: early BEGIN_RETRY buffers until the score lands (F-6)");
   assert(f.phase === "score-reveal", "failed score → degraded score-reveal");
   assert(f.pendingBeginRetry === false, "buffer dropped on scoring failure");
   assert(f.attempt === "first", "no auto-retry against a scoring hiccup");
+
+  let failedAdvance = startV2();
+  failedAdvance = reduce(failedAdvance, { type: "START" });
+  failedAdvance = reduce(failedAdvance, {
+    type: "PICK_PROMPT",
+    promptId: "p1",
+    text: "Explain X",
+    mode: "shuffle",
+  });
+  failedAdvance = reduce(failedAdvance, { type: "INSIGHT_DONE" });
+  failedAdvance = reduce(failedAdvance, { type: "ADVANCE" });
+  failedAdvance = reduce(failedAdvance, { type: "FAIL_SCORE", repId: "r1" });
+  assert(
+    failedAdvance.phase === "score-reveal",
+    "failed score keeps the user on the degraded reveal",
+  );
+  assert(
+    failedAdvance.pendingAdvance === false,
+    "Continue buffer drops on scoring failure so the choice can be re-offered",
+  );
 }
 
-section("v2: required retry loop + improvement review");
+section("v2: retry loop + improvement review");
 {
   let s = startV2();
   s = reduce(s, { type: "START" });
@@ -327,9 +400,28 @@ section("v2: required retry loop + improvement review");
   assert(s.firstOutcome?.repId === "r1", "firstOutcome captured");
   assert(s.outcomes.length === 1, "first attempt appended to outcomes");
 
-  // Required retry: ADVANCE from score-reveal is refused on a clean first attempt.
-  const blocked = reduce(s, { type: "ADVANCE" });
-  assert(blocked === s, "v2 ADVANCE from score-reveal is a no-op (retry required)");
+  // D26 — the Retry is optional: Continue (ADVANCE) from the first-attempt
+  // reveal walks to the next station instead of being refused.
+  const advanced = reduce(s, { type: "ADVANCE" });
+  assert(advanced.phase === "walking", "v2 ADVANCE from score-reveal → walking (retry optional, D26)");
+  assert(advanced.outcomes.length === 1, "optional Continue keeps the scored first attempt");
+
+  // Continue on the last station hands off to the day-complete prompt.
+  let last = initialMachineState(STATIONS, "idle", STATIONS.length - 1, "v2");
+  last = reduce(last, { type: "START" });
+  last = reduce(last, {
+    type: "PICK_PROMPT",
+    promptId: "p-last",
+    text: "Explain the last prompt",
+    mode: "shuffle",
+  });
+  last = reduce(last, { type: "INSIGHT_DONE" });
+  last = reduce(last, { type: "SCORE_DONE", composite: 74, repId: "r-last" });
+  last = reduce(last, { type: "ADVANCE" });
+  assert(
+    last.phase === "day-complete-prompt",
+    "optional Continue on the last station → day-complete prompt",
+  );
 
   s = reduce(s, { type: "BEGIN_RETRY" });
   assert(s.phase === "recording", "BEGIN_RETRY → recording");

@@ -4,8 +4,8 @@
 //
 // The user picked the APPLICATION (route param); this client runs:
 //   rep count pick (1–5 stepper) → per exercise: prompt pick → Coach's Insight →
-//   First Rep → feedback ("Start your Retry") → required Retry →
-//   Improvement Review → next exercise → Session Complete.
+//   First Rep → focused feedback → encouraged Retry (or Continue) →
+//   Improvement Review after a retry → next exercise → Session Complete.
 //
 // Reuses the Universal Training Engine surfaces (PromptPicker,
 // InsightScreen, RepSurface retry wiring, ImprovementReview) with a
@@ -349,11 +349,15 @@ export default function AppSessionClient({
       score: RepScore;
       repId: string;
       transcript: string;
+      audioUrl?: string | null;
+      audioDurationMs?: number;
     }) => {
       const attemptPayload: AttemptPayload = {
         repId: payload.repId,
         score: payload.score,
         transcript: payload.transcript,
+        audioUrl: payload.audioUrl,
+        audioDurationMs: payload.audioDurationMs,
       };
       if (phase.kind === "rep" && phase.attempt === "first") {
         setAttempts((prev) => ({ ...prev, first: attemptPayload }));
@@ -361,8 +365,8 @@ export default function AppSessionClient({
       } else {
         setAttempts((prev) => ({ ...prev, retry: attemptPayload }));
         setPhase({ kind: "review" });
-        // Resume save point (audit L3): this exercise's required retry is
-        // done. idx+1 → a resumed session lands on the NEXT exercise's
+        // Resume save point (audit L3): the user completed the Retry.
+        // idx+1 → a resumed session lands on the NEXT exercise's
         // prompt (the review screen can't be rebuilt from lite outcomes).
         if (sessionId && exercise) {
           persistState({
@@ -520,11 +524,22 @@ export default function AppSessionClient({
                 }
               : {})}
             {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
+            {...(phase.attempt === "first"
+              ? {
+                  feedbackCompact: true,
+                  secondaryAction: {
+                    label: "Continue",
+                    onClick: advanceExercise,
+                  },
+                }
+              : {})}
             onComplete={(payload) =>
               onRepComplete({
                 score: payload.score,
                 repId: payload.repId,
                 transcript: payload.transcript,
+                audioUrl: payload.recording.url,
+                audioDurationMs: payload.recording.durationMs,
               })
             }
             onNext={() => {
@@ -532,7 +547,7 @@ export default function AppSessionClient({
                 setPhase({ kind: "rep", attempt: "retry" });
               }
             }}
-            nextLabel="Start your Retry →"
+            nextLabel="Retry this rep →"
           />
         )}
 

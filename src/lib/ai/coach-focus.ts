@@ -2,7 +2,7 @@
 //
 // The PRD's Coach's Focus is "the single highest-impact improvement
 // opportunity" (§4.5.2): exactly one per rep, tied to a Hidden Skill when
-// available, and it becomes the objective of the required Retry. The
+// available, and it becomes the objective of a chosen Retry. The
 // scoring pipeline already emits the ingredients (primaryFocusDimension +
 // nextRepFocus bullets); this module formalizes them into one persisted
 // object so the retry flow, coaching_events ledger, and Phase 3 coaching

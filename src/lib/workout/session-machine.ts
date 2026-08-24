@@ -48,8 +48,10 @@
 //                      ─ADVANCE─────▶ walking / day-complete-prompt
 //                      ─QUIT────────▶ quit-summary (terminal, C9 tip)
 //
-// In v2, ADVANCE from score-reveal is only honored when the first
-// attempt's scoring failed (degraded path) — the Retry is required (D2).
+// D26 (2026-08 UX pass, overrides D2's required Retry): the Retry is
+// encouraged but optional. ADVANCE from score-reveal is honored on v2
+// first attempts — the UI renders Retry as the loud primary CTA and
+// Continue as the quiet gray secondary.
 
 import type { MascotState } from "@/lib/animations/mascot-state";
 import type {
@@ -106,6 +108,11 @@ export type SessionMachineState = {
    *  finishRepWithScore: the retry starts the moment the score lands
    *  instead of the tap being silently dropped. */
   pendingBeginRetry: boolean;
+  /** D26 — same F-6 race for the optional Continue: an ADVANCE tapped
+   *  from the local done screen before SCORE_DONE reaches this machine
+   *  buffers here and advances the station the moment the score lands.
+   *  Dropped on scoring failure (the degraded reveal re-offers Continue). */
+  pendingAdvance: boolean;
   /** Selected prompt for the current rep (text shown to the user +
    *  sent to scoring). NULL during non-recording phases. Retained across
    *  the retry (same prompt, per PRD §4.6). */
@@ -132,7 +139,7 @@ export type SessionMachineEvent =
       repId: string;
     }
   | { type: "FAIL_SCORE"; repId: string | null }
-  | { type: "BEGIN_RETRY" } // v2 — feedback acknowledged → required Retry
+  | { type: "BEGIN_RETRY" } // v2 — feedback acknowledged → chosen Retry
   | { type: "RETRY_AGAIN" } // v2 — from improvement-review, optional extra attempt
   | { type: "QUIT" } // v2 — early exit (C9) → quit-summary
   | { type: "ADVANCE" } // auto 5s OR manual "Next station →" tap
@@ -174,6 +181,7 @@ export function initialMachineState(
     retryOutcomes: [],
     networkBuffered: false,
     pendingBeginRetry: false,
+    pendingAdvance: false,
     selectedPrompt: null,
   };
 }
@@ -296,7 +304,7 @@ export function reduce(
 
   // Phase 12 F-6 — the mirror image of the hoist above: BEGIN_RETRY can
   // arrive BEFORE this machine sees SCORE_DONE (RepSurface shows the v2
-  // feedback + "Start your Retry" from its own local state; the async
+  // feedback + "Retry this rep" from its own local state; the async
   // rep path delays onComplete until the pending rep resolves). Without
   // this, the tap lands in "recording"/"scoring" and is silently
   // dropped — the user (or the e2e spec) is left on a dead screen.
@@ -318,6 +326,20 @@ export function reduce(
       );
     }
     return { ...state, pendingBeginRetry: true };
+  }
+
+  // D26 — the same early-tap race for the optional Continue: RepSurface's
+  // done screen can render before SCORE_DONE reaches this machine, so an
+  // ADVANCE tapped there must buffer instead of being silently dropped.
+  if (
+    event.type === "ADVANCE" &&
+    state.loop === "v2" &&
+    state.attempt === "first" &&
+    (state.phase === "recording" ||
+      state.phase === "transcribing" ||
+      state.phase === "scoring")
+  ) {
+    return { ...state, pendingAdvance: true };
   }
 
   switch (state.phase) {
@@ -408,7 +430,7 @@ export function reduce(
         return replaceCurrentStationOutcome(state, event.repId, null, true);
       }
       if (event.type === "BEGIN_RETRY" && state.loop === "v2") {
-        // Required Retry (D2): same prompt, Coach's Focus carried over.
+        // Retry (D2, optionality per D26): same prompt, Coach's Focus carried over.
         // Blocked only when the first attempt's scoring failed — forcing
         // a retry against a scoring hiccup would punish the user twice
         // (the UI offers ADVANCE in that degraded case instead).
@@ -419,16 +441,9 @@ export function reduce(
         return { ...state, phase: "quit-summary" };
       }
       if (event.type === "ADVANCE") {
-        // v2 requires the Retry before advancing — ADVANCE from
-        // score-reveal is only honored on a failed-scoring first attempt
-        // (degraded path) or in the legacy v1 loop.
-        if (
-          state.loop === "v2" &&
-          state.attempt === "first" &&
-          !state.lastScoreFailure
-        ) {
-          return state;
-        }
+        // D26 — the Retry is encouraged, not required: Continue from the
+        // first-attempt reveal advances the station directly (the UI keeps
+        // Retry as the primary CTA).
         return advanceStation(state);
       }
       break;
@@ -581,11 +596,25 @@ function finishRepWithScore(
       phase: "recording",
       attempt: "retry",
       pendingBeginRetry: false,
+      pendingAdvance: false,
       lastScore: composite,
       lastScoreFailure: scoreFailure,
       firstOutcome: { repId, composite },
       outcomes: [...state.outcomes, outcome],
     };
+  }
+  // D26 — a buffered Continue advances the station the moment the score
+  // lands (same F-6 pattern as the buffered retry above).
+  if (state.pendingAdvance && !scoreFailure) {
+    return advanceStation({
+      ...state,
+      pendingAdvance: false,
+      pendingBeginRetry: false,
+      lastScore: composite,
+      lastScoreFailure: scoreFailure,
+      firstOutcome: { repId, composite },
+      outcomes: [...state.outcomes, outcome],
+    });
   }
   return {
     ...state,
@@ -594,6 +623,7 @@ function finishRepWithScore(
     lastScoreFailure: scoreFailure,
     firstOutcome: { repId, composite },
     ...(state.pendingBeginRetry ? { pendingBeginRetry: false } : {}),
+    ...(state.pendingAdvance ? { pendingAdvance: false } : {}),
     outcomes: [...state.outcomes, outcome],
   };
 }
@@ -618,6 +648,7 @@ function failScore(
     return {
       ...state,
       pendingBeginRetry: false,
+      pendingAdvance: false,
       phase: "improvement-review",
       lastScore: null,
       lastScoreFailure: true,
@@ -626,9 +657,10 @@ function failScore(
   }
   return {
     ...state,
-    // A buffered early BEGIN_RETRY must NOT fire against a failed score
-    // (the degraded card offers ADVANCE instead) — drop it here.
+    // Buffered early BEGIN_RETRY/ADVANCE must NOT fire against a failed
+    // score (the degraded card re-offers the choice) — drop them here.
     pendingBeginRetry: false,
+    pendingAdvance: false,
     phase: "score-reveal",
     lastScore: null,
     lastScoreFailure: true,

@@ -44,8 +44,8 @@ prompt; don't stack). Constraint types:
 
 ## Decision 3 — Progressive overload lives in "Retry Again"
 
-The required Retry (loop stage 4) always re-runs the SAME prompt + constraint with the
-Coach's Focus applied — implementation, not escalation.
+When the user chooses Retry (loop stage 4; optional per D26), it always re-runs the SAME
+prompt + constraint with the Coach's Focus applied — implementation, not escalation.
 
 **"Retry Again"** (optional third+ attempt, post-Improvement-Review) may escalate per C5:
 same prompt with raised stakes (audience upgraded, window tightened, constraint added) —

@@ -98,7 +98,7 @@ const modeContextSchema = z.object({
       score: z.number().min(0).max(100),
     })
     .optional(),
-  // PRD v3 engine — present when this rep is the required Retry (or an
+  // PRD v3 engine — present when this rep is a chosen Retry (or an
   // "again" attempt). Switches feedback into implementation-review mode.
   retryContext: z
     .object({

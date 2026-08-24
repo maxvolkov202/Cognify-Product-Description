@@ -211,7 +211,7 @@ export type ScoreRepModeContext = {
     headline: string;
     score: number;
   };
-  /** PRD v3 engine — present when THIS rep is the required Retry (or an
+  /** PRD v3 engine — present when THIS rep is a chosen Retry (or an
    *  optional "again" attempt) of a first rep. Switches feedback into
    *  implementation-review framing and requests the implementationReview
    *  field. Absent on first reps and all legacy/calibration paths, so
