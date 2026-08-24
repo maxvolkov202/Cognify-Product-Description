@@ -792,7 +792,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     Note: `.claude/settings.local.json` was already malformed (missing commas/dupes) at session start —
     unrelated, left untouched.
 
-- **2026-08-23 — rep-flow UX pass (branch `feat/rep-flow-ux`, D26, in progress).**
+- **2026-08-23 — rep-flow UX pass (PR #61, D26, shipped + production-verified 2026-08-24).**
   - Zero-streak dashboard copy now invites the user to start a streak instead of saying to keep one.
   - Classic recorder controls make **Stop & submit** the dominant white action and demote
     **Discard rep** to a quiet text action.
@@ -803,7 +803,37 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - Session-machine Continue is race-safe (`pendingAdvance`), including scoring failure,
     dual-action, and last-station cases. Final-station Continue explicitly closes the owner-scoped
     workout day with a server-computed average and awards completion XP exactly once.
+  - **Day-close timing (code-review finding, fixed before merge).** The close must NOT fire from the
+    Continue tap. Continue can be tapped on RepSurface's local done screen before `SCORE_DONE` reaches
+    the machine; on that buffered path `tagWorkoutRep` has not yet incremented `completed_reps`, so the
+    close hits its `completed_reps >= planned` guard, silently no-ops, and is never retried — leaving
+    the day `planned` with no `composite_at_close` and no completion XP. Observed in the dev DB at
+    `3/3 reps, status planned`. The close is now anchored to the machine reaching `day-complete-prompt`
+    / `day-complete`, which always follows `tagWorkoutRep`. The server action stays guarded and
+    idempotent, so the Retry path, the v1 path, and repeat renders are safe no-ops.
   - Local verification: typecheck, lint, unit suite, and production build green. Live fake-mic
     browser runs green for recorder abort/re-record, Daily Workout Retry, Application Lab Continue,
     Application Lab Retry, and a full Daily Workout completed through Continue on every remaining
-    station. Production verification remains pending until PR review and deployment.
+    station.
+  - **Production verification (2026-08-24, cognifygym.com).** Ran the persisted-auth fake-mic configs
+    against production with `PW_BASE_URL` + `PW_STORAGE_STATE` (no change to `auth.setup.ts`, whose
+    production guard stays intact; the prod storage states were deleted afterwards). Green: Application
+    Lab Continue and Retry branches, and a full 3-station Daily Workout completed entirely through
+    Continue, which closed in Vercel's own runtime with a rendered Communication Score. Zero-streak
+    dashboard copy confirmed live ("Today is a good day to start a streak" at streak 0).
+
+- **2026-08-24 — knowledge artifact reconciled (PR #62). No calibration re-run required.**
+  `src/lib/ai/knowledge/generated.ts` had sat dirty in the working tree, differing from the committed
+  copy only in the newlines embedded inside its string literals (`\r\n` vs `\n`). Those bytes do reach
+  scoring prompts (`score-shared.ts` renders `loadSkill()` blocks), so it looked like a calibration
+  guardrail event. It was not one, for two reasons worth remembering:
+  - `npm run build` runs `build:knowledge` first, so **every** build — local and Vercel — regenerates
+    the artifact from the `.md` sources. Production has therefore always served the LF output; the
+    committed CRLF copy was a stale commit from a CRLF checkout that no build ever consumed.
+  - The only consumer of the committed copy was the unit/calibration suite, which runs under `tsx`
+    without a build step. So the suite had been reading bytes production never used. Committing the
+    real generator output makes the suite match production rather than diverge from it.
+  Fix: commit the true generator output and add `.gitattributes` pinning
+  `src/lib/ai/knowledge/**/*.md` and `generated.ts` to `eol=lf`, so a CRLF checkout can never silently
+  rewrite prompt bytes again. Verified by re-running `npm run build:knowledge` on a clean tree (zero
+  diff) and the full unit suite (20 suites green, including `reference-anchors` and `score-arm-b`).
