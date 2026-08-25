@@ -1,7 +1,7 @@
 /**
  * Phase 11.B4 — the Daily Workout engine loop, LIVE end to end:
  * start day → prompt pick → Coach's Insight → First Rep (fake mic →
- * Deepgram → live scoring) → compact feedback (ONE Coach's Focus) →
+ * Deepgram → live scoring) → full feedback (ONE Coach's Focus) →
  * encouraged Retry → Improvement Review (verdict + breakdown) → next exercise.
  *
  * Run: AUTHED=1 npx playwright test tests/e2e/authed/workout-loop.spec.ts

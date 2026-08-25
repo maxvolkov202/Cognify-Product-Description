@@ -82,14 +82,6 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
-  /** D26 — trimmed first-attempt reveal. The user still gets everything
-   *  they need to judge and fix the rep: Communication Score, Coach's
-   *  Focus, the six-skill breakdown (each expandable to why-this-score +
-   *  how-to-improve), and playback. What's trimmed is the housekeeping —
-   *  the previous exercise's focus reminder, the rating widget, and the
-   *  share CTA — which is noise in the moment before a Retry and lives on
-   *  the post-retry Improvement Review instead. */
-  compact?: boolean;
 };
 
 const STAGGER_SEC = 0.06;
@@ -113,7 +105,6 @@ export function FeedbackPanel({
   lastRepFocus,
   onSaveExit,
   modeSignals,
-  compact = false,
   previousDimensionScores,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -220,7 +211,7 @@ export function FeedbackPanel({
           </Section>
         )}
 
-        {lastRepFocus && !compact && (
+        {lastRepFocus && (
           <Section delay={1}>
             <LastRepFocusBanner
               dimension={lastRepFocus.dimension}
@@ -255,10 +246,10 @@ export function FeedbackPanel({
             />
           </Section>
         )}
-        {/* Shown on the compact first-attempt reveal too: the six skill
-            scores are how the user judges the rep, and each card expands
-            to why-this-score + how-to-improve. Collapsed by default, so it
-            costs one line of reading unless the user opts in. */}
+        {/* The six skill scores are how the user judges the rep; each card
+            expands to why-this-score + how-to-improve. Collapsed by
+            default, so it costs one line of reading unless the user opts
+            in. */}
         <Section delay={4}>
           <div className="surface-card relative overflow-hidden">
             <div className="p-5 md:p-6">
@@ -290,9 +281,7 @@ export function FeedbackPanel({
           </Section>
         )}
 
-        {/* ——— Calibration & flywheel (demoted; hidden on the compact
-            first-attempt reveal) ———————————————— */}
-        {!compact && (
+        {/* ——— Calibration & flywheel ———————————————— */}
         <Section delay={7}>
           <div className="space-y-3 border-t border-ink-200 dark:border-ink-700 pt-5">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400 dark:text-ink-500">
@@ -333,7 +322,6 @@ export function FeedbackPanel({
             )}
           </div>
         </Section>
-        )}
       </div>
     </AudioControlProvider>
   );

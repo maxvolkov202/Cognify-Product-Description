@@ -1,7 +1,7 @@
 /**
  * Phase 11.B4 / Overhaul P1 — Application Lab application session, LIVE:
  * hub → Storytelling → 1–5 rep stepper → prompt → insight → First Rep →
- * compact feedback → Continue or Retry → optional Improvement Review →
+ * full feedback → Continue or Retry → optional Improvement Review →
  * §6.8 Session Complete renders.
  *
  * Parametrized over the stepper's range extremes (1 and 5) so the P1
