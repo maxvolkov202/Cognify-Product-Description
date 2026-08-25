@@ -93,6 +93,46 @@ phase) → check the phase off here. Never commit to main directly.
   callers (Daily Workout RepControls, Application Lab, Build a Rep). What survives of D26 is only
   the optional-retry behavior: colorful Retry primary + gray Continue, Improvement Review only on
   Retry, plus the later additions (movement chips, grounded quotes). PRD §§4.5, 4.6, 4.9 updated.
+  **SHIPPED 2026-08-25 (PR #67, squash `05934e30`).** Merged to `main` and deployed to production
+  with `vercel --prod`. Post-review fixes landed in the same PR (all post-processing/render — the
+  scoring prompt is byte-identical to what the D26 calibration run measured, so that run still
+  stands): a grounded quote is dropped whenever the hybrid layer replaced the feedback sentence it
+  was chosen to justify (delivery, when the deterministic override diverges >10 pts — the check
+  compares rendered vs model feedback, so it covers any future override); the "No specific moment
+  to flag" empty state is gated on `!groundedMoment`; a quote-without-feedback dimension now
+  persists (it previously rendered in-session and vanished on reload); `parseTranscriptMarker`
+  tolerates the bracketed `[0:45]` form the TIMESTAMP INDEX actually renders.
+
+  **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
+  - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
+    Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
+    blind-ranking share CTA (the three the compact trim used to hide), plus Retry/Continue. 3 of 6
+    skill cards rendered a grounded quote with a working "Hear it at m:ss" seek button; Continue
+    completed the session.
+  - Build a Rep — intake -> plan -> guided moment -> readiness review passes on prod.
+  - Daily Workout — rep -> focus -> retry -> Improvement Review passes on prod (the retry path also
+    exercises the provider-less DimensionGrid, where the seek button correctly hides).
+  - Persistence — every prod rep wrote `feedback.version = "v4.1.0"` with
+    `skillFeedback[dim].quote`/`quoteAtMs` populated where grounded, under the LIVE scoring arm
+    `signals-drop` (`FF_SCORING_VARIANT_ARM`, 100%). delivery/tone are legitimately null: those
+    scores are prosody-grounded, not grounded in a worded moment.
+
+  **Known follow-ups (not blocking; raised by `/code-review` on PR #67):**
+  - Quote independence — with six dimensions over one short transcript the model often cites the
+    SAME moment for several skills (one prod rep grounded 4 dimensions on one identical phrase),
+    which pushes against the DIMENSION INDEPENDENCE rule. The D26 calibration run's 3 misses were
+    independence checks that re-passed 2/2 on targeted rerun; a full-suite rerun (with
+    `FF_DETERMINISTIC_SIGNALS=true` + `_PERCENT=100`) would settle noise vs small shift. This is the
+    highest-value follow-up: it is a copy-quality issue users can see.
+  - The prompt puts no explicit char cap on `dimensions[].quote` (the neighboring `feedback` rule
+    has <=400). Six long quotes eat decode headroom against `max_tokens` 2500, and a truncated
+    response falls to `mock-fallback-v1`. Adding a cap is a SCORING-PROMPT edit, so it needs a
+    calibration re-run — deliberately deferred, not forgotten.
+  - The fan-out bench arms (`grouped-fanout`, `per-skill-fanout`, `holistic-split`) rebuild
+    dimensions from their own schema with no quote fields, so they stamp v4.1.0 without quotes AND
+    pay decode tokens for six fields they discard — which contaminates the decode-latency
+    measurement those arms exist to make. Bench-only; the shipped arm (`signals-drop`) is the
+    control single-call path and carries quotes correctly.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
