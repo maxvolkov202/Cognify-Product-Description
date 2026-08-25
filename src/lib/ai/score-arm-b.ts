@@ -134,6 +134,32 @@ const synthesisPassSchema = z.object({
 type SynthesisEnvelope = z.infer<typeof synthesisPassSchema>;
 
 // ── Scope instructions (uncached user-message prefixes) ─────────────────
+
+/** Grounded per-skill quotes (v4.1.0) are a CONTROL-path feature. These arms
+ *  rebuild `dimensions` from `armDimensionSchema`, which has no quote fields,
+ *  and both `merged` object literals below name the fields they carry — so a
+ *  quote the model writes is discarded on arrival. Without this line the arms
+ *  still PAY for it: the cached system prefix (shared with control, verbatim
+ *  — see buildSystemBlocks) tells the model to emit `quote`/`quoteAt` on every
+ *  dimension, so up to six quoted spans get DECODED and thrown away. Decode is
+ *  precisely the latency these arms exist to measure, so that is measurement
+ *  contamination, not just waste.
+ *
+ *  Suppressed HERE, in the uncached per-call scope, rather than by editing the
+ *  system prompt for arms: the arms deliberately share control's cached system
+ *  prefix byte-for-byte, and forking it would give them a separate cache entry
+ *  and a cold-prefix penalty — corrupting the same measurement from the other
+ *  side. The scope block is the user-message prefix, so it is the right place
+ *  for a per-call override.
+ *
+ *  This is the bench-only choice (a): the arms do not ship, so the honest move
+ *  is to stop asking for what they discard. If an arm is ever promoted, the
+ *  fix flips to (b) — carry `quote`/`quoteAt` through `armDimensionSchema` and
+ *  both `merged` rebuilds — because a shipped arm stamping FEEDBACK_VERSION
+ *  v4.1.0 with no quotes would silently drop a user-facing feature. */
+const NO_QUOTE_FIELDS =
+  "Ignore the system prompt's `quote` / `quoteAt` fields and its dimensions[].quote rules: this arm discards them, so emitting them only burns decode. The JSON shape above is exact — omit both fields entirely.";
+
 const CONTENT_SCOPE = [
   "ARM SCOPE — CONTENT PASS.",
   "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
@@ -141,6 +167,7 @@ const CONTENT_SCOPE = [
   "Spend your full token budget on rich, specific per-skill feedback for these four.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 const DELIVERY_SCOPE = [
@@ -149,6 +176,7 @@ const DELIVERY_SCOPE = [
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 // ── holistic-split scopes (PIVOT 2026-07-22 — the fan-out CALIBRATION fix) ──
@@ -174,6 +202,7 @@ const CONTENT_SCOPE_HOLISTIC = [
   "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write 1-2 tight sentences of feedback per dimension. Do NOT hunt for nitpicks to fill space: if you cannot name a real deficiency, the score is high (per the calibration rules), not a hedged middle.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 const DELIVERY_SCOPE_HOLISTIC = [
@@ -182,6 +211,7 @@ const DELIVERY_SCOPE_HOLISTIC = [
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt. Judge voice and manner, not the argument's substance — but the transcript is legitimate evidence for voice and manner.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 // ── lean-split scopes (lever a × b — lean output ON the parallel decode) ──
@@ -202,6 +232,7 @@ const CONTENT_SCOPE_LEAN = [
   "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write ONE tight sentence of feedback per dimension — do not pad, do not hunt for nitpicks to fill space. The feedback being short must NEVER pull a score down: if you cannot name a real deficiency, the score is ≥80 (per the calibration rules), not a hedged middle.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"feedback":"1 sentence per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 const DELIVERY_SCOPE_LEAN = [
@@ -210,6 +241,7 @@ const DELIVERY_SCOPE_LEAN = [
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt.",
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"feedback":"1 sentence","subSkill":"snake_case id"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 /** Arm C — the Delivery+Tone pass, but tone is DECOMPOSED into ordinal
@@ -221,6 +253,7 @@ const DELIVERY_TONE_DECOMP_SCOPE = [
   "For TONE, do NOT emit a 0-100 number. Instead, judge each of these transcript-observable tone sub-skills and rate it ordinally: directness, authority, assertiveness. Levels: \"strong\" (clearly present and effective), \"present\" (there but unremarkable), \"weak\" (attempted but undercut), \"absent\" (missing or contradicted). Give ≤120 chars of evidence each. Reason only about voice/manner, never the argument's content.",
   'Return ONLY this JSON, no prose or fences: {"delivery":{"score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null},"toneObservations":[{"subSkill":"directness"|"authority"|"assertiveness","level":"strong"|"present"|"weak"|"absent","evidence":"..."}],"toneFeedback":"1-2 sentences on the voice/tone"}',
   "Include exactly one observation per the three tone sub-skills. Do NOT include content dimensions, a headline, or coachFocus.",
+  NO_QUOTE_FIELDS,
 ].join("\n");
 
 const TONE_SUBSKILL_SET: ReadonlySet<string> = new Set(SUB_SKILLS.tone);
@@ -682,6 +715,7 @@ function renderPerSkillScope(dim: SkillDimension, lean: boolean): string {
       : `Judge ${dim} from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone — a separate pass grades voice. Write tight, specific feedback; the feedback being short must NEVER pull the score down — if you cannot name a real deficiency, the score is ≥80 per the calibration rules, not a hedged middle.`,
     `Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"${dim}","score":0-100,"feedback":"${feedbackShape} per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE for ${dim}"|null}]}`,
     `Include exactly one entry for ${dim}. Do NOT score any other dimension, and do NOT include a headline, coachFocus, or strongerVersion.`,
+    NO_QUOTE_FIELDS,
   ].join("\n");
 }
 

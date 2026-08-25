@@ -100,8 +100,24 @@ const dimensionScoreSchema = z.object({
    *  quote from the transcript that this skill's score turns on. LENIENT
    *  everywhere: absent/invalid never fails the parse, and the quote is
    *  substring-validated post-parse (a mismatch drops it — never an
-   *  invented quote on screen). Same cap rationale as strongerVersion. */
-  quote: z.string().min(1).max(1000).nullable().optional().catch(null),
+   *  invented quote on screen).
+   *
+   *  Cap 400, NOT strongerVersion's 1000 (2026-08-25). The two fields have
+   *  different jobs: strongerVersion quotes ONE span per rep, chosen so a
+   *  rewrite can be taught off it, so a long comma-spliced run-on is
+   *  legitimate there. This field is a phrase-length GROUNDING moment
+   *  rendered as a small blockquote under a skill card, and there are up to
+   *  six of them in one response. Six 1000-char quotes are ~1.5k decode
+   *  tokens on top of the 1,100-1,500 the v4 contract already spends
+   *  against `max_tokens: 2500` — that truncates, fails the JSON parse, and
+   *  lands the rep on `mock-fallback-v1`, which skips the feedback doc AND
+   *  the progress snapshots. The PROMPT asks for ≤200 (a phrase); 400 is
+   *  the backstop, matching the neighbouring `feedback` cap so a modest
+   *  overshoot still renders instead of silently vanishing, while a
+   *  paragraph dump is caught. `.catch(null)` means an over-cap quote drops
+   *  to null rather than failing the parse — the card loses its moment,
+   *  the score and feedback are untouched. */
+  quote: z.string().min(1).max(400).nullable().optional().catch(null),
   /** The quote's position as an inline transcript marker ("m:ss") echoed
    *  from the timed transcript, or null when timestamps were unavailable.
    *  Parsed to ms post-validation; junk coerces to null. */
@@ -389,7 +405,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "headline": "one-line verdict, see HEADLINE RULES below",
@@ -430,7 +446,8 @@ PER-SKILL FEEDBACK RULES (dimensions[].feedback — the expandable Core Skill Br
   - Second-person, present-tense, no hedging, ≤400 chars.
   - Must NOT introduce a second coaching objective that competes with coachFocus — per-skill feedback explains the score; coachFocus owns "what to change next".
   - dimensions[].subSkill: the snake_case id of the hidden skill that most drove the score. It must belong to that dimension (use the SUB-SKILL REFERENCE). Mismatches are sanitized to null.
-  - dimensions[].quote: the single short transcript moment (a phrase, not a paragraph) this skill's score most turns on — the moment the feedback sentence is ABOUT. Copied CHARACTER-FOR-CHARACTER from the transcript; paraphrases are rejected by the post-validator and the quote is dropped. null when no single moment grounds the score (e.g. the score reflects overall consistency) — prefer null over a stretch.
+  - dimensions[].quote: the single short transcript moment (a phrase, not a paragraph — ≤200 chars) this skill's score most turns on — the moment the feedback sentence is ABOUT. Copied CHARACTER-FOR-CHARACTER from the transcript; paraphrases are rejected by the post-validator and the quote is dropped. null when no single moment grounds the score (e.g. the score reflects overall consistency) — prefer null over a stretch.
+  - QUOTE INDEPENDENCE (as binding as DIMENSION INDEPENDENCE): every non-null quote in this rep must be a DIFFERENT moment. Never ground two dimensions on the same phrase, and never on overlapping spans of the same sentence — a moment already quoted is spent. A short transcript usually holds fewer distinct moments than six, so most reps will have SEVERAL dimensions at quote null; that is the expected shape, not a failure. When the moment that best fits a dimension is already taken, or the only candidate left is a stretch, write null — the card renders cleanly with no moment. Duplicates are dropped by the post-validator anyway, so reusing a phrase only costs a card its quote.
   - dimensions[].quoteAt: from the TIMESTAMP INDEX (when present), the m:ss of the entry closest BEFORE where the quoted moment occurs — digits only, e.g. "0:45". null when no TIMESTAMP INDEX exists. Never invent timestamps.
   - delivery and tone quotes: only quote transcript text that exhibits the vocal behavior named in the feedback (rushed run-on, filler cluster, flat list). When the score is grounded in prosody measurements rather than any specific worded moment, use null.
 
@@ -831,6 +848,63 @@ export function sanitizeDimensionQuote(opts: {
     return null;
   }
   return { quote: q, quoteAtMs: parseTranscriptMarker(opts.quoteAt) };
+}
+
+/** Quote independence (2026-08-25) — deterministic backstop for the QUOTE
+ *  INDEPENDENCE prompt rule. With six dimensions over one short transcript
+ *  the model reliably grounds several skills on the SAME phrase (one prod
+ *  rep put 4 of 6 dimensions on the identical "Firewall is basically a
+ *  security guard"). The same sentence quoted back under four different
+ *  skills reads as broken to the user, and it pushes against the DIMENSION
+ *  INDEPENDENCE rule the scores are supposed to obey — each card is meant to
+ *  point at its OWN evidence.
+ *
+ *  Rule: walk the dimensions in canonical order and let the first one claim
+ *  a moment; any later dimension whose quote is the SAME moment loses its
+ *  quote (score and feedback untouched — the card just renders the existing
+ *  "No specific moment to flag" empty state). "Same moment" is normalized
+ *  containment in EITHER direction, not string equality, so a re-quote that
+ *  trims or extends the span ("Firewall is basically a security guard" vs
+ *  "...security guard, right") is caught too.
+ *
+ *  First-in-canonical-order wins because the order is clarity → structure →
+ *  conciseness → thinking_quality → delivery → tone: the dimensions a WORDED
+ *  moment most legitimately grounds come first, and delivery/tone are
+ *  prosody-grounded (their quotes are supposed to be null far more often).
+ *  Dropping rather than reassigning keeps this pure and deterministic —
+ *  picking "which skill deserves the phrase more" is a judgment call the
+ *  prompt owns, not the validator.
+ *
+ *  Containment is applied with no minimum length: a filler-length quote
+ *  ("you know") sitting inside a longer one is, textually, the same moment,
+ *  and the product stance here is prefer-null-over-a-stretch. */
+export function dropDuplicateMoments<T extends { quote?: string | null }>(
+  dimensions: T[],
+): T[] {
+  const claimed: string[] = [];
+  return dimensions.map((d) => {
+    const q = d.quote;
+    if (!q) return d;
+    const needle = normalizeForMatch(q);
+    if (needle.length === 0) return d;
+    const clash = claimed.find(
+      (c) => c.includes(needle) || needle.includes(c),
+    );
+    if (clash === undefined) {
+      claimed.push(needle);
+      return d;
+    }
+    console.warn(
+      "[score] dimension quote reuses an already-grounded moment; dropping:",
+      { quote: q.slice(0, 80) },
+    );
+    // Delete rather than null so the field is simply absent, matching the
+    // shape of a dimension the model never grounded at all.
+    const next = { ...d } as T & { quote?: string | null; quoteAtMs?: number | null };
+    delete next.quote;
+    delete next.quoteAtMs;
+    return next as T;
+  });
 }
 
 /** "m:ss" (exactly as rendered in the timed transcript's inline markers)
@@ -1670,6 +1744,10 @@ export function assembleRepScore(opts: {
       ? { ...d, quote: grounded.quote, quoteAtMs: grounded.quoteAtMs }
       : d;
   });
+  // ...then enforce QUOTE INDEPENDENCE across the rep: one moment grounds at
+  // most one skill. Runs AFTER verbatim validation so a dropped hallucination
+  // never "claims" a moment a real quote would then lose to.
+  finalDimensions = dropDuplicateMoments(finalDimensions);
 
   // Grading v3 (spike 3.1) — tag what evidence grounded the tone score
   // so profile/trend consumers can tell prosody-grounded tone from

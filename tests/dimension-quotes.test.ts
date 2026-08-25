@@ -6,6 +6,7 @@
  */
 import {
   sanitizeDimensionQuote,
+  dropDuplicateMoments,
   parseTranscriptMarker,
   parseAndValidate,
   assembleRepScore,
@@ -172,6 +173,17 @@ assert(
   "verbatim quote survives assembly",
 );
 assert(clarity?.quoteAtMs === 3_000, "marker parsed to ms on assembly");
+// modelResponse() puts the SAME quote on all six dimensions, which is
+// exactly the prod symptom QUOTE INDEPENDENCE exists to stop: the first
+// dimension in canonical order keeps the moment, the rest render with none.
+for (const d of verbatimScore.dimensions.filter((x) => x.dimension !== "clarity")) {
+  assert(d.quote == null, `reused moment dropped on ${d.dimension}`);
+  assert(d.quoteAtMs == null, `reused moment's marker dropped on ${d.dimension}`);
+}
+// The scores and feedback are untouched by the drop — only the moment goes.
+for (const d of verbatimScore.dimensions) {
+  assert(d.feedback === "ok", `feedback survives the dedupe on ${d.dimension}`);
+}
 
 // ── The delivery-override guard, exercised through applyHybridLayer ──
 // When the deterministic pacing override diverges >10 pts it REPLACES the
@@ -268,5 +280,187 @@ assert(
   "untouched dimension keeps its verbatim quote while delivery loses its own",
 );
 assert(untouched?.quoteAtMs === 5_000, "untouched dimension keeps its marker");
+
+// ── QUOTE INDEPENDENCE — dropDuplicateMoments in isolation ──
+// With six dimensions over one short transcript the model reliably grounds
+// several skills on one phrase; the same sentence quoted back under four
+// skill cards reads as broken. First in canonical order claims the moment.
+
+const distinct = dropDuplicateMoments([
+  { dimension: "clarity", quote: "the main thing I keep coming back to is cost" },
+  { dimension: "structure", quote: "We tried this last quarter" },
+  { dimension: "tone", quote: null },
+]);
+assert(distinct[0]!.quote != null, "distinct moment 1 kept");
+assert(distinct[1]!.quote != null, "distinct moment 2 kept");
+assert(distinct[2]!.quote == null, "null quote stays null");
+
+// Exact reuse: later dimensions lose the moment.
+const exact = dropDuplicateMoments([
+  { dimension: "clarity", quote: "it broke at a hundred thousand requests" },
+  { dimension: "structure", quote: "it broke at a hundred thousand requests" },
+  { dimension: "conciseness", quote: "it broke at a hundred thousand requests" },
+]);
+assert(exact[0]!.quote != null, "first claim of an exact-reused moment kept");
+assert(exact[1]!.quote === undefined, "second exact reuse dropped");
+assert(exact[2]!.quote === undefined, "third exact reuse dropped");
+
+// Containment in BOTH directions counts as the same moment — a re-quote
+// that trims or extends the span is still the same phrase on screen.
+const extended = dropDuplicateMoments([
+  { quote: "it broke at a hundred thousand" },
+  { quote: "it broke at a hundred thousand requests" },
+]);
+assert(extended[1]!.quote === undefined, "extended span is the same moment");
+const trimmed = dropDuplicateMoments([
+  { quote: "it broke at a hundred thousand requests" },
+  { quote: "a hundred thousand requests" },
+]);
+assert(trimmed[1]!.quote === undefined, "trimmed span is the same moment");
+
+// Normalization matches sanitizeDimensionQuote's (whitespace-collapsed,
+// case-insensitive), so casing/spacing games don't sneak a duplicate past.
+const noisy = dropDuplicateMoments([
+  { quote: "We tried this last quarter" },
+  { quote: "we   TRIED this  last quarter" },
+]);
+assert(noisy[1]!.quote === undefined, "case/whitespace variants are one moment");
+
+// The dropped dimension loses quoteAtMs too — a marker with no quote
+// would render a seek button pointing at nothing.
+const withMs = dropDuplicateMoments([
+  { quote: "cost", quoteAtMs: 1_000 },
+  { quote: "cost", quoteAtMs: 2_000 },
+]);
+assert(
+  withMs[1]!.quote === undefined && withMs[1]!.quoteAtMs === undefined,
+  "duplicate drops both quote and quoteAtMs",
+);
+
+// ── Distinct moments all survive assembly ──
+// The negative control for the dedupe: a model that obeys QUOTE
+// INDEPENDENCE must keep every one of its quotes.
+const DISTINCT_TRANSCRIPT =
+  "A firewall checks traffic against a set of rules before it reaches you. " +
+  "It is basically a bouncer at the door, and it never gets tired.";
+const distinctResponse = JSON.stringify({
+  dimensions: [
+    ["clarity", "checks traffic against a set of rules"],
+    ["structure", "before it reaches you"],
+    ["conciseness", "basically a bouncer at the door"],
+    ["thinking_quality", "it never gets tired"],
+    ["delivery", null],
+    ["tone", null],
+  ].map(([d, q]) => ({
+    dimension: d,
+    score: 70,
+    signals: [],
+    feedback: "ok",
+    quote: q,
+    quoteAt: "0:03",
+  })),
+  headline: "headline",
+  headlineTone: "blunt",
+  nextRepHint: "next time, lead with the point",
+  coachFocus: {
+    dimension: "clarity",
+    behavior: "lead with the point",
+    why: "it lands faster",
+    action: "say the point first",
+  },
+});
+const distinctParsed = parseAndValidate(distinctResponse, DISTINCT_TRANSCRIPT);
+const distinctScore = assembleRepScore({
+  finalDimensions: distinctParsed.sanitizedDimFeedback,
+  dimensionMap: {},
+  validated: distinctParsed.validated,
+  input: { transcript: DISTINCT_TRANSCRIPT, promptText: "p", durationMs: 30_000 },
+  sanitizedCoachFocus: distinctParsed.sanitizedCoachFocus,
+  sanitizedStrongerVersion: distinctParsed.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+for (const dim of ["clarity", "structure", "conciseness", "thinking_quality"]) {
+  const found = distinctScore.dimensions.find((d) => d.dimension === dim);
+  assert(found?.quote != null, `distinct moment kept on ${dim}`);
+}
+assert(
+  new Set(
+    distinctScore.dimensions.map((d) => d.quote).filter(Boolean),
+  ).size === 4,
+  "four distinct moments, four distinct quotes",
+);
+
+// ── Phrase-length cap on dimensions[].quote ──
+// Six paragraph-length quotes eat decode headroom against max_tokens 2500;
+// a truncated response fails the JSON parse and lands on mock-fallback-v1,
+// which skips the feedback doc AND the progress snapshots. The prompt asks
+// for <=200 chars; the schema backstops at 400 with `.catch(null)`, so an
+// over-cap quote drops to null instead of failing the whole parse.
+const LONG_TRANSCRIPT = "word ".repeat(200).trim();
+const overCap = LONG_TRANSCRIPT.slice(0, 500);
+assert(overCap.length > 400, "premise: the test quote exceeds the schema cap");
+const cappedParsed = parseAndValidate(
+  JSON.stringify({
+    dimensions: DIMS.map((d) => ({
+      dimension: d,
+      score: 70,
+      signals: [],
+      feedback: "ok",
+      // Verbatim, so ONLY the length can drop it.
+      quote: overCap,
+      quoteAt: "0:03",
+    })),
+    headline: "headline",
+    headlineTone: "blunt",
+    nextRepHint: "next time, lead with the point",
+    coachFocus: {
+      dimension: "clarity",
+      behavior: "lead with the point",
+      why: "it lands faster",
+      action: "say the point first",
+    },
+  }),
+  LONG_TRANSCRIPT,
+);
+assert(
+  cappedParsed.validated.dimensions.every((d) => d.quote == null),
+  "over-cap quote coerced to null rather than failing the parse",
+);
+assert(
+  cappedParsed.validated.dimensions.every((d) => d.score === 70),
+  "the rest of the dimension survives an over-cap quote",
+);
+// An at-cap quote still passes.
+const atCap = LONG_TRANSCRIPT.slice(0, 380);
+const atCapParsed = parseAndValidate(
+  JSON.stringify({
+    dimensions: DIMS.map((d) => ({
+      dimension: d,
+      score: 70,
+      signals: [],
+      feedback: "ok",
+      quote: d === "clarity" ? atCap : null,
+      quoteAt: "0:03",
+    })),
+    headline: "headline",
+    headlineTone: "blunt",
+    nextRepHint: "next time, lead with the point",
+    coachFocus: {
+      dimension: "clarity",
+      behavior: "lead with the point",
+      why: "it lands faster",
+      action: "say the point first",
+    },
+  }),
+  LONG_TRANSCRIPT,
+);
+assert(
+  atCapParsed.validated.dimensions.find((d) => d.dimension === "clarity")
+    ?.quote === atCap,
+  "a quote under the 400-char backstop survives the parse",
+);
 
 console.log(`${passed} passed, 0 failed`);
