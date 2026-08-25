@@ -840,7 +840,14 @@ export function parseTranscriptMarker(
   marker: string | null | undefined,
 ): number | null {
   if (!marker) return null;
-  const m = marker.trim().match(/^(\d{1,3}):([0-5]\d)$/);
+  // The TIMESTAMP INDEX renders entries as `[0:45] "word"`, so a model
+  // echoing the marker in the form it was shown sends "[0:45]". Strip the
+  // brackets before matching rather than silently losing tap-to-hear.
+  const m = marker
+    .trim()
+    .replace(/^\[|\]$/g, "")
+    .trim()
+    .match(/^(\d{1,3}):([0-5]\d)$/);
   if (!m) return null;
   return Number(m[1]) * 60_000 + Number(m[2]) * 1_000;
 }
@@ -1627,6 +1634,13 @@ export function assembleRepScore(opts: {
   const rawByDim = new Map(validated.dimensions.map((d) => [d.dimension, d]));
   finalDimensions = finalDimensions.map((d) => {
     const raw = rawByDim.get(d.dimension);
+    // The quote grounds the FEEDBACK SENTENCE. Where the hybrid layer
+    // replaced that sentence with a generated one (delivery, when the
+    // deterministic override diverges >10 pts), the model's quote was
+    // chosen to justify copy that is no longer on the card — it would
+    // "prove" a claim nobody wrote. Drop it; the card keeps the
+    // wpm/filler narrative with no moment.
+    if (raw?.feedback && d.feedback !== raw.feedback) return d;
     const grounded = sanitizeDimensionQuote({
       quote: raw?.quote,
       quoteAt: raw?.quoteAt,

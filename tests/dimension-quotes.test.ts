@@ -24,6 +24,10 @@ assert(parseTranscriptMarker(" 1:00 ") === 60_000, "whitespace tolerated");
 assert(parseTranscriptMarker("1:5") === null, "seconds must be two digits");
 assert(parseTranscriptMarker("1:75") === null, "seconds must be < 60");
 assert(parseTranscriptMarker("45") === null, "bare number rejected");
+// The TIMESTAMP INDEX shows markers as `[0:45] "word"`, so a model that
+// echoes the form it was shown must not lose tap-to-hear.
+assert(parseTranscriptMarker("[0:45]") === 45_000, "bracketed marker parsed");
+assert(parseTranscriptMarker(" [2:05] ") === 125_000, "bracketed + padded");
 assert(parseTranscriptMarker(null) === null, "null → null");
 assert(parseTranscriptMarker(undefined) === null, "undefined → null");
 
@@ -70,4 +74,4 @@ assert(
   "null quote → null",
 );
 
-console.log("14 passed, 0 failed");
+console.log("17 passed, 0 failed");
