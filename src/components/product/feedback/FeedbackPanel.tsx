@@ -114,6 +114,7 @@ export function FeedbackPanel({
   onSaveExit,
   modeSignals,
   compact = false,
+  previousDimensionScores,
 }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -267,6 +268,7 @@ export function FeedbackPanel({
                 callouts={score.callouts}
                 primaryFocusDimension={score.primaryFocusDimension}
                 modeSignals={modeSignals}
+                previousScores={previousDimensionScores}
               />
             </div>
           </div>

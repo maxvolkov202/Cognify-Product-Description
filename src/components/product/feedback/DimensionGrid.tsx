@@ -4,6 +4,7 @@ import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import type { Callout, DimensionScore, SkillDimension } from "@/types/domain";
 import { SKILL_DIMENSIONS } from "@/types/domain";
 import { getPressureArchetype } from "@/lib/ai/pressure-archetypes";
+import { visibleSkillDelta } from "@/lib/skill-delta";
 import { DimensionCard } from "./DimensionCard";
 
 export type DimensionGridHandle = {
@@ -32,11 +33,15 @@ type Props = {
     focusDimension?: SkillDimension;
     pressureArchetypeId?: string;
   };
+  /** Per-skill scores from the previous rep in the same session (previous
+   *  exercise's latest attempt). When present, cards get C10-softened
+   *  movement chips and the grid a caption naming the referent. */
+  previousScores?: Partial<Record<SkillDimension, number>>;
 };
 
 export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
   function DimensionGrid(
-    { dimensions, callouts, primaryFocusDimension, modeSignals },
+    { dimensions, callouts, primaryFocusDimension, modeSignals, previousScores },
     ref,
   ) {
     const [openDim, setOpenDim] = useState<SkillDimension | null>(null);
@@ -132,11 +137,25 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
       return { ordered, highlightSet, deemphasizeSet };
     }, [modeSignals, scoreMap, primaryFocusDimension]);
 
+    // Only caption the movement chips when at least one will render —
+    // an orphaned caption over a chipless grid reads as a bug.
+    const hasVisibleDelta =
+      previousScores != null &&
+      dimensions.some(
+        (d) => visibleSkillDelta(d.score, previousScores[d.dimension]) != null,
+      );
+
     return (
-      <div
-        data-testid="core-skill-grid"
-        className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3"
-      >
+      <div>
+        {hasVisibleDelta && (
+          <p className="mb-2 text-[11px] font-semibold text-ink-400 dark:text-ink-500">
+            Movement since your last exercise
+          </p>
+        )}
+        <div
+          data-testid="core-skill-grid"
+          className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3"
+        >
         {layout.ordered.map((dim, i) => {
           const score = scoreMap.get(dim) ?? 0;
           const expanded = openDim === dim;
@@ -159,10 +178,12 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
                 }
                 highlighted={layout.highlightSet.has(dim)}
                 delaySec={0.6 + i * 0.04}
+                previousScore={previousScores?.[dim] ?? null}
               />
             </div>
           );
         })}
+        </div>
       </div>
     );
   },

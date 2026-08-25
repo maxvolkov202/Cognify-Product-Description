@@ -56,7 +56,7 @@ for (const count of [1, 5]) {
         timeout: 60_000,
       });
     } else {
-      // Encouraged Retry branch → Improvement Review, then quit and bank.
+      // Encouraged Retry branch → Improvement Review.
       await page
         .getByRole("button", { name: /Retry this rep/i })
         .first()
@@ -68,6 +68,38 @@ for (const count of [1, 5]) {
       });
       await expect(page.getByText(/Listen back/i)).toBeVisible();
       await expect(page.getByText(/Core Skill breakdown/i)).toBeVisible();
+
+      // Advance into exercise 2: its first-attempt breakdown carries
+      // movement chips vs exercise 1's latest attempt (§4.5.3 movement,
+      // C10-softened). Chip presence depends on real score movement, so
+      // it's evidenced (count + screenshot artifact), not hard-asserted.
+      await page.getByTestId("review-advance").click();
+      const nextPrompt = page.getByTestId("prompt-card").first();
+      await expect(nextPrompt).toBeVisible({ timeout: 60_000 });
+      await nextPrompt.click();
+      await page.getByTestId("insight-ready").click();
+      await recordRep(page);
+      await awaitFeedback(page, /Retry this rep/i);
+      await expect(page.getByTestId("core-skill-grid")).toBeVisible();
+      const chipCount = await page
+        .locator('[data-testid^="dim-delta-"]')
+        .count();
+      console.log(`[delta-chips] exercise 2 first-attempt chips: ${chipCount}`);
+      await page.screenshot({
+        path: "test-results/delta-chips-exercise2.png",
+        fullPage: true,
+      });
+
+      // Retry exercise 2, then quit from its review (the picker has no
+      // quit affordance) and bank the session.
+      await page
+        .getByRole("button", { name: /Retry this rep/i })
+        .first()
+        .click({ timeout: 30_000 });
+      await recordRep(page);
+      await expect(page.getByTestId("improvement-review")).toBeVisible({
+        timeout: 240_000,
+      });
       await page.getByTestId("review-quit").click();
       await expect(page.getByText(/Storytelling session banked/i)).toBeVisible({
         timeout: 60_000,

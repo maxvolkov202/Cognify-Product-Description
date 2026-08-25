@@ -63,6 +63,14 @@ phase) → check the phase off here. Never commit to main directly.
   Core Skill Breakdown appears in both feedback screens," but that sentence exists only in the
   SUPERSEDED `cognify-system-change-prd.md`, not the v2 PRD. Stale pointers survive in comments long
   after the doc is retired; confirm section numbers against the v2 PRD before relying on them.
+  **Follow-up 2026-08-24 (Max):** the first-attempt breakdown now shows per-skill movement since the
+  previous exercise in the same session (Daily Workout: previous station's latest attempt; Application
+  Lab: previous exercise's latest attempt; Build a Rep excluded — critical moments are heterogeneous
+  scenarios, so cross-moment deltas would compare unlike things). The show/hide rule is the C10
+  softening the Improvement Review already used, now extracted to `src/lib/skill-delta.ts` and shared
+  by both surfaces (unit-tested in `tests/skill-delta.test.ts`). This closes the Continue-path blind
+  spot where a user who never retried saw no movement anywhere. Baselines are client-state only; a
+  mid-session refresh renders the next feedback without chips.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 

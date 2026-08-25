@@ -319,6 +319,19 @@ export default function AppSessionClient({
     attempts.first != null ? deriveCoachFocus(attempts.first.score) : null;
   const retryFocus =
     attempts.first != null ? deriveRetryFocus(attempts.first.score) : null;
+
+  // Previous exercise's latest-attempt skill scores — movement chips on
+  // this exercise's first-attempt Core Skill Breakdown. In-memory only:
+  // resumed sessions carry lite outcomes (no dimensions), so the first
+  // exercise after a refresh renders without chips.
+  const previousExerciseDims = useMemo(() => {
+    const prev = outcomes[outcomes.length - 1];
+    const latest = prev?.retry ?? prev?.first;
+    if (!latest?.score.dimensions.length) return undefined;
+    return Object.fromEntries(
+      latest.score.dimensions.map((d) => [d.dimension, d.score]),
+    ) as Partial<Record<SkillDimension, number>>;
+  }, [outcomes]);
   const skillDim = exercise
     ? muscleGroupToSkillDim(exercise.dimension)
     : null;
@@ -532,6 +545,9 @@ export default function AppSessionClient({
                     onClick: advanceExercise,
                   },
                 }
+              : {})}
+            {...(phase.attempt === "first" && previousExerciseDims
+              ? { previousDimensionScores: previousExerciseDims }
               : {})}
             onComplete={(payload) =>
               onRepComplete({

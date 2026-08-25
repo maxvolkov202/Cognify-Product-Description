@@ -23,7 +23,7 @@ import type {
   SessionPhase,
 } from "@/lib/workout/types";
 import type { PickMode } from "@/lib/workout/session-machine";
-import type { MuscleGroupId, RepScore } from "@/types/domain";
+import type { MuscleGroupId, RepScore, SkillDimension } from "@/types/domain";
 import { MUSCLE_GROUP_LABELS } from "@/types/domain";
 import { cn } from "@/lib/utils/cn";
 import { DIM_THEMES } from "@/lib/workout/dim-theme";
@@ -107,6 +107,10 @@ export type RepControlsProps = {
   /** Resume a session paused by tab-hidden mid-rep. Auto-resume fires on
    *  tab-visible, but this manual control covers the already-visible case. */
   onResume?: () => void;
+  /** Previous station's latest-attempt skill scores, stashed by
+   *  WorkoutShell when the next prompt is picked. Rendered as C10-softened
+   *  movement chips on the first-attempt Core Skill Breakdown. */
+  previousDimensionScores?: Partial<Record<SkillDimension, number>>;
 };
 
 export default function RepControls({
@@ -141,6 +145,7 @@ export default function RepControls({
   onRetryAgain,
   onQuit,
   onResume,
+  previousDimensionScores,
 }: RepControlsProps) {
   return (
     <div
@@ -211,6 +216,7 @@ export default function RepControls({
             onRepScored={onRepScored}
             onAdvanceNow={onAdvanceNow}
             onBeginRetry={onBeginRetry}
+            previousDimensionScores={previousDimensionScores}
           />
         )}
 
@@ -356,6 +362,7 @@ function ActiveRep({
   onRepScored,
   onAdvanceNow,
   onBeginRetry,
+  previousDimensionScores,
 }: {
   station: ShellStation | null;
   selectedPrompt: { promptId: string; text: string; mode: PickMode } | null;
@@ -382,6 +389,9 @@ function ActiveRep({
   }) => void;
   onAdvanceNow?: () => void;
   onBeginRetry?: () => void;
+  /** Previous station's latest-attempt skill scores — rendered as C10-
+   *  softened movement chips on this rep's Core Skill Breakdown. */
+  previousDimensionScores?: Partial<Record<SkillDimension, number>>;
 }) {
   // Defensive: if we got here without a selected prompt, the picker hand-off
   // didn't fire. Surface a short helper so the user isn't stuck.
@@ -501,6 +511,9 @@ function ActiveRep({
       // (PRD §4.5.3), and playback, with a colorful Retry primary + a gray
       // Continue that advances the station.
       {...(isEngineFirst ? { feedbackCompact: true } : {})}
+      {...(isEngineFirst && previousDimensionScores
+        ? { previousDimensionScores }
+        : {})}
       {...(isEngineFirst && onAdvanceNow
         ? {
             secondaryAction: {

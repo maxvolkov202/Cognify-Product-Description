@@ -10,6 +10,7 @@ import { Disclosure } from "./Disclosure";
 import { useAudioControl } from "./AudioControlContext";
 import { CalloutCorrectionRow } from "../CalloutCorrectionRow";
 import { WhyThisMattersPopover } from "../WhyThisMattersPopover";
+import { visibleSkillDelta } from "@/lib/skill-delta";
 
 type Props = {
   dimension: SkillDimension;
@@ -30,6 +31,10 @@ type Props = {
   /** Optional. When present, animates the bar from 0 to score% after this
    *  delay. Used by DimensionGrid to stagger entrance. */
   delaySec?: number;
+  /** This skill's score on the previous rep (previous exercise in the same
+   *  session). Renders a C10-softened movement chip beside the score —
+   *  see visibleSkillDelta for the show/hide rule. */
+  previousScore?: number | null;
 };
 
 export function DimensionCard({
@@ -41,9 +46,11 @@ export function DimensionCard({
   onToggle,
   highlighted,
   delaySec = 0,
+  previousScore,
 }: Props) {
   const accent = DIMENSION_ACCENTS[dimension];
   const rounded = Math.round(score);
+  const delta = visibleSkillDelta(score, previousScore);
 
   return (
     <div
@@ -71,6 +78,20 @@ export function DimensionCard({
         <span className="text-sm font-extrabold tabular-nums text-ink-900 dark:text-white">
           {rounded}
         </span>
+        {delta != null && (
+          <span
+            data-testid={`dim-delta-${dimension}`}
+            aria-label={`${delta > 0 ? "up" : "down"} ${Math.abs(delta)} since your last exercise`}
+            className={cn(
+              "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+              delta > 0
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                : "bg-ink-100 text-ink-500 dark:bg-ink-800 dark:text-ink-400",
+            )}
+          >
+            {delta > 0 ? `+${delta}` : delta}
+          </span>
+        )}
         <ChevronDown
           className={cn(
             "size-3.5 shrink-0 text-ink-400 dark:text-ink-500 transition-transform",

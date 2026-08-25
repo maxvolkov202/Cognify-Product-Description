@@ -1418,6 +1418,10 @@ Expanded feedback explains why the score was earned and provides skill-specific 
 * Core Skill Breakdown is collapsed by default.  
 * Users can expand any skill to view detailed feedback.  
 * Each skill displays its score in the collapsed state.  
+* When a previous exercise exists in the same session, each skill also shows
+  its movement since that exercise (added 2026-08-24). Movement follows the
+  C10 softening rule used by the Improvement Review: zero movement and drops
+  beyond −3 are not shown.
 * Strong scores highlight effective behaviors.  
 * Lower scores identify improvement opportunities.  
 * Core Skill Breakdown supports Coach’s Focus rather than replacing it.  
