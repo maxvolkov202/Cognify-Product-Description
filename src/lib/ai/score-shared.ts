@@ -1487,13 +1487,28 @@ export function parseAndValidate(
     strongerVersion: validated.strongerVersion,
     transcript: input.transcript,
   });
-  const sanitizedDimFeedback = validated.dimensions.map((d) => ({
-    ...d,
-    subSkill: sanitizeDimSubSkill(d.dimension, d.subSkill),
-    ...(d.feedback && containsBannedPhrase(d.feedback)
-      ? logBannedAndKeep("dimensions.feedback", d.feedback)
-      : {}),
-  }));
+  // NOTE the destructure: `quote`/`quoteAt` are stripped here so an
+  // UNVALIDATED quote can never ride the spread onto a DimensionScore.
+  // Without this the verbatim check is decorative — assembleRepScore's
+  // grounding pass only ever ADDS a validated quote, so a hallucinated
+  // one would survive on every `return d` path, render in the blockquote
+  // as the user's own words, and persist. The single way a quote reaches
+  // a dimension is sanitizeDimensionQuote. (`quoteAt` is not a field on
+  // DimensionScore at all — only its parsed `quoteAtMs` is.)
+  const sanitizedDimFeedback = validated.dimensions.map((d) => {
+    const base = { ...d };
+    // Deleted, not just left unread: an UNVALIDATED quote must never ride
+    // the spread onto a DimensionScore.
+    delete base.quote;
+    delete base.quoteAt;
+    return {
+      ...base,
+      subSkill: sanitizeDimSubSkill(d.dimension, d.subSkill),
+      ...(d.feedback && containsBannedPhrase(d.feedback)
+        ? logBannedAndKeep("dimensions.feedback", d.feedback)
+        : {}),
+    };
+  });
 
   return {
     validated,

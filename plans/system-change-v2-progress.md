@@ -111,7 +111,24 @@ phase) → check the phase off here. Never commit to main directly.
   comparison is now unconditional (`d.feedback !== raw?.feedback`): equal when both are absent, so
   ordinary quote-only dimensions keep their moment.
 
+  **CRITICAL follow-up (PR #68) — the verbatim check was decorative.** `/code-review` caught that
+  `sanitizedDimFeedback` built each `DimensionScore` with `{ ...d }` spread straight off the parsed
+  model output, and the schema declares `quote`/`quoteAt` — so every dimension already carried the
+  RAW, unvalidated quote before the grounding pass ran. That pass only ever ADDS a validated quote,
+  so both `return d` paths kept a hallucinated one: `sanitizeDimensionQuote` logged "dropping" while
+  the invented quote rendered in the blockquote as the user's own words and persisted via
+  `buildFeedbackDoc`. Reproduced end to end before fixing. The raw fields are now deleted in
+  `sanitizedDimFeedback`, so the ONLY route onto a dimension is `sanitizeDimensionQuote`.
+  `tests/dimension-quotes.test.ts` gained assembly-level coverage (fabricated quote in → no quote
+  out, verbatim quote in → quote + parsed ms out); it previously exercised the sanitizer in
+  isolation only, which is exactly why the hole passed. The anti-hallucination contract this feature
+  advertises held only from this commit on — reps scored between the #67 deploy and this one could
+  carry an unverified quote.
+
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
+  - NOTE: this verification ran against the #67 build, BEFORE the critical fix below. It confirms
+    the panel/rendering and persistence; it is NOT evidence the verbatim contract held, since a
+    fabricated quote would have looked identical on screen. Re-verified after the fix.
   - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
     Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
     blind-ranking share CTA. The three surfaces the compact trim used to hide are the

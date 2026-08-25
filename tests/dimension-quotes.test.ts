@@ -7,10 +7,16 @@
 import {
   sanitizeDimensionQuote,
   parseTranscriptMarker,
+  parseAndValidate,
+  assembleRepScore,
 } from "../src/lib/ai/score-shared";
 
+let passed = 0;
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+  // Counted rather than hardcoded: several assertions below run inside
+  // per-dimension loops, so a literal total silently drifts.
+  passed++;
 }
 
 const transcript =
@@ -74,4 +80,96 @@ assert(
   "null quote → null",
 );
 
-console.log("17 passed, 0 failed");
+// ── Assembly-level: an unvalidated quote must never reach a dimension ──
+// The verbatim check is only meaningful if the RAW model quote cannot
+// ride the object spread onto a DimensionScore. assembleRepScore's
+// grounding pass only ever ADDS a validated quote, so anything that
+// leaks through parseAndValidate survives every `return d` path — it
+// would render in the blockquote as the user's own words and persist.
+
+const REP_TRANSCRIPT =
+  "A firewall checks traffic against a set of rules before it reaches you.";
+const DIMS = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "tone",
+] as const;
+
+function modelResponse(quote: string): string {
+  return JSON.stringify({
+    dimensions: DIMS.map((d) => ({
+      dimension: d,
+      score: 70,
+      signals: [],
+      feedback: "ok",
+      quote,
+      quoteAt: "0:03",
+    })),
+    headline: "headline",
+    headlineTone: "blunt",
+    nextRepHint: "next time, lead with the point",
+    coachFocus: {
+      dimension: "clarity",
+      behavior: "lead with the point",
+      why: "it lands faster",
+      action: "say the point first",
+    },
+  });
+}
+
+// A fabricated quote is stripped before it can reach a DimensionScore.
+const fabricated = parseAndValidate(
+  modelResponse("I INVENTED THIS ENTIRELY"),
+  REP_TRANSCRIPT,
+);
+for (const d of fabricated.sanitizedDimFeedback) {
+  const raw = d as Record<string, unknown>;
+  assert(raw.quote === undefined, `no raw quote on ${d.dimension}`);
+  assert(raw.quoteAt === undefined, `no raw quoteAt on ${d.dimension}`);
+}
+
+// ...and it is still absent after assembly (the grounding pass drops it).
+const fabricatedScore = assembleRepScore({
+  finalDimensions: fabricated.sanitizedDimFeedback,
+  dimensionMap: {},
+  validated: fabricated.validated,
+  input: { transcript: REP_TRANSCRIPT, promptText: "p", durationMs: 30_000 },
+  sanitizedCoachFocus: fabricated.sanitizedCoachFocus,
+  sanitizedStrongerVersion: fabricated.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+for (const d of fabricatedScore.dimensions) {
+  assert(d.quote == null, `fabricated quote dropped on ${d.dimension}`);
+}
+
+// A verbatim quote DOES survive assembly, with its marker parsed to ms.
+const verbatim = parseAndValidate(
+  modelResponse("checks traffic against a set of rules"),
+  REP_TRANSCRIPT,
+);
+const verbatimScore = assembleRepScore({
+  finalDimensions: verbatim.sanitizedDimFeedback,
+  dimensionMap: {},
+  validated: verbatim.validated,
+  input: { transcript: REP_TRANSCRIPT, promptText: "p", durationMs: 30_000 },
+  sanitizedCoachFocus: verbatim.sanitizedCoachFocus,
+  sanitizedStrongerVersion: verbatim.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+const clarity = verbatimScore.dimensions.find((d) => d.dimension === "clarity");
+assert(
+  clarity?.quote === "checks traffic against a set of rules",
+  "verbatim quote survives assembly",
+);
+assert(clarity?.quoteAtMs === 3_000, "marker parsed to ms on assembly");
+
+console.log(`${passed} passed, 0 failed`);
