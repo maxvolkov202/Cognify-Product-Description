@@ -11,7 +11,16 @@ export type RepFeedbackDoc = {
   headlineTone?: string;
   strongerVersion?: { quote: string | null; rewrite: string } | null;
   nextRepHint?: string;
-  skillFeedback?: Record<string, { feedback: string; subSkill?: string | null }>;
+  skillFeedback?: Record<
+    string,
+    {
+      feedback: string;
+      subSkill?: string | null;
+      /** v4.1 grounded moment — verbatim transcript quote + ms offset. */
+      quote?: string | null;
+      quoteAtMs?: number | null;
+    }
+  >;
   implementationReview?: {
     verdict: string;
     note?: string;
@@ -33,6 +42,9 @@ export function buildFeedbackDoc(score: RepScore): RepFeedbackDoc | null {
       skillFeedback[d.dimension] = {
         feedback: d.feedback,
         ...(d.subSkill !== undefined ? { subSkill: d.subSkill } : {}),
+        ...(d.quote != null
+          ? { quote: d.quote, quoteAtMs: d.quoteAtMs ?? null }
+          : {}),
       };
     }
   }
@@ -86,7 +98,14 @@ export function applyFeedbackDoc<T extends RepScore>(
   const dimensions = score.dimensions.map((d) => {
     const sf = doc.skillFeedback?.[d.dimension];
     return sf
-      ? { ...d, feedback: sf.feedback, subSkill: sf.subSkill ?? null }
+      ? {
+          ...d,
+          feedback: sf.feedback,
+          subSkill: sf.subSkill ?? null,
+          ...(sf.quote != null
+            ? { quote: sf.quote, quoteAtMs: sf.quoteAtMs ?? null }
+            : {}),
+        }
       : d;
   });
   return {

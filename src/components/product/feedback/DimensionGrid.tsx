@@ -65,6 +65,21 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
       return m;
     }, [dimensions]);
 
+    // v4.1 grounded moments — the verbatim quote (+ optional ms offset)
+    // each skill's score turns on. Absent on pre-v4.1 reps.
+    const quoteMap = useMemo(() => {
+      const m = new Map<
+        SkillDimension,
+        { quote: string; quoteAtMs: number | null }
+      >();
+      for (const d of dimensions) {
+        if (d.quote) {
+          m.set(d.dimension, { quote: d.quote, quoteAtMs: d.quoteAtMs ?? null });
+        }
+      }
+      return m;
+    }, [dimensions]);
+
     const calloutsByDim = useMemo(() => {
       const m = new Map<SkillDimension, Callout[]>();
       for (const dim of SKILL_DIMENSIONS) m.set(dim, []);
@@ -171,6 +186,7 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
                 dimension={dim}
                 score={score}
                 feedback={feedbackMap.get(dim)}
+                groundedMoment={quoteMap.get(dim) ?? null}
                 callouts={calloutsByDim.get(dim) ?? []}
                 expanded={expanded}
                 onToggle={() =>

@@ -42,3 +42,10 @@ export function useAudioControl(): AudioControl {
   }
   return ctx;
 }
+
+/** True when a real provider is mounted — consumers use this to HIDE
+ *  seek affordances instead of rendering a silently dead button (e.g.
+ *  the Improvement Review's grid has its own scrubbers, no provider). */
+export function useHasAudioControl(): boolean {
+  return useContext(AudioControlContext) != null;
+}

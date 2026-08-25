@@ -96,6 +96,16 @@ const dimensionScoreSchema = z.object({
     .nullable()
     .optional()
     .catch(null),
+  /** Grounded moment (2026-08-24, per-skill quotes) — a short verbatim
+   *  quote from the transcript that this skill's score turns on. LENIENT
+   *  everywhere: absent/invalid never fails the parse, and the quote is
+   *  substring-validated post-parse (a mismatch drops it — never an
+   *  invented quote on screen). Same cap rationale as strongerVersion. */
+  quote: z.string().min(1).max(1000).nullable().optional().catch(null),
+  /** The quote's position as an inline transcript marker ("m:ss") echoed
+   *  from the timed transcript, or null when timestamps were unavailable.
+   *  Parsed to ms post-validation; junk coerces to null. */
+  quoteAt: z.string().max(10).nullable().optional().catch(null),
 });
 
 /** PRD v3 engine — the implementationReview schema. Present only on
@@ -379,7 +389,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "headline": "one-line verdict, see HEADLINE RULES below",
@@ -420,6 +430,9 @@ PER-SKILL FEEDBACK RULES (dimensions[].feedback — the expandable Core Skill Br
   - Second-person, present-tense, no hedging, ≤400 chars.
   - Must NOT introduce a second coaching objective that competes with coachFocus — per-skill feedback explains the score; coachFocus owns "what to change next".
   - dimensions[].subSkill: the snake_case id of the hidden skill that most drove the score. It must belong to that dimension (use the SUB-SKILL REFERENCE). Mismatches are sanitized to null.
+  - dimensions[].quote: the single short transcript moment (a phrase, not a paragraph) this skill's score most turns on — the moment the feedback sentence is ABOUT. Copied CHARACTER-FOR-CHARACTER from the transcript; paraphrases are rejected by the post-validator and the quote is dropped. null when no single moment grounds the score (e.g. the score reflects overall consistency) — prefer null over a stretch.
+  - dimensions[].quoteAt: from the TIMESTAMP INDEX (when present), the m:ss of the entry closest BEFORE where the quoted moment occurs — digits only, e.g. "0:45". null when no TIMESTAMP INDEX exists. Never invent timestamps.
+  - delivery and tone quotes: only quote transcript text that exhibits the vocal behavior named in the feedback (rushed run-on, filler cluster, flat list). When the score is grounded in prosody measurements rather than any specific worded moment, use null.
 
 COACH'S FOCUS RULES (exactly ONE per rep — this is the most important output):
   - The single highest-leverage behavior change for the next attempt. Never multiple objectives.
@@ -795,6 +808,41 @@ export function sanitizeStrongerVersion(opts: {
     logBannedAndKeep("strongerVersion.rewrite", sv.rewrite);
   }
   return sv;
+}
+
+/** Grounded per-skill quotes (2026-08-24) — same anti-hallucination
+ *  contract as strongerVersion: the quote must be a verbatim
+ *  (whitespace-collapsed, case-insensitive) transcript substring or it
+ *  is dropped. Dropping a quote never affects the score or feedback —
+ *  the card simply renders without a moment. */
+export function sanitizeDimensionQuote(opts: {
+  quote: string | null | undefined;
+  quoteAt: string | null | undefined;
+  transcript: string;
+}): { quote: string; quoteAtMs: number | null } | null {
+  const q = opts.quote;
+  if (!q) return null;
+  const haystack = normalizeForMatch(opts.transcript);
+  const needle = normalizeForMatch(q);
+  if (needle.length === 0 || !haystack.includes(needle)) {
+    console.warn("[score] dimension quote not found in transcript; dropping:", {
+      quote: q.slice(0, 80),
+    });
+    return null;
+  }
+  return { quote: q, quoteAtMs: parseTranscriptMarker(opts.quoteAt) };
+}
+
+/** "m:ss" (exactly as rendered in the timed transcript's inline markers)
+ *  → ms offset. Junk/invented markers parse to null — the quote still
+ *  renders, just without tap-to-hear. */
+export function parseTranscriptMarker(
+  marker: string | null | undefined,
+): number | null {
+  if (!marker) return null;
+  const m = marker.trim().match(/^(\d{1,3}):([0-5]\d)$/);
+  if (!m) return null;
+  return Number(m[1]) * 60_000 + Number(m[2]) * 1_000;
 }
 
 /** Render the MODE block injected into the user prompt before the
@@ -1571,6 +1619,23 @@ export function assembleRepScore(opts: {
       return subScores ? { ...d, subSkillScores: subScores } : d;
     });
   }
+
+  // Grounded per-skill quotes (2026-08-24) — verbatim-validate each
+  // dimension's quoted moment against the transcript (same contract as
+  // strongerVersion) and parse its "m:ss" marker to ms. A dropped quote
+  // never touches the score or feedback; the card just has no moment.
+  const rawByDim = new Map(validated.dimensions.map((d) => [d.dimension, d]));
+  finalDimensions = finalDimensions.map((d) => {
+    const raw = rawByDim.get(d.dimension);
+    const grounded = sanitizeDimensionQuote({
+      quote: raw?.quote,
+      quoteAt: raw?.quoteAt,
+      transcript: input.transcript,
+    });
+    return grounded
+      ? { ...d, quote: grounded.quote, quoteAtMs: grounded.quoteAtMs }
+      : d;
+  });
 
   // Grading v3 (spike 3.1) — tag what evidence grounded the tone score
   // so profile/trend consumers can tell prosody-grounded tone from
