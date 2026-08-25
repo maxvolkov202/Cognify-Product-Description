@@ -9,6 +9,7 @@ import {
   parseTranscriptMarker,
   parseAndValidate,
   assembleRepScore,
+  applyHybridLayer,
 } from "../src/lib/ai/score-shared";
 
 let passed = 0;
@@ -171,5 +172,87 @@ assert(
   "verbatim quote survives assembly",
 );
 assert(clarity?.quoteAtMs === 3_000, "marker parsed to ms on assembly");
+
+// ── The delivery-override guard, exercised through applyHybridLayer ──
+// When the deterministic pacing override diverges >10 pts it REPLACES the
+// delivery feedback with a generated wpm/filler sentence. A quote the
+// model chose to ground its own (now discarded) sentence must not survive
+// onto that card. The guard compares rendered vs model feedback
+// UNCONDITIONALLY — gating it on the model having written a sentence
+// leaves the quote-without-feedback case open, which is the case here.
+
+const SLOW_WORDS = "checks traffic against a set of rules".split(" ").map(
+  (word, i) => ({ word, startMs: i * 8_000, endMs: i * 8_000 + 500 }),
+);
+
+const overrideResponse = JSON.stringify({
+  dimensions: DIMS.map((d) => ({
+    dimension: d,
+    // Delivery is graded far from what the deterministic scorer returns
+    // for these word timings, so the >10pt divergence branch fires.
+    score: d === "delivery" ? 30 : 95,
+    signals: [],
+    // NOTE: delivery deliberately carries a VERBATIM quote and NO
+    // feedback — the exact shape the old `raw?.feedback &&` guard let
+    // through.
+    ...(d === "delivery"
+      ? { quote: "checks traffic against a set of rules", quoteAt: "0:03" }
+      : { feedback: "ok" }),
+  })),
+  headline: "headline",
+  headlineTone: "blunt",
+  nextRepHint: "next time, lead with the point",
+  coachFocus: {
+    dimension: "clarity",
+    behavior: "lead with the point",
+    why: "it lands faster",
+    action: "say the point first",
+  },
+});
+
+const overrideParsed = parseAndValidate(overrideResponse, REP_TRANSCRIPT);
+const overrideInput = {
+  transcript: REP_TRANSCRIPT,
+  promptText: "p",
+  durationMs: 60_000,
+  words: SLOW_WORDS,
+};
+const hybrid = applyHybridLayer({
+  dims: overrideParsed.sanitizedDimFeedback,
+  input: overrideInput,
+  config: { deliveryMode: "deterministic" as const, thinkingMode: "blend" as const },
+});
+const overrideScore = assembleRepScore({
+  finalDimensions: hybrid.finalDimensions,
+  dimensionMap: hybrid.dimensionMap,
+  validated: overrideParsed.validated,
+  input: overrideInput,
+  sanitizedCoachFocus: overrideParsed.sanitizedCoachFocus,
+  sanitizedStrongerVersion: overrideParsed.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+const deliveryDim = overrideScore.dimensions.find(
+  (d) => d.dimension === "delivery",
+);
+// Guard the premise: if the override stopped diverging this test would
+// pass for the wrong reason.
+assert(
+  deliveryDim != null && deliveryDim.score !== 30,
+  "premise: deterministic delivery override replaced the model score",
+);
+assert(
+  deliveryDim?.feedback != null,
+  "premise: override injected a generated delivery sentence",
+);
+assert(
+  deliveryDim?.quote == null,
+  "quote dropped when the override replaced the delivery sentence",
+);
+// A dimension the override never touched keeps its verbatim quote.
+const untouched = overrideScore.dimensions.find((d) => d.dimension === "clarity");
+assert(untouched?.quote == null, "clarity had no quote in this fixture");
 
 console.log(`${passed} passed, 0 failed`);

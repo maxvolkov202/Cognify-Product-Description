@@ -123,7 +123,19 @@ phase) → check the phase off here. Never commit to main directly.
   out, verbatim quote in → quote + parsed ms out); it previously exercised the sanitizer in
   isolation only, which is exactly why the hole passed. The anti-hallucination contract this feature
   advertises held only from this commit on — reps scored between the #67 deploy and this one could
-  carry an unverified quote.
+  carry an unverified quote. **Audited rather than assumed: no backfill needed.** All 9 v4.1.0 reps
+  in the DB belong to `e2e-harness@cognify.test`; of their 24 persisted quotes, 0 are non-verbatim
+  (each re-checked whitespace-collapsed + case-insensitive against the rep's stored transcript).
+  No real user was ever shown an unverified quote. Worth knowing for next time: `applyFeedbackDoc`
+  re-attaches stored quotes on every read WITHOUT re-validating, so a bad row would have rendered
+  indefinitely — the audit, not the fix, is what closed this.
+
+  The strip is now an ALLOW-LIST (name the fields that cross) rather than a spread minus two
+  deletes. `dimensionScoreSchema` is the model's output contract and grows over time; a spread
+  silently carries each new model-only field onto `DimensionScore` unvalidated, which is exactly
+  how this bug arrived. The delivery-override guard also gained a real regression test that drives
+  `applyHybridLayer` with word timings that diverge >10 pts — verified to FAIL against the old
+  `raw?.feedback &&` form, so it actually holds the line.
 
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
   - NOTE: this verification ran against the #67 build, BEFORE the critical fix below. It confirms
