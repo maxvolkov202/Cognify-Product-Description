@@ -304,6 +304,40 @@ phase) → check the phase off here. Never commit to main directly.
   from 21 (pre-review-fix) to 23 with the same 6 reps — direct evidence that the finding-2
   containment bug had been over-dropping legitimate moments.
 
+  **SHIPPED 2026-08-25 (PR #70, squash `444ed18a`).** Merged to `main` and deployed to production
+  with `npx vercel --prod --yes` (aliased to www.cognifygym.com).
+
+  **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`).** Application Lab
+  1-rep and 5-rep sessions plus Build a Rep, all green against prod. Daily Workout was NOT re-run:
+  both test accounts were already consumed for 2026-08-25 EDT (one muscle-group day per user per
+  USER-LOCAL day), and this change touches no Daily-Workout-specific path — the scoring call is
+  shared, and the Application Lab reps exercise it.
+
+  Full-table DB audit afterwards (`feedback->>'version' = 'v4.1.0'`), checking each persisted quote
+  against its own rep's stored transcript:
+
+  | | reps | quotes | non-verbatim | over 400 chars | missing quoteAtMs | duplicate moments |
+  |---|---|---|---|---|---|---|
+  | post-deploy only | 6 | 11 | 0 | 0 | 0 | **0** |
+  | whole table | 25 | 63 | 0 | 0 | 0 | 13 (ALL pre-deploy) |
+
+  Every one of the 13 duplicate moments sits in a rep created at or before 13:47:44Z, i.e. before
+  this deploy — they are the historical symptom, preserved rather than backfilled (they are
+  test-account reps, and `applyFeedbackDoc` re-attaches stored quotes on read WITHOUT re-validating,
+  so this is display-only history on rows no real user sees). Not one post-deploy rep carries a
+  reused moment. The single most direct confirmation: a new prod rep on the SAME "firewall"
+  transcript family that previously produced the 4-way duplicate now grounds exactly two distinct
+  moments — clarity on "Imagine your office building with one main entrance and a guard" (5000ms)
+  and thinking_quality on "That is exactly what a firewall does with information." (10000ms) — with
+  structure, conciseness, delivery and tone all null. That is the designed shape: prefer null over a
+  stretch.
+
+  Audit gotcha worth keeping: `reps.transcript` is **jsonb** (`{"text": ...}`), not text, so a
+  verbatim check that treats it as a string throws rather than silently passing. And Postgres
+  timestamps carry microseconds, so a cutoff built from a millisecond-truncated JS timestamp
+  re-admits the very row it was derived from — the first audit looked like 2 new reps when there was
+  1. Both cost a few minutes here; check the column type and use an id list or a rounded-down cutoff.
+
   Note for next time: `scripts/calibration/rethreshold-independence.mjs` exists but was NOT used and
   was not the right tool here — it RELAXES independence thresholds to observed values at rubric-
   version boundaries. Using it to make a branch pass would have hidden exactly the regression this
