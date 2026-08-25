@@ -137,10 +137,19 @@ phase) → check the phase off here. Never commit to main directly.
   `applyHybridLayer` with word timings that diverge >10 pts — verified to FAIL against the old
   `raw?.feedback &&` form, so it actually holds the line.
 
+  **Re-verified on production after the fix (PR #68, squash `eb5ba09d`, deployed
+  `vercel --prod`).** All three surfaces re-run live against the fixed build: Application Lab (full
+  first-attempt panel + grounded quote with its "Hear it at m:ss" seek button, Continue completes
+  the session), Build a Rep (intake -> plan -> guided moment -> readiness review), Daily Workout
+  (rep -> focus -> retry -> Improvement Review). Full-table audit afterwards: 13 v4.1.0 reps, 33
+  persisted quotes, every one verbatim against its rep's stored transcript and every one carrying a
+  parsed timestamp, 0 non-verbatim. Still confined to `e2e-harness@cognify.test` — no real-user rep
+  has ever carried an unverified quote.
+
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
   - NOTE: this verification ran against the #67 build, BEFORE the critical fix below. It confirms
     the panel/rendering and persistence; it is NOT evidence the verbatim contract held, since a
-    fabricated quote would have looked identical on screen. Re-verified after the fix.
+    fabricated quote would have looked identical on screen. See the post-fix re-verification below.
   - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
     Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
     blind-ranking share CTA. The three surfaces the compact trim used to hide are the
