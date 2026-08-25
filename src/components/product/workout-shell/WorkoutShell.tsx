@@ -27,7 +27,7 @@ import { Clock, Dumbbell, Flame, Snowflake } from "lucide-react";
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
 import { closeWorkoutDayAfterRetrySkip } from "@/server/actions/workout-session";
 import type { ShellStation } from "@/lib/workout/types";
-import type { RepScore } from "@/types/domain";
+import type { RepScore, SkillDimension } from "@/types/domain";
 import type { AttemptPayload } from "./ImprovementReview";
 import {
   WorkoutSessionProvider,
@@ -82,12 +82,32 @@ function WorkoutShellInner({
     retry: AttemptPayload | null;
   }>({ first: null, retry: null });
 
+  // Per-skill scores of the PREVIOUS station's latest attempt — folded out
+  // of attemptData at the moment it's cleared for the next station. Drives
+  // the movement chips on the next first-attempt Core Skill Breakdown.
+  // Client-state only: a mid-day refresh drops it and the next feedback
+  // simply renders without chips (they're a bonus, not a dependency).
+  const [previousDimensionScores, setPreviousDimensionScores] = useState<
+    Partial<Record<SkillDimension, number>> | undefined
+  >(undefined);
+
   const onPromptSelected = useCallback(
     (params: {
       promptId: string;
       promptText: string;
       mode: "shuffle" | "list" | "surprise" | "auto_idle";
     }) => {
+      // Unconditional set: when the previous station produced no scored
+      // attempt (FAIL_SCORE, skip), the baseline clears rather than
+      // silently pointing two stations back under a "last exercise" label.
+      const latest = attemptData.retry ?? attemptData.first;
+      setPreviousDimensionScores(
+        latest?.score.dimensions.length
+          ? (Object.fromEntries(
+              latest.score.dimensions.map((d) => [d.dimension, d.score]),
+            ) as Partial<Record<SkillDimension, number>>)
+          : undefined,
+      );
       setAttemptData({ first: null, retry: null });
       send({
         type: "PICK_PROMPT",
@@ -96,7 +116,7 @@ function WorkoutShellInner({
         mode: params.mode,
       });
     },
-    [send],
+    [send, attemptData],
   );
 
   const onSkipStation = useCallback(() => {
@@ -519,6 +539,7 @@ function WorkoutShellInner({
                 onRetryAgain={onRetryAgain}
                 onQuit={onQuit}
                 onResume={onResume}
+                previousDimensionScores={previousDimensionScores}
               />
             </motion.div>
           )}

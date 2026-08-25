@@ -27,6 +27,7 @@ import {
   type ImplementationVerdict,
 } from "@/lib/ai/coach-focus";
 import { cn } from "@/lib/utils/cn";
+import { visibleSkillDelta } from "@/lib/skill-delta";
 import { DIM_THEMES } from "@/lib/workout/dim-theme";
 import { DimensionGrid } from "@/components/product/feedback/DimensionGrid";
 
@@ -332,9 +333,8 @@ export default function ImprovementReview({
                 const before = first.score.dimensions.find(
                   (f) => f.dimension === d.dimension,
                 );
-                const delta =
-                  before != null ? Math.round(d.score - before.score) : null;
-                const showDelta = delta != null && delta >= -3 && delta !== 0;
+                const delta = visibleSkillDelta(d.score, before?.score);
+                const showDelta = delta != null;
                 return (
                   <span
                     key={d.dimension}
