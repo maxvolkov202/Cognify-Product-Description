@@ -88,13 +88,30 @@ const DIM_ENUM = z.enum([
 
 /** Lenient per-call dimension schema — mirrors the fields the full
  *  scoringResponseSchema keeps, but nothing else (each scoring call returns
- *  ONLY dimensions). signals/feedback tolerated absent. */
+ *  ONLY dimensions). signals/feedback tolerated absent.
+ *
+ *  Grounded per-skill quotes (v4.1.0) are carried through rather than
+ *  dropped — option (b) of the 2026-08-25 follow-up. Option (a), stripping
+ *  the quote ask from these arms' prompts, removes a decode cost that the
+ *  CONTROL arm still pays (`signals-drop` = leanFeedbackCap 400 drops only
+ *  `signals`, never `quote`), so it would bias arm-vs-control latency in the
+ *  arms' favour by exactly the tokens a promoted arm would have to pay back.
+ *  Carrying them keeps the comparison apples-to-apples AND stops the arms
+ *  stamping FEEDBACK_VERSION v4.1.0 with no quotes, which would silently
+ *  drop a user-facing feature if an arm were ever promoted.
+ *
+ *  Lenient exactly like `dimensionScoreSchema`: junk never fails an arm's
+ *  parse. Nothing is trusted here — `merged` round-trips through the control
+ *  `parseAndValidate` + `assembleRepScore`, so an arm's quote gets the same
+ *  verbatim check and the same QUOTE INDEPENDENCE dedupe as control's. */
 const armDimensionSchema = z.object({
   dimension: DIM_ENUM,
   score: z.number().min(0).max(100),
   signals: z.array(z.string()).optional(),
   feedback: z.string().optional(),
   subSkill: z.string().nullable().optional().catch(null),
+  quote: z.string().min(1).max(400).nullable().optional().catch(null),
+  quoteAt: z.string().max(10).nullable().optional().catch(null),
 });
 const scoringPassSchema = z.object({
   dimensions: z.array(armDimensionSchema),
@@ -139,7 +156,7 @@ const CONTENT_SCOPE = [
   "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
   "Judge them from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone entirely — a separate pass grades voice.",
   "Spend your full token budget on rich, specific per-skill feedback for these four.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
 ].join("\n");
 
@@ -147,7 +164,7 @@ const DELIVERY_SCOPE = [
   "ARM SCOPE — DELIVERY & TONE PASS.",
   "Score ONLY delivery and tone. Ground them in the PROSODY EVIDENCE and MEASURED RATE lines; reason ONLY about voice and pacing, never the argument's content (mediocre content delivered with expressive prosody is still HIGH tone).",
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
 
@@ -172,7 +189,7 @@ const CONTENT_SCOPE_HOLISTIC = [
   "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
   "Reason over the WHOLE rep for calibration — transcript, any SIGNALS / RAG CONTEXT, and how it is delivered — but EMIT only these four. (Delivery and tone are finalized by a separate pass; do not output them.)",
   "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write 1-2 tight sentences of feedback per dimension. Do NOT hunt for nitpicks to fill space: if you cannot name a real deficiency, the score is high (per the calibration rules), not a hedged middle.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"signals":["..."],"feedback":"1-2 sentences per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
 ].join("\n");
 
@@ -180,7 +197,7 @@ const DELIVERY_SCOPE_HOLISTIC = [
   "ARM SCOPE — DELIVERY & TONE PASS (holistic context).",
   "Score ONLY delivery and tone, using ALL available evidence exactly as the system prompt's rubric directs: any PROSODY EVIDENCE and MEASURED RATE lines FIRST, and — when prosody is thin or absent — the transcript's phrasing, word-choice, directness, and fluency. Do NOT refuse to read the transcript for tone: how someone phrases a point is tone evidence, and it is how tone is graded when there is no audio.",
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt. Judge voice and manner, not the argument's substance — but the transcript is legitimate evidence for voice and manner.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
 
@@ -200,7 +217,7 @@ const CONTENT_SCOPE_LEAN = [
   "Score ONLY these four dimensions: clarity, structure, conciseness, thinking_quality.",
   "Judge them from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone entirely — a separate pass grades voice.",
   "Apply the SCORE CALIBRATION + ANTI-COMPRESSION + EDGE-CASE rules from the system prompt EXACTLY. Write ONE tight sentence of feedback per dimension — do not pad, do not hunt for nitpicks to fill space. The feedback being short must NEVER pull a score down: if you cannot name a real deficiency, the score is ≥80 (per the calibration rules), not a hedged middle.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"feedback":"1 sentence per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"clarity"|"structure"|"conciseness"|"thinking_quality","score":0-100,"feedback":"1 sentence per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for each of the four dimensions. Do NOT include delivery, tone, a headline, coachFocus, or strongerVersion.",
 ].join("\n");
 
@@ -208,7 +225,7 @@ const DELIVERY_SCOPE_LEAN = [
   "ARM SCOPE — DELIVERY & TONE PASS.",
   "Score ONLY delivery and tone. Ground them in the PROSODY EVIDENCE and MEASURED RATE lines; reason ONLY about voice and pacing, never the argument's content (mediocre content delivered with expressive prosody is still HIGH tone).",
   "Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules from the system prompt.",
-  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"feedback":"1 sentence","subSkill":"snake_case id"|null}]}',
+  'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"feedback":"1 sentence","subSkill":"snake_case id"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
 
@@ -583,6 +600,10 @@ export async function runGroupedFanout(
       signals: d.signals ?? [],
       ...(d.feedback ? { feedback: d.feedback } : {}),
       subSkill: d.subSkill ?? null,
+      // Verbatim-validated + deduped downstream by parseAndValidate /
+      // assembleRepScore, exactly as on the control path.
+      ...(d.quote ? { quote: d.quote } : {}),
+      ...(d.quoteAt ? { quoteAt: d.quoteAt } : {}),
     })),
     headline: synthesis.headline,
     coachFocus: synthesis.coachFocus,
@@ -680,9 +701,9 @@ function renderPerSkillScope(dim: SkillDimension, lean: boolean): string {
     isVoice
       ? `Ground ${dim} in the PROSODY EVIDENCE and MEASURED RATE lines and the transcript's fluency; reason ONLY about voice and pacing, never the argument's content (mediocre content delivered with genuinely expressive prosody is still HIGH tone). Apply the PROSODY EVIDENCE SCOPE and the delivery/tone edge rules.`
       : `Judge ${dim} from the transcript (and any SIGNALS / RAG CONTEXT). IGNORE delivery and tone — a separate pass grades voice. Write tight, specific feedback; the feedback being short must NEVER pull the score down — if you cannot name a real deficiency, the score is ≥80 per the calibration rules, not a hedged middle.`,
-    `Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"${dim}","score":0-100,"feedback":"${feedbackShape} per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE for ${dim}"|null}]}`,
+    `Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"${dim}","score":0-100,"feedback":"${feedbackShape} per the PER-SKILL FEEDBACK RULES","subSkill":"snake_case id from the SUB-SKILL REFERENCE for ${dim}"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}`,
     `Include exactly one entry for ${dim}. Do NOT score any other dimension, and do NOT include a headline, coachFocus, or strongerVersion.`,
-  ].join("\n");
+    ].join("\n");
 }
 
 /**
@@ -762,6 +783,10 @@ export async function runPerSkillFanout(
       signals: d.signals ?? [],
       ...(d.feedback ? { feedback: d.feedback } : {}),
       subSkill: d.subSkill ?? null,
+      // Verbatim-validated + deduped downstream by parseAndValidate /
+      // assembleRepScore, exactly as on the control path.
+      ...(d.quote ? { quote: d.quote } : {}),
+      ...(d.quoteAt ? { quoteAt: d.quoteAt } : {}),
     })),
     headline: synthesis.headline,
     coachFocus: synthesis.coachFocus,
