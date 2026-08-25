@@ -93,6 +93,89 @@ phase) → check the phase off here. Never commit to main directly.
   callers (Daily Workout RepControls, Application Lab, Build a Rep). What survives of D26 is only
   the optional-retry behavior: colorful Retry primary + gray Continue, Improvement Review only on
   Retry, plus the later additions (movement chips, grounded quotes). PRD §§4.5, 4.6, 4.9 updated.
+  **SHIPPED 2026-08-25 (PR #67, squash `05934e30`).** Merged to `main` and deployed to production
+  with `vercel --prod`. Post-review fixes landed in the same PR (all post-processing/render — the
+  scoring prompt is byte-identical to what the D26 calibration run measured, so that run still
+  stands): a grounded quote is dropped whenever the hybrid layer replaced the feedback sentence it
+  was chosen to justify (delivery, when the deterministic override diverges >10 pts — the check
+  compares rendered vs model feedback, so it covers any future override); the "No specific moment
+  to flag" empty state is gated on `!groundedMoment`; a quote-without-feedback dimension now
+  persists (it previously rendered in-session and vanished on reload); `parseTranscriptMarker`
+  tolerates the bracketed `[0:45]` form the TIMESTAMP INDEX actually renders.
+
+  **Follow-up (PR #68).** The quote-vs-feedback guard shipped as `raw?.feedback && d.feedback !==
+  raw.feedback`, which short-circuited whenever the model wrote no feedback for that dimension —
+  and since `feedback` is optional, a dimension can arrive with a quote and NO sentence, the
+  override then injects one, and the quote survives attached to copy it was never chosen for. That
+  is the same mismatch the guard exists to stop, reached through the one door it left open. The
+  comparison is now unconditional (`d.feedback !== raw?.feedback`): equal when both are absent, so
+  ordinary quote-only dimensions keep their moment.
+
+  **CRITICAL follow-up (PR #68) — the verbatim check was decorative.** `/code-review` caught that
+  `sanitizedDimFeedback` built each `DimensionScore` with `{ ...d }` spread straight off the parsed
+  model output, and the schema declares `quote`/`quoteAt` — so every dimension already carried the
+  RAW, unvalidated quote before the grounding pass ran. That pass only ever ADDS a validated quote,
+  so both `return d` paths kept a hallucinated one: `sanitizeDimensionQuote` logged "dropping" while
+  the invented quote rendered in the blockquote as the user's own words and persisted via
+  `buildFeedbackDoc`. Reproduced end to end before fixing. The raw fields are now deleted in
+  `sanitizedDimFeedback`, so the ONLY route onto a dimension is `sanitizeDimensionQuote`.
+  `tests/dimension-quotes.test.ts` gained assembly-level coverage (fabricated quote in → no quote
+  out, verbatim quote in → quote + parsed ms out); it previously exercised the sanitizer in
+  isolation only, which is exactly why the hole passed. The anti-hallucination contract this feature
+  advertises held only from this commit on — reps scored between the #67 deploy and this one could
+  carry an unverified quote. **Audited rather than assumed: no backfill needed.** All 9 v4.1.0 reps
+  in the DB belong to `e2e-harness@cognify.test`; of their 24 persisted quotes, 0 are non-verbatim
+  (each re-checked whitespace-collapsed + case-insensitive against the rep's stored transcript).
+  No real user was ever shown an unverified quote. Worth knowing for next time: `applyFeedbackDoc`
+  re-attaches stored quotes on every read WITHOUT re-validating, so a bad row would have rendered
+  indefinitely — the audit, not the fix, is what closed this.
+
+  The strip is now an ALLOW-LIST (name the fields that cross) rather than a spread minus two
+  deletes. `dimensionScoreSchema` is the model's output contract and grows over time; a spread
+  silently carries each new model-only field onto `DimensionScore` unvalidated, which is exactly
+  how this bug arrived. The delivery-override guard also gained a real regression test that drives
+  `applyHybridLayer` with word timings that diverge >10 pts — verified to FAIL against the old
+  `raw?.feedback &&` form, so it actually holds the line.
+
+  **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
+  - NOTE: this verification ran against the #67 build, BEFORE the critical fix below. It confirms
+    the panel/rendering and persistence; it is NOT evidence the verbatim contract held, since a
+    fabricated quote would have looked identical on screen. Re-verified after the fix.
+  - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
+    Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
+    blind-ranking share CTA. The three surfaces the compact trim used to hide are the
+    previous-exercise focus reminder, the rating widget, and the share CTA — the focus reminder
+    renders only when a previous focus exists, so confirm it on a rep that has one. Plus
+    Retry/Continue. 3 of 6
+    skill cards rendered a grounded quote with a working "Hear it at m:ss" seek button; Continue
+    completed the session.
+  - Build a Rep — intake -> plan -> guided moment -> readiness review passes on prod.
+  - Daily Workout — rep -> focus -> retry -> Improvement Review passes on prod (the retry path also
+    exercises the provider-less DimensionGrid, where the seek button correctly hides).
+  - Persistence — every prod rep wrote `feedback.version = "v4.1.0"` with
+    `skillFeedback[dim].quote`/`quoteAtMs` populated where grounded, under the LIVE scoring arm
+    `signals-drop`. That arm needs all THREE knobs, not one: `FF_SCORING_VARIANT=true` is the master
+    switch, `FF_SCORING_VARIANT_ARM=signals-drop` names the arm, `FF_SCORING_VARIANT_PERCENT=100` is
+    the ramp. Unsetting only the arm name leaves the variant ON and silently falls back to `control`
+    — an explicit rollback flips the master switch. delivery/tone are legitimately null: those
+    scores are prosody-grounded, not grounded in a worded moment.
+
+  **Known follow-ups (not blocking; raised by `/code-review` on PR #67):**
+  - Quote independence — with six dimensions over one short transcript the model often cites the
+    SAME moment for several skills (one prod rep grounded 4 dimensions on one identical phrase),
+    which pushes against the DIMENSION INDEPENDENCE rule. The D26 calibration run's 3 misses were
+    independence checks that re-passed 2/2 on targeted rerun; a full-suite rerun (with
+    `FF_DETERMINISTIC_SIGNALS=true` + `_PERCENT=100`) would settle noise vs small shift. This is the
+    highest-value follow-up: it is a copy-quality issue users can see.
+  - The prompt puts no explicit char cap on `dimensions[].quote` (the neighboring `feedback` rule
+    has <=400). Six long quotes eat decode headroom against `max_tokens` 2500, and a truncated
+    response falls to `mock-fallback-v1`. Adding a cap is a SCORING-PROMPT edit, so it needs a
+    calibration re-run — deliberately deferred, not forgotten.
+  - The fan-out bench arms (`grouped-fanout`, `per-skill-fanout`, `holistic-split`) rebuild
+    dimensions from their own schema with no quote fields, so they stamp v4.1.0 without quotes AND
+    pay decode tokens for six fields they discard — which contaminates the decode-latency
+    measurement those arms exist to make. Bench-only; the shipped arm (`signals-drop`) is the
+    control single-call path and carries quotes correctly.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 

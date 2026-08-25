@@ -1487,9 +1487,23 @@ export function parseAndValidate(
     strongerVersion: validated.strongerVersion,
     transcript: input.transcript,
   });
+  // ALLOW-LIST, deliberately — not a spread. `dimensionScoreSchema` is the
+  // MODEL's output contract and grows over time, so `{ ...d }` silently
+  // carries every new model-only field onto DimensionScore unvalidated:
+  // that is precisely how the raw `quote`/`quoteAt` leak arrived, and it
+  // made the verbatim check decorative (the grounding pass only ever ADDS
+  // a validated quote, so a hallucinated one survived every `return d`,
+  // rendered in the blockquote as the user's own words, and persisted).
+  // Naming what crosses keeps that class of bug structurally impossible.
+  // A quote reaches a dimension ONLY via sanitizeDimensionQuote, and
+  // `quoteAt` is not a DimensionScore field at all — only its parsed
+  // `quoteAtMs` is.
   const sanitizedDimFeedback = validated.dimensions.map((d) => ({
-    ...d,
+    dimension: d.dimension,
+    score: d.score,
+    signals: d.signals,
     subSkill: sanitizeDimSubSkill(d.dimension, d.subSkill),
+    ...(d.feedback !== undefined ? { feedback: d.feedback } : {}),
     ...(d.feedback && containsBannedPhrase(d.feedback)
       ? logBannedAndKeep("dimensions.feedback", d.feedback)
       : {}),
@@ -1640,7 +1654,13 @@ export function assembleRepScore(opts: {
     // chosen to justify copy that is no longer on the card — it would
     // "prove" a claim nobody wrote. Drop it; the card keeps the
     // wpm/filler narrative with no moment.
-    if (raw?.feedback && d.feedback !== raw.feedback) return d;
+    //
+    // Compared unconditionally, NOT gated on the model having written a
+    // sentence: `feedback` is optional, so a dimension can arrive with a
+    // quote and no feedback, and the override then INJECTS a sentence the
+    // quote was never chosen for — the exact mismatch, reached through the
+    // one door a `raw?.feedback &&` guard would leave open.
+    if (d.feedback !== raw?.feedback) return d;
     const grounded = sanitizeDimensionQuote({
       quote: raw?.quote,
       quoteAt: raw?.quoteAt,

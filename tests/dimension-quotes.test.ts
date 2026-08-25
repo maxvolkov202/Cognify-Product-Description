@@ -7,10 +7,17 @@
 import {
   sanitizeDimensionQuote,
   parseTranscriptMarker,
+  parseAndValidate,
+  assembleRepScore,
+  applyHybridLayer,
 } from "../src/lib/ai/score-shared";
 
+let passed = 0;
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+  // Counted rather than hardcoded: several assertions below run inside
+  // per-dimension loops, so a literal total silently drifts.
+  passed++;
 }
 
 const transcript =
@@ -74,4 +81,192 @@ assert(
   "null quote → null",
 );
 
-console.log("17 passed, 0 failed");
+// ── Assembly-level: an unvalidated quote must never reach a dimension ──
+// The verbatim check is only meaningful if the RAW model quote cannot
+// ride the object spread onto a DimensionScore. assembleRepScore's
+// grounding pass only ever ADDS a validated quote, so anything that
+// leaks through parseAndValidate survives every `return d` path — it
+// would render in the blockquote as the user's own words and persist.
+
+const REP_TRANSCRIPT =
+  "A firewall checks traffic against a set of rules before it reaches you.";
+const DIMS = [
+  "clarity",
+  "structure",
+  "conciseness",
+  "thinking_quality",
+  "delivery",
+  "tone",
+] as const;
+
+function modelResponse(quote: string): string {
+  return JSON.stringify({
+    dimensions: DIMS.map((d) => ({
+      dimension: d,
+      score: 70,
+      signals: [],
+      feedback: "ok",
+      quote,
+      quoteAt: "0:03",
+    })),
+    headline: "headline",
+    headlineTone: "blunt",
+    nextRepHint: "next time, lead with the point",
+    coachFocus: {
+      dimension: "clarity",
+      behavior: "lead with the point",
+      why: "it lands faster",
+      action: "say the point first",
+    },
+  });
+}
+
+// A fabricated quote is stripped before it can reach a DimensionScore.
+const fabricated = parseAndValidate(
+  modelResponse("I INVENTED THIS ENTIRELY"),
+  REP_TRANSCRIPT,
+);
+for (const d of fabricated.sanitizedDimFeedback) {
+  const raw = d as Record<string, unknown>;
+  assert(raw.quote === undefined, `no raw quote on ${d.dimension}`);
+  assert(raw.quoteAt === undefined, `no raw quoteAt on ${d.dimension}`);
+}
+
+// ...and it is still absent after assembly (the grounding pass drops it).
+const fabricatedScore = assembleRepScore({
+  finalDimensions: fabricated.sanitizedDimFeedback,
+  dimensionMap: {},
+  validated: fabricated.validated,
+  input: { transcript: REP_TRANSCRIPT, promptText: "p", durationMs: 30_000 },
+  sanitizedCoachFocus: fabricated.sanitizedCoachFocus,
+  sanitizedStrongerVersion: fabricated.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+for (const d of fabricatedScore.dimensions) {
+  assert(d.quote == null, `fabricated quote dropped on ${d.dimension}`);
+}
+
+// A verbatim quote DOES survive assembly, with its marker parsed to ms.
+const verbatim = parseAndValidate(
+  modelResponse("checks traffic against a set of rules"),
+  REP_TRANSCRIPT,
+);
+const verbatimScore = assembleRepScore({
+  finalDimensions: verbatim.sanitizedDimFeedback,
+  dimensionMap: {},
+  validated: verbatim.validated,
+  input: { transcript: REP_TRANSCRIPT, promptText: "p", durationMs: 30_000 },
+  sanitizedCoachFocus: verbatim.sanitizedCoachFocus,
+  sanitizedStrongerVersion: verbatim.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+const clarity = verbatimScore.dimensions.find((d) => d.dimension === "clarity");
+assert(
+  clarity?.quote === "checks traffic against a set of rules",
+  "verbatim quote survives assembly",
+);
+assert(clarity?.quoteAtMs === 3_000, "marker parsed to ms on assembly");
+
+// ── The delivery-override guard, exercised through applyHybridLayer ──
+// When the deterministic pacing override diverges >10 pts it REPLACES the
+// delivery feedback with a generated wpm/filler sentence. A quote the
+// model chose to ground its own (now discarded) sentence must not survive
+// onto that card. The guard compares rendered vs model feedback
+// UNCONDITIONALLY — gating it on the model having written a sentence
+// leaves the quote-without-feedback case open, which is the case here.
+
+const SLOW_WORDS = "checks traffic against a set of rules".split(" ").map(
+  (word, i) => ({ word, startMs: i * 8_000, endMs: i * 8_000 + 500 }),
+);
+
+const overrideResponse = JSON.stringify({
+  dimensions: DIMS.map((d) => ({
+    dimension: d,
+    // Delivery is graded far from what the deterministic scorer returns
+    // for these word timings, so the >10pt divergence branch fires.
+    score: d === "delivery" ? 30 : 95,
+    signals: [],
+    // NOTE: delivery deliberately carries a VERBATIM quote and NO
+    // feedback — the exact shape the old `raw?.feedback &&` guard let
+    // through.
+    ...(d === "delivery"
+      ? { quote: "checks traffic against a set of rules", quoteAt: "0:03" }
+      : d === "clarity"
+        ? // The negative control: clarity is NOT touched by the delivery
+          // override, so its verbatim quote must SURVIVE. Without this a
+          // regression that drops every quote whenever the override fires
+          // would leave the suite green.
+          {
+            feedback: "ok",
+            quote: "before it reaches you",
+            quoteAt: "0:05",
+          }
+        : { feedback: "ok" }),
+  })),
+  headline: "headline",
+  headlineTone: "blunt",
+  nextRepHint: "next time, lead with the point",
+  coachFocus: {
+    dimension: "clarity",
+    behavior: "lead with the point",
+    why: "it lands faster",
+    action: "say the point first",
+  },
+});
+
+const overrideParsed = parseAndValidate(overrideResponse, REP_TRANSCRIPT);
+const overrideInput = {
+  transcript: REP_TRANSCRIPT,
+  promptText: "p",
+  durationMs: 60_000,
+  words: SLOW_WORDS,
+};
+const hybrid = applyHybridLayer({
+  dims: overrideParsed.sanitizedDimFeedback,
+  input: overrideInput,
+  config: { deliveryMode: "deterministic" as const, thinkingMode: "blend" as const },
+});
+const overrideScore = assembleRepScore({
+  finalDimensions: hybrid.finalDimensions,
+  dimensionMap: hybrid.dimensionMap,
+  validated: overrideParsed.validated,
+  input: overrideInput,
+  sanitizedCoachFocus: overrideParsed.sanitizedCoachFocus,
+  sanitizedStrongerVersion: overrideParsed.sanitizedStrongerVersion,
+  prosodyFeatures: null,
+  signalsFlagOn: false,
+  textSignals: null,
+  modelUsed: "test",
+});
+const deliveryDim = overrideScore.dimensions.find(
+  (d) => d.dimension === "delivery",
+);
+// Guard the premise: if the override stopped diverging this test would
+// pass for the wrong reason.
+assert(
+  deliveryDim != null && deliveryDim.score !== 30,
+  "premise: deterministic delivery override replaced the model score",
+);
+assert(
+  deliveryDim?.feedback != null,
+  "premise: override injected a generated delivery sentence",
+);
+assert(
+  deliveryDim?.quote == null,
+  "quote dropped when the override replaced the delivery sentence",
+);
+// A dimension the override never touched keeps its verbatim quote.
+const untouched = overrideScore.dimensions.find((d) => d.dimension === "clarity");
+assert(
+  untouched?.quote === "before it reaches you",
+  "untouched dimension keeps its verbatim quote while delivery loses its own",
+);
+assert(untouched?.quoteAtMs === 5_000, "untouched dimension keeps its marker");
+
+console.log(`${passed} passed, 0 failed`);
