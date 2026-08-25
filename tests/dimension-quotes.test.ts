@@ -308,29 +308,29 @@ assert(exact[2]!.quote === undefined, "third exact reuse dropped");
 // Containment in BOTH directions counts as the same moment — a re-quote
 // that trims or extends the span is still the same phrase on screen.
 const extended = dropDuplicateMoments([
-  { quote: "it broke at a hundred thousand" },
-  { quote: "it broke at a hundred thousand requests" },
+  { dimension: "clarity", quote: "it broke at a hundred thousand" },
+  { dimension: "structure", quote: "it broke at a hundred thousand requests" },
 ]);
 assert(extended[1]!.quote === undefined, "extended span is the same moment");
 const trimmed = dropDuplicateMoments([
-  { quote: "it broke at a hundred thousand requests" },
-  { quote: "a hundred thousand requests" },
+  { dimension: "clarity", quote: "it broke at a hundred thousand requests" },
+  { dimension: "structure", quote: "a hundred thousand requests" },
 ]);
 assert(trimmed[1]!.quote === undefined, "trimmed span is the same moment");
 
 // Normalization matches sanitizeDimensionQuote's (whitespace-collapsed,
 // case-insensitive), so casing/spacing games don't sneak a duplicate past.
 const noisy = dropDuplicateMoments([
-  { quote: "We tried this last quarter" },
-  { quote: "we   TRIED this  last quarter" },
+  { dimension: "clarity", quote: "We tried this last quarter" },
+  { dimension: "structure", quote: "we   TRIED this  last quarter" },
 ]);
 assert(noisy[1]!.quote === undefined, "case/whitespace variants are one moment");
 
 // The dropped dimension loses quoteAtMs too — a marker with no quote
 // would render a seek button pointing at nothing.
 const withMs = dropDuplicateMoments([
-  { quote: "cost", quoteAtMs: 1_000 },
-  { quote: "cost", quoteAtMs: 2_000 },
+  { dimension: "clarity", quote: "cost", quoteAtMs: 1_000 },
+  { dimension: "structure", quote: "cost", quoteAtMs: 2_000 },
 ]);
 assert(
   withMs[1]!.quote === undefined && withMs[1]!.quoteAtMs === undefined,
@@ -461,6 +461,81 @@ assert(
   atCapParsed.validated.dimensions.find((d) => d.dimension === "clarity")
     ?.quote === atCap,
   "a quote under the 400-char backstop survives the parse",
+);
+
+// ── Regression: claim order is CANONICAL, not model emission order ──
+// `validated.dimensions` arrives in raw model emission order — nothing
+// between the parse and the dedupe sorts it. On a provider or fallback that
+// emits `tone` first, trusting array order would hand the worded moment to
+// the dimension supposed to have one LEAST often and strip it from the
+// clarity card whose feedback sentence is about that very phrase.
+const emittedToneFirst = dropDuplicateMoments([
+  { dimension: "tone", quote: "Firewall is basically a security guard" },
+  { dimension: "clarity", quote: "Firewall is basically a security guard" },
+]);
+assert(
+  emittedToneFirst[0]!.quote === undefined,
+  "tone loses the moment even when the model emitted it first",
+);
+assert(
+  emittedToneFirst[1]!.quote === "Firewall is basically a security guard",
+  "clarity claims the moment by canonical order, not array position",
+);
+// Output keeps INPUT order — only the claim walk is canonical.
+assert(
+  emittedToneFirst[0]!.dimension === "tone" &&
+    emittedToneFirst[1]!.dimension === "clarity",
+  "input order is preserved in the output",
+);
+
+// ── Regression: a short quote must not swallow unrelated longer ones ──
+// The prompt invites short delivery/tone quotes (a filler cluster). With
+// bare-substring containment, "um" is inside "n(um)ber" and "ass(um)ptions",
+// so one filler quote stripped every other dimension's moment — the exact
+// opposite of what this guard is for. Containment now compares whole tokens
+// AND only applies once the shorter span is >= MIN_CONTAINMENT_TOKENS.
+const filler = dropDuplicateMoments([
+  { dimension: "delivery", quote: "um" },
+  { dimension: "clarity", quote: "the number of requests" },
+  { dimension: "structure", quote: "our assumptions were wrong" },
+]);
+assert(filler[0]!.quote === "um", "the short filler quote itself is kept");
+assert(
+  filler[1]!.quote === "the number of requests",
+  "'um' does not swallow 'number'",
+);
+assert(
+  filler[2]!.quote === "our assumptions were wrong",
+  "'um' does not swallow 'assumptions'",
+);
+// A short quote is still deduped against an EXACT repeat of itself.
+const shortExact = dropDuplicateMoments([
+  { dimension: "clarity", quote: "um" },
+  { dimension: "tone", quote: "um" },
+]);
+assert(
+  shortExact[1]!.quote === undefined,
+  "literal reuse of a short quote is still caught by exact match",
+);
+// Sub-token overlap between two SHORT quotes is not a duplicate either.
+const shortDistinct = dropDuplicateMoments([
+  { dimension: "clarity", quote: "you know" },
+  { dimension: "tone", quote: "know" },
+]);
+assert(
+  shortDistinct[1]!.quote === "know",
+  "short spans below the containment floor need an exact match to dedupe",
+);
+
+// Punctuation must not hide a duplicate: the dedupe normalizer flattens it,
+// unlike the strict verbatim normalizer behind sanitizeDimensionQuote.
+const punct = dropDuplicateMoments([
+  { dimension: "clarity", quote: "Is this thing on." },
+  { dimension: "structure", quote: "is this thing on" },
+]);
+assert(
+  punct[1]!.quote === undefined,
+  "trailing punctuation does not hide a duplicate moment",
 );
 
 console.log(`${passed} passed, 0 failed`);

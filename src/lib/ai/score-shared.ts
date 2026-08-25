@@ -447,7 +447,7 @@ PER-SKILL FEEDBACK RULES (dimensions[].feedback — the expandable Core Skill Br
   - Must NOT introduce a second coaching objective that competes with coachFocus — per-skill feedback explains the score; coachFocus owns "what to change next".
   - dimensions[].subSkill: the snake_case id of the hidden skill that most drove the score. It must belong to that dimension (use the SUB-SKILL REFERENCE). Mismatches are sanitized to null.
   - dimensions[].quote: the single short transcript moment (a phrase, not a paragraph — ≤200 chars) this skill's score most turns on — the moment the feedback sentence is ABOUT. Copied CHARACTER-FOR-CHARACTER from the transcript; paraphrases are rejected by the post-validator and the quote is dropped. null when no single moment grounds the score (e.g. the score reflects overall consistency) — prefer null over a stretch.
-  - QUOTE INDEPENDENCE (as binding as DIMENSION INDEPENDENCE): every non-null quote in this rep must be a DIFFERENT moment. Never ground two dimensions on the same phrase, and never on overlapping spans of the same sentence — a moment already quoted is spent. A short transcript usually holds fewer distinct moments than six, so most reps will have SEVERAL dimensions at quote null; that is the expected shape, not a failure. When the moment that best fits a dimension is already taken, or the only candidate left is a stretch, write null — the card renders cleanly with no moment. Duplicates are dropped by the post-validator anyway, so reusing a phrase only costs a card its quote.
+  - QUOTE INDEPENDENCE (as binding as DIMENSION INDEPENDENCE): across the six dimensions[].quote fields, every non-null quote must be a DIFFERENT moment. (This rule covers dimensions[].quote ONLY — strongerVersion.quote is chosen separately and MAY reuse a moment a skill card already cites.) Never ground two dimensions on the same phrase, and never on overlapping spans of the same sentence — a moment already quoted is spent. A short transcript usually holds fewer distinct moments than six, so most reps will have SEVERAL dimensions at quote null; that is the expected shape, not a failure. When the moment that best fits a dimension is already taken, or the only candidate left is a stretch, write null — the card renders cleanly with no moment. Duplicates are dropped by the post-validator anyway, so reusing a phrase only costs a card its quote.
   - dimensions[].quoteAt: from the TIMESTAMP INDEX (when present), the m:ss of the entry closest BEFORE where the quoted moment occurs — digits only, e.g. "0:45". null when no TIMESTAMP INDEX exists. Never invent timestamps.
   - delivery and tone quotes: only quote transcript text that exhibits the vocal behavior named in the feedback (rushed run-on, filler cluster, flat list). When the score is grounded in prosody measurements rather than any specific worded moment, use null.
 
@@ -850,6 +850,43 @@ export function sanitizeDimensionQuote(opts: {
   return { quote: q, quoteAtMs: parseTranscriptMarker(opts.quoteAt) };
 }
 
+/** Quote independence (2026-08-25) — normalization used ONLY for deciding
+ *  whether two quotes point at the same moment. Deliberately LOOSER than
+ *  `normalizeForMatch` (which backs the verbatim check and must stay strict):
+ *  punctuation is flattened to spaces so a trailing comma or period cannot
+ *  hide a duplicate ("is this thing on." vs "is this thing on"). Returns a
+ *  space-PADDED string so plain `includes` compares whole tokens rather than
+ *  raw characters — without the padding, "um" is a substring of "n(um)ber"
+ *  and "ass(um)ptions", and one filler-length delivery quote would strip
+ *  every other dimension's unrelated moment. */
+function normalizeForMomentMatch(s: string): string {
+  const flat = s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+  return flat.length === 0 ? "" : ` ${flat} `;
+}
+
+/** Token count of a padded moment key (0 for the empty key). */
+function momentTokenCount(padded: string): number {
+  const t = padded.trim();
+  return t.length === 0 ? 0 : t.split(" ").length;
+}
+
+/** Containment only counts as "the same moment" once the SHORTER span is at
+ *  least this many tokens. Below it, two quotes must match EXACTLY.
+ *
+ *  Why: the prompt invites short delivery/tone quotes (a filler cluster, a
+ *  flat list), and a 1-3 token span is far too common to be evidence on its
+ *  own — "you know" appears inside plenty of unrelated longer moments. Exact
+ *  matching still catches literal reuse of a short quote; containment is
+ *  reserved for spans long enough that overlap really does mean one moment.
+ *  4 tokens is the smallest window that keeps the real prod symptom in scope
+ *  ("Firewall is basically a security guard" trimmed to "a security guard"
+ *  is still caught via the longer side). */
+const MIN_CONTAINMENT_TOKENS = 4;
+
 /** Quote independence (2026-08-25) — deterministic backstop for the QUOTE
  *  INDEPENDENCE prompt rule. With six dimensions over one short transcript
  *  the model reliably grounds several skills on the SAME phrase (one prod
@@ -859,52 +896,81 @@ export function sanitizeDimensionQuote(opts: {
  *  INDEPENDENCE rule the scores are supposed to obey — each card is meant to
  *  point at its OWN evidence.
  *
- *  Rule: walk the dimensions in canonical order and let the first one claim
- *  a moment; any later dimension whose quote is the SAME moment loses its
- *  quote (score and feedback untouched — the card just renders the existing
- *  "No specific moment to flag" empty state). "Same moment" is normalized
- *  containment in EITHER direction, not string equality, so a re-quote that
- *  trims or extends the span ("Firewall is basically a security guard" vs
- *  "...security guard, right") is caught too.
+ *  Rule: dimensions claim moments in CANONICAL order (`ALL_DIMENSIONS`), and
+ *  any later dimension whose quote is the same moment loses its quote (score
+ *  and feedback untouched — the card just renders without a blockquote).
+ *  Canonical order is walked EXPLICITLY rather than trusting array order:
+ *  `validated.dimensions` is raw MODEL EMISSION order (nothing between the
+ *  parse and here sorts it), so on a provider or fallback that emits `tone`
+ *  first, input order would hand a worded moment to the one dimension that
+ *  is supposed to have one least often — and strip it from the clarity card
+ *  whose feedback sentence is literally about that phrase.
  *
- *  First-in-canonical-order wins because the order is clarity → structure →
- *  conciseness → thinking_quality → delivery → tone: the dimensions a WORDED
- *  moment most legitimately grounds come first, and delivery/tone are
- *  prosody-grounded (their quotes are supposed to be null far more often).
- *  Dropping rather than reassigning keeps this pure and deterministic —
- *  picking "which skill deserves the phrase more" is a judgment call the
- *  prompt owns, not the validator.
+ *  Canonical order is clarity → structure → conciseness → thinking_quality →
+ *  delivery → tone: the dimensions a WORDED moment most legitimately grounds
+ *  come first, and delivery/tone are prosody-grounded (their quotes are
+ *  supposed to be null far more often). Dropping rather than reassigning
+ *  keeps this pure and deterministic — picking "which skill deserves the
+ *  phrase more" is a judgment call the prompt owns, not the validator.
  *
- *  Containment is applied with no minimum length: a filler-length quote
- *  ("you know") sitting inside a longer one is, textually, the same moment,
- *  and the product stance here is prefer-null-over-a-stretch. */
-export function dropDuplicateMoments<T extends { quote?: string | null }>(
-  dimensions: T[],
-): T[] {
+ *  Output preserves INPUT order; only the claim walk is canonical.
+ *
+ *  Scope is `dimensions[]` only. `strongerVersion.quote` is deliberately NOT
+ *  seeded into the claimed set: it is the single span chosen so a rewrite can
+ *  be taught off it, and a skill card and the Stronger Version card naming
+ *  the same moment reads as coherent (here is the moment, here it is
+ *  upgraded), not as the broken repetition this guard exists to stop. */
+export function dropDuplicateMoments<
+  T extends {
+    dimension: SkillDimension;
+    quote?: string | null;
+    quoteAtMs?: number | null;
+  },
+>(dimensions: T[]): T[] {
+  // Canonical claim order over the array's own indices; anything with an
+  // unrecognized dimension keeps its relative position at the end.
+  const order = dimensions
+    .map((d, i) => i)
+    .sort((a, b) => {
+      const ra = ALL_DIMENSIONS.indexOf(dimensions[a]!.dimension);
+      const rb = ALL_DIMENSIONS.indexOf(dimensions[b]!.dimension);
+      return (
+        (ra === -1 ? ALL_DIMENSIONS.length : ra) -
+          (rb === -1 ? ALL_DIMENSIONS.length : rb) || a - b
+      );
+    });
+
   const claimed: string[] = [];
-  return dimensions.map((d) => {
+  const out = [...dimensions];
+  for (const i of order) {
+    const d = out[i]!;
     const q = d.quote;
-    if (!q) return d;
-    const needle = normalizeForMatch(q);
-    if (needle.length === 0) return d;
-    const clash = claimed.find(
-      (c) => c.includes(needle) || needle.includes(c),
-    );
+    if (!q) continue;
+    const needle = normalizeForMomentMatch(q);
+    if (needle.length === 0) continue;
+    const needleTokens = momentTokenCount(needle);
+    const clash = claimed.find((c) => {
+      if (c === needle) return true;
+      const shorter = Math.min(momentTokenCount(c), needleTokens);
+      if (shorter < MIN_CONTAINMENT_TOKENS) return false;
+      return c.includes(needle) || needle.includes(c);
+    });
     if (clash === undefined) {
       claimed.push(needle);
-      return d;
+      continue;
     }
     console.warn(
       "[score] dimension quote reuses an already-grounded moment; dropping:",
-      { quote: q.slice(0, 80) },
+      { dimension: d.dimension, quote: q.slice(0, 80) },
     );
     // Delete rather than null so the field is simply absent, matching the
     // shape of a dimension the model never grounded at all.
-    const next = { ...d } as T & { quote?: string | null; quoteAtMs?: number | null };
+    const next = { ...d };
     delete next.quote;
     delete next.quoteAtMs;
-    return next as T;
-  });
+    out[i] = next;
+  }
+  return out;
 }
 
 /** "m:ss" (exactly as rendered in the timed transcript's inline markers)

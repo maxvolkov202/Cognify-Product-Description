@@ -28,6 +28,9 @@ const {
   DELIVERY_SCOPE_HOLISTIC,
   CONTENT_DIMS,
   DELIVERY_DIMS,
+  DELIVERY_SCOPE,
+  renderPerSkillScope,
+  parseScoringPass: parseScoringPassForQuotes,
 } = __armBForTests;
 
 let pass = 0;
@@ -332,6 +335,70 @@ function deliveryJson() {
   check(
     "parser round-trips a holistic delivery pass",
     parseScoringPass(deliveryJson(), DELIVERY_DIMS) != null,
+  );
+}
+
+// ── v4.1 grounded quotes are CARRIED, not discarded (option b) ──
+// Stripping the quote ask from these arms would remove a decode cost the
+// CONTROL arm still pays (`signals-drop` drops only `signals`, never
+// `quote`), biasing arm-vs-control latency by exactly the tokens a promoted
+// arm would have to pay back. Every arm scope that emits a `dimensions`
+// array must therefore ask for the fields, and the arm schema must keep them.
+{
+  const dimensionScopes: [string, string][] = [
+    ["CONTENT_SCOPE", CONTENT_SCOPE],
+    ["CONTENT_SCOPE_LEAN", CONTENT_SCOPE_LEAN],
+    ["CONTENT_SCOPE_HOLISTIC", CONTENT_SCOPE_HOLISTIC],
+    ["DELIVERY_SCOPE", DELIVERY_SCOPE],
+    ["DELIVERY_SCOPE_LEAN", DELIVERY_SCOPE_LEAN],
+    ["DELIVERY_SCOPE_HOLISTIC", DELIVERY_SCOPE_HOLISTIC],
+    ["renderPerSkillScope(clarity)", renderPerSkillScope("clarity", false)],
+    ["renderPerSkillScope(tone,lean)", renderPerSkillScope("tone", true)],
+  ];
+  for (const [name, scope] of dimensionScopes) {
+    check(
+      `${name} asks for the v4.1 quote fields`,
+      scope.includes('"quote"') && scope.includes('"quoteAt"'),
+    );
+  }
+  // The arm schema keeps a quote the model sends...
+  const withQuote = parseScoringPassForQuotes(
+    JSON.stringify({
+      dimensions: [
+        {
+          dimension: "clarity",
+          score: 80,
+          feedback: "ok",
+          quote: "a verbatim span",
+          quoteAt: "0:05",
+        },
+      ],
+    }),
+    ["clarity"] as SkillDimension[],
+  );
+  check(
+    "arm schema carries quote/quoteAt through the per-pass parse",
+    withQuote?.[0]?.quote === "a verbatim span" &&
+      withQuote?.[0]?.quoteAt === "0:05",
+  );
+  // ...and stays lenient: an over-cap quote nulls rather than failing the
+  // whole pass (which would drop the arm to the single-call fallback).
+  const overCap = parseScoringPassForQuotes(
+    JSON.stringify({
+      dimensions: [
+        {
+          dimension: "clarity",
+          score: 80,
+          feedback: "ok",
+          quote: "x".repeat(1200),
+        },
+      ],
+    }),
+    ["clarity"] as SkillDimension[],
+  );
+  check(
+    "an over-cap arm quote nulls instead of failing the pass",
+    overCap != null && overCap[0]?.score === 80 && !overCap[0]?.quote,
   );
 }
 
