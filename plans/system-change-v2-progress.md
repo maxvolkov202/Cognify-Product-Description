@@ -71,6 +71,28 @@ phase) → check the phase off here. Never commit to main directly.
   by both surfaces (unit-tested in `tests/skill-delta.test.ts`). This closes the Continue-path blind
   spot where a user who never retried saw no movement anywhere. Baselines are client-state only; a
   mid-session refresh renders the next feedback without chips.
+  **Follow-up 2026-08-24 (Max) — grounded per-skill quotes (FEEDBACK_VERSION v4.1.0).** Each
+  dimension's expanded card can now carry a verbatim transcript quote the score turns on, plus a
+  tap-to-hear timestamp ("Hear it at m:ss"). Scoring prompt asks for `dimensions[].quote`/`quoteAt`
+  (lenient schema — junk never fails the parse); the quote is substring-validated like
+  strongerVersion (`sanitizeDimensionQuote`, unit-tested in `tests/dimension-quotes.test.ts`) and
+  the "m:ss" marker maps to ms via the TIMESTAMP INDEX the prompt already carried. This partially
+  restores the legacy callout grounding the v4 contract dropped, in the lighter per-skill form.
+  **Calibration re-run (guardrail):** baseline `main` 48/48 within tolerance; quotes branch 45/48
+  with 3 independence misses by 2-5 pts that re-passed 2/2 on targeted reruns (run-to-run noise,
+  not a shift). **Hard-won lesson:** the suite MUST run with `FF_DETERMINISTIC_SIGNALS=true` +
+  `FF_DETERMINISTIC_SIGNALS_PERCENT=100` (prod state since 2026-07-15; the bank was re-authored
+  under it). Flagless local runs fail ~14-18/48 with +17..+24 structure/thinking drift — that is
+  the missing SIGNALS block, not real regression. Same session also fixed `.env.local` values
+  corrupted with embedded `"\n"` (OPENAI/ANTHROPIC keys, OPENAI_FALLBACK_MODEL — the "invalid
+  model ID" fallback breaker).
+  **Final amendment 2026-08-24 (Max) — compact trim retired entirely.** Max's direction: production
+  should match PR #61 minus the "compact first feedback" part. The first-attempt reveal now renders
+  the FULL FeedbackPanel (previous-exercise focus reminder, rating widget, and share CTA restored);
+  the `compact`/`feedbackCompact` props were deleted from FeedbackPanel/RepSurface and all three
+  callers (Daily Workout RepControls, Application Lab, Build a Rep). What survives of D26 is only
+  the optional-retry behavior: colorful Retry primary + gray Continue, Improvement Review only on
+  Retry, plus the later additions (movement chips, grounded quotes). PRD §§4.5, 4.6, 4.9 updated.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 

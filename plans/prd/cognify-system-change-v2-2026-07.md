@@ -1334,9 +1334,10 @@ The First Rep should reflect how the user would naturally communicate without in
 
 * ## Core Skill Breakdown (§4.5.3), collapsed by default, so a user can see every skill score at a glance and expand any one of them for why it scored that way and how to improve it.
 
-What the compact first-attempt view drops is housekeeping only: the previous
-exercise's focus reminder, the feedback rating widget, and the share prompt
-(D26, amended 2026-08-24).
+The first-attempt view shows the full feedback panel — including the previous
+exercise's focus reminder, playback, the feedback rating widget, and the share
+prompt. (D26's earlier "compact" trim was retired 2026-08-24 at Max's
+direction; only the optional-retry behavior of D26 remains.)
 
 ## **Feedback Structure**
 
@@ -1417,6 +1418,9 @@ Expanded feedback explains why the score was earned and provides skill-specific 
 
 * Core Skill Breakdown is collapsed by default.  
 * Users can expand any skill to view detailed feedback.  
+* Expanded feedback may include a verbatim quote of the moment the score
+  turns on, with tap-to-hear playback of that moment (added 2026-08-24;
+  quotes are verbatim-validated and omitted rather than invented).
 * Each skill displays its score in the collapsed state.  
 * When a previous exercise exists in the same session, each skill also shows
   its movement since that exercise (added 2026-08-24). Movement follows the
@@ -1473,10 +1477,11 @@ The Retry should feel like a second attempt at the same challenge rather than a 
 * The Retry should target a single coaching objective.
 * **D26:** The Retry is strongly encouraged but optional. The first-attempt
   screen presents Retry as the colorful primary action with a muted Continue
-  beside it. It stays compact by dropping housekeeping (previous-exercise focus
-  reminder, rating widget, share prompt) while keeping everything needed to judge
-  and fix the rep: Communication Score, one Coach's Focus, the expandable Core
-  Skill Breakdown (§4.5.3), and playback. Choosing Continue advances without an
+  beside it, and shows the full feedback panel: Communication Score, one
+  Coach's Focus, the expandable Core Skill Breakdown (§4.5.3), playback,
+  previous-exercise focus reminder, rating widget, and share prompt. (An
+  earlier "compact" variant that dropped the housekeeping items was retired
+  2026-08-24 at Max's direction.) Choosing Continue advances without an
   Improvement Review; choosing Retry unlocks the first→retry comparison.
 
 ---
@@ -1601,13 +1606,13 @@ While the framework remains consistent across the platform, each mode applies th
 
 Retries are strongly encouraged but optional (D26).
 
-Users may continue to the next exercise after the compact first-attempt
-feedback. Retry remains the visually dominant action because immediate
-implementation is Cognify's highest-value learning behavior.
+Users may continue to the next exercise after the first-attempt feedback.
+Retry remains the visually dominant action because immediate implementation
+is Cognify's highest-value learning behavior.
 
 ### **The Lab**
 
-Users are strongly encouraged to Retry, but may continue after the compact
+Users are strongly encouraged to Retry, but may continue after the
 first-attempt feedback. If they Retry, they may continue practicing additional
 repetitions after the Improvement Review.
 

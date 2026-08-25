@@ -539,7 +539,6 @@ export default function AppSessionClient({
             {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
             {...(phase.attempt === "first"
               ? {
-                  feedbackCompact: true,
                   secondaryAction: {
                     label: "Continue",
                     onClick: advanceExercise,

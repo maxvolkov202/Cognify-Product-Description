@@ -7,7 +7,7 @@ import { DIMENSION_LABELS } from "@/types/domain";
 import { DIMENSION_ACCENTS } from "@/lib/skill-lab/mode-theme";
 import { cn } from "@/lib/utils/cn";
 import { Disclosure } from "./Disclosure";
-import { useAudioControl } from "./AudioControlContext";
+import { useAudioControl, useHasAudioControl } from "./AudioControlContext";
 import { CalloutCorrectionRow } from "../CalloutCorrectionRow";
 import { WhyThisMattersPopover } from "../WhyThisMattersPopover";
 import { visibleSkillDelta } from "@/lib/skill-delta";
@@ -19,6 +19,10 @@ type Props = {
    *  (why this score + one coaching line). When present it leads the
    *  expanded panel; legacy reps fall back to per-dimension callouts. */
   feedback?: string;
+  /** v4.1 grounded moment — the verbatim transcript quote this skill's
+   *  score turns on, with an optional ms offset for tap-to-hear. Rendered
+   *  under the feedback sentence in the expanded panel. */
+  groundedMoment?: { quote: string; quoteAtMs: number | null } | null;
   /** Pre-filtered to only callouts where `dimension === this dimension`.
    *  Legacy reps only — v4 reps emit no callouts. */
   callouts: Callout[];
@@ -41,6 +45,7 @@ export function DimensionCard({
   dimension,
   score,
   feedback,
+  groundedMoment,
   callouts,
   expanded,
   onToggle,
@@ -141,7 +146,13 @@ export function DimensionCard({
                 {feedback}
               </p>
             )}
-            {!feedback && callouts.length === 0 && (
+            {groundedMoment && (
+              <GroundedMomentDetail
+                dimension={dimension}
+                moment={groundedMoment}
+              />
+            )}
+            {!feedback && !groundedMoment && callouts.length === 0 && (
               <p className="text-xs leading-relaxed text-ink-500 dark:text-ink-400">
                 No specific moment to flag — score reflects overall consistency
                 across the rep.
@@ -153,6 +164,40 @@ export function DimensionCard({
           </div>
         </Disclosure>
       </div>
+    </div>
+  );
+}
+
+/** v4.1 grounded moment — quote blockquote + optional tap-to-hear jump.
+ *  Mirrors CalloutDetail's quote treatment so v4.1 and legacy reps read
+ *  the same. */
+function GroundedMomentDetail({
+  dimension,
+  moment,
+}: {
+  dimension: SkillDimension;
+  moment: { quote: string; quoteAtMs: number | null };
+}) {
+  const { seekToMs } = useAudioControl();
+  const canSeek = useHasAudioControl();
+  return (
+    <div data-testid={`dim-quote-${dimension}`}>
+      <blockquote className="flex gap-2 rounded-lg bg-ink-50 dark:bg-ink-800 px-3 py-2 text-[13px] italic leading-relaxed text-ink-700 dark:text-ink-200">
+        <Quote
+          className="size-3 shrink-0 translate-y-1 text-ink-400 dark:text-ink-500"
+          aria-hidden="true"
+        />
+        <span>&ldquo;{moment.quote}&rdquo;</span>
+      </blockquote>
+      {moment.quoteAtMs != null && canSeek && (
+        <button
+          type="button"
+          onClick={() => seekToMs(moment.quoteAtMs!)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2.5 py-1 text-[11px] font-semibold text-ink-600 dark:text-ink-300 transition-colors hover:border-ink-300 dark:hover:border-ink-600 hover:text-ink-900 dark:hover:text-white"
+        >
+          Hear it at {formatTimestamp(moment.quoteAtMs)}
+        </button>
+      )}
     </div>
   );
 }

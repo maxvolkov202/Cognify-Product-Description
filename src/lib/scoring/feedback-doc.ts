@@ -11,7 +11,19 @@ export type RepFeedbackDoc = {
   headlineTone?: string;
   strongerVersion?: { quote: string | null; rewrite: string } | null;
   nextRepHint?: string;
-  skillFeedback?: Record<string, { feedback: string; subSkill?: string | null }>;
+  skillFeedback?: Record<
+    string,
+    {
+      /** Optional since v4.1: a dimension can carry a grounded quote with
+       *  no feedback sentence (the model may ground one and skip the
+       *  other), and that entry still has to survive a reload. */
+      feedback?: string;
+      subSkill?: string | null;
+      /** v4.1 grounded moment — verbatim transcript quote + ms offset. */
+      quote?: string | null;
+      quoteAtMs?: number | null;
+    }
+  >;
   implementationReview?: {
     verdict: string;
     note?: string;
@@ -29,10 +41,16 @@ export function buildFeedbackDoc(score: RepScore): RepFeedbackDoc | null {
 
   const skillFeedback: RepFeedbackDoc["skillFeedback"] = {};
   for (const d of score.dimensions ?? []) {
-    if (d.feedback) {
+    // v4.1: a quote alone is worth persisting — gating on feedback would
+    // show the moment in-session and silently lose it on reload, since
+    // getRepResult rebuilds dimensions from rows that carry no quote.
+    if (d.feedback || d.quote != null) {
       skillFeedback[d.dimension] = {
-        feedback: d.feedback,
+        ...(d.feedback ? { feedback: d.feedback } : {}),
         ...(d.subSkill !== undefined ? { subSkill: d.subSkill } : {}),
+        ...(d.quote != null
+          ? { quote: d.quote, quoteAtMs: d.quoteAtMs ?? null }
+          : {}),
       };
     }
   }
@@ -86,7 +104,14 @@ export function applyFeedbackDoc<T extends RepScore>(
   const dimensions = score.dimensions.map((d) => {
     const sf = doc.skillFeedback?.[d.dimension];
     return sf
-      ? { ...d, feedback: sf.feedback, subSkill: sf.subSkill ?? null }
+      ? {
+          ...d,
+          ...(sf.feedback !== undefined ? { feedback: sf.feedback } : {}),
+          subSkill: sf.subSkill ?? null,
+          ...(sf.quote != null
+            ? { quote: sf.quote, quoteAtMs: sf.quoteAtMs ?? null }
+            : {}),
+        }
       : d;
   });
   return {

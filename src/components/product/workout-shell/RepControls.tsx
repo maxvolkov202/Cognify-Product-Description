@@ -505,12 +505,10 @@ function ActiveRep({
         : {})}
       {...(retryModeContext ? { scoreModeContext: retryModeContext } : {})}
       {...(isEngineFirst || isEngineRetry ? { hideRunItAgain: true } : {})}
-      // D26 — the Retry is encouraged, not required: the first-attempt
-      // reveal trims housekeeping (previous-focus reminder, rating, share)
-      // but keeps score, Coach's Focus, the expandable six-skill breakdown
-      // (PRD §4.5.3), and playback, with a colorful Retry primary + a gray
-      // Continue that advances the station.
-      {...(isEngineFirst ? { feedbackCompact: true } : {})}
+      // D26 — the Retry is encouraged, not required. The first-attempt
+      // reveal shows the FULL feedback panel (Max, 2026-08-24 — the
+      // earlier "compact" trim is retired), with a colorful Retry primary
+      // + a gray Continue that advances the station.
       {...(isEngineFirst && previousDimensionScores
         ? { previousDimensionScores }
         : {})}

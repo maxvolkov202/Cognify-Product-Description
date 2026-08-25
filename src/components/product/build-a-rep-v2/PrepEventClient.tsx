@@ -628,7 +628,6 @@ export default function PrepEventClient({
             }}
             {...(view.attempt === "first"
               ? {
-                  feedbackCompact: true,
                   secondaryAction: {
                     label: "Continue",
                     onClick: () => {

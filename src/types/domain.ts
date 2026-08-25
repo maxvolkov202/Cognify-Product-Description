@@ -251,6 +251,14 @@ export type DimensionScore = {
    *  most drove this dimension's score. LLM-attributed; sanitized to
    *  null on dimension mismatch. */
   subSkill?: string | null;
+  /** Grounded moment (2026-08-24) — a verbatim transcript quote this
+   *  skill's score turns on. Substring-validated server-side; absent
+   *  when the model couldn't ground one. */
+  quote?: string | null;
+  /** Millisecond offset of the quote's transcript marker, for
+   *  tap-to-hear seeking. Null when word timestamps were unavailable
+   *  or the marker didn't parse. */
+  quoteAtMs?: number | null;
 };
 
 /**
@@ -449,8 +457,10 @@ export type RepScore = {
  *  - v4.0.0 (grading v3, PRD §4.5-4.6 clean break): model emits
  *    `coachFocus` (behavior/why/action) + `strongerVersion` + per-skill
  *    `dimensions[].feedback`; callouts/didWell/didntLand/nextRepFocus
- *    leave the model output (empty/absent on new reps, legacy-read only). */
-export const FEEDBACK_VERSION = "v4.0.0";
+ *    leave the model output (empty/absent on new reps, legacy-read only).
+ *  - v4.1.0 adds optional grounded `dimensions[].quote` + `quoteAtMs`
+ *    (verbatim-validated transcript moment per skill, tap-to-hear). */
+export const FEEDBACK_VERSION = "v4.1.0";
 
 export type FrameworkNode = {
   id: string;
