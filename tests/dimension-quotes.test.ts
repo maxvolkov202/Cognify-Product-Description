@@ -197,7 +197,17 @@ const overrideResponse = JSON.stringify({
     // through.
     ...(d === "delivery"
       ? { quote: "checks traffic against a set of rules", quoteAt: "0:03" }
-      : { feedback: "ok" }),
+      : d === "clarity"
+        ? // The negative control: clarity is NOT touched by the delivery
+          // override, so its verbatim quote must SURVIVE. Without this a
+          // regression that drops every quote whenever the override fires
+          // would leave the suite green.
+          {
+            feedback: "ok",
+            quote: "before it reaches you",
+            quoteAt: "0:05",
+          }
+        : { feedback: "ok" }),
   })),
   headline: "headline",
   headlineTone: "blunt",
@@ -253,6 +263,10 @@ assert(
 );
 // A dimension the override never touched keeps its verbatim quote.
 const untouched = overrideScore.dimensions.find((d) => d.dimension === "clarity");
-assert(untouched?.quote == null, "clarity had no quote in this fixture");
+assert(
+  untouched?.quote === "before it reaches you",
+  "untouched dimension keeps its verbatim quote while delivery loses its own",
+);
+assert(untouched?.quoteAtMs === 5_000, "untouched dimension keeps its marker");
 
 console.log(`${passed} passed, 0 failed`);
