@@ -103,10 +103,21 @@ phase) → check the phase off here. Never commit to main directly.
   persists (it previously rendered in-session and vanished on reload); `parseTranscriptMarker`
   tolerates the bracketed `[0:45]` form the TIMESTAMP INDEX actually renders.
 
+  **Follow-up (PR #68).** The quote-vs-feedback guard shipped as `raw?.feedback && d.feedback !==
+  raw.feedback`, which short-circuited whenever the model wrote no feedback for that dimension —
+  and since `feedback` is optional, a dimension can arrive with a quote and NO sentence, the
+  override then injects one, and the quote survives attached to copy it was never chosen for. That
+  is the same mismatch the guard exists to stop, reached through the one door it left open. The
+  comparison is now unconditional (`d.feedback !== raw?.feedback`): equal when both are absent, so
+  ordinary quote-only dimensions keep their moment.
+
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
   - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
     Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
-    blind-ranking share CTA (the three the compact trim used to hide), plus Retry/Continue. 3 of 6
+    blind-ranking share CTA. The three surfaces the compact trim used to hide are the
+    previous-exercise focus reminder, the rating widget, and the share CTA — the focus reminder
+    renders only when a previous focus exists, so confirm it on a rep that has one. Plus
+    Retry/Continue. 3 of 6
     skill cards rendered a grounded quote with a working "Hear it at m:ss" seek button; Continue
     completed the session.
   - Build a Rep — intake -> plan -> guided moment -> readiness review passes on prod.
@@ -114,7 +125,10 @@ phase) → check the phase off here. Never commit to main directly.
     exercises the provider-less DimensionGrid, where the seek button correctly hides).
   - Persistence — every prod rep wrote `feedback.version = "v4.1.0"` with
     `skillFeedback[dim].quote`/`quoteAtMs` populated where grounded, under the LIVE scoring arm
-    `signals-drop` (`FF_SCORING_VARIANT_ARM`, 100%). delivery/tone are legitimately null: those
+    `signals-drop`. That arm needs all THREE knobs, not one: `FF_SCORING_VARIANT=true` is the master
+    switch, `FF_SCORING_VARIANT_ARM=signals-drop` names the arm, `FF_SCORING_VARIANT_PERCENT=100` is
+    the ramp. Unsetting only the arm name leaves the variant ON and silently falls back to `control`
+    — an explicit rollback flips the master switch. delivery/tone are legitimately null: those
     scores are prosody-grounded, not grounded in a worded moment.
 
   **Known follow-ups (not blocking; raised by `/code-review` on PR #67):**

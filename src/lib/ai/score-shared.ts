@@ -1640,7 +1640,13 @@ export function assembleRepScore(opts: {
     // chosen to justify copy that is no longer on the card — it would
     // "prove" a claim nobody wrote. Drop it; the card keeps the
     // wpm/filler narrative with no moment.
-    if (raw?.feedback && d.feedback !== raw.feedback) return d;
+    //
+    // Compared unconditionally, NOT gated on the model having written a
+    // sentence: `feedback` is optional, so a dimension can arrive with a
+    // quote and no feedback, and the override then INJECTS a sentence the
+    // quote was never chosen for — the exact mismatch, reached through the
+    // one door a `raw?.feedback &&` guard would leave open.
+    if (d.feedback !== raw?.feedback) return d;
     const grounded = sanitizeDimensionQuote({
       quote: raw?.quote,
       quoteAt: raw?.quoteAt,
