@@ -170,22 +170,93 @@ phase) → check the phase off here. Never commit to main directly.
     — an explicit rollback flips the master switch. delivery/tone are legitimately null: those
     scores are prosody-grounded, not grounded in a worded moment.
 
-  **Known follow-ups (not blocking; raised by `/code-review` on PR #67):**
-  - Quote independence — with six dimensions over one short transcript the model often cites the
+  **Known follow-ups (raised by `/code-review` on PR #67) — ALL THREE CLOSED 2026-08-25, see below.**
+  - ~~Quote independence~~ — with six dimensions over one short transcript the model often cited the
     SAME moment for several skills (one prod rep grounded 4 dimensions on one identical phrase),
-    which pushes against the DIMENSION INDEPENDENCE rule. The D26 calibration run's 3 misses were
-    independence checks that re-passed 2/2 on targeted rerun; a full-suite rerun (with
-    `FF_DETERMINISTIC_SIGNALS=true` + `_PERCENT=100`) would settle noise vs small shift. This is the
-    highest-value follow-up: it is a copy-quality issue users can see.
-  - The prompt puts no explicit char cap on `dimensions[].quote` (the neighboring `feedback` rule
-    has <=400). Six long quotes eat decode headroom against `max_tokens` 2500, and a truncated
-    response falls to `mock-fallback-v1`. Adding a cap is a SCORING-PROMPT edit, so it needs a
-    calibration re-run — deliberately deferred, not forgotten.
-  - The fan-out bench arms (`grouped-fanout`, `per-skill-fanout`, `holistic-split`) rebuild
-    dimensions from their own schema with no quote fields, so they stamp v4.1.0 without quotes AND
-    pay decode tokens for six fields they discard — which contaminates the decode-latency
-    measurement those arms exist to make. Bench-only; the shipped arm (`signals-drop`) is the
-    control single-call path and carries quotes correctly.
+    which pushes against the DIMENSION INDEPENDENCE rule. This was the highest-value follow-up: a
+    copy-quality issue users can see.
+  - ~~No char cap on `dimensions[].quote`~~ (the neighboring `feedback` rule has <=400). Six long
+    quotes eat decode headroom against `max_tokens` 2500, and a truncated response falls to
+    `mock-fallback-v1`.
+  - ~~The fan-out bench arms pay for quotes they discard~~ — they rebuild dimensions from their own
+    schema with no quote fields, so they stamp v4.1.0 without quotes AND pay decode tokens for six
+    fields they throw away, contaminating the decode-latency measurement those arms exist to make.
+    Bench-only; the shipped arm (`signals-drop`) is the control single-call path and carries quotes
+    correctly.
+
+  **Follow-up 2026-08-25 (PR #70) — quote independence + a phrase-length cap + the bench-arm trim.**
+  All three of the deferred follow-ups above, in one branch (the first two are scoring-prompt edits
+  and share one calibration re-run; the third is bench-only).
+
+  *Quote independence.* Two layers, matching how every other grounding rule in this file works:
+  (a) a `QUOTE INDEPENDENCE` bullet in PER-SKILL FEEDBACK RULES that makes reuse a non-option and
+  normalizes "several dimensions at null" as the EXPECTED shape for a short transcript (a short rep
+  holds fewer than six distinct moments; prefer null over a stretch — the card renders fine with
+  none); and (b) `dropDuplicateMoments` in `score-shared.ts`, a deterministic post-validator: the
+  first dimension in canonical order claims a moment, later reuses lose their quote. "Same moment"
+  is normalized containment in EITHER direction, not string equality, so a re-quote that trims or
+  extends the span is caught too. It runs AFTER verbatim validation, so a dropped hallucination
+  never claims a moment a real quote would then lose to. Dropping rather than reassigning keeps it
+  pure: "which skill deserves the phrase more" is a judgment call the prompt owns, not the validator.
+  No UI change was needed — `DimensionCard`'s empty state is already gated on `!groundedMoment`, and
+  a v4.1 card always has a `feedback` sentence, so a de-quoted card just renders without a
+  blockquote.
+
+  *Quote length cap.* The prompt said only "a phrase, not a paragraph" while `dimensionScoreSchema`
+  tolerated 1000 chars. Prompt now asks for <=200; the schema backstop is 400 (the neighbouring
+  `feedback` cap) so a modest overshoot still renders instead of silently vanishing, while a
+  paragraph dump is caught. NOT strongerVersion's 1000: that field quotes ONE span per rep chosen so
+  a rewrite can be taught off it, where a long comma-spliced run-on is legitimate; this is a
+  phrase-length grounding moment rendered as a small blockquote, six per response. `.catch(null)`
+  means an over-cap quote drops to null rather than failing the parse.
+
+  *Bench arms.* Chose option (a) — stop asking, since the arms are bench-only. A `NO_QUOTE_FIELDS`
+  line is appended to every arm scope block (`CONTENT_SCOPE`, `DELIVERY_SCOPE`, their holistic/lean
+  variants, `DELIVERY_TONE_DECOMP_SCOPE`, and `renderPerSkillScope`). Suppressed in the UNCACHED
+  per-call scope, deliberately NOT by forking the system prompt for arms: the arms share control's
+  cached system prefix byte-for-byte on purpose, and forking it would give them a separate cache
+  entry and a cold-prefix penalty — corrupting the same decode-latency measurement from the other
+  side. If an arm is ever promoted the fix flips to (b): carry `quote`/`quoteAt` through
+  `armDimensionSchema` and both `merged` rebuilds, because a shipped arm stamping v4.1.0 with no
+  quotes would silently drop a user-facing feature. That is recorded in the code comment.
+
+  **Calibration re-run (guardrail — these ARE scoring-prompt edits).** Both arms run with
+  `FF_DETERMINISTIC_SIGNALS=true` + `FF_DETERMINISTIC_SIGNALS_PERCENT=100` against a local dev
+  server, one fixed `CALIBRATION_GUEST_ID` shared by both runs so the prompt context is identical
+  (a fresh guest has no calibration profile and no coaching memory, so both optional blocks stay
+  absent — the byte-identical property the guardrail asks for).
+
+  | | total | band | independence |
+  |---|---|---|---|
+  | baseline `main` (`ce4c5491`) | 47/48 | 28/29 | **19/19** |
+  | branch | 47/48 | 28/29 | **19/19** |
+
+  Independence 19/19 on BOTH sides — that is the set Task A perturbs, and it did not move. The two
+  arms fail a DIFFERENT single band rep each and both are conciseness noise, not a shift: baseline
+  missed `objection-poor-too-expensive` (conciseness -17 against a ±15 per-dim tolerance, a 2-point
+  overshoot) and PASSES it on branch; branch missed `persuasive-below-policy-unlimited-pto`
+  (conciseness -20) which then passed **3/3 on targeted rerun** (conciseness 68 / 78 / 68 vs
+  expected 78, all inside ±15). Per-dimension mean signed movement branch-vs-base is within ±1.2 on
+  every dimension.
+
+  **Direct before/after on the actual symptom** (same 6 reference reps scored through `/api/score`
+  on each arm, quotes checked for normalized-containment reuse):
+
+  | | quotes | duplicate moments |
+  |---|---|---|
+  | `main` | 24 | **3** (12.5%) |
+  | branch | 21 | **0** |
+
+  `main` reproduced the prod symptom exactly — `band-poor-mic-test` grounded clarity AND
+  thinking_quality on the identical "it's a thing that does, um, automation", and structure AND
+  conciseness both on "Uh, hello, hello? Is this thing on." On branch: 0 duplicates, 0 non-verbatim,
+  0 over-cap, longest quote 95 chars (well inside the new 200 ask). Grounding rate settles at 3-4 of
+  6 with delivery/tone consistently null, which is the designed shape.
+
+  Note for next time: `scripts/calibration/rethreshold-independence.mjs` exists but was NOT used and
+  was not the right tool here — it RELAXES independence thresholds to observed values at rubric-
+  version boundaries. Using it to make a branch pass would have hidden exactly the regression this
+  re-run was meant to detect.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
