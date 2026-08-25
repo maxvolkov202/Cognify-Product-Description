@@ -147,9 +147,10 @@ phase) → check the phase off here. Never commit to main directly.
   has ever carried an unverified quote.
 
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`):**
-  - NOTE: this verification ran against the #67 build, BEFORE the critical fix below. It confirms
-    the panel/rendering and persistence; it is NOT evidence the verbatim contract held, since a
-    fabricated quote would have looked identical on screen. See the post-fix re-verification below.
+  - NOTE: this verification ran against the #67 build, BEFORE the critical fix recorded ABOVE. It
+    confirms the panel/rendering and persistence; it is NOT evidence the verbatim contract held,
+    since a fabricated quote would have looked identical on screen. The post-fix re-verification is
+    the "Re-verified on production" paragraph ABOVE.
   - Application Lab — full first-attempt panel confirmed ON PROD: Communication Score, Coach's
     Focus, expandable six-skill breakdown, playback, the "Help us improve" rating tile, and the
     blind-ranking share CTA. The three surfaces the compact trim used to hide are the
