@@ -220,24 +220,73 @@ phase) → check the phase off here. Never commit to main directly.
   `armDimensionSchema` and both `merged` rebuilds, because a shipped arm stamping v4.1.0 with no
   quotes would silently drop a user-facing feature. That is recorded in the code comment.
 
-  **Calibration re-run (guardrail — these ARE scoring-prompt edits).** Both arms run with
-  `FF_DETERMINISTIC_SIGNALS=true` + `FF_DETERMINISTIC_SIGNALS_PERCENT=100` against a local dev
-  server, one fixed `CALIBRATION_GUEST_ID` shared by both runs so the prompt context is identical
-  (a fresh guest has no calibration profile and no coaching memory, so both optional blocks stay
-  absent — the byte-identical property the guardrail asks for).
+  **`/code-review` (high) on PR #70 — four findings, all addressed in `5fed9e56`.** Two were real
+  bugs in the new guard, both worth recording because they are the same SHAPE of mistake:
+  a rule that was documented but not enforced, and a normalizer reused outside the domain it was
+  written for.
+  - *Canonical claim order was documented, never enforced.* `dropDuplicateMoments` walked the array
+    it was handed, and `validated.dimensions` is RAW MODEL EMISSION order — nothing between the
+    parse and the dedupe sorts it. The doc comment's whole rationale ("clarity first, delivery/tone
+    last because they are prosody-grounded") held only by luck. On a provider or fallback that emits
+    `tone` first, tone would keep a worded moment it is supposed to have least often and the clarity
+    card — whose feedback sentence is literally ABOUT that phrase — would render with none. Now
+    walks `ALL_DIMENSIONS` explicitly; output still preserves input order.
+  - *Bare-substring containment matched INSIDE words.* The comment defended "no minimum length" for
+    the contained-PHRASE case and never considered the substring-inside-a-word case. `quote` allows
+    1 char and the prompt actively invites short delivery/tone quotes (a filler cluster), so a
+    delivery quote of `"um"` claimed the moment and then ate `"the n(um)ber of requests"` and
+    `"our ass(um)ptions were wrong"` — one filler quote could strip five legitimate moments, the
+    exact opposite of the guard's purpose. Reproduced before fixing. Moment keys are now
+    space-PADDED (whole-token compares) with punctuation flattened, and containment only counts once
+    the shorter span is >= 4 tokens; below that two quotes must match EXACTLY, which still catches
+    literal reuse. The punctuation flattening also closed the reverse hole ("is this thing on." vs
+    "is this thing on" was NOT being caught). Worth generalizing: `normalizeForMatch` exists for the
+    VERBATIM check (strict, punctuation-preserving) and was wrong for moment-identity; the dedupe
+    now has its own `normalizeForMomentMatch`.
+  - *Bench arms — switched from option (a) to option (b).* The review caught that stripping the
+    quote ask from ONLY the arms removes a decode cost the CONTROL arm still pays (`signals-drop` =
+    `leanFeedbackCap` 400 drops `signals`, never `quote`), so any measured arm win would include
+    ~6 quotes of decode a promoted arm has to pay back — biasing the very comparison the arms exist
+    to make, just from the other direction. Option (b) fixes both: `armDimensionSchema` and both
+    `merged` rebuilds now CARRY `quote`/`quoteAt`, and every arm scope that emits a `dimensions`
+    array asks for them. Nothing is trusted — `merged` round-trips through control's
+    `parseAndValidate`/`assembleRepScore`, so an arm quote gets the same verbatim check and the same
+    dedupe. The tone-decomposed scope is deliberately untouched: its delivery/tone dims are built
+    from a deterministic rollup and honestly carry no worded moment.
+  - *The prompt rule is scoped to `dimensions[]`.* "Every non-null quote in this rep" would, read
+    literally, stop the model reusing a moment for `strongerVersion` — the ONE span chosen so a
+    rewrite can be taught off it. `strongerVersion.quote` is deliberately NOT seeded into the
+    claimed set either: a skill card and the Stronger Version card naming the same moment reads as
+    coherent (here is the moment, here it is upgraded), not as the broken repetition this guard
+    stops.
+
+  **Calibration re-run (guardrail — these ARE scoring-prompt edits).** Run against the FINAL prompt,
+  i.e. after the review fixes (finding 4 reworded the rule, so the earlier run was re-done rather
+  than reused). Both arms with `FF_DETERMINISTIC_SIGNALS=true` +
+  `FF_DETERMINISTIC_SIGNALS_PERCENT=100` against a local dev server, one fixed
+  `CALIBRATION_GUEST_ID` shared by every run so the prompt context is identical (a fresh guest has
+  no calibration profile and no coaching memory, so both optional blocks stay absent — the
+  byte-identical property the guardrail asks for).
 
   | | total | band | independence |
   |---|---|---|---|
-  | baseline `main` (`ce4c5491`) | 47/48 | 28/29 | **19/19** |
-  | branch | 47/48 | 28/29 | **19/19** |
+  | baseline `main` (`ce4c5491`) | 47/48 | 28/29 | 19/19 |
+  | branch (final) | 47/48 | 29/29 | 18/19 |
 
-  Independence 19/19 on BOTH sides — that is the set Task A perturbs, and it did not move. The two
-  arms fail a DIFFERENT single band rep each and both are conciseness noise, not a shift: baseline
-  missed `objection-poor-too-expensive` (conciseness -17 against a ±15 per-dim tolerance, a 2-point
-  overshoot) and PASSES it on branch; branch missed `persuasive-below-policy-unlimited-pto`
-  (conciseness -20) which then passed **3/3 on targeted rerun** (conciseness 68 / 78 / 68 vs
-  expected 78, all inside ±15). Per-dimension mean signed movement branch-vs-base is within ±1.2 on
-  every dimension.
+  Each arm misses exactly one rep, and NEITHER miss is a regression — both were chased down rather
+  than assumed:
+  - Baseline missed `objection-poor-too-expensive` (band, conciseness -17 against a ±15 per-dim
+    tolerance — a 2-point overshoot). The branch PASSES it.
+  - The branch missed `indep-earnings-explainer-empty` (independence, thinking_quality 65 > max 60).
+    This is the assertion class Task A perturbs, so it was NOT waved off as noise. Targeted reruns,
+    4 on each arm: **`main` fails it 3/4** (thinking_quality 60/65/65/65, mean 63.8) while the
+    **branch fails it 1/4** (55/65/60/55, mean 58.8). The rep is a pre-existing threshold-straddler
+    that the branch handles BETTER than main — the full-suite baseline passing it was the lucky
+    draw, not the branch's miss being a regression. Consistent with the aggregate: per-dimension
+    mean signed movement on thinking_quality is -1.3 (branch lower, i.e. further from this
+    assertion's violation), and no dimension moves more than ±1.5 on the mean. The assertion's own
+    stamped rationale already records it as aspirational and re-thresholded at rubric v4.0.0 with
+    "observed 45/55/45", so 55-65 is its known jitter band and `max 60` sits in the middle of it.
 
   **Direct before/after on the actual symptom** (same 6 reference reps scored through `/api/score`
   on each arm, quotes checked for normalized-containment reuse):
@@ -245,18 +294,21 @@ phase) → check the phase off here. Never commit to main directly.
   | | quotes | duplicate moments |
   |---|---|---|
   | `main` | 24 | **3** (12.5%) |
-  | branch | 21 | **0** |
+  | branch (final) | 23 | **0** |
 
   `main` reproduced the prod symptom exactly — `band-poor-mic-test` grounded clarity AND
   thinking_quality on the identical "it's a thing that does, um, automation", and structure AND
   conciseness both on "Uh, hello, hello? Is this thing on." On branch: 0 duplicates, 0 non-verbatim,
-  0 over-cap, longest quote 95 chars (well inside the new 200 ask). Grounding rate settles at 3-4 of
-  6 with delivery/tone consistently null, which is the designed shape.
+  0 over-cap, longest quote 95 chars (well inside the new 200 ask). Grounding settles at 3-4 of 6
+  with delivery/tone consistently null, which is the designed shape. Note the grounded count ROSE
+  from 21 (pre-review-fix) to 23 with the same 6 reps — direct evidence that the finding-2
+  containment bug had been over-dropping legitimate moments.
 
   Note for next time: `scripts/calibration/rethreshold-independence.mjs` exists but was NOT used and
   was not the right tool here — it RELAXES independence thresholds to observed values at rubric-
   version boundaries. Using it to make a branch pass would have hidden exactly the regression this
-  re-run was meant to detect.
+  re-run was meant to detect. The honest tool for "noise or shift?" is a targeted rerun on BOTH
+  arms, which is what settled `indep-earnings-explainer-empty`.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
