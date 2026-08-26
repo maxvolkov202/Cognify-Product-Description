@@ -181,7 +181,14 @@ export function FeedbackPanel({
     typeof repIndex === "number" && typeof totalReps === "number";
 
   return (
-    <AudioControlProvider value={{ seekToMs, expandDimension, getCalloutId }}>
+    <AudioControlProvider
+      value={{
+        hasAudio: Boolean(audioUrl),
+        seekToMs,
+        expandDimension,
+        getCalloutId,
+      }}
+    >
       <div className="space-y-5">
         {pressureContext && (
           <Section delay={0}>

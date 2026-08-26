@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { uploadAudio } from "@/lib/audio/upload";
+import {
+  ALLOWED_AUDIO_MIME_TYPES,
+  audioExtensionFor,
+  isAllowedAudioMime,
+  normalizeAudioMime,
+} from "@/lib/audio/mime";
 import { rateLimit } from "@/lib/ratelimit";
 import { currentUser } from "@/lib/session/current-user";
 
@@ -55,20 +61,21 @@ export async function POST(req: Request) {
         { status: 413 },
       );
     }
-    const mime = file.type || "audio/webm";
-    if (!mime.startsWith("audio/")) {
+    // MediaRecorder reports a PARAMETERIZED type (`audio/webm;codecs=opus`),
+    // and Storage matches its allowlist against the full contentType
+    // string — so the raw value never matches and the write 500s. Strip
+    // parameters before both the check and the upload.
+    const mime = normalizeAudioMime(file.type) || "audio/webm";
+    if (!isAllowedAudioMime(mime)) {
       return NextResponse.json(
-        { error: "unsupported_mime", message: "Audio mime type required." },
+        {
+          error: "unsupported_mime",
+          message: `Unsupported audio type. Expected one of: ${ALLOWED_AUDIO_MIME_TYPES.join(", ")}.`,
+        },
         { status: 415 },
       );
     }
-    const extension =
-      mime.includes("webm") ? "webm" :
-      mime.includes("ogg") ? "ogg" :
-      mime.includes("mp4") ? "mp4" :
-      mime.includes("mpeg") ? "mp3" :
-      mime.includes("wav") ? "wav" :
-      "bin";
+    const extension = audioExtensionFor(mime);
     // Namespace under the user id so blob-storage cleanup + per-user
     // accounting are tractable.
     const key = `reps/${user.id}/${randomUUID()}.${extension}`;

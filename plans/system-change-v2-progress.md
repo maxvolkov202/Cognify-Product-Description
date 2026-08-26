@@ -308,10 +308,21 @@ phase) → check the phase off here. Never commit to main directly.
   with `npx vercel --prod --yes` (aliased to www.cognifygym.com).
 
   **Production verification (2026-08-25, live reps as `e2e-harness@cognify.test`).** Application Lab
-  1-rep and 5-rep sessions plus Build a Rep, all green against prod. Daily Workout was NOT re-run:
-  both test accounts were already consumed for 2026-08-25 EDT (one muscle-group day per user per
-  USER-LOCAL day), and this change touches no Daily-Workout-specific path — the scoring call is
-  shared, and the Application Lab reps exercise it.
+  1-rep and 5-rep sessions plus Build a Rep, all green against prod.
+
+  **Daily Workout gap closed the same day (corrected 2026-08-26).** An earlier revision of this entry
+  said Daily Workout was NOT re-run because both test accounts were already consumed for 2026-08-25
+  EDT (one muscle-group day per user per USER-LOCAL day). That is stale — later on 2026-08-25 a
+  fresh production account (`e2e-fresh-20260825@cognify.test`, tz `America/New_York`) closed the gap.
+  All of the following passed on production:
+
+  - Daily Workout: rep → focus → retry → Improvement Review
+  - The full-day run: every station through to Day Complete with a final score
+  - The 5-step onboarding flow, and the baseline rep
+  - The 15-route sweep
+
+  That account's 14 reps produced 31 quotes with 0 duplicates, 0 non-verbatim, 0 over-cap, and all
+  timestamped.
 
   Full-table DB audit afterwards (`feedback->>'version' = 'v4.1.0'`), checking each persisted quote
   against its own rep's stored transcript:
