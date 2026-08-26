@@ -10,12 +10,22 @@ type Props = {
   /** Forwarded to the underlying <audio> so parent (FeedbackPanel) can
    *  expose seek control via context. */
   audioRef: React.MutableRefObject<HTMLAudioElement | null>;
+  /** Fired when the browser cannot load or decode the clip. Reps recorded
+   *  on Chrome/Edge are WebM/Opus, which not every browser can decode, so
+   *  the parent needs this to stop advertising seek affordances that would
+   *  silently no-op. */
+  onError?: () => void;
 };
 
 /** Custom audio scrubber. Native <audio> handles loading; we own the UI:
  *  gradient play/pause + range scrubber + tabular time. Keyboard: space
  *  toggles play, arrow keys seek ±5s. */
-export function RepAudioScrubber({ src, durationMs, audioRef }: Props) {
+export function RepAudioScrubber({
+  src,
+  durationMs,
+  audioRef,
+  onError,
+}: Props) {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationMs / 1000);
@@ -83,6 +93,10 @@ export function RepAudioScrubber({ src, durationMs, audioRef }: Props) {
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
+        onError={() => {
+          setPlaying(false);
+          onError?.();
+        }}
       />
 
       <button

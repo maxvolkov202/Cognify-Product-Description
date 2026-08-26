@@ -204,11 +204,15 @@ function GroundedMomentDetail({
 
 function CalloutDetail({ callout }: { callout: Callout }) {
   const { seekToMs, getCalloutId } = useAudioControl();
+  const canSeek = useHasAudioControl();
   const isPositive = callout.tone === "positive" || callout.tone === "neutral";
   const accentText = isPositive ? "text-success" : "text-brand-purple dark:text-brand-lavender";
-  // transcriptStart is nullable when the LLM couldn't ground the callout.
-  // Hide the jump-to-moment button in that case rather than seek to 0.
-  const hasTimestamp = callout.transcriptStart != null;
+  // Two independent reasons to hide the jump button: transcriptStart is
+  // nullable when the LLM couldn't ground the callout (don't seek to 0),
+  // and there may be no seekable audio at all — the Improvement Review
+  // renders this grid with its own scrubbers and no AudioControlProvider,
+  // so without the canSeek gate the button called a no-op seekToMs.
+  const hasTimestamp = callout.transcriptStart != null && canSeek;
   const timestamp = hasTimestamp
     ? formatTimestamp(callout.transcriptStart!)
     : null;

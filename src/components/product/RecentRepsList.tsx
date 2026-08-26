@@ -99,6 +99,10 @@ export function RecentRepsList({ reps }: Props) {
         ref={audioRef}
         preload="none"
         onEnded={() => setPlayingId(null)}
+        // Reps recorded on Chrome/Edge are WebM/Opus, which not every
+        // browser can decode. Reset the row rather than leaving it stuck
+        // in a "playing" state that produces no sound.
+        onError={() => setPlayingId(null)}
         className="sr-only"
       >
         <track kind="captions" />
