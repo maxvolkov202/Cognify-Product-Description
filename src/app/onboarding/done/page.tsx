@@ -29,7 +29,7 @@ export default function OnboardingDonePage() {
           middling baseline makes your progress legible later.
         </p>
         <p className="mt-3 max-w-md text-sm text-ink-500">
-          60 seconds, one prompt. You can redo it from Settings if you need to.
+          60 seconds, one prompt.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <GradientButton href="/onboarding/baseline" size="lg">

@@ -35,7 +35,7 @@ text tier. That is on the Phase A checklist.
 | B | `useHasAudioControl` reports provider presence, not audio presence | **SHIPPED** |
 | C | Tracker correction — stale "Daily Workout was NOT re-run" note in the PR #70 entry | done |
 | D | Test accounts hidden from leaderboards / social (Max's ask) | verified — already covered |
-| — | Open question back to Max: the `/onboarding/done` baseline-redo copy | awaiting Max |
+| E | `/onboarding/done` promised a baseline redo that does not exist | **resolved — copy dropped** |
 
 ---
 
@@ -259,9 +259,13 @@ changing it: if Max wants prod *metrics* to exclude harness accounts too, that i
 
 ---
 
-## Open question back to Max
+## Phase E — `/onboarding/done` promised a baseline redo that does not exist
 
-`/onboarding/done` carries **two** Settings sentences:
+**Resolved 2026-08-26: Max chose to drop the sentence.** Line 32 now reads just "60 seconds, one
+prompt." Line 52 is untouched and still carries the accurate promise about vertical/days. No
+baseline-redo feature is being built; if one is ever wanted, the copy can come back with it.
+
+The finding, for the record — `/onboarding/done` carried **two** Settings sentences:
 
 - `page.tsx:52` — *"You can change your selections later under Settings."* This is **accurate**;
   Settings does let you edit vertical, committed days, etc.
@@ -270,9 +274,10 @@ changing it: if Max wants prod *metrics* to exclude harness accounts too, that i
   that promise is **unbacked**: `src/app/onboarding/baseline/page.tsx:22` redirects to `/tutorial`
   as soon as `profile.baselineRepId` is set, and Settings has no redo control.
 
-The vertical/days promise is already covered by line 52. Line 32 is the unsupported one. Awaiting
-Max's call: fix the copy, or build the Settings control (bigger — needs a decision on what happens
-to the old baseline rep and to the progress deltas anchored on it).
+The vertical/days promise was already covered by line 52, so line 32 was the unsupported one and it
+is the one that went. The alternative considered and not taken was building the Settings control,
+which would have needed a decision on what happens to the old baseline rep and to the progress
+deltas anchored on it — a phase of its own, not a same-day change.
 
 ---
 
