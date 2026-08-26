@@ -31,8 +31,8 @@ text tier. That is on the Phase A checklist.
 
 | Phase | Task | State |
 |---|---|---|
-| A | `/api/upload` rejects the browser's parameterized MIME type | code done, prod verify pending |
-| B | `useHasAudioControl` reports provider presence, not audio presence | code done |
+| A | `/api/upload` rejects the browser's parameterized MIME type | **SHIPPED + prod-verified** |
+| B | `useHasAudioControl` reports provider presence, not audio presence | **SHIPPED** |
 | C | Tracker correction — stale "Daily Workout was NOT re-run" note in the PR #70 entry | done |
 | D | Test accounts hidden from leaderboards / social (Max's ask) | verified — already covered |
 | — | Open question back to Max: the `/onboarding/done` baseline-redo copy | awaiting Max |
@@ -275,6 +275,49 @@ Max's call: fix the copy, or build the Settings control (bigger — needs a deci
 to the old baseline rep and to the progress deltas anchored on it).
 
 ---
+
+## SHIPPED + production verification (2026-08-26)
+
+Merged as PR #72 (squash `63178b1d`), deployed with `npx vercel --prod --yes`
+(`dpl_6bdhGRBX4ZbUihXD45VM6DWHizjg`, aliased to www.cognifygym.com).
+
+Verified by recording a **real rep on production in Chromium** — the exact browser that has never
+been able to store audio — as `e2e-fresh-20260825@cognify.test` (1-rep Application Lab session,
+passed in 49.8s).
+
+**1. The rep stores audio.** First `.webm` object ever written to the bucket:
+
+| check | result |
+|---|---|
+| `reps.audio_url` | non-null |
+| extension | `.webm` — the previously broken path |
+| object in Storage | exists, **249,487 bytes** |
+| fresh signed URL | HTTP **200**, `content-type: audio/webm` |
+
+Against the before-state of **201 Chromium reps / 0 with audio**, this is unambiguous.
+
+**2. Playback works on a PAST rep** — the whole point of the fix. Drove `/progress` → "Recent reps"
+in a real browser: the play button renders, the clip loads (`readyState: 4`, `error: null`), and
+playback advances.
+
+**3. "Hear it at m:ss" still works on the new format.** Seeking is the thing most likely to break on
+MediaRecorder WebM (no Duration element, no cues), so it was tested rather than assumed: seek to 4s
+landed at **exactly 4.000s**.
+
+Worth recording: `audio.duration` is **`Infinity`** for these clips. That is inherent to
+MediaRecorder WebM, not a defect, and the app already handles it — `RepAudioScrubber`'s
+`onLoadedMetadata` guards with `Number.isFinite` and falls back to the DB-recorded duration. That
+pre-existing guard earns its keep now that WebM actually reaches it. A first verification pass
+asserted a finite duration and failed; the assertion was wrong, not the app.
+
+**4. Review finding 1 confirmed working, not just present.** Called the live Modal prosody worker
+with the new `.webm` clip directly. It returned real features
+(`pitchMeanHz: 143.9`, `pitchStdSemitones: 4.17`, `monotoneRatio: 0.11`, `rmsMean: 55.1`), so
+WebM/Opus transcodes fine and Tone/Pacing now grade from real audio on Chrome/Edge.
+
+Still open, not verified here: **Safari/iOS playback of a `.webm` rep** (review finding 4). The
+`onError` fallback is in place, so the failure mode is a plain "can't play" message with the seek
+buttons hidden rather than a dead button. Flagged for Max on a real iPhone.
 
 ## `/code-review` (high) on PR #72 — four findings, all addressed
 

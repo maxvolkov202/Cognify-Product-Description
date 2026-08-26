@@ -1140,3 +1140,67 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   `src/lib/ai/knowledge/**/*.md` and `generated.ts` to `eol=lf`, so a CRLF checkout can never silently
   rewrite prompt bytes again. Verified by re-running `npm run build:knowledge` on a clean tree (zero
   diff) and the full unit suite (20 suites green, including `reference-anchors` and `score-arm-b`).
+
+- **2026-08-26 — rep audio has never worked on Chrome or Edge (PR #72, squash `63178b1d`). Fixed,
+  shipped, prod-verified. No calibration re-run.**
+  `/api/upload` passed `file.type` straight to Supabase Storage as `contentType`. MediaRecorder
+  reports a PARAMETERIZED type and Storage matches its bucket allowlist against the FULL string, so
+  Chrome/Edge's `audio/webm;codecs=opus` was always rejected (`500 upload_failed`, *"mime type
+  audio/webm;codecs=opus is not supported"*).
+
+  **This was filed as a regression starting ~2026-07-24. It is not one, and the correction matters.**
+  Every rep that has ever stored audio is `.mp4` (36, spanning 2026-04-22 → 2026-08-26), and the
+  bucket has never held a single `.webm` object. `PREFERRED_MIME_TYPES` (`src/lib/audio/capture.ts:28`)
+  tries `audio/webm;codecs=opus` first, so Chrome/Edge always sent the parameterized form and always
+  failed, while Safari fell through to a BARE `audio/mp4` and always worked. The apparent July outage
+  was a change of test browser, not of code. Upload is best-effort, so reps still saved and graded —
+  the damage was playback-only, and only for listening back to a PAST rep (in-session playback uses a
+  local blob URL). Audio for existing Chrome/Edge reps was never written and is unrecoverable.
+
+  Fix: normalize the MIME at the boundary (`src/lib/audio/mime.ts`, 47 assertions) rather than
+  widening the bucket allowlist, since codec parameter sets are open-ended. Extension derivation moved
+  from an ordered `includes()` chain to exact matching. Unsupported types now return 415 with the
+  allowlist instead of an opaque 500, **and are logged** — all three call sites discard the upload
+  status, which is precisely how this stayed invisible for months.
+
+  Bundled: `useHasAudioControl()` reported whether the PROVIDER was mounted, not whether audio exists.
+  `CalloutDetail` never consulted it at all, and `ImprovementReview.tsx:363` renders `DimensionGrid`
+  with real callouts and no provider — so every callout with a `transcriptStart` was rendering a
+  visible dead "Jump to m:ss" button in production. Availability is now threaded through the context
+  as `hasAudio`, fed by the same condition that gates the `<audio>` element.
+
+  **Calibration guardrail: not triggered, but not silent either.** No scoring prompt and no model
+  changed. However `extractWorkerProsody` is gated on `input.audioUrl != null`
+  (`score-shared.ts:1352`), and prod has `FF_PROSODY_WORKER`, `NEXT_PUBLIC_PROSODY_SYNC` and
+  `PROSODY_WORKER_URL` all set — so **Tone/Pacing now grade from real audio on Chrome/Edge, where they
+  had always fallen back to the text tier.** That is D22's designed behavior finally working, not a
+  regression, but an identical Chrome rep scores differently after this deploy. Re-running the
+  calibration suite would not have caught it (reference reps already have audio, so their scores can't
+  move); the meaningful check was on the verification rep, done below.
+
+  **Production verification (2026-08-26, real Chromium rep as `e2e-fresh-20260825@cognify.test`).**
+  Before-state: 201 Chromium-driven test reps, **0** with audio.
+
+  | check | result |
+  |---|---|
+  | `reps.audio_url` after a new rep | non-null, `.webm` — the first ever written |
+  | object in Storage | 249,487 bytes; fresh signed URL → HTTP 200, `audio/webm` |
+  | playback on a PAST rep (`/progress` → Recent reps) | play button renders, clip decodes (`readyState 4`, no error), playback advances |
+  | seek — the v4.1.0 "Hear it at m:ss" path | seek to 4s landed at exactly 4.000s |
+  | prosody worker on the new `.webm` | real features returned (pitch 143.9Hz, monotone 0.11, RMS 55.1) |
+
+  Two things worth keeping. `audio.duration` is **`Infinity`** for MediaRecorder WebM (no Duration
+  element in the container) — inherent, not a defect, and `RepAudioScrubber` already guards with
+  `Number.isFinite` and falls back to the DB duration. A first verification pass asserted a finite
+  duration and failed; the assertion was wrong, not the app. And Chrome reps are now WebM/Opus, a
+  format Safari may not decode — until now every stored clip was universally playable `.mp4`. An
+  `onError` fallback hides the seek buttons and shows plain "can't play" copy instead of a dead
+  button, but **Safari/iOS relisten is still unverified on a real device.**
+
+  `/code-review` (high) returned four findings, all valid, all addressed in `75434488`: the prosody
+  behavior change above; the same bug unfixed on the sibling writer
+  `api/ops/reference-rep/[id]/audio` (same bucket, now normalized); the 415 being just as invisible as
+  the 500 without logging (the sharpest one — it corrected an overstated claim in the plan doc); and
+  the WebM cross-browser playback risk.
+
+  Full detail, decision log and verify checklists: `plans/audio-upload-fix-progress.md`.
