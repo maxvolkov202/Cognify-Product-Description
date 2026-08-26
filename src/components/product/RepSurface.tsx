@@ -522,8 +522,16 @@ export function RepSurface({
         if (uploadRes.ok) {
           const up = (await uploadRes.json()) as { path: string | null };
           audioUrl = up.path;
+        } else {
+          // Upload stays best-effort — a failure must never block the rep —
+          // but it must not be SILENT. Swallowing this status is how rep
+          // audio went missing on Chrome/Edge without anyone noticing.
+          console.warn(
+            `[rep] audio upload failed (${uploadRes.status}); rep will save without audio`,
+          );
         }
-      } catch {
+      } catch (err) {
+        console.warn("[rep] audio upload threw; rep will save without audio", err);
         audioUrl = null;
       }
 
@@ -610,10 +618,18 @@ export function RepSurface({
           };
           audioPath = up.path;
           audioScoreUrl = up.url;
+        } else {
+          // Best-effort, but not silent — see the sibling call site above.
+          // This one also costs the prosody worker its input, so tone and
+          // pacing quietly fall back to the text tier when it fires.
+          console.warn(
+            `[rep] audio upload failed (${uploadRes.status}); scoring without audio (tone/pacing degrade to the text tier)`,
+          );
         }
-      } catch {
+      } catch (err) {
         // Upload failure must never block scoring — tone degrades to the
         // text tier and saveRep persists a null audio path.
+        console.warn("[rep] audio upload threw; scoring without audio", err);
         audioPath = null;
         audioScoreUrl = null;
       }

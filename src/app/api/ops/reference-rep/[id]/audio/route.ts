@@ -7,6 +7,11 @@ import {
   uploadReferenceRepAudio,
   getReferenceRepAudioStatus,
 } from "@/lib/calibration/reference-bank";
+import {
+  ALLOWED_AUDIO_MIME_TYPES,
+  isAllowedAudioMime,
+  normalizeAudioMime,
+} from "@/lib/audio/mime";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -100,12 +105,27 @@ export async function POST(
     );
   }
 
+  // Same bucket, same trap as /api/upload: a browser-recorded clip arrives
+  // as `audio/webm;codecs=opus` and Storage matches its allowlist against
+  // the FULL contentType string, so the raw value is rejected. Normalize
+  // and validate here too rather than surfacing an opaque 500.
+  const mime = normalizeAudioMime(file.type) || "audio/webm";
+  if (!isAllowedAudioMime(mime)) {
+    return NextResponse.json(
+      {
+        error: "unsupported_mime",
+        message: `Unsupported audio type${file.type ? ` (${file.type})` : ""}. Expected one of: ${ALLOWED_AUDIO_MIME_TYPES.join(", ")}.`,
+      },
+      { status: 415 },
+    );
+  }
+
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const status = await uploadReferenceRepAudio({
       repId: id,
       audio: buffer,
-      mimeType: file.type || "audio/webm",
+      mimeType: mime,
     });
     return NextResponse.json({ id, status });
   } catch (err) {

@@ -67,6 +67,14 @@ export async function POST(req: Request) {
     // parameters before both the check and the upload.
     const mime = normalizeAudioMime(file.type) || "audio/webm";
     if (!isAllowedAudioMime(mime)) {
+      // LOG, don't just return. Callers treat upload as best-effort and
+      // discard the status (audio is optional; a failure must never block
+      // scoring), which is exactly how the original outage stayed invisible
+      // for months. A server-side line is the only thing that surfaces the
+      // next browser shipping a type this bucket rejects.
+      console.error(
+        `[upload] rejected unsupported audio type: raw="${file.type}" normalized="${mime}"`,
+      );
       return NextResponse.json(
         {
           error: "unsupported_mime",
@@ -84,6 +92,9 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed.";
+    // Same reasoning as the 415 above — callers swallow this response, so
+    // without a log a storage-side rejection is silent.
+    console.error(`[upload] failed for user ${user.id}: ${message}`);
     return NextResponse.json({ error: "upload_failed", message }, { status: 500 });
   }
 }

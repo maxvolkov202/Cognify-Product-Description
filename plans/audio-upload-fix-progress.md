@@ -2,10 +2,28 @@
 
 Branch: `fix/audio-upload-mime` · started 2026-08-26 · base `main` @ `ac73ff6f`
 
-Scope: one real production bug (rep audio has not been stored since ~2026-07-24), one latent
-hardening item bundled with it, and two documentation corrections. **No scoring prompt or model is
-touched by any task in this batch, so the CLAUDE.md calibration guardrail does not apply and the
-calibration suite is deliberately NOT re-run.**
+Scope: one real production bug (rep audio has never been stored on Chrome or Edge), one dead-button
+fix, and two documentation corrections.
+
+**On the calibration guardrail.** No scoring prompt and no model is touched, so the CLAUDE.md
+guardrail does not literally apply and the calibration suite is not re-run. But that statement alone
+would be misleading, so stating the fuller picture (raised by `/code-review`, finding 1):
+
+> Fixing the upload changes the graded INPUTS for Chrome/Edge users. `extractWorkerProsody` is gated
+> on `input.audioUrl != null` (`src/lib/ai/score-shared.ts:1352`). Chrome/Edge audio never uploaded,
+> so that was always null for them and Tone/Pacing silently fell back to the text tier. Production
+> has `FF_PROSODY_WORKER=true`, `NEXT_PUBLIC_PROSODY_SYNC=true` and `PROSODY_WORKER_URL` set
+> (confirmed via `vercel env pull`), so **after this deploy real pitch/monotone/RMS starts feeding
+> Tone and Pacing for the majority browser, and the Tone low-confidence badge stops appearing.**
+
+This is not a regression — it is D22's designed behavior ("tone/pacing graded from audio") finally
+working where it never has. But an identical Chrome rep will score differently after deploy than
+before, and that belongs on the record rather than buried.
+
+Re-running the calibration suite would **not** catch it: reference reps already have stored audio, so
+their prosody path is unchanged and their scores would not move. The meaningful check is on the
+verification rep instead — confirm the new Chrome rep grades WITH worker prosody rather than the
+text tier. That is on the Phase A checklist.
 
 ---
 
@@ -111,15 +129,42 @@ normalized type is now checked against the same five types the bucket allows and
 clear message when unsupported. This converts a confusing 500 into an accurate client error and,
 critically, would have made the original bug obvious the first time it happened.
 
+### Before-state baseline (captured pre-deploy, 2026-08-26)
+
+Every `@cognify.test` account is driven by the Chromium e2e harness, i.e. exactly the browser that
+sends the parameterized type. Their audio columns are the control group:
+
+| account | reps | with audio |
+|---|---|---|
+| `demo@cognify.test` | 96 | **0** |
+| `e2e-harness@cognify.test` | 86 | **0** |
+| `e2e-fresh-20260825@cognify.test` | 16 | **0** |
+| `e2e-resume-verify@cognify.test` | 2 | **0** |
+| `e2e-fresh2-20260825@cognify.test` | 1 | **0** |
+
+**201 Chromium reps, 0 stored audio.** The post-deploy check re-runs against the same account and
+the same browser, so a non-null `.webm` path afterwards is an unambiguous before/after.
+
 ### Verify checklist — Phase A
 
 - [ ] `npm run test` green (new `tests/audio-mime.test.ts` included in the `test` script)
 - [ ] `npm run lint` green
 - [ ] `npm run typecheck` green
 - [ ] `/code-review` run on the PR, findings addressed
-- [ ] **Prod:** a NEW rep recorded through the real UI writes a non-null `reps.audio_url`
-- [ ] **Prod:** that stored audio plays back on a PAST rep (the point of the fix), not just
-      in-session
+- [ ] **Prod:** a NEW rep recorded through the real UI (Chromium — the previously broken path)
+      writes a non-null `reps.audio_url`, and the path ends `.webm`
+- [ ] **Prod:** the stored object really exists in Storage, is non-trivial in size, and a fresh
+      signed URL for it resolves 200 with an audio content-type
+- [ ] **Prod:** that audio plays back on a PAST rep — the whole point of the fix. Surface is
+      `/progress` → "Recent reps" (`RecentRepsList`), which renders a play button only when
+      `rep.audioUrl` is non-null after `getAudioSignedUrls` batch-signs the stored path
+      (`src/lib/db/queries/progress.ts:448`)
+- [ ] **Prod:** the new Chrome rep grades WITH worker prosody, not the text tier — the real check on
+      review finding 1, which the calibration suite could not have caught
+- [ ] **Prod:** confirm how a `.webm` rep behaves on Safari/iOS (review finding 4). Until now every
+      stored clip was `.mp4` and universally playable; Chrome reps are now WebM/Opus, which Safari
+      may not decode. The `onError` fallback should show "can't play" copy and hide the seek
+      buttons rather than leaving them dead
 
 ---
 
@@ -201,7 +246,11 @@ leaderboards, social surfaces, etc.
 | Friends / activity feed | Not exposed — both are scoped to the user plus **accepted** friendships; there is no global user directory or search anywhere in the codebase (grepped for `searchUsers` / `ilike` across `src/lib/db/queries/` and `src/server/`), so a test account can only appear to someone who deliberately friends it |
 | Weekly challenges | Per-user only; the one `from(users)` read (`weekly-challenges.ts:83`) resolves the current user's own committed-day count |
 
-Both accounts are on the `@cognify.test` domain, so the existing predicate matches them.
+Both accounts are on the `@cognify.test` domain, so the existing predicate matches them. Confirmed
+against the live DB rather than only by reading the code — running the exact leaderboard/league
+predicate against both accounts returns `false` (excluded) for each, and both have **0 friendships,
+0 team memberships and 0 league memberships**, so there is no social graph to surface them through
+either.
 
 **One item left deliberately unchanged:** `src/lib/db/queries/ops.ts` counts test accounts in its
 internal metrics. That is an operator-only surface — `/admin` is gated on `profile.isOperator`
@@ -226,6 +275,27 @@ Max's call: fix the copy, or build the Settings control (bigger — needs a deci
 to the old baseline rep and to the progress deltas anchored on it).
 
 ---
+
+## `/code-review` (high) on PR #72 — four findings, all addressed
+
+| # | Finding | Verdict | Action |
+|---|---|---|---|
+| 1 | The fix changes tone/pacing grading for Chrome/Edge, and the doc's flat "no calibration needed" understates it | **Valid.** Confirmed the gate at `score-shared.ts:1352` and confirmed via `vercel env pull` that all three prosody env vars are live in prod | Documented at the top of this doc and in the PR. Calibration still not re-run, with the reason stated: reference reps already have audio, so their scores can't move. Added a prosody check to the prod checklist instead |
+| 2 | The sibling writer `api/ops/reference-rep/[id]/audio` has the identical bug on the same bucket | **Valid.** It passed `file.type` raw to the same `rep-audio` bucket | Fixed — normalizes and validates via the same helpers, returns 415 instead of an opaque 500 |
+| 3 | The new 415 is still invisible: all three call sites discard the status, so a recurrence stays silent just as long | **Valid, and the sharpest of the four.** Decision A3 claimed the 415 "would have made this obvious"; it wouldn't have, because nothing logs it | Fixed — `console.error` server-side on both the 415 and the 500, `console.warn` at both client call sites. A3's claim is corrected below |
+| 4 | Chrome reps now land as WebM/Opus and cross-browser playback failure is silent | **Valid.** Until now 100% of stored audio was `.mp4`; this fix genuinely introduces a format Safari may not decode | Fixed — `onError` on both `<audio>` elements. In `FeedbackPanel` it drives `hasAudio`, so a decode failure now HIDES the seek buttons and shows a plain "can't play" message instead of leaving the exact dead button Phase B set out to remove |
+
+Deliberately not changed: `mimeToExtension` in `src/lib/calibration/reference-bank.ts:186` still has
+`flac`/`m4a` branches for types the bucket rejects. Those are now unreachable from the route (it
+validates first), and changing that function would change **storage keys** for existing reference
+clips (`referenceRepStorageKey(repId, ext)`), orphaning stored objects. Not worth the risk for dead
+branches. Noted rather than silently left.
+
+### Correction to Decision A3
+
+A3 originally claimed the 415 "would have made this obvious the first time it happened". That was
+wrong as written — the response status was never read by anyone. It is true only **with** the
+logging added for finding 3. The value of the 415 on its own is an accurate status, not visibility.
 
 ## Decision log
 

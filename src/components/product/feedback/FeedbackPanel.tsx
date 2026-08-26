@@ -111,6 +111,11 @@ export function FeedbackPanel({
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DimensionGridHandle>(null);
   const [exemplarOpen, setExemplarOpen] = useState(false);
+  // Reps recorded on Chrome/Edge are WebM/Opus and not every browser can
+  // decode them. Presence of a URL is therefore not proof of playability —
+  // if the element errors, stop advertising seek affordances rather than
+  // leaving buttons that silently no-op.
+  const [audioFailed, setAudioFailed] = useState(false);
 
   // One memoized derivation — the exemplar picker below and the Coach's
   // Focus card both read it (the legacy chain walks bullet/callout
@@ -183,7 +188,7 @@ export function FeedbackPanel({
   return (
     <AudioControlProvider
       value={{
-        hasAudio: Boolean(audioUrl),
+        hasAudio: Boolean(audioUrl) && !audioFailed,
         seekToMs,
         expandDimension,
         getCalloutId,
@@ -280,11 +285,21 @@ export function FeedbackPanel({
 
         {audioUrl && (
           <Section delay={6}>
-            <RepAudioScrubber
-              src={audioUrl}
-              durationMs={durationMs}
-              audioRef={audioRef}
-            />
+            {audioFailed ? (
+              <div className="surface-card p-4">
+                <p className="text-sm text-ink-500 dark:text-ink-400">
+                  This browser can&apos;t play the recording from this rep.
+                  Your score and feedback are unaffected.
+                </p>
+              </div>
+            ) : (
+              <RepAudioScrubber
+                src={audioUrl}
+                durationMs={durationMs}
+                audioRef={audioRef}
+                onError={() => setAudioFailed(true)}
+              />
+            )}
           </Section>
         )}
 
