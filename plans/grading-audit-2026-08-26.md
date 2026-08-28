@@ -177,6 +177,27 @@ Tests: unit tests for truncation, telemetry write path, migration verify script.
 ≥ 3 users with `rep_id` joined and `graded_from_audio` set; a forced 300-char `coachFocus.why` still yields a real
 score; calibration suite unchanged (no prompt bytes touched).
 
+### 1b. Middleware stall → 504 (`fix/middleware-auth-timeout`) — added 2026-08-28
+
+Reported by Max 2026-08-28: a friend recorded a rep, got the "too short" modal, could not click "Proceed anyway",
+then could not click anything, and the page ended on Vercel's `504 MIDDLEWARE_INVOCATION_TIMEOUT`
+(`iad::d8gln-1787789756482-d4c79a754e06`). Cause (read-only look): `src/middleware.ts` awaits
+`updateSupabaseSession()` → `supabase.auth.getUser()` (a network call to Supabase Auth) on **every** non-static
+request, including `/api/score`, `/api/transcribe`, `/api/upload` and every server action, with no timeout. When
+Auth stalls, every click and fetch on the page hangs until Vercel kills the middleware. The speaking-gate modal is
+incidental (its buttons fire server work that never returned); it is deleted in workstream 3 regardless.
+
+1. Bound the refresh: race `getUser()` against a short timeout (~2.5 s); on timeout/error continue with the
+   request's existing cookies (no refresh) and log `event: "middleware.auth_refresh_timeout"`.
+2. Narrow the matcher: drop the API routes that already resolve the user server-side (`/api/score`,
+   `/api/transcribe`, `/api/upload`, `/api/score-internal`, cron) so a rep in flight never waits on the refresh.
+3. Client: the sync-path fetches already carry a 45 s abort; add the same abort to `/api/transcribe` and
+   `/api/upload` so a stall surfaces as the existing error card with Retry instead of a frozen page.
+4. Record the incident id above in the tracker; check Vercel logs for the 504 rate the day it happened.
+Tests: unit test for the timeout race (resolves with the original response on stall). Verify: a rep completes
+with Supabase Auth blocked at the network layer (local: point `NEXT_PUBLIC_SUPABASE_URL` at a black-hole port);
+zero `MIDDLEWARE_INVOCATION_TIMEOUT` in Vercel logs over the following 7 days.
+
 ### 2. Human ground-truth set (no app code; DB read-only)
 
 Output dir `plans/calibration/human-labeling-2026-09/`:
@@ -206,7 +227,8 @@ silent floor), the three `speakingThreshold={{ minRatio: 0.6 }}` call sites (`Sk
 `src/lib/ai/knowledge/skills/{conciseness,delivery}.md` (remove under-budget language), `score-shared.ts`
 (length rule beside edge rule 5; rate line "n/a" under 8 s), `deterministic.ts` (drop ratio < 0.70 branch),
 `RepSurface.tsx` sync body (send `timeBudgetMs`), `short_rep` flag from workstream 1. PRD has no speaking-gate
-requirement. Tests: gate unit tests, rubric render snapshot, `scorePacing` cases. Calibration suite re-run (prompt
+requirement. (2026-08-28 field report: the modal's "Proceed anyway" was unclickable during a middleware stall,
+see 1b; deleting the gate removes that dead end entirely.) Tests: gate unit tests, rubric render snapshot, `scorePacing` cases. Calibration suite re-run (prompt
 bytes change). Verify: a 6 s / 12-word rep scores with no modal; on ≥ 50 real reps no dimension feedback mentions
 length; human-set metrics not worse than baseline.
 
@@ -317,6 +339,9 @@ Goal: length is never a reason to block, warn, or dock. Content is judged on whe
 ---
 
 ## 6. Open questions
+
+- Workstream 1b (middleware timeout) is ordered before 3 because it is user-blocking; it can run in parallel with
+  workstream 2 (labeling) since 2 has no app code.
 
 - Second rater for workstream 2.
 - Whether to keep RAG at all if workstream 7 shows no gain (recommendation: off for scoring, keep corpus for prompt-gen).

@@ -1264,3 +1264,9 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (`cognify-v2-c0iz736g3`, aliased `www.cognifygym.com`, HTTP 200). Migration 0047 was applied before the
     deploy. WS1 verify gate stays open until ≥ 20 real reps / ≥ 3 users carry `scoring_telemetry.rep_id` +
     `graded_from_audio`. Next: WS2 human ground-truth packet (DB read-only, no PR); WS3 waits on the WS2 baseline.
+
+- **2026-08-28 — Field report → plan item 1b.** A user hit the short-rep modal, could not click "Proceed anyway",
+  then nothing, then Vercel `504 MIDDLEWARE_INVOCATION_TIMEOUT` (`iad::d8gln-1787789756482-d4c79a754e06`).
+  `src/middleware.ts` awaits `supabase.auth.getUser()` on every non-static request with no timeout. Added as
+  workstream 1b in `plans/grading-audit-2026-08-26.md` §3 (bounded refresh + narrower matcher + client aborts),
+  to run before WS3. No code changed yet.
