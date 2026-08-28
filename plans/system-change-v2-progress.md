@@ -1246,3 +1246,17 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Verify gate (open):** ≥ 20 real reps across ≥ 3 users with `scoring_telemetry.rep_id` joined and
     `graded_from_audio` set; forced 300-char `coachFocus.why` still yields a real score (unit-covered; prod smoke
     pending). Not yet met — needs prod traffic after deploy.
+  - **`/code-review high` (2026-08-28) — fixed before merge:** telemetry insert is now awaited in `/api/score`
+    (the client's `saveRep` UPDATE raced a `void` insert); activity counts (heatmap, calendar, weekly repCount,
+    friends totalReps, leaderboard rep count) keep mock reps again and only the averages use
+    `avg(...) filter (where ...)`; workout day close falls back to the placeholder average when every rep on the
+    day was a mock so the day can still close; `provider_credits` is checked before the timeout bucket (the
+    both-failed wrapper takes the fallback's AbortError name); `isProviderCreditsError` moved to
+    `src/lib/ai/provider-errors.ts` so `saveRep` no longer transitively loads both LLM SDKs; `isShortRep` shared
+    from `telemetry.ts` and set on the score-internal catch path too; gated (speaking-gate modal) reps write
+    `client_e2e_ms` NULL; dashboard/progress "recent average" and `detectNewHigh` skip mock reps.
+    **Accepted / follow-ups:** no `FF_*` gate on the honest-mock card or the aggregate filters (bug fixes in an
+    approved plan, not v2 features); still unfiltered: `getSubSkillRunningAverages` (sub-skills.ts), friend-challenge
+    winner (`actions/friends.ts`), XP award on mock reps (`reps.ts`, pre-existing), arm-B `mergeArmMetrics` drops
+    the three new metrics fields (dormant arm). Consider `composite_score = NULL` for mock reps at save time as
+    the structural fix (WS9 hygiene candidate).

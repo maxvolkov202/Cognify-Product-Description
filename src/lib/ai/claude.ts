@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { isProviderCreditsError } from "@/lib/ai/provider-errors";
 import OpenAI from "openai";
 
 /**
@@ -160,20 +161,6 @@ const ANTHROPIC_FALLBACK_TIMEOUT_MS = parseInt(
   10,
 );
 
-/** Grading audit WS1 — provider credit / quota exhaustion is an ops
- *  incident, not a transient error. Detect it from the message text so
- *  both the wrapper (error-level log for alerting) and the telemetry
- *  classifier (`provider_credits` failure_reason) agree on one rule. */
-export function isProviderCreditsError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err ?? "");
-  return (
-    /no credits remaining/i.test(msg) ||
-    /credit balance/i.test(msg) ||
-    /credit_balance_too_low/i.test(msg) ||
-    /insufficient_quota/i.test(msg) ||
-    /exceeded your current quota/i.test(msg)
-  );
-}
 
 if (!apiKey && process.env.NODE_ENV !== "test") {
   console.warn(

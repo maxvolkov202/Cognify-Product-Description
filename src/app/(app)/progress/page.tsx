@@ -62,10 +62,13 @@ export default async function ProgressPage() {
   ]);
 
   const totalReps = activity.reduce((sum, a) => sum + a.count, 0);
+  // Grading audit WS1 — mock-fallback placeholders are not scores.
+  const scoredRecentReps = recentReps.filter((r) => !r.isMockScore);
   const averageComposite =
-    recentReps.length > 0
+    scoredRecentReps.length > 0
       ? Math.round(
-          recentReps.reduce((sum, r) => sum + r.compositeScore, 0) / recentReps.length,
+          scoredRecentReps.reduce((sum, r) => sum + r.compositeScore, 0) /
+            scoredRecentReps.length,
         )
       : null;
 

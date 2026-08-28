@@ -3,7 +3,7 @@
  * Run: npx tsx tests/telemetry-classify.test.ts
  */
 import { categorizeFailure, resolveFallbackReason } from "@/lib/scoring/telemetry";
-import { isProviderCreditsError } from "@/lib/ai/claude";
+import { isProviderCreditsError } from "@/lib/ai/provider-errors";
 
 let pass = 0;
 let fail = 0;
@@ -41,8 +41,8 @@ const withStatus = (msg: string, status: number) =>
     { name: "AbortError" },
   );
   check(
-    "combined abort still classifies as timeout (first-match)",
-    categorizeFailure(both) === "timeout",
+    "both-failed wrapper with credits primary + fallback abort → provider_credits",
+    categorizeFailure(both) === "provider_credits",
     categorizeFailure(both),
   );
 }

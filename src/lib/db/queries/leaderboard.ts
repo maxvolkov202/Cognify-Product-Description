@@ -210,14 +210,13 @@ async function computeDeltas(
     const thisRows = await db
       .select({
         userId: reps.userId,
-        avg: sql<number>`avg(${reps.compositeScore})::float`,
+        avg: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
       })
       .from(reps)
       .where(
         and(
           inArray(reps.userId, userIds),
           gte(reps.createdAt, thisStart),
-          isScoredRep(),
         ),
       )
       .groupBy(reps.userId);
@@ -225,7 +224,7 @@ async function computeDeltas(
     const prevRows = await db
       .select({
         userId: reps.userId,
-        avg: sql<number>`avg(${reps.compositeScore})::float`,
+        avg: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
       })
       .from(reps)
       .where(
@@ -233,7 +232,6 @@ async function computeDeltas(
           inArray(reps.userId, userIds),
           gte(reps.createdAt, prevStart),
           lt(reps.createdAt, prevEnd),
-          isScoredRep(),
         ),
       )
       .groupBy(reps.userId);
@@ -326,9 +324,6 @@ export async function getLeaderboard(opts: {
       // surface (board, self row, top-streak + biggest-climb callouts, all
       // of which read this same aggregate). NULL emails are kept.
       excludeInternalAccounts(),
-      // Grading audit WS1 — a mock-fallback rep is a failed score, not a
-      // ~74; keep it out of every ranking average.
-      isScoredRep(),
     ];
     if (teamFilterUserIds) {
       whereClauses.push(inArray(reps.userId, teamFilterUserIds));
@@ -341,7 +336,9 @@ export async function getLeaderboard(opts: {
         email: users.email,
         // §10.5.1 — lifetime XP feeds the permanent Rank badge per row.
         xp: users.xp,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        // Grading audit WS1 — a mock-fallback rep is a failed score, not
+        // a ~74; the rep count keeps it, the ranking average does not.
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
         reps: sql<number>`count(*)::int`,
       })
       .from(reps)
@@ -349,7 +346,7 @@ export async function getLeaderboard(opts: {
       .where(and(...whereClauses))
       .groupBy(reps.userId, users.name, users.email, users.xp)
       .having(sql`count(*) >= 1`)
-      .orderBy(desc(sql`avg(${reps.compositeScore})`));
+      .orderBy(desc(sql`avg(${reps.compositeScore}) filter (where ${isScoredRep()})`));
 
     if (aggregateRows.length === 0) return emptyBoard();
 

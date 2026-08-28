@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { scoreRepWithMetrics } from "@/lib/ai/score";
 import {
+  isShortRep,
   writeScoringTelemetry,
   categorizeFailure,
   resolveFallbackReason,
@@ -229,13 +230,6 @@ function fallbackCalloutCopy(
  * differentiates by problem type instead of always saying "Scoring is
  * taking a moment".
  */
-/** Grading audit WS1 (§4.8) — short rep = under 15 s of recording. Persisted
- *  on scoring_telemetry so short reps can be checked for systematic
- *  under-scoring after the short-rep ruleset lands (workstream 3). */
-function isShortRep(durationMs: number): boolean {
-  return durationMs < 15_000;
-}
-
 function buildFallbackScore(
   body: ScoreBody,
   errorMsg: string,
@@ -512,8 +506,10 @@ export async function POST(req: Request) {
     // OpenAI-fallback rate distinct from anthropic-only success.
     // Grading audit WS1 — the row id is minted here and returned on the
     // score so saveRep can join the row to the rep (rep_id was NULL on
-    // every sync-path row before this).
-    void writeScoringTelemetry({
+    // every sync-path row before this). Awaited (safeDb, single insert):
+    // the client's saveRep UPDATE must find the row, and a `void` write
+    // can land after the response on a frozen serverless instance.
+    await writeScoringTelemetry({
       id: telemetryId,
       source: "api_score",
       userId,
@@ -543,7 +539,7 @@ export async function POST(req: Request) {
     // group fallback rate by reason. Mock-fallback always means BOTH
     // anthropic AND openai failed (or openai wasn't configured), since
     // the wrapper's fallback path doesn't throw if openai succeeds.
-    void writeScoringTelemetry({
+    await writeScoringTelemetry({
       id: telemetryId,
       source: "api_score",
       userId,

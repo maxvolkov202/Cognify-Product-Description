@@ -172,11 +172,15 @@ export default async function DashboardPage() {
       : null;
 
   const hasAnyReps = recent.length > 0;
-  const avgRecent = hasAnyReps
-    ? Math.round(
-        recent.reduce((sum, r) => sum + r.compositeScore, 0) / recent.length,
-      )
-    : null;
+  // Grading audit WS1 — mock-fallback placeholders are not scores.
+  const scoredRecent = recent.filter((r) => !r.isMockScore);
+  const avgRecent =
+    scoredRecent.length > 0
+      ? Math.round(
+          scoredRecent.reduce((sum, r) => sum + r.compositeScore, 0) /
+            scoredRecent.length,
+        )
+      : null;
 
   const baselineComposite = baselineRep
     ? Math.round(baselineRep.compositeScore)

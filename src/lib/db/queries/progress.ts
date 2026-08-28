@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { isScoredRep } from "@/lib/db/scored-rep-filter";
+import { isScoredRep, MOCK_MODEL_VERSION } from "@/lib/db/scored-rep-filter";
 import {
   reps,
   progressSnapshots,
@@ -22,6 +22,9 @@ export type RecentRep = {
   createdAt: Date;
   durationMs: number;
   topic: string | null;
+  /** Grading audit WS1 — true when scoring failed and the composite is a
+   *  mock placeholder. Consumers averaging compositeScore must skip these. */
+  isMockScore?: boolean;
 };
 
 export async function getSkillTrends(
@@ -265,12 +268,12 @@ export async function getActivityHeatmap(
       .select({
         date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
         count: sql<number>`count(*)::int`,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        // Grading audit WS1 — count keeps every rep the user did; the
+        // average skips mock-fallback placeholders.
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
       })
       .from(reps)
-      .where(
-        and(eq(reps.userId, userId), gte(reps.createdAt, since), isScoredRep()),
-      )
+      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
 
     return rows.map((r) => ({
@@ -391,6 +394,7 @@ export async function getRecentReps(
         createdAt: reps.createdAt,
         durationMs: reps.durationMs,
         topic: reps.topic,
+        modelVersion: reps.modelVersion,
       })
       .from(reps)
       .where(eq(reps.userId, userId))
@@ -398,6 +402,7 @@ export async function getRecentReps(
       .limit(limit);
 
     return rows.map((r) => ({
+      isMockScore: r.modelVersion === MOCK_MODEL_VERSION,
       id: r.id,
       promptText: r.promptText,
       compositeScore: r.compositeScore ?? 0,
@@ -595,6 +600,7 @@ export async function getWeeklyRepSummary(
         id: reps.id,
         composite: reps.compositeScore,
         topic: reps.topic,
+        modelVersion: reps.modelVersion,
       })
       .from(reps)
       .where(
@@ -602,16 +608,20 @@ export async function getWeeklyRepSummary(
           eq(reps.userId, userId),
           gte(reps.createdAt, weekStart),
           lte(reps.createdAt, weekEnd),
-          isScoredRep(),
         ),
       );
 
     const repCount = weekRepRows.length;
+    // Grading audit WS1 — repCount is activity (keeps mocks); the average
+    // is a score (skips them).
+    const scoredWeekRows = weekRepRows.filter(
+      (r) => r.modelVersion !== MOCK_MODEL_VERSION,
+    );
     const averageComposite =
-      repCount > 0
+      scoredWeekRows.length > 0
         ? Math.round(
-            weekRepRows.reduce((s, r) => s + (r.composite ?? 0), 0) /
-              repCount,
+            scoredWeekRows.reduce((s, r) => s + (r.composite ?? 0), 0) /
+              scoredWeekRows.length,
           )
         : 0;
 
@@ -831,7 +841,7 @@ export async function getYesterdayDailyAverage(
 
     const [row] = await db
       .select({
-        avg: sql<number>`coalesce(avg(${reps.compositeScore}), 0)::float`,
+        avg: sql<number>`coalesce(avg(${reps.compositeScore}) filter (where ${isScoredRep()}), 0)::float`,
         count: sql<number>`count(*)::int`,
       })
       .from(reps)
@@ -840,7 +850,6 @@ export async function getYesterdayDailyAverage(
           eq(reps.userId, userId),
           gte(reps.createdAt, yStart),
           lte(reps.createdAt, yEnd),
-          isScoredRep(),
         ),
       );
 
@@ -913,13 +922,13 @@ export async function getDailyCompositeTrend(
     const rows = await db
       .select({
         date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        // Grading audit WS1 — count keeps every rep the user did; the
+        // average skips mock-fallback placeholders.
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
         count: sql<number>`count(*)::int`,
       })
       .from(reps)
-      .where(
-        and(eq(reps.userId, userId), gte(reps.createdAt, since), isScoredRep()),
-      )
+      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`)
       .orderBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
 

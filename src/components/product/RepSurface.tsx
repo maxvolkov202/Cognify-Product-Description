@@ -275,7 +275,10 @@ export function RepSurface({
     e2eStart: number;
     deepgramMs: number | null;
     uploadMs: number | null;
-  }>({ e2eStart: 0, deepgramMs: null, uploadMs: null });
+    /** True once the speaking-gate modal interrupted the attempt — the
+     *  end-to-end number would include human dwell, so it is not written. */
+    gated: boolean;
+  }>({ e2eStart: 0, deepgramMs: null, uploadMs: null, gated: false });
   // Phase 15 P-1 — persistence failures must be VISIBLE. saveRep's
   // graceful fallback used to be indistinguishable from success (F-4:
   // the whole flagship loop "worked" with zero rows landing).
@@ -444,6 +447,7 @@ export function RepSurface({
       e2eStart: performance.now(),
       deepgramMs: null,
       uploadMs: null,
+      gated: false,
     };
 
     setPhase({ kind: "transcribing" });
@@ -785,9 +789,9 @@ export function RepSurface({
           uploadMs: clientTimingRef.current.uploadMs,
           // Score is visible the moment the fetch resolved; saving runs
           // after. Measured from stop-recording.
-          clientE2eMs: Math.round(
-            scoreVisibleAt - clientTimingRef.current.e2eStart,
-          ),
+          clientE2eMs: clientTimingRef.current.gated
+            ? null
+            : Math.round(scoreVisibleAt - clientTimingRef.current.e2eStart),
         },
       });
       savedRepId = saved.repId;
@@ -874,6 +878,7 @@ export function RepSurface({
   // ——— Speaking threshold gate ——————————————————————————
   if (phase.kind === "speaking-gate") {
     const handleProceed = () => {
+      clientTimingRef.current.gated = true;
       void runScoringPath(phase.recording, phase.transcript, phase.words);
     };
     return (

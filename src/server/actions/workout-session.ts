@@ -263,12 +263,17 @@ export async function closeWorkoutDayAfterRetrySkip(
               status = 'complete',
               completed_at = COALESCE(d.completed_at, NOW())
           FROM (
-            SELECT AVG(r.composite_score)::real AS avg_composite
+            -- Grading audit WS1: average the real scores; if every rep
+            -- on the day was a mock fallback, fall back to their
+            -- placeholder average so the day can still close.
+            SELECT COALESCE(
+              AVG(r.composite_score) FILTER (WHERE ${scoredRepSqlFragment("r")}),
+              AVG(r.composite_score)
+            )::real AS avg_composite
             FROM cognify_v2.reps r
             WHERE r.muscle_group_day_id = ${dayId}
               AND r.composite_score IS NOT NULL
               AND r.is_graduation_rep = false
-              AND ${scoredRepSqlFragment("r")}
           ) sub
           WHERE d.id = ${dayId}
             AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)
@@ -584,12 +589,14 @@ export async function tagWorkoutRep(
                 status = 'complete',
                 completed_at = COALESCE(d.completed_at, NOW())
             FROM (
-              SELECT AVG(r.composite_score)::real AS avg_composite
+              SELECT COALESCE(
+                AVG(r.composite_score) FILTER (WHERE ${scoredRepSqlFragment("r")}),
+                AVG(r.composite_score)
+              )::real AS avg_composite
               FROM cognify_v2.reps r
               WHERE r.muscle_group_day_id = ${input.muscleGroupDayId}
                 AND r.composite_score IS NOT NULL
                 AND r.is_graduation_rep = false
-                AND ${scoredRepSqlFragment("r")}
             ) sub
             WHERE d.id = ${input.muscleGroupDayId}
               AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)

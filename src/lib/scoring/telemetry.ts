@@ -15,7 +15,7 @@ import { db } from "@/lib/db/client";
 import { scoringTelemetry } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 import { eq, and, isNull } from "drizzle-orm";
-import { isProviderCreditsError } from "@/lib/ai/claude";
+import { isProviderCreditsError } from "@/lib/ai/provider-errors";
 import type { ScoreRepMetrics } from "@/lib/ai/score";
 
 export type FailureReason =
@@ -80,13 +80,15 @@ export function categorizeFailure(err: unknown): FailureReason {
 
   // Phase 1 will add explicit AbortController-driven timeouts; categorize
   // here so the bucket already exists when those fire.
+  // Credits/quota first: the both-providers-failed wrapper embeds the
+  // primary's "no credits remaining" text and takes the FALLBACK's
+  // AbortError name when the fallback timed out (the 08-24 shape), so
+  // checking timeout first would file a credits outage under "timeout".
+  // Also ahead of the generic 429 bucket: OpenAI reports it with 429.
+  if (isProviderCreditsError(err)) return "provider_credits";
   if (name === "AbortError" || /\babort(ed)?\b/i.test(msg) || /timed out/i.test(msg)) {
     return "timeout";
   }
-  // Credits/quota before the generic 429 bucket: OpenAI reports "no
-  // credits remaining" with status 429, which used to hide an outage that
-  // needs a human inside the transient rate-limit count.
-  if (isProviderCreditsError(err)) return "provider_credits";
   if (status === 429 || /rate.?limit/i.test(msg)) return "rate_limit_429";
   if (typeof status === "number" && status >= 500) return "network_error";
   if (/ECONNREFUSED|ETIMEDOUT|fetch failed|EAI_AGAIN|ENOTFOUND/i.test(msg)) {
@@ -111,6 +113,13 @@ export function categorizeFailure(err: unknown): FailureReason {
     return "truncated";
   }
   return "unknown";
+}
+
+/** Grading audit WS1 (§4.8) — short rep = under 15 s of recording. Single
+ *  definition for both scoring routes so `short_rep` means one thing. */
+export const SHORT_REP_MS = 15_000;
+export function isShortRep(durationMs: number): boolean {
+  return durationMs < SHORT_REP_MS;
 }
 
 export type WriteTelemetryInput = {

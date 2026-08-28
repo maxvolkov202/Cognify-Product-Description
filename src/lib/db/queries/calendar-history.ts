@@ -44,7 +44,7 @@ export async function getCalendarHistory(
       .select({
         date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
         count: sql<number>`count(*)::int`,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
         pressureCount: sql<number>`count(*) filter (where ${reps.pressureArchetypeId} is not null)::int`,
       })
       .from(reps)
@@ -52,7 +52,6 @@ export async function getCalendarHistory(
         and(
           eq(reps.userId, userId),
           gte(reps.createdAt, signupAt),
-          isScoredRep(),
         ),
       )
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
