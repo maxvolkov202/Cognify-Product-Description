@@ -26,6 +26,13 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|logo/|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)",
+    // Grading plan 1b — every route under /api resolves its own identity
+    // (currentUser() reads the cookies directly and Route Handlers can
+    // persist a refreshed session themselves; cron / internal routes use
+    // secret headers), so none of them should wait on the auth refresh: a
+    // stalled refresh here is what froze a rep mid-flight on 2026-08-28.
+    // Page loads and server actions still pass through the (bounded)
+    // refresh, so tokens keep rotating.
+    "/((?!_next/static|_next/image|favicon.ico|logo/|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)",
   ],
 };

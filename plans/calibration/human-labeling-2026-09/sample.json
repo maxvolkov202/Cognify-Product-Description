@@ -1,0 +1,1031 @@
+{
+  "built_at": "2026-08-28T14:35:49.714Z",
+  "seed": 20260901,
+  "n": 60,
+  "terciles_ms": [
+    49271,
+    74176
+  ],
+  "reps": [
+    {
+      "order": 1,
+      "rep_id": "e19b6f35-a2da-440f-a3df-1849631c9c49",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Name something that's broken about how friends stay in touch and pitch a fix.",
+      "transcript": "Staying in touch with long distance friends is tough because you can fall out of touch with those people through time passing, and it's it sucks because you really like that person, but you never get to see them or talk to them, so you ultimately fall out of touch. However, I believe that if we can just set a time to meet once per month, per quarter, per year, and have that cadence set, then we will not fall out of touch, and we can talk about our lives and share about our experiences. And what do you think?",
+      "duration_s": 46.9,
+      "word_count": 20,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-17T23:50:35.869Z"
+    },
+    {
+      "order": 2,
+      "rep_id": "fac13a12-fec3-4138-a041-354d8a6a3b5a",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "audio"
+      },
+      "prompt": "Should you stay friends with people you've outgrown?",
+      "transcript": "I believe you should stay friends with people you've outgrown, and I believe it's wise to maintain those friendships and avoid burning bridges as those connections might be valuable in the future. For example, say I am applying for a new job and the person interviewing me is someone that I burned a bridge with a long time ago. Now when they when I'm trying to, you know, actually interview and get the position, I will probably not get it because I burned that bridge. So always keep people in your in your network. Don't don't not become friends with them because, ultimately, you may be in a situation like that.",
+      "duration_s": 48.7,
+      "word_count": 23,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/a22fe937-d176-4b16-aff5-ffe513bc6233.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/a22fe937-d176-4b16-aff5-ffe513bc6233.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvYTIyZmU5MzctZDE3Ni00YjE2LWFmZjUtZmZlNTEzYmM2MjMzLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.hKOciik3jhqQW934WGyeMD502il7TAcnNbxwBJOz_2g",
+      "attempt_kind": "retry",
+      "created_at": "2026-07-23T16:39:50.250Z"
+    },
+    {
+      "order": 3,
+      "rep_id": "f70f0c5a-afc3-4853-a381-ea81eee5ddaf",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "What makes someone a good listener?",
+      "transcript": "What makes someone a good listener boils down to three things. First is eye contact. A good listener always is looking at their speaker in the eyes to show that they are paying attention. Second is the listener should not be thinking about anything else other than what the words are coming out of the speaker's mouth. Third is the listener needs to follow-up with some good questions to keep the person talking. And if a person can do all of those three things, then they will be a good listener. That's good.",
+      "duration_s": 48,
+      "word_count": 33,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-13T03:42:35.483Z"
+    },
+    {
+      "order": 4,
+      "rep_id": "7b62c3d9-6258-4d5e-b7a5-53fbe4e2d43a",
+      "strata": {
+        "band": "<50",
+        "tercile": "long",
+        "audio": "audio"
+      },
+      "prompt": "Tell a younger sibling what you wish you'd learned earlier in life.",
+      "transcript": "Figure out. I like, we we honestly, we don't really need his approval. We could just go forward with these goals and Yeah. We can just ask you. I I think I think are we we collectively agreeing that that that is, like, a a beta testing environment just, you know, I think that would just be, like, a a path that makes sense to go. Think for yeah. And I think you even start with, like you start with one class. Yeah. It doesn't even Yeah. Yeah. Back up there. You just start with one class. Yeah. I feel like yeah. Like, if we if we blow the like, blow our whole load on, you know, like, the top decision maker, That like, we shouldn't we shouldn't do that. We should probably go to, like, a specific, like like, what was it? Like, business presentations. You know what I'm saying? Like, business presentations professor who, like, teaches, like because there's a specific class for, like, presenting at IU. So if we find one of these teachers who's, like, lower stakes, you know, and, like, we get we can kinda get some initial feedback from, like, professors' regard before we go up to the, you know, top key decision maker and pitch the product. Because, like, if we're, you know, 75, 80% buttoned up to where we'd like to be in front of a key decision maker, like purchasing a procurement selector, like, we wanna kinda put our, know, toe in the pool first with, a business presentation teacher or somebody lower, maybe an English writing teacher or communication teacher or something like that and get some feedback from their perspective and, like, maybe some advice from them on how they would approach this key decision maker, who like, maybe get their opinion on who's really driving the decisions, what how does the overall Indiana budget look like, how how do we fit in, What what is what are they seeing in their class functions? Where where are students falling behind, going ahead, etcetera, like that? You know, getting getting a little more, like, inside detail, a little more context. So when we do stand in front of the key decision maker, like, we've armed with, hey. We've talked to 15 teachers. We've talked with x y z people. We've identified this as a common error that your teachers are stealing their students. Here's our value proposition. Here's how we can fit in. And then, like, just coming with them with, like, a, you know, really buttoned up plan. Make it easy for them to say yes. Right? Make it easy. Awesome. That's awesome, Moe.",
+      "duration_s": 114,
+      "word_count": 100,
+      "audio_path": "reps/f9a78ff2-0c55-4923-a766-4cf732706eda/edee24db-530e-4c73-a935-b7e69dcb123a.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/f9a78ff2-0c55-4923-a766-4cf732706eda/edee24db-530e-4c73-a935-b7e69dcb123a.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy9mOWE3OGZmMi0wYzU1LTQ5MjMtYTc2Ni00Y2Y3MzI3MDZlZGEvZWRlZTI0ZGItNTMwZS00YzczLWE5MzUtYjdlNjlkY2IxMjNhLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.JP4bt04XgYeJP2ezjjtu3ueyfgOzZGFKDxPD4tzOSO4",
+      "attempt_kind": "first",
+      "created_at": "2026-08-26T00:30:09.523Z"
+    },
+    {
+      "order": 5,
+      "rep_id": "2e31836b-3463-4bd8-b71b-262e3877f6b1",
+      "strata": {
+        "band": "<50",
+        "tercile": "mid",
+        "audio": "audio"
+      },
+      "prompt": "Why do small choices end up mattering more than big ones?",
+      "transcript": "And then in terms of action steps, are you guys clear on what you need to be doing, Anthony and Paul? Yeah. Yeah. Can you can you guys just listen real quick? I'm good on Prompts prompts and exercise refinement, and some, legal and agreement drafting. Get over me. I'll review as well and send it over to my mom. List of 10 people for beta testing, and then getting a little more concrete on the GTM strategy, specific people at IU we wanna reach out to, how we're gonna reach out to them, how we're gonna phrase up the product, and having them test it. Is that is that that's covering in the pricing later with Max? Yeah. Yeah. Exactly. Gotcha. K. And then Anthony. Oh, wait. Anthony? I'm mine. I mean, old old son of mine. Yeah. Yeah. Okay. And then Owen keeps using the products. Keep pushing it out to his friends.",
+      "duration_s": 49.3,
+      "word_count": 30,
+      "audio_path": "reps/f9a78ff2-0c55-4923-a766-4cf732706eda/ad69be58-bae2-4407-ac36-ca35df258696.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/f9a78ff2-0c55-4923-a766-4cf732706eda/ad69be58-bae2-4407-ac36-ca35df258696.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy9mOWE3OGZmMi0wYzU1LTQ5MjMtYTc2Ni00Y2Y3MzI3MDZlZGEvYWQ2OWJlNTgtYmFlMi00NDA3LWFjMzYtY2EzNWRmMjU4Njk2Lm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.Ceks52GVn5zXWDvArqF-8f1BxXxxa1N2PEcDJmRn4wQ",
+      "attempt_kind": "first",
+      "created_at": "2026-08-26T00:27:32.025Z"
+    },
+    {
+      "order": 6,
+      "rep_id": "76f3f723-1ef0-49aa-b5ad-ee1bc1c1eac5",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "What separates a good teammate from a great one?",
+      "transcript": "A good teammate is somebody who puts in their fair share of work, but not only does the work that's asked of them, but tries to make the effort to take more off the plate of their teammates and does their work fully and consistently every single time when the task is needed of them. The reason you would want a good teammate is somebody is because it makes the overall project dynamic better. It makes the people that you're working with understand that you're not only in it for the ride, but you're also providing value along the way. Somebody who's a good teammate is also somebody who you can relay ideas off of to get the best finishing working product possible. If somebody was a bad teammate, they're either not putting in their fair share, not putting in their best foot forward, and not acting as a resource to their other teammates.",
+      "duration_s": 69.1,
+      "word_count": 40,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T17:41:46.001Z"
+    },
+    {
+      "order": 7,
+      "rep_id": "575b26e8-1d8b-4de9-b1f6-c6d67d7cb0f1",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "What's the best decision you've ever made?",
+      "transcript": "Together. We've been to Hawaii together, and it's like life The best I decision that I ever made was going into sales. So much. Going to sales taught me how to be client facing and how to deal with rebuttals, and that has carried me through to Yeah. Today. And any anytime that I'm talking to somebody, I use the skills that I acquired within sales. And the reason also why I really enjoy is because I'm able to kind of combine everything that I've learned throughout life through college and my upbringing to use my social connections and get closer to people. It's really been able to open my mind up to or anything like little do these people know. What people are interested in hearing when they're trying to buy from somebody and being able to tie myself into those Yeah. Yeah. Similarities to time coming along I've experienced when I'm talking to them. That are just",
+      "duration_s": 63.3,
+      "word_count": 33,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-23T02:56:31.994Z"
+    },
+    {
+      "order": 8,
+      "rep_id": "be60386d-f71b-4ba5-b4b4-dcbd566e100f",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Move your team at work to schedule walking meetings.",
+      "transcript": "Hey, everyone. I had an idea that we should take walking meetings instead of face to face lunch meetings or conference room meetings. Number one, we know that walking is good for you. Everybody wants to increase their step count. Everyone wants to get some time in the sun, get out of the office. Number two, walking gets the mind turning. Even walking by yourself, thinking through ideas is better than, you know, sitting at a desk and and staring at the wall. Right? Walking gets the mind turning. There's also, thirdly, evidence that people facing the same direction during a conversation helps the ideas and the creativity and the flow of that conversation instead of people looking at each other where they focus more on nonverbal cues and can see clearly the interpretation of the other person, which might not always be best when you're in a creative pursuit or in a brainstorming pursuit. So so visualize this. Imagine being outside instead of in the conference room, and imagine, you know, being in the sun and and talking through these ideas together. I think that would be best for our team.",
+      "duration_s": 88.6,
+      "word_count": 47,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-22T18:14:59.079Z"
+    },
+    {
+      "order": 9,
+      "rep_id": "d0cc7b6b-d0c7-4c96-b115-7a59537a331d",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Argue that handwritten letters are still worth sending.",
+      "transcript": "Some people argue that handwritten letters are no longer worth sending in the sense that communication is so quick now and so easy that a text, a phone call, an email is much more efficient. Now, I would strongly argue against that because the sense that they're no longer useful actually enhances their utility in the sense that sending a letter indicates to somebody that you want to put in the effort. You want to do the thing that no one else wants to do and therefore makes them more meaningful. So while I agree that they're no longer useful in a pure informative sense, they're very useful in an emotive sense. If you're trying to communicate to somebody that you care, a handwritten letter, there's really nothing like it. Now imagine if you got a handwritten letter from somebody that you love. Even opening it, let alone reading it, feels very impactful.",
+      "duration_s": 74.2,
+      "word_count": 35,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-18T11:27:04.510Z"
+    },
+    {
+      "order": 10,
+      "rep_id": "9468b1e2-d5ac-42e4-9179-cb48a44b496d",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "audio"
+      },
+      "prompt": "What's the one thing you wish your parents had taught you?",
+      "transcript": "Something I wish my parents had taught me is financial independence and as a concept and why it's important to attempt to achieve it in your life. Financial independence is very important because in our modern world, it is the basis of resource dependence or resource independence rather and is the foundation of a holistic life, not a happy life necessarily as the famous saying money can't buy happiness goes, but I wish that I had learned to strive for financial independence. Because you realize that money is everything in the world, again, not in the terms of happiness, but in the terms of convenience, safety, things that kind of form the foundation of a life that you can actualize. Or, you know, once your needs are met, you can try to achieve higher things with yourself.",
+      "duration_s": 79.5,
+      "word_count": 33,
+      "audio_path": "reps/f7c21f08-5ec7-4a66-9fd3-26674a53133a/02074b25-8555-4e34-aa97-308ebe2af089.webm",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/f7c21f08-5ec7-4a66-9fd3-26674a53133a/02074b25-8555-4e34-aa97-308ebe2af089.webm?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy9mN2MyMWYwOC01ZWM3LTRhNjYtOWZkMy0yNjY3NGE1MzEzM2EvMDIwNzRiMjUtODU1NS00ZTM0LWFhOTctMzA4ZWJlMmFmMDg5LndlYm0iLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg3OTI3NzQ5LCJleHAiOjE3ODg1MzI1NDl9.hZ8K2o1rPa59fqiEaNdSUPVFgO_fZvnlOiOJj4Z9Fb8",
+      "attempt_kind": "first",
+      "created_at": "2026-08-27T00:12:33.136Z"
+    },
+    {
+      "order": 11,
+      "rep_id": "73490475-6b97-4630-849d-3233468875ba",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Describe a meeting where someone stood up for you — pause on the line",
+      "transcript": "I thought I wasn't going to get paid at work today, which was really annoying because I've done so much work over the past three months, and I've produced amazing results. And it looked like I wasn't going to going to get paid for those, but then Tim helped. I thought it wasn't going to happen because he's been kinda standoffish recently and has not been open to hearing what's wrong with us, but he did. He listened to me. I gave him what I was, you know, pissed off about, and he ended up helping me out, which was great.",
+      "duration_s": 45.3,
+      "word_count": 23,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-13T03:08:18.866Z"
+    },
+    {
+      "order": 12,
+      "rep_id": "f8cd8e67-fdf3-4b6f-badd-a6847b94aca1",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Describe your favorite season and what it does to your mood.",
+      "transcript": "My favorite season is winter. The reason for that is because winter brings a lot of joy to people from time to time just because of all the snow, the lovely weather, the change of the season. Personally, the reason why I like it so much is because I like to ski and snowboard in the winter, and there's no other time of the year where that is so accessible. And, yeah, I like being able to go to a ski lodge and drink hot chocolate and whiskey to warm the body up after being out in the cold. And my favorite place to go skiing would probably be in Canada.",
+      "duration_s": 56,
+      "word_count": 27,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T14:59:40.554Z"
+    },
+    {
+      "order": 13,
+      "rep_id": "15c8e60a-e40a-4a7d-8a0c-48f7998206d5",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Move your team at work to schedule walking meetings.",
+      "transcript": "Hey, guys. So I was thinking about a new way to take walking meetings to make our meetings, you know, walks outside with, you know, two or three of us. First of all, we know that walking is just good for you. Everybody these days has a step count, and we know how natural it is and how good it feels to be walking and to be outside. We also know that walking gets the mind turning. I mean, I know that when I'm walking even by myself, I just start thinking through ideas, and it's where I get and have gotten my best ideas for this team. Also, you know, there's this funny thing in psychology where if two people are facing the same direction and not looking at each other directly, they're more engaged in the conversation at hand, more engaged in the ideas and the actual topics as opposed to, you know, concerns about what the other person is exactly thinking or too focused on a nonverbal communication. So just picture this. You know? Picture taking walking meetings. You know, it's bright outside. You get out of the office for a little bit. You get to stretch the legs. I think it would be a really good idea for us to take walking meetings.",
+      "duration_s": 82.6,
+      "word_count": 51,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-22T18:12:02.066Z"
+    },
+    {
+      "order": 14,
+      "rep_id": "5af4ff69-6727-4076-9113-dd5d7ad5d96d",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "audio"
+      },
+      "prompt": "What do you do when you can't sleep?",
+      "transcript": "When I can't sleep, I typically do a breathing exercise. It usually looks like this where I breathe in for four seconds, hold for four seconds, breathe out first for for four seconds, and then hold again for four seconds. And it helps turn my mind off and not have my mind race for at a million miles per hour and helps me calm down. Next, I what I do is find a way to make the environment that I'm sleeping in colder because, normally, when I'm not sleeping, it's probably because I am hot, too hot. And so I would definitely say performing a breathing exercise and somehow trying somehow getting colder are the ways for me to go to bed faster.",
+      "duration_s": 64.6,
+      "word_count": 31,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/6ab11c35-4a5e-4211-adea-0edb60d1e320.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/6ab11c35-4a5e-4211-adea-0edb60d1e320.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvNmFiMTFjMzUtNGE1ZS00MjExLWFkZWEtMGVkYjYwZDFlMzIwLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.XX4oocjDxuzNqy7DfJbMvQ8C-Ja-4FJSBrhJDDimNEo",
+      "attempt_kind": "retry",
+      "created_at": "2026-07-23T16:55:25.063Z"
+    },
+    {
+      "order": 15,
+      "rep_id": "c4547169-b56b-48d1-ba40-f4993debfa6b",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Explain how to talk to someone going through a tough time",
+      "transcript": "The way to talk to someone who's going through a rough time is to listen and ask questions. You need to be an active listener, taking in everything that they're saying and not thinking about other, things in your head and to ask you questions after they're done with their points. And a common pitfall is to compare what they're going through to something that you have gone through, but it's not what they want to want to hear right now. So listen and ask questions.",
+      "duration_s": 36.3,
+      "word_count": 22,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-19T22:57:47.623Z"
+    },
+    {
+      "order": 16,
+      "rep_id": "797449c9-7b07-4d3d-94df-ca1aec59ea9c",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Why do humans tell each other stories?",
+      "transcript": "Human beings are the only animals with complex language that assists social dynamics and networks that are just extremely large and complex dynamic systems. One way we do this through telling stories, and stories are really important when you consider the the kind of first principles of human social dynamics, which are complex thought of one individual understood by another individual through, you know, vibrations of the vocal cords. It's the only way we shake our bodies to help someone else understand our own thoughts. This is especially interesting when you consider the fact that written language wasn't invented in a lot of human societies. And even if it was invented, it was invented way, way, way beyond way, way, way after oral communication, storytelling. And storytelling can assist the knowledge of others, the thoughts of others, can pass on information from generation to generation, from, you know, subgroup to subgroup. And so storytelling is really important to human history.",
+      "duration_s": 120.1,
+      "word_count": 57,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-28T11:49:56.758Z"
+    },
+    {
+      "order": 17,
+      "rep_id": "f2e50123-9018-4836-83f3-a0a46138f383",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Should you tell your boss you're unhappy at work?",
+      "transcript": "You should definitely tell your boss if you're unhappy at work. First of all, if you can't, then your boss is probably one of the reasons why you're unhappy, and that doesn't sound like an ideal work environment to begin with. But telling your boss can help the two of you in partnership work through the problems that you might have. At the end of the day, the two of you and the rest of your team are exactly that. You are all a team, and a team is going to work together to complete goals. And if those goals aren't being completed or if people aren't happy in completing those goals, there are problems. So absolutely tell your boss, you know, you, of course, can't be angry. You shouldn't be aggressive. You shouldn't ask for things that are ridiculous to ask for. But of course, within reason and with strong communication skills and being open to their perspective, your boss's perspective, that's when you should tell them that you're unhappy at work.",
+      "duration_s": 81.8,
+      "word_count": 42,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-22T18:18:00.808Z"
+    },
+    {
+      "order": 18,
+      "rep_id": "8bf0da65-dcbb-40cf-98ef-eda33e79b0e6",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "audio"
+      },
+      "prompt": "Why do you want to become an account manager? — Interview at Zebra technologies, I’m currently a sdr right now and it’s to be…. Connect what energizes you to what the role actually needs. Deliver it exactly as you would in the real interview.",
+      "transcript": "Yeah. So I wanna be an account manager because I have built a very strong foundation as an SDR. I have mastered the early stages of the sales cycle, and I really wanna start owning the process after booking the meeting because I've booked some meetings meetings with some crazy customers like Disney Cruise Lines and Patagonia and REI. And I wanna continue and build that relationship past what I've been able to do because I've only just been booking the meeting and then going on to booking the next meeting. So, yeah, I wanna own that relationship end to end with the customer. And I know I still have a ton to learn, but I'm ready for that, and that's what excites me.",
+      "duration_s": 53.6,
+      "word_count": 30,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/4fd57f8d-9fc1-41ec-b0e9-ae10af1acfeb.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/4fd57f8d-9fc1-41ec-b0e9-ae10af1acfeb.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvNGZkNTdmOGQtOWZjMS00MWVjLWIwZTktYWUxMGFmMWFjZmViLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.j276bfno4FEDWrTOKh5nR3QwwcW0ebI7fqtqZUrQaWs",
+      "attempt_kind": "first",
+      "created_at": "2026-07-10T16:18:59.536Z"
+    },
+    {
+      "order": 19,
+      "rep_id": "c79bd73d-e2ab-4a3f-83f5-aca957bb3087",
+      "strata": {
+        "band": "75+",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "How many hours of sleep do you actually get per week?",
+      "transcript": "I get forty nine hours of sleep per week. Breaking it down, Sunday through Thursday, I go to bed around 11:30 or twelve and wake up at around 7AM. So that's seven hours per day. And then Friday, Saturday, I go to bed anytime between twelve and three and wake up at around ten to eleven. So that's around seven hours again. And, yeah, I believe I get around forty nine hours per week.",
+      "duration_s": 47.1,
+      "word_count": 11,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-27T23:27:51.535Z"
+    },
+    {
+      "order": 20,
+      "rep_id": "de160d42-6229-4a2e-a756-182b6e4cbb0c",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "What's the one habit that changed your life the most?",
+      "transcript": "One thing I realized growing up is that my peers, whether they were children, adolescents, or even now that I'm in my twenties, my peers sleep in very late, and they often go to bed very late. They get enough sleep, say, six to nine hours, but they wake up so late in the day that they kind of don't meet their personal or professional goals. They don't they're not doing all the things that they want to be doing. And a lot of these people will say, I wish there was more time in the day. So a habit that changed my life genuinely, a daily habit, is just to wake up earlier. You realize that if you wake up at eight compared to ten, you make that day longer by two hours. If you wake up at six compared to noon, you're making that day six hours longer. And and often those morning hours can be even more productive. Your brain is kind of on in those morning hours, and it makes it easier to get things done and to bring keep the day long.",
+      "duration_s": 79.6,
+      "word_count": 35,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-18T11:14:24.236Z"
+    },
+    {
+      "order": 21,
+      "rep_id": "87ac2cb5-dda7-449f-afec-68ef1857ab0d",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Make the best argument for going to bed at 9pm every night.",
+      "transcript": "Some people will say that going to bed at the wee hours of the morning or kind of whenever you want to is great because it reduces stress in the sense that you'll be able to, you know, not have this rigid schedule, and you'll be able to do exactly what you want to do. And over time, that'll just feel nice and feel normal, and you won't have to leave your friends early in the day and that type of thing. However, that's a total misconception of the way that stress works and stress builds or falls. Our bodies need sleep to combat stress, and they're used to sleeping when it's dark out and waking up in the early morning as the sun is rising. That's how the hormonal systems and the neuronal systems understand the day and understand themselves and understand the rhythm of sleep and wakefulness. Going to bed regularly tells the body that there is a time to repair. There's a time to get active in the morning. And when you delineate these times very rigidly, it actually helps the body cope with with stress and will help you, you know, succeed in a trying time more so than doing whatever you want.",
+      "duration_s": 119,
+      "word_count": 58,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-28T11:59:19.732Z"
+    },
+    {
+      "order": 22,
+      "rep_id": "bc3852e4-fa20-4681-bbbd-e2a5ea1a8210",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "What's the best advice you'd give someone starting their first job?",
+      "transcript": "If I was talking to somebody that was starting their first job, obviously, they're walking into an entire world that they've never experienced before. But if I had to list it out into a couple of key things to remember as they start that journey, to me, the most important thing to remember is that it's a growth journey through and through. When you start a new job, you're obviously not expected to know everything that there is to know about it, but I like to say that they should try to do as much as they can on their end to get up to speed as quickly as possible. It's hard to start a new job, but if you're up for the task of doing your due diligence and grinding to understand the new world that you're entering into, I feel like that's all that matters. And as long as you're growing along the way, I would say that that's the second most important thing because at the end of the day, all we try to do with our time is learn as much as we in the short amount of time that we have on this planet. So don't don't overthink things. Take it one step at a time, and know that you're on the right path regardless.",
+      "duration_s": 86.7,
+      "word_count": 46,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T13:37:35.789Z"
+    },
+    {
+      "order": 23,
+      "rep_id": "dc3e97ac-82c3-4114-9d49-e05c2117be2e",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Defend your tool choice in 20 seconds",
+      "transcript": "I choose Claude as a tool over ChatGPT because it's a better model, and it's proven through case studies and experiments that have been run, and this ultimately makes me better at my role using it.",
+      "duration_s": 21,
+      "word_count": 13,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-15T02:21:29.778Z"
+    },
+    {
+      "order": 24,
+      "rep_id": "67fd2a4f-36ee-4325-97ac-80fbab857fd9",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Make the case that rest is productive.",
+      "transcript": "When I'm tutoring, I always tell my students about the three r's. That's review, recall, and rest. And that third one, rest, is actually way more productive than most people think. The reason that rest is productive is because it allows your brain to do its job of learning, passive learning, learning that goes on behind the scenes that you can't even think of consciously. When you learn something, there are synapses that build in your mind. They're how neurons communicate, and you can't force those synapses to be stronger and stronger unless you rest. Rest is when the brain actually builds, you know, the meat between those synapses. It's almost like training your strength in the gym. You need to work out. You need to push the weights. You need to be active, of course. But those muscles aren't going to build back stronger unless you rest. And so with learning and with tutoring, it's the same.",
+      "duration_s": 85.1,
+      "word_count": 58,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-22T11:59:17.976Z"
+    },
+    {
+      "order": 25,
+      "rep_id": "d6faea7f-9c99-47b6-b6d6-e28c20712f30",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Explain how a credit card actually works",
+      "transcript": "So to understand a credit card, you need to think about it like this. One has the ability to pay for it, but they don't want to use actual money now. They want to loan it to the bank and build points and then pay it off later because this helps build a good credit score and ultimately gives you more buying power.",
+      "duration_s": 31.4,
+      "word_count": 11,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-15T02:17:29.839Z"
+    },
+    {
+      "order": 26,
+      "rep_id": "0c3f9cfd-a1ad-4531-b07e-7f61b69a1399",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Convince a friend who hates running to try it for two weeks",
+      "transcript": "I understand that running is one of the worst exercises to have to put yourself through, but the reward is worth more than the cost. So I really believe that if you can just get your running shoes on, get outside, and push through it, you will feel so much better about yourself mentally and physically by passing that test. So I would need you right now to set a goal to do one mile a day to feel better about yourself.",
+      "duration_s": 40.1,
+      "word_count": 21,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-27T04:13:29.558Z"
+    },
+    {
+      "order": 27,
+      "rep_id": "6a18fc39-763c-4630-9525-8af880a7070a",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Tell us the most important thing you learned last year.",
+      "transcript": "Last year, I learned that working within a complex, dynamic, and outdated system defines much adult work. I was freshly graduated, 22 years old, working for the National Institutes of Mental Health in Bethesda, Maryland. And one of the issues that I faced was just the sheer size and age of some of our legacy networks, or work environments can be very challenging for somebody who's coming straight out of high school, straight out of college, and used to more streamlined, more tailored to the individual approaches to work and to to learning. So I was a trainee, but it still felt kind of crushing to be, to use an analogy, like a small fish in a big pond. Realizing this type of thing matters because one has to learn how to engage with and challenge these large, complex, dynamic, and outdated systems that you'll come into contact with in life. A lot of people don't, and that's how you kind of become a slave to the system. But if you adapt to it and engage with it in a good way, you can do better in your job, and your job can do better for you.",
+      "duration_s": 90.2,
+      "word_count": 46,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T17:21:46.073Z"
+    },
+    {
+      "order": 28,
+      "rep_id": "570096cf-b328-4fec-b3f2-2d5503e6e769",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Explain how sleep affects your energy",
+      "transcript": "Sleep affects your energy in always possible. If you are unable to rest your body, you are essentially going to be a dead plant. It's you gotta water yourself in in order to replenish your energy for for the day. And this matters because if you don't sleep, you're not gonna be able to do what you need to do. You're gonna be low energy, and you're gonna struggle.",
+      "duration_s": 33,
+      "word_count": 14,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-14T03:21:49.675Z"
+    },
+    {
+      "order": 29,
+      "rep_id": "46a85825-512f-4bc9-aea2-366d5124bf64",
+      "strata": {
+        "band": "<50",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Present a risk the board hasn't yet noticed",
+      "transcript": "Okay. Also okay. It looks like it's working. Test. Test. Test. Test. Test.",
+      "duration_s": 10.4,
+      "word_count": 9,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-05T01:04:05.346Z"
+    },
+    {
+      "order": 30,
+      "rep_id": "8fcc8735-957b-4626-b60e-1f4d8749f78c",
+      "strata": {
+        "band": "<50",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Should you tell your boss you're unhappy at work?",
+      "transcript": "I'm purposefully bombing this so that it doesn't grade me well. Should you tell your boss you're unhappy at work? Framework main three, close, jot notes, the example. Hook point 1.2, point three. Close. Speak clearly. Speak confidently. Recording. 28, 29, thirty, thirty one, 32, thirty three, thirty four. Ten nine eight seven six five four three two one.",
+      "duration_s": 60.3,
+      "word_count": 11,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-22T18:21:49.424Z"
+    },
+    {
+      "order": 31,
+      "rep_id": "1472a2b0-44eb-4db3-92c2-7203b06c8845",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Make the case that rest is productive.",
+      "transcript": "When I'm tutoring, I always tell my students about the three r's. Review, recall, and rest. Rest meaning taking a break between sessions, between learning, and allowing synapses in your brain to actually build. Rest is important for learning just like it is in the gym. If you were to lift all the weights and do active training constantly, there wouldn't be any actual time for the muscles to rebuild and build back stronger. That's exactly how it is with the brain and the connections between your neurons, which are called synapses. That's why when learning or becoming stronger or really doing anything in life, the body and brain need rest.",
+      "duration_s": 85.6,
+      "word_count": 32,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-22T12:01:47.527Z"
+    },
+    {
+      "order": 32,
+      "rep_id": "2499ccb0-f956-441d-81bc-7293ad5a6e92",
+      "strata": {
+        "band": "<50",
+        "tercile": "short",
+        "audio": "audio"
+      },
+      "prompt": "Should you take the job that pays more or the one you'd enjoy more?",
+      "transcript": "10 people. Like, I'll give them a dollar for every rep they do. So, like, I'll give them, like, $6 for every, you know, daily workout they do. Like, I that could add up to a lot of money. But, honestly, if it does, that's even better. Right? Like That's even better. I kinda really do believe in the product, and I'm willing to invest in it. So I'm willing to kinda pay my people, and I think you guys I don't know. Don't know that's good, but maybe consider it. Mhmm. It's good to do. I like that idea. So And then also, like",
+      "duration_s": 27.2,
+      "word_count": 11,
+      "audio_path": "reps/f9a78ff2-0c55-4923-a766-4cf732706eda/bbf2d7f4-09d4-4312-9565-9740b9bf0771.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/f9a78ff2-0c55-4923-a766-4cf732706eda/bbf2d7f4-09d4-4312-9565-9740b9bf0771.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy9mOWE3OGZmMi0wYzU1LTQ5MjMtYTc2Ni00Y2Y3MzI3MDZlZGEvYmJmMmQ3ZjQtMDlkNC00MzEyLTk1NjUtOTc0MGI5YmYwNzcxLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.X7T-onT4InF5CPZDotQMsVtamoVlRMS0A1O1LWIO2_Y",
+      "attempt_kind": "first",
+      "created_at": "2026-08-26T00:25:48.181Z"
+    },
+    {
+      "order": 33,
+      "rep_id": "1dcbb1e3-79c0-4695-8761-616439493ac6",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "What's the best advice you'd give someone starting their first job?",
+      "transcript": "If I was talking to somebody that was starting their first job, obviously, they're walking into an entire world that they haven't experienced yet. But the most important thing to remember is that it's a growth journey along the way. As long as you're taking each day as it comes, learning as much as you can, and trying to grow your professional career, I'd say that that is the most worthwhile aspect of of a job. And it's also important not to overthink things and think too ahead because the moment that you start thinking too ahead, you lose sight of what's happening in the current moment, and it's really easy to get overbared with the things that you wanna do in the grand scheme of things. And it's actually it actually ends up being harder to reach those end goals when your mind is all over the place and not taking one one step at a time.",
+      "duration_s": 69.6,
+      "word_count": 40,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T13:39:09.787Z"
+    },
+    {
+      "order": 34,
+      "rep_id": "dceacc77-bc9b-4433-9790-b0f7ecca63d5",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Explain how to manage your time",
+      "transcript": "Managing your time is extremely important because we all have busy lives, and we don't have enough time in the day to waste our time on tasks or things that, do not push us forward. And the best strategy to manage your time is to, set an agenda and complete your task, and then at the end of the day, review of what you did.",
+      "duration_s": 38,
+      "word_count": 16,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-20T22:58:02.702Z"
+    },
+    {
+      "order": 35,
+      "rep_id": "dec30b8d-8576-4ee6-b40d-ffd69df5d7e7",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Give a 60-second elevator pitch for your product to a stranger at a conference",
+      "transcript": "Cognify is a communication training platform that you can use on the Internet or on your cell phone directed at early career professionals, with the hopes that they'll they'll use it to improve, for example, sales communication skills or even relationship communication skills. A lot of people need this and are hungry for this type of feedback and this type of training in an age where human to human communication is simultaneously getting more difficult, more sparse, and with the rise of artificial intelligence, also very important in that it can distinguish candidates from one another. So for example, we have a special function that assists in interviewing, and anybody can prepare a good resume these days. Right? But not everyone can land in an interview, in a way that separates themselves from the rest of the pack. So that's an example of how Cognify can help people.",
+      "duration_s": 80.1,
+      "word_count": 40,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-22T18:35:07.547Z"
+    },
+    {
+      "order": 36,
+      "rep_id": "38a44cb7-1efb-4076-922f-fce389114129",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "A kid asks, 'Why do adults complain about Mondays?' Answer what they actually want to know.",
+      "transcript": "They don't like Mondays because start of the work week. Think about school. It matters because people are tired after a weekend. The gap is that you don't work.",
+      "duration_s": 27.5,
+      "word_count": 8,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-24T03:18:54.687Z"
+    },
+    {
+      "order": 37,
+      "rep_id": "cc6e5bde-40ec-4edc-815c-8638000ad12c",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Tell us the most important thing you learned last year.",
+      "transcript": "Last year, I learned that living in a large system of people and working in a large system of people is sometimes very difficult because you don't call the shots. Now that matters because sometimes people get out of high school and get out of college, and they're very much in a system that is naturally going to work for them. But afterwards, these systems are, you know, outdated. They don't have the incentives to keep adapting to, you know, young people, and all of a sudden, you're a small fish in a big ocean. Right? Working within those systems is challenging, but it also gives you the discipline to persevere through those systems. And it gives you the incentive, especially as a young person, to try to change them.",
+      "duration_s": 71,
+      "word_count": 46,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T17:18:27.791Z"
+    },
+    {
+      "order": 38,
+      "rep_id": "77b46aa8-f41b-4838-9e17-668690843327",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "audio"
+      },
+      "prompt": "What do you do when you can't sleep?",
+      "transcript": "When I can't sleep, I take Benadryl. Benadryl knocks me out like a light, and I am able to go to sleep very quickly. I also need to get in a cold space or environment because if I am hot and sweating, I am going to be very uncomfortable and not be able to sleep. And I will just be staying up night at night thinking about my day or whatever else is stressing me out. So it's very important for me to be in a cold environment and to be in a dark place.",
+      "duration_s": 36.2,
+      "word_count": 16,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/5916e8d0-3d22-420d-b526-d4bb7a789608.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/5916e8d0-3d22-420d-b526-d4bb7a789608.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvNTkxNmU4ZDAtM2QyMi00MjBkLWI1MjYtZDRiYjdhNzg5NjA4Lm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.8R6Fg3RivHuh7-utAZXID86cdolX2hm63PtdXGVMj7U",
+      "attempt_kind": "first",
+      "created_at": "2026-07-23T16:51:20.709Z"
+    },
+    {
+      "order": 39,
+      "rep_id": "a72bc168-b8ab-4351-8bf5-13458508a7cc",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Argue that handwritten letters are still worth sending.",
+      "transcript": "It has been argued that writing handwritten letters is no longer worth it. No longer worth spending the time writing it, putting it in an envelope, bringing it to the mail person, and sending it. However, that is just completely not true because the perception that it's that difficult actually enhances its utility, especially as an emotive piece of writing, an emotive piece of writing in the sense that someone is going to know how much you kind of had to sacrifice to write it when compared to an email or a text or a phone call, it's very easy. So writing something for someone is going to really impact them in a way that the email won't. Whether they read it or even when you open the letter, you feel something.",
+      "duration_s": 71.7,
+      "word_count": 26,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-18T11:29:05.305Z"
+    },
+    {
+      "order": 40,
+      "rep_id": "d378f6e2-e478-438d-a891-bb00a5fc8dec",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Name something that's broken about how friends stay in touch and pitch a fix.",
+      "transcript": "The problem with staying in touch with long distance friends is that you can and mass amount of time can occur, and you don't have a set time per week, per month, or per quarter that you haven't that you meet. And this ultimately makes you fall out of touch with that special person in your life. However, I think it's very important to set a time when you would meet per week, per month, or per quarter, or per year just to catch up, hear how things are going with their lives, share what's going on in your life. And I believe that we should set the first Thursday of every month and just have a conversation about our lives to, stay in touch.",
+      "duration_s": 60.8,
+      "word_count": 26,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-17T23:46:30.070Z"
+    },
+    {
+      "order": 41,
+      "rep_id": "9f92fd4d-aecf-45ad-92ee-626544f2add8",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Describe the most recent compliment that meant something to you and why.",
+      "transcript": "My new roommate, Mac, told me that I seem like the type of guy who knows names and knows facts about people and history and and the world, it meant a lot to me because, you know, I've act actually tried to build that skill intentionally. I see it as something that, you know, older people whom I respect, I see it as something that they do. You know, you can name movies and know who's in them and and quote the scenes or moments of from history or, you know, events, that are happening nowadays. It's just good to kind of know those fun facts and be like a walking trivia machine. It was nice. And then",
+      "duration_s": 60.8,
+      "word_count": 29,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T17:27:48.910Z"
+    },
+    {
+      "order": 42,
+      "rep_id": "a0573223-0ff0-4895-b789-3e637a767a15",
+      "strata": {
+        "band": "<50",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Why do humans tell each other stories?",
+      "transcript": "I'm going to try to use the full word count because it told me last time that I used a 100% of the word count, and yet my yet my answer was too short. So I'm gonna just read through. One way we do this is through telling stories, and stories are really important when you consider the kind of first principles of human social dynamics, which are complex thought of one individual understood by another individual through vibrations of the vocal cords. We tell stories to communicate complex thoughts, allowing one person's ideas to be understood by another through speech. The prompt, why do humans tell each other stories? Suggested framework, PREP. Shuffle, edit, jot notes, see example, hide. Point, reason, example, Point again. Speak clearly. Speak confidently. Stop and submit. Discard rep. Three second countdown, then you're live. Thinking quality day, rep two of three. First principles, the response lacks clear transitions and structured whatever. Why do humans tell each other stories? Why do humans tell each other stories? We tell stories to communicate complex thoughts, allowing one person's ideas to be understood by another through speech.",
+      "duration_s": 119.7,
+      "word_count": 63,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-28T11:52:29.213Z"
+    },
+    {
+      "order": 43,
+      "rep_id": "a6dfafbe-1b8c-4d30-9f40-0a05d9a48eaf",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Tell us which habits are most worth building in your twenties.",
+      "transcript": "Budgeting, fitness, and meditation are three habits that will get you through your twenties. The reason I say budgeting first is because you're making a lot of money in your twenties, and you finally have some revenue coming in. And it's very important to direct those funds towards the right areas of your of your financial portfolio because if you don't, you won't save money for the future, and you will hate yourself in the future for not putting that money into a savings account. The second is meditation. It is very, important to take time out of your day to think about what you're doing with your life and how you are feeling internally because, ultimately, it helps you stay focused and clear on your goals and help you reach your, your goals. And then finally is meditation. Or finally, the last habit is fitness. It is very important to go to the gym and to take care of your body so you can feel confident internally and do the things that you wanna do externally.",
+      "duration_s": 91.6,
+      "word_count": 37,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-17T23:42:00.923Z"
+    },
+    {
+      "order": 44,
+      "rep_id": "2fa2181d-3be3-4391-832c-c1c6c2eccf35",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "audio"
+      },
+      "prompt": "Should you stay friends with people you've outgrown?",
+      "transcript": "You definitely should stay friends with people you've outgrown, and I believe it's very important to not burn bridges. You may need them again at some point in your life. Say, for example, you just got a new job or you're working on on for, yeah, like, a new company, and one of those people that you outgrew also works there and is telling everyone, about how you are to them, and then you look bad. So it's not good to burn bridges. It's good to keep them within your network, but to keep them at a distance.",
+      "duration_s": 42.6,
+      "word_count": 16,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/65ec9c52-9dcc-4711-a1fa-986e93de9a1a.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/65ec9c52-9dcc-4711-a1fa-986e93de9a1a.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvNjVlYzljNTItOWRjYy00NzExLWExZmEtOTg2ZTkzZGU5YTFhLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.PGya-JxHpk9PTre1XVrmEi3ts0-uORGG8ht4YBb-SKY",
+      "attempt_kind": "first",
+      "created_at": "2026-07-23T15:59:52.486Z"
+    },
+    {
+      "order": 45,
+      "rep_id": "2cfb7fc1-654c-4030-acd7-5c927263ea9f",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "audio"
+      },
+      "prompt": "Why should we choose you? — Interview at Zebra technologies, I’m currently a sdr right now and it’s to be…. One concrete story with the situation, what YOU did, and the measurable result. Deliver it exactly as you would in the real interview.",
+      "transcript": "I believe I would be a great addition to the team because I have proven that I can consistently hit my quota. I've hit it or exceeded it for the past four quarters in a row, and that is by no accident. I've been able to do that by systematizing my process from the get go and reiterating it reiterating it over and over again to get to me, to get to a point where I'm, you know, finding success. And I've been very intentional about my growth and putting myself in the right situations, talking to the right people, like, within the inside sales hub to learn how they go about their processes. And then also meeting with my mentors on the hardware and software side and really learning, you know, what the customer cares about, figuring out how to best, you know, run a sales cycle. And I feel that I know I have, like, a lot to learn and to develop, but I have a very strong foundation.",
+      "duration_s": 71.9,
+      "word_count": 30,
+      "audio_path": "reps/172be75d-5a22-4064-80d9-4bfe48194eb3/6538871f-6bd3-4340-afb5-09676e23aa19.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/172be75d-5a22-4064-80d9-4bfe48194eb3/6538871f-6bd3-4340-afb5-09676e23aa19.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy8xNzJiZTc1ZC01YTIyLTQwNjQtODBkOS00YmZlNDgxOTRlYjMvNjUzODg3MWYtNmJkMy00MzQwLWFmYjUtMDk2NzZlMjNhYTE5Lm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.Q0QxYO2_rrMdvU24P2fheUY8hFIeVJm4kPYQ82zby3c",
+      "attempt_kind": "first",
+      "created_at": "2026-07-10T16:22:26.296Z"
+    },
+    {
+      "order": 46,
+      "rep_id": "fe1b4fd0-ad51-49a3-9b1b-2ae7b49012a5",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "What's the single most important thing in a friendship?",
+      "transcript": "Having friendships is good because there's a lot of things to focus about in a friendship, and friendships are generally good. And you wanna understand what the person wants and what they need and also how to convey their emotions to the other person, but it's generally important. Single most important thing is understanding.",
+      "duration_s": 32,
+      "word_count": 21,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-24T03:16:34.872Z"
+    },
+    {
+      "order": 47,
+      "rep_id": "ba390e63-0e2f-44ca-807a-15dfc3d83d4d",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "What's the one habit that changed your life the most?",
+      "transcript": "I'm gonna talk to you about how the habit of waking up early can help you meet more of your personal and professional goals and just make you feel more comfortable about how you're spending your time. Throughout my life, my peers, when I was a kid, the children around me, when I was a teenager, the adolescents around me, now that I'm in my twenties, I've realized that even adults do this. They sleep for, you know, six to nine hours, the recommended amount, but they'll go to bed at midnight, 1AM, and then wake up, very late into the day. And what happens is you're losing so much productive time, time when other people are awake, time when your brain is naturally most active, and therefore, you're losing a significant part of a day every single day. So one habit that you can do is just to wake up earlier. Wake up at six instead of ten gives you four hours every single day.",
+      "duration_s": 73,
+      "word_count": 33,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-18T11:18:21.226Z"
+    },
+    {
+      "order": 48,
+      "rep_id": "286dffa2-c6f1-4121-af4a-569e838fefe3",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Tell us which habits are most worth building in your twenties.",
+      "transcript": "Your twenties are some of the most important years of your life, and it's a time to lock in and create the right habits. And these three habits in particular of budgeting, fitness, and meditation will really carry you and give you a solid foundation for what's what's, ahead of, with for the rest of your life. So for the first habit I suggest people build is, budgeting. It's very important to manage all of the new money that you're making and save for the future because if you don't and just spend your money, you will end up regretting it. The second habit is meditation. It is so important to be mindful of what you're doing and how you're going about your day to day because, ultimately, that day to day is what your life will look like for the next, you know, several years. So, meditating and just thinking about who you are and where you're trying to go every single day will really help you for the future. And finally, fitness is a very important habit to keep your body right. Just like in meditation, gotta keep your mind right. You gotta keep your body right so you can feel confident about who you are and to feel good. And so with those three habits in mind, that's how you'll be successful in your twenties.",
+      "duration_s": 93.2,
+      "word_count": 44,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-17T23:39:15.220Z"
+    },
+    {
+      "order": 49,
+      "rep_id": "f957d5c3-bb3e-4ae2-a5c0-ccebd34181a1",
+      "strata": {
+        "band": "75+",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Share what your morning looks like before anyone else is awake.",
+      "transcript": "Before anyone else is awake, my morning starts slow and then ramps up very quickly. I do the standard things. I brush my teeth. I shower. I eat breakfast. I make my coffee. But I like to get out of the house very early, frankly, as early as possible. One reason is just because my brain works better in the morning. Everybody's does, but mine is particularly early. But I'll leave by six or 06:30 because it's also quite satisfying to be somewhere before everyone else is there. You know, this is the dog mentality. It's the idea that you're putting in more effort than anybody else. It's the movie montage, the the Rocky movie montage or in a sports movie when, you know, there's one guy on the field before everybody else and after everybody else. I love walking into school and having all the lights turn on because I'm the first one there.",
+      "duration_s": 71,
+      "word_count": 47,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-08-18T11:24:06.975Z"
+    },
+    {
+      "order": 50,
+      "rep_id": "5dc3d585-1a22-4d37-ad41-13b0e9611951",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Tell us the most important thing you learned last year.",
+      "transcript": "Let's see. What did I learn last year? Alright. So I worked at the National Institutes of Mental Health, and, you know, it was during all of this DOGE, you know, d o g e, Department of Government Efficiency. Shit was going down, and, you know, I was a small fish in a big pond. And so I realized that working within a complex dynamic system, especially an outdated one, you know, where, for example, the EHR was, you know, something called CRISP, the clinical research information system, is really challenging. I mean, it was built on, you know, nineties, early two thousands software, you know, it's really hard to deal with patients like that. But you you couldn't really do anything to change it. Right? So, again, like I said, small fish in a big pond. And this type of thing matters because you gotta learn how to engage with and and challenge the systems that you're in, and kinda not be like a slave to it. Right?",
+      "duration_s": 73.8,
+      "word_count": 39,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-21T17:24:21.987Z"
+    },
+    {
+      "order": 51,
+      "rep_id": "ae4a71d3-9eba-430a-9511-fb6df076b3e2",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "audio"
+      },
+      "prompt": "I am a hiring manager for your next role. In 60 seconds, tell me why I should hire you.",
+      "transcript": "My name is Hunter Begier, and I work at Zebra Technologies. I'm a sales development representative that recently got promoted to hardware account manager, and I will be specifically focusing on the retail and hospitality verticals. I bring a lot of expertise around relationships and how to navigate a sales cycle. I'm able to move things along and control the sales cycle and bring in new business opportunities as well. Aside from that, I also am the founder of Scoring Together, which is a nonprofit organization that I started in memory of my dad. And we do an event every year that revolves around a charity soccer match, and we've ended up raising $50,000 from doing that. I currently live in Chicago, and I'm excited to learn more about your com",
+      "duration_s": 60,
+      "word_count": 29,
+      "audio_path": "reps/fae68f71-c312-47fe-89e8-64233b40d946/8056af60-6560-407d-a4f3-64f00304744f.mp4",
+      "audio_link": "https://dunnoccrvrqzsgxsfjuv.supabase.co/storage/v1/object/sign/rep-audio/reps/fae68f71-c312-47fe-89e8-64233b40d946/8056af60-6560-407d-a4f3-64f00304744f.mp4?token=eyJraWQiOiI5M2JkMzA1YS02MDFkLTQ1OGItOGRhYi03ZDE5MjYyYWUyYWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJyZXAtYXVkaW8vcmVwcy9mYWU2OGY3MS1jMzEyLTQ3ZmUtODllOC02NDIzM2I0MGQ5NDYvODA1NmFmNjAtNjU2MC00MDdkLWE0ZjMtNjRmMDAzMDQ3NDRmLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODc5Mjc3NDksImV4cCI6MTc4ODUzMjU0OX0.RFxBk2oVvuKa8hOxy_elmyOJziXO5onMrveArNmCSLI",
+      "attempt_kind": "first",
+      "created_at": "2026-07-23T15:42:20.357Z"
+    },
+    {
+      "order": 52,
+      "rep_id": "f2b63042-ce75-4357-a68d-8c06cdc0fa19",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Argue from the perspective of someone who loves the food you hate most.",
+      "transcript": "I can understand why someone loves pickles even though it's the food I hate most. People love the tanginess, the saltiness, and the vinegars and the crunch of a pickle. However, my taste buds just don't configure to it. I have tried to step into the shoes of people that love pickles, and they definitely go on a ton of different things like burgers, and I can see how they can be refreshing, on a sandwich as well. And, someday, my taste buds can figure, and I end up liking pickles.",
+      "duration_s": 51.5,
+      "word_count": 28,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-27T23:16:31.247Z"
+    },
+    {
+      "order": 53,
+      "rep_id": "3bc3ca5f-7743-40df-8b52-a4a91b343973",
+      "strata": {
+        "band": "50-65",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Is reading fiction a better use of time than reading nonfiction?",
+      "transcript": "Reading fiction is better than reading nonfiction because it gives you the opportunity to come up with your own externalities of points, and It allows you to come up with your own It allows you to come up with your own themes and morals that you're not going to get from nonfiction that is more demonstrative and pedantic and sometimes condescending, telling you exactly what you should think or implying what you should think rather than allowing you to develop your own thoughts. Say you wanna learn, you know, how to live a life, right, which is what people everybody wants to learn. Would you rather read a book about Greek history, or would you rather read The Odyssey? The Odyssey is going to teach you more about dynamics in people, mental constructs. So it's better to read fiction instead of nonfiction.",
+      "duration_s": 106.6,
+      "word_count": 29,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-28T11:43:26.142Z"
+    },
+    {
+      "order": 54,
+      "rep_id": "38d60043-c81e-462d-97e0-cbf573bf6bdd",
+      "strata": {
+        "band": "50-65",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "Explain how naming a feeling reduces its grip",
+      "transcript": "Naming a feeling reduces its grip by allowing the person to release some held up aggression or release whatever feelings that they were internalizing, allowing it to release from the person.",
+      "duration_s": 24.7,
+      "word_count": 11,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-05-23T21:06:32.741Z"
+    },
+    {
+      "order": 55,
+      "rep_id": "4e2afb63-baef-478a-afa2-72c06a15aaab",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Share three things you used to believe about adulthood that turned out to be wrong.",
+      "transcript": "Three things that I used to believe about adulthood that turned out to be wrong are the fact that you need to do something by a certain playbook. You need to do something that somebody else has done before and paved the path for. Another thing is that you are limited by the amount of choices that you have. And the third thing is that you are not bound by anything when you become an adult. The same things that bounded you when you were a kid, like your family, your friends, your relationships are still things that are prevalent as you become an adult, and they don't just phase away with age. And then the other part with the fact that you're bound to a specific path and doing something that somebody did before you is also inaccurate because in today's day and world, there's so much content out there to be consumed. So if you wanna learn something and be able to do it, the only thing stopping you is yourselves.",
+      "duration_s": 74.4,
+      "word_count": 36,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-21T20:04:30.506Z"
+    },
+    {
+      "order": 56,
+      "rep_id": "2bf3c041-a3c3-4b29-a935-846437f1f0da",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Argue from the perspective of someone who loves the food you hate most.",
+      "transcript": "Stepping into the shoes of someone who loves the food I hate most, I understand where they're coming from when it comes to pickles. I hate pickles because of the taste and the texture. And I've tried to like them from my whole life, but my taste buds just do not configure to what they taste like to other people. My girlfriend, on the other hand, loves pickles and lives and dies by them. However, I just don't feel that way, and that's okay because she's probably feeling a party in her mouth, and, it's just something that I'm not experiencing.",
+      "duration_s": 49.4,
+      "word_count": 28,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-27T23:10:20.182Z"
+    },
+    {
+      "order": 57,
+      "rep_id": "cd696e59-d890-443d-bc2c-7d45b8f81dcd",
+      "strata": {
+        "band": "65-75",
+        "tercile": "long",
+        "audio": "text"
+      },
+      "prompt": "Tell a younger sibling what you wish you'd learned earlier in life.",
+      "transcript": "Something I wish I knew when I was your age was that agency is really the point of a lot of the advice and especially the cliche advice that young people receive. Take, for example, be yourself. You're gonna hear that a lot as you're growing up, but, really, that's about agency. And you hear it so often that it kind of loses its meaning, but be be yourself. It means to act as you would under all circumstances regardless of the conditions surrounding you. Same with have fun. Right? Having fun in your activities is really about agency. It's saying that I take responsibility for what I'm doing, and therefore, nothing feels forced. Nothing feels bad. It it it should feel fun. Another one is follow your dreams. It's a piece of cliche advice, but really it's about agency. And so try to tie a lot of these a lot of the advice that you're going to hear throughout your adolescence to agency and think about how you can be a more powerful person, more committed to yourself throughout your life.",
+      "duration_s": 86.5,
+      "word_count": 39,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-22T18:25:11.216Z"
+    },
+    {
+      "order": 58,
+      "rep_id": "cf15d7cc-e874-46b4-8fe7-464a9ecf327c",
+      "strata": {
+        "band": "65-75",
+        "tercile": "short",
+        "audio": "text"
+      },
+      "prompt": "What's the single best decision you've made in the last five years?",
+      "transcript": "The single best decision I've made in the last five years is joining Zebra Technologies. I had no idea what to expect going from college to the real world, and I was very scared at the time because I don't know how anything was going to go. But I joined Zebra Technologies, and it opened up a world of possibilities for me to grow professionally. And I've also met some amazing people along the way. And I am so grateful for the opportunity to learn here and grow. I just got a promotion recently, and I hope to continue the momentum moving forward.",
+      "duration_s": 45.6,
+      "word_count": 20,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-07-23T15:07:28.409Z"
+    },
+    {
+      "order": 59,
+      "rep_id": "d619a583-8fcd-4408-bd1a-edd6f5c0634a",
+      "strata": {
+        "band": "50-65",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Make the best argument for going to bed at 9pm every night.",
+      "transcript": "The pattern ran generation to generation to a seasoned geneticist. This trend meant the gay gene had to be carried on the X chromosome. Amer could see it now in his mind's eye, an inherited element passing between generations like a shadowy presence, nowhere near as penetrant as the typical cystic fibrosis or Huntington's gene mutations, but inevitably tracking the trail of the X chromosome. In a typical family tree, a great uncle might be identified as potentially family histories were often vague. The historical closet was substantially darker than the current sexual closet, but Hamer had collected data from occasional families where sexual identity was known to known up to two to three generations.",
+      "duration_s": 66.9,
+      "word_count": 36,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "retry",
+      "created_at": "2026-07-28T12:03:49.799Z"
+    },
+    {
+      "order": 60,
+      "rep_id": "f39b18b3-4986-444f-9211-f3233ef58bae",
+      "strata": {
+        "band": "65-75",
+        "tercile": "mid",
+        "audio": "text"
+      },
+      "prompt": "Share what your morning looks like before anyone else is awake.",
+      "transcript": "Before anyone else is awake, my day is slow and then ramps up very quickly. I actually really enjoy when everyone else is asleep because it makes me have more dog mentality, for lack of a better term, in my life. So I'll shower. I'll eat breakfast, the normal things. And I try to get out of the house by 06:30 and try to get to school before anyone else is here. Even this morning, I was thinking how satisfying it is to walk into the lounge or walk into a classroom and the lights turn on because no one else has been there that day. You are the first person at school. It's a very motivating factor almost like, you know, you're in, like, the med school Rocky movie montage where you're putting more work in than everyone else.",
+      "duration_s": 73.5,
+      "word_count": 35,
+      "audio_path": null,
+      "audio_link": null,
+      "attempt_kind": "first",
+      "created_at": "2026-08-18T11:21:02.391Z"
+    }
+  ]
+}
