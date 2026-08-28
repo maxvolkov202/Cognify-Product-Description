@@ -98,16 +98,22 @@ export default function PromptPicker({
   );
 
   // Bootstrap: fetch the first cycle of candidates.
+  // 1c — the prefetched promise is captured ONCE at mount: a parent
+  // re-render that later swaps null → promise must not re-INIT a slate the
+  // user is already reading. A rejected prefetch falls back to a cold fetch.
+  const initialRef = useRef(initialCandidates);
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
     const t0 = performance.now();
-    const source = initialCandidates ?? fetchPromptCandidates({ exerciseId, personalize });
+    const prefetched = initialRef.current;
+    const cold = () => fetchPromptCandidates({ exerciseId, personalize });
+    const source = prefetched ? prefetched.catch(() => cold()) : cold();
     source.then((res) => {
       if (cancelled) return;
       // 1c — client-side slate latency (mount → candidates in hand).
       console.info(
-        `[prompt-picker] slate ready in ${Math.round(performance.now() - t0)} ms (${initialCandidates ? "prefetched" : "cold"})`,
+        `[prompt-picker] slate ready in ${Math.round(performance.now() - t0)} ms (${prefetched ? "prefetched" : "cold"})`,
       );
       recordSeen(res);
       dispatch({
@@ -120,7 +126,7 @@ export default function PromptPicker({
     return () => {
       cancelled = true;
     };
-  }, [exerciseId, personalize, recordSeen, initialCandidates]);
+  }, [exerciseId, personalize, recordSeen]);
 
   const handleCycle = useCallback(() => {
     if (isCycling) return;

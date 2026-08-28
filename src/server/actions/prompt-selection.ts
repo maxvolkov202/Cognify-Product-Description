@@ -10,7 +10,7 @@
 //   logPromptSelection({ ... })                        →
 //     writes one prompt_selection_events row.
 
-import { and, eq, sql as drizzleSql } from "drizzle-orm";
+import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
 import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { db } from "@/lib/db/client";
 import {
@@ -156,7 +156,9 @@ export async function fetchPromptCandidates(input: {
         // (recent-prompt join is scoped to the SAME exercise: prompt text is
         // not unique across the catalog, and an unscoped join fans one rep
         // out into several rows and shrinks the anti-repetition window.)
-        const [[compRow], recentRows, skippedRows] = await Promise.all([
+        // allSettled: one failed signal must not discard the others (on
+        // main a later failure still kept the composite already computed).
+        const settled = await Promise.allSettled([
           db.execute<{ avg: number | null }>(drizzleSql`
             SELECT AVG(r.composite_score)::real AS avg
             FROM cognify_v2.reps r
@@ -191,6 +193,18 @@ export async function fetchPromptCandidates(input: {
             LIMIT 20
           `),
         ]);
+        const compRow = settled[0].status === "fulfilled" ? settled[0].value[0] : undefined;
+        const recentRows = settled[1].status === "fulfilled" ? settled[1].value : [];
+        const skippedRows = settled[2].status === "fulfilled" ? settled[2].value : [];
+        const failed = settled.find((r) => r.status === "rejected");
+        if (failed && failed.status === "rejected") {
+          log.warn({
+            event: "prompt_selection.bias_signal_failed",
+            userId,
+            exerciseId: input.exerciseId,
+            err: serializeErr(failed.reason),
+          });
+        }
         recentDimComposite = compRow?.avg ?? null;
         recentPromptIds = recentRows
           .map((row) => row.prompt_id)
@@ -291,7 +305,9 @@ export async function fetchPromptCandidates(input: {
           ),
         )
         // 1c — a generated-thickened bank must not stream every prompt_text
-        // on each mount; the picker only needs a slate's worth of rotation.
+        // on each mount; newest first so generated rows stay reachable, and
+        // the window is deterministic.
+        .orderBy(desc(exercisePrompts.createdAt), desc(exercisePrompts.id))
         .limit(300);
 
     marks.biasMs = Date.now() - t0 - (marks.exerciseMs ?? 0);

@@ -378,11 +378,17 @@ function WorkoutShellInner({
   );
   useEffect(() => {
     const i = state.currentStationIndex;
+    // Current + next station, in every phase (the skip path never records,
+    // so gating on "recording" left N+1 cold). One DB read per station.
     prefetchSlate(state.stations[i]?.exerciseId);
-    if (state.phase === "recording" || state.phase === "transcribing" || state.phase === "scoring") {
-      prefetchSlate(state.stations[i + 1]?.exerciseId);
+    prefetchSlate(state.stations[i + 1]?.exerciseId);
+    // Evict stations already passed so the Map stays a two-entry window.
+    for (const [key] of prefetchRef.current) {
+      const exerciseId = key.slice(0, key.lastIndexOf(":"));
+      const idx = state.stations.findIndex((s) => s.exerciseId === exerciseId);
+      if (idx >= 0 && idx < i) prefetchRef.current.delete(key);
     }
-  }, [state.phase, state.currentStationIndex, state.stations, prefetchSlate]);
+  }, [state.currentStationIndex, state.stations, prefetchSlate]);
   // D26 — close the v2 day once the machine actually reaches the end of the
   // last station. tagWorkoutRep only closes the day on a RETRY attempt (the
   // final first attempt has to stay open because Retry is still on offer),
