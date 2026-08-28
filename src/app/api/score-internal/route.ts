@@ -16,6 +16,7 @@ import { buildFeedbackDoc } from "@/lib/scoring/feedback-doc";
 import { getFrameworkWeights } from "@/lib/scoring/framework-profiles";
 import { encodeDimensionSignals } from "@/lib/scoring/signals";
 import {
+  isShortRep,
   writeScoringTelemetry,
   categorizeFailure,
   resolveFallbackReason,
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
   // Phase 0 — captured for catch-block telemetry; body is consumed by
   // safeParse above so we can't re-read it from the request.
   const capturedRepId = body.repId;
+  const capturedDurationMs = body.durationMs;
 
   try {
     const frameworkWeights = getFrameworkWeights(body.frameworkId);
@@ -163,10 +165,14 @@ export async function POST(req: Request) {
     const feedbackDoc = buildFeedbackDoc(score);
     let calloutIds: string[] = [];
     await db.transaction(async (tx) => {
-      if (coachFocus || feedbackDoc) {
+      if (coachFocus || feedbackDoc || score.prosodyFeatures) {
         await tx
           .update(reps)
           .set({
+            // Grading audit WS1 — evidence bundle the grader saw.
+            ...(score.prosodyFeatures
+              ? { prosodyFeatures: score.prosodyFeatures }
+              : {}),
             ...(coachFocus
               ? {
                   coachFocus: {
@@ -289,6 +295,7 @@ export async function POST(req: Request) {
         body.muscleGroupDayId ?? rep.muscleGroupDayId ?? null,
       isGraduationRep:
         body.isGraduationRep ?? rep.isGraduationRep ?? false,
+      shortRep: isShortRep(body.durationMs),
     });
 
     return NextResponse.json({
@@ -312,6 +319,7 @@ export async function POST(req: Request) {
     void writeScoringTelemetry({
       source: "api_score_internal",
       repId: capturedRepId,
+      shortRep: isShortRep(capturedDurationMs),
       metrics: null,
       totalServerDurationMs: Date.now() - requestStart,
       failureReason:

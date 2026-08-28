@@ -11,6 +11,7 @@
 //     writes one prompt_selection_events row.
 
 import { and, eq, sql as drizzleSql } from "drizzle-orm";
+import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { db } from "@/lib/db/client";
 import {
   exercisePrompts,
@@ -156,6 +157,7 @@ export async function fetchPromptCandidates(input: {
           WHERE r.user_id = ${userId}
             AND e.dimension = ${exerciseRow.dimension}
             AND r.created_at >= NOW() - INTERVAL '14 days'
+            AND ${scoredRepSqlFragment("r")}
         `);
         recentDimComposite = compRow?.avg ?? null;
 

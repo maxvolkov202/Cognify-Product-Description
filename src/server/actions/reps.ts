@@ -1,6 +1,10 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import {
+  attachTelemetryToRep,
+  type ClientScoringTimings,
+} from "@/lib/scoring/telemetry";
 import { db } from "@/lib/db/client";
 import {
   reps,
@@ -121,6 +125,13 @@ export type SaveRepInput = {
   attemptKind?: "first" | "retry" | "again";
   /** PRD v3 engine — the First Rep this retry/again attempt improves on. */
   parentRepId?: string | null;
+  /** Grading audit WS1 — Deepgram word timings. Persisted under
+   *  transcript.words so pacing/tone rebuilds can be replayed on real
+   *  reps. Omitted by legacy callers → only `text` is stored. */
+  words?: { word: string; startMs: number; endMs: number }[];
+  /** Grading audit WS1 — client-measured latency breakdown, written onto
+   *  the scoring_telemetry row identified by score.scoringTelemetryId. */
+  clientTimings?: ClientScoringTimings | null;
 };
 
 export type SaveRepResult = {
@@ -310,7 +321,16 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
         promptText: input.promptText,
         durationMs: input.durationMs,
         audioUrl: input.audioUrl,
-        transcript: { text: input.transcript },
+        transcript: {
+          text: input.transcript,
+          ...(input.words && input.words.length > 0
+            ? { words: input.words }
+            : {}),
+        },
+        // Grading audit WS1 — evidence bundle the grader saw (0047).
+        ...(input.score.prosodyFeatures
+          ? { prosodyFeatures: input.score.prosodyFeatures }
+          : {}),
         compositeScore: input.score.composite,
         modelVersion: input.score.modelVersion,
         rubricVersion: input.score.rubricVersion,
@@ -396,6 +416,18 @@ export async function saveRep(input: SaveRepInput): Promise<SaveRepResult> {
 
     const repId = core.repId;
     const sessionId = core.sessionId;
+
+    // Grading audit WS1 — join the sync-path scoring_telemetry row to
+    // this rep (rep_id was NULL on every sync-path row before this) and
+    // land the client latency breakdown. Best-effort, owner-scoped.
+    if (input.score.scoringTelemetryId) {
+      void attachTelemetryToRep({
+        telemetryId: input.score.scoringTelemetryId,
+        repId,
+        userId: userId === "anonymous" ? null : userId,
+        timings: input.clientTimings ?? null,
+      });
+    }
 
     // PRD v3 engine — coaching-history ledger (seed of PRD §8.3.9).
     // One row per delivered Coach's Focus; retry attempts back-fill the

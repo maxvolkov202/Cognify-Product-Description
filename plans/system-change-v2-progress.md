@@ -1204,3 +1204,59 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   the WebM cross-browser playback risk.
 
   Full detail, decision log and verify checklists: `plans/audio-upload-fix-progress.md`.
+
+- **2026-08-26/27 — Grading audit (read-only, no code).** Compared `Cognify grading docs/00–07` against prod
+  DB (`cognify_v2`, 354 reps / 167 real LLM grades), all bench + calibration artifacts, and the scoring code on
+  `main@72b187a3`. Headline: Pacing is `scorePacing()` = 92 on 79% of human v4.1.0 reps; Tone graded from text on
+  92% of v4.1.0 reps until PR #72 (which does not touch Pacing); Thinking Quality 60/40 blend compresses the model
+  to 40% of its range (sd 6.9); calibration bank re-authored from model output so 48/48 = self-consistency; RAG
+  never accuracy-benched and mostly re-injects `skills-full` sections already in the cached block; 26% of reps in
+  the last two weeks were mock fallbacks (Zod char caps on `coachFocus.*`, OpenAI 429 no-credits on 08-24, 20 s
+  Anthropic fallback timeout); `scoring_telemetry.rep_id` NULL on all rows. Decisions: priority accuracy > feedback
+  > latency > cost; human-labeled 60-rep set is the accuracy gate (Max + second rater); remove the short-rep
+  modal with a silent <5-word/<3-s floor; latency target <7 s p50 score-visible; evidence gates ≥20/≥30/≥50 real
+  reps per check. Plan + handoff: `plans/grading-audit-2026-08-26.md`, `plans/handoff-grading-p0-p1.md`;
+  scripts in `scripts/qa/grading-audit/`. Next: P1 labeling packet, then P0 instrumentation branch.
+
+- **2026-08-28 — Grading WS1: instrumentation and failure handling** (`feat/grading-p0-instrumentation`, plan
+  `plans/grading-audit-2026-08-26.md` §3.1). Also lands the audit files (plan, handoff, `scripts/qa/grading-audit/`
+  scripts; the two raw output files with user transcripts are gitignored because the repo is public).
+  - **Telemetry joins to reps.** `/api/score` mints the `scoring_telemetry` row id, returns it as
+    `score.scoringTelemetryId`; `saveRep` calls `attachTelemetryToRep` (owner-scoped, `rep_id IS NULL` guard) to
+    set `rep_id` + client timings. Migration `0047`: `graded_from_audio`, `rag_chunk_ids`, `rag_chunk_count`,
+    `deepgram_ms`, `upload_ms`, `prosody_ms`, `client_e2e_ms`, `short_rep` on `scoring_telemetry`;
+    `reps.prosody_features jsonb`; index on `scoring_telemetry.rep_id`. Probes added to `verify-prod-migrations`.
+    **Applied 2026-08-28 via `apply-migration.mjs` against `.env.local`, which is the prod pooler** (additive only);
+    all 9 columns verified present.
+  - **Evidence persisted.** `transcript.words` now stored by `saveRep`; `RepScore.prosodyFeatures` carries the
+    bundle the grader saw and both `saveRep` and `/api/score-internal` persist it.
+  - **Soft-truncate, not mock.** `src/lib/scoring/soft-truncate.ts` cuts `headline`, `nextRepHint`,
+    `coachFocus.behavior/why/action`, `implementationReview.note`, `dimensions[].feedback` on a word boundary
+    before Zod; quotes untouched (verbatim). Runs post-parse, so **no scoring-prompt bytes changed; calibration
+    suite not re-run**.
+  - **Provider resilience.** Anthropic fallback timeout 20 s → 35 s; `provider_credits` failure_reason
+    (`isProviderCreditsError`, checked before the 429 bucket) + `console.error` tagged `provider_credits`.
+  - **Honest mock.** `RepSurface` done-phase renders "We couldn't score this rep" + audio + Run it again when
+    `modelVersion === "mock-fallback-v1"`. Score shape unchanged; mock reps are still saved (telemetry/audit).
+  - **Aggregates filter `model_version`.** `src/lib/db/scored-rep-filter.ts` (`isScoredRep` excludes mock;
+    `isRealLlmGradedRep` also excludes seed) applied to progress heatmap/trend/yesterday/weekly, calendar,
+    leaderboard, friends, muscle-group day averages, workout day close, prompt-selection recent composite,
+    day-fetchers recent averages, and the three calibration-metrics queries. Activity counts still include mocks.
+  - Tests: `tests/soft-truncate.test.ts` (24), `tests/telemetry-classify.test.ts` (17); full suite, tsc, lint green.
+  - **Verify gate (open):** ≥ 20 real reps across ≥ 3 users with `scoring_telemetry.rep_id` joined and
+    `graded_from_audio` set; forced 300-char `coachFocus.why` still yields a real score (unit-covered; prod smoke
+    pending). Not yet met — needs prod traffic after deploy.
+  - **`/code-review high` (2026-08-28) — fixed before merge:** telemetry insert is now awaited in `/api/score`
+    (the client's `saveRep` UPDATE raced a `void` insert); activity counts (heatmap, calendar, weekly repCount,
+    friends totalReps, leaderboard rep count) keep mock reps again and only the averages use
+    `avg(...) filter (where ...)`; workout day close falls back to the placeholder average when every rep on the
+    day was a mock so the day can still close; `provider_credits` is checked before the timeout bucket (the
+    both-failed wrapper takes the fallback's AbortError name); `isProviderCreditsError` moved to
+    `src/lib/ai/provider-errors.ts` so `saveRep` no longer transitively loads both LLM SDKs; `isShortRep` shared
+    from `telemetry.ts` and set on the score-internal catch path too; gated (speaking-gate modal) reps write
+    `client_e2e_ms` NULL; dashboard/progress "recent average" and `detectNewHigh` skip mock reps.
+    **Accepted / follow-ups:** no `FF_*` gate on the honest-mock card or the aggregate filters (bug fixes in an
+    approved plan, not v2 features); still unfiltered: `getSubSkillRunningAverages` (sub-skills.ts), friend-challenge
+    winner (`actions/friends.ts`), XP award on mock reps (`reps.ts`, pre-existing), arm-B `mergeArmMetrics` drops
+    the three new metrics fields (dormant arm). Consider `composite_score = NULL` for mock reps at save time as
+    the structural fix (WS9 hygiene candidate).

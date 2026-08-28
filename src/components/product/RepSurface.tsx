@@ -270,6 +270,15 @@ export function RepSurface({
     : maxDurationMs;
 
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  // Grading audit WS1 — per-attempt client timing (see handleRecordingComplete).
+  const clientTimingRef = useRef<{
+    e2eStart: number;
+    deepgramMs: number | null;
+    uploadMs: number | null;
+    /** True once the speaking-gate modal interrupted the attempt — the
+     *  end-to-end number would include human dwell, so it is not written. */
+    gated: boolean;
+  }>({ e2eStart: 0, deepgramMs: null, uploadMs: null, gated: false });
   // Phase 15 P-1 — persistence failures must be VISIBLE. saveRep's
   // graceful fallback used to be indistinguishable from success (F-4:
   // the whole flagship loop "worked" with zero rows landing).
@@ -429,6 +438,18 @@ export function RepSurface({
     abortedRef.current = false;
     currentRecordingRef.current = result;
 
+    // Grading audit WS1 — client latency breakdown. e2eStart is the
+    // stop-recording moment (this handler runs on the recorder's result);
+    // the numbers land on scoring_telemetry via saveRep. A ref because
+    // runScoringPath is a separate function (the speaking-gate modal
+    // re-enters it).
+    clientTimingRef.current = {
+      e2eStart: performance.now(),
+      deepgramMs: null,
+      uploadMs: null,
+      gated: false,
+    };
+
     setPhase({ kind: "transcribing" });
     try {
       const fd = new FormData();
@@ -436,7 +457,11 @@ export function RepSurface({
         "audio",
         new File([result.blob], "rep.webm", { type: result.mimeType }),
       );
+      const transcribeStart = performance.now();
       const res = await fetch("/api/transcribe", { method: "POST", body: fd });
+      clientTimingRef.current.deepgramMs = Math.round(
+        performance.now() - transcribeStart,
+      );
       if (res.ok) {
         const data = (await res.json()) as {
           transcript: string;
@@ -601,6 +626,7 @@ export function RepSurface({
     let audioPath: string | null = null;
     let audioScoreUrl: string | null = null;
     const uploadRepAudio = async () => {
+      const uploadStart = performance.now();
       try {
         const fd = new FormData();
         fd.append(
@@ -632,6 +658,10 @@ export function RepSurface({
         console.warn("[rep] audio upload threw; scoring without audio", err);
         audioPath = null;
         audioScoreUrl = null;
+      } finally {
+        clientTimingRef.current.uploadMs = Math.round(
+          performance.now() - uploadStart,
+        );
       }
     };
 
@@ -711,6 +741,7 @@ export function RepSurface({
     }
 
     scoringControllerRef.current = null;
+    const scoreVisibleAt = performance.now();
     // Last abort checkpoint before we persist. A click during scoring that
     // resolved just as the score returned still bails here — nothing is
     // uploaded, saved, or reported to onComplete.
@@ -751,6 +782,17 @@ export function RepSurface({
           : {}),
         // PRD v3 Phase 4 — Skill Lab application fold.
         ...(applicationId ? { applicationId } : {}),
+        // Grading audit WS1 — evidence + latency for the telemetry join.
+        ...(words.length > 0 ? { words } : {}),
+        clientTimings: {
+          deepgramMs: clientTimingRef.current.deepgramMs,
+          uploadMs: clientTimingRef.current.uploadMs,
+          // Score is visible the moment the fetch resolved; saving runs
+          // after. Measured from stop-recording.
+          clientE2eMs: clientTimingRef.current.gated
+            ? null
+            : Math.round(scoreVisibleAt - clientTimingRef.current.e2eStart),
+        },
       });
       savedRepId = saved.repId;
       savedCalloutIds = saved.calloutIds;
@@ -836,6 +878,7 @@ export function RepSurface({
   // ——— Speaking threshold gate ——————————————————————————
   if (phase.kind === "speaking-gate") {
     const handleProceed = () => {
+      clientTimingRef.current.gated = true;
       void runScoringPath(phase.recording, phase.transcript, phase.words);
     };
     return (
@@ -906,6 +949,44 @@ export function RepSurface({
 
   // ——— Feedback / done state ——————————————————————————
   if (phase.kind === "done") {
+    // Grading audit WS1 (§3.1.5) — honest mock. When scoring failed the
+    // server returns a placeholder RepScore (modelVersion mock-fallback-v1,
+    // fixed ~74 composite) so downstream code keeps its shape. It used to
+    // render as a real score. Say what happened and offer a retry instead.
+    if (phase.score.modelVersion === "mock-fallback-v1") {
+      return (
+        <div className="space-y-5 rounded-2xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-6">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-ink-900 dark:text-ink-50">
+              We couldn&apos;t score this rep
+            </h2>
+            <p className="text-sm text-ink-600 dark:text-ink-300">
+              Scoring is having trouble right now, so there is no AI
+              feedback for this attempt. Your recording is saved below. Run
+              it again to get a real score, or keep going and come back
+              later.
+            </p>
+          </div>
+          <audio controls src={phase.recording.url} className="w-full" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {!hideRunItAgain && (
+              <GradientButton onClick={handleRetry} size="lg">
+                Run it again
+              </GradientButton>
+            )}
+            {onNext && (
+              <button
+                type="button"
+                onClick={onNext}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-3 text-sm font-semibold text-ink-700 dark:text-ink-200 transition-colors hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
+              >
+                {nextLabel}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
     if (
       feedbackMode === "flow" &&
       onNext &&

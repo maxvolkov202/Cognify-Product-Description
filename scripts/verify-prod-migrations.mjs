@@ -52,6 +52,13 @@ const COLUMNS = [
   ["users", "last_celebrated_rank_index"], // 0037
   ["critical_moments", "coach_cue"], // 0039
   ["critical_moments", "scoring_hint"], // 0039
+  ["scoring_telemetry", "arm"], // 0045
+  ["users", "terms_accepted"], // 0046
+  ["scoring_telemetry", "graded_from_audio"], // 0047
+  ["scoring_telemetry", "rag_chunk_ids"], // 0047
+  ["scoring_telemetry", "client_e2e_ms"], // 0047
+  ["scoring_telemetry", "short_rep"], // 0047
+  ["reps", "prosody_features"], // 0047
 ];
 
 let failed = 0;

@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import { db } from "@/lib/db/client";
 import {
   activityEvents,
@@ -199,7 +200,8 @@ export async function detectNewHigh(
     const [row] = await db
       .select({ max: sql<number | null>`MAX(${reps.compositeScore})` })
       .from(reps)
-      .where(eq(reps.userId, userId));
+      // Grading audit WS1 — a mock placeholder must not be a personal best.
+      .where(and(eq(reps.userId, userId), isScoredRep()));
     const priorMax = row?.max ?? 0;
     // Threshold: beat the prior max AND at least 70 (avoid celebrating low scores)
     if (newComposite > priorMax && newComposite >= 70) {

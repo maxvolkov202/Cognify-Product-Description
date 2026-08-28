@@ -1,5 +1,6 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import { reps, users } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 
@@ -43,7 +44,7 @@ export async function getCalendarHistory(
       .select({
         date: sql<string>`to_char(${reps.createdAt}, 'YYYY-MM-DD')`,
         count: sql<number>`count(*)::int`,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
         pressureCount: sql<number>`count(*) filter (where ${reps.pressureArchetypeId} is not null)::int`,
       })
       .from(reps)

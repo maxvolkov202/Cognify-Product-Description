@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { scoreRepWithMetrics } from "@/lib/ai/score";
 import {
+  isShortRep,
   writeScoringTelemetry,
   categorizeFailure,
   resolveFallbackReason,
@@ -414,6 +416,9 @@ export async function POST(req: Request) {
   // telemetry captures the full picture (auth + rate-limit + DB writes +
   // scoring), not just the scoring step. Used for /api/score/health/stats.
   const requestStart = Date.now();
+  // Grading audit WS1 — telemetry row id, minted up front so both the
+  // happy and mock paths return it on the score for saveRep to join.
+  const telemetryId = randomUUID();
 
   // Auth: scoring is the single most expensive endpoint in the system
   // (Anthropic Opus). Require a user (auth or guest cookie) so the open-
@@ -499,16 +504,23 @@ export async function POST(req: Request) {
     // Phase 0 — telemetry on the happy path. Fallback-fired counts as
     // a separate failure_reason so /api/score/health/stats can show
     // OpenAI-fallback rate distinct from anthropic-only success.
-    void writeScoringTelemetry({
+    // Grading audit WS1 — the row id is minted here and returned on the
+    // score so saveRep can join the row to the rep (rep_id was NULL on
+    // every sync-path row before this). Awaited (safeDb, single insert):
+    // the client's saveRep UPDATE must find the row, and a `void` write
+    // can land after the response on a frozen serverless instance.
+    await writeScoringTelemetry({
+      id: telemetryId,
       source: "api_score",
       userId,
       metrics,
       totalServerDurationMs: Date.now() - requestStart,
       failureReason: resolveFallbackReason(metrics),
       compositeScore: score.composite,
+      shortRep: isShortRep(body.durationMs),
     });
 
-    return NextResponse.json(score);
+    return NextResponse.json({ ...score, scoringTelemetryId: telemetryId });
   } catch (error) {
     // Anthropic scoring failed (no credits / rate limit / network / etc.).
     // Return a valid mock score so the workout flow stays usable end-to-end.
@@ -527,7 +539,8 @@ export async function POST(req: Request) {
     // group fallback rate by reason. Mock-fallback always means BOTH
     // anthropic AND openai failed (or openai wasn't configured), since
     // the wrapper's fallback path doesn't throw if openai succeeds.
-    void writeScoringTelemetry({
+    await writeScoringTelemetry({
+      id: telemetryId,
       source: "api_score",
       userId,
       metrics: null,
@@ -542,8 +555,9 @@ export async function POST(req: Request) {
       errorDetail: errorMsg,
       compositeScore: fallback.composite,
       modelUsedOverride: "mock-fallback-v1",
+      shortRep: isShortRep(body.durationMs),
     });
 
-    return NextResponse.json(fallback);
+    return NextResponse.json({ ...fallback, scoringTelemetryId: telemetryId });
   }
 }

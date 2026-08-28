@@ -16,6 +16,7 @@
 // workout-day.ts imports everything here; behavior is unchanged.
 
 import { cache } from "react";
+import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { isTrainingEngineV2Enabled } from "@/lib/flags";
@@ -205,6 +206,7 @@ export async function fetchRecentRepsAggregates(
     WHERE r.user_id = ${userId}
       AND r.exercise_id IS NOT NULL
       AND r.created_at >= NOW() - (${REP_HISTORY_DAYS * 2} * INTERVAL '1 day')
+      AND ${scoredRepSqlFragment("r")}
     GROUP BY e.dimension
   `);
 

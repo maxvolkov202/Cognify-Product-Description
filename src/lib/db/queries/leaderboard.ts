@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, sql, inArray, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import {
   communicationProfile,
   reps,
@@ -209,7 +210,7 @@ async function computeDeltas(
     const thisRows = await db
       .select({
         userId: reps.userId,
-        avg: sql<number>`avg(${reps.compositeScore})::float`,
+        avg: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
       })
       .from(reps)
       .where(
@@ -223,7 +224,7 @@ async function computeDeltas(
     const prevRows = await db
       .select({
         userId: reps.userId,
-        avg: sql<number>`avg(${reps.compositeScore})::float`,
+        avg: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
       })
       .from(reps)
       .where(
@@ -335,7 +336,9 @@ export async function getLeaderboard(opts: {
         email: users.email,
         // §10.5.1 — lifetime XP feeds the permanent Rank badge per row.
         xp: users.xp,
-        composite: sql<number>`avg(${reps.compositeScore})::float`,
+        // Grading audit WS1 — a mock-fallback rep is a failed score, not
+        // a ~74; the rep count keeps it, the ranking average does not.
+        composite: sql<number>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})::float`,
         reps: sql<number>`count(*)::int`,
       })
       .from(reps)
@@ -343,7 +346,7 @@ export async function getLeaderboard(opts: {
       .where(and(...whereClauses))
       .groupBy(reps.userId, users.name, users.email, users.xp)
       .having(sql`count(*) >= 1`)
-      .orderBy(desc(sql`avg(${reps.compositeScore})`));
+      .orderBy(desc(sql`avg(${reps.compositeScore}) filter (where ${isScoredRep()})`));
 
     if (aggregateRows.length === 0) return emptyBoard();
 

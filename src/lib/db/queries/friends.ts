@@ -1,5 +1,6 @@
-import { and, avg, count, desc, eq, inArray, min, or } from "drizzle-orm";
+import { and, count, desc, eq, inArray, min, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import { friendships, friendChallenges, users, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 
@@ -71,7 +72,9 @@ export async function getFriendsForUser(userId: string): Promise<FriendRow[]> {
         .select({
           userId: reps.userId,
           totalReps: count(),
-          avgComposite: avg(reps.compositeScore),
+          // Grading audit WS1 — totalReps/firstRep are activity; the
+          // average skips mock-fallback placeholders.
+          avgComposite: sql<string | null>`avg(${reps.compositeScore}) filter (where ${isScoredRep()})`,
           firstRep: min(reps.createdAt),
         })
         .from(reps)

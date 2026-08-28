@@ -6,6 +6,7 @@
 // resumes exactly where the user left off.
 
 import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
+import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import {
@@ -262,7 +263,13 @@ export async function closeWorkoutDayAfterRetrySkip(
               status = 'complete',
               completed_at = COALESCE(d.completed_at, NOW())
           FROM (
-            SELECT AVG(r.composite_score)::real AS avg_composite
+            -- Grading audit WS1: average the real scores; if every rep
+            -- on the day was a mock fallback, fall back to their
+            -- placeholder average so the day can still close.
+            SELECT COALESCE(
+              AVG(r.composite_score) FILTER (WHERE ${scoredRepSqlFragment("r")}),
+              AVG(r.composite_score)
+            )::real AS avg_composite
             FROM cognify_v2.reps r
             WHERE r.muscle_group_day_id = ${dayId}
               AND r.composite_score IS NOT NULL
@@ -582,7 +589,10 @@ export async function tagWorkoutRep(
                 status = 'complete',
                 completed_at = COALESCE(d.completed_at, NOW())
             FROM (
-              SELECT AVG(r.composite_score)::real AS avg_composite
+              SELECT COALESCE(
+                AVG(r.composite_score) FILTER (WHERE ${scoredRepSqlFragment("r")}),
+                AVG(r.composite_score)
+              )::real AS avg_composite
               FROM cognify_v2.reps r
               WHERE r.muscle_group_day_id = ${input.muscleGroupDayId}
                 AND r.composite_score IS NOT NULL
