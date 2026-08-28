@@ -1459,3 +1459,5 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   it unset). Corpus and pipeline stay for prompt generation and can be re-enabled per env. The human-set half of
   the ablation runs via `rescore.mjs --label rag-on/off` once the sheets are in. Relevance embedding (WS6) still
   runs in parallel when RAG is off.
+  - **Shipped 2026-08-28:** PR #90 squash-merged → `main@9f76ecba`; `vercel deploy --prod` READY
+    (`cognify-v2-csww181bp`, aliased; `/` and `/api/health` 200). Next: WS8 latency (`feat/scoring-latency`).
