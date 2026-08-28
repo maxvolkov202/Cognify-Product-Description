@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, gte, sql } from "drizzle-orm";
+import { isRealLlmGradedRep } from "@/lib/db/scored-rep-filter";
 import { db } from "@/lib/db/client";
 import {
   reps,
@@ -73,6 +74,8 @@ export async function getFirstRepDistribution(): Promise<FirstRepDistribution> {
       })
       .from(reps)
       .innerJoin(usersTable, eq(reps.userId, usersTable.id))
+      // Grading audit WS1 — mock + seed rows are not grades.
+      .where(isRealLlmGradedRep())
       .orderBy(asc(reps.createdAt));
 
     const seen = new Set<string>();
@@ -154,7 +157,7 @@ export async function getCompositeDistributionByCohort(
         composite: reps.compositeScore,
       })
       .from(reps)
-      .where(and(gte(reps.createdAt, since)));
+      .where(and(gte(reps.createdAt, since), isRealLlmGradedRep()));
 
     const composites: number[] = [];
     for (const r of recentRows) {
@@ -220,7 +223,7 @@ export async function getInterDimensionCorrelation(): Promise<InterDimensionCorr
       })
       .from(dimensionScores)
       .innerJoin(reps, eq(dimensionScores.repId, reps.id))
-      .where(gte(reps.createdAt, since))
+      .where(and(gte(reps.createdAt, since), isRealLlmGradedRep()))
       .orderBy(desc(reps.createdAt));
 
     // Build per-rep vector — { dim → score }.

@@ -312,6 +312,11 @@ export const reps = cognifyV2Schema.table(
     // Persisted transcript: { text: string; words?: ... }. Words layout
     // varies by provider (Deepgram). Read sites use the text key only.
     transcript: jsonb("transcript").$type<{ text: string; words?: unknown[] }>(),
+    // Grading audit WS1 (0047) — the prosody bundle the grader saw
+    // (inline word-timing metrics + worker pitch/RMS when present), so
+    // later pacing/tone rebuilds can be replayed on real reps. Loose
+    // type to avoid a db→audio import; read sites narrow.
+    prosodyFeatures: jsonb("prosody_features").$type<Record<string, unknown>>(),
     topic: text("topic"),
     compositeScore: real("composite_score"),
     modelVersion: text("model_version"),
@@ -1439,6 +1444,17 @@ export const scoringTelemetry = cognifyV2Schema.table(
     // Grading Engine V2 — which A/B scoring arm produced this row.
     // Nullable; NULL = control / legacy. See selectScoringArm in score.ts.
     arm: text("arm"),
+    // Grading audit WS1 (0047) — evidence + latency breakdown. All
+    // nullable; NULL on rows written before the migration and on mock
+    // rows where the field does not apply.
+    gradedFromAudio: boolean("graded_from_audio"),
+    ragChunkIds: text("rag_chunk_ids").array(),
+    ragChunkCount: integer("rag_chunk_count"),
+    deepgramMs: integer("deepgram_ms"),
+    uploadMs: integer("upload_ms"),
+    prosodyMs: integer("prosody_ms"),
+    clientE2eMs: integer("client_e2e_ms"),
+    shortRep: boolean("short_rep"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

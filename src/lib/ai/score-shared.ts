@@ -42,6 +42,7 @@ import {
   scoreThinkingQualityDeterministic,
   blendScores,
 } from "@/lib/scoring/deterministic";
+import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
   SUB_SKILL_TO_DIMENSION,
   SUB_SKILL_LABELS,
@@ -1245,6 +1246,13 @@ export type ScoreRepMetrics = AnthropicCallMetrics & {
   /** Phase 4 — number of chunks injected into the user prompt. 0 when
    *  RAG was disabled, failed, or returned no chunks. */
   ragChunkCount: number;
+  /** Grading audit WS1 — ids of the chunks injected, in injection order.
+   *  Undefined on arms that predate the field; telemetry writes NULL. */
+  ragChunkIds?: string[];
+  /** Grading audit WS1 — prosody worker wall-clock (0 when no audioUrl). */
+  prosodyMs?: number;
+  /** Grading audit WS1 — true when worker prosody grounded Tone. */
+  gradedFromAudio?: boolean;
   /** Grading Engine V2 — the A/B scoring arm that produced this result.
    *  Stamped by the scoreRepWithMetrics dispatcher; telemetry reads it.
    *  "control" for the default single-call path. */
@@ -1278,6 +1286,8 @@ export type PreparedScoringPrompt = {
   textSignals: TextSignals | null;
   signalsFlagOn: boolean;
   hasWordTimestamps: boolean;
+  /** Grading audit WS1 — prosody worker wall-clock; 0 when not called. */
+  prosodyMs: number;
 };
 
 /** Build the user message + all per-rep derived context (RAG, prosody,
@@ -1348,11 +1358,16 @@ export async function buildUserPrompt(
           durationMs: input.durationMs,
         })
       : null;
+  const prosodyStart = Date.now();
+  let prosodyMs = 0;
   const workerPromise =
     input.audioUrl != null
       ? extractWorkerProsody({
           audioUrl: input.audioUrl,
           durationMs: input.durationMs,
+        }).then((r) => {
+          prosodyMs = Date.now() - prosodyStart;
+          return r;
         })
       : Promise.resolve(null);
   // Await both concurrently — RAG retrieval and prosody worker have no
@@ -1429,6 +1444,7 @@ export async function buildUserPrompt(
     textSignals,
     signalsFlagOn,
     hasWordTimestamps: !!hasWordTimestamps,
+    prosodyMs,
   };
 }
 
@@ -1614,6 +1630,18 @@ export function parseAndValidate(
   // to ids so the schema parses cleanly. Idempotent: ids pass
   // through untouched.
   parsed = normalizeProviderQuirks(parsed);
+
+  // Grading audit WS1 (§3.1.3) — a reply a few characters over a prose
+  // cap used to fail Zod and throw the whole LLM result away for a mock
+  // score. Cut prose on a word boundary instead; verbatim quote fields
+  // are left alone (see soft-truncate.ts).
+  const softCut = softTruncateScoringResponse(parsed);
+  parsed = softCut.value;
+  if (softCut.truncated.length > 0) {
+    console.warn(
+      `[score] soft-truncated over-cap fields: ${softCut.truncated.join(", ")}`,
+    );
+  }
 
   const validated = scoringResponseSchema.parse(parsed);
 
@@ -1859,6 +1887,10 @@ export function assembleRepScore(opts: {
       : {}),
     feedbackVersion: FEEDBACK_VERSION,
     prosodyAvailable: hasWorkerProsody(prosodyFeatures),
+    // Grading audit WS1 (§3.1.2) — carry the evidence bundle the grader
+    // saw so saveRep can persist it (reps.prosody_features). Null when
+    // neither word timings nor audio produced features.
+    prosodyFeatures: prosodyFeatures ?? null,
     // Ch.5 — composite ≥ 95 triggers operator review. We do NOT hold
     // back the score from the user; they see it immediately. The flag
     // surfaces in /ops so operators can retroactively confirm or correct.
@@ -1977,6 +2009,9 @@ export async function runSingleCallScore(
       scoreRepTotalMs,
       ragDurationMs: prep.ragResult.durationMs,
       ragChunkCount: prep.ragResult.chunks.length,
+      ragChunkIds: prep.ragResult.chunks.map((c) => c.id),
+      prosodyMs: prep.prosodyMs,
+      gradedFromAudio: hasWorkerProsody(prep.prosodyFeatures),
     },
   };
 }

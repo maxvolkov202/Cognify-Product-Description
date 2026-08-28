@@ -1,0 +1,14 @@
+import { sql } from "./db.mjs";
+// mock fallback share by week for real usage
+console.log(await sql`select date_trunc('week',created_at)::date wk, count(*)::int n, count(*) filter (where model_version='mock-fallback-v1')::int mock, count(*) filter (where model_version like 'openai:%' or model_version like 'claude%' or model_version like 'anthropic%')::int llm, count(*) filter (where model_version='seed-demo-v1')::int seed from cognify_v2.reps group by 1 order by 1`);
+// the firewall duplicate transcript: which users, what spread
+console.log(await sql`select r.user_id, u.email, count(*)::int n, min(r.composite_score) mn, max(r.composite_score) mx, round(stddev(r.composite_score)::numeric,1) sd, array_agg(distinct r.attempt_kind) kinds, array_agg(distinct r.model_version) models, min(r.created_at)::date d0, max(r.created_at)::date d1 from cognify_v2.reps r join cognify_v2.users u on u.id=r.user_id where r.transcript->>'text' ilike 'A firewall is basically a security guard for your computer network%' group by 1,2`);
+// distinct prompts among those firewall reps
+console.log(await sql`select left(prompt_text,80) p, count(*)::int n from cognify_v2.reps where transcript->>'text' ilike '%firewall is basically a security guard%' group by 1 order by 2 desc limit 8`);
+// delivery score vs wpm for real v4.1.0 reps
+console.log(await sql`select d.score delivery, count(*)::int n, round(avg( (array_length(regexp_split_to_array(trim(r.transcript->>'text'),'\\s+'),1))::numeric / (r.duration_ms/60000.0) ),0) avg_wpm, min(round(((array_length(regexp_split_to_array(trim(r.transcript->>'text'),'\\s+'),1))::numeric / (r.duration_ms/60000.0))::numeric,0)) min_wpm, max(round(((array_length(regexp_split_to_array(trim(r.transcript->>'text'),'\\s+'),1))::numeric / (r.duration_ms/60000.0))::numeric,0)) max_wpm, count(*) filter (where r.audio_url is not null)::int with_audio from cognify_v2.reps r join cognify_v2.dimension_scores d on d.rep_id=r.id and d.dimension='delivery' where r.rubric_version='v4.1.0' and r.model_version not in ('seed-demo-v1','mock-fallback-v1') group by 1 order by 1`);
+// tone vs audio presence for real v4.1.0
+console.log(await sql`select (r.audio_url is not null) has_audio, count(*)::int n, round(avg(d.score)::numeric,1) tone_mean, round(stddev(d.score)::numeric,1) tone_sd, count(distinct d.score)::int uniq from cognify_v2.reps r join cognify_v2.dimension_scores d on d.rep_id=r.id and d.dimension='tone' where r.rubric_version='v4.1.0' and r.model_version not in ('seed-demo-v1','mock-fallback-v1') group by 1`);
+// mock-fallback score signature
+console.log(await sql`select d.dimension, d.score, count(*)::int n from cognify_v2.reps r join cognify_v2.dimension_scores d on d.rep_id=r.id where r.model_version='mock-fallback-v1' group by 1,2 order by 1,3 desc`);
+await sql.end();

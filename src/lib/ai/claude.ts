@@ -152,9 +152,28 @@ const OPENAI_PRIMARY_TIMEOUT_MS = parseInt(
  *  scoring routes' maxDuration=120 leaves headroom for
  *  primary(45s) + fallback(20s). */
 const ANTHROPIC_FALLBACK_TIMEOUT_MS = parseInt(
-  process.env.SCORING_ANTHROPIC_FALLBACK_TIMEOUT_MS ?? "20000",
+  // Grading audit WS1 (§3.1.4): 20 s → 35 s. On 08-24 every fallback but
+  // one aborted at 20 s during the OpenAI credits outage; the one that
+  // succeeded took 16.9 s. 35 s matches the OpenAI primary budget and
+  // still fits the routes' maxDuration=120.
+  process.env.SCORING_ANTHROPIC_FALLBACK_TIMEOUT_MS ?? "35000",
   10,
 );
+
+/** Grading audit WS1 — provider credit / quota exhaustion is an ops
+ *  incident, not a transient error. Detect it from the message text so
+ *  both the wrapper (error-level log for alerting) and the telemetry
+ *  classifier (`provider_credits` failure_reason) agree on one rule. */
+export function isProviderCreditsError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return (
+    /no credits remaining/i.test(msg) ||
+    /credit balance/i.test(msg) ||
+    /credit_balance_too_low/i.test(msg) ||
+    /insufficient_quota/i.test(msg) ||
+    /exceeded your current quota/i.test(msg)
+  );
+}
 
 if (!apiKey && process.env.NODE_ENV !== "test") {
   console.warn(
@@ -752,6 +771,13 @@ async function messagesCreateWithMetrics(
     }
 
     fallbackFired = true;
+    if (isProviderCreditsError(primaryErr)) {
+      // Error-level on purpose: this is the "OpenAI has no credits" case
+      // that produced a run of mock scores on 08-24. Grep: provider_credits.
+      console.error(
+        `[ai] provider_credits: ${primaryProviderName} rejected the call for credits/quota — every rep is now on the fallback provider. ${(underlyingPrimaryError ?? "").slice(0, 200)}`,
+      );
+    }
     const primaryName = isOpenAIPrimary ? "OpenAI" : "Anthropic";
     const fallbackName = isOpenAIPrimary ? "Anthropic" : "OpenAI";
     const fallbackModel = isOpenAIPrimary

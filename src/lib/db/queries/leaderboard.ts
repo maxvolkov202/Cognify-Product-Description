@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, sql, inArray, lt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import {
   communicationProfile,
   reps,
@@ -216,6 +217,7 @@ async function computeDeltas(
         and(
           inArray(reps.userId, userIds),
           gte(reps.createdAt, thisStart),
+          isScoredRep(),
         ),
       )
       .groupBy(reps.userId);
@@ -231,6 +233,7 @@ async function computeDeltas(
           inArray(reps.userId, userIds),
           gte(reps.createdAt, prevStart),
           lt(reps.createdAt, prevEnd),
+          isScoredRep(),
         ),
       )
       .groupBy(reps.userId);
@@ -323,6 +326,9 @@ export async function getLeaderboard(opts: {
       // surface (board, self row, top-streak + biggest-climb callouts, all
       // of which read this same aggregate). NULL emails are kept.
       excludeInternalAccounts(),
+      // Grading audit WS1 — a mock-fallback rep is a failed score, not a
+      // ~74; keep it out of every ranking average.
+      isScoredRep(),
     ];
     if (teamFilterUserIds) {
       whereClauses.push(inArray(reps.userId, teamFilterUserIds));

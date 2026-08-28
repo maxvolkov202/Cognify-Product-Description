@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import {
   reps,
   progressSnapshots,
@@ -267,7 +268,9 @@ export async function getActivityHeatmap(
         composite: sql<number>`avg(${reps.compositeScore})::float`,
       })
       .from(reps)
-      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
+      .where(
+        and(eq(reps.userId, userId), gte(reps.createdAt, since), isScoredRep()),
+      )
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
 
     return rows.map((r) => ({
@@ -599,6 +602,7 @@ export async function getWeeklyRepSummary(
           eq(reps.userId, userId),
           gte(reps.createdAt, weekStart),
           lte(reps.createdAt, weekEnd),
+          isScoredRep(),
         ),
       );
 
@@ -836,6 +840,7 @@ export async function getYesterdayDailyAverage(
           eq(reps.userId, userId),
           gte(reps.createdAt, yStart),
           lte(reps.createdAt, yEnd),
+          isScoredRep(),
         ),
       );
 
@@ -912,7 +917,9 @@ export async function getDailyCompositeTrend(
         count: sql<number>`count(*)::int`,
       })
       .from(reps)
-      .where(and(eq(reps.userId, userId), gte(reps.createdAt, since)))
+      .where(
+        and(eq(reps.userId, userId), gte(reps.createdAt, since), isScoredRep()),
+      )
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`)
       .orderBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);
 

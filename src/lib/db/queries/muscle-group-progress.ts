@@ -6,6 +6,7 @@
 // arrays) instead of throwing.
 
 import { and, desc, eq, inArray, sql as drizzleSql } from "drizzle-orm";
+import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { db } from "@/lib/db/client";
 import {
   dimensionScores,
@@ -346,6 +347,7 @@ export async function getMuscleGroupComparison(
         FROM cognify_v2.dimension_scores ds
         JOIN cognify_v2.reps r ON r.id = ds.rep_id
         WHERE r.muscle_group_day_id = ${dayId}::uuid
+          AND ${scoredRepSqlFragment("r")}
         GROUP BY ds.dimension
       `);
       const out: Partial<Record<string, number>> = {};

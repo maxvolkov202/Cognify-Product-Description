@@ -14,6 +14,8 @@
 import { db } from "@/lib/db/client";
 import { scoringTelemetry } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
+import { eq, and, isNull } from "drizzle-orm";
+import { isProviderCreditsError } from "@/lib/ai/claude";
 import type { ScoreRepMetrics } from "@/lib/ai/score";
 
 export type FailureReason =
@@ -26,6 +28,11 @@ export type FailureReason =
   | "anthropic_fallback_used"
   | "mock_fallback_both_failed"
   | "network_error"
+  /** Grading audit WS1 — primary provider rejected the call for credits /
+   *  quota (OpenAI "You have no credits remaining", Anthropic credit
+   *  balance). Distinct from rate_limit_429 because it does not clear on
+   *  its own and needs a human. */
+  | "provider_credits"
   | "unknown";
 
 /**
@@ -76,6 +83,10 @@ export function categorizeFailure(err: unknown): FailureReason {
   if (name === "AbortError" || /\babort(ed)?\b/i.test(msg) || /timed out/i.test(msg)) {
     return "timeout";
   }
+  // Credits/quota before the generic 429 bucket: OpenAI reports "no
+  // credits remaining" with status 429, which used to hide an outage that
+  // needs a human inside the transient rate-limit count.
+  if (isProviderCreditsError(err)) return "provider_credits";
   if (status === 429 || /rate.?limit/i.test(msg)) return "rate_limit_429";
   if (typeof status === "number" && status >= 500) return "network_error";
   if (/ECONNREFUSED|ETIMEDOUT|fetch failed|EAI_AGAIN|ENOTFOUND/i.test(msg)) {
@@ -103,6 +114,11 @@ export function categorizeFailure(err: unknown): FailureReason {
 }
 
 export type WriteTelemetryInput = {
+  /** Grading audit WS1 — pre-generated row id. The sync path (/api/score)
+   *  does not know the rep id at scoring time, so it mints the telemetry
+   *  id, returns it on the score, and saveRep fills `rep_id` in via
+   *  `attachTelemetryToRep`. Omit to let the DB default one. */
+  id?: string;
   source: "api_score" | "api_score_internal" | string;
   repId?: string | null;
   userId?: string | null;
@@ -132,6 +148,8 @@ export type WriteTelemetryInput = {
    *  read from metrics.scoringArm (stamped by the scoreRepWithMetrics
    *  dispatcher). NULL/undefined = control. */
   arm?: string | null;
+  /** Grading audit WS1 — `duration_ms < 15000` at scoring time. */
+  shortRep?: boolean | null;
 };
 
 /**
@@ -188,7 +206,68 @@ export async function writeScoringTelemetry(
       // Grading Engine V2 — explicit arm wins, else the arm the dispatcher
       // stamped onto metrics. NULL on the mock-fallback path (no real arm).
       arm: input.arm ?? input.metrics?.scoringArm ?? null,
+      // Grading audit WS1 — evidence + latency breakdown (0047). NULL
+      // on the mock path (metrics absent) except short_rep, which the
+      // route computes from the body.
+      ...(input.id ? { id: input.id } : {}),
+      gradedFromAudio: input.metrics?.gradedFromAudio ?? null,
+      ragChunkIds: input.metrics?.ragChunkIds ?? null,
+      ragChunkCount: input.metrics ? input.metrics.ragChunkCount : null,
+      prosodyMs: input.metrics?.prosodyMs ?? null,
+      shortRep: input.shortRep ?? null,
     });
     return true;
+  }, false);
+}
+
+export type ClientScoringTimings = {
+  /** /api/transcribe round-trip as seen by the client. */
+  deepgramMs?: number | null;
+  /** /api/upload round-trip as seen by the client. */
+  uploadMs?: number | null;
+  /** stop-recording → score visible, client wall clock. */
+  clientE2eMs?: number | null;
+};
+
+/**
+ * Grading audit WS1 — join a sync-path telemetry row to the rep it scored.
+ * Called from saveRep AFTER the rep row exists. Owner-scoped: the update
+ * only touches a row whose user_id matches (or a guest row with NULL
+ * user_id) and whose rep_id is still unset, so a forged id from the
+ * client cannot re-point another user's telemetry. Best-effort — never
+ * throws, never blocks the rep save.
+ */
+export async function attachTelemetryToRep(input: {
+  telemetryId: string;
+  repId: string;
+  userId: string | null;
+  timings?: ClientScoringTimings | null;
+}): Promise<boolean> {
+  if (!/^[0-9a-f-]{36}$/i.test(input.telemetryId)) return false;
+  const clamp = (v: number | null | undefined) =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0
+      ? Math.min(Math.round(v), 10 * 60 * 1000)
+      : null;
+  return safeDb(async () => {
+    const owner = input.userId
+      ? eq(scoringTelemetry.userId, input.userId)
+      : isNull(scoringTelemetry.userId);
+    const updated = await db
+      .update(scoringTelemetry)
+      .set({
+        repId: input.repId,
+        deepgramMs: clamp(input.timings?.deepgramMs),
+        uploadMs: clamp(input.timings?.uploadMs),
+        clientE2eMs: clamp(input.timings?.clientE2eMs),
+      })
+      .where(
+        and(
+          eq(scoringTelemetry.id, input.telemetryId),
+          owner,
+          isNull(scoringTelemetry.repId),
+        ),
+      )
+      .returning({ id: scoringTelemetry.id });
+    return updated.length > 0;
   }, false);
 }

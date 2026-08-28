@@ -442,6 +442,15 @@ export type RepScore = {
    *  catch model over-confidence early. Always undefined on RubricVersion
    *  before v3.0.1 (Ch.5 introduced the flag). */
   requiresHumanReview?: boolean;
+  /** Grading audit WS1 — the prosody bundle the grader saw (inline
+   *  word-timing metrics + worker pitch/RMS when present). Persisted to
+   *  reps.prosody_features by saveRep; absent on legacy / mock reps.
+   *  Loose-typed here to avoid a domain→audio import. */
+  prosodyFeatures?: Record<string, unknown> | null;
+  /** Grading audit WS1 — id of the scoring_telemetry row /api/score wrote
+   *  for this score. The client hands it back to saveRep so the row can
+   *  be joined to the rep (sync path only; absent on async reps). */
+  scoringTelemetryId?: string;
 };
 
 /** Bumped when the shape of user-facing feedback changes (new RepScore

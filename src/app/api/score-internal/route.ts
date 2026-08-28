@@ -163,10 +163,14 @@ export async function POST(req: Request) {
     const feedbackDoc = buildFeedbackDoc(score);
     let calloutIds: string[] = [];
     await db.transaction(async (tx) => {
-      if (coachFocus || feedbackDoc) {
+      if (coachFocus || feedbackDoc || score.prosodyFeatures) {
         await tx
           .update(reps)
           .set({
+            // Grading audit WS1 — evidence bundle the grader saw.
+            ...(score.prosodyFeatures
+              ? { prosodyFeatures: score.prosodyFeatures }
+              : {}),
             ...(coachFocus
               ? {
                   coachFocus: {
@@ -289,6 +293,7 @@ export async function POST(req: Request) {
         body.muscleGroupDayId ?? rep.muscleGroupDayId ?? null,
       isGraduationRep:
         body.isGraduationRep ?? rep.isGraduationRep ?? false,
+      shortRep: body.durationMs < 15_000,
     });
 
     return NextResponse.json({

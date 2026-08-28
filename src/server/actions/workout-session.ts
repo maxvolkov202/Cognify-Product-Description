@@ -6,6 +6,7 @@
 // resumes exactly where the user left off.
 
 import { and, desc, eq, sql as drizzleSql } from "drizzle-orm";
+import { scoredRepSqlFragment } from "@/lib/db/scored-rep-filter";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import {
@@ -267,6 +268,7 @@ export async function closeWorkoutDayAfterRetrySkip(
             WHERE r.muscle_group_day_id = ${dayId}
               AND r.composite_score IS NOT NULL
               AND r.is_graduation_rep = false
+              AND ${scoredRepSqlFragment("r")}
           ) sub
           WHERE d.id = ${dayId}
             AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)
@@ -587,6 +589,7 @@ export async function tagWorkoutRep(
               WHERE r.muscle_group_day_id = ${input.muscleGroupDayId}
                 AND r.composite_score IS NOT NULL
                 AND r.is_graduation_rep = false
+                AND ${scoredRepSqlFragment("r")}
             ) sub
             WHERE d.id = ${input.muscleGroupDayId}
               AND d.completed_reps >= COALESCE(array_length(d.planned_exercise_ids, 1), 4)

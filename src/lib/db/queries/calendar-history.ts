@@ -1,5 +1,6 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import { reps, users } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 
@@ -51,6 +52,7 @@ export async function getCalendarHistory(
         and(
           eq(reps.userId, userId),
           gte(reps.createdAt, signupAt),
+          isScoredRep(),
         ),
       )
       .groupBy(sql`to_char(${reps.createdAt}, 'YYYY-MM-DD')`);

@@ -93,3 +93,7 @@ tests/e2e/authed/.auth/
 # python bytecode cache (prosody worker)
 __pycache__/
 *.pyc
+
+# Grading audit raw outputs contain real user transcripts; the repo is public.
+scripts/qa/grading-audit/*.json
+scripts/qa/grading-audit/*.txt

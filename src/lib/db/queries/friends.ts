@@ -1,5 +1,6 @@
 import { and, avg, count, desc, eq, inArray, min, or } from "drizzle-orm";
 import { db } from "@/lib/db/client";
+import { isScoredRep } from "@/lib/db/scored-rep-filter";
 import { friendships, friendChallenges, users, reps } from "@/lib/db/schema";
 import { safeDb } from "@/lib/db/safe";
 
@@ -75,7 +76,7 @@ export async function getFriendsForUser(userId: string): Promise<FriendRow[]> {
           firstRep: min(reps.createdAt),
         })
         .from(reps)
-        .where(inArray(reps.userId, friendIds))
+        .where(and(inArray(reps.userId, friendIds), isScoredRep()))
         .groupBy(reps.userId),
     ]);
 
