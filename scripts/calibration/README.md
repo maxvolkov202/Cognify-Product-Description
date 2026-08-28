@@ -1,7 +1,7 @@
 # Cognify calibration harness
 
 This directory holds the reference rep bank used by `scripts/calibrate-scoring.mjs`
-to assert the AI scorer matches our human (us) judgment within ±5 per
+to assert the AI scorer matches our human (us) judgment within ±6 composite / ±15 per dimension (the harness defaults: `CALIBRATION_TOLERANCE`, `CALIBRATION_DIM_TOLERANCE`) per
 dimension and composite.
 
 The harness is the **CI gate for the scoring prompt**. Any change to
@@ -43,7 +43,7 @@ failed. Exit code 2 = config error (no DEV_BASE_URL, missing JSON, etc.).
 
 ### `kind: "band"`
 
-Asserts the AI's per-dimension and composite scores land within ±5 of
+Asserts the AI's per-dimension and composite scores land within ±15 (dimension) / ±6 (composite) of
 the expected values, AND that the band classification matches (off-by-one
 allowed at boundaries — e.g. expected `competent` (60-75) actual `strong`
 (75-85) at composite 76 is acceptable).

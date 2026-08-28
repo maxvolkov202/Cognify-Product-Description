@@ -714,7 +714,7 @@ High: ${r.highScoreSignals.slice(0, 3).join("; ")}${anchorBlock}`;
 // variants: the legacy (no band anchors) and the Ch.13 anchored
 // version. Both are kept warm so the FF flip is a pure path switch
 // with no first-request render cost.
-const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
+export const COMPACT_RUBRIC_WITH_ANCHORS = renderRubric(true);
 const SUB_SKILL_REFERENCE = renderSubSkillReference();
 /** Taxonomy v2 — definition blocks are pure module data; precompute the
  *  six variants once so renderModeBlock never rebuilds them per rep, and

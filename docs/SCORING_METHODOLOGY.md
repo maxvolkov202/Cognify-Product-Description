@@ -1,3 +1,7 @@
+> **Archived 2026-08-28.** This document describes the pre-v4 scoring design and is kept for history only.
+> The live prompt stack, rubric and hybrid layer are documented in `~/Documents/Projects/Cognify grading docs/00–07`
+> and the grading plan in `plans/grading-audit-2026-08-26.md`.
+
 # Cognify — Scoring Methodology
 
 > **Status**: Phase A scaffolding. Full rubric to be landed in Phase D alongside provisional patent prep.

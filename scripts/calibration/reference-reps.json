@@ -1,6 +1,6 @@
 {
   "$schema": "./reference-reps.schema.json",
-  "rubricVersion": "v3.2.0",
+  "rubricVersion": "v4.2.0",
   "notes": "Hand-authored reference reps spanning DNA score bands. Expected scores are the human (us) judgment that the AI must match within ±5 per dimension. Replace `audioUrl` placeholders with real Supabase signed URLs once recorded; `transcript` and `words` are the canonical inputs the scoring path receives. Each `kind` tag drives the assertion strategy: 'band' rep asserts composite + per-dim; 'independence' rep asserts the named dimension delta only. Ch.D1 (May 2026) tripled the bank from 13 to 36 reps with prompt-type diversity (Q&A, objection, interview, scenario, persuasive, pitch) and band coverage (≥3 reps per band, ≥5 per type). `untestableDimensions` marks dims whose accurate scoring requires audio (Ch.D3); the harness still asserts but the operator should not gate merges on those failures until the audio bank lands.",
   "reps": [
     {
