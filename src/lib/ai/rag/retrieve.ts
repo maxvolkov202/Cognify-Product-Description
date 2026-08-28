@@ -88,6 +88,17 @@ async function embedQuery(text: string): Promise<number[] | null> {
   return vec;
 }
 
+/** WS6 — public wrapper so the relevance check (prompt embedding) uses
+ *  the same model and truncation as RAG. Returns null without a key. */
+export const EMBED_TEXT_TIMEOUT_MS = 1_500;
+export async function embedText(text: string): Promise<number[] | null> {
+  try {
+    return await withTimeout(embedQuery(text), EMBED_TEXT_TIMEOUT_MS, "embedText");
+  } catch {
+    return null;
+  }
+}
+
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -186,6 +197,9 @@ export type RetrieveInput = {
 
 export type RetrieveResult = {
   chunks: RetrievedChunk[];
+  /** WS6 — the transcript embedding used for the query, so the relevance
+   *  check can reuse it instead of embedding the transcript twice. */
+  queryEmbedding?: number[] | null;
   /** Wall-clock duration of the embed + query (excludes prompt-build
    *  overhead). Telemetry uses this. */
   durationMs: number;
@@ -225,10 +239,12 @@ export async function retrieveKnowledgeForRep(
     return { chunks: [], durationMs: 0, failureReason: "no_database" };
   }
 
+  let capturedEmbedding: number[] | null = null;
   try {
     const work = (async () => {
       // 1. Embed the query.
       const queryEmb = await embedQuery(input.transcript);
+      capturedEmbedding = queryEmb;
       if (!queryEmb) {
         throw new Error("embed_failed");
       }
@@ -283,6 +299,7 @@ export async function retrieveKnowledgeForRep(
     const chunks = await withTimeout(work, timeoutMs, "RAG retrieve");
     return {
       chunks,
+      queryEmbedding: capturedEmbedding,
       durationMs: Date.now() - start,
       failureReason: null,
     };
