@@ -448,6 +448,13 @@ export async function POST(req: Request) {
     );
   }
 
+  // WS8 — start the user-context load now; awaited after the body parse.
+  const userContextPromise = loadUserContext().catch((err: unknown) => {
+    // Never an unhandled rejection if the body parse returns 400 first;
+    // scoring proceeds without calibration / coaching memory.
+    log.error({ event: "score.user_context_failed", err: serializeErr(err) });
+    return { userId: null, calibrationBlock: null, coachingMemoryBlock: null };
+  });
   let body: ScoreBody;
   try {
     const json = await req.json();
@@ -474,8 +481,10 @@ export async function POST(req: Request) {
   }
 
   // Hoist userId out of the try so the catch block's telemetry write
-  // can still attribute the failure to the right user.
-  const { userId, calibrationBlock, coachingMemoryBlock } = await loadUserContext();
+  // can still attribute the failure to the right user. WS8: the context
+  // load (auth + coaching-memory reads) was kicked off before body parsing
+  // so the two overlap.
+  const { userId, calibrationBlock, coachingMemoryBlock } = await userContextPromise;
 
   try {
     // Apply per-framework dimension weight adjustments so sales frameworks
