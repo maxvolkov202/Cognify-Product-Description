@@ -1503,3 +1503,6 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     slim SCORING KNOWLEDGE block and stays. `GRADING_SYSTEM.md` / `EVALUATION_SYSTEM_V2.md` were not found in
     `docs/`. Audit-script cleanups from the WS4 review (scratchpad OUT path, emails on stdout, `Date.now()`
     anchoring, duplicated analyze*.mjs) also deferred to that PR.
+  - **Shipped 2026-08-28:** PR squash-merged → `main@1589c1b3`; `vercel deploy --prod` READY (`cognify-v2-2wr8owmsk-maxvolkov202s`, aliased; `/` and
+    `/api/health` 200). All nine workstreams of `plans/grading-audit-2026-08-26.md` §3 have shipped their code; the open
+    items are the evidence gates (traffic) and the human-labeled set.
