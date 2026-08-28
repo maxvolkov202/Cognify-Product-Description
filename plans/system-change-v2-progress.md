@@ -1421,3 +1421,28 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (`cognify-v2-4mxwgz594`, aliased; `/` and `/api/health` 200). `FF_TONE_PROSODY_CORE` is unset in the prod
     env → core OFF in prod; corrected tone knowledge text and the text-only card note are live. Next: WS6
     Thinking Quality + noise (`feat/thinking-llm-and-noise`).
+
+- **2026-08-28 — Grading WS6: Thinking Quality + noise** (`feat/thinking-llm-and-noise`, plan §3.6).
+  - **Blend retired:** `DEFAULT_HYBRID_CONFIG.thinkingMode = "llm"`; the 60/40 blend that showed a model 25 as
+    61 is gone on the control path (arms keep `"blend"` as an option). The disfluency numbers now reach the model
+    as a **DISFLUENCY line** in the user prompt (hedges/min, restarts, long pauses, stalls, end-of-rep pace
+    change), rendered only when word timings exist, so timing-less reference reps are byte-stable.
+  - **Relevance check:** prompt↔transcript cosine from the same text-embedding-3-small vectors RAG uses
+    (`embedText`, 1.5 s timeout, parallel with RAG/prosody; RAG's transcript embedding reused). Tagged on every
+    rep as `[relevance: x]` on thinking_quality. **`FF_RELEVANCE_FLOOR` (OFF in prod):** below 0.20 the four
+    content dims cap at 40 and the headline is prefixed "This answer did not address the prompt." Threshold to
+    be set from the tags on ≥ 50 real reps.
+  - **Evidence-first output order and OpenAI JSON mode: built, default OFF.** Calibration on the bank
+    (`main` control 17/48 fail): evidence-first alone **27/48**, JSON mode alone **25/48**, both **31/48**, a
+    systematic upward shift (composite +7.7 mean, thinking up to +43) that cannot be judged as accuracy without
+    the human set. Both stay behind `SCORING_EVIDENCE_FIRST=true` / `SCORING_OPENAI_JSON_MODE=true` for the
+    `rescore.mjs` experiment; brace extraction stays as the parser fallback. Anthropic tool-use schema not done.
+  - Final run with defaults: **24/48** fail; system + user prompt hashes are byte-identical to `main` for
+    timing-less reps, so this is the bank's run-to-run noise (17–24 across today's identical-bytes runs).
+  - Targeted review fixed before merge: embedding calls bounded and parallel; behaviour tests instead of
+    source-text tests; lean-anchor tests assert the live anchor; headline prefix truncates on a word boundary.
+    Accepted: arm B keeps blend/no relevance (dormant); coachFocus is not re-pointed when the floor fires.
+  - Tests: `tests/relevance-and-thinking.test.ts` (21). Suite, tsc, lint, build green.
+  - **Verify gate (open, ≥ 50 real reps):** Thinking sd ≥ 12; same-transcript composite spread ≤ 6 over 10
+    runs; the firewall transcript floors on every prompt it does not answer (needs the threshold + flag);
+    human-set metrics improve; then decide evidence-first / JSON mode from `rescore.mjs`.
