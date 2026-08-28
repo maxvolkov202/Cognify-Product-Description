@@ -1506,3 +1506,20 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Shipped 2026-08-28:** PR squash-merged → `main@1589c1b3`; `vercel deploy --prod` READY (`cognify-v2-2wr8owmsk-maxvolkov202s`, aliased; `/` and
     `/api/health` 200). All nine workstreams of `plans/grading-audit-2026-08-26.md` §3 have shipped their code; the open
     items are the evidence gates (traffic) and the human-labeled set.
+
+- **2026-08-28 — Prod end-to-end pass after WS1–WS9** (fake-mic Playwright, `playwright.p5.config.ts`, saved prod
+  session, harness account). All green on `main@f51be999`: `skill-lab-loop` (1-rep + 5-rep sessions, retry flow,
+  3.3 min), `build-a-rep-loop` (intake → plan → guided moment → readiness review), `p5-abort-framework` (relabel,
+  abort with no grade/advance, resume; Application Lab suggested framework), `workout-loop` (rep → focus → retry
+  → improvement review), `zz-full-day` (every station → day complete with final score); authenticated sweep of
+  /dashboard /progress /workout /report /leaderboard /compare /friends /library /onboarding/done all 200 with no
+  error markers. DB on the new reps: `scoring_telemetry.rep_id` joined, `graded_from_audio` true, deepgram /
+  upload / prosody / client_e2e ms populated, `short_rep` set, rubric v4.2.0 stamped, `prosody_features` +
+  `transcript.words` persisted, Pacing 72–80 across five reps (no 92 clump).
+  - **Incident (open, needs Max):** every prod scoring call since 17:43 is served by the Anthropic fallback
+    (`anthropic-fallback:claude-haiku-4-5`) because OpenAI returns `429 You have no credits remaining`
+    (`error_detail`). Today's ~15 local calibration runs (~700 scoring calls + embeddings) drew on the same
+    OpenAI org. Until credits are added: prod grades on Haiku (WS1's 35 s fallback budget is what keeps it from
+    mocking), embeddings fail so `[relevance: x]` is null and scoring RAG would be too. The `provider_credits`
+    reason only appears when both providers fail; the successful-fallback rows carry the cause in `error_detail`.
+    Follow-up: alert on `model_used LIKE 'anthropic-fallback:%'` rate, not just on mocks.
