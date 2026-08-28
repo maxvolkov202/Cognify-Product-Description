@@ -20,13 +20,15 @@ Vocal expressiveness — pitch variation, downward inflection on statements, vol
 - Vocal energy fades — last sentence has less presence than the first
 - Breathy / quiet delivery suggesting the speaker doesn't believe themselves
 
-## Prosody grounding (when prosody features supplied)
-- pitch_variance_st < 1.5 → strong monotone signal
-- upspeak_ratio > 0.4 → flag upspeak pattern
-- rms_std_db < 2 → flag volume flatness
-- final_quartile_rms_delta < -3dB → flag energy fade
+## Prosody grounding (when a PROSODY block is present)
+The PROSODY block reports these measurements; ground Tone in them and name the one you used:
+- pitch std < 1 semitone → strong monotone signal (Tone ≤ 45); ≥ 3 semitones with monotone ratio < 20% → healthy vocal variety (70-85)
+- monotone ratio > 60% → sustained flat pitch, Tone ≤ 45
+- upspeak ratio > 40% → flag the upspeak pattern; strong variety does not cancel it
+- volume std low relative to volume mean → flag locked-flat volume
+- articulation below 50/100 → mumbled consonants, trailing words
 
-When prosody is absent (`prosodyAvailable=false`), fall back to transcript heuristics and clearly state lower confidence.
+When no PROSODY block is present, grade Tone conservatively from the words alone (55-70) and say the read is text-only.
 
 ## Edge-case rules (override per-dim rubric when in conflict)
 - Variety-with-upspeak: strong pitch variance does NOT cancel an upspeak pattern; Tone stays LOW

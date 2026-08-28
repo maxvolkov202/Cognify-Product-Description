@@ -43,6 +43,8 @@ import {
   blendScores,
   RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
+import { scoreToneFromProsody, blendToneWithModel } from "@/lib/scoring/tone-core";
+import { isToneProsodyCoreEnabled } from "@/lib/flags";
 import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
   SUB_SKILL_TO_DIMENSION,
@@ -1865,6 +1867,31 @@ export function assembleRepScore(opts: {
       ? { ...d, signals: [...d.signals, `[toneSource: ${toneSource}]`] }
       : d,
   );
+
+  // Grading plan WS5 — prosody-first Tone. When the worker measured the
+  // audio, the measurement sets the core and the model's score may move
+  // it by at most ±10 (its narrative stays; it was grounded in the same
+  // PROSODY block). Flag-gated: OFF in prod until the WS5 audio gate.
+  if (isToneProsodyCoreEnabled()) {
+    const core = scoreToneFromProsody(prosodyFeatures);
+    if (core) {
+      const llmTone = dimensionMap.tone;
+      const finalTone = blendToneWithModel(core.score, llmTone);
+      dimensionMap.tone = finalTone;
+      finalDimensions = finalDimensions.map((d) =>
+        d.dimension === "tone"
+          ? {
+              ...d,
+              score: finalTone,
+              signals: [
+                ...d.signals,
+                `[toneCore: ${core.score} (${core.evidence}); model: ${llmTone ?? "n/a"}]`,
+              ],
+            }
+          : d,
+      );
+    }
+  }
 
   const compositeScore = composite(dimensionMap, input.weights);
 
