@@ -1477,3 +1477,9 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Verify gate (open):** stop-recording → score-visible on ≥ 50 real reps per condition over ≥ 3 days and
     ≥ 5 users, p50/p90/p99 with browser mix (`scoring_telemetry.client_e2e_ms` from WS1, before/after the deploy
     timestamp); ship-keep rule p50 < 7 s and p90 not worse.
+  - **Targeted review — fixed before merge:** the early upload left orphan audio on the scoring-floor, abort and
+    transcription-timeout paths (the retention cron only sweeps paths referenced by reps). Added an owner-scoped
+    `DELETE /api/upload` (`reps/<user.id>/` prefix only) + `deleteAudio()`, and `discardUpload()` on those three
+    paths, which also clears `uploadRef` so no later attempt can inherit a stale upload. Noted: `upload_ms` now
+    overlaps `deepgram_ms` (no longer additive to `client_e2e_ms`); a malformed /api/score body now also costs
+    the context reads (bounded by the existing rate limit).

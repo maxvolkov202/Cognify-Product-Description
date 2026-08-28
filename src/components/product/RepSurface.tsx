@@ -307,6 +307,23 @@ export function RepSurface({
     uploadRef.current = p;
     return p;
   };
+  /** WS8 — an upload that started at recording-complete but has no rep to
+   *  attach to (scoring floor, abort, transcription timeout) is deleted
+   *  so Storage does not accumulate orphans the retention cron never sees.
+   *  Best-effort; clears the ref so no later attempt can inherit it. */
+  const discardUpload = () => {
+    const p = uploadRef.current;
+    uploadRef.current = null;
+    if (!p) return;
+    void p.then((up) => {
+      if (!up.path) return;
+      return fetch("/api/upload", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: up.path }),
+      }).catch(() => undefined);
+    });
+  };
 
   // Grading audit WS1 — per-attempt client timing (see handleRecordingComplete).
   const clientTimingRef = useRef<{
@@ -519,6 +536,7 @@ export function RepSurface({
       // Retry; other failures keep the legacy fall-through.
       if (isTimeoutAbort(err)) {
         if (abortedRef.current) return;
+        discardUpload();
         setPhase({
           kind: "error",
           message:
@@ -546,6 +564,7 @@ export function RepSurface({
       durationMs: result.durationMs,
     });
     if (floor.belowFloor) {
+      discardUpload();
       setPhase({
         kind: "error",
         heading: "Too short to score",
@@ -849,6 +868,7 @@ export function RepSurface({
     abortedRef.current = true;
     scoringControllerRef.current?.abort();
     scoringControllerRef.current = null;
+    discardUpload();
     if (currentRecordingRef.current) {
       URL.revokeObjectURL(currentRecordingRef.current.url);
       currentRecordingRef.current = null;
