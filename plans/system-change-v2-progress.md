@@ -1523,3 +1523,20 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     mocking), embeddings fail so `[relevance: x]` is null and scoring RAG would be too. The `provider_credits`
     reason only appears when both providers fail; the successful-fallback rows carry the cause in `error_detail`.
     Follow-up: alert on `model_used LIKE 'anthropic-fallback:%'` rate, not just on mocks.
+
+- **2026-08-28 — Grading 1c: prompt-slate latency** (`feat/prompt-slate-preload`, plan §3.1c). PR #97 →
+  `main@d6e9322c`, deployed (`cognify-v2-k92ccqz9a`). Client: the workout shell prefetches the slate for the
+  current station on mount and for station N+1 in every phase (skip path included), evicting passed stations;
+  PromptPicker captures the prefetched promise once at mount and falls back to a cold fetch if it rejects.
+  Server: the three bias reads run in one `Promise.allSettled` (one failure keeps the others), bank selects are
+  ordered newest-first under `LIMIT 300`, the prompt generator is a lazy `import()`, and every fetch logs
+  `prompt_selection.latency` (exercise / bias / total ms, bank tier, bank size). Measured on the dev server:
+  server fetch 370–400 ms (exercise ~75, bias ~220), so the reported 20 s was queueing / cold start ahead of the
+  fetch. Targeted review found and fixed: skip-path N+1 never prefetched (and a late null→promise swap re-INITed
+  the slate), rejected prefetch left the skeleton up forever, `Promise.all` dropped all signals on one failure,
+  unordered `LIMIT`.
+  - **Prod e2e after deploy:** `workout-loop` green (rep → focus → retry → improvement review, second harness
+    session), `skill-lab-loop` green 2/2 after fixing a locator flake (#98: the model's Coach's Focus copy
+    contained "listen back", so the `/Listen back/i` regex matched two elements; exact label now).
+  - Not done: offline bank fill cron (step 4). **Verify gate (open):** slate visible < 1 s p50 on ≥ 50 real
+    transitions from the `prompt_selection.latency` log + the picker's `[prompt-picker] slate ready` console line.
