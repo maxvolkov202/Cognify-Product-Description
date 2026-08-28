@@ -1446,3 +1446,5 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Verify gate (open, ≥ 50 real reps):** Thinking sd ≥ 12; same-transcript composite spread ≤ 6 over 10
     runs; the firewall transcript floors on every prompt it does not answer (needs the threshold + flag);
     human-set metrics improve; then decide evidence-first / JSON mode from `rescore.mjs`.
+  - **Shipped 2026-08-28:** PR #88 squash-merged → `main@0f357104`; `vercel deploy --prod` READY
+    (`cognify-v2-3kftjodkq`, aliased; `/` and `/api/health` 200). Next: WS7 RAG ablation (`feat/rag-ablation`).
