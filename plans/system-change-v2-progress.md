@@ -1350,3 +1350,34 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Shipped 2026-08-28:** PR #82 squash-merged → `main@31fed48a`; `vercel deploy --prod` READY
     (`cognify-v2-dyraxq55r`, aliased `www.cognifygym.com`; `/` and `/api/health` 200). Rubric v4.2.0 is now what
     prod stamps. Next: WS4 pacing rebuild (`feat/pacing-rubric-score`).
+
+- **2026-08-28 — Grading WS4: Pacing rebuilt** (`feat/pacing-rubric-score`, plan §3.4).
+  - `scorePacing` is now a weighted function of the rubric's own signals: rate distance from 130–165 (35%;
+    graded docking above 170 per edge rule 3, mild below 110, neutral 85 under 8 s), quartile stability +
+    final-quartile rush (15%), pause placement (20%: 1–3 s pauses after a clause end lift, stalls > 3 s and
+    mid-phrase pauses dock; per-minute so short reps are not over-penalised), filler/hedge fluency (20%),
+    over-budget only (10%). Sub-scores returned on the result. The old "92 minus penalties" formula that put 79%
+    of human reps at exactly 92 is gone.
+  - `extractSignals` adds `clausePauseCount` / `midPhrasePauseCount` from punctuated Deepgram words.
+  - Delivery feedback is generated from the same numbers (`buildPacingFeedback`: measured wpm, fillers/min,
+    pauses, stalls, over-run, one action aimed at the weakest sub-score); the model's subSkill + grounded quote are
+    kept, its feedback line is always replaced. Score and copy cannot disagree.
+  - Prompt: the "delivery 76–82 (default 78)" instruction retired (text-only reps still graded from rate + fluency).
+  - Tests: `tests/pacing-v2.test.ts` (34: band, monotone docking above/below, asymmetry, n/a, stability, pause
+    placement, filler monotonicity, under-budget never docks, idempotence, ≥ 25 unique scores over a plausible
+    grid, feedback quotes the real numbers, clause-aware extraction). Suite, tsc, lint green.
+  - **Calibration (prompt bytes changed):** WS4 branch **26/48**; `main` control **31/48**; same drift pattern
+    (structure ≈ +22, thinking ≈ +18) and the ONE delivery drift (`objection-poor-too-expensive` −23) is identical
+    on `main`. The bank reps carry no word timings, so the suite cannot exercise the new pacing formula; the
+    extra flips are the same run-to-run noise. Bank untouched.
+  - **Verify gate (open, needs ≥ 50 real reps):** ≥ 25 unique Pacing values; correlation with WPM distance from
+    band; zero headline/score contradictions in a 25-rep read (structurally guaranteed now: same numbers);
+    human-set Pacing MAE improves (`rescore.mjs --label ws4`).
+  - **Review (targeted, the `/code-review` runs kept diffing the already-merged audit scripts) — fixed before
+    merge:** quartile WPM now uses the speech span so stopping the recorder late no longer docks stability; short
+    (< 8 s) reps get a grammatical sentence and never a rate/stability action; "quartile" removed from user copy;
+    hedge weight kept at the previous 2/pt; clause-end regex accepts `…` `—` `–`; the mock-fallback Delivery
+    callout shows the generated narrative, not internal reason strings; comment corrected: the model's Delivery
+    quote is dropped (assembleRepScore drops any quote whose sentence was replaced). Audit-script findings
+    (hard-coded scratchpad OUT path, emails printed to stdout, `Date.now()` anchoring, duplicated analyze*.mjs,
+    NULL-email filter) recorded for WS9 hygiene.

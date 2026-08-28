@@ -1,6 +1,9 @@
 # Grading audit and improvement plan (2026-08-26)
 
-Status: **plan approved 2026-08-27, not started**. No code changes were made for this audit. Sources: `Cognify grading docs/00–07`,
+Status: **plan approved 2026-08-27; in execution.** Progress lives in `plans/system-change-v2-progress.md` (search
+"Grading WS"). As of 2026-08-28: WS1, 1b, WS2 packet, WS3 and WS4 are merged and deployed; WS2 labeling sheets are
+with the raters; 1c, WS5–WS9 are open. Facts in §1 describe the state at audit time (e.g. the Pacing=92 override is
+gone since WS4). Do not restart from workstream 1. No code changes were made for this audit. Sources: `Cognify grading docs/00–07`,
 prod DB (`cognify_v2`, read-only), `plans/bench/*`, `plans/baselines/*`, calibration artifacts, and a line-level
 read of the scoring path on `main` at `72b187a3`.
 
@@ -366,7 +369,9 @@ Goal: length is never a reason to block, warn, or dock. Content is judged on whe
 - **Agreement**: Cohen's kappa per dimension; adjudicate any disagreement > 1 band.
 - **Metrics vs model**: band-match rate, MAE, Spearman, bias (over/under) per dimension; feedback accuracy rate.
 - **Budget**: ~2 min/rep → ~2 h per rater.
-- **Storage**: `scripts/calibration/human-labeled-2026-09.json` (never re-authored from model output).
+- **Storage**: `plans/calibration/human-labeling-2026-09/human-labeled-2026-09.json` (written by `scoring.mjs`; the
+  whole directory except README is gitignored because it holds user transcripts and the repo is public; never
+  re-authored from model output).
 
 ---
 

@@ -39,6 +39,12 @@ export type SignalBundle = {
   // Thinking / recovery signals
   longPauseCount: number;
   stallCount: number;
+  /** WS4 — deliberate pauses: 1-3 s gaps right after a clause end (the
+   *  preceding punctuated word ends with . ! ? , ; :). These are the
+   *  "pauses placed after key points" the rubric rewards. */
+  clausePauseCount: number;
+  /** WS4 — 1-3 s gaps NOT at a clause end: mid-phrase hesitation. */
+  midPhrasePauseCount: number;
   pauseP50Ms: number;
   pauseP95Ms: number;
   restartCount: number;
@@ -175,6 +181,21 @@ export function extractSignals(input: {
     if (gap > 300) gaps.push(gap);
   }
   const sortedGaps = [...gaps].sort((a, b) => a - b);
+  // WS4 — pause placement. A 1-3 s gap after a clause end is a deliberate
+  // bookmark; the same gap mid-phrase is a hesitation. Deepgram words are
+  // punctuated (transcribe.ts uses punctuated_word), so the preceding
+  // word's trailing punctuation marks the clause boundary.
+  let clausePauseCount = 0;
+  let midPhrasePauseCount = 0;
+  for (let i = 1; i < words.length; i++) {
+    const prev = words[i - 1];
+    const curr = words[i];
+    if (!prev || !curr) continue;
+    const gap = curr.startMs - prev.endMs;
+    if (gap < 1000 || gap > 3000) continue;
+    if (/[.!?,;:\u2026\u2014\u2013]["')\]]*$/.test(prev.word)) clausePauseCount += 1;
+    else midPhrasePauseCount += 1;
+  }
   const longPauseCount = gaps.filter((g) => g > 1500).length;
   const stallCount = gaps.filter((g) => g > 3000).length;
   const pauseP50Ms = percentile(sortedGaps, 0.5);
@@ -187,16 +208,22 @@ export function extractSignals(input: {
     if (matches) restartCount += matches.length;
   }
 
-  // Quartile WPM — split rep into 4 time windows, compute WPM per quartile.
+  // Quartile WPM — split the SPEECH SPAN (first word start → last word
+  // end) into 4 windows, compute WPM per window. Using the recording
+  // length instead would zero the last window whenever the user stops the
+  // recorder late, and read even delivery as a collapse (WS4 review).
   // High variance = unstable pacing. Final-quartile delta = rush signal.
-  const quartileDurMs = safeDurationMs / 4;
+  const speechStartMs = words.length > 0 ? Math.min(...words.map((w) => w.startMs)) : 0;
+  const speechEndMs = words.length > 0 ? Math.max(...words.map((w) => w.endMs)) : safeDurationMs;
+  const speechSpanMs = Math.max(1, speechEndMs - speechStartMs);
+  const quartileDurMs = speechSpanMs / 4;
   const quartileWpm: [number, number, number, number] = [0, 0, 0, 0];
   if (words.length > 0 && quartileDurMs > 0) {
     for (let q = 0; q < 4; q++) {
-      const startMs = q * quartileDurMs;
-      const endMs = (q + 1) * quartileDurMs;
+      const startMs = speechStartMs + q * quartileDurMs;
+      const endMs = speechStartMs + (q + 1) * quartileDurMs;
       const count = words.filter(
-        (w) => w.startMs >= startMs && w.startMs < endMs,
+        (w) => w.startMs >= startMs && (w.startMs < endMs || (q === 3 && w.startMs <= endMs)),
       ).length;
       quartileWpm[q] = count / (quartileDurMs / 60_000);
     }
@@ -221,6 +248,8 @@ export function extractSignals(input: {
     timeBudgetRatio: safeDurationMs / Math.max(1, timeBudgetMs),
     longPauseCount,
     stallCount,
+    clausePauseCount,
+    midPhrasePauseCount,
     pauseP50Ms,
     pauseP95Ms,
     restartCount,

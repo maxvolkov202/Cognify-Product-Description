@@ -35,21 +35,22 @@ function check(name: string, cond: boolean, detail?: string) {
 const base: SignalBundle = {
   wordCount: 40, durationMs: 15_000, timeBudgetMs: 60_000, wpm: 160,
   fillerCount: 0, fillerRate: 0, hedgeCount: 0, hedgeRate: 0, timeBudgetRatio: 0.25,
-  longPauseCount: 0, stallCount: 0, pauseP50Ms: 300, pauseP95Ms: 800, restartCount: 0,
+  longPauseCount: 0, stallCount: 0, clausePauseCount: 0, midPhrasePauseCount: 0, pauseP50Ms: 300, pauseP95Ms: 800, restartCount: 0,
   quartileWpm: [160, 160, 160, 160], quartileWpmVariance: 0, finalQuartileDelta: 0,
 };
 {
   const short = scorePacing(base);
-  check("25% of budget → no penalty (92)", short.score === 92, String(short.score));
+  check("25% of budget → no penalty (full-fluency score)", short.score === scorePacing({ ...base, timeBudgetRatio: 1.0, durationMs: 60_000 }).score, String(short.score));
   check("no 'under budget' reason", !short.signals.some((s) => /under budget/i.test(s)));
   const over = scorePacing({ ...base, timeBudgetRatio: 1.3, durationMs: 78_000 });
-  check("30% over budget still docks", over.score < 92 && over.signals.some((s) => /over time budget/i.test(s)), String(over.score));
+  const same = scorePacing({ ...base, timeBudgetRatio: 1.0, durationMs: 78_000 });
+  check("30% over budget still docks", over.score < same.score && over.signals.some((s) => /over time budget/i.test(s)), `${over.score} vs ${same.score}`);
   const full = scorePacing({ ...base, timeBudgetRatio: 1.0, durationMs: 60_000 });
   check("short rep == full-length rep on identical fluency", short.score === full.score);
   const slow7s = scorePacing({ ...base, durationMs: 7_000, wpm: 50, wordCount: 6 });
-  check("7 s / 50 wpm → rate not judged (matches n/a line)", slow7s.score === 92 && !slow7s.signals.some((s) => /Pace slow/.test(s)), String(slow7s.score));
+  check("7 s / 50 wpm → rate not judged (matches n/a line)", slow7s.subScores.rate === 85, String(slow7s.subScores.rate));
   const slow9s = scorePacing({ ...base, durationMs: 9_000, wpm: 50, wordCount: 8 });
-  check("9 s / 50 wpm → rate judged", slow9s.score === 87, String(slow9s.score));
+  check("9 s / 50 wpm → rate judged", slow9s.subScores.rate < 85 && slow9s.score < slow7s.score, String(slow9s.score));
 }
 
 // ── §4.7 thinking: pause penalties scale with duration ──
