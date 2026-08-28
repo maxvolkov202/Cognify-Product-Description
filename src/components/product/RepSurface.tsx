@@ -29,6 +29,12 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
 import { RepHintsBar } from "./RepHintsBar";
 
+/** Grading plan 1b — client budgets for the two pre-score fetches. Both
+ *  used to be unbounded; a stalled request left the page with nothing
+ *  clickable. On abort they fall into their existing error handling. */
+const TRANSCRIBE_TIMEOUT_MS = 30_000;
+const UPLOAD_TIMEOUT_MS = 30_000;
+
 type SpeakingThreshold = {
   minWords?: number;
   minRatio?: number;
@@ -458,7 +464,14 @@ export function RepSurface({
         new File([result.blob], "rep.webm", { type: result.mimeType }),
       );
       const transcribeStart = performance.now();
-      const res = await fetch("/api/transcribe", { method: "POST", body: fd });
+      // 1b — a stalled transcribe must surface as the error card with
+      // Retry, not a frozen page. Deepgram on a 60 s clip is well under
+      // this; the budget only trips on a hung connection.
+      const res = await fetch("/api/transcribe", {
+        method: "POST",
+        body: fd,
+        signal: AbortSignal.timeout(TRANSCRIBE_TIMEOUT_MS),
+      });
       clientTimingRef.current.deepgramMs = Math.round(
         performance.now() - transcribeStart,
       );
@@ -543,6 +556,9 @@ export function RepSurface({
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: fd,
+          // 1b — upload is best-effort; a hung connection must not hold
+          // the rep. Falls into the existing catch (scores without audio).
+          signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
         });
         if (uploadRes.ok) {
           const up = (await uploadRes.json()) as { path: string | null };
@@ -636,6 +652,9 @@ export function RepSurface({
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: fd,
+          // 1b — upload is best-effort; a hung connection must not hold
+          // the rep. Falls into the existing catch (scores without audio).
+          signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
         });
         if (uploadRes.ok) {
           const up = (await uploadRes.json()) as {

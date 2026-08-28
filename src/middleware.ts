@@ -26,6 +26,12 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|logo/|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)",
+    // Grading plan 1b — the rep pipeline (`api/score`, `api/score-internal`,
+    // `api/transcribe`, `api/upload`) and machine endpoints (`api/cron`,
+    // `api/health`) resolve the user themselves (currentUser() / cron
+    // secret) and must never wait on the auth refresh: a stalled refresh
+    // here is what froze a rep mid-flight on 2026-08-28. Page loads still
+    // refresh the session, so tokens keep rotating.
+    "/((?!_next/static|_next/image|favicon.ico|logo/|api/auth|api/score|api/score-internal|api/transcribe|api/upload|api/cron|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)",
   ],
 };

@@ -1270,3 +1270,13 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   `src/middleware.ts` awaits `supabase.auth.getUser()` on every non-static request with no timeout. Added as
   workstream 1b in `plans/grading-audit-2026-08-26.md` §3 (bounded refresh + narrower matcher + client aborts),
   to run before WS3. No code changed yet.
+
+- **2026-08-28 — Grading 1b: middleware auth-refresh timeout** (`fix/middleware-auth-timeout`, plan §3.1b).
+  `updateSupabaseSession` now races `supabase.auth.getUser()` against `MIDDLEWARE_AUTH_REFRESH_TIMEOUT_MS`
+  (default 2500) via `src/lib/util/with-timeout.ts`; on timeout/error the request proceeds with its existing
+  cookies and logs `middleware.auth_refresh_skipped`. Matcher excludes `api/score`, `api/score-internal`,
+  `api/transcribe`, `api/upload`, `api/cron`, `api/health` (all self-authenticating) so a rep in flight never
+  waits on the refresh. Client: `/api/transcribe` and both `/api/upload` fetches get a 30 s `AbortSignal.timeout`
+  and fall into their existing error handling. Tests: `tests/with-timeout.test.ts` (6). Build, tsc, lint, suite green.
+  **Verify gate (open):** zero `MIDDLEWARE_INVOCATION_TIMEOUT` in Vercel logs over the following 7 days; a rep
+  completes with Supabase Auth unreachable (not reproduced locally in this session).
