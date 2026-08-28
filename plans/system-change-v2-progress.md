@@ -1260,3 +1260,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     winner (`actions/friends.ts`), XP award on mock reps (`reps.ts`, pre-existing), arm-B `mergeArmMetrics` drops
     the three new metrics fields (dormant arm). Consider `composite_score = NULL` for mock reps at save time as
     the structural fix (WS9 hygiene candidate).
+  - **Shipped 2026-08-28:** PR #75 squash-merged → `main@a6a2ff08`; `vercel deploy --prod` READY
+    (`cognify-v2-c0iz736g3`, aliased `www.cognifygym.com`, HTTP 200). Migration 0047 was applied before the
+    deploy. WS1 verify gate stays open until ≥ 20 real reps / ≥ 3 users carry `scoring_telemetry.rep_id` +
+    `graded_from_audio`. Next: WS2 human ground-truth packet (DB read-only, no PR); WS3 waits on the WS2 baseline.
