@@ -193,7 +193,7 @@ export function extractSignals(input: {
     if (!prev || !curr) continue;
     const gap = curr.startMs - prev.endMs;
     if (gap < 1000 || gap > 3000) continue;
-    if (/[.!?,;:]["')\]]*$/.test(prev.word)) clausePauseCount += 1;
+    if (/[.!?,;:\u2026\u2014\u2013]["')\]]*$/.test(prev.word)) clausePauseCount += 1;
     else midPhrasePauseCount += 1;
   }
   const longPauseCount = gaps.filter((g) => g > 1500).length;
@@ -208,16 +208,22 @@ export function extractSignals(input: {
     if (matches) restartCount += matches.length;
   }
 
-  // Quartile WPM — split rep into 4 time windows, compute WPM per quartile.
+  // Quartile WPM — split the SPEECH SPAN (first word start → last word
+  // end) into 4 windows, compute WPM per window. Using the recording
+  // length instead would zero the last window whenever the user stops the
+  // recorder late, and read even delivery as a collapse (WS4 review).
   // High variance = unstable pacing. Final-quartile delta = rush signal.
-  const quartileDurMs = safeDurationMs / 4;
+  const speechStartMs = words.length > 0 ? Math.min(...words.map((w) => w.startMs)) : 0;
+  const speechEndMs = words.length > 0 ? Math.max(...words.map((w) => w.endMs)) : safeDurationMs;
+  const speechSpanMs = Math.max(1, speechEndMs - speechStartMs);
+  const quartileDurMs = speechSpanMs / 4;
   const quartileWpm: [number, number, number, number] = [0, 0, 0, 0];
   if (words.length > 0 && quartileDurMs > 0) {
     for (let q = 0; q < 4; q++) {
-      const startMs = q * quartileDurMs;
-      const endMs = (q + 1) * quartileDurMs;
+      const startMs = speechStartMs + q * quartileDurMs;
+      const endMs = speechStartMs + (q + 1) * quartileDurMs;
       const count = words.filter(
-        (w) => w.startMs >= startMs && w.startMs < endMs,
+        (w) => w.startMs >= startMs && (w.startMs < endMs || (q === 3 && w.startMs <= endMs)),
       ).length;
       quartileWpm[q] = count / (quartileDurMs / 60_000);
     }

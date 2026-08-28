@@ -1373,3 +1373,11 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Verify gate (open, needs ≥ 50 real reps):** ≥ 25 unique Pacing values; correlation with WPM distance from
     band; zero headline/score contradictions in a 25-rep read (structurally guaranteed now: same numbers);
     human-set Pacing MAE improves (`rescore.mjs --label ws4`).
+  - **Review (targeted, the `/code-review` runs kept diffing the already-merged audit scripts) — fixed before
+    merge:** quartile WPM now uses the speech span so stopping the recorder late no longer docks stability; short
+    (< 8 s) reps get a grammatical sentence and never a rate/stability action; "quartile" removed from user copy;
+    hedge weight kept at the previous 2/pt; clause-end regex accepts `…` `—` `–`; the mock-fallback Delivery
+    callout shows the generated narrative, not internal reason strings; comment corrected: the model's Delivery
+    quote is dropped (assembleRepScore drops any quote whose sentence was replaced). Audit-script findings
+    (hard-coded scratchpad OUT path, emails printed to stdout, `Date.now()` anchoring, duplicated analyze*.mjs,
+    NULL-email filter) recorded for WS9 hygiene.

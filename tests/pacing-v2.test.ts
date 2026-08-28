@@ -88,7 +88,11 @@ const S = (over: Partial<SignalBundle>) => scorePacing({ ...base, ...over });
   check("clean rep without pauses: action is to add one", /Add a short pause/.test(S({}).feedback), S({}).feedback);
   check("no user-facing em-dash", !/—/.test(r.feedback + clean.feedback));
   const shortRep = S({ durationMs: 5_000, wpm: 240 });
-  check("short rep feedback does not cite a rate", /too short to measure/.test(shortRep.feedback) && !/240/.test(shortRep.feedback), shortRep.feedback);
+  check("short rep feedback does not cite a rate", /^This rep was too short to measure a steady rate, with/.test(shortRep.feedback) && !/240/.test(shortRep.feedback), shortRep.feedback);
+  const shortWithPause = S({ durationMs: 5_000, wpm: 240, clausePauseCount: 1 });
+  check("short rep never gets a rate/stability action", !/Slow the delivery|Pick up the pace|even from start/.test(shortWithPause.feedback), shortWithPause.feedback);
+  check("no 'quartile' in user copy", !/quartile/i.test(S({ quartileWpm: [110, 110, 110, 250], quartileWpmVariance: 3675, finalQuartileDelta: 0.1 }).feedback));
+  check("hedge weight unchanged (2/pt over 1, cap 15)", S({ hedgeRate: 4 }).subScores.fluency === 94 && S({ hedgeRate: 20 }).subScores.fluency === 85);
 }
 
 // ── clause-aware pause extraction from punctuated word timings ──
@@ -105,6 +109,20 @@ const S = (over: Partial<SignalBundle>) => scorePacing({ ...base, ...over });
   check("two clause-end pauses", sig.clausePauseCount === 2, String(sig.clausePauseCount));
   check("one mid-phrase pause", sig.midPhrasePauseCount === 1, String(sig.midPhrasePauseCount));
   check("one stall", sig.stallCount === 1, String(sig.stallCount));
+  // Unicode clause enders count as clause ends.
+  const dash = extractSignals({ words: [w("wait…", 0, 400), w("no", 1800, 2000), w("point—", 2100, 2500), w("yes", 3900, 4100)], transcript: "wait… no point— yes", durationMs: 5000, timeBudgetMs: 60000 });
+  check("ellipsis and dash are clause ends", dash.clausePauseCount === 2 && dash.midPhrasePauseCount === 0, `${dash.clausePauseCount}/${dash.midPhrasePauseCount}`);
+  // Trailing silence must not zero the last quartile.
+  const even = Array.from({ length: 40 }, (_, i) => w(`w${i}`, i * 375, i * 375 + 200)); // 40 words over 15 s
+  const late = extractSignals({ words: even, transcript: even.map((x) => x.word).join(" "), durationMs: 20_000, timeBudgetMs: 60_000 });
+  check("quartiles use the speech span (trailing silence ignored)", late.quartileWpm.every((q) => q > 0) && late.quartileWpmVariance < 100, `${late.quartileWpm.join(",")} var=${late.quartileWpmVariance}`);
+  check("stability is not docked for stopping the recorder late", scorePacing(late).subScores.stability >= 95, String(scorePacing(late).subScores.stability));
+}
+// ── weights sum to 1 ──
+{
+  const r = S({});
+  const w = 0.35 * r.subScores.rate + 0.15 * r.subScores.stability + 0.2 * r.subScores.pauses + 0.2 * r.subScores.fluency + 0.1 * r.subScores.budget;
+  check("score is the 0.35/0.15/0.2/0.2/0.1 weighting", Math.round(w) === r.score, `${w} vs ${r.score}`);
 }
 
 console.log("────────────────────────────");

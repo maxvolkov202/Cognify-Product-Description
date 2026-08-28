@@ -123,8 +123,10 @@ function pacingFluencySubScore(signals: SignalBundle): number {
   // Up to 2 fillers/min is unremarkable; 8/min is heavy.
   let score =
     signals.fillerRate <= 2 ? 100 : signals.fillerRate >= 8 ? 45 : lerp(signals.fillerRate, 2, 100, 8, 45);
+  // Same hedge weight as the previous formula (2 points per hedge/min over
+  // 1, capped at 15) so this sub-score does not silently re-weight hedges.
   const hedgeOver = Math.max(0, signals.hedgeRate - 1);
-  score -= Math.min(15, hedgeOver * 4);
+  score -= Math.min(15, hedgeOver * 2);
   return clamp01to100(score);
 }
 
@@ -141,16 +143,20 @@ export type PacingScoreResult = DeterministicScoreResult & {
   feedback: string;
 };
 
-function describeRate(wpm: number, durationMs: number): string {
+function describeRate(wpm: number): string {
   const r = Math.round(wpm);
-  if (durationMs < RATE_MEASURABLE_MIN_MS) return "too short to measure a steady rate";
   if (wpm >= 130 && wpm <= 165) return `${r} words per minute, inside the 130-165 range listeners follow best`;
   if (wpm > 165) return `${r} words per minute, above the 130-165 range listeners follow best`;
   return `${r} words per minute, below the 130-165 range listeners follow best`;
 }
 
 export function buildPacingFeedback(signals: SignalBundle, sub: PacingSubScores): string {
-  const parts: string[] = [`You spoke at ${describeRate(signals.wpm, signals.durationMs)}`];
+  const rateMeasurable = signals.durationMs >= RATE_MEASURABLE_MIN_MS;
+  const parts: string[] = [
+    rateMeasurable
+      ? `You spoke at ${describeRate(signals.wpm)}`
+      : "This rep was too short to measure a steady rate",
+  ];
   const evidence: string[] = [];
   evidence.push(`${signals.fillerRate.toFixed(1)} fillers a minute`);
   if (signals.clausePauseCount > 0)
@@ -163,8 +169,15 @@ export function buildPacingFeedback(signals: SignalBundle, sub: PacingSubScores)
     evidence.push(`${Math.round((signals.timeBudgetRatio - 1) * 100)}% past the time budget`);
   parts[0] += `, with ${evidence.join(", ")}.`;
 
-  // One action, aimed at the weakest sub-score.
-  const weakest = (Object.keys(sub) as (keyof PacingSubScores)[]).reduce((a, b) => (sub[b] < sub[a] ? b : a));
+  // One action, aimed at the weakest sub-score that was actually judged:
+  // rate and stability are neutral placeholders under 8 s, and a pause
+  // suggestion only makes sense once there was room for one (>= 20 s).
+  const judged = (Object.keys(sub) as (keyof PacingSubScores)[]).filter((k) => {
+    if (!rateMeasurable && (k === "rate" || k === "stability")) return false;
+    if (k === "pauses" && signals.durationMs < 20_000 && signals.stallCount === 0 && signals.midPhrasePauseCount === 0) return false;
+    return true;
+  });
+  const weakest = judged.reduce((a, b) => (sub[b] < sub[a] ? b : a));
   const action: Record<keyof PacingSubScores, string> = {
     rate:
       signals.wpm > 165
@@ -173,7 +186,7 @@ export function buildPacingFeedback(signals: SignalBundle, sub: PacingSubScores)
     stability:
       signals.finalQuartileDelta > 0.3
         ? "You sped up at the end; keep the closing sentence at the same pace as the opening."
-        : "Keep the pace even from the first quartile to the last.",
+        : "Keep the pace even from start to finish.",
     pauses:
       signals.stallCount > 0
         ? "Cut the long stalls; a one-second pause after a key point is enough."

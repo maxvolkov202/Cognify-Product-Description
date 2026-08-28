@@ -1745,8 +1745,11 @@ export function applyHybridLayer(opts: {
       if (d.dimension !== "delivery") return d;
       // WS4 — the NUMBER and the COPY come from the same measurements
       // (§4.5.3: feedback explains THIS score), so the model's feedback
-      // line is always replaced by the generated one; its subSkill and
-      // grounded quote are kept (they point at a moment, not a number).
+      // line is always replaced by the generated one and its subSkill is
+      // kept. The model's quote is NOT carried: assembleRepScore drops a
+      // quote whenever the sentence it was chosen for is gone (it would
+      // "prove" copy nobody wrote), so the Delivery card shows the
+      // measured narrative without a transcript moment.
       return {
         ...d,
         score: deliveryResult.score,

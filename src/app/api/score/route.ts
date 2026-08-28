@@ -339,7 +339,9 @@ function buildFallbackScore(
       dimension: "delivery",
       tone,
       title: `Delivery (real) — ${pacingResult.score}/100`,
-      body: pacingResult.signals.join(". "),
+      // WS4 — the generated plain-language narrative, not the internal
+      // reason strings.
+      body: pacingResult.feedback,
       quote: null,
       suggestedRewrite: null,
       transcriptStart: 0,
