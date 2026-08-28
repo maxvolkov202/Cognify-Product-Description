@@ -471,7 +471,6 @@ function ActiveRep({
       // FK-failed EVERY resumed-day rep save silently (Phase 12 F-4).
       // null is fine: saveRep/insertPendingRep self-create a session.
       sessionId={practiceSessionId}
-      speakingThreshold={{ minRatio: 0.6 }}
       feedbackRepIndex={station.index + 1}
       feedbackTotalReps={totalStations}
       feedbackModeLabel={

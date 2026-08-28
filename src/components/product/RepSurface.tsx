@@ -6,7 +6,6 @@ import {
   Loader2,
   Lightbulb,
   Target,
-  AlertTriangle,
 } from "lucide-react";
 import type {
   Framework,
@@ -23,7 +22,7 @@ import type { RepTypeFramework } from "@/lib/ai/rep-types";
 import { GradientButton } from "@/components/shared/GradientButton";
 import type { RecordingResult } from "@/lib/audio/capture";
 import { saveRep, insertPendingRep, getRepResult } from "@/server/actions/reps";
-import { meetsSpeakingThreshold } from "@/lib/workout/pause";
+import { isBelowScoringFloor } from "@/lib/workout/pause";
 import { useRepStatus } from "@/hooks/useRepStatus";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
@@ -39,11 +38,6 @@ import { timeoutSignal, isTimeoutAbort } from "@/lib/util/timeout-signal";
  *  upload timeout degrades to a rep without audio (existing behavior). */
 const TRANSCRIBE_TIMEOUT_MS = 90_000;
 const UPLOAD_TIMEOUT_MS = 75_000;
-
-type SpeakingThreshold = {
-  minWords?: number;
-  minRatio?: number;
-};
 
 type Props = {
   prompt: string;
@@ -87,8 +81,6 @@ type Props = {
    *  FF_REP_FRAMEWORK_EDIT and threaded through the workout path. The strip
    *  is display-only (never sent to scoring), so this is purely a UI toggle. */
   frameworkEditEnabled?: boolean;
-  /** Enforces word-count + duration-ratio floor. Triggers a modal gate. */
-  speakingThreshold?: SpeakingThreshold;
   /** External retry handler. If provided, RepSurface calls this instead
    *  of resetting its own state. Used by WorkoutSession to force remount
    *  and pop the last score on retry. */
@@ -186,16 +178,6 @@ type Props = {
 type Phase =
   | { kind: "idle" }
   | { kind: "transcribing" }
-  | {
-      kind: "speaking-gate";
-      recording: RecordingResult;
-      transcript: string;
-      words: { word: string; startMs: number; endMs: number }[];
-      wordCount: number;
-      minWords: number;
-      durationRatio: number;
-      canProceed: boolean;
-    }
   | { kind: "scoring" }
   | { kind: "saving" }
   | {
@@ -242,10 +224,8 @@ export function RepSurface({
   previousDimensionScores,
   previousRepSummary,
   repTypeFramework,
-  speakingThreshold,
   frameworkEditEnabled = false,
   onRetry,
-  onDiscard,
   feedbackMode = "full",
   flowRepIndex,
   flowTotalReps,
@@ -286,10 +266,7 @@ export function RepSurface({
     e2eStart: number;
     deepgramMs: number | null;
     uploadMs: number | null;
-    /** True once the speaking-gate modal interrupted the attempt — the
-     *  end-to-end number would include human dwell, so it is not written. */
-    gated: boolean;
-  }>({ e2eStart: 0, deepgramMs: null, uploadMs: null, gated: false });
+  }>({ e2eStart: 0, deepgramMs: null, uploadMs: null });
   // Phase 15 P-1 — persistence failures must be VISIBLE. saveRep's
   // graceful fallback used to be indistinguishable from success (F-4:
   // the whole flagship loop "worked" with zero rows landing).
@@ -452,13 +429,11 @@ export function RepSurface({
     // Grading audit WS1 — client latency breakdown. e2eStart is the
     // stop-recording moment (this handler runs on the recorder's result);
     // the numbers land on scoring_telemetry via saveRep. A ref because
-    // runScoringPath is a separate function (the speaking-gate modal
-    // re-enters it).
+    // runScoringPath is a separate function.
     clientTimingRef.current = {
       e2eStart: performance.now(),
       deepgramMs: null,
       uploadMs: null,
-      gated: false,
     };
 
     setPhase({ kind: "transcribing" });
@@ -511,46 +486,37 @@ export function RepSurface({
     // and abortRep already returned us to idle.
     if (abortedRef.current) return;
 
-    // ——— Speaking threshold gate ——————————————————————
-    // Softer floor (60% of time budget + minWords). Failing surfaces a
-    // heads-up modal with Retry / Proceed anyway / Discard. Proceed is
-    // disabled only when word count is below the 10-word hard floor
-    // (canProceed from meetsSpeakingThreshold) — nothing to score below
-    // that.
-    if (speakingThreshold) {
-      const gateCheck = meetsSpeakingThreshold({
-        transcript,
-        wordCount: words.length > 0 ? words.length : undefined,
-        durationMs: result.durationMs,
-        timeBudgetMs: scoringTimeBudgetMs,
+    // ——— Silent scoring floor (grading plan WS3 §4.2) ————————————
+    // The old word-count / duration-ratio gate and its "Proceed anyway"
+    // modal are gone: length is never a reason to block, warn or dock.
+    // One floor remains — under 5 recognised words AND under 3 s there is
+    // nothing to grade. Say so inline and return to record; no choice.
+    const floor = isBelowScoringFloor({
+      transcript,
+      wordCount: words.length > 0 ? words.length : undefined,
+      durationMs: result.durationMs,
+    });
+    if (floor.belowFloor) {
+      setPhase({
+        kind: "error",
+        message: "Too short to score. Try one full thought before the cut.",
+        recording: result,
       });
-      if (!gateCheck.passed) {
-        setPhase({
-          kind: "speaking-gate",
-          recording: result,
-          transcript,
-          words,
-          wordCount: gateCheck.wordCount,
-          minWords: gateCheck.minWords,
-          durationRatio: gateCheck.durationRatio,
-          canProceed: gateCheck.canProceed,
-        });
-        return;
-      }
+      return;
     }
 
     await runScoringPath(result, transcript, words);
   };
 
-  // Extracted from handleRecordingComplete so the "Proceed anyway" button
-  // on the speaking-gate modal can reuse the exact same scoring flow.
+  // Extracted from handleRecordingComplete (historically shared with the
+  // speaking-gate modal, removed in grading plan WS3).
   const runScoringPath = async (
     result: RecordingResult,
     transcript: string,
     words: { word: string; startMs: number; endMs: number }[],
   ) => {
     // Abort may have fired between the transcribe gate and here (or before the
-    // speaking-gate "Proceed" click). Bail before touching any network/DB.
+    // a late click). Bail before touching any network/DB.
     if (abortedRef.current) return;
     currentRecordingRef.current = result;
 
@@ -713,6 +679,9 @@ export function RepSurface({
         `Rep recorded for ${Math.round(result.durationMs / 1000)}s on: ${prompt}`,
       promptText: scoringPromptText ?? prompt,
       durationMs: result.durationMs,
+      // WS3 §4.6 — the sync path never sent this, so the over-budget
+      // pacing penalty could never fire. Under-budget is no longer docked.
+      timeBudgetMs: scoringTimeBudgetMs,
       ...(words.length > 0 ? { words } : {}),
       ...(framework
         ? {
@@ -827,9 +796,9 @@ export function RepSurface({
           uploadMs: clientTimingRef.current.uploadMs,
           // Score is visible the moment the fetch resolved; saving runs
           // after. Measured from stop-recording.
-          clientE2eMs: clientTimingRef.current.gated
-            ? null
-            : Math.round(scoreVisibleAt - clientTimingRef.current.e2eStart),
+          clientE2eMs: Math.round(
+            scoreVisibleAt - clientTimingRef.current.e2eStart,
+          ),
         },
       });
       savedRepId = saved.repId;
@@ -869,8 +838,6 @@ export function RepSurface({
     if (phase.kind === "done") URL.revokeObjectURL(phase.recording.url);
     if (phase.kind === "error" && phase.recording)
       URL.revokeObjectURL(phase.recording.url);
-    if (phase.kind === "speaking-gate")
-      URL.revokeObjectURL(phase.recording.url);
 
     abortedRef.current = false;
     // External retry handler takes precedence. If provided, the parent
@@ -902,88 +869,7 @@ export function RepSurface({
     setPhase({ kind: "idle" });
   };
 
-  const handleDiscard = () => {
-    if (phase.kind === "speaking-gate")
-      URL.revokeObjectURL(phase.recording.url);
-    abortedRef.current = false;
-    if (onDiscard) {
-      onDiscard();
-      return;
-    }
-    setPhase({ kind: "idle" });
-  };
 
-  // ——— Speaking threshold gate ——————————————————————————
-  if (phase.kind === "speaking-gate") {
-    const handleProceed = () => {
-      clientTimingRef.current.gated = true;
-      void runScoringPath(phase.recording, phase.transcript, phase.words);
-    };
-    return (
-      <div className="mx-auto max-w-2xl">
-        <div className="surface-card overflow-hidden">
-          <div className="brand-gradient h-1" aria-hidden="true" />
-          <div className="p-8 md:p-10">
-            <div className="brand-gradient inline-grid size-11 place-items-center rounded-xl shadow-sm">
-              <AlertTriangle
-                className="size-5 text-white"
-                strokeWidth={2.5}
-                aria-hidden="true"
-              />
-            </div>
-            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-ink-900 dark:text-white md:text-3xl">
-              Your rep was shorter than the prompt suggested.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink-600 dark:text-ink-300">
-              You used about {Math.round(phase.durationRatio * 100)}% of the
-              time budget ({phase.wordCount} words). Retry for a fuller take,
-              or proceed and score what you have.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleRetry}
-                className="brand-gradient inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
-              >
-                <RotateCcw className="size-4" />
-                Retry
-              </button>
-              {phase.canProceed ? (
-                <button
-                  type="button"
-                  onClick={handleProceed}
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-brand-purple bg-white dark:bg-ink-900 px-5 py-2.5 text-sm font-semibold text-brand-purple dark:text-brand-lavender hover:bg-brand-purple/5"
-                >
-                  Proceed anyway
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  title="Too few words captured to score — try again."
-                  className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-ink-100 dark:bg-ink-800 px-5 py-2.5 text-sm font-semibold text-ink-400 dark:text-ink-500"
-                >
-                  Proceed anyway
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleDiscard}
-                className="inline-flex items-center gap-2 rounded-full border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-5 py-2.5 text-sm font-semibold text-ink-700 dark:text-ink-200 hover:border-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800"
-              >
-                Discard
-              </button>
-            </div>
-            <p className="mt-4 text-[11px] text-ink-400 dark:text-ink-500">
-              {phase.canProceed
-                ? "Nothing has been saved yet. Proceeding scores your rep now."
-                : "Too few words captured to score — please retry."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ——— Feedback / done state ——————————————————————————
   if (phase.kind === "done") {

@@ -1,13 +1,12 @@
 # Skill: Conciseness
 
 ## Definition
-Maximum signal per word. Every sentence advances the argument. Low filler, no preamble, no repetition, finishes within budget. Tight word economy. Knows when to stop.
+Maximum signal per word. Every sentence advances the argument. Low filler, no preamble, no repetition, stops when the content is complete. Tight word economy. Knows when to stop.
 
 ## HIGH conciseness — recognize these patterns
 - Main point first — no warm-up, no "so basically what I want to say is…"
 - Each sentence advances the argument (no decorative or repetition sentences)
 - Filler rate <2/min (um, uh, like, you know, basically, literally)
-- Finishes within ±10% of time budget
 - Words-per-distinct-point <25
 - Ends clean — no fading "yeah so anyway"
 
@@ -17,7 +16,7 @@ Maximum signal per word. Every sentence advances the argument. Low filler, no pr
 - Same point restated 2-3 times in different words (weakness signal)
 - Going over time budget — speaker keeps talking past where content runs out
 - Hedge-stacking: "I think it's probably the case that maybe we could consider perhaps…"
-- Stranded time: ends at 60% of budget then refills with filler
+- Refilling with filler after the content has run out
 
 ## Banned-as-conciseness-killer antipatterns (flag in callouts)
 - "Basically…" / "literally…" / "essentially…"
@@ -29,6 +28,7 @@ Maximum signal per word. Every sentence advances the argument. Low filler, no pr
 - Brevity that erases meaning is a CLARITY hit, not a Conciseness reward
 - Fast-and-no-fillers: 220+ wpm without filler still scores LOW on delivery; conciseness can be neutral
 - Short-but-deep: a 25s response with full coverage is not penalized for being short
+- Never cite length, duration, or word count as a deficiency; an incomplete answer loses on Thinking Quality or Clarity for what is missing
 
 ## Quote-driven callout shape
 - positive: quote a tight sentence that did real work; name the word economy

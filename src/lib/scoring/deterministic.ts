@@ -80,14 +80,9 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
     const penalty = Math.min(12, overPct);
     score -= penalty;
     reasons.push(`Over time budget by ${overPct}%`);
-  } else if (signals.timeBudgetRatio < 0.70) {
-    const usedPct = Math.round(signals.timeBudgetRatio * 100);
-    const penalty = signals.timeBudgetRatio < 0.30 ? 18
-      : signals.timeBudgetRatio < 0.50 ? 12
-      : 6;
-    score -= penalty;
-    reasons.push(`Under budget — only ${usedPct}% used`);
   }
+  // Grading plan WS3 (§4.6): the under-budget branch is gone. Finishing
+  // early is never docked; only running past the budget costs pacing.
 
   // ——— WPM sanity check ———————————————————————————
   // Natural conversational speech is 120-180 WPM. Outside 70-220 is a
@@ -107,7 +102,7 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
       reasons.length > 0
         ? reasons
         : [
-            `Clean delivery — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, within budget`,
+            `Clean delivery — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, no over-run`,
           ],
   };
 }
@@ -145,8 +140,13 @@ export function scoreThinkingQualityDeterministic(
     );
   }
 
+  // Grading plan WS3 (§4.7) — pause / stall penalties scale with
+  // duration so a 10 s rep with one pause is not treated like a 60 s rep
+  // with six. Full weight from one minute up; a 10 s rep pays a sixth.
+  const durationScale = Math.min(1, Math.max(0, signals.durationMs) / 60_000);
+
   // ——— Long pause penalty ———————————————————————————
-  const longPausePenalty = Math.min(15, signals.longPauseCount * 3);
+  const longPausePenalty = Math.min(15, signals.longPauseCount * 3 * durationScale);
   if (longPausePenalty > 0) {
     score -= longPausePenalty;
     reasons.push(
@@ -155,7 +155,7 @@ export function scoreThinkingQualityDeterministic(
   }
 
   // ——— Stall penalty — heavier, because stalls are visible ———
-  const stallPenalty = Math.min(22, signals.stallCount * 7);
+  const stallPenalty = Math.min(22, signals.stallCount * 7 * durationScale);
   if (stallPenalty > 0) {
     score -= stallPenalty;
     reasons.push(

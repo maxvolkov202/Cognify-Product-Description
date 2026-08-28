@@ -502,7 +502,6 @@ export default function AppSessionClient({
             mode="skill_lab"
             topic={exercise.name}
             sessionId={sessionId}
-            speakingThreshold={{ minRatio: 0.6 }}
             feedbackRepIndex={idx + 1}
             feedbackTotalReps={exercises.length}
             feedbackModeLabel={phase.attempt === "first" ? "SKILL LAB" : "RETRY"}
