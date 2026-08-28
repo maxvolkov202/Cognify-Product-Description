@@ -41,6 +41,7 @@ import {
   scorePacing,
   scoreThinkingQualityDeterministic,
   blendScores,
+  RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
 import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
@@ -284,7 +285,8 @@ export type ScoreRepInput = {
   /**
    * Expected rep time budget (ms). Used by the deterministic pacing
    * scorer to compute timeBudgetRatio. Defaults to durationMs if not
-   * provided — which means no over/under budget penalty is applied.
+   * provided — which means the over-budget penalty cannot fire (WS3:
+   * under-budget is never docked).
    */
   timeBudgetMs?: number;
   frameworkNodes?: { label: string; description: string }[];
@@ -489,6 +491,7 @@ EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — 
   2b. Disorganized-but-deep (the mirror case — and the one you most often get WRONG): score the REASONING on its own merits even when the packaging meanders. False starts, loops, run-on comma-splices, and missing scaffolds hit Structure (LOW), not Thinking Quality. Insight that reframes the problem — naming the load-bearing variable, distinguishing cases that change the answer (e.g. "at ten thousand requests maybe fine, at a hundred thousand it breaks"), surfacing a hidden cost, or landing on the real deciding factor — is HIGH thinking (75+) regardless of how untidy the shape is. CRITICAL: when a rep rambles but the CONTENT discriminates cases and finds what actually matters, thinking_quality MUST land ABOVE structure — often well above (thinking 70-80 while structure sits 40-50). Do NOT let the messy delivery drag the thinking score down toward the structure score; that is the exact bleed DIMENSION INDEPENDENCE forbids. In a thinking-out-loud format, exploratory phrasing ("my read is", "the part I keep coming back to", "now that I say it out loud") is analysis in progress, NOT weak conviction — judge whether the underlying reasoning discriminates cases and finds what matters, not how confidently it is packaged.
   3. Fast-and-no-fillers: a response delivered at 220+ wpm without filler words still scores LOW on Delivery. Rate is part of pacing — speed isn't competence. The well-paced range is roughly 130-165 wpm (150-160 is the center); measured speech anywhere in 130-165 reads as well-paced and is NOT docked on rate. BUT the widened band is symmetric only at the low end: rates ABOVE ~170 wpm are rushed and DO dock Delivery (the faster past 170, the lower — ~180-200 wpm caps Delivery around 45-55, and 220+ is a hard low in the 30s), even with zero fillers.
   4. Variety-with-upspeak: a response with strong vocal variety BUT consistent rising inflection on statements scores LOW on Tone. Upspeak undercuts authority. Strong variety does NOT cancel out an upspeak pattern.
+  5a. Length is never a deficiency: never cite length, duration, or word count as a reason to lower any score or in any feedback line. Judge whether the content completed the prompt. An incomplete answer loses on Thinking Quality or Clarity for what is MISSING, not for being short. When the rate line reads "n/a", do not dock delivery on rate.
   5. Short-but-deep: a response under 30 seconds is NOT penalized for length alone. Evaluate whether the brevity served the prompt — if the rep fully engaged the prompt with strong thinking and no filler, it can score high. If it dodged depth, Thinking Quality drops regardless of other qualities.
   7. Depth-appropriate-to-format: judge Thinking Quality against what the FORMAT calls for. A 30-second pitch or objection response with a causal chain, correct framing, and a clear ask is 85+ thinking — do NOT dock it for missing counterarguments or hedged nuance that the format has no room for. A FULLY-REALIZED pitch or persuasive answer that sizes the problem, names the mechanism, proves it with specifics, works the unit economics, and closes with an ask and a vision is 88+ thinking — that IS the top band for the format; do not settle it at 75-78. Causal insight, correct problem-framing, and non-replicability / second-order reasoning COUNT AS DEPTH even with zero numbers: a two-sentence answer that identifies WHY a result won't generalize (a selection effect, a hidden cost, the deciding variable) is high thinking (75+), not "lacks depth." Reserve the counterargument expectation for formats that invite it (defenses, recommendations, debates).
   8. Padding-is-not-concise: Conciseness is signal-per-word, not just low filler. A rep that enumerates every instance where a summary would do (walking through each day/item one by one), restates the same point in fresh words, or stacks redundant examples scores LOW on Conciseness (40s-50s) even with zero hedges and zero fillers. Clean sentences do not redeem redundant content.
@@ -1278,6 +1281,23 @@ export type ScoreRepResult = {
 // the calibration guardrail. Do NOT add arm-specific branches here; arms
 // compose these helpers instead.
 
+/** Grading plan WS3 (§4.5) — below this duration the rate line reads "n/a"
+ *  and the prompt rule tells the model not to dock delivery on rate. One
+ *  constant with the deterministic WPM branches (deterministic.ts). */
+export const RATE_LINE_MIN_MS = RATE_MEASURABLE_MIN_MS;
+
+/** The per-rep duration + rate line. Deterministic function of
+ *  (transcript, durationMs) → byte-stable for reference reps. */
+export function renderRateLine(transcript: string, durationMs: number): string {
+  const seconds = (durationMs / 1000).toFixed(1);
+  if (durationMs < RATE_LINE_MIN_MS) {
+    return `REP DURATION: ${seconds}s · MEASURED RATE: n/a (too short to measure — do not grade delivery on rate)`;
+  }
+  return `REP DURATION: ${seconds}s · MEASURED RATE: ~${Math.round(
+    getWordCount(transcript) / durationToMinutes(durationMs),
+  )} wpm (well-paced ~130-165)`;
+}
+
 export type PreparedScoringPrompt = {
   userPrompt: string;
   rubricBlock: string;
@@ -1410,9 +1430,7 @@ export async function buildUserPrompt(
     // disagreeing WPM values). Deterministic function of (transcript,
     // durationMs) → byte-stable for reference reps (calibration
     // guardrail).
-    `REP DURATION: ${(input.durationMs / 1000).toFixed(1)}s · MEASURED RATE: ~${Math.round(
-      getWordCount(input.transcript) / durationToMinutes(input.durationMs),
-    )} wpm (well-paced ~130-165)`,
+    renderRateLine(input.transcript, input.durationMs),
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)

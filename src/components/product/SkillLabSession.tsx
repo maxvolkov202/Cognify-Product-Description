@@ -229,7 +229,6 @@ export function SkillLabSession({ plan, label, style = "focus", onExit }: Props)
         maxDurationMs={currentRep.timeBudgetMs}
         previousRepSummary={previousRepSummary}
         repTypeFramework={currentRep.framework}
-        speakingThreshold={{ minRatio: 0.6 }}
         feedbackMode={plan.sessionType === "flow" ? "flow" : "full"}
         flowRepIndex={currentIndex + 1}
         flowTotalReps={plan.reps.length}

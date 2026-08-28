@@ -1313,3 +1313,37 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   round trips, unbounded bank selects) queued behind `saveRep`/`tagWorkoutRep`/session-state actions; no prefetch
   although every station's exerciseId is already client-side; no latency instrumentation. Added as workstream 1c
   in `plans/grading-audit-2026-08-26.md` §3 (instrument → prefetch N+1 → parallelise/limit → offline bank fill).
+
+- **2026-08-28 — Grading WS3: short-rep ruleset** (`feat/short-rep-ruleset`, plan §3.3 + §4). Started before the
+  WS2 baseline on Max's call (2026-08-28, "let's just proceed building"); WS3 will be evaluated against the human
+  set retroactively via `rescore.mjs --label ws3` once the sheets are in.
+  - UI: `speaking-gate` phase, the "Your rep was shorter…" modal and `speakingThreshold` (3 call sites) deleted.
+    One silent floor remains, `isBelowScoringFloor` in `src/lib/workout/pause.ts` (< 5 words AND < 3 s): inline
+    "Too short to score. Try one full thought before the cut." with the recording + Retry, no choice.
+  - Rubric **v4.2.0**: under-budget / "within 10% of budget" language removed from conciseness + delivery
+    definitions, band signals, `rubric-anchors.ts` and `skills/{conciseness,delivery}.md`; over-run kept ("keeps
+    talking past where the content runs out", "runs well past the time budget").
+  - Prompt: edge rule **5a** (never cite length/duration/word count; incomplete answers lose on Thinking Quality
+    or Clarity for what is missing; rate "n/a" → do not dock delivery on rate); `renderRateLine()` renders
+    `MEASURED RATE: n/a (too short to measure …)` under 8 s, byte-identical to before at ≥ 8 s.
+  - Deterministic: `scorePacing` under-budget branch removed (over-budget kept; the sync path now sends
+    `timeBudgetMs` so it can fire); `scoreThinkingQualityDeterministic` pause/stall penalties scale with
+    `min(1, duration/60 s)`.
+  - Tests: `tests/short-rep-ruleset.test.ts` (23, incl. a regex sweep that no under-budget wording remains).
+    Suite, tsc, lint, `next build` green.
+  - **Calibration suite (prompt bytes changed):** WS3 branch **29/48** pass. Control run of the SAME suite on
+    `main@87268824` with the same local setup: **31/48** pass. Drift is identical in both (structure ≈ +21,
+    thinking ≈ +19 on the flagged reps; 12 failing reps shared; the remaining flips sit inside the audit §1.5
+    run-to-run noise). Conclusion: the bank's expectations are stale for current `main` (authored 07-20 under
+    earlier prompt bytes; §1.8 self-consistency caveat), not a WS3 regression. Bank left untouched (no
+    re-authoring per the plan); the human set is the accuracy gate. Logs kept locally
+    (`calib-ws3.log`, `calib-main.log`, ~18 min each, guest `…ws3c…`).
+  - **Verify gate (open):** on ≥ 50 real reps no dimension feedback mentions length; human-set metrics not worse
+    than baseline (pending sheets). The 6 s / 12-word case is unit-covered (`isBelowScoringFloor`).
+  - **`/code-review high` on WS3 — fixed before merge:** an empty transcript on a > 3 s recording no longer slips
+    past the floor to score the "Rep recorded for Ns" placeholder (`wordCount === 0` is always below floor);
+    `scorePacing`'s slow/rushed WPM branches now share the 8 s `RATE_MEASURABLE_MIN_MS` guard with the prompt's
+    "n/a" line; scaled pause/stall penalties say "(reduced weight, Ns rep)" and sub-point penalties are not
+    reported; dead `onDiscard` prop removed; `timeBudgetMs` rounded to an int; e2e helpers no longer wait for
+    "Proceed anyway"; floor card has its own heading. Calibration note: one bank rep, `edge-brevity-cost-meaning`
+    (3.0 s), now renders the "n/a" rate line, so its prompt bytes differ; it passed in both runs.

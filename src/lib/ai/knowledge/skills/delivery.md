@@ -6,7 +6,7 @@ Delivery (renamed from "Pacing" in the v2.0.0 rubric and expanded to absorb the 
 
 ## Definition
 
-WPM is stable across the rep. Purposeful pauses for emphasis. Vocal variation matches content stakes. The rep finishes within the time budget without rushing the closer or leaving the ending half-baked. Pauses are intentional (breath, emphasis) rather than panicked (working memory overflow — that's a Thinking Quality tell, not a Delivery one).
+WPM is stable across the rep. Purposeful pauses for emphasis. Vocal variation matches content stakes. The rep finishes without rushing the closer or leaving the ending half-baked. Pauses are intentional (breath, emphasis) rather than panicked (working memory overflow — that's a Thinking Quality tell, not a Delivery one).
 
 ## Why we chose this
 
@@ -26,7 +26,6 @@ Delivery is the deterministic layer of the rubric — same audio, same score, ev
 
 - Filler rate under 2 per minute
 - Consistent WPM across the rep — final quartile within ±10% of opening quartile
-- Finishes within 90–110% of the time budget
 - No visible rush in the final sentence
 - Hedges are rare ("maybe", "I think", "sort of" — under one per minute)
 - Breaks are purposeful — breath, emphasis, giving the listener a beat
@@ -38,7 +37,7 @@ Delivery is the deterministic layer of the rubric — same audio, same score, ev
 - Hedges: "kind of", "sort of", "I think", "maybe", "I guess", "just"
 - Rushing in the final quartile when the clock hits 75% — WPM accelerates sharply
 - Voice tightening, pitch rising near time-out
-- Going significantly over or under the time budget
+- Running well past the time budget
 - Run-on sentences that could have been three sentences
 - Rambling — over-qualifying every claim
 
@@ -51,7 +50,7 @@ Pacing is the **most deterministic dimension** in Cognify. All of its signals co
 - **WPM** (words per minute) = word_count / (duration_ms / 60000)
 - **Quartile WPM variance** — split the rep into 4 time quartiles, compute WPM per quartile, measure the variance. High variance = unstable pacing.
 - **Final-quartile WPM delta** — how much does WPM change in the last quartile vs the median? >30% acceleration is a rush signal.
-- **Time-budget compliance** = duration_ms / time_budget_ms. Flag < 0.60 (under-spoken) or > 1.10 (over-time).
+- **Time-budget compliance** = duration_ms / time_budget_ms. Flag > 1.10 (over-time). Under-budget is never docked.
 - **Long-pause count** — pauses > 1500ms outside natural breath windows.
 
 In the hybrid scoring architecture (Phase 6), pacing will be scored by a **pure deterministic function** of these signals with zero LLM layer. That means its trend lines are mathematically stable across time — the same audio scored today and next month returns the exact same number. **This is the model-stability guarantee that answers David's measurability critique.**
@@ -71,10 +70,10 @@ Both lexicons are versioned and will evolve with calibration data from external-
 
 | Score | What it looks like |
 |---|---|
-| **95** | Filler < 2/min. Hedges < 1/min. WPM variance < 10%. Finishes within 95–105% of budget. Final sentence lands. |
-| **80** | Filler 2–4/min. Hedges 1–2/min. Minor pacing drift. Within 90–110% of budget. |
-| **60** | Filler 4–8/min. Some hedging. Noticeable final-quartile rush. Time budget at the edge. |
-| **40** | Filler 8–15/min. Multiple hedges. Clear rush. Over or significantly under budget. |
+| **95** | Filler < 2/min. Hedges < 1/min. WPM variance < 10%. Final sentence lands. |
+| **80** | Filler 2–4/min. Hedges 1–2/min. Minor pacing drift. |
+| **60** | Filler 4–8/min. Some hedging. Noticeable final-quartile rush. |
+| **40** | Filler 8–15/min. Multiple hedges. Clear rush. Well over budget. |
 | **20** | Filler > 15/min. Constant hedging. Unstable pacing. Cut-off ending or abandoned. |
 
 ## Exemplar callouts

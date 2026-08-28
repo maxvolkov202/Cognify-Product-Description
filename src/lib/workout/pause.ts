@@ -1,5 +1,7 @@
 "use client";
 
+import { getWordCount } from "@/lib/scoring/signals/_helpers";
+
 import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 import type { RepScore } from "@/types/domain";
 
@@ -73,42 +75,28 @@ export function clearPauseState(): void {
 }
 
 /**
- * Check if the speaking threshold was met for a rep attempt. Per team
- * spec: user should speak ≥ 75% of allotted time. We enforce via BOTH
- * word count (harder to game than pure duration — mic-open-but-silent
- * still fails the word check) AND duration ratio (catches mic-dead-silent).
- *
- * Thresholds (updated 2026-04-16 to be less punitive):
- *   - word count >= max(15, timeBudgetSec * 1.5)
- *   - duration >= 60% of time budget
- *
- * Failing either surfaces a soft heads-up modal with three options
- * (Retry / Proceed anyway / Discard). `canProceed` is false only when
- * word count falls below the 10-word hard floor — below that there's
- * nothing meaningful for Claude to score.
+ * Grading plan WS3 (§4.2) — the ONE silent floor below which there is
+ * nothing to grade: fewer than 5 recognised words AND under 3 s of speech,
+ * or no recognised words at all (a muted mic or an empty Deepgram result
+ * must never reach the scorer as the "Rep recorded for Ns" placeholder).
+ * Everything above it is scored; length is never a reason to block, warn,
+ * or dock (the old word-count / duration-ratio gate and its modal are
+ * gone). 5 words is a starting value; tune from `scoring_telemetry.short_rep`.
  */
-const HARD_MIN_WORDS = 10;
+export const SCORING_FLOOR_MIN_WORDS = 5;
+export const SCORING_FLOOR_MIN_MS = 3_000;
 
-export function meetsSpeakingThreshold(params: {
+export function isBelowScoringFloor(params: {
   transcript: string;
   wordCount?: number;
   durationMs: number;
-  timeBudgetMs: number;
-}): {
-  passed: boolean;
-  canProceed: boolean;
-  wordCount: number;
-  minWords: number;
-  durationRatio: number;
-} {
-  const { transcript, durationMs, timeBudgetMs } = params;
-  const wordCount =
-    params.wordCount ??
-    transcript.trim().split(/\s+/).filter(Boolean).length;
-  const timeBudgetSec = timeBudgetMs / 1000;
-  const minWords = Math.max(15, Math.round(timeBudgetSec * 1.5));
-  const durationRatio = durationMs / timeBudgetMs;
-  const passed = wordCount >= minWords && durationRatio >= 0.6;
-  const canProceed = wordCount >= HARD_MIN_WORDS;
-  return { passed, canProceed, wordCount, minWords, durationRatio };
+}): { belowFloor: boolean; wordCount: number } {
+  const wordCount = params.wordCount ?? getWordCount(params.transcript);
+  return {
+    belowFloor:
+      wordCount === 0 ||
+      (wordCount < SCORING_FLOOR_MIN_WORDS &&
+        params.durationMs < SCORING_FLOOR_MIN_MS),
+    wordCount,
+  };
 }

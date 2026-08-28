@@ -80,7 +80,10 @@ import {
  * upper-tier levels, so the reference-bank upper-tier expectations are
  * re-authored on this version (sanctioned re-baseline per PRD §3.6 / D22).
  */
-export const RUBRIC_VERSION = "v4.1.0";
+/** v4.2.0 (grading plan WS3, 2026-08-28): length is never a deficiency —
+ *  under-budget language removed from conciseness/delivery definitions,
+ *  band signals and anchors; rate line "n/a" under 8 s; edge rule 5a. */
+export const RUBRIC_VERSION = "v4.2.0";
 
 export type DimensionGroup = "content" | "delivery";
 
@@ -140,18 +143,18 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "conciseness",
     group: "content",
     definition:
-      "Maximum signal per word. Low filler rate, low repetition, words-per-point discipline, within time budget. Tight sentences over bloated ones.",
+      "Maximum signal per word. Low filler rate, low repetition, words-per-point discipline, stops when the content is complete. Tight sentences over bloated ones.",
     lowScoreSignals: [
       "High filler rate (> 4 per minute)",
       "Repeating the same point in different words",
       "Long preambles before getting to the point",
-      "Over-time or under-time by >20% of budget",
+      "Keeps talking past where the content runs out",
       "Hedge-stacking that dilutes claims",
     ],
     highScoreSignals: [
       "Low filler rate (< 2 per minute)",
       "Each sentence advances the argument",
-      "Finishes within 10% of time budget",
+      "Stops when the point is complete",
       "No repetition of ideas",
       "Tight word economy (words-per-point < 25)",
     ],
@@ -185,19 +188,18 @@ export const DIMENSION_RUBRIC: Record<SkillDimension, DimensionRubric> = {
     dimension: "delivery",
     group: "delivery",
     definition:
-      "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions. Stable WPM in the ~130-165 range, intentional pauses for cognitive bookmarking, low filler frequency, finishes cleanly within time.",
+      "Rate, pauses, fillers, rhythm. The mechanics of speech under real-time conditions. Stable WPM in the ~130-165 range, intentional pauses for cognitive bookmarking, low filler frequency, finishes cleanly.",
     lowScoreSignals: [
       "Speech rate well outside 130-170 wpm range",
       "High filler rate (> 5 per minute) — um, uh, like, you know",
       "Pauses absent or random instead of after key points",
       "Rushing in the final quartile",
-      "Going significantly over or under time budget",
+      "Running well past the time budget",
     ],
     highScoreSignals: [
       "Consistent WPM across rep quartiles, ~130-165 average",
       "Purposeful 1-3 second pauses after key points",
       "Filler rate < 2 per minute",
-      "Finishes within 10% of time budget",
       "Final sentence lands cleanly",
     ],
     defaultWeight: DIMENSION_WEIGHTS.delivery,

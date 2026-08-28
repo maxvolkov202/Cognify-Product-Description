@@ -39,6 +39,12 @@ export type DeterministicScoreResult = {
 const MIN_SCORE = 20;
 const MAX_SCORE = 98;
 
+/** Grading plan WS3 (§4.5) — below this duration a words-per-minute figure
+ *  is noise (three words in two seconds is "90 wpm"). Shared by the prompt's
+ *  rate line (`renderRateLine`) and the deterministic WPM branches below so
+ *  the number and the copy agree. */
+export const RATE_MEASURABLE_MIN_MS = 8_000;
+
 function clamp(n: number): number {
   return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.round(n)));
 }
@@ -80,22 +86,20 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
     const penalty = Math.min(12, overPct);
     score -= penalty;
     reasons.push(`Over time budget by ${overPct}%`);
-  } else if (signals.timeBudgetRatio < 0.70) {
-    const usedPct = Math.round(signals.timeBudgetRatio * 100);
-    const penalty = signals.timeBudgetRatio < 0.30 ? 18
-      : signals.timeBudgetRatio < 0.50 ? 12
-      : 6;
-    score -= penalty;
-    reasons.push(`Under budget — only ${usedPct}% used`);
   }
+  // Grading plan WS3 (§4.6): the under-budget branch is gone. Finishing
+  // early is never docked; only running past the budget costs pacing.
 
   // ——— WPM sanity check ———————————————————————————
   // Natural conversational speech is 120-180 WPM. Outside 70-220 is a
   // signal something's wrong — too slow (dragging) or too fast (rushing).
-  if (signals.wpm < 70 && signals.wordCount > 5) {
+  // WS3: rate is only judged once it is measurable (>= 8 s), matching the
+  // prompt's "MEASURED RATE: n/a" rule so the number and the copy agree.
+  const rateMeasurable = signals.durationMs >= RATE_MEASURABLE_MIN_MS;
+  if (rateMeasurable && signals.wpm < 70 && signals.wordCount > 5) {
     score -= 5;
     reasons.push(`Pace slow: ${Math.round(signals.wpm)} WPM`);
-  } else if (signals.wpm > 220) {
+  } else if (rateMeasurable && signals.wpm > 220) {
     score -= 5;
     reasons.push(`Pace rushed: ${Math.round(signals.wpm)} WPM`);
   }
@@ -107,7 +111,7 @@ export function scorePacing(signals: SignalBundle): DeterministicScoreResult {
       reasons.length > 0
         ? reasons
         : [
-            `Clean delivery — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, within budget`,
+            `Clean delivery — ${Math.round(signals.wpm)} WPM, ${signals.fillerRate.toFixed(1)} fillers/min, no over-run`,
           ],
   };
 }
@@ -145,21 +149,32 @@ export function scoreThinkingQualityDeterministic(
     );
   }
 
+  // Grading plan WS3 (§4.7) — pause / stall penalties scale with
+  // duration so a 10 s rep with one pause is not treated like a 60 s rep
+  // with six. Full weight from one minute up; a 10 s rep pays a sixth.
+  const durationScale = Math.min(1, Math.max(0, signals.durationMs) / 60_000);
+  // Reasons explain the docked amount: a scaled penalty says so, and one
+  // that rounds to nothing is not reported at all.
+  const scaledNote =
+    durationScale < 1
+      ? ` (reduced weight, ${Math.round(signals.durationMs / 1000)}s rep)`
+      : "";
+
   // ——— Long pause penalty ———————————————————————————
-  const longPausePenalty = Math.min(15, signals.longPauseCount * 3);
-  if (longPausePenalty > 0) {
+  const longPausePenalty = Math.min(15, signals.longPauseCount * 3 * durationScale);
+  if (longPausePenalty >= 1) {
     score -= longPausePenalty;
     reasons.push(
-      `${signals.longPauseCount} long pause${signals.longPauseCount === 1 ? "" : "s"} > 1.5s`,
+      `${signals.longPauseCount} long pause${signals.longPauseCount === 1 ? "" : "s"} > 1.5s${scaledNote}`,
     );
   }
 
   // ——— Stall penalty — heavier, because stalls are visible ———
-  const stallPenalty = Math.min(22, signals.stallCount * 7);
-  if (stallPenalty > 0) {
+  const stallPenalty = Math.min(22, signals.stallCount * 7 * durationScale);
+  if (stallPenalty >= 1) {
     score -= stallPenalty;
     reasons.push(
-      `${signals.stallCount} stall${signals.stallCount === 1 ? "" : "s"} > 3s`,
+      `${signals.stallCount} stall${signals.stallCount === 1 ? "" : "s"} > 3s${scaledNote}`,
     );
   }
 

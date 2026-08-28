@@ -82,11 +82,11 @@ export const RUBRIC_ANCHORS: Record<SkillDimension, readonly string[]> = {
     // 1-20
     "High filler density, hedge-stacking, ideas restated without progress. Words far exceed signal.",
     // 21-40
-    "Filler rate above 4/min, repeated points, long preambles. Time budget routinely missed by >20%.",
+    "Filler rate above 4/min, repeated points, long preambles. Keeps going after the content has run out.",
     // 41-60
-    "Some filler but each sentence advances the argument. Within 20% of time budget.",
+    "Some filler but each sentence advances the argument.",
     // 61-80
-    "Tight word economy. Filler under 2/min, no idea repetition, finishes within 10% of budget.",
+    "Tight word economy. Filler under 2/min, no idea repetition, stops when the point is complete.",
     // 81-100
     "Maximum signal per word. Every sentence advances. No hedge stacking, no filler that the listener registers.",
   ],
@@ -104,13 +104,13 @@ export const RUBRIC_ANCHORS: Record<SkillDimension, readonly string[]> = {
   ],
   delivery: [
     // 1-20
-    "Speech rate well outside 130-170 wpm. Filler rate above 5/min. Random or absent pauses. Significantly over or under time.",
+    "Speech rate well outside 130-170 wpm. Filler rate above 5/min. Random or absent pauses. Runs well past the time budget.",
     // 21-40
     "Pacing wobbles inside vs outside the optimal range. High filler. Pauses absent or unintentional.",
     // 41-60
     "WPM in the 140-170 range most of the time. Filler under 4/min. Some intentional pauses but rhythm is uneven.",
     // 61-80
-    "Stable WPM anywhere in ~130-165. Pauses placed after key points. Filler under 2/min. Within 10% of time budget.",
+    "Stable WPM anywhere in ~130-165. Pauses placed after key points. Filler under 2/min.",
     // 81-100
     "Locked-in pacing across all four quartiles. Pauses are intentional bookmarks. Filler under 1/min. Final sentence lands cleanly.",
   ],
