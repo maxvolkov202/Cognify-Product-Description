@@ -1381,3 +1381,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     quote is dropped (assembleRepScore drops any quote whose sentence was replaced). Audit-script findings
     (hard-coded scratchpad OUT path, emails printed to stdout, `Date.now()` anchoring, duplicated analyze*.mjs,
     NULL-email filter) recorded for WS9 hygiene.
+  - **Shipped 2026-08-28:** PR #84 squash-merged → `main@13a9b19c`; `vercel deploy --prod` READY
+    (`cognify-v2-n6ejejohb`, aliased `www.cognifygym.com`; `/` and `/api/health` 200). Next: WS5 tone
+    prosody-first (`feat/tone-prosody-first`); its ≥ 30-audio-rep gate is unmet, so the deterministic tone core
+    ships behind `FF_TONE_PROSODY_CORE` (OFF in prod) with the prompt field-name fix live.
