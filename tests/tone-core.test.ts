@@ -2,7 +2,7 @@
  * Grading plan WS5 — deterministic Tone core from prosody.
  * Run: npx tsx tests/tone-core.test.ts
  */
-import { scoreToneFromProsody, blendToneWithModel, hasToneCoreEvidence } from "@/lib/scoring/tone-core";
+import { scoreToneFromProsody, blendToneWithModel, hasToneCoreEvidence, buildToneFeedback } from "@/lib/scoring/tone-core";
 import type { ProsodyFeatures } from "@/lib/audio/prosody";
 
 let pass = 0;
@@ -14,37 +14,44 @@ function check(name: string, cond: boolean, detail?: string) {
     console.log(`  ✗ ${name}${detail ? ` — ${detail}` : ""}`);
   }
 }
-const base: ProsodyFeatures = {
+/** Worker-consistent fixture: monotoneRatio derived from pitch std,
+ *  intensity in dB. */
+const mk = (std: number, o: Partial<ProsodyFeatures> = {}): ProsodyFeatures => ({
   wordsPerMinute: 150, fillerCount: 0, fillerRatePerMinute: 0, pauseCount: 3, longPauseCount: 0, pauseTotalMs: 900, meanPauseMs: 300,
-  pitchMeanHz: 180, pitchStdSemitones: 3.2, pitchRangeSemitones: 12, monotoneRatio: 0.12, upspeakRatio: 0.1,
-  rmsMean: 0.05, rmsStd: 0.02, articulationScore: 0.7,
-};
-const T = (o: Partial<ProsodyFeatures>) => scoreToneFromProsody({ ...base, ...o })!;
+  pitchMeanHz: 180, pitchStdSemitones: std, pitchRangeSemitones: std * 4,
+  monotoneRatio: std <= 1.5 ? 1 : std >= 4.5 ? 0 : 1 - (std - 1.5) / 3,
+  upspeakRatio: 0.1, rmsMean: 62, rmsStd: 6, articulationScore: 0.7,
+  ...o,
+});
+const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsody(mk(std, o))!;
 
 {
   check("no features → null", scoreToneFromProsody(null) === null);
-  check("no pitch std → null (Hume-only stays with the model)", scoreToneFromProsody({ ...base, pitchStdSemitones: null }) === null);
-  check("hasToneCoreEvidence", hasToneCoreEvidence(base) && !hasToneCoreEvidence(null));
-  const expressive = T({});
-  const flat = T({ pitchStdSemitones: 0.25, pitchRangeSemitones: 1, monotoneRatio: 0.8, rmsStd: 0.004 });
-  check("flat vs expressive separate by ≥ 20 points", expressive.score - flat.score >= 20, `${expressive.score} vs ${flat.score}`);
-  check("PSOLA-flattened monotone (≤0.25 st) lands ≤ 45 (audio-tone bank rule)", flat.score <= 45, String(flat.score));
-  check("expressive lands 70-90", expressive.score >= 70 && expressive.score <= 90, String(expressive.score));
-  const ups = T({ upspeakRatio: 0.5 });
-  check("upspeak docks even with variety (edge rule 4)", ups.score < expressive.score - 10, `${ups.score}`);
-  const mono = T({ monotoneRatio: 0.65 });
-  check("monotone ratio > 60% docks hard", mono.score <= expressive.score - 20, `${mono.score}`);
-  const steps = [0.25, 0.75, 1, 2, 3, 4, 5.5].map((s) => T({ pitchStdSemitones: s }).score);
+  check("no pitch std → null (Hume-only stays with the model)", scoreToneFromProsody(mk(3, { pitchStdSemitones: null })) === null);
+  check("non-finite pitch std → null", scoreToneFromProsody(mk(3, { pitchStdSemitones: Infinity })) === null);
+  check("hasToneCoreEvidence", hasToneCoreEvidence(mk(3)) && !hasToneCoreEvidence(null));
+  const s3 = T(3.0), s25 = T(2.5), s1 = T(1.0), s025 = T(0.25), s4 = T(4.0);
+  check("3 st → healthy variety band (≥ 70)", s3.score >= 70, String(s3.score));
+  check("2.5 st → between bands (50-70)", s25.score >= 50 && s25.score < 70, String(s25.score));
+  check("1 st → ≤ 45", s1.score <= 45, String(s1.score));
+  check("PSOLA-flattened 0.25 st → ≤ 45 (audio-tone bank rule)", s025.score <= 45, String(s025.score));
+  check("flat vs expressive separate by ≥ 20", s4.score - s025.score >= 20, `${s4.score} vs ${s025.score}`);
+  const steps = [0.25, 0.75, 1, 2, 3, 4, 5.5].map((s) => T(s).score);
   check("monotone in pitch std", steps.every((v, i) => i === 0 || v >= steps[i - 1]!), steps.join(","));
-  check("articulation modifies within ±6", Math.abs(T({ articulationScore: 0.9 }).score - T({ articulationScore: 0.3 }).score) <= 12);
-  check("idempotent", T({}).score === expressive.score);
-  check("bounds 20-95", T({ pitchStdSemitones: 0, monotoneRatio: 1, upspeakRatio: 1, rmsStd: 0, articulationScore: 0 }).score >= 20 && T({ pitchStdSemitones: 9, monotoneRatio: 0, rmsStd: 0.05, articulationScore: 1 }).score <= 95);
-  check("evidence names the real fields", /pitch std .* st, range .* st, monotone \d+%, upspeak \d+%, volume cv/.test(expressive.evidence), expressive.evidence);
+  check("upspeak docks even with variety (edge rule 4)", T(3.5, { upspeakRatio: 0.5 }).score <= T(3.5).score - 15);
+  check("flat volume (< 2 dB) docks, lively (9 dB) lifts", T(3, { rmsStd: 1.5 }).score < T(3).score && T(3, { rmsStd: 9 }).score > T(3).score);
+  check("volume evidence is in dB", /volume std 6\.0 dB/.test(T(3).evidence), T(3).evidence);
+  check("articulation: 0.9 beats 0.3", T(3, { articulationScore: 0.9 }).score > T(3, { articulationScore: 0.3 }).score);
+  check("idempotent", T(3).score === s3.score);
+  check("evidence names the real fields", /pitch std 3\.00 st, range 12\.0 st, upspeak 10%, volume std 6\.0 dB, articulation 70/.test(s3.evidence), s3.evidence);
 }
 {
   check("blend: model within ±10 wins", blendToneWithModel(70, 76) === 76 && blendToneWithModel(70, 64) === 64);
   check("blend: clamped at ±10", blendToneWithModel(70, 95) === 80 && blendToneWithModel(70, 30) === 60);
   check("blend: no model → core", blendToneWithModel(70, undefined) === 70);
+  const fb = buildToneFeedback(mk(0.8, { rmsStd: 1.2 }));
+  check("generated tone feedback: flat pitch + flat volume + action", /barely moved/.test(fb) && /volume stayed/.test(fb) && /\.$/.test(fb), fb);
+  check("no em-dash in generated tone copy", !/—/.test(fb));
 }
 console.log("────────────────────────────");
 console.log(`pass: ${pass} fail: ${fail}`);

@@ -22,10 +22,9 @@ Vocal expressiveness — pitch variation, downward inflection on statements, vol
 
 ## Prosody grounding (when a PROSODY block is present)
 The PROSODY block reports these measurements; ground Tone in them and name the one you used:
-- pitch std < 1 semitone → strong monotone signal (Tone ≤ 45); ≥ 3 semitones with monotone ratio < 20% → healthy vocal variety (70-85)
-- monotone ratio > 60% → sustained flat pitch, Tone ≤ 45
+- pitch std ≥ 3 semitones → healthy vocal variety (70-85); < 1 semitone → sustained monotone (Tone ≤ 45); between, interpolate. The monotone ratio is derived from the same measurement, not a second signal
 - upspeak ratio > 40% → flag the upspeak pattern; strong variety does not cancel it
-- volume std low relative to volume mean → flag locked-flat volume
+- volume std below 2 dB → locked-flat volume
 - articulation below 50/100 → mumbled consonants, trailing words
 
 When no PROSODY block is present, grade Tone conservatively from the words alone (55-70) and say the read is text-only.
