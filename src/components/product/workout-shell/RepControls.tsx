@@ -14,6 +14,7 @@
 //   paused              → resume CTA
 
 import { startMuscleGroupDay } from "@/server/actions/workout-day";
+import type { FetchCandidatesResult } from "@/server/actions/prompt-selection";
 import { useEffect, useState, useTransition } from "react";
 import { ArrowRight, Mic, Sparkles, Trophy, X } from "lucide-react";
 import type {
@@ -61,6 +62,8 @@ export type RepControlsProps = {
   lastScoreFailure: boolean;
   /** Phase HB-3 — personalize-toggle state from the landing screen. */
   personalize?: boolean;
+  /** 1c — returns the prefetched slate for an exercise, if the shell has one. */
+  prefetchedCandidates?: (exerciseId: string) => Promise<FetchCandidatesResult> | undefined;
   /** UI overhaul Phase 5 (5.3/5.4) — expose Suggested Framework shuffle/edit.
    *  Server-resolved from FF_REP_FRAMEWORK_EDIT; forwarded to RepSurface. */
   frameworkEditEnabled?: boolean;
@@ -134,6 +137,7 @@ export default function RepControls({
   totalStations = 4,
   onStartWorkout,
   onPromptSelected,
+  prefetchedCandidates,
   onSkipStation,
   onRepScored,
   onAdvanceNow,
@@ -167,6 +171,7 @@ export default function RepControls({
             why={station.why}
             workoutSessionId={workoutSessionId}
             personalize={personalize}
+            initialCandidates={prefetchedCandidates?.(station.exerciseId) ?? null}
             {...(onCancelWorkout ? { onCancelWorkout } : {})}
             onSelect={(params) =>
               onPromptSelected?.({

@@ -27,6 +27,7 @@ import {
   pickerReducer,
 } from "@/lib/workout/prompt-picker-state";
 import { cn } from "@/lib/utils/cn";
+import type { FetchCandidatesResult } from "@/server/actions/prompt-selection";
 import PromptCard from "./PromptCard";
 import RuleReminder from "./RuleReminder";
 
@@ -50,6 +51,10 @@ export type PromptPickerProps = {
     mode: "shuffle" | "list" | "surprise" | "auto_idle";
   }) => void;
   onSkip?: () => void;
+  /** 1c — a slate fetched ahead of time (workout shell prefetches station
+   *  N+1 while N is recording). When present the picker paints from it
+   *  instead of a cold server-action round trip. */
+  initialCandidates?: Promise<FetchCandidatesResult> | null;
   /** Phase HB-4 — Cancel workout. Returns the user to landing while
    *  preserving the muscle_group_day so they can resume later. */
   onCancelWorkout?: () => void;
@@ -65,6 +70,7 @@ export default function PromptPicker({
   onSelect,
   onSkip,
   onCancelWorkout,
+  initialCandidates = null,
 }: PromptPickerProps) {
   const [state, dispatch] = useReducer(pickerReducer, undefined, initialPickerState);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,11 +98,23 @@ export default function PromptPicker({
   );
 
   // Bootstrap: fetch the first cycle of candidates.
+  // 1c — the prefetched promise is captured ONCE at mount: a parent
+  // re-render that later swaps null → promise must not re-INIT a slate the
+  // user is already reading. A rejected prefetch falls back to a cold fetch.
+  const initialRef = useRef(initialCandidates);
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    fetchPromptCandidates({ exerciseId, personalize }).then((res) => {
+    const t0 = performance.now();
+    const prefetched = initialRef.current;
+    const cold = () => fetchPromptCandidates({ exerciseId, personalize });
+    const source = prefetched ? prefetched.catch(() => cold()) : cold();
+    source.then((res) => {
       if (cancelled) return;
+      // 1c — client-side slate latency (mount → candidates in hand).
+      console.info(
+        `[prompt-picker] slate ready in ${Math.round(performance.now() - t0)} ms (${prefetched ? "prefetched" : "cold"})`,
+      );
       recordSeen(res);
       dispatch({
         type: "INIT",

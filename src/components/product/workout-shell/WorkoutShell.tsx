@@ -13,13 +13,7 @@
 // During in-workout phases (prompt-selecting, recording, etc.) the
 // StartCard is replaced by RepControls in the same slot.
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -41,6 +35,10 @@ import SkillScenariosCard from "./SkillScenariosCard";
 import TrainingList from "./TrainingList";
 import WorkoutProgressBar from "./WorkoutProgressBar";
 import RepControls from "./RepControls";
+import {
+  fetchPromptCandidates,
+  type FetchCandidatesResult,
+} from "@/server/actions/prompt-selection";
 import MissedDayModal from "./MissedDayModal";
 import { clearRepDraftNotes } from "@/components/product/RepFrameworkStrip";
 import { useMediaSession } from "@/hooks/use-media-session";
@@ -352,6 +350,45 @@ function WorkoutShellInner({
   const [personalize, setPersonalize] = useState(
     payload.personalizeSwitchEnabled ? payload.hasPersonalizationProfile : false,
   );
+
+  // 1c — prompt-slate prefetch. Every station's exerciseId is already in
+  // client state, so the slate for the CURRENT station is fetched on mount
+  // (while the start card is on screen) and the slate for station N+1 is
+  // fetched while N is recording, instead of a cold round trip after the
+  // walk animation. Keyed by exercise + personalize so a toggle refetches.
+  const prefetchRef = useRef(new Map<string, Promise<FetchCandidatesResult>>());
+  const prefetchSlate = useCallback(
+    (exerciseId: string | undefined) => {
+      if (!exerciseId) return;
+      const key = `${exerciseId}:${personalize ? 1 : 0}`;
+      if (prefetchRef.current.has(key)) return;
+      prefetchRef.current.set(
+        key,
+        fetchPromptCandidates({ exerciseId, personalize }).catch((err) => {
+          prefetchRef.current.delete(key);
+          throw err;
+        }),
+      );
+    },
+    [personalize],
+  );
+  const prefetchedCandidates = useCallback(
+    (exerciseId: string) => prefetchRef.current.get(`${exerciseId}:${personalize ? 1 : 0}`),
+    [personalize],
+  );
+  useEffect(() => {
+    const i = state.currentStationIndex;
+    // Current + next station, in every phase (the skip path never records,
+    // so gating on "recording" left N+1 cold). One DB read per station.
+    prefetchSlate(state.stations[i]?.exerciseId);
+    prefetchSlate(state.stations[i + 1]?.exerciseId);
+    // Evict stations already passed so the Map stays a two-entry window.
+    for (const [key] of prefetchRef.current) {
+      const exerciseId = key.slice(0, key.lastIndexOf(":"));
+      const idx = state.stations.findIndex((s) => s.exerciseId === exerciseId);
+      if (idx >= 0 && idx < i) prefetchRef.current.delete(key);
+    }
+  }, [state.currentStationIndex, state.stations, prefetchSlate]);
   // D26 — close the v2 day once the machine actually reaches the end of the
   // last station. tagWorkoutRep only closes the day on a RETRY attempt (the
   // final first attempt has to stay open because Retry is still on offer),
@@ -516,6 +553,7 @@ function WorkoutShellInner({
                 lastScore={state.lastScore}
                 lastScoreFailure={state.lastScoreFailure}
                 personalize={personalize}
+                prefetchedCandidates={prefetchedCandidates}
                 frameworkEditEnabled={payload.repFrameworkEditEnabled}
                 loop={state.loop}
                 attempt={state.attempt}
