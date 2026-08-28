@@ -79,7 +79,9 @@ export function renderProsodyBlock(
   if (!features) return null;
   const lines: string[] = ["PROSODY (objective audio measurements):"];
   lines.push(
-    `  rate: ${features.wordsPerMinute.toFixed(0)} wpm (target band 150-160)`,
+    // WS9 — one target band everywhere (was 150-160 here vs 130-165 on the
+    // rate line and in the rubric).
+    `  rate: ${features.wordsPerMinute.toFixed(0)} wpm (well-paced ~130-165)`,
   );
   lines.push(
     `  fillers: ${features.fillerCount} total (${features.fillerRatePerMinute.toFixed(1)}/min; target <2/min)`,

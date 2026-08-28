@@ -1485,3 +1485,21 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     the context reads (bounded by the existing rate limit).
   - **Shipped 2026-08-28:** PR #92 squash-merged → `main@942e86af`; `vercel deploy --prod` READY (`cognify-v2-4jvydb8xw-maxvolkov202s`, aliased; `/` and
     `/api/health` 200). Next: WS9 hygiene (`chore/grading-hygiene`).
+
+- **2026-08-28 — Grading WS9: hygiene (scoped)** (`chore/grading-hygiene`, plan §3.9).
+  - PROSODY block rate line now says `well-paced ~130-165` (was `target band 150-160`): one WPM target everywhere.
+    Prompt bytes change for audio reps only; calibration bank (no audio) **27/48 pass**, inside the day's
+    identical-bytes band (24–31).
+  - `reference-reps.json.rubricVersion` v3.2.0 → **v4.2.0**; calibration README states the real harness tolerances
+    (±6 composite / ±15 per dimension) and what the bank measures (§1.8); `docs/SCORING_METHODOLOGY.md` archived
+    with a pointer to the grading docs.
+  - **Grading docs regenerated:** `scripts/docs/export-grading-docs.ts` rewrites the verbatim blocks in
+    `Cognify grading docs/01–04` from `buildSystemBlocks()` (system prompt, RUBRIC, SCORING KNOWLEDGE, SUB-SKILL
+    REFERENCE); 00, 05, 06, 07 hand-updated for rubric v4.2.0, the n/a rate line, DISFLUENCY, RAG off, pacing v2,
+    thinking off the blend, the tone core flag and the relevance tag.
+  - **Deferred (not dormant):** `score-arms.ts` is the live dispatcher and prod's `signals-drop` arm lives in it;
+    removing the unused arms (median-of-n, all-llm, grouped-fanout, tone-decomposed, `reference-anchors.ts`,
+    `rag/reference-reps.ts`) is a separate PR with its own tests. The 184 KB knowledge bundle is the source of the
+    slim SCORING KNOWLEDGE block and stays. `GRADING_SYSTEM.md` / `EVALUATION_SYSTEM_V2.md` were not found in
+    `docs/`. Audit-script cleanups from the WS4 review (scratchpad OUT path, emails on stdout, `Date.now()`
+    anchoring, duplicated analyze*.mjs) also deferred to that PR.
