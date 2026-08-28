@@ -1280,3 +1280,12 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   and fall into their existing error handling. Tests: `tests/with-timeout.test.ts` (6). Build, tsc, lint, suite green.
   **Verify gate (open):** zero `MIDDLEWARE_INVOCATION_TIMEOUT` in Vercel logs over the following 7 days; a rep
   completes with Supabase Auth unreachable (not reproduced locally in this session).
+  - **`/code-review high` on 1b — fixed before merge:** the Auth fetch itself is now aborted at the budget
+    (`global.fetch` with `AbortSignal.timeout`) so an orphaned refresh cannot rotate the token behind the
+    browser's back (reuse-detection logout); resolved `{ error }` outcomes from supabase-js are inspected and
+    logged (they never reject); NaN/empty env guard on the budget; matcher excludes `api/` wholesale (every API
+    route self-authenticates); a transcribe timeout now shows the error card + Retry instead of scoring an
+    empty transcript; budgets raised to 90 s transcribe / 75 s upload for 3-minute reps; `timeoutSignal()`
+    fallback for browsers without `AbortSignal.timeout` (iOS < 16). Accepted: server actions (saveRep,
+    insertPendingRep) still pass through the bounded refresh; the two private `withTimeout` copies in
+    `rag/retrieve.ts` / `rag/reference-reps.ts` were left alone (different throw semantics, scoring path).

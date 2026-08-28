@@ -28,12 +28,17 @@ import { useRepStatus } from "@/hooks/useRepStatus";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
 import { RepHintsBar } from "./RepHintsBar";
+import { timeoutSignal, isTimeoutAbort } from "@/lib/util/timeout-signal";
 
 /** Grading plan 1b — client budgets for the two pre-score fetches. Both
  *  used to be unbounded; a stalled request left the page with nothing
- *  clickable. On abort they fall into their existing error handling. */
-const TRANSCRIBE_TIMEOUT_MS = 30_000;
-const UPLOAD_TIMEOUT_MS = 30_000;
+ *  clickable. Sized for a 3-minute rep on a slow uplink: /api/transcribe
+ *  allows 300 s server-side and Deepgram on a 180 s clip is ~10-20 s;
+ *  /api/upload has maxDuration=60, so 75 s lets the server answer first.
+ *  A transcribe timeout is surfaced as the error card with Retry; an
+ *  upload timeout degrades to a rep without audio (existing behavior). */
+const TRANSCRIBE_TIMEOUT_MS = 90_000;
+const UPLOAD_TIMEOUT_MS = 75_000;
 
 type SpeakingThreshold = {
   minWords?: number;
@@ -470,7 +475,7 @@ export function RepSurface({
       const res = await fetch("/api/transcribe", {
         method: "POST",
         body: fd,
-        signal: AbortSignal.timeout(TRANSCRIBE_TIMEOUT_MS),
+        signal: timeoutSignal(TRANSCRIBE_TIMEOUT_MS),
       });
       clientTimingRef.current.deepgramMs = Math.round(
         performance.now() - transcribeStart,
@@ -483,7 +488,21 @@ export function RepSurface({
         transcript = data.transcript || transcript;
         words = data.words ?? [];
       }
-    } catch {
+    } catch (err) {
+      // 1b — a timed-out transcribe must not fall through to an empty
+      // transcript (which either blames the user via the speaking gate or
+      // scores a placeholder string). Surface it as the error card with
+      // Retry; other failures keep the legacy fall-through.
+      if (isTimeoutAbort(err)) {
+        if (abortedRef.current) return;
+        setPhase({
+          kind: "error",
+          message:
+            "Transcription took too long. Your recording is saved below. Tap Retry to try again.",
+          recording: result,
+        });
+        return;
+      }
       // fall through
     }
 
@@ -558,7 +577,7 @@ export function RepSurface({
           body: fd,
           // 1b — upload is best-effort; a hung connection must not hold
           // the rep. Falls into the existing catch (scores without audio).
-          signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
         });
         if (uploadRes.ok) {
           const up = (await uploadRes.json()) as { path: string | null };
@@ -654,7 +673,7 @@ export function RepSurface({
           body: fd,
           // 1b — upload is best-effort; a hung connection must not hold
           // the rep. Falls into the existing catch (scores without audio).
-          signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
         });
         if (uploadRes.ok) {
           const up = (await uploadRes.json()) as {
