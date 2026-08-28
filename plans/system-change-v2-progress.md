@@ -1289,3 +1289,16 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     fallback for browsers without `AbortSignal.timeout` (iOS < 16). Accepted: server actions (saveRep,
     insertPendingRep) still pass through the bounded refresh; the two private `withTimeout` copies in
     `rag/retrieve.ts` / `rag/reference-reps.ts` were left alone (different throw semantics, scoring path).
+- **2026-08-28 — Grading WS2: human ground-truth packet built** (plan §3.2, §5). Raters: A = Max, B = Owen Brown.
+  `scripts/calibration/human-labeling/{build-packet,scoring,rescore}.mjs` (+ `_shared.mjs`). Packet in
+  `plans/calibration/human-labeling-2026-09/` (data files gitignored, user transcripts + public repo; README
+  committed). Population: 89 real reps → 86 with ≥ 5 words → **68 on the six current dimensions** (v3.2.0+; the
+  18 v2-era reps scored relevance/confidence/pacing and are not comparable), 11 with audio, 6 users. Sample: **60**
+  (all 11 audio reps + text reps proportional over composite band × duration tercile, seed 20260901); bands
+  <50 / 50–65 / 65–75 / 75+ = 6 / 27 / 25 / 2 (the population has only 2 reps at 75+; nothing backfilled).
+  48/60 carry a v4 headline, 50/60 a Coach's Focus (v3.2/3.3 reps predate them; the binaries are skipped there).
+  Audio links signed for 7 days from 2026-08-28. `scoring.mjs` reports unweighted + linear-weighted kappa per
+  dimension, the > 1-band adjudication list, then band-match / MAE (bands and points) / Spearman / bias per
+  dimension vs the model and the three feedback rates; dry-run on synthetic sheets passes. `rescore.mjs` is the
+  harness mode for later workstreams (`--label <ws>` → `metrics.<ws>.json`).
+  **Open:** both sheets to be filled (~2 h each); baseline metrics recorded here before WS3 starts.
