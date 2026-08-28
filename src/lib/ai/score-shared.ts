@@ -1401,7 +1401,11 @@ export async function buildUserPrompt(
   // Concurrent with prosody worker call below — neither blocks the
   // other. Gated by FF_RAG_RETRIEVE so we can ramp safely; falls back
   // to no-RAG path on any failure or when disabled.
-  const ragEnabled = process.env.FF_RAG_RETRIEVE !== "false"; // default ON in Phase 4
+  // WS7 (2026-08-28): OFF unless FF_RAG_RETRIEVE=true. The on/off ablation
+  // on the calibration bank (N=3 each) showed no accuracy difference
+  // (plans/bench/DECISION-2026-08-28-rag-ablation.md) for ~300 ms and ~1K
+  // tokens per rep; the corpus stays for prompt generation.
+  const ragEnabled = process.env.FF_RAG_RETRIEVE === "true";
   const ragPromise = ragEnabled
     ? retrieveKnowledgeForRep({
         transcript: input.transcript,

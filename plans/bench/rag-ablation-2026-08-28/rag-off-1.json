@@ -1,0 +1,880 @@
+{
+  "results": [
+    {
+      "id": "band-poor-mic-test",
+      "kind": "band",
+      "latencyMs": 23458,
+      "composite": 17,
+      "dimensions": {
+        "clarity": 18,
+        "structure": 12,
+        "conciseness": 22,
+        "thinking_quality": 8,
+        "delivery": 28,
+        "tone": 24
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "band-below-rambling-pitch",
+      "kind": "band",
+      "latencyMs": 28146,
+      "composite": 34,
+      "dimensions": {
+        "clarity": 38,
+        "structure": 42,
+        "conciseness": 35,
+        "thinking_quality": 22,
+        "delivery": 28,
+        "tone": 32
+      },
+      "failures": [
+        "structure drift +17 (expected 25, got 42)",
+        "delivery drift -27 (expected 55, got 28)",
+        "tone drift -18 (expected 50, got 32)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "band-competent-okay-pitch",
+      "kind": "band",
+      "latencyMs": 16966,
+      "composite": 83,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 89,
+        "thinking_quality": 85,
+        "delivery": 62,
+        "tone": 68
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "band-strong-clean-pitch",
+      "kind": "band",
+      "latencyMs": 22439,
+      "composite": 82,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 85,
+        "thinking_quality": 84,
+        "delivery": 62,
+        "tone": 68
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "band-excellent-tight-pitch",
+      "kind": "band",
+      "latencyMs": 19695,
+      "composite": 87,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 89,
+        "thinking_quality": 86,
+        "delivery": 85,
+        "tone": 84
+      },
+      "failures": [
+        "composite drift +12 (expected 75, got 87)",
+        "thinking_quality drift +21 (expected 65, got 86)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "band-exceptional-elite-pitch",
+      "kind": "band",
+      "latencyMs": 24189,
+      "composite": 85,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 89,
+        "thinking_quality": 85,
+        "delivery": 76,
+        "tone": 72
+      },
+      "failures": [
+        "composite drift +7 (expected 78, got 85)",
+        "thinking_quality drift +17 (expected 68, got 85)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "indep-structure-vs-thinking",
+      "kind": "independence",
+      "latencyMs": 20485,
+      "composite": 64,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 78,
+        "conciseness": 68,
+        "thinking_quality": 28,
+        "delivery": 82,
+        "tone": 64
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-conciseness-vs-clarity",
+      "kind": "independence",
+      "latencyMs": 17633,
+      "composite": 53,
+      "dimensions": {
+        "clarity": 18,
+        "structure": 62,
+        "conciseness": 78,
+        "thinking_quality": 52,
+        "delivery": 74,
+        "tone": 68
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "edge-brevity-cost-meaning",
+      "kind": "independence",
+      "latencyMs": 15183,
+      "composite": 32,
+      "dimensions": {
+        "clarity": 15,
+        "structure": 12,
+        "conciseness": 78,
+        "thinking_quality": 8,
+        "delivery": 72,
+        "tone": 55
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "edge-shallow-but-organized",
+      "kind": "independence",
+      "latencyMs": 24260,
+      "composite": 65,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 82,
+        "conciseness": 88,
+        "thinking_quality": 18,
+        "delivery": 78,
+        "tone": 62
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "edge-fast-no-fillers",
+      "kind": "independence",
+      "latencyMs": 22610,
+      "composite": 80,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 85,
+        "thinking_quality": 82,
+        "delivery": 52,
+        "tone": 58
+      },
+      "failures": [
+        "delivery=52 > max 50 (DNA edge-case rule 3: ~210 wpm is well above the 150-160 optimal band. Speed alone (even without fillers) is a Delivery failure — listener can't keep up.)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "edge-variety-with-upspeak",
+      "kind": "independence",
+      "latencyMs": 21453,
+      "composite": 71,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 78,
+        "conciseness": 82,
+        "thinking_quality": 68,
+        "delivery": 76,
+        "tone": 38
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "edge-short-but-deep",
+      "kind": "independence",
+      "latencyMs": 17796,
+      "composite": 82,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 86,
+        "conciseness": 78,
+        "thinking_quality": 87,
+        "delivery": 62,
+        "tone": 72
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-ambiguous-pronouns",
+      "kind": "independence",
+      "latencyMs": 17936,
+      "composite": 81,
+      "dimensions": {
+        "clarity": 82,
+        "structure": 85,
+        "conciseness": 88,
+        "thinking_quality": 72,
+        "delivery": 81,
+        "tone": 73
+      },
+      "failures": [
+        "clarity=82 > max 50 (Pair: clarity vs conciseness. 'Mostly', 'big number', 'smaller ones', 'what we could' are all referent-less for an audience that doesn't already know the targets — listener leaves not knowing WHICH targets were hit. Clarity must drop even though Conciseness is high.)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-clear-but-padded",
+      "kind": "independence",
+      "latencyMs": 22008,
+      "composite": 81,
+      "dimensions": {
+        "clarity": 82,
+        "structure": 87,
+        "conciseness": 78,
+        "thinking_quality": 79,
+        "delivery": 81,
+        "tone": 72
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-okrs-empty-scaffold",
+      "kind": "independence",
+      "latencyMs": 20419,
+      "composite": 70,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 88,
+        "conciseness": 79,
+        "thinking_quality": 38,
+        "delivery": 82,
+        "tone": 64
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-quitting-engineer-meander",
+      "kind": "independence",
+      "latencyMs": 21436,
+      "composite": 80,
+      "dimensions": {
+        "clarity": 82,
+        "structure": 79,
+        "conciseness": 77,
+        "thinking_quality": 88,
+        "delivery": 76,
+        "tone": 68
+      },
+      "failures": [
+        "structure=79 > max 70 (Pair: structure vs thinking, direction disorganized-but-deep. 'OK so. The first thing — actually, before that —' false start; no enumerated scaffolding; thoughts loop back ('and this is the part I keep coming back to'). Structure must drop. Aspirational assertion: post-S2 logicalFlowScore signal pins this below 55. [re-thresholded at rubric v4.0.0: aspirational max 55, observed 55/45/65 — see grading-v3-design.md §3.6 known limitations])"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-rushed-bank-pitch",
+      "kind": "independence",
+      "latencyMs": 21089,
+      "composite": 78,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 85,
+        "thinking_quality": 84,
+        "delivery": 32,
+        "tone": 58
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-monotone-review-process",
+      "kind": "independence",
+      "latencyMs": 19849,
+      "composite": 71,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 78,
+        "conciseness": 81,
+        "thinking_quality": 58,
+        "delivery": 79,
+        "tone": 62
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-velocity-jargon-revelation",
+      "kind": "independence",
+      "latencyMs": 21736,
+      "composite": 80,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 85,
+        "conciseness": 81,
+        "thinking_quality": 88,
+        "delivery": 82,
+        "tone": 68
+      },
+      "failures": [
+        "clarity=72 > max 55 (Pair: clarity vs thinking. 'Decisioning', 'proxy variable', 'optimizing the wrong gradient', 'loss function' stack ML jargon for a behavioral interview audience. Same idea in plain language would be twice as clear. Clarity must drop below competent even though Thinking is strong.)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-earnings-explainer-empty",
+      "kind": "independence",
+      "latencyMs": 21221,
+      "composite": 78,
+      "dimensions": {
+        "clarity": 82,
+        "structure": 80,
+        "conciseness": 83,
+        "thinking_quality": 72,
+        "delivery": 81,
+        "tone": 68
+      },
+      "failures": [
+        "thinking_quality=72 > max 60 (Pair: clarity vs thinking. Explanation is dictionary-true but contains zero analytical content: no GAAP vs non-GAAP, no guidance vs actuals, no segment reporting, no YoY-vs-QoQ framing. An analyst leaves no smarter than a textbook. Thinking must drop below competent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic explanations below 55. [re-thresholded at rubric v4.0.0: aspirational max 50, observed 45/55/45 — see grading-v3-design.md §3.6 known limitations])"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-q4-risks-no-frame",
+      "kind": "independence",
+      "latencyMs": 16850,
+      "composite": 74,
+      "dimensions": {
+        "clarity": 78,
+        "structure": 72,
+        "conciseness": 82,
+        "thinking_quality": 68,
+        "delivery": 81,
+        "tone": 64
+      },
+      "failures": [
+        "structure=72 > max 50 (Pair: conciseness vs structure. Three risks but no ranking (which is BIGGEST?), no taxonomy (commercial / operational / financial), throwaway closer 'those are the things'. Structure must drop below competent even though Conciseness is high.)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-pricing-three-part-padded",
+      "kind": "independence",
+      "latencyMs": 22493,
+      "composite": 88,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 90,
+        "conciseness": 85,
+        "thinking_quality": 92,
+        "delivery": 84,
+        "tone": 82
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "indep-launch-miss-breathless",
+      "kind": "independence",
+      "latencyMs": 31662,
+      "composite": 88,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 90,
+        "conciseness": 92,
+        "thinking_quality": 89,
+        "delivery": 85,
+        "tone": 82
+      },
+      "failures": [
+        "delivery=85 > max 75 (Pair: thinking vs delivery. ~145 words in 22 seconds = 395 wpm, breathless. Comma-spliced run-on (one sentence covers all three components), no breath markers — text-detectable rapid pacing. Delivery must drop into below-standard band even though Thinking is strong. [re-thresholded at rubric v4.0.0: aspirational max 45, observed 70/70/70 — see grading-v3-design.md §3.6 known limitations])"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "indep-future-of-work-pitch",
+      "kind": "independence",
+      "latencyMs": 20727,
+      "composite": 62,
+      "dimensions": {
+        "clarity": 52,
+        "structure": 72,
+        "conciseness": 68,
+        "thinking_quality": 48,
+        "delivery": 78,
+        "tone": 71
+      },
+      "failures": [
+        "thinking_quality=48 > max 45 (Pair: thinking vs delivery. Pure boilerplate: 'future of work', 'AI-native', 'cutting-edge machine learning', 'transformational results', 'paradigm shift' — zero specificity on customer, metric, differentiation, or pricing. Thinking must drop into below-standard band even though Delivery is fluent. Aspirational assertion: post-S4 originalityIndex (TF-IDF rarity) pins generic startup phrasing below 45.)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "qa-poor-frontend-status",
+      "kind": "band",
+      "latencyMs": 21520,
+      "composite": 39,
+      "dimensions": {
+        "clarity": 38,
+        "structure": 42,
+        "conciseness": 35,
+        "thinking_quality": 28,
+        "delivery": 52,
+        "tone": 48
+      },
+      "failures": [
+        "composite drift +8 (expected 31, got 39)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "qa-below-investor-runway",
+      "kind": "band",
+      "latencyMs": 22513,
+      "composite": 64,
+      "dimensions": {
+        "clarity": 62,
+        "structure": 58,
+        "conciseness": 64,
+        "thinking_quality": 68,
+        "delivery": 72,
+        "tone": 66
+      },
+      "failures": [
+        "composite drift +15 (expected 49, got 64)",
+        "conciseness drift +24 (expected 40, got 64)",
+        "thinking_quality drift +36 (expected 32, got 68)"
+      ],
+      "warnings": [
+        "band competent is adjacent to expected below_standard — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "qa-competent-roadmap-fit",
+      "kind": "band",
+      "latencyMs": 18932,
+      "composite": 86,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 90,
+        "conciseness": 87,
+        "thinking_quality": 85,
+        "delivery": 86,
+        "tone": 78
+      },
+      "failures": [],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "qa-strong-pricing-question",
+      "kind": "band",
+      "latencyMs": 24108,
+      "composite": 88,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 89,
+        "thinking_quality": 90,
+        "delivery": 86,
+        "tone": 84
+      },
+      "failures": [
+        "composite drift +9 (expected 79, got 88)",
+        "thinking_quality drift +17 (expected 73, got 90)",
+        "tone drift +16 (expected 68, got 84)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "qa-excellent-board-regulatory",
+      "kind": "band",
+      "latencyMs": 22094,
+      "composite": 86,
+      "dimensions": {
+        "clarity": 87,
+        "structure": 89,
+        "conciseness": 86,
+        "thinking_quality": 88,
+        "delivery": 84,
+        "tone": 79
+      },
+      "failures": [
+        "composite drift +7 (expected 79, got 86)",
+        "thinking_quality drift +18 (expected 70, got 88)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "objection-poor-too-expensive",
+      "kind": "band",
+      "latencyMs": 19662,
+      "composite": 45,
+      "dimensions": {
+        "clarity": 52,
+        "structure": 48,
+        "conciseness": 38,
+        "thinking_quality": 31,
+        "delivery": 61,
+        "tone": 44
+      },
+      "failures": [
+        "conciseness drift -17 (expected 55, got 38)",
+        "delivery drift -17 (expected 78, got 61)",
+        "tone drift -16 (expected 60, got 44)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "objection-below-not-feature-rich",
+      "kind": "band",
+      "latencyMs": 18742,
+      "composite": 71,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 68,
+        "conciseness": 74,
+        "thinking_quality": 66,
+        "delivery": 76,
+        "tone": 71
+      },
+      "failures": [
+        "composite drift +20 (expected 51, got 71)",
+        "clarity drift +17 (expected 55, got 72)",
+        "structure drift +23 (expected 45, got 68)",
+        "conciseness drift +27 (expected 47, got 74)",
+        "thinking_quality drift +28 (expected 38, got 66)"
+      ],
+      "warnings": [
+        "band competent is adjacent to expected below_standard — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "objection-competent-late-launch",
+      "kind": "band",
+      "latencyMs": 19616,
+      "composite": 87,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 89,
+        "conciseness": 86,
+        "thinking_quality": 87,
+        "delivery": 85,
+        "tone": 82
+      },
+      "failures": [],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "objection-strong-security-concern",
+      "kind": "band",
+      "latencyMs": 21452,
+      "composite": 88,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 89,
+        "conciseness": 87,
+        "thinking_quality": 90,
+        "delivery": 86,
+        "tone": 85
+      },
+      "failures": [],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "objection-excellent-incumbent-loyalty",
+      "kind": "band",
+      "latencyMs": 22650,
+      "composite": 86,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 86,
+        "thinking_quality": 89,
+        "delivery": 82,
+        "tone": 79
+      },
+      "failures": [
+        "composite drift +7 (expected 79, got 86)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "interview-poor-greatest-weakness",
+      "kind": "band",
+      "latencyMs": 21093,
+      "composite": 51,
+      "dimensions": {
+        "clarity": 52,
+        "structure": 48,
+        "conciseness": 54,
+        "thinking_quality": 38,
+        "delivery": 68,
+        "tone": 56
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "interview-below-why-this-role",
+      "kind": "band",
+      "latencyMs": 24288,
+      "composite": 54,
+      "dimensions": {
+        "clarity": 52,
+        "structure": 58,
+        "conciseness": 61,
+        "thinking_quality": 38,
+        "delivery": 72,
+        "tone": 58
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "interview-competent-tell-me-about-yourself",
+      "kind": "band",
+      "latencyMs": 21150,
+      "composite": 85,
+      "dimensions": {
+        "clarity": 87,
+        "structure": 86,
+        "conciseness": 85,
+        "thinking_quality": 82,
+        "delivery": 84,
+        "tone": 81
+      },
+      "failures": [
+        "composite drift +14 (expected 71, got 85)",
+        "band mismatch: expected competent, got excellent (composite 85)",
+        "structure drift +22 (expected 64, got 86)",
+        "thinking_quality drift +25 (expected 57, got 82)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "interview-strong-conflict-story",
+      "kind": "band",
+      "latencyMs": 22888,
+      "composite": 85,
+      "dimensions": {
+        "clarity": 87,
+        "structure": 88,
+        "conciseness": 85,
+        "thinking_quality": 89,
+        "delivery": 79,
+        "tone": 76
+      },
+      "failures": [
+        "thinking_quality drift +16 (expected 73, got 89)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "interview-excellent-leadership-failure",
+      "kind": "band",
+      "latencyMs": 21717,
+      "composite": 84,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 85,
+        "thinking_quality": 90,
+        "delivery": 62,
+        "tone": 72
+      },
+      "failures": [
+        "composite drift +13 (expected 71, got 84)",
+        "structure drift +20 (expected 67, got 87)",
+        "thinking_quality drift +20 (expected 70, got 90)"
+      ],
+      "warnings": [
+        "band strong is adjacent to expected competent — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "scenario-poor-breach-explanation",
+      "kind": "band",
+      "latencyMs": 20422,
+      "composite": 41,
+      "dimensions": {
+        "clarity": 18,
+        "structure": 42,
+        "conciseness": 68,
+        "thinking_quality": 55,
+        "delivery": 32,
+        "tone": 38
+      },
+      "failures": [
+        "clarity drift -17 (expected 35, got 18)",
+        "delivery drift -23 (expected 55, got 32)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "scenario-below-team-restructure",
+      "kind": "band",
+      "latencyMs": 21675,
+      "composite": 64,
+      "dimensions": {
+        "clarity": 62,
+        "structure": 75,
+        "conciseness": 71,
+        "thinking_quality": 48,
+        "delivery": 76,
+        "tone": 58
+      },
+      "failures": [
+        "composite drift +10 (expected 54, got 64)",
+        "structure drift +32 (expected 43, got 75)"
+      ],
+      "warnings": [
+        "band competent is adjacent to expected below_standard — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "scenario-competent-board-bad-quarter",
+      "kind": "band",
+      "latencyMs": 22040,
+      "composite": 87,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 87,
+        "conciseness": 86,
+        "thinking_quality": 89,
+        "delivery": 84,
+        "tone": 82
+      },
+      "failures": [
+        "composite drift +14 (expected 73, got 87)",
+        "band mismatch: expected competent, got excellent (composite 87)",
+        "structure drift +22 (expected 65, got 87)",
+        "thinking_quality drift +21 (expected 68, got 89)"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "scenario-strong-customer-incident-apology",
+      "kind": "band",
+      "latencyMs": 22123,
+      "composite": 87,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 89,
+        "conciseness": 86,
+        "thinking_quality": 87,
+        "delivery": 84,
+        "tone": 82
+      },
+      "failures": [
+        "composite drift +8 (expected 79, got 87)"
+      ],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "persuasive-poor-promotion-case",
+      "kind": "band",
+      "latencyMs": 20193,
+      "composite": 50,
+      "dimensions": {
+        "clarity": 52,
+        "structure": 48,
+        "conciseness": 61,
+        "thinking_quality": 28,
+        "delivery": 72,
+        "tone": 58
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "persuasive-below-policy-unlimited-pto",
+      "kind": "band",
+      "latencyMs": 22262,
+      "composite": 67,
+      "dimensions": {
+        "clarity": 72,
+        "structure": 75,
+        "conciseness": 68,
+        "thinking_quality": 52,
+        "delivery": 76,
+        "tone": 58
+      },
+      "failures": [],
+      "warnings": []
+    },
+    {
+      "id": "persuasive-competent-tool-adoption",
+      "kind": "band",
+      "latencyMs": 22593,
+      "composite": 87,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 89,
+        "conciseness": 86,
+        "thinking_quality": 87,
+        "delivery": 84,
+        "tone": 82
+      },
+      "failures": [],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    },
+    {
+      "id": "persuasive-strong-budget-cut-defense",
+      "kind": "band",
+      "latencyMs": 21690,
+      "composite": 86,
+      "dimensions": {
+        "clarity": 88,
+        "structure": 89,
+        "conciseness": 85,
+        "thinking_quality": 90,
+        "delivery": 78,
+        "tone": 72
+      },
+      "failures": [],
+      "warnings": [
+        "band excellent is adjacent to expected strong — boundary case, accepted"
+      ]
+    }
+  ],
+  "failedCount": 25
+}

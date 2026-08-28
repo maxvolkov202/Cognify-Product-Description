@@ -1448,3 +1448,14 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     human-set metrics improve; then decide evidence-first / JSON mode from `rescore.mjs`.
   - **Shipped 2026-08-28:** PR #88 squash-merged → `main@0f357104`; `vercel deploy --prod` READY
     (`cognify-v2-3kftjodkq`, aliased; `/` and `/api/health` 200). Next: WS7 RAG ablation (`feat/rag-ablation`).
+
+- **2026-08-28 — Grading WS7: RAG ablation** (`feat/rag-ablation`, plan §3.7). Bank run on/off, **N = 3 each,
+  144 calls per condition, 0 failed**, same server pair (:3333 on / :3334 `FF_RAG_RETRIEVE=false`):
+  composite MAE **7.0 vs 7.0** (delta 0.06), per-dimension MAE within ±1 everywhere (structure 10.9 vs 10.6,
+  thinking 13.2 vs 12.4, conciseness 6.4 vs 5.5), run-to-run spread 1.6 vs 1.8, latency p50 21.1 s vs 21.4 s
+  (local dev server; the ~300 ms RAG cost is inside the noise). `plans/bench/DECISION-2026-08-28-rag-ablation.md`
+  + raw runs in `plans/bench/rag-ablation-2026-08-28/`; analysis script `scripts/bench/rag-ablation-analyze.mjs`.
+  **Decision:** no accuracy signal → scoring RAG **OFF unless `FF_RAG_RETRIEVE=true`** (was ON by default; prod had
+  it unset). Corpus and pipeline stay for prompt generation and can be re-enabled per env. The human-set half of
+  the ablation runs via `rescore.mjs --label rag-on/off` once the sheets are in. Relevance embedding (WS6) still
+  runs in parallel when RAG is off.
