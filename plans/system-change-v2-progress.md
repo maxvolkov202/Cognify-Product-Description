@@ -1461,3 +1461,25 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   runs in parallel when RAG is off.
   - **Shipped 2026-08-28:** PR #90 squash-merged → `main@9f76ecba`; `vercel deploy --prod` READY
     (`cognify-v2-csww181bp`, aliased; `/` and `/api/health` 200). Next: WS8 latency (`feat/scoring-latency`).
+
+- **2026-08-28 — Grading WS8: latency (code half)** (`feat/scoring-latency`, plan §3.8).
+  - Client: the audio upload now starts the moment recording completes (shared `uploadRef` promise in
+    `RepSurface`) and runs in parallel with transcription; the prosody-sync path awaits it before scoring, the
+    other paths before save. Previously transcribe → upload → score were serial.
+  - Server: `/api/score` starts `loadUserContext()` (auth + coaching-memory reads) before the body parse and
+    awaits it after; failures fall back to no calibration/memory with an error log.
+  - Already landed by earlier workstreams: scoring RAG off by default (WS7, removes ~300 ms + one embed on the
+    LLM's critical path); embeddings bounded at 1.5 s and parallel with the prosody worker (WS6).
+  - **Not done:** triggering the prosody worker at upload time (needs a result cache keyed by storage path;
+    serverless has no safe in-memory home for it, so it wants a small table or the worker's own cache); the
+    model-lineup re-bench on the human set (labels pending); the shorter output (WS6's evidence-first/JSON
+    changes are off pending the human set).
+  - **Verify gate (open):** stop-recording → score-visible on ≥ 50 real reps per condition over ≥ 3 days and
+    ≥ 5 users, p50/p90/p99 with browser mix (`scoring_telemetry.client_e2e_ms` from WS1, before/after the deploy
+    timestamp); ship-keep rule p50 < 7 s and p90 not worse.
+  - **Targeted review — fixed before merge:** the early upload left orphan audio on the scoring-floor, abort and
+    transcription-timeout paths (the retention cron only sweeps paths referenced by reps). Added an owner-scoped
+    `DELETE /api/upload` (`reps/<user.id>/` prefix only) + `deleteAudio()`, and `discardUpload()` on those three
+    paths, which also clears `uploadRef` so no later attempt can inherit a stale upload. Noted: `upload_ms` now
+    overlaps `deepgram_ms` (no longer additive to `client_e2e_ms`); a malformed /api/score body now also costs
+    the context reads (bounded by the existing rate limit).

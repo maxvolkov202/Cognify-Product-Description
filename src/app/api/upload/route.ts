@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { uploadAudio } from "@/lib/audio/upload";
+import { uploadAudio, deleteAudio } from "@/lib/audio/upload";
 import {
   ALLOWED_AUDIO_MIME_TYPES,
   audioExtensionFor,
@@ -97,4 +97,28 @@ export async function POST(req: Request) {
     console.error(`[upload] failed for user ${user.id}: ${message}`);
     return NextResponse.json({ error: "upload_failed", message }, { status: 500 });
   }
+}
+
+/**
+ * WS8 — discard an upload that has no rep to attach to. Owner-scoped: the
+ * path must sit under the caller's own `reps/<user.id>/` prefix, so a
+ * client can never delete another user's audio.
+ */
+export async function DELETE(req: Request) {
+  const user = await currentUser();
+  if (!user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  let path: string | null = null;
+  try {
+    const body = (await req.json()) as { path?: unknown };
+    path = typeof body.path === "string" ? body.path : null;
+  } catch {
+    path = null;
+  }
+  if (!path || !path.startsWith(`reps/${user.id}/`) || path.includes("..")) {
+    return NextResponse.json({ error: "invalid_path" }, { status: 400 });
+  }
+  const deleted = await deleteAudio(path);
+  return NextResponse.json({ deleted });
 }

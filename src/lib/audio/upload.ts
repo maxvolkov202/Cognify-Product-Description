@@ -107,3 +107,19 @@ export async function getAudioSignedUrls(
   });
   return out;
 }
+
+/**
+ * WS8 — remove one stored rep audio object. Used when an upload that
+ * started at recording-complete turns out to have no rep to attach to
+ * (scoring floor, abort, transcription timeout). Best-effort.
+ */
+export async function deleteAudio(path: string): Promise<boolean> {
+  if (!hasSupabase() || !path) return false;
+  const admin = supabaseAdmin();
+  const { error } = await admin.storage.from(BUCKET).remove([path]);
+  if (error) {
+    console.warn("[audio] delete failed:", error.message);
+    return false;
+  }
+  return true;
+}

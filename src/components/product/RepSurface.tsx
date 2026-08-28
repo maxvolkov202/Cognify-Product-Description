@@ -266,6 +266,65 @@ export function RepSurface({
     : maxDurationMs;
 
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  // WS8 — the audio upload for the current attempt, started the moment the
+  // recording completes so it runs in parallel with transcription instead
+  // of after it. Both scoring paths await this promise.
+  const uploadRef = useRef<Promise<{ path: string | null; url: string | null }> | null>(null);
+  const startRepUpload = (result: RecordingResult) => {
+    const uploadStart = performance.now();
+    const run = async (): Promise<{ path: string | null; url: string | null }> => {
+      try {
+        const fd = new FormData();
+        fd.append(
+          "audio",
+          new File([result.blob], "rep.webm", { type: result.mimeType }),
+        );
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+          // 1b — upload is best-effort; a hung connection must not hold
+          // the rep.
+          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
+        });
+        if (uploadRes.ok) {
+          const up = (await uploadRes.json()) as { path: string | null; url: string | null };
+          return { path: up.path, url: up.url };
+        }
+        // Best-effort, but not silent: this also costs the prosody worker
+        // its input, so tone quietly falls to the text tier when it fires.
+        console.warn(
+          `[rep] audio upload failed (${uploadRes.status}); scoring without audio (tone degrades to the text tier)`,
+        );
+        return { path: null, url: null };
+      } catch (err) {
+        console.warn("[rep] audio upload threw; scoring without audio", err);
+        return { path: null, url: null };
+      } finally {
+        clientTimingRef.current.uploadMs = Math.round(performance.now() - uploadStart);
+      }
+    };
+    const p = run();
+    uploadRef.current = p;
+    return p;
+  };
+  /** WS8 — an upload that started at recording-complete but has no rep to
+   *  attach to (scoring floor, abort, transcription timeout) is deleted
+   *  so Storage does not accumulate orphans the retention cron never sees.
+   *  Best-effort; clears the ref so no later attempt can inherit it. */
+  const discardUpload = () => {
+    const p = uploadRef.current;
+    uploadRef.current = null;
+    if (!p) return;
+    void p.then((up) => {
+      if (!up.path) return;
+      return fetch("/api/upload", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: up.path }),
+      }).catch(() => undefined);
+    });
+  };
+
   // Grading audit WS1 — per-attempt client timing (see handleRecordingComplete).
   const clientTimingRef = useRef<{
     e2eStart: number;
@@ -440,6 +499,8 @@ export function RepSurface({
       deepgramMs: null,
       uploadMs: null,
     };
+    // WS8 — upload in parallel with transcription (was serial after it).
+    void startRepUpload(result);
 
     setPhase({ kind: "transcribing" });
     try {
@@ -475,6 +536,7 @@ export function RepSurface({
       // Retry; other failures keep the legacy fall-through.
       if (isTimeoutAbort(err)) {
         if (abortedRef.current) return;
+        discardUpload();
         setPhase({
           kind: "error",
           message:
@@ -502,6 +564,7 @@ export function RepSurface({
       durationMs: result.durationMs,
     });
     if (floor.belowFloor) {
+      discardUpload();
       setPhase({
         kind: "error",
         heading: "Too short to score",
@@ -537,35 +600,8 @@ export function RepSurface({
     // so the Edge Function's verify_jwt gate would reject them and realtime
     // RLS would hide the row.
     if (USE_ASYNC_SCORING) {
-      let audioUrl: string | null = null;
-      try {
-        const fd = new FormData();
-        fd.append(
-          "audio",
-          new File([result.blob], "rep.webm", { type: result.mimeType }),
-        );
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: fd,
-          // 1b — upload is best-effort; a hung connection must not hold
-          // the rep. Falls into the existing catch (scores without audio).
-          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
-        });
-        if (uploadRes.ok) {
-          const up = (await uploadRes.json()) as { path: string | null };
-          audioUrl = up.path;
-        } else {
-          // Upload stays best-effort — a failure must never block the rep —
-          // but it must not be SILENT. Swallowing this status is how rep
-          // audio went missing on Chrome/Edge without anyone noticing.
-          console.warn(
-            `[rep] audio upload failed (${uploadRes.status}); rep will save without audio`,
-          );
-        }
-      } catch (err) {
-        console.warn("[rep] audio upload threw; rep will save without audio", err);
-        audioUrl = null;
-      }
+      // WS8 — the upload started at recording-complete; await it here.
+      const audioUrl = (await (uploadRef.current ?? startRepUpload(result))).path;
 
       // Abort during the upload window — don't write a pending row.
       if (abortedRef.current) return;
@@ -632,51 +668,17 @@ export function RepSurface({
     const prosodySync = process.env.NEXT_PUBLIC_PROSODY_SYNC === "true";
     let audioPath: string | null = null;
     let audioScoreUrl: string | null = null;
-    const uploadRepAudio = async () => {
-      const uploadStart = performance.now();
-      try {
-        const fd = new FormData();
-        fd.append(
-          "audio",
-          new File([result.blob], "rep.webm", { type: result.mimeType }),
-        );
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: fd,
-          // 1b — upload is best-effort; a hung connection must not hold
-          // the rep. Falls into the existing catch (scores without audio).
-          signal: timeoutSignal(UPLOAD_TIMEOUT_MS),
-        });
-        if (uploadRes.ok) {
-          const up = (await uploadRes.json()) as {
-            path: string | null;
-            url: string | null;
-          };
-          audioPath = up.path;
-          audioScoreUrl = up.url;
-        } else {
-          // Best-effort, but not silent — see the sibling call site above.
-          // This one also costs the prosody worker its input, so tone and
-          // pacing quietly fall back to the text tier when it fires.
-          console.warn(
-            `[rep] audio upload failed (${uploadRes.status}); scoring without audio (tone/pacing degrade to the text tier)`,
-          );
-        }
-      } catch (err) {
-        // Upload failure must never block scoring — tone degrades to the
-        // text tier and saveRep persists a null audio path.
-        console.warn("[rep] audio upload threw; scoring without audio", err);
-        audioPath = null;
-        audioScoreUrl = null;
-      } finally {
-        clientTimingRef.current.uploadMs = Math.round(
-          performance.now() - uploadStart,
-        );
-      }
+    const uploadPromise = uploadRef.current ?? startRepUpload(result);
+    const settleUpload = async () => {
+      const up = await uploadPromise;
+      audioPath = up.path;
+      audioScoreUrl = up.url;
     };
 
-    // Prosody-sync ON: upload first so a signed audioUrl reaches the scorer.
-    if (prosodySync) await uploadRepAudio();
+    // Prosody-sync ON: the scorer needs the signed audioUrl, so wait for the
+    // upload here. WS8: it has been running since recording-complete, in
+    // parallel with transcription, so this wait is usually already over.
+    if (prosodySync) await settleUpload();
 
     // Body for /api/score (the unified single-call pipeline).
     const scoreBody = {
@@ -760,11 +762,10 @@ export function RepSurface({
     // uploaded, saved, or reported to onComplete.
     if (abortedRef.current) return;
 
-    // Prosody-sync OFF (default): upload AFTER scoring so the score isn't
-    // delayed by the upload round-trip. Persist the Storage path (not the
-    // signed URL) so short-lived signed URLs can be regenerated on demand;
-    // same-session playback uses the local Blob URL from RecordingResult.
-    if (!prosodySync) await uploadRepAudio();
+    // Prosody-sync OFF: the score never waited on the upload; settle it now
+    // so saveRep persists the Storage path (signed URLs are regenerated on
+    // demand; same-session playback uses the local Blob URL).
+    if (!prosodySync) await settleUpload();
 
     setPhase({ kind: "saving" });
     let savedRepId: string | null = null;
@@ -867,6 +868,7 @@ export function RepSurface({
     abortedRef.current = true;
     scoringControllerRef.current?.abort();
     scoringControllerRef.current = null;
+    discardUpload();
     if (currentRecordingRef.current) {
       URL.revokeObjectURL(currentRecordingRef.current.url);
       currentRecordingRef.current = null;
