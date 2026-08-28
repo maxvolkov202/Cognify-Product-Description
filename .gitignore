@@ -97,3 +97,7 @@ __pycache__/
 # Grading audit raw outputs contain real user transcripts; the repo is public.
 scripts/qa/grading-audit/*.json
 scripts/qa/grading-audit/*.txt
+
+# WS2 human-labeling data (user transcripts; public repo). Scripts + README are committed.
+plans/calibration/human-labeling-2026-09/*
+!plans/calibration/human-labeling-2026-09/README.md
