@@ -1,5 +1,9 @@
 # Handoff: grading build plan (paste after /clear)
 
+> **Stale as of 2026-08-28.** WS1, 1b, WS2 packet, WS3, WS4 are merged and deployed (see the tracker's
+> "Grading WS" entries). The "facts not to re-derive" below describe the audit-time state (Pacing=92 override,
+> rep_id NULL, uncommitted audit files) and are no longer true. Start from the tracker's latest "Next:" line.
+
 ```
 I'm continuing the Cognify grading work. On 2026-08-26/27 we ran a read-only audit of the grading
 pipeline and Max approved a single build plan. Read, in this order, before doing anything:
