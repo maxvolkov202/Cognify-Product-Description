@@ -404,9 +404,16 @@ function translateToOpenAI(
     }
   }
 
+  // WS6 — JSON mode for scoring calls: the scoring system prompt demands a
+  // bare JSON object, and OpenAI's response_format guarantees valid JSON
+  // (no preamble / fences), which is what the brace-extraction fallback in
+  // parseAndValidate used to paper over. Detected from the prompt text so
+  // generation-path callers (prose outputs) are untouched.
+  const wantsJson = (systemContent ?? "").includes("Return ONLY a JSON object");
   return {
     model: openaiModelForRole(params.model),
     max_tokens: params.max_tokens,
+    ...(wantsJson ? { response_format: { type: "json_object" as const } } : {}),
     messages: openAiMessages,
     // Match Anthropic's default temperature behavior for parity.
     ...(params.temperature != null

@@ -113,3 +113,11 @@ export function isRepFrameworkEditEnabled(): boolean {
 export function isToneProsodyCoreEnabled(): boolean {
   return defaultOnOutsideProduction("FF_TONE_PROSODY_CORE");
 }
+
+/** Grading plan WS6 — deterministic off-topic floor from prompt↔transcript
+ *  embedding similarity. The similarity is always measured and tagged on
+ *  the rep; the floor itself stays OFF in production until the threshold
+ *  is set from ≥ 50 real reps. */
+export function isRelevanceFloorEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_RELEVANCE_FLOOR");
+}

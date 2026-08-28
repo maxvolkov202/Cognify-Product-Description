@@ -43,6 +43,9 @@ import {
   blendScores,
   RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
+import { embedText } from "@/lib/ai/rag/retrieve";
+import { cosineSimilarity, relevanceBelowFloor, applyRelevanceFloor } from "@/lib/scoring/relevance";
+import { isRelevanceFloorEnabled } from "@/lib/flags";
 import {
   scoreToneFromProsody,
   blendToneWithModel,
@@ -415,7 +418,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }
+    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "score": 0-100, "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "headline": "one-line verdict, see HEADLINE RULES below",
@@ -584,7 +587,7 @@ function buildLeanSystemPrompt(feedbackCap: number): string {
   //    tighten the feedback-count hint only when the cap is single-sentence.
   p = leanEdit(
     p,
-    `, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
+    `, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
     `, "feedback": "${oneSentence ? "1 sentence" : "1-2 sentences"}, see PER-SKILL FEEDBACK RULES"`,
   );
   // 2) PER-SKILL FEEDBACK RULES — collapse to one sentence only at tight caps.
@@ -1305,6 +1308,26 @@ export function renderRateLine(transcript: string, durationMs: number): string {
   )} wpm (well-paced ~130-165)`;
 }
 
+/** WS6 — one line of measured disfluency for the model (hedges, restarts,
+ *  long pauses, stalls, end-of-rep pace change). Deterministic function of
+ *  (words, transcript, durationMs). */
+export function renderDisfluencyLine(input: {
+  words?: readonly { word: string; startMs: number; endMs: number }[];
+  transcript: string;
+  durationMs: number;
+  timeBudgetMs?: number;
+}): string | null {
+  if (!input.words || input.words.length === 0) return null;
+  const b = extractSignals({
+    words: input.words,
+    transcript: input.transcript,
+    durationMs: input.durationMs,
+    timeBudgetMs: input.timeBudgetMs ?? input.durationMs,
+  });
+  const endDelta = Math.round(b.finalQuartileDelta * 100);
+  return `DISFLUENCY (measured from word timings; evidence for thinking_quality, not a score): hedges ${b.hedgeRate.toFixed(1)}/min · restarts ${b.restartCount} · long pauses >1.5s ${b.longPauseCount} · stalls >3s ${b.stallCount} · end-of-rep pace change ${endDelta >= 0 ? "+" : ""}${endDelta}%`;
+}
+
 export type PreparedScoringPrompt = {
   userPrompt: string;
   rubricBlock: string;
@@ -1315,6 +1338,8 @@ export type PreparedScoringPrompt = {
   hasWordTimestamps: boolean;
   /** Grading audit WS1 — prosody worker wall-clock; 0 when not called. */
   prosodyMs: number;
+  /** WS6 — prompt↔transcript embedding cosine; null when not measurable. */
+  relevance: number | null;
 };
 
 /** Build the user message + all per-rep derived context (RAG, prosody,
@@ -1397,12 +1422,19 @@ export async function buildUserPrompt(
           return r;
         })
       : Promise.resolve(null);
-  // Await both concurrently — RAG retrieval and prosody worker have no
-  // dependency on each other.
-  const [workerProsody, ragResult] = await Promise.all([
+  // WS6 — relevance: embed the prompt alongside RAG's transcript embedding.
+  const promptEmbeddingPromise = embedText(input.promptText);
+  // Await all concurrently — none depend on each other.
+  const [workerProsody, ragResult, promptEmbedding] = await Promise.all([
     workerPromise,
     ragPromise,
+    promptEmbeddingPromise,
   ]);
+  const transcriptEmbedding = ragResult.queryEmbedding ?? (ragEnabled ? null : await embedText(input.transcript));
+  const relevance =
+    promptEmbedding && transcriptEmbedding
+      ? cosineSimilarity(promptEmbedding, transcriptEmbedding)
+      : null;
   const ragBlock = renderRagContextBlock(ragResult.chunks);
   // Grading v3 (3.6) — worker prosody must survive even when word
   // timings are absent (async retries, calibration clips): the old
@@ -1438,6 +1470,10 @@ export async function buildUserPrompt(
     // durationMs) → byte-stable for reference reps (calibration
     // guardrail).
     renderRateLine(input.transcript, input.durationMs),
+    // WS6 — measured disfluency, only when word timings exist (byte-stable
+    // for the timing-less reference reps). Replaces the 60/40 blend: the
+    // model sees the numbers and scores Thinking Quality itself.
+    hasWordTimestamps ? renderDisfluencyLine(input) : null,
     input.frameworkNodes
       ? `FRAMEWORK (score structural_adherence against these nodes in order):\n${input.frameworkNodes
           .map((n, i) => `${i + 1}. ${n.label}: ${n.description}`)
@@ -1470,6 +1506,7 @@ export async function buildUserPrompt(
     signalsFlagOn,
     hasWordTimestamps: !!hasWordTimestamps,
     prosodyMs,
+    relevance,
   };
 }
 
@@ -1803,6 +1840,8 @@ export function assembleRepScore(opts: {
   signalsFlagOn: boolean;
   textSignals: TextSignals | null;
   modelUsed: string | null | undefined;
+  /** WS6 — prompt↔transcript cosine; undefined on paths that did not measure it. */
+  relevance?: number | null;
 }): RepScore {
   const { validated, input, sanitizedCoachFocus, sanitizedStrongerVersion, prosodyFeatures, signalsFlagOn, textSignals } = opts;
   const dimensionMap = opts.dimensionMap;
@@ -1907,6 +1946,29 @@ export function assembleRepScore(opts: {
     }
   }
 
+  // WS6 — relevance. Always tagged (so the threshold can be set from real
+  // reps); the floor itself is flag-gated and OFF in prod.
+  let headlineText = validated.headline;
+  if (opts.relevance != null) {
+    finalDimensions = finalDimensions.map((d) =>
+      d.dimension === "thinking_quality"
+        ? { ...d, signals: [...d.signals, `[relevance: ${opts.relevance!.toFixed(2)}]`] }
+        : d,
+    );
+    if (isRelevanceFloorEnabled() && relevanceBelowFloor(opts.relevance)) {
+      const floored = applyRelevanceFloor({
+        dimensions: finalDimensions,
+        headline: headlineText,
+        similarity: opts.relevance,
+      });
+      finalDimensions = floored.dimensions;
+      headlineText = floored.headline;
+      for (const [k, v] of Object.entries(floored.dimensionMap)) {
+        dimensionMap[k as SkillDimension] = v;
+      }
+    }
+  }
+
   const compositeScore = composite(dimensionMap, input.weights);
 
   const score: RepScore = {
@@ -1924,7 +1986,7 @@ export function assembleRepScore(opts: {
     // to misreport gpt-4o reps as claude-scored.
     modelVersion: opts.modelUsed ?? MODEL_VERSIONS.scoring,
     rubricVersion: RUBRIC_VERSION,
-    headline: validated.headline,
+    headline: headlineText,
     coachFocus: sanitizedCoachFocus,
     strongerVersion: sanitizedStrongerVersion,
     // §4.5.2 — the Coach's Focus dimension IS the primary focus (drives
@@ -1973,7 +2035,10 @@ export async function runSingleCallScore(
   },
 ): Promise<ScoreRepResult> {
   const config: HybridConfig =
-    opts?.config ?? { deliveryMode: "deterministic", thinkingMode: "blend" };
+    // WS6 — Thinking Quality is the model's score; the 60/40 blend that
+    // compressed it to 40% of its range is gone (the disfluency numbers now
+    // reach the model as a DISFLUENCY line in the prompt instead).
+    opts?.config ?? { deliveryMode: "deterministic", thinkingMode: "llm" };
   const anchorsBlock = opts?.anchorsBlock ?? null;
   const lean = opts?.lean ?? false;
   const leanFeedbackCap = opts?.leanFeedbackCap;
@@ -2048,6 +2113,7 @@ export async function runSingleCallScore(
     signalsFlagOn: prep.signalsFlagOn,
     textSignals: prep.textSignals,
     modelUsed: callMetrics.modelUsed,
+    relevance: prep.relevance,
   });
 
   const validationDurationMs = Date.now() - validationStart;
