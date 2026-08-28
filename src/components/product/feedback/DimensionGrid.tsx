@@ -65,6 +65,25 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
       return m;
     }, [dimensions]);
 
+    // Grading plan WS5 — evidence note. Tone graded without audio is a
+    // text-only read (lower confidence); say so on the card instead of
+    // presenting it like a measured score.
+    const evidenceNoteMap = useMemo(() => {
+      const m = new Map<SkillDimension, string>();
+      for (const d of dimensions) {
+        if (
+          d.dimension === "tone" &&
+          d.signals?.some((s) => s === "[toneSource: text]")
+        ) {
+          m.set(
+            d.dimension,
+            "Graded from the words only. No audio was available, so this is a lower-confidence read of your tone.",
+          );
+        }
+      }
+      return m;
+    }, [dimensions]);
+
     // v4.1 grounded moments — the verbatim quote (+ optional ms offset)
     // each skill's score turns on. Absent on pre-v4.1 reps.
     const quoteMap = useMemo(() => {
@@ -186,6 +205,7 @@ export const DimensionGrid = forwardRef<DimensionGridHandle, Props>(
                 dimension={dim}
                 score={score}
                 feedback={feedbackMap.get(dim)}
+                evidenceNote={evidenceNoteMap.get(dim)}
                 groundedMoment={quoteMap.get(dim) ?? null}
                 callouts={calloutsByDim.get(dim) ?? []}
                 expanded={expanded}

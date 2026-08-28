@@ -23,6 +23,9 @@ type Props = {
    *  score turns on, with an optional ms offset for tap-to-hear. Rendered
    *  under the feedback sentence in the expanded panel. */
   groundedMoment?: { quote: string; quoteAtMs: number | null } | null;
+  /** WS5 — one plain sentence about the evidence behind the score (e.g.
+   *  Tone graded from text only). Rendered under the feedback. */
+  evidenceNote?: string;
   /** Pre-filtered to only callouts where `dimension === this dimension`.
    *  Legacy reps only — v4 reps emit no callouts. */
   callouts: Callout[];
@@ -46,6 +49,7 @@ export function DimensionCard({
   score,
   feedback,
   groundedMoment,
+  evidenceNote,
   callouts,
   expanded,
   onToggle,
@@ -144,6 +148,11 @@ export function DimensionCard({
             {feedback && (
               <p className="text-[13px] leading-relaxed text-ink-700 dark:text-ink-200">
                 {feedback}
+              </p>
+            )}
+            {evidenceNote && (
+              <p className="mt-2 text-[11px] leading-relaxed text-ink-400 dark:text-ink-500">
+                {evidenceNote}
               </p>
             )}
             {groundedMoment && (

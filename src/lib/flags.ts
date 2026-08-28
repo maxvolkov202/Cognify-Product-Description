@@ -105,3 +105,11 @@ export function isDashboardSocialEnabled(): boolean {
 export function isRepFrameworkEditEnabled(): boolean {
   return defaultOnOutsideProduction("FF_REP_FRAMEWORK_EDIT");
 }
+
+/** Grading plan WS5 — deterministic Tone core from Praat prosody, with
+ *  the model adjusting within ±10. Stays OFF in production until the
+ *  WS5 gate (≥ 30 audio-graded reps across ≥ 5 users, Chrome + Safari)
+ *  confirms the audio path; ON in dev/preview so it can be exercised. */
+export function isToneProsodyCoreEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_TONE_PROSODY_CORE");
+}

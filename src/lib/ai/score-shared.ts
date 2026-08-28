@@ -43,6 +43,13 @@ import {
   blendScores,
   RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
+import {
+  scoreToneFromProsody,
+  blendToneWithModel,
+  buildToneFeedback,
+  TONE_LLM_ADJUST_MAX,
+} from "@/lib/scoring/tone-core";
+import { isToneProsodyCoreEnabled } from "@/lib/flags";
 import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
   SUB_SKILL_TO_DIMENSION,
@@ -481,7 +488,7 @@ PROSODY EVIDENCE SCOPE:
   - When a PROSODY block is present in the user message, ground the delivery and tone scores (and their feedback lines) in it.
   - PROSODY EVIDENCE informs delivery and tone ONLY. Never let vocal measurements move clarity, structure, conciseness, or thinking_quality.
   - The reverse also holds: Tone grades the VOICE, not the words. Mediocre content delivered with genuinely expressive prosody is HIGH tone + low content scores — do not drag tone down because the argument was weak.
-  - Map the measurements to tone bands directly: pitch std ≥3 semitones with monotone ratio <20% and no upspeak pattern = healthy vocal variety, tone 70-85 (higher when volume also varies and articulation is crisp). Sustained monotone (monotone ratio >60% or pitch std <1 semitone) = tone ≤45. Between those, interpolate. Vocal variety AT target is strong tone — do not hold it in the 50s out of rigor.
+  - Map the measurements to tone bands directly: pitch std ≥3 semitones and no upspeak pattern = healthy vocal variety, tone 70-85 (higher when volume also varies and articulation is crisp). Sustained monotone (pitch std <1 semitone) = tone ≤45. Between those, interpolate. The monotone ratio is derived from the same pitch std, not a second signal. Vocal variety AT target is strong tone — do not hold it in the 50s out of rigor.
   - When NO prosody/audio evidence is present, grade tone conservatively toward band center (55-70) from text alone — do not invent vocal qualities.
   - When NO prosody/audio evidence is present, grade DELIVERY from the MEASURED RATE line and transcript fluency (rate, filler, repetition, restarts) — those are what you can read, so score them and be consistent run to run. Go BELOW 70 only when you can point to a specific cause: a measured rate well outside 130-165, or transcript evidence of heavy filler / restarts / off-prompt rambling.
 
@@ -1865,6 +1872,40 @@ export function assembleRepScore(opts: {
       ? { ...d, signals: [...d.signals, `[toneSource: ${toneSource}]`] }
       : d,
   );
+
+  // Grading plan WS5 — prosody-first Tone. When the worker measured the
+  // audio, the measurement sets the core and the model's score may move
+  // it by at most ±10 (its narrative stays; it was grounded in the same
+  // PROSODY block). Flag-gated: OFF in prod until the WS5 audio gate.
+  if (isToneProsodyCoreEnabled()) {
+    const core = scoreToneFromProsody(prosodyFeatures);
+    if (core && prosodyFeatures) {
+      const llmTone = dimensionMap.tone;
+      const finalTone = blendToneWithModel(core.score, llmTone);
+      // Divergence guard (same rule as Delivery): when the core moved the
+      // number more than the model's ±10 could follow, the model's
+      // sentence and quote explain a score that no longer exists — swap
+      // in the measured narrative and drop the moment.
+      const diverges = llmTone == null || Math.abs(llmTone - finalTone) > TONE_LLM_ADJUST_MAX;
+      dimensionMap.tone = finalTone;
+      finalDimensions = finalDimensions.map((d) => {
+        if (d.dimension !== "tone") return d;
+        const next = {
+          ...d,
+          score: finalTone,
+          signals: [
+            ...d.signals,
+            `[toneCore: ${core.score} (${core.evidence}); model: ${llmTone ?? "n/a"}]`,
+          ],
+        };
+        if (!diverges) return next;
+        const swapped: DimensionScore = { ...next, feedback: buildToneFeedback(prosodyFeatures) };
+        delete swapped.quote;
+        delete swapped.quoteAtMs;
+        return swapped;
+      });
+    }
+  }
 
   const compositeScore = composite(dimensionMap, input.weights);
 

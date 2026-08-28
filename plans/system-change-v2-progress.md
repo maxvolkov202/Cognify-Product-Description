@@ -1385,3 +1385,35 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (`cognify-v2-n6ejejohb`, aliased `www.cognifygym.com`; `/` and `/api/health` 200). Next: WS5 tone
     prosody-first (`feat/tone-prosody-first`); its ≥ 30-audio-rep gate is unmet, so the deterministic tone core
     ships behind `FF_TONE_PROSODY_CORE` (OFF in prod) with the prompt field-name fix live.
+
+- **2026-08-28 — Grading WS5: Tone prosody-first** (`feat/tone-prosody-first`, plan §3.5).
+  - `src/lib/ai/knowledge/skills/tone.md` now names the fields the PROSODY block actually shows (pitch std /
+    range in semitones, monotone ratio, upspeak ratio, volume std vs mean, articulation); the phantom
+    `pitch_variance_st` / `rms_std_db` / `final_quartile_rms_delta` lines are gone. Text-only rule kept (55–70).
+  - `src/lib/scoring/tone-core.ts`: deterministic Tone core from Praat features (pitch std curve → variety,
+    monotone and upspeak penalties, volume-dynamics and articulation modifiers; 20–95). In `assembleRepScore`,
+    behind **`FF_TONE_PROSODY_CORE`** (ON outside prod, **OFF in prod**), the core sets Tone and the model's score
+    may move it by at most ±10; the model's narrative stays. Hume-only bundles stay with the model.
+  - UI: Tone card shows "Graded from the words only. No audio was available, so this is a lower-confidence read
+    of your tone." when `[toneSource: text]`.
+  - Tests: `tests/tone-core.test.ts` (16: flat vs expressive ≥ 20 apart, PSOLA-flat ≤ 45, upspeak, monotone,
+    monotonicity, blend clamp). Suite, tsc, lint green.
+  - **Calibration (tone.md bytes changed):** branch 28/48 vs `main` control 31/48, identical drift pattern, no
+    Tone drift flagged on either. **Audio-tone bank (15 clips) not re-run:** `calibrate-audio-tone.mjs` serves
+    the clips from `127.0.0.1` and `.env.local` has no `PROSODY_WORKER_URL`, so no worker can fetch them locally;
+    run it against a preview deploy with the worker configured before flipping the flag.
+  - **Gate (open, blocks the prod flag):** ≥ 30 audio-graded reps across ≥ 5 users, Chrome + Safari (PR #72
+    confirmation); then flat vs expressive ≥ 20 apart on real audio reps, Tone–clarity correlation ≤ .4,
+    human-set Tone MAE improves. Until then prod keeps the model's Tone with the corrected knowledge text.
+  - **Targeted review (the `/code-review` runs kept reviewing the merged audit scripts) — fixed before merge:**
+    the worker derives `monotoneRatio` from pitch std (1.0 at ≤ 1.5 st, 0 at ≥ 4.5 st), so the separate monotone
+    penalty double-counted and is gone; `rmsStd` is Praat intensity in dB, so volume dynamics are anchored at
+    2/4/7/10 dB (the original `rms_std_db < 2` idea was right, only the field name was wrong); the pitch curve
+    is retuned so 3 st ≈ 72, 2.5 st ≈ 63, 1 st ≈ 43, 0.25 st ≈ 33 with ordinary modifiers; tone.md and the
+    system prompt's PROSODY EVIDENCE rule drop the "≥ 3 st with monotone < 20%" pairing (unsatisfiable below
+    3.9 st under the worker's formula); tone divergence guard (core beyond the model's ±10 → measured narrative,
+    quote dropped); non-finite worker values fall back to the model; `generated.ts` was stale on the branch
+    (plain `next dev` skips `build:knowledge`; use `npm run dev`) and is regenerated. Re-run after the fixes
+    with fresh knowledge bytes: **31/48 (17 fail), equal to the `main` control.** Baseline runs of the audio-tone
+    bank must set `FF_TONE_PROSODY_CORE=false` (the flag defaults ON outside prod); arm B/C also pass through
+    the core when the flag is on (dormant arms).
