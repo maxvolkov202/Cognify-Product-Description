@@ -1405,3 +1405,15 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   - **Gate (open, blocks the prod flag):** ≥ 30 audio-graded reps across ≥ 5 users, Chrome + Safari (PR #72
     confirmation); then flat vs expressive ≥ 20 apart on real audio reps, Tone–clarity correlation ≤ .4,
     human-set Tone MAE improves. Until then prod keeps the model's Tone with the corrected knowledge text.
+  - **Targeted review (the `/code-review` runs kept reviewing the merged audit scripts) — fixed before merge:**
+    the worker derives `monotoneRatio` from pitch std (1.0 at ≤ 1.5 st, 0 at ≥ 4.5 st), so the separate monotone
+    penalty double-counted and is gone; `rmsStd` is Praat intensity in dB, so volume dynamics are anchored at
+    2/4/7/10 dB (the original `rms_std_db < 2` idea was right, only the field name was wrong); the pitch curve
+    is retuned so 3 st ≈ 72, 2.5 st ≈ 63, 1 st ≈ 43, 0.25 st ≈ 33 with ordinary modifiers; tone.md and the
+    system prompt's PROSODY EVIDENCE rule drop the "≥ 3 st with monotone < 20%" pairing (unsatisfiable below
+    3.9 st under the worker's formula); tone divergence guard (core beyond the model's ±10 → measured narrative,
+    quote dropped); non-finite worker values fall back to the model; `generated.ts` was stale on the branch
+    (plain `next dev` skips `build:knowledge`; use `npm run dev`) and is regenerated. Re-run after the fixes
+    with fresh knowledge bytes: **31/48 (17 fail), equal to the `main` control.** Baseline runs of the audio-tone
+    bank must set `FF_TONE_PROSODY_CORE=false` (the flag defaults ON outside prod); arm B/C also pass through
+    the core when the flag is on (dormant arms).
