@@ -11,6 +11,7 @@
  * scored 30 times.
  */
 import type { DimensionScore, SkillDimension } from "@/types/domain";
+import { softTruncate } from "@/lib/scoring/soft-truncate";
 
 /** Starting threshold; tune from `[relevance: x]` tags on ≥ 50 real reps. */
 export const RELEVANCE_FLOOR_SIMILARITY = 0.2;
@@ -51,6 +52,6 @@ export function applyRelevanceFloor(input: {
   });
   const headline = input.headline.startsWith(RELEVANCE_HEADLINE_PREFIX)
     ? input.headline
-    : `${RELEVANCE_HEADLINE_PREFIX} ${input.headline}`.slice(0, 200);
+    : softTruncate(`${RELEVANCE_HEADLINE_PREFIX} ${input.headline}`, 200);
   return { dimensions, headline, dimensionMap };
 }

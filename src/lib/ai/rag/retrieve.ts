@@ -90,9 +90,10 @@ async function embedQuery(text: string): Promise<number[] | null> {
 
 /** WS6 — public wrapper so the relevance check (prompt embedding) uses
  *  the same model and truncation as RAG. Returns null without a key. */
+export const EMBED_TEXT_TIMEOUT_MS = 1_500;
 export async function embedText(text: string): Promise<number[] | null> {
   try {
-    return await embedQuery(text);
+    return await withTimeout(embedQuery(text), EMBED_TEXT_TIMEOUT_MS, "embedText");
   } catch {
     return null;
   }

@@ -301,7 +301,7 @@ async function run() {
     // Signals field is gone from the output schema block...
     check(
       "lean prompt drops the signals output field",
-      !LEAN_SYSTEM_PROMPT.includes(`"signals": ["..."]`),
+      !LEAN_SYSTEM_PROMPT.includes(`"signals": ["one-line reasons`),
     );
     // ...feedback cap is halved (400→160)...
     check(
@@ -336,7 +336,7 @@ async function run() {
     const p280 = leanSystemPromptFor(280);
     const p160 = leanSystemPromptFor(160);
 
-    check("all caps drop the signals field", [p400, p280, p160].every((p) => !p.includes(`"signals": ["..."]`)));
+    check("all caps drop the signals field", [p400, p280, p160].every((p) => !p.includes(`"signals": ["one-line reasons`)));
 
     // 400 = signals-only: feedback prose untouched (still ≤400, still 1-2).
     check("cap 400 keeps ≤400 char rule", p400.includes("no hedging, ≤400 chars."));

@@ -1422,15 +1422,23 @@ export async function buildUserPrompt(
           return r;
         })
       : Promise.resolve(null);
-  // WS6 — relevance: embed the prompt alongside RAG's transcript embedding.
+  // WS6 — relevance: embed the prompt alongside RAG's transcript embedding
+  // (both bounded by EMBED_TEXT_TIMEOUT_MS; a slow embed never holds the
+  // grader). When RAG is off, the transcript embed runs in the same
+  // parallel batch, not after it.
   const promptEmbeddingPromise = embedText(input.promptText);
+  const transcriptEmbeddingPromise = ragEnabled
+    ? Promise.resolve<number[] | null>(null)
+    : embedText(input.transcript);
   // Await all concurrently — none depend on each other.
-  const [workerProsody, ragResult, promptEmbedding] = await Promise.all([
-    workerPromise,
-    ragPromise,
-    promptEmbeddingPromise,
-  ]);
-  const transcriptEmbedding = ragResult.queryEmbedding ?? (ragEnabled ? null : await embedText(input.transcript));
+  const [workerProsody, ragResult, promptEmbedding, transcriptEmbeddingFallback] =
+    await Promise.all([
+      workerPromise,
+      ragPromise,
+      promptEmbeddingPromise,
+      transcriptEmbeddingPromise,
+    ]);
+  const transcriptEmbedding = ragResult.queryEmbedding ?? transcriptEmbeddingFallback;
   const relevance =
     promptEmbedding && transcriptEmbedding
       ? cosineSimilarity(promptEmbedding, transcriptEmbedding)
@@ -1759,6 +1767,14 @@ export type HybridConfig = {
 /** Apply the hybrid scoring layer (deterministic delivery override + thinking
  *  blend) under a config. With the control config and word timings present
  *  this is byte-identical to the inline control path. */
+/** WS6 — Thinking Quality is the model's score; the 60/40 blend that
+ *  compressed it to 40% of its range is gone (the disfluency numbers now
+ *  reach the model as a DISFLUENCY line in the prompt instead). */
+export const DEFAULT_HYBRID_CONFIG: HybridConfig = {
+  deliveryMode: "deterministic",
+  thinkingMode: "llm",
+};
+
 export function applyHybridLayer(opts: {
   dims: DimensionScore[];
   input: ScoreRepInput;
@@ -2035,10 +2051,7 @@ export async function runSingleCallScore(
   },
 ): Promise<ScoreRepResult> {
   const config: HybridConfig =
-    // WS6 — Thinking Quality is the model's score; the 60/40 blend that
-    // compressed it to 40% of its range is gone (the disfluency numbers now
-    // reach the model as a DISFLUENCY line in the prompt instead).
-    opts?.config ?? { deliveryMode: "deterministic", thinkingMode: "llm" };
+    opts?.config ?? DEFAULT_HYBRID_CONFIG;
   const anchorsBlock = opts?.anchorsBlock ?? null;
   const lean = opts?.lean ?? false;
   const leanFeedbackCap = opts?.leanFeedbackCap;

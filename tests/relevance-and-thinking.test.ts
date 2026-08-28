@@ -2,9 +2,8 @@
  * Grading plan WS6 — relevance check, disfluency line, thinking off the blend.
  * Run: npx tsx tests/relevance-and-thinking.test.ts
  */
-import { readFileSync } from "node:fs";
 import { cosineSimilarity, relevanceBelowFloor, applyRelevanceFloor, RELEVANCE_FLOOR_CAP, RELEVANCE_HEADLINE_PREFIX } from "@/lib/scoring/relevance";
-import { renderDisfluencyLine, applyHybridLayer } from "@/lib/ai/score-shared";
+import { renderDisfluencyLine, applyHybridLayer, DEFAULT_HYBRID_CONFIG, buildSystemBlocks } from "@/lib/ai/score-shared";
 import type { DimensionScore } from "@/types/domain";
 
 let pass = 0;
@@ -52,8 +51,7 @@ function check(name: string, cond: boolean, detail?: string) {
 
 // ── thinking: default config is the model's score ──
 {
-  const src = readFileSync("src/lib/ai/score-shared.ts", "utf8");
-  check("default hybrid config has thinkingMode llm", /opts\?\.config \?\? \{ deliveryMode: "deterministic", thinkingMode: "llm" \}/.test(src));
+  check("default hybrid config has thinkingMode llm", DEFAULT_HYBRID_CONFIG.thinkingMode === "llm" && DEFAULT_HYBRID_CONFIG.deliveryMode === "deterministic");
   const w = (word: string, startMs: number, endMs: number) => ({ word, startMs, endMs });
   const words = Array.from({ length: 30 }, (_, i) => w(`w${i}`, i * 400, i * 400 + 200));
   const dims: DimensionScore[] = [{ dimension: "thinking_quality", score: 25, signals: [] }, { dimension: "delivery", score: 70, signals: [] }];
@@ -61,9 +59,10 @@ function check(name: string, cond: boolean, detail?: string) {
   check("llm mode keeps the model's 25 (blend would show 61)", llm.dimensionMap.thinking_quality === 25, String(llm.dimensionMap.thinking_quality));
   const blend = applyHybridLayer({ dims, input: { transcript: words.map((x) => x.word).join(" "), promptText: "p", durationMs: 12000, words } as never, config: { deliveryMode: "deterministic", thinkingMode: "blend" } });
   check("blend mode still available for arms", blend.dimensionMap.thinking_quality! > 25);
-  // output contract: evidence before score
-  const contract = src.split("Return ONLY a JSON object")[1]!.slice(0, 900);
-  check("contract lists quote and signals before score", contract.indexOf('"quote"') < contract.indexOf('"score"') && contract.indexOf('"signals"') < contract.indexOf('"score"'));
+  // output contract: evidence before score (read from the rendered system prompt)
+  const sys = buildSystemBlocks({ rubricBlock: "" }).map((b) => (typeof b === "string" ? b : (b as { text?: string }).text ?? "")).join("\n");
+  const contract = sys.split("Return ONLY a JSON object")[1]!.slice(0, 900);
+  check("contract lists quote and signals before score", contract.indexOf('"quote"') < contract.indexOf('"score"') && contract.indexOf('"signals"') < contract.indexOf('"score"'), contract.slice(0, 120));
 }
 
 console.log("────────────────────────────");
