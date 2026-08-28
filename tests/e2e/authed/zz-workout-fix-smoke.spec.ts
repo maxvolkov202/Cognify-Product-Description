@@ -9,7 +9,7 @@
  *      window. This spec PAUSES like a human, then asserts the feedback is
  *      still there — the assertion that actually reproduces the bug.
  *   2. Every rep reaches scoring — both a proper-length rep AND a short rep
- *      that goes through the "Proceed anyway" gate.
+ *      (short reps score directly since WS3; no gate).
  *   3. Jotted notes are cleared once the rep is scored (no bleed into the
  *      next rep at that station).
  *   4. Leaving mid-day and coming back RESUMES at the next rep, not rep 1.
@@ -59,7 +59,7 @@ async function completeStationHoldingFeedback(
 ): Promise<void> {
   await pickPromptThenInsight(page);
 
-  // First rep — reaches scoring (short reps route through Proceed anyway
+  // First rep — reaches scoring (short reps score directly since WS3
   // inside recordRep; long reps skip the gate). Either way: feedback.
   await recordRep(page, seconds);
   await awaitFeedback(page, /Retry this rep/i);
@@ -91,7 +91,7 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
   });
   if (await startCta.count()) await startCta.first().click();
 
-  // ── Station 1: jot a note, short rep + Proceed anyway, feedback holds,
+  // ── Station 1: jot a note, short rep scores directly, feedback holds,
   //    note is cleared once scored. ───────────────────────────────────────
   await pickPromptThenInsight(page);
 
@@ -118,7 +118,7 @@ test("workout loop fix: score reveal holds, both gates score, notes clear, resum
     }
   }
 
-  // Short rep → the speaking-threshold gate → Proceed anyway → scoring.
+  // Short rep → scoring directly (WS3 removed the gate).
   await recordRep(page, 12);
   await awaitFeedback(page, /Retry this rep/i);
   await assertScoreRevealHolds(page);

@@ -39,20 +39,11 @@ export async function recordRep(page: Page, seconds = 12): Promise<void> {
       .click({ force: true, timeout: 15_000 });
   }
 
-  // Speaking-threshold gate (ratio floor) — proceed deliberately.
-  const proceed = page.getByRole("button", { name: /Proceed anyway/i });
-  try {
-    await proceed.waitFor({ state: "visible", timeout: 8_000 });
-    await proceed.click();
-  } catch {
-    // No gate (long-enough rep or mode without a threshold) — fine.
-  }
+  // WS3 (2026-08-28): the speaking-threshold gate and its "Proceed anyway"
+  // modal are gone — short reps score directly.
 }
 
-/** Wait out live transcription + scoring until the feedback CTA shows.
- *  Slow transcription can surface the speaking-threshold gate AFTER
- *  recordRep's own 8s proceed-window — so this also clicks through a
- *  late "Proceed anyway" instead of dying on a gate nobody dismissed. */
+/** Wait out live transcription + scoring until the feedback CTA shows. */
 export async function awaitFeedback(
   page: Page,
   ctaPattern: RegExp,
@@ -60,12 +51,8 @@ export async function awaitFeedback(
 ): Promise<void> {
   const deadline = Date.now() + timeout;
   const cta = page.getByRole("button", { name: ctaPattern }).first();
-  const proceed = page.getByRole("button", { name: /Proceed anyway/i });
   for (;;) {
     if (await cta.isVisible().catch(() => false)) return;
-    if (await proceed.isVisible().catch(() => false)) {
-      await proceed.click().catch(() => {});
-    }
     if (Date.now() > deadline) break;
     await page.waitForTimeout(500);
   }

@@ -1340,3 +1340,10 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (`calib-ws3.log`, `calib-main.log`, ~18 min each, guest `…ws3c…`).
   - **Verify gate (open):** on ≥ 50 real reps no dimension feedback mentions length; human-set metrics not worse
     than baseline (pending sheets). The 6 s / 12-word case is unit-covered (`isBelowScoringFloor`).
+  - **`/code-review high` on WS3 — fixed before merge:** an empty transcript on a > 3 s recording no longer slips
+    past the floor to score the "Rep recorded for Ns" placeholder (`wordCount === 0` is always below floor);
+    `scorePacing`'s slow/rushed WPM branches now share the 8 s `RATE_MEASURABLE_MIN_MS` guard with the prompt's
+    "n/a" line; scaled pause/stall penalties say "(reduced weight, Ns rep)" and sub-point penalties are not
+    reported; dead `onDiscard` prop removed; `timeBudgetMs` rounded to an int; e2e helpers no longer wait for
+    "Proceed anyway"; floor card has its own heading. Calibration note: one bank rep, `edge-brevity-cost-meaning`
+    (3.0 s), now renders the "n/a" rate line, so its prompt bytes differ; it passed in both runs.

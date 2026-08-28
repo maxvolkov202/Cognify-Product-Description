@@ -27,6 +27,8 @@ function check(name: string, cond: boolean, detail?: string) {
   check("6 s / 12-word rep (plan verify case) → scored", !isBelowScoringFloor({ transcript: "a b c d e f g h i j k l", durationMs: 6000 }).belowFloor);
   check("explicit wordCount wins", isBelowScoringFloor({ transcript: "lots of words here really", wordCount: 2, durationMs: 1000 }).belowFloor);
   check("empty → below floor", isBelowScoringFloor({ transcript: "", durationMs: 500 }).belowFloor);
+  check("empty transcript on a 12 s recording → below floor (never score the placeholder)", isBelowScoringFloor({ transcript: "   ", durationMs: 12_000 }).belowFloor);
+  check("words=0 explicit on 20 s → below floor", isBelowScoringFloor({ transcript: "ignored", wordCount: 0, durationMs: 20_000 }).belowFloor);
 }
 
 // ── §4.6 scorePacing: no under-budget dock, over-budget still docks ──
@@ -44,6 +46,10 @@ const base: SignalBundle = {
   check("30% over budget still docks", over.score < 92 && over.signals.some((s) => /over time budget/i.test(s)), String(over.score));
   const full = scorePacing({ ...base, timeBudgetRatio: 1.0, durationMs: 60_000 });
   check("short rep == full-length rep on identical fluency", short.score === full.score);
+  const slow7s = scorePacing({ ...base, durationMs: 7_000, wpm: 50, wordCount: 6 });
+  check("7 s / 50 wpm → rate not judged (matches n/a line)", slow7s.score === 92 && !slow7s.signals.some((s) => /Pace slow/.test(s)), String(slow7s.score));
+  const slow9s = scorePacing({ ...base, durationMs: 9_000, wpm: 50, wordCount: 8 });
+  check("9 s / 50 wpm → rate judged", slow9s.score === 87, String(slow9s.score));
 }
 
 // ── §4.7 thinking: pause penalties scale with duration ──
@@ -52,6 +58,9 @@ const base: SignalBundle = {
   const short = scoreThinkingQualityDeterministic({ ...base, durationMs: 10_000, longPauseCount: 1, stallCount: 0 });
   check("60 s / 6 pauses docks the cap (85-15=70)", long.score === 70, String(long.score));
   check("10 s / 1 pause docks ~0.5, not 3", short.score >= 84, String(short.score));
+  check("sub-point penalty is not reported as a reason", !short.signals.some((s) => /long pause/.test(s)), short.signals.join("|"));
+  const mid = scoreThinkingQualityDeterministic({ ...base, durationMs: 30_000, longPauseCount: 2 });
+  check("scaled penalty says so in the reason", mid.signals.some((s) => /reduced weight, 30s rep/.test(s)), mid.signals.join("|"));
   const stallShort = scoreThinkingQualityDeterministic({ ...base, durationMs: 10_000, stallCount: 1 });
   const stallLong = scoreThinkingQualityDeterministic({ ...base, durationMs: 60_000, stallCount: 1 });
   check("stall penalty smaller on the short rep", stallShort.score > stallLong.score);

@@ -85,8 +85,6 @@ type Props = {
    *  of resetting its own state. Used by WorkoutSession to force remount
    *  and pop the last score on retry. */
   onRetry?: () => void;
-  /** External discard handler for the speaking-threshold gate. */
-  onDiscard?: () => void;
   /** Which feedback surface to render in the `done` phase.
    *  - `"full"` (default): standard FeedbackPanel with full dimension
    *    breakdown, callouts, transcript, retry + next buttons.
@@ -200,7 +198,14 @@ type Phase =
       calloutIds: string[];
       gate: "signup_required" | null;
     }
-  | { kind: "error"; message: string; recording?: RecordingResult };
+  | {
+      kind: "error";
+      message: string;
+      recording?: RecordingResult;
+      /** WS3 — the scoring-floor card uses its own heading; other errors
+       *  keep "Recording captured". */
+      heading?: string;
+    };
 
 // Feature flag — when set to "true" in .env, authenticated users run scoring
 // via the Supabase `process-rep` Edge Function with realtime status updates.
@@ -428,8 +433,8 @@ export function RepSurface({
 
     // Grading audit WS1 — client latency breakdown. e2eStart is the
     // stop-recording moment (this handler runs on the recorder's result);
-    // the numbers land on scoring_telemetry via saveRep. A ref because
-    // runScoringPath is a separate function.
+    // the numbers land on scoring_telemetry via saveRep. Kept in a ref
+    // because runScoringPath is a separate function.
     clientTimingRef.current = {
       e2eStart: performance.now(),
       deepgramMs: null,
@@ -499,7 +504,8 @@ export function RepSurface({
     if (floor.belowFloor) {
       setPhase({
         kind: "error",
-        message: "Too short to score. Try one full thought before the cut.",
+        heading: "Too short to score",
+        message: "Try one full thought before the cut.",
         recording: result,
       });
       return;
@@ -515,8 +521,8 @@ export function RepSurface({
     transcript: string,
     words: { word: string; startMs: number; endMs: number }[],
   ) => {
-    // Abort may have fired between the transcribe gate and here (or before the
-    // a late click). Bail before touching any network/DB.
+    // Abort may have fired between transcription and here. Bail before
+    // touching any network/DB.
     if (abortedRef.current) return;
     currentRecordingRef.current = result;
 
@@ -681,7 +687,7 @@ export function RepSurface({
       durationMs: result.durationMs,
       // WS3 §4.6 — the sync path never sent this, so the over-budget
       // pacing penalty could never fire. Under-budget is no longer docked.
-      timeBudgetMs: scoringTimeBudgetMs,
+      timeBudgetMs: Math.round(scoringTimeBudgetMs),
       ...(words.length > 0 ? { words } : {}),
       ...(framework
         ? {
@@ -868,8 +874,6 @@ export function RepSurface({
     setPersistFailed(false);
     setPhase({ kind: "idle" });
   };
-
-
 
   // ——— Feedback / done state ——————————————————————————
   if (phase.kind === "done") {
@@ -1271,7 +1275,7 @@ export function RepSurface({
       {phase.kind === "error" && (
         <div className="surface-card p-6">
           <p className="text-sm font-semibold text-ink-900 dark:text-white">
-            Recording captured
+            {phase.heading ?? "Recording captured"}
           </p>
           <p className="mt-1 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
             {phase.message}

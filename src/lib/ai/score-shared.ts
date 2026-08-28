@@ -41,6 +41,7 @@ import {
   scorePacing,
   scoreThinkingQualityDeterministic,
   blendScores,
+  RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
 import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
@@ -284,7 +285,8 @@ export type ScoreRepInput = {
   /**
    * Expected rep time budget (ms). Used by the deterministic pacing
    * scorer to compute timeBudgetRatio. Defaults to durationMs if not
-   * provided — which means no over/under budget penalty is applied.
+   * provided — which means the over-budget penalty cannot fire (WS3:
+   * under-budget is never docked).
    */
   timeBudgetMs?: number;
   frameworkNodes?: { label: string; description: string }[];
@@ -1279,10 +1281,10 @@ export type ScoreRepResult = {
 // the calibration guardrail. Do NOT add arm-specific branches here; arms
 // compose these helpers instead.
 
-/** Grading plan WS3 (§4.5) — below this duration a words-per-minute figure
- *  is noise (three words in two seconds is "90 wpm"); the line says so and
- *  the prompt rule tells the model not to dock delivery on rate. */
-export const RATE_LINE_MIN_MS = 8_000;
+/** Grading plan WS3 (§4.5) — below this duration the rate line reads "n/a"
+ *  and the prompt rule tells the model not to dock delivery on rate. One
+ *  constant with the deterministic WPM branches (deterministic.ts). */
+export const RATE_LINE_MIN_MS = RATE_MEASURABLE_MIN_MS;
 
 /** The per-rep duration + rate line. Deterministic function of
  *  (transcript, durationMs) → byte-stable for reference reps. */

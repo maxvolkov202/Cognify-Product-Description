@@ -1,5 +1,7 @@
 "use client";
 
+import { getWordCount } from "@/lib/scoring/signals/_helpers";
+
 import type { WorkoutSessionPlan } from "@/lib/workout/lab-plan";
 import type { RepScore } from "@/types/domain";
 
@@ -74,7 +76,9 @@ export function clearPauseState(): void {
 
 /**
  * Grading plan WS3 (§4.2) — the ONE silent floor below which there is
- * nothing to grade: fewer than 5 recognised words AND under 3 s of speech.
+ * nothing to grade: fewer than 5 recognised words AND under 3 s of speech,
+ * or no recognised words at all (a muted mic or an empty Deepgram result
+ * must never reach the scorer as the "Rep recorded for Ns" placeholder).
  * Everything above it is scored; length is never a reason to block, warn,
  * or dock (the old word-count / duration-ratio gate and its modal are
  * gone). 5 words is a starting value; tune from `scoring_telemetry.short_rep`.
@@ -87,13 +91,12 @@ export function isBelowScoringFloor(params: {
   wordCount?: number;
   durationMs: number;
 }): { belowFloor: boolean; wordCount: number } {
-  const wordCount =
-    params.wordCount ??
-    params.transcript.trim().split(/\s+/).filter(Boolean).length;
+  const wordCount = params.wordCount ?? getWordCount(params.transcript);
   return {
     belowFloor:
-      wordCount < SCORING_FLOOR_MIN_WORDS &&
-      params.durationMs < SCORING_FLOOR_MIN_MS,
+      wordCount === 0 ||
+      (wordCount < SCORING_FLOOR_MIN_WORDS &&
+        params.durationMs < SCORING_FLOOR_MIN_MS),
     wordCount,
   };
 }
