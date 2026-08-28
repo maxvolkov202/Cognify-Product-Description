@@ -396,6 +396,14 @@ function renderTimedTranscript(
 // rather than being repeated inline. Output is bounded JSON with strict
 // rules; verbose framing slowed things down without measurably improving
 // quality in our internal calibration runs.
+/** WS6 — dimension line of the output contract. Evidence-first (quote,
+ *  signals, feedback before score) by default; SCORING_EVIDENCE_FIRST=false
+ *  restores the score-first order (calibration A/B knob). */
+const DIMENSION_CONTRACT_LINE =
+  process.env.SCORING_EVIDENCE_FIRST === "false"
+    ? `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }`
+    : `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "score": 0-100, "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }`;
+
 const systemPrompt = `You are the scoring model for Cognify, a communication training gym. Score a rep across six dimensions on 0-100 and write the post-rep feedback the user reads.
 
 Dimensions, in order:
@@ -418,7 +426,7 @@ Return ONLY a JSON object (no prose, no markdown fences):
 
 {
   "dimensions": [
-    { "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "score": 0-100, "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }
+    ${DIMENSION_CONTRACT_LINE}
   ],
   "structuralAdherence": 0-100 (only when frameworkNodes provided, else omit),
   "headline": "one-line verdict, see HEADLINE RULES below",

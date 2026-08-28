@@ -409,7 +409,10 @@ function translateToOpenAI(
   // (no preamble / fences), which is what the brace-extraction fallback in
   // parseAndValidate used to paper over. Detected from the prompt text so
   // generation-path callers (prose outputs) are untouched.
-  const wantsJson = (systemContent ?? "").includes("Return ONLY a JSON object");
+  // SCORING_OPENAI_JSON_MODE=false disables it (calibration A/B knob).
+  const wantsJson =
+    process.env.SCORING_OPENAI_JSON_MODE !== "false" &&
+    (systemContent ?? "").includes("Return ONLY a JSON object");
   return {
     model: openaiModelForRole(params.model),
     max_tokens: params.max_tokens,
