@@ -28,7 +28,6 @@ import {
   ASSESSMENT_DAYS,
 } from "@/server/lib/workout/assignment";
 import { isPromptGenEnabled, isTrainingEngineV2Enabled } from "@/lib/flags";
-import { generateAndCachePrompts } from "@/server/lib/prompt-gen-cache";
 import { LEGACY_VERTICAL_TAGS } from "@/lib/workout/vertical-tags";
 import { textArrayLit } from "@/lib/db/sql-helpers";
 
@@ -77,6 +76,8 @@ export async function fetchPromptCandidates(input: {
     recentDimComposite: null,
   };
 
+  const t0 = Date.now();
+  const marks: Record<string, number> = {};
   return safeDb<FetchCandidatesResult>(async () => {
     const [exerciseRow] = await db
       .select({
@@ -87,6 +88,7 @@ export async function fetchPromptCandidates(input: {
       .where(eq(exercises.id, input.exerciseId))
       .limit(1);
     if (!exerciseRow) return fallback;
+    marks.exerciseMs = Date.now() - t0;
 
     // Resolve user's vertical + goals (NULL for anon + skipped).
     // Personas were dropped from the cascade — they layered an extra
@@ -150,57 +152,49 @@ export async function fetchPromptCandidates(input: {
     let recentPromptIds: string[] = [];
     if (user) {
       try {
-        const [compRow] = await db.execute<{ avg: number | null }>(drizzleSql`
-          SELECT AVG(r.composite_score)::real AS avg
-          FROM cognify_v2.reps r
-          JOIN cognify_v2.exercises e ON e.id = r.exercise_id
-          WHERE r.user_id = ${userId}
-            AND e.dimension = ${exerciseRow.dimension}
-            AND r.created_at >= NOW() - INTERVAL '14 days'
-            AND ${scoredRepSqlFragment("r")}
-        `);
+        // 1c — the three bias reads are independent; one round trip, not three.
+        // (recent-prompt join is scoped to the SAME exercise: prompt text is
+        // not unique across the catalog, and an unscoped join fans one rep
+        // out into several rows and shrinks the anti-repetition window.)
+        const [[compRow], recentRows, skippedRows] = await Promise.all([
+          db.execute<{ avg: number | null }>(drizzleSql`
+            SELECT AVG(r.composite_score)::real AS avg
+            FROM cognify_v2.reps r
+            JOIN cognify_v2.exercises e ON e.id = r.exercise_id
+            WHERE r.user_id = ${userId}
+              AND e.dimension = ${exerciseRow.dimension}
+              AND r.created_at >= NOW() - INTERVAL '14 days'
+              AND ${scoredRepSqlFragment("r")}
+          `),
+          db.execute<{ prompt_id: string | null }>(drizzleSql`
+            SELECT r.prompt_text, ep.prompt_id
+            FROM cognify_v2.reps r
+            LEFT JOIN cognify_v2.exercise_prompts ep
+              ON ep.prompt_text = r.prompt_text
+             AND ep.exercise_id = r.exercise_id
+             AND ep.is_active = true
+            WHERE r.user_id = ${userId}
+              AND r.exercise_id = ${input.exerciseId}
+            ORDER BY r.created_at DESC
+            LIMIT ${PROMPT_BIAS_WINDOW}
+          `),
+          // §8.5 content memory — prompts shown and skipped in the last 7
+          // days join the same soft-deprioritization tier as practiced ones.
+          db.execute<{ skipped: string[] | null }>(drizzleSql`
+            SELECT skipped_prompt_ids AS skipped
+            FROM cognify_v2.prompt_selection_events
+            WHERE user_id = ${userId}
+              AND exercise_id = ${input.exerciseId}
+              AND skipped_prompt_ids IS NOT NULL
+              AND created_at >= NOW() - INTERVAL '7 days'
+            ORDER BY created_at DESC
+            LIMIT 20
+          `),
+        ]);
         recentDimComposite = compRow?.avg ?? null;
-
-        // Join scoped to the SAME exercise (and to servable rows). Prompt
-        // text is not unique across the catalog — sibling exercises carry
-        // near-identical and occasionally identical prompts (e.g. "Should
-        // you stay in a city you hate for a job you love?" exists under
-        // both Conciseness/No Hedging and Structure/Bottom Line First).
-        // An unscoped text join fans one rep out into several rows, so the
-        // LIMIT covered fewer than PROMPT_BIAS_WINDOW distinct reps and the
-        // list filled with prompt ids belonging to OTHER exercises — which
-        // then consumed slots in the .slice(0, 20) cap below, silently
-        // shrinking the anti-repetition window it exists to provide.
-        const recentRows = await db.execute<{ prompt_id: string | null }>(drizzleSql`
-          SELECT r.prompt_text, ep.prompt_id
-          FROM cognify_v2.reps r
-          LEFT JOIN cognify_v2.exercise_prompts ep
-            ON ep.prompt_text = r.prompt_text
-           AND ep.exercise_id = r.exercise_id
-           AND ep.is_active = true
-          WHERE r.user_id = ${userId}
-            AND r.exercise_id = ${input.exerciseId}
-          ORDER BY r.created_at DESC
-          LIMIT ${PROMPT_BIAS_WINDOW}
-        `);
         recentPromptIds = recentRows
           .map((row) => row.prompt_id)
           .filter((id): id is string => id != null);
-
-        // §8.5 content memory — prompts the user was shown and skipped
-        // in the last 7 days join the same soft-deprioritization tier
-        // as recently-practiced prompts (never hard-excluded: a thin
-        // bank still fills the slate).
-        const skippedRows = await db.execute<{ skipped: string[] | null }>(drizzleSql`
-          SELECT skipped_prompt_ids AS skipped
-          FROM cognify_v2.prompt_selection_events
-          WHERE user_id = ${userId}
-            AND exercise_id = ${input.exerciseId}
-            AND skipped_prompt_ids IS NOT NULL
-            AND created_at >= NOW() - INTERVAL '7 days'
-          ORDER BY created_at DESC
-          LIMIT 20
-        `);
         const skippedIds = skippedRows.flatMap((row) =>
           Array.isArray(row.skipped)
             ? row.skipped.filter((id): id is string => typeof id === "string")
@@ -295,8 +289,12 @@ export async function fetchPromptCandidates(input: {
             eq(exercisePrompts.isActive, true),
             filter,
           ),
-        );
+        )
+        // 1c — a generated-thickened bank must not stream every prompt_text
+        // on each mount; the picker only needs a slate's worth of rotation.
+        .limit(300);
 
+    marks.biasMs = Date.now() - t0 - (marks.exerciseMs ?? 0);
     let bankRows: Awaited<ReturnType<typeof selectBank>> = [];
     let bankTier = "none";
     for (const tier of tiers) {
@@ -382,6 +380,9 @@ export async function fetchPromptCandidates(input: {
         // I1 — thread the FULL user context (stage + goals were loaded
         // above for bank tiering but previously dropped here, so
         // generated prompts ignored who the user is).
+        // 1c — lazy import: the generator drags claude.ts + the knowledge
+        // bundle; keep them off the hot path of a plain DB read.
+        const { generateAndCachePrompts } = await import("@/server/lib/prompt-gen-cache");
         const generated = await generateAndCachePrompts({
           exerciseId: input.exerciseId,
           userContext: {
@@ -468,6 +469,17 @@ export async function fetchPromptCandidates(input: {
       }
     }
 
+    // 1c — instrumentation (plan §3.1c step 1): where the slate's time goes.
+    log.info({
+      event: "prompt_selection.latency",
+      userId,
+      exerciseId: input.exerciseId,
+      bankTier,
+      bankSize: bankRows.length,
+      exerciseMs: marks.exerciseMs ?? null,
+      biasMs: marks.biasMs ?? null,
+      totalMs: Date.now() - t0,
+    });
     return {
       candidates: picked,
       surprise: picked[0] ?? null,
