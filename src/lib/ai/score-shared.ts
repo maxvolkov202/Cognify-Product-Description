@@ -483,7 +483,7 @@ PROSODY EVIDENCE SCOPE:
   - The reverse also holds: Tone grades the VOICE, not the words. Mediocre content delivered with genuinely expressive prosody is HIGH tone + low content scores — do not drag tone down because the argument was weak.
   - Map the measurements to tone bands directly: pitch std ≥3 semitones with monotone ratio <20% and no upspeak pattern = healthy vocal variety, tone 70-85 (higher when volume also varies and articulation is crisp). Sustained monotone (monotone ratio >60% or pitch std <1 semitone) = tone ≤45. Between those, interpolate. Vocal variety AT target is strong tone — do not hold it in the 50s out of rigor.
   - When NO prosody/audio evidence is present, grade tone conservatively toward band center (55-70) from text alone — do not invent vocal qualities.
-  - When NO prosody/audio evidence is present, grade DELIVERY from the MEASURED RATE line and transcript fluency — and be CONSISTENT: any rep with a measured rate in ~130-165 and clean, non-repetitive, low-filler sentences lands delivery 76-82 (default 78). Do NOT floor delivery into the 40s-50s, and do NOT scatter it 55-84 run to run, merely because you cannot hear pauses — you CAN read rate, filler, and repetition from the transcript, and those are what you score. Go BELOW 70 only when you can point to a specific cause: a measured rate well outside 130-165, or transcript evidence of heavy filler / restarts / off-prompt rambling.
+  - When NO prosody/audio evidence is present, grade DELIVERY from the MEASURED RATE line and transcript fluency (rate, filler, repetition, restarts) — those are what you can read, so score them and be consistent run to run. Go BELOW 70 only when you can point to a specific cause: a measured rate well outside 130-165, or transcript evidence of heavy filler / restarts / off-prompt rambling.
 
 EDGE-CASE GRADING RULES (Ch.5 — DNA spec §"Edge Case Grading Guidelines" — these override the per-dimension rubric in the listed conflicts):
   1. Brevity-at-cost-of-meaning: a response that is concise but loses the meaning takes the hit on CLARITY, not as a Conciseness reward. Honest score: low Clarity (idea didn't land), neutral Conciseness (don't reward erasing meaning).
@@ -1743,25 +1743,15 @@ export function applyHybridLayer(opts: {
     dimensionMap.delivery = deliveryResult.score;
     finalDimensions = finalDimensions.map((d) => {
       if (d.dimension !== "delivery") return d;
-      // Spread keeps the model's per-skill feedback + subSkill
-      // (grading v3) while the NUMBER stays deterministic — but when
-      // the override moves the number far from what the model graded,
-      // the model's feedback line explains a score that no longer
-      // exists (§4.5.3: feedback explains THIS score). Swap in the
-      // deterministic narrative instead of showing e.g. Delivery 45
-      // with copy praising the pacing.
-      const overrideDiverges =
-        typeof d.score === "number" &&
-        Math.abs(d.score - deliveryResult.score) > 10;
+      // WS4 — the NUMBER and the COPY come from the same measurements
+      // (§4.5.3: feedback explains THIS score), so the model's feedback
+      // line is always replaced by the generated one; its subSkill and
+      // grounded quote are kept (they point at a moment, not a number).
       return {
         ...d,
         score: deliveryResult.score,
         signals: deliveryResult.signals,
-        ...(overrideDiverges
-          ? {
-              feedback: `Your measured pace was ${Math.round(signalBundle.wpm)} words per minute with ${signalBundle.fillerRate.toFixed(1)} fillers per minute${signalBundle.longPauseCount > 0 ? ` and ${signalBundle.longPauseCount} long pause${signalBundle.longPauseCount === 1 ? "" : "s"}` : ""}. ${deliveryResult.score >= 75 ? "That sits in the 130-165 range listeners follow best." : "Aim for the 130-165 range with a deliberate pause after each key point."}`,
-            }
-          : {}),
+        feedback: deliveryResult.feedback,
       };
     });
     }

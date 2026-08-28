@@ -39,6 +39,12 @@ export type SignalBundle = {
   // Thinking / recovery signals
   longPauseCount: number;
   stallCount: number;
+  /** WS4 — deliberate pauses: 1-3 s gaps right after a clause end (the
+   *  preceding punctuated word ends with . ! ? , ; :). These are the
+   *  "pauses placed after key points" the rubric rewards. */
+  clausePauseCount: number;
+  /** WS4 — 1-3 s gaps NOT at a clause end: mid-phrase hesitation. */
+  midPhrasePauseCount: number;
   pauseP50Ms: number;
   pauseP95Ms: number;
   restartCount: number;
@@ -175,6 +181,21 @@ export function extractSignals(input: {
     if (gap > 300) gaps.push(gap);
   }
   const sortedGaps = [...gaps].sort((a, b) => a - b);
+  // WS4 — pause placement. A 1-3 s gap after a clause end is a deliberate
+  // bookmark; the same gap mid-phrase is a hesitation. Deepgram words are
+  // punctuated (transcribe.ts uses punctuated_word), so the preceding
+  // word's trailing punctuation marks the clause boundary.
+  let clausePauseCount = 0;
+  let midPhrasePauseCount = 0;
+  for (let i = 1; i < words.length; i++) {
+    const prev = words[i - 1];
+    const curr = words[i];
+    if (!prev || !curr) continue;
+    const gap = curr.startMs - prev.endMs;
+    if (gap < 1000 || gap > 3000) continue;
+    if (/[.!?,;:]["')\]]*$/.test(prev.word)) clausePauseCount += 1;
+    else midPhrasePauseCount += 1;
+  }
   const longPauseCount = gaps.filter((g) => g > 1500).length;
   const stallCount = gaps.filter((g) => g > 3000).length;
   const pauseP50Ms = percentile(sortedGaps, 0.5);
@@ -221,6 +242,8 @@ export function extractSignals(input: {
     timeBudgetRatio: safeDurationMs / Math.max(1, timeBudgetMs),
     longPauseCount,
     stallCount,
+    clausePauseCount,
+    midPhrasePauseCount,
     pauseP50Ms,
     pauseP95Ms,
     restartCount,
