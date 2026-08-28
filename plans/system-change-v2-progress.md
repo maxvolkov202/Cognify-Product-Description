@@ -1417,3 +1417,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     with fresh knowledge bytes: **31/48 (17 fail), equal to the `main` control.** Baseline runs of the audio-tone
     bank must set `FF_TONE_PROSODY_CORE=false` (the flag defaults ON outside prod); arm B/C also pass through
     the core when the flag is on (dormant arms).
+  - **Shipped 2026-08-28:** PR #86 squash-merged → `main@f22b99c7`; `vercel deploy --prod` READY
+    (`cognify-v2-4mxwgz594`, aliased; `/` and `/api/health` 200). `FF_TONE_PROSODY_CORE` is unset in the prod
+    env → core OFF in prod; corrected tone knowledge text and the text-only card note are live. Next: WS6
+    Thinking Quality + noise (`feat/thinking-llm-and-noise`).
