@@ -3,7 +3,7 @@
  * Run: npx tsx tests/relevance-and-thinking.test.ts
  */
 import { cosineSimilarity, relevanceBelowFloor, applyRelevanceFloor, RELEVANCE_FLOOR_CAP, RELEVANCE_HEADLINE_PREFIX } from "@/lib/scoring/relevance";
-import { renderDisfluencyLine, applyHybridLayer, DEFAULT_HYBRID_CONFIG, buildSystemBlocks } from "@/lib/ai/score-shared";
+import { renderDisfluencyLine, applyHybridLayer, DEFAULT_HYBRID_CONFIG, buildSystemBlocks, dimensionContractLine } from "@/lib/ai/score-shared";
 import type { DimensionScore } from "@/types/domain";
 
 let pass = 0;
@@ -59,10 +59,13 @@ function check(name: string, cond: boolean, detail?: string) {
   check("llm mode keeps the model's 25 (blend would show 61)", llm.dimensionMap.thinking_quality === 25, String(llm.dimensionMap.thinking_quality));
   const blend = applyHybridLayer({ dims, input: { transcript: words.map((x) => x.word).join(" "), promptText: "p", durationMs: 12000, words } as never, config: { deliveryMode: "deterministic", thinkingMode: "blend" } });
   check("blend mode still available for arms", blend.dimensionMap.thinking_quality! > 25);
-  // output contract: evidence before score (read from the rendered system prompt)
+  // output contract: evidence-first variant lists quote and signals before score; default stays score-first (v4.1.0 bytes)
+  const ef = dimensionContractLine(true);
+  check("evidence-first variant: quote and signals before score", ef.indexOf('"quote"') < ef.indexOf('"score"') && ef.indexOf('"signals"') < ef.indexOf('"score"'));
+  const sf = dimensionContractLine(false);
+  check("score-first variant keeps the v4.1.0 bytes", sf.startsWith('{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."]'));
   const sys = buildSystemBlocks({ rubricBlock: "" }).map((b) => (typeof b === "string" ? b : (b as { text?: string }).text ?? "")).join("\n");
-  const contract = sys.split("Return ONLY a JSON object")[1]!.slice(0, 900);
-  check("contract lists quote and signals before score", contract.indexOf('"quote"') < contract.indexOf('"score"') && contract.indexOf('"signals"') < contract.indexOf('"score"'), contract.slice(0, 120));
+  check("rendered prompt uses the score-first line unless SCORING_EVIDENCE_FIRST=true", process.env.SCORING_EVIDENCE_FIRST === "true" || sys.includes(sf));
 }
 
 console.log("────────────────────────────");

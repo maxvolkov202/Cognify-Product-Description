@@ -396,13 +396,19 @@ function renderTimedTranscript(
 // rather than being repeated inline. Output is bounded JSON with strict
 // rules; verbose framing slowed things down without measurably improving
 // quality in our internal calibration runs.
-/** WS6 — dimension line of the output contract. Evidence-first (quote,
- *  signals, feedback before score) by default; SCORING_EVIDENCE_FIRST=false
- *  restores the score-first order (calibration A/B knob). */
-const DIMENSION_CONTRACT_LINE =
-  process.env.SCORING_EVIDENCE_FIRST === "false"
-    ? `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }`
-    : `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "score": 0-100, "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }`;
+/** WS6 — dimension line of the output contract. Score-first (the v4.1.0
+ *  bytes) unless SCORING_EVIDENCE_FIRST=true, which asks for quote /
+ *  signals / feedback BEFORE the score. On the calibration bank the
+ *  evidence-first order alone shifted composites upward (27/48 fail vs 17
+ *  control, 2026-08-28); it is evaluated on the human set before it
+ *  becomes the default. */
+export function dimensionContractLine(evidenceFirst: boolean): string {
+  return evidenceFirst
+    ? `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "score": 0-100, "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null }`
+    : `{ "dimension": "clarity"|"structure"|"conciseness"|"thinking_quality"|"delivery"|"tone", "score": 0-100, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES", "subSkill": "snake_case id from the SUB-SKILL REFERENCE that most drove this score"|null, "quote": "short verbatim transcript moment this score turns on, ≤200 chars, distinct from every other dimension's quote"|null, "quoteAt": "m:ss from the TIMESTAMP INDEX closest before the quote"|null }`;
+}
+export const EVIDENCE_FIRST_CONTRACT = process.env.SCORING_EVIDENCE_FIRST === "true";
+const DIMENSION_CONTRACT_LINE = dimensionContractLine(EVIDENCE_FIRST_CONTRACT);
 
 const systemPrompt = `You are the scoring model for Cognify, a communication training gym. Score a rep across six dimensions on 0-100 and write the post-rep feedback the user reads.
 
@@ -595,7 +601,9 @@ function buildLeanSystemPrompt(feedbackCap: number): string {
   //    tighten the feedback-count hint only when the cap is single-sentence.
   p = leanEdit(
     p,
-    `, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
+    EVIDENCE_FIRST_CONTRACT
+      ? `, "signals": ["one-line reasons, the evidence you are scoring on"], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`
+      : `, "signals": ["..."], "feedback": "1-2 sentences, see PER-SKILL FEEDBACK RULES"`,
     `, "feedback": "${oneSentence ? "1 sentence" : "1-2 sentences"}, see PER-SKILL FEEDBACK RULES"`,
   );
   // 2) PER-SKILL FEEDBACK RULES — collapse to one sentence only at tight caps.

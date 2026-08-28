@@ -409,9 +409,12 @@ function translateToOpenAI(
   // (no preamble / fences), which is what the brace-extraction fallback in
   // parseAndValidate used to paper over. Detected from the prompt text so
   // generation-path callers (prose outputs) are untouched.
-  // SCORING_OPENAI_JSON_MODE=false disables it (calibration A/B knob).
+  // OFF unless SCORING_OPENAI_JSON_MODE=true: on the calibration bank JSON
+  // mode alone shifted composites upward (25/48 fail vs 17 control on
+  // 2026-08-28); it is evaluated on the human set before it becomes the
+  // default (WS6 tracker entry).
   const wantsJson =
-    process.env.SCORING_OPENAI_JSON_MODE !== "false" &&
+    process.env.SCORING_OPENAI_JSON_MODE === "true" &&
     (systemContent ?? "").includes("Return ONLY a JSON object");
   return {
     model: openaiModelForRole(params.model),
