@@ -1347,3 +1347,6 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     reported; dead `onDiscard` prop removed; `timeBudgetMs` rounded to an int; e2e helpers no longer wait for
     "Proceed anyway"; floor card has its own heading. Calibration note: one bank rep, `edge-brevity-cost-meaning`
     (3.0 s), now renders the "n/a" rate line, so its prompt bytes differ; it passed in both runs.
+  - **Shipped 2026-08-28:** PR #82 squash-merged → `main@31fed48a`; `vercel deploy --prod` READY
+    (`cognify-v2-dyraxq55r`, aliased `www.cognifygym.com`; `/` and `/api/health` 200). Rubric v4.2.0 is now what
+    prod stamps. Next: WS4 pacing rebuild (`feat/pacing-rubric-score`).
