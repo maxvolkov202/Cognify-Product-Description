@@ -1307,3 +1307,9 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     intermediate deploy (`cognify-v2-657gbe4p5`) shipped `main@c4b9f33f` (WS2 scripts only) before the merge
     conflict on the tracker was resolved; superseded. Verify gate (7 days, zero `MIDDLEWARE_INVOCATION_TIMEOUT`)
     opens now.
+
+- **2026-08-28 — Field report → plan item 1c (prompt slate latency).** Daily Workout exercise 2 took ~20 s to show
+  prompts. Read-only map: the slate waits on a cold `fetchPromptCandidates` server action (6-7 sequential DB
+  round trips, unbounded bank selects) queued behind `saveRep`/`tagWorkoutRep`/session-state actions; no prefetch
+  although every station's exerciseId is already client-side; no latency instrumentation. Added as workstream 1c
+  in `plans/grading-audit-2026-08-26.md` §3 (instrument → prefetch N+1 → parallelise/limit → offline bank fill).
