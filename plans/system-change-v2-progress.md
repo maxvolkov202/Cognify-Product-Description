@@ -1483,3 +1483,5 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     paths, which also clears `uploadRef` so no later attempt can inherit a stale upload. Noted: `upload_ms` now
     overlaps `deepgram_ms` (no longer additive to `client_e2e_ms`); a malformed /api/score body now also costs
     the context reads (bounded by the existing rate limit).
+  - **Shipped 2026-08-28:** PR #92 squash-merged → `main@942e86af`; `vercel deploy --prod` READY (`cognify-v2-4jvydb8xw-maxvolkov202s`, aliased; `/` and
+    `/api/health` 200). Next: WS9 hygiene (`chore/grading-hygiene`).
