@@ -66,7 +66,7 @@ for (const count of [1, 5]) {
       await expect(page.getByTestId("improvement-review")).toBeVisible({
         timeout: 240_000,
       });
-      await expect(page.getByText(/Listen back/i)).toBeVisible();
+      await expect(page.getByText("Listen back", { exact: true })).toBeVisible();
       await expect(page.getByText(/Core Skill breakdown/i)).toBeVisible();
 
       // Advance into exercise 2: its first-attempt breakdown carries
