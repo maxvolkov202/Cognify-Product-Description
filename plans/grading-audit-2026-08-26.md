@@ -198,6 +198,38 @@ Tests: unit test for the timeout race (resolves with the original response on st
 with Supabase Auth blocked at the network layer (local: point `NEXT_PUBLIC_SUPABASE_URL` at a black-hole port);
 zero `MIDDLEWARE_INVOCATION_TIMEOUT` in Vercel logs over the following 7 days.
 
+### 1c. Prompt slate latency in the Daily Workout (`feat/prompt-slate-preload`) — added 2026-08-28
+
+Reported by Max 2026-08-28: moving to the second exercise of the day took ~20 s before the prompt options
+appeared. Read-only map (no code changed):
+
+- The slate waits on ONE server action, `fetchPromptCandidates` (`src/server/actions/prompt-selection.ts:55`),
+  mounted cold by `PromptPicker.tsx:95-111` on every exercise transition. No cache, no seed, no prefetch anywhere,
+  even though every station's `exerciseId` is already in client state (`WorkoutShell.tsx:290`).
+- Inside it: 6-7 sequential DB round trips (auth, exercise, avg composite, recent ids, skip memory, then
+  full-table `exercise_prompts` selects with no LIMIT at `:282-331`). The LLM prompt generator is NOT on this path
+  unless the user tapped "Cycle prompts" with fewer than 5 unseen (then two serial LLM calls with 90-120 s
+  budgets, `prompt-gen-cache.ts:35`).
+- Next.js serialises server actions per client: at the transition `saveRep` (41 awaits), `tagWorkoutRep` and two
+  `updateWorkoutSessionState` calls are often still in flight (D26 "continue while scoring"), so the slate fetch
+  queues behind them. `prompt-selection.ts` also imports the prompt-gen → claude.ts → 188 KB knowledge graph to
+  serve a pure DB read (cold-start cost).
+- Nothing measures it: `msToSelect` is deliberation time, `prompt_events` is never posted by the Daily Workout
+  picker, no log line carries a duration.
+
+Plan (smallest first):
+1. Instrument: `prompt_selection.latency` server log with ms per step, and a client-side fetch duration in
+   PromptPicker; land first so the fix is measured (gate: >= 50 transitions, p50/p90 before and after).
+2. Client prefetch of station N+1 during station N's `recording` phase (`WorkoutShellInner`, keyed on
+   `currentStationIndex`), passed to PromptPicker as `initialCandidates`; seed exercise 1 server-side in
+   `fetchTodaysDayPayload` (`workout/page.tsx:82`, already a `Promise.all`).
+3. `Promise.all` the independent bias queries; `LIMIT` + column trim on the bank selects; lazy `import()` of the
+   generator so the AI graph stays off the hot path.
+4. Fill banks offline (cron wrapping `scripts/expand-prompt-bank.ts`, `CRON_SECRET` + `cronRuns` pattern) so the
+   Cycle path's LLM call is rare.
+Verify: slate visible < 1 s p50 after the walk animation on >= 50 real transitions; no regression in the
+prompt-selection bias signals (same slate composition rules). Ordered after 3 (short-rep), can pair with 8 (latency).
+
 ### 2. Human ground-truth set (no app code; DB read-only)
 
 Output dir `plans/calibration/human-labeling-2026-09/`:
