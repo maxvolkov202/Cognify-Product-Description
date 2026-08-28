@@ -1302,3 +1302,8 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   dimension vs the model and the three feedback rates; dry-run on synthetic sheets passes. `rescore.mjs` is the
   harness mode for later workstreams (`--label <ws>` → `metrics.<ws>.json`).
   **Open:** both sheets to be filled (~2 h each); baseline metrics recorded here before WS3 starts.
+  - **Shipped 2026-08-28:** PR #78 squash-merged → `main@f38c43e9`; `vercel deploy --prod` READY
+    (`cognify-v2-fcg5pn0e8`, aliased `www.cognifygym.com`; `/`, `/api/health`, `/dashboard` 200). Note: an
+    intermediate deploy (`cognify-v2-657gbe4p5`) shipped `main@c4b9f33f` (WS2 scripts only) before the merge
+    conflict on the tracker was resolved; superseded. Verify gate (7 days, zero `MIDDLEWARE_INVOCATION_TIMEOUT`)
+    opens now.
