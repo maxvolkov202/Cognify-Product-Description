@@ -45,15 +45,25 @@ export async function warmProsody(input: {
     error = err instanceof Error ? err.message.slice(0, 300) : String(err).slice(0, 300);
   }
   await safeDb(async () => {
+    // Upsert: if the pending insert was lost to a DB blip, the 20 s worker
+    // result must not be discarded with it.
     await db
-      .update(audioProsodyCache)
-      .set({
+      .insert(audioProsodyCache)
+      .values({
+        path: input.path,
         features: (features as Record<string, unknown> | null) ?? null,
         status: features ? "ready" : "failed",
         error: features ? null : (error ?? "worker returned null"),
-        updatedAt: new Date(),
       })
-      .where(eq(audioProsodyCache.path, input.path));
+      .onConflictDoUpdate({
+        target: audioProsodyCache.path,
+        set: {
+          features: (features as Record<string, unknown> | null) ?? null,
+          status: features ? "ready" : "failed",
+          error: features ? null : (error ?? "worker returned null"),
+          updatedAt: new Date(),
+        },
+      });
     return true;
   }, false);
   console.log(
@@ -73,6 +83,9 @@ export async function getCachedProsody(
       .where(eq(audioProsodyCache.path, path))
       .limit(1);
     if (!row || row.status !== "ready" || !row.features) return null;
+    // Same latency signal as before: a hit is visible in logs, so a
+    // regression back to in-request cold starts stays distinguishable.
+    console.log(`[prosody-cache] hit path=${path}`);
     return row.features as Partial<ProsodyFeatures>;
   }, null);
 }

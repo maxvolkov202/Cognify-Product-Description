@@ -1440,7 +1440,9 @@ export async function buildUserPrompt(
   // first (one fast row) and only call the worker on a miss.
   const workerPromise =
     input.audioUrl != null
-      ? (input.audioPath ? getCachedProsody(input.audioPath) : Promise.resolve(null))
+      ? (input.audioPath && process.env.FF_PROSODY_WORKER === "true"
+          ? getCachedProsody(input.audioPath)
+          : Promise.resolve<Partial<ProsodyFeatures> | null>(null))
           .then((cached) =>
             cached ??
             extractWorkerProsody({

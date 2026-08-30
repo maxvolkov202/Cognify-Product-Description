@@ -483,6 +483,14 @@ export async function POST(req: Request) {
     );
   }
 
+  // WS8 review — audioPath is a cache key into audio_prosody_cache; only
+  // the caller's own uploads are valid (paths are namespaced reps/<uid>/).
+  // A mismatched or foreign path would grade tone from someone else's
+  // audio features.
+  if (body.audioPath && !body.audioPath.startsWith(`reps/${callerUser.id}/`)) {
+    delete body.audioPath;
+  }
+
   // Hoist userId out of the try so the catch block's telemetry write
   // can still attribute the failure to the right user. WS8: the context
   // load (auth + coaching-memory reads) was kicked off before body parsing
