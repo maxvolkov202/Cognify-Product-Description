@@ -1562,3 +1562,8 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   exploring when needed: longer function budgets for the scoring route, more/faster crons (offline prompt-bank
   fill from 1c step 4, a provider-fallback-rate alert), and a log drain so the `prompt_selection.latency` and
   `client_e2e_ms` gates can be read without live streaming.
+  - **2026-08-30 — 1c step 4 shipped:** PR #103 → `main@9277e9bf`, deployed (`cognify-v2-m3hg8arf9`).
+    `/api/cron/expand-prompt-bank` daily at 05:00 UTC tops up active banks below 12 prompts (≤ 3 exercises/run,
+    ≤ 8 prompts each) through the existing generate → canon-QA → cache-back pipeline. Prod dry-run:
+    `{"ok":true,"thinBanks":0}` — every bank is currently ≥ 12, so this is insurance against the user-blocking
+    Cycle-prompts generator, not a backlog. Check `cron_runs` for the first real run tomorrow.
