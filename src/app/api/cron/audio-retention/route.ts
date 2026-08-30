@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq, isNotNull, lt, sql as drizzleSql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { cronRuns, reps, users } from "@/lib/db/schema";
+import { audioProsodyCache, cronRuns, reps, users } from "@/lib/db/schema";
 import { supabaseAdmin, hasSupabase } from "@/lib/supabase/admin";
 import { log, serializeErr } from "@/lib/log";
 
@@ -150,8 +150,23 @@ async function handleCron(req: Request) {
     }
   }
 
+  // WS8 — prosody-cache retention: rows are only needed between upload and
+  // scoring (minutes); sweep anything older than 7 days so features do not
+  // outlive the audio the main pass above deletes.
+  let prosodyCacheDeleted = 0;
+  try {
+    const swept = await db
+      .delete(audioProsodyCache)
+      .where(lt(audioProsodyCache.createdAt, new Date(Date.now() - 7 * 24 * 3600 * 1000)))
+      .returning({ path: audioProsodyCache.path });
+    prosodyCacheDeleted = swept.length;
+  } catch (err) {
+    log.error({ event: "cron.audio_retention.prosody_cache_sweep_failed", err: serializeErr(err) });
+  }
+
   log.info({
     event: "cron.audio_retention.done",
+    prosodyCacheDeleted,
     deleted,
     storageErrors,
     dbErrors,

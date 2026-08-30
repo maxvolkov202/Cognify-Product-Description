@@ -59,6 +59,7 @@ const COLUMNS = [
   ["scoring_telemetry", "client_e2e_ms"], // 0047
   ["scoring_telemetry", "short_rep"], // 0047
   ["reps", "prosody_features"], // 0047
+  ["audio_prosody_cache", "status"], // 0048
 ];
 
 let failed = 0;

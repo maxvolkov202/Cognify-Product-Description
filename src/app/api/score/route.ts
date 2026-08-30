@@ -160,6 +160,9 @@ const bodySchema = z.object({
    *  with the LLM call. Optional — score still works without it (Tone
    *  falls back to LLM-only with prosodyAvailable=false). */
   audioUrl: z.string().url().optional(),
+  /** WS8 — storage path of the uploaded audio; lets the scorer read the
+   *  prosody bundle warmed at upload time before calling the worker. */
+  audioPath: z.string().max(300).optional(),
   // Phase 8 — muscle-group context for exercise-aware scoring.
   exerciseId: z.string().uuid().optional(),
   muscleGroupDayId: z.string().uuid().optional(),
@@ -478,6 +481,14 @@ export async function POST(req: Request) {
       },
       { status: 400 },
     );
+  }
+
+  // WS8 review — audioPath is a cache key into audio_prosody_cache; only
+  // the caller's own uploads are valid (paths are namespaced reps/<uid>/).
+  // A mismatched or foreign path would grade tone from someone else's
+  // audio features.
+  if (body.audioPath && !body.audioPath.startsWith(`reps/${callerUser.id}/`)) {
+    delete body.audioPath;
   }
 
   // Hoist userId out of the try so the catch block's telemetry write

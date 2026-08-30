@@ -43,6 +43,7 @@ import {
   blendScores,
   RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
+import { getCachedProsody } from "@/lib/audio/prosody-cache";
 import { embedText } from "@/lib/ai/rag/retrieve";
 import { cosineSimilarity, relevanceBelowFloor, applyRelevanceFloor } from "@/lib/scoring/relevance";
 import { isRelevanceFloorEnabled } from "@/lib/flags";
@@ -292,6 +293,9 @@ export type ScoreRepInput = {
    *  when omitted or when the worker is offline (graceful fallback to
    *  inline-only). */
   audioUrl?: string;
+  /** WS8 — storage path of the audio (cache key for the upload-time
+   *  prosody warm-up). Optional; absent on calibration / async paths. */
+  audioPath?: string;
   /**
    * Expected rep time budget (ms). Used by the deterministic pacing
    * scorer to compute timeBudgetRatio. Defaults to durationMs if not
@@ -1432,15 +1436,24 @@ export async function buildUserPrompt(
       : null;
   const prosodyStart = Date.now();
   let prosodyMs = 0;
+  // WS8 — the upload route warmed the worker already; read the cache
+  // first (one fast row) and only call the worker on a miss.
   const workerPromise =
     input.audioUrl != null
-      ? extractWorkerProsody({
-          audioUrl: input.audioUrl,
-          durationMs: input.durationMs,
-        }).then((r) => {
-          prosodyMs = Date.now() - prosodyStart;
-          return r;
-        })
+      ? (input.audioPath && process.env.FF_PROSODY_WORKER === "true"
+          ? getCachedProsody(input.audioPath)
+          : Promise.resolve<Partial<ProsodyFeatures> | null>(null))
+          .then((cached) =>
+            cached ??
+            extractWorkerProsody({
+              audioUrl: input.audioUrl!,
+              durationMs: input.durationMs,
+            }),
+          )
+          .then((r) => {
+            prosodyMs = Date.now() - prosodyStart;
+            return r;
+          })
       : Promise.resolve(null);
   // WS6 — relevance: embed the prompt alongside RAG's transcript embedding
   // (both bounded by EMBED_TEXT_TIMEOUT_MS; a slow embed never holds the
