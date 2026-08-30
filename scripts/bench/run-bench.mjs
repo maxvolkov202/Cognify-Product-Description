@@ -22,7 +22,7 @@
  *
  * Usage:
  *   node scripts/bench/run-bench.mjs --arm=control
- *   node scripts/bench/run-bench.mjs --arm=median-of-n --n=7
+ *   node scripts/bench/run-bench.mjs --arm=signals-drop --n=3
  *   DEV_BASE_URL=https://staging... node scripts/bench/run-bench.mjs --arm=control
  *
  * Exit codes: 0 ok · 1 a call failed / mock-fallback · 2 config.

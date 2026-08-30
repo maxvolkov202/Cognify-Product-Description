@@ -3,7 +3,8 @@ import { sql } from "./db.mjs";
 // Real-only by default (excludes seed/mock rows); pass --all to include them.
 const REAL = !process.argv.includes("--all");
 const TAG = REAL ? "_real" : "";
-const OUT = (process.env.OUT ?? new URL("./out/", import.meta.url).pathname);
+const OUT_DIR = process.env.OUT ?? new URL("./out/", import.meta.url).pathname;
+const OUT = OUT_DIR.endsWith("/") ? OUT_DIR : OUT_DIR + "/";
 fs.mkdirSync(OUT, { recursive: true });
 const DIMS = ["clarity","structure","conciseness","thinking_quality","delivery","tone"];
 const out = {};

@@ -17,7 +17,7 @@
  * Importable: run-bench.mjs imports { runVariance, scoreOnce }. As a CLI:
  *   node scripts/bench/variance-harness.mjs                 # default subset, N=7
  *   node scripts/bench/variance-harness.mjs --n=5 --filter=band
- *   node scripts/bench/variance-harness.mjs --arm=median-of-n --ids=band-competent-okay-pitch
+ *   node scripts/bench/variance-harness.mjs --arm=signals-drop --ids=band-competent-okay-pitch
  *   DEV_BASE_URL=https://staging... node scripts/bench/variance-harness.mjs
  *
  * Exit codes: 0 ok · 1 a run hit mock-fallback / HTTP error (invalid) · 2 config.
