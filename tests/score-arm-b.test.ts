@@ -16,7 +16,6 @@ import type { SkillDimension } from "@/types/domain";
 
 const {
   parseScoringPass,
-  parseDeliveryToneDecomp,
   deriveSynthesisFallback,
   resolveArmBConfig,
   renderSynthesisScope,
@@ -186,45 +185,6 @@ function deliveryJson() {
   );
   if (saved === undefined) delete process.env.FF_ARM_B_DELIVERY_MODE;
   else process.env.FF_ARM_B_DELIVERY_MODE = saved;
-}
-
-// ── Arm C: parseDeliveryToneDecomp ──
-{
-  const good = JSON.stringify({
-    delivery: { score: 76, signals: ["rate 150"], feedback: "steady pace" },
-    toneObservations: [
-      { subSkill: "directness", level: "strong", evidence: "led with the ask" },
-      { subSkill: "authority", level: "present" },
-      { subSkill: "assertiveness", level: "weak", evidence: "hedged the close" },
-    ],
-    toneFeedback: "Confident open, softer landing.",
-  });
-  const parsed = parseDeliveryToneDecomp(good);
-  check("decomp parses delivery score", parsed?.deliveryScore === 76, `${parsed?.deliveryScore}`);
-  check("decomp keeps 3 observations", parsed?.observations.length === 3, `${parsed?.observations.length}`);
-  check("decomp carries tone feedback", parsed?.toneFeedback === "Confident open, softer landing.");
-
-  // Unknown tone sub-skills are dropped but valid ones survive.
-  const mixed = JSON.stringify({
-    delivery: { score: 60 },
-    toneObservations: [
-      { subSkill: "directness", level: "present" },
-      { subSkill: "made_up_skill", level: "strong" },
-    ],
-  });
-  check("decomp drops unknown observations", parseDeliveryToneDecomp(mixed)?.observations.length === 1);
-
-  // Missing delivery → null (fall back).
-  check(
-    "decomp with no delivery → null",
-    parseDeliveryToneDecomp(JSON.stringify({ toneObservations: [{ subSkill: "directness", level: "strong" }] })) === null,
-  );
-  // No usable observations → null.
-  check(
-    "decomp with no observations → null",
-    parseDeliveryToneDecomp(JSON.stringify({ delivery: { score: 70 }, toneObservations: [] })) === null,
-  );
-  check("decomp malformed → null", parseDeliveryToneDecomp("garbage") === null);
 }
 
 // ── renderSynthesisScope: carries all six decided scores ──

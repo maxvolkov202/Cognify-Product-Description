@@ -1,8 +1,8 @@
-import { sql } from "./db.mjs";
+import { sql, maskEmail } from "./db.mjs";
 // mock fallback share by week for real usage
 console.log(await sql`select date_trunc('week',created_at)::date wk, count(*)::int n, count(*) filter (where model_version='mock-fallback-v1')::int mock, count(*) filter (where model_version like 'openai:%' or model_version like 'claude%' or model_version like 'anthropic%')::int llm, count(*) filter (where model_version='seed-demo-v1')::int seed from cognify_v2.reps group by 1 order by 1`);
 // the firewall duplicate transcript: which users, what spread
-console.log(await sql`select r.user_id, u.email, count(*)::int n, min(r.composite_score) mn, max(r.composite_score) mx, round(stddev(r.composite_score)::numeric,1) sd, array_agg(distinct r.attempt_kind) kinds, array_agg(distinct r.model_version) models, min(r.created_at)::date d0, max(r.created_at)::date d1 from cognify_v2.reps r join cognify_v2.users u on u.id=r.user_id where r.transcript->>'text' ilike 'A firewall is basically a security guard for your computer network%' group by 1,2`);
+console.log((await sql`select r.user_id, u.email, count(*)::int n, min(r.composite_score) mn, max(r.composite_score) mx, round(stddev(r.composite_score)::numeric,1) sd, array_agg(distinct r.attempt_kind) kinds, array_agg(distinct r.model_version) models, min(r.created_at)::date d0, max(r.created_at)::date d1 from cognify_v2.reps r join cognify_v2.users u on u.id=r.user_id where r.transcript->>'text' ilike 'A firewall is basically a security guard for your computer network%' group by 1,2`).map((r) => ({ ...r, email: maskEmail(r.email) })));
 // distinct prompts among those firewall reps
 console.log(await sql`select left(prompt_text,80) p, count(*)::int n from cognify_v2.reps where transcript->>'text' ilike '%firewall is basically a security guard%' group by 1 order by 2 desc limit 8`);
 // delivery score vs wpm for real v4.1.0 reps

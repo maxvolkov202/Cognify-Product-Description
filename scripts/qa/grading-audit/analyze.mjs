@@ -1,6 +1,10 @@
 import fs from "fs";
 import { sql } from "./db.mjs";
-const OUT = "/private/tmp/claude-501/-Users-maxvolkov-Documents-Projects-Cognify-Product-Description/18c42f00-720a-4392-9ec5-525bac25723e/scratchpad/";
+// Real-only by default (excludes seed/mock rows); pass --all to include them.
+const REAL = !process.argv.includes("--all");
+const TAG = REAL ? "_real" : "";
+const OUT = (process.env.OUT ?? new URL("./out/", import.meta.url).pathname);
+fs.mkdirSync(OUT, { recursive: true });
 const DIMS = ["clarity","structure","conciseness","thinking_quality","delivery","tone"];
 const out = {};
 const log = (k,v)=>{ out[k]=v; console.log("\n## "+k); console.log(typeof v==="string"?v:JSON.stringify(v,null,1)); };
@@ -17,8 +21,8 @@ const reps = await sql`
     (select jsonb_object_agg(d.dimension, (select array_agg(k) from jsonb_object_keys(case when jsonb_typeof(d.signals)='object' then d.signals else '{}'::jsonb end) k)) from cognify_v2.dimension_scores d where d.rep_id=r.id) as sigkeys
   from cognify_v2.reps r order by r.created_at`;
 for (const r of reps){ r.t=new Date(r.created_at).getTime(); r.wc = r.transcript? r.transcript.trim().split(/\s+/).filter(Boolean).length:0; r.wpm = r.duration_ms>0? r.wc/(r.duration_ms/60000):null; r.dims=r.dims||{}; }
-const scored = reps.filter(r=>r.composite_score!=null);
-const NOW = Date.now(), D=86400000;
+const scored = reps.filter(r=>r.composite_score!=null && (!REAL || !["seed-demo-v1","mock-fallback-v1"].includes(r.model_version)));
+const NOW = Math.max(...reps.map(r=>r.t)), D=86400000; // anchored to newest rep, not wall clock
 const last14 = scored.filter(r=>r.t>=NOW-14*D), prev30 = scored.filter(r=>r.t<NOW-14*D && r.t>=NOW-44*D);
 
 // ---------- helpers ----------
@@ -110,7 +114,7 @@ log("8_user_trend", { users_total:Object.keys(byUser).length, users_ge5_reps:slo
 // ---------- 9. sample ----------
 const bandsDef=[["<50",x=>x<50],["50-65",x=>x>=50&&x<65],["65-75",x=>x>=65&&x<75],["75-85",x=>x>=75&&x<85],["85+",x=>x>=85]];
 const sample=[]; for(const [name,f] of bandsDef){ const pool=scored.filter(r=>f(r.composite_score)&&r.transcript).sort((a,b)=>b.t-a.t); const step=Math.max(1,Math.floor(pool.length/5)); const pick=[]; for(let i=0;i<pool.length&&pick.length<5;i+=step) pick.push(pool[i]); for(const r of pick) sample.push({band:name, id:r.id, created_at:r.created_at, rubric_version:r.rubric_version, model_version:r.model_version, attempt_kind:r.attempt_kind, prompt:r.prompt_text, transcript:r.transcript.slice(0,600), word_count:r.wc, duration_s:r2(r.duration_ms/1000), composite:r.composite_score, ...Object.fromEntries(DIMS.map(d=>[d,r.dims[d]])), headline:r.headline, coach_focus:r.coach_focus, pool_size:pool.length}); }
-fs.writeFileSync(OUT+"sample25.json", JSON.stringify(sample,null,2));
+fs.writeFileSync(OUT+"sample25"+TAG+".json", JSON.stringify(sample,null,2));
 log("9_sample_summary", sample.map(s=>({band:s.band,id:s.id.slice(0,8),date:s.created_at.toISOString().slice(0,10),rv:s.rubric_version,wc:s.word_count,comp:s.composite,cl:s.clarity,st:s.structure,co:s.conciseness,tq:s.thinking_quality,de:s.delivery,to:s.tone,headline:(s.headline||'').slice(0,90)})));
 
 // ---------- 10. anomalies ----------
@@ -124,5 +128,5 @@ const dimMissing=scored.filter(r=>!DIMS.every(d=>r.dims[d]!=null)).length;
 const emptyTranscript=scored.filter(r=>!r.transcript||r.wc===0).map(r=>({id:r.id.slice(0,8),comp:r.composite_score,date:r.created_at.toISOString().slice(0,10),dims:r.dims}));
 log("10_anomalies", { short_lt15w_over60:shortHigh, short_lt15w_all:shortAll, empty_transcript_scored:emptyTranscript, duplicate_transcripts:dupT, delivery_eq_tone:{n:delEqTone.length, pct:r2(100*delEqTone.length/scored.length), by_rv:count(delEqTone,'rubric_version'), last14:last14.filter(r=>r.dims.delivery!=null&&r.dims.delivery===r.dims.tone).length+"/"+last14.length}, all_six_equal:allEq.length, top_delivery_tone_pairs:Object.entries(delTonePairs).sort((a,b)=>b[1]-a[1]).slice(0,10), scored_missing_some_dim:dimMissing, composite_vs_mean_of_dims:dist(full.map(r=>r.composite_score-mean(DIMS.map(d=>r.dims[d])))) });
 
-fs.writeFileSync(OUT+"analysis.json", JSON.stringify(out,null,1));
+fs.writeFileSync(OUT+"analysis"+TAG+".json", JSON.stringify(out,null,1));
 await sql.end();

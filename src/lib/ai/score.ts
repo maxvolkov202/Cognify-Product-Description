@@ -73,11 +73,6 @@ export async function scoreRepForCalibration(
  */
 export type ScoringArm =
   | "control"
-  | "median-of-n"
-  | "reference-anchored"
-  | "grouped-fanout"
-  | "tone-decomposed"
-  | "all-llm"
   | "lean-output"
   | "lean-split"
   | "per-skill-fanout"
@@ -88,11 +83,6 @@ export type ScoringArm =
  *  arm outside this set falls back to control (safe no-op) rather than
  *  throwing at scoring time. */
 const IMPLEMENTED_VARIANT_ARMS: readonly ScoringArm[] = [
-  "median-of-n",
-  "reference-anchored",
-  "grouped-fanout",
-  "tone-decomposed",
-  "all-llm",
   "lean-output",
   "lean-split",
   "per-skill-fanout",
