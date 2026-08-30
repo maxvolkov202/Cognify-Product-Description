@@ -1540,3 +1540,25 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     contained "listen back", so the `/Listen back/i` regex matched two elements; exact label now).
   - Not done: offline bank fill cron (step 4). **Verify gate (open):** slate visible < 1 s p50 on ≥ 50 real
     transitions from the `prompt_selection.latency` log + the picker's `[prompt-picker] slate ready` console line.
+
+- **2026-08-30 — WS8 (remaining item): prosody worker warmed at upload time** (PR #100 + review fixes →
+  `main@8ef210e7`, deployed `cognify-v2-hqlxhjj2h`). Cause: the Modal worker's cold start was hitting the
+  scorer's 5 s in-request timeout (2026-08-28 rows: `prosody_ms` 5.1 s, `graded_from_audio=false`) so Tone
+  silently fell to text. Now `/api/upload` warms the worker via `next/server` `after()` (20 s budget) into
+  `audio_prosody_cache` (migration 0048, applied + verified) and `/api/score` reads the cache by `audioPath`
+  (owner-prefix-checked) before calling the worker; result write is an upsert; cache read honors
+  `FF_PROSODY_WORKER`; the audio-retention cron sweeps rows > 7 days.
+  - **Prod e2e (Skill Lab loop, audio path): green 2/2.** Cache rows `ready` ~1 s after upload;
+    `graded_from_audio=true` on all 5 reps; prosody read 36 ms on a clean hit; **client stop→score 7.1–8.3 s**
+    on warm reps (13.7 s on the first/cold one) with gpt-4o serving — against the 22 s p50 measured during the
+    credits outage (Haiku fallback completions ran 9–30 s; that explained the 08-28 gap, not the pipeline).
+  - **OpenAI credits restored by Max 2026-08-30**; `/api/score/health` probes `openai` OK and new reps serve
+    `openai:gpt-4o-2024-08-06`.
+- **2026-08-30 — Cron audit after the Vercel Pro upgrade** (Max upgraded; folded into the plan). All six crons
+  ARE firing daily (no Hobby starvation), but `muscle-group-day-rollover` had **failed on every run since at
+  least 2026-08-27**: `db.execute` raw-SQL timestamps arrive as strings and the code called `.getTime()` on one
+  (`cron_runs.error`). Fixed in PR #101 → `main@df87374a`, deployed `cognify-v2-g8r4zziz5`; prod dry-run
+  confirms. `weekly-callout-drift` last ran 08-24 (weekly cadence; watch next week). Vercel Pro follow-ups worth
+  exploring when needed: longer function budgets for the scoring route, more/faster crons (offline prompt-bank
+  fill from 1c step 4, a provider-fallback-rate alert), and a log drain so the `prompt_selection.latency` and
+  `client_e2e_ms` gates can be read without live streaming.
