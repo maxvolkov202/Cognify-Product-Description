@@ -1603,3 +1603,8 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     analyze_real.mjs merged into analyze.mjs (`--all` flag), OUT → gitignored `out/`, time windows anchored
     to the newest rep instead of `Date.now()`. **No live-path scoring prompt bytes changed** (dead arm scopes
     only) — calibration re-run not required. tsc, lint, full unit suite green; −1350 LOC.
+  - **Shipped 2026-08-30:** PR #106 squash-merged → `main@079c5a80`. Targeted review agent on the branch diff:
+    all five invariants hold, nothing blocking (nits fixed pre-merge: OUT trailing-slash join, stale
+    `--arm=median-of-n` bench usage examples → signals-drop). `vercel deploy --prod` READY
+    (`cognify-v2-75o3ozxrt`, aliased www.cognifygym.com; `/` and `/api/health` 200). Prod e2e
+    `skill-lab-loop` green 2/2 (1-rep + 5-rep sessions, retry flow, 2.4 min, gpt-4o serving).
