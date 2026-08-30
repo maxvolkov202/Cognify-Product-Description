@@ -1397,6 +1397,17 @@ export const referenceReps = cognifyV2Schema.table(
  * Append-only; we never UPDATE these rows. Old rows can be pruned by a
  * weekly cron once retention exceeds 90d if needed.
  */
+/** Grading plan WS8 (0048) — worker prosody features warmed at upload time,
+ *  keyed by the storage path. Read by the scorer before calling the worker. */
+export const audioProsodyCache = cognifyV2Schema.table("audio_prosody_cache", {
+  path: text("path").primaryKey(),
+  features: jsonb("features").$type<Record<string, unknown>>(),
+  status: text("status").notNull().default("pending"),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const scoringTelemetry = cognifyV2Schema.table(
   "scoring_telemetry",
   {

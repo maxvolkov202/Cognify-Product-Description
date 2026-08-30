@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { warmProsody } from "@/lib/audio/prosody-cache";
 import { randomUUID } from "node:crypto";
 import { uploadAudio, deleteAudio } from "@/lib/audio/upload";
 import {
@@ -89,6 +90,20 @@ export async function POST(req: Request) {
     const key = `reps/${user.id}/${randomUUID()}.${extension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await uploadAudio(key, buffer, mime);
+    // WS8 — warm the prosody worker now, off the scoring path. The client
+    // sends durationMs with the form; without it the worker still runs
+    // (duration is advisory). after() keeps the response fast and lets the
+    // function finish the work.
+    if (result.path && result.url && process.env.FF_PROSODY_WORKER === "true") {
+      const durationRaw = formData.get("durationMs");
+      const durationMs =
+        typeof durationRaw === "string" && Number.isFinite(Number(durationRaw))
+          ? Math.max(1, Math.round(Number(durationRaw)))
+          : 30_000;
+      const path = result.path;
+      const signedUrl = result.url;
+      after(() => warmProsody({ path, signedUrl, durationMs }));
+    }
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Upload failed.";

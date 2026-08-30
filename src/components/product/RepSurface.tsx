@@ -279,6 +279,8 @@ export function RepSurface({
           "audio",
           new File([result.blob], "rep.webm", { type: result.mimeType }),
         );
+        // WS8 — lets /api/upload warm the prosody worker with the real duration.
+        fd.append("durationMs", String(result.durationMs));
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           body: fd,
@@ -712,6 +714,8 @@ export function RepSurface({
       // when the prosody-sync upload above succeeded. The server ignores
       // it unless FF_PROSODY_WORKER=true, so sending it is always safe.
       ...(audioScoreUrl ? { audioUrl: audioScoreUrl } : {}),
+      // WS8 — cache key for the upload-time prosody warm-up.
+      ...(audioPath ? { audioPath } : {}),
     };
 
     // Client-side timeout so Claude hangs don't trap the user. Bumped from

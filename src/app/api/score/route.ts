@@ -160,6 +160,9 @@ const bodySchema = z.object({
    *  with the LLM call. Optional — score still works without it (Tone
    *  falls back to LLM-only with prosodyAvailable=false). */
   audioUrl: z.string().url().optional(),
+  /** WS8 — storage path of the uploaded audio; lets the scorer read the
+   *  prosody bundle warmed at upload time before calling the worker. */
+  audioPath: z.string().max(300).optional(),
   // Phase 8 — muscle-group context for exercise-aware scoring.
   exerciseId: z.string().uuid().optional(),
   muscleGroupDayId: z.string().uuid().optional(),
