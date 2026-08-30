@@ -79,7 +79,10 @@ async function handleCron(req: Request) {
     dimension: string;
     completed_reps: number;
     tz: string;
-    most_recent_rep_started_at: Date | null;
+    // db.execute (raw SQL) hands timestamps back as strings, not Date —
+    // typing it Date made `.getTime()` throw and this cron has failed on
+    // every run since at least 2026-08-27 (cron_runs.error).
+    most_recent_rep_started_at: string | Date | null;
   }>(drizzleSql`
     SELECT
       d.id, d.user_id, d.day_date::text AS day_date, d.dimension::text AS dimension,
@@ -118,7 +121,8 @@ async function handleCron(req: Request) {
     // saved within the last GRACE_MINUTES, skip — the user might still
     // be wrapping up.
     if (row.most_recent_rep_started_at) {
-      const ageMs = now.getTime() - row.most_recent_rep_started_at.getTime();
+      const ageMs =
+        now.getTime() - new Date(row.most_recent_rep_started_at).getTime();
       if (ageMs < GRACE_MINUTES * 60_000) {
         stats.skippedInGrace += 1;
         continue;
