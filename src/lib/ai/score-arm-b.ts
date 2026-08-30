@@ -52,20 +52,6 @@ import {
 } from "./score-shared";
 import type { ScoreRepInput, ScoreRepResult } from "./score";
 import type { SkillDimension } from "@/types/domain";
-import {
-  rollupTone,
-  coerceToneObservation,
-  PROSODY_TONE_SUBSKILLS,
-  type ToneObservation,
-  type ToneRollupResult,
-} from "@/lib/scoring/rollup";
-import { extractAllTextSignals } from "@/lib/scoring/signals";
-import {
-  mapSignalsToSubSkillScores,
-  toScoresOnly,
-} from "@/lib/scoring/signals";
-import { hasWorkerProsody } from "@/lib/audio/prosody";
-import { SUB_SKILLS, type ToneSubSkill } from "@/types/sub-skills";
 
 // ── Dimension partition ────────────────────────────────────────────────
 const CONTENT_DIMS: SkillDimension[] = [
@@ -228,85 +214,6 @@ const DELIVERY_SCOPE_LEAN = [
   'Return ONLY this JSON, no prose or fences: {"dimensions":[{"dimension":"delivery"|"tone","score":0-100,"feedback":"1 sentence","subSkill":"snake_case id"|null,"quote":"short verbatim transcript moment this score turns on, <=200 chars, a DIFFERENT moment from every other quoted dimension"|null,"quoteAt":"m:ss from the TIMESTAMP INDEX closest before the quote"|null}]}',
   "Include exactly one entry for delivery and one for tone. Do NOT include content dimensions, a headline, or coachFocus.",
 ].join("\n");
-
-/** Arm C — the Delivery+Tone pass, but tone is DECOMPOSED into ordinal
- *  observations (rolled up deterministically downstream) instead of a raw
- *  0-100 tone number. Delivery still scores directly. */
-const DELIVERY_TONE_DECOMP_SCOPE = [
-  "ARM SCOPE — DELIVERY & TONE PASS (tone decomposed).",
-  "Score DELIVERY directly (0-100), grounded in the MEASURED RATE + PROSODY EVIDENCE.",
-  "For TONE, do NOT emit a 0-100 number. Instead, judge each of these transcript-observable tone sub-skills and rate it ordinally: directness, authority, assertiveness. Levels: \"strong\" (clearly present and effective), \"present\" (there but unremarkable), \"weak\" (attempted but undercut), \"absent\" (missing or contradicted). Give ≤120 chars of evidence each. Reason only about voice/manner, never the argument's content.",
-  'Return ONLY this JSON, no prose or fences: {"delivery":{"score":0-100,"signals":["..."],"feedback":"1-2 sentences","subSkill":"snake_case id"|null},"toneObservations":[{"subSkill":"directness"|"authority"|"assertiveness","level":"strong"|"present"|"weak"|"absent","evidence":"..."}],"toneFeedback":"1-2 sentences on the voice/tone"}',
-  "Include exactly one observation per the three tone sub-skills. Do NOT include content dimensions, a headline, or coachFocus.",
-].join("\n");
-
-const TONE_SUBSKILL_SET: ReadonlySet<string> = new Set(SUB_SKILLS.tone);
-
-type DeliveryToneDecomp = {
-  deliveryScore: number;
-  deliverySignals: string[];
-  deliveryFeedback?: string;
-  observations: ToneObservation[];
-  toneFeedback?: string;
-};
-
-/** Parse the tone-decomposition delivery pass. Returns null (→ fall back)
- *  when delivery is missing or no usable tone observations survived. */
-function parseDeliveryToneDecomp(text: string): DeliveryToneDecomp | null {
-  let obj: Record<string, unknown>;
-  try {
-    const parsed = extractJson(text);
-    if (!parsed || typeof parsed !== "object") return null;
-    obj = parsed as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-  const delivery = obj.delivery as Record<string, unknown> | undefined;
-  const deliveryScore =
-    delivery && typeof delivery.score === "number" ? delivery.score : null;
-  if (deliveryScore == null || deliveryScore < 0 || deliveryScore > 100) {
-    return null;
-  }
-  const rawObs = Array.isArray(obj.toneObservations) ? obj.toneObservations : [];
-  const observations = rawObs
-    .map((o) => coerceToneObservation(o, TONE_SUBSKILL_SET))
-    .filter((o): o is ToneObservation => o != null);
-  if (observations.length === 0) return null;
-  return {
-    deliveryScore,
-    deliverySignals: Array.isArray(delivery?.signals)
-      ? (delivery!.signals as unknown[]).filter(
-          (s): s is string => typeof s === "string",
-        )
-      : [],
-    deliveryFeedback:
-      typeof delivery?.feedback === "string" ? delivery!.feedback : undefined,
-    observations,
-    toneFeedback:
-      typeof obj.toneFeedback === "string" ? obj.toneFeedback : undefined,
-  };
-}
-
-/** Prosody-measured tone sub-skill scores (0-100) from the signal mapper.
- *  Independent of the FF_DETERMINISTIC_SIGNALS gate — Arm C always wants
- *  the voice component when audio is present. */
-function measuredToneScores(
-  input: ScoreRepInput,
-  prosody: Parameters<typeof mapSignalsToSubSkillScores>[1],
-): Partial<Record<ToneSubSkill, number>> {
-  const signals = extractAllTextSignals({
-    transcript: input.transcript,
-    durationMs: input.durationMs,
-    words: input.words,
-  });
-  const all = toScoresOnly(mapSignalsToSubSkillScores(signals, prosody));
-  const out: Partial<Record<ToneSubSkill, number>> = {};
-  for (const sk of PROSODY_TONE_SUBSKILLS) {
-    const v = all[sk];
-    if (v != null) out[sk] = v;
-  }
-  return out;
-}
 
 function renderSynthesisScope(dims: ArmDimension[]): string {
   const scoreLines = ALL_SIX.map((d) => {
@@ -473,10 +380,9 @@ function mergeArmMetrics(
  */
 export async function runGroupedFanout(
   input: ScoreRepInput,
-  opts?: { toneDecomposition?: boolean; lean?: boolean; holistic?: boolean },
+  opts?: { lean?: boolean; holistic?: boolean },
 ): Promise<ScoreRepResult> {
   const config = resolveArmBConfig();
-  const toneDecomposition = opts?.toneDecomposition ?? false;
   const lean = opts?.lean ?? false;
   // holistic-split: split only the output decode; both passes keep full rep
   // context (the fan-out calibration fix). Mutually exclusive with lean/decomp.
@@ -505,16 +411,13 @@ export async function runGroupedFanout(
       ? CONTENT_SCOPE_LEAN
       : CONTENT_SCOPE;
   const contentUser = `${contentScope}\n\n${prep.userPrompt}`;
-  // Tone-decomposition, holistic, and lean are independent levers, but the
-  // decomp scope has its own bespoke JSON shape; holistic keeps full-context
-  // reasoning; lean only slims the plain delivery scope.
-  const deliveryScope = toneDecomposition
-    ? DELIVERY_TONE_DECOMP_SCOPE
-    : holistic
-      ? DELIVERY_SCOPE_HOLISTIC
-      : lean
-        ? DELIVERY_SCOPE_LEAN
-        : DELIVERY_SCOPE;
+  // Holistic keeps full-context reasoning; lean only slims the plain
+  // delivery scope.
+  const deliveryScope = holistic
+    ? DELIVERY_SCOPE_HOLISTIC
+    : lean
+      ? DELIVERY_SCOPE_LEAN
+      : DELIVERY_SCOPE;
   const deliveryUser = `${deliveryScope}\n\n${prep.userPrompt}`;
 
   // Calls 1 + 2 concurrently. allSettled so one failure degrades to the
@@ -529,43 +432,10 @@ export async function runGroupedFanout(
       ? parseScoringPass(contentSettled.value.text, CONTENT_DIMS)
       : null;
 
-  // Delivery leg: either a direct delivery+tone pass, or (Arm C) a
-  // delivery-direct + tone-decomposed pass rolled up deterministically.
-  let deliveryDims: ArmDimension[] | null = null;
-  let toneRollup: ToneRollupResult | null = null;
-  if (deliverySettled.status === "fulfilled") {
-    if (toneDecomposition) {
-      const decomp = parseDeliveryToneDecomp(deliverySettled.value.text);
-      if (decomp) {
-        const hasProsody = hasWorkerProsody(prep.prosodyFeatures);
-        toneRollup = rollupTone({
-          observations: decomp.observations,
-          prosodyScores: hasProsody
-            ? measuredToneScores(input, prep.prosodyFeatures)
-            : undefined,
-          hasProsody,
-        });
-        deliveryDims = [
-          {
-            dimension: "delivery",
-            score: decomp.deliveryScore,
-            signals: decomp.deliverySignals,
-            feedback: decomp.deliveryFeedback,
-            subSkill: null,
-          },
-          {
-            dimension: "tone",
-            score: toneRollup.score,
-            signals: [`[toneRollup: ${toneRollup.method}]`],
-            feedback: decomp.toneFeedback,
-            subSkill: null,
-          },
-        ];
-      }
-    } else {
-      deliveryDims = parseScoringPass(deliverySettled.value.text, DELIVERY_DIMS);
-    }
-  }
+  const deliveryDims: ArmDimension[] | null =
+    deliverySettled.status === "fulfilled"
+      ? parseScoringPass(deliverySettled.value.text, DELIVERY_DIMS)
+      : null;
 
   if (!contentDims || !deliveryDims) {
     // Graceful degradation: a full, real score via the single-call path.
@@ -644,20 +514,6 @@ export async function runGroupedFanout(
     textSignals: prep.textSignals,
     modelUsed,
   });
-
-  // Arm C — roll the tone sub-skills UP into the tone dimension's
-  // subSkillScores (they drove the number, so they belong on the card).
-  if (toneRollup) {
-    const rollupScores = toneRollup.subSkillScores;
-    score.dimensions = score.dimensions.map((d) =>
-      d.dimension === "tone"
-        ? {
-            ...d,
-            subSkillScores: { ...(d.subSkillScores ?? {}), ...rollupScores },
-          }
-        : d,
-    );
-  }
 
   const validationDurationMs = Date.now() - validationStart;
   const scoreRepTotalMs = Date.now() - scoreRepStart;
@@ -849,8 +705,6 @@ export async function runPerSkillFanout(
 export const __armBForTests = {
   renderPerSkillScope,
   parseScoringPass,
-  parseDeliveryToneDecomp,
-  measuredToneScores,
   deriveSynthesisFallback,
   resolveArmBConfig,
   renderSynthesisScope,
@@ -861,7 +715,6 @@ export const __armBForTests = {
   DELIVERY_SCOPE_LEAN,
   CONTENT_SCOPE_HOLISTIC,
   DELIVERY_SCOPE_HOLISTIC,
-  DELIVERY_TONE_DECOMP_SCOPE,
   CONTENT_DIMS,
   DELIVERY_DIMS,
 };

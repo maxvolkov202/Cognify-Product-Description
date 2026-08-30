@@ -1567,3 +1567,39 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     ≤ 8 prompts each) through the existing generate → canon-QA → cache-back pipeline. Prod dry-run:
     `{"ok":true,"thinBanks":0}` — every bank is currently ≥ 12, so this is insurance against the user-blocking
     Cycle-prompts generator, not a backlog. Check `cron_runs` for the first real run tomorrow.
+
+- **2026-08-30 — Grading: evidence-gate sweep + cron check + deferred cleanup** (`chore/grading-deferred-cleanup`).
+  - **Human labeling sheets NOT filled** (A and B both 0/60 rows) — Max + Owen reminded; the baseline →
+    adjudication → rescore.mjs flag runs (handoff item 1) stay blocked on them. Audio links signed 08-28
+    expire ~09-04; re-sign with build-packet.mjs (re-sign only, never resample) if labeling slips past that.
+  - **Evidence-gate sweep** (read-only SQL via scripts/qa/grading-audit/db.mjs; real reps = non-seed/mock,
+    non-@cognify.test, since 2026-08-28): only **6 real reps / 2 users** exist — every n-gated check stays
+    OPEN on sample size, none failed on direction:
+    - WS1 (≥20 reps / ≥3 users): 6 reps / 2 users; telemetry joined 6/6, `graded_from_audio` set 6/6. OPEN (n).
+    - WS3: `short_rep=false` on all 6 (82–249 words); 0 length-deficiency phrases in headlines/coach-focus. OPEN (no short real reps yet).
+    - WS4 Pacing (≥50 reps / ≥25 unique): n=6, 5 unique, sd 9.7, range 68–91 — no 92 clump. OPEN (n).
+    - WS5 (≥30 audio reps / ≥5 users): **0 audio-graded real reps** — all 6 predate the 08-30 prosody
+      warm-up fix (`prosody_ms` ≈5.1 s cold-start timeout; audio + prosody_features persisted, tone fell to
+      text). Post-fix harness reps grade from audio 5/5. OPEN; expect green as real post-fix traffic lands.
+      Browser mix isn't recorded in the DB — needs the log drain or manual check.
+    - WS6: thinking sd 23.2 (min 5, max 71 — no clump, n=6); relevance tags 0/6 (embeddings were down with
+      OpenAI credits), post-restore reps tag 5/5. FF_RELEVANCE_FLOOR threshold still needs ≥50 tagged real reps. OPEN.
+    - WS8 (<7 s p50): real-rep p50 23.3 s / p90 34.6 s — but 5/6 were Haiku-fallback reps during the credits
+      outage and all pre-date the warm-up fix; post-fix harness reps ran 7.1–13.7 s on gpt-4o. OPEN; re-read
+      on real post-fix traffic.
+    - 1b: 0 `MIDDLEWARE_INVOCATION_TIMEOUT` in the CLI-retrievable prod log window; the full 7-day read —
+      and the 1c `prompt_selection.latency` <1 s p50 gate — still need the Vercel log drain (Pro follow-up).
+  - **Fallback watch:** all 7 scoring calls since credits restored (08-30) served `openai:gpt-4o-2024-08-06`,
+    0 anthropic-fallback rows. The fallback-rate alert is still an open follow-up.
+  - **Cron check (handoff item 3):** `muscle-group-day-rollover` latest run ok (08-30 19:19 post-fix dry-run;
+    the 09:05 scheduled run failed pre-deploy — confirm tomorrow's 09:05), `expand-prompt-bank` ok (08-30
+    19:23). All other crons green; `weekly-callout-drift` next due ~08-31.
+  - **Deferred cleanup PR:** removed retired arms median-of-n / reference-anchored / grouped-fanout /
+    tone-decomposed / all-llm from `ScoringArm`, `IMPLEMENTED_VARIANT_ARMS`, and `score-arms.ts` (dispatcher
+    STAYS; control / signals-drop / lean-output / lean-split / holistic-split / per-skill-fanout kept), the
+    tone-decomposition machinery from `score-arm-b.ts`, and `reference-anchors.ts` + `rag/reference-reps.ts`
+    + their tests. The deliveryMode/thinkingMode hybrid config stays (calibration + FF_ARM_B_DELIVERY_MODE)
+    and stays covered. WS4-review audit-script cleanups: emails masked on stdout (db.mjs `maskEmail`),
+    analyze_real.mjs merged into analyze.mjs (`--all` flag), OUT → gitignored `out/`, time windows anchored
+    to the newest rep instead of `Date.now()`. **No live-path scoring prompt bytes changed** (dead arm scopes
+    only) — calibration re-run not required. tsc, lint, full unit suite green; −1350 LOC.

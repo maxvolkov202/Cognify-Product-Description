@@ -101,3 +101,6 @@ scripts/qa/grading-audit/*.txt
 # WS2 human-labeling data (user transcripts; public repo). Scripts + README are committed.
 plans/calibration/human-labeling-2026-09/*
 !plans/calibration/human-labeling-2026-09/README.md
+
+# grading-audit script outputs
+scripts/qa/grading-audit/out/
