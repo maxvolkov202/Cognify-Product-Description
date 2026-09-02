@@ -45,16 +45,24 @@ const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsod
   // v2: windowed monotone is an INDEPENDENT signal — same std, more flat windows, lower score.
   check("windowed monotone docks independently of std", T(3, { monotoneRatio: 0.9 }).score <= T(3, { monotoneRatio: 0.2 }).score - 10,
     `${T(3, { monotoneRatio: 0.9 }).score} vs ${T(3, { monotoneRatio: 0.2 }).score}`);
-  check("upspeak docks even with variety (edge rule 4)", T(3.5, { upspeakRatio: 0.5 }).score <= T(3.5).score - 15);
+  check("aligned upspeak docks even with variety (edge rule 4)", T(3.5, { upspeakRatioAligned: 0.5 }).score <= T(3.5).score - 15);
   // v2: the scoring-time ALIGNED ratio outranks the silence heuristic.
   check("aligned upspeak 0 overrides noisy raw 0.5", T(3.5, { upspeakRatio: 0.5, upspeakRatioAligned: 0 }).score === T(3.5, { upspeakRatio: 0.1 }).score,
     `${T(3.5, { upspeakRatio: 0.5, upspeakRatioAligned: 0 }).score}`);
-  check("aligned upspeak 0.5 docks despite clean raw", T(3.5, { upspeakRatio: 0, upspeakRatioAligned: 0.5 }).score <= T(3.5).score - 15);
-  // v2: falling statement finals earn a bonus (flat fixtures ≈ 0, expressive 0.5-1.0).
-  check("falling finals lift the score", T(3, { finalFallRatio: 0.8 }).score >= T(3, { finalFallRatio: 0 }).score + 4,
-    `${T(3, { finalFallRatio: 0.8 }).score} vs ${T(3, { finalFallRatio: 0 }).score}`);
-  check("aligned finalFall preferred over raw", T(3, { finalFallRatio: 0, finalFallRatioAligned: 0.8 }).score === T(3, { finalFallRatio: 0.8 }).score);
-  check("flat volume (8 dB on this scale) docks, lively (30 dB) lifts", T(3, { rmsStd: 8 }).score < T(3).score && T(3, { rmsStd: 30 }).score > T(3).score);
+  check("raw fallback is uncharged in its documented noise band (≤0.3)", T(3.5, { upspeakRatio: 0.25 }).score === T(3.5, { upspeakRatio: 0 }).score);
+  check("raw fallback still docks real upspeak (0.65)", T(3.5, { upspeakRatio: 0.65 }).score <= T(3.5).score - 15);
+  // v2: falling statement finals earn a bonus (flat fixtures ≈ 0, expressive 0.5-1.0);
+  // the raw variant comes from the same noisy segmentation as raw upspeak, so damped.
+  check("aligned falling finals lift the score", T(3, { finalFallRatioAligned: 0.8 }).score >= T(3, { finalFallRatioAligned: 0 }).score + 4,
+    `${T(3, { finalFallRatioAligned: 0.8 }).score} vs ${T(3, { finalFallRatioAligned: 0 }).score}`);
+  check("raw falling-final bonus is damped (≤3)", T(3, { finalFallRatio: 0.8 }).score - T(3, { finalFallRatio: 0 }).score <= 3);
+  // v1-shaped features must not be double-counted: their monotoneRatio IS the std.
+  check("v1 features (no featureVersion): std-derived monotone uncharged",
+    T(1.0, { featureVersion: null, monotoneRatio: 1 }).score === T(1.0, { featureVersion: null, monotoneRatio: 0.2 }).score,
+    `${T(1.0, { featureVersion: null, monotoneRatio: 1 }).score} vs ${T(1.0, { featureVersion: null, monotoneRatio: 0.2 }).score}`);
+  check("v2 short-clip fallback (monotoneWindowed=false) uncharged",
+    T(1.0, { monotoneWindowed: false, monotoneRatio: 1 }).score === T(1.0, { monotoneWindowed: false, monotoneRatio: 0.2 }).score);
+  check("flat volume (8 dB on this scale) docks, lively (40 dB) lifts", T(3, { rmsStd: 8 }).score < T(3).score && T(3, { rmsStd: 40 }).score > T(3).score);
   check("articulation: 0.4 beats 0.03, halved weight (≤ 6 apart)",
     T(3, { articulationScore: 0.4 }).score > T(3, { articulationScore: 0.03 }).score &&
     T(3, { articulationScore: 0.4 }).score - T(3, { articulationScore: 0.03 }).score <= 6);
@@ -75,6 +83,9 @@ const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsod
   check("all five scripts have flat+expressive pairs", scripts.length === 5 && scripts.every(([, v]) => v.flat != null && v.expressive != null));
   for (const [sid, v] of scripts) {
     check(`GF1 ${sid}: flat ≤ 45`, v.flat! <= 45, String(v.flat));
+    const flatRaw = Object.values(fx).filter((f) => f.scriptId === sid && f.style === "flat")
+      .map((f) => scoreToneFromProsody(f.features)!.raw)[0]!;
+    check(`GF1 ${sid}: flat RAW ≤ 35 (margin below the clamp, not the clamp itself)`, flatRaw <= 35, String(flatRaw));
     check(`GF1 ${sid}: expressive ≥ 65`, v.expressive! >= 65, String(v.expressive));
     check(`GF1 ${sid}: separation ≥ 25`, v.expressive! - v.flat! >= 25, `${v.expressive! - v.flat!}`);
   }
@@ -87,7 +98,14 @@ const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsod
   check("generated tone feedback: flat pitch + flat volume + action", /barely moved/.test(fb) && /volume stayed/.test(fb) && /\.$/.test(fb), fb);
   const fbUp = buildToneFeedback(mk(3.2, { upspeakRatioAligned: 0.5 }));
   check("upspeak feedback uses the aligned ratio", /rising at the end/.test(fbUp) && /falling note/.test(fbUp), fbUp);
-  check("no em-dash in generated tone copy", !/—/.test(fb) && !/—/.test(fbUp));
+  // Coherence: the sentence tiers use the SAME cuts as the scoring curves —
+  // std 3.5 with monotone 0.6 is mid-tier everywhere, never self-contradicting.
+  const fbMid = buildToneFeedback(mk(3.5, { monotoneRatio: 0.6 }));
+  check("mid-tier monotone reads as one coherent sentence",
+    /moved a little/.test(fbMid) && /long stretches stayed on one note/.test(fbMid) && /Land the key words/.test(fbMid), fbMid);
+  const fbV1 = buildToneFeedback(mk(3.2, { featureVersion: null, monotoneRatio: 1 }));
+  check("v1 features: std-derived monotone never flips the sentence to flat", /moved well/.test(fbV1), fbV1);
+  check("no em-dash in generated tone copy", !/—/.test(fb) && !/—/.test(fbUp) && !/—/.test(fbMid));
 }
 console.log("────────────────────────────");
 console.log(`pass: ${pass} fail: ${fail}`);

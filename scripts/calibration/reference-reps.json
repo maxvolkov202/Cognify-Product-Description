@@ -956,7 +956,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive"
         }
       ]
     },
@@ -975,7 +975,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1006,7 +1006,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive"
         }
       ]
     },
@@ -1025,7 +1025,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1056,7 +1056,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive"
         }
       ]
     },
@@ -1075,7 +1075,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1106,7 +1106,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive"
         }
       ]
     },
@@ -1125,7 +1125,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1156,7 +1156,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive"
         }
       ]
     },
@@ -1175,7 +1175,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },

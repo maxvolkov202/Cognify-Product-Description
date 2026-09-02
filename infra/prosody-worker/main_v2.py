@@ -80,6 +80,11 @@ class Response(BaseModel):
     pitchStdSemitones: float | None
     pitchRangeSemitones: float | None
     monotoneRatio: float | None
+    # True when monotoneRatio came from the sliding-window measurement; False
+    # when the short-clip fallback derived it from the global std (the Node
+    # tone core must NOT charge a std-derived value as an independent signal —
+    # that is the v1 double-count).
+    monotoneWindowed: bool | None
     upspeakRatio: float | None
     finalFallRatio: float | None
     rmsMean: float | None
@@ -90,7 +95,7 @@ class Response(BaseModel):
 
 NULL_RESPONSE = dict(
     pitchMeanHz=None, pitchStdSemitones=None, pitchRangeSemitones=None,
-    monotoneRatio=None, upspeakRatio=None, finalFallRatio=None,
+    monotoneRatio=None, monotoneWindowed=None, upspeakRatio=None, finalFallRatio=None,
     rmsMean=None, rmsStd=None, articulationScore=None, segmentTails=None,
 )
 
@@ -139,11 +144,13 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
 
     tails = _segment_tails(track)
     up, fall = _tail_ratios(tails)
+    mono = _windowed_monotone(track)
     return Response(
         pitchMeanHz=track["meanHz"],
         pitchStdSemitones=track["stdSemitones"],
         pitchRangeSemitones=track["rangeSemitones"],
-        monotoneRatio=_windowed_monotone(track),
+        monotoneRatio=mono[0] if mono else None,
+        monotoneWindowed=mono[1] if mono else None,
         upspeakRatio=up,
         finalFallRatio=fall,
         rmsMean=rms.get("mean"),
@@ -189,7 +196,7 @@ def _extract_pitch_track(sound: "parselmouth.Sound") -> dict[str, Any] | None:
         return None
 
 
-def _windowed_monotone(track: dict[str, Any]) -> float | None:
+def _windowed_monotone(track: dict[str, Any]) -> tuple[float, bool] | None:
     """Ratio of 1s sliding windows whose pitch std is below MONOTONE_STD_ST.
     Windows with too few voiced frames are not evaluable; <3 evaluable → None."""
     times, keep, st = track["times"], track["keep"], track["st_full"]
@@ -211,13 +218,14 @@ def _windowed_monotone(track: dict[str, Any]) -> float | None:
     if evaluable < 3:
         # Too short for windows (<~1.5s of voicing): fall back to the v1-style ramp
         # from the global std so short reps keep monotone evidence instead of null.
+        # windowed=False so the tone core knows this is std-derived (no double-count).
         std = track["stdSemitones"]
         if std <= 1.5:
-            return 1.0
+            return 1.0, False
         if std >= 4.5:
-            return 0.0
-        return float(1.0 - (std - 1.5) / 3.0)
-    return monotone / evaluable
+            return 0.0, False
+        return float(1.0 - (std - 1.5) / 3.0), False
+    return monotone / evaluable, True
 
 
 def _segment_tails(track: dict[str, Any]) -> list[dict[str, float]]:

@@ -18,8 +18,9 @@
  *   - durationMs     : measured clip duration (features.json), NOT the
  *                      source rep's duration — pacing math needs the
  *                      real WPM of the clip
- *   - assertions     : per-clip tone bounds (flat ≤55, expressive ≥70).
- *                      Pair-separation rules live in the harness.
+ *   - assertions     : per-clip tone bounds (flat ≤55, expressive ≥60 —
+ *                      60 leaves ±10 blend headroom). Pair-separation rules
+ *                      live in the harness.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -48,9 +49,9 @@ const audioReps = manifest.fixtures.map((f) => {
   // in tests/tone-core.test.ts as a deterministic assertion now.
   const assertions =
     f.style === "flat"
-      ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive" }]
+      ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive" }]
       : f.style === "expressive"
-        ? [{ kind: "minScore", dimension: "tone", min: 60, rationale: "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate" }]
+        ? [{ kind: "minScore", dimension: "tone", min: 60, rationale: "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate" }]
         : []; // rushed clips are pair-only (delivery separation vs expressive)
   return {
     id: `audio-tone__${f.scriptId}__${f.style}`,

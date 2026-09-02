@@ -80,15 +80,17 @@ const approx = (a: number | null | undefined, b: number) =>
   const both = alignSegmentTails(
     [
       { endMs: 880, tailSlopeHzPerSec: -100 },
-      { endMs: 1000, tailSlopeHzPerSec: 200 },
+      { endMs: 1950, tailSlopeHzPerSec: -120 },
+      { endMs: 3000, tailSlopeHzPerSec: 200 },
     ],
     [
       { endMs: 900, isQuestion: false },
-      { endMs: 1000, isQuestion: true },
+      { endMs: 2000, isQuestion: false },
+      { endMs: 3000, isQuestion: true },
     ],
   );
-  assert(both != null && both!.alignedCount === 2 && both!.declarativeCount === 1, "each end claims its nearest tail");
-  assert(approx(both!.upspeakRatioAligned, 0) && approx(both!.finalFallRatioAligned, 1), "declarative falls; question's rise excluded");
+  assert(both != null && both!.alignedCount === 3 && both!.declarativeCount === 2, "each end claims its nearest tail");
+  assert(approx(both!.upspeakRatioAligned, 0) && approx(both!.finalFallRatioAligned, 1), "declaratives fall; question's rise excluded");
 }
 
 // ——— alignSegmentTails ————————————————————————————————————
@@ -120,7 +122,8 @@ const approx = (a: number | null | undefined, b: number) =>
   assert(r === null, "tail outside tolerance → nothing aligned → null");
 }
 {
-  // A tail serves only one statement (nearest wins, no double-claiming).
+  // n=1 floor: a single aligned declarative must NOT emit ratios (one +60 Hz/s
+  // tail would swing tone by −25 off one data point; v1's ≥2-segment rule kept).
   const r = alignSegmentTails(
     [{ endMs: 1000, tailSlopeHzPerSec: 100 }],
     [
@@ -128,16 +131,21 @@ const approx = (a: number | null | undefined, b: number) =>
       { endMs: 1100, isQuestion: false },
     ],
   );
-  assert(r != null && r!.alignedCount === 1, "single tail claimed once");
-  assert(approx(r!.upspeakRatioAligned, 1), "claimed tail rising over 1 declarative");
+  assert(r === null, "one tail over two ends aligns once → below the n=2 floor → null");
 }
 {
-  // Flat slope (between thresholds) is neither rising nor falling.
+  // Flat slopes (between thresholds) count in the denominator only.
   const r = alignSegmentTails(
-    [{ endMs: 900, tailSlopeHzPerSec: 10 }],
-    [{ endMs: 900, isQuestion: false }],
+    [
+      { endMs: 900, tailSlopeHzPerSec: 10 },
+      { endMs: 2000, tailSlopeHzPerSec: -10 },
+    ],
+    [
+      { endMs: 900, isQuestion: false },
+      { endMs: 2000, isQuestion: false },
+    ],
   );
-  assert(r != null && approx(r!.upspeakRatioAligned, 0) && approx(r!.finalFallRatioAligned, 0), "flat tail counts in denominator only");
+  assert(r != null && r!.declarativeCount === 2 && approx(r!.upspeakRatioAligned, 0) && approx(r!.finalFallRatioAligned, 0), "flat tails count in denominator only");
 }
 assert(alignSegmentTails(null, [{ endMs: 1, isQuestion: false }]) === null, "no tails → null");
 assert(alignSegmentTails([{ endMs: 1, tailSlopeHzPerSec: 0 }], []) === null, "no ends → null");
@@ -160,11 +168,19 @@ const baseFeatures: ProsodyFeatures = {
 {
   const withTails: ProsodyFeatures = {
     ...baseFeatures,
-    segmentTails: [{ endMs: 900, tailSlopeHzPerSec: 120 }],
+    segmentTails: [
+      { endMs: 900, tailSlopeHzPerSec: 120 },
+      { endMs: 2000, tailSlopeHzPerSec: 150 },
+    ],
   };
-  const out = withAlignedTailRatios(withTails, [{ word: "done.", endMs: 900 }]);
+  const out = withAlignedTailRatios(withTails, [
+    { word: "done.", endMs: 900 },
+    { word: "Sure.", endMs: 2000 },
+  ]);
   assert(approx(out!.upspeakRatioAligned, 1), "aligned upspeak attached");
   assert(out!.upspeakRatio === 0.4, "silence-heuristic ratio untouched");
+  const single = withAlignedTailRatios(withTails, [{ word: "done.", endMs: 900 }]);
+  assert(single === withTails, "one aligned declarative is below the floor → no aligned fields");
   const noWords = withAlignedTailRatios(withTails, []);
   assert(noWords === withTails, "no words → same reference, no aligned fields");
   const noTails = withAlignedTailRatios(baseFeatures, [{ word: "done.", endMs: 900 }]);

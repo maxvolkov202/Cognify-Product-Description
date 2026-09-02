@@ -39,6 +39,10 @@ export type ProsodyFeatures = {
   pitchRangeSemitones: number | null;
   /** % of speech with sustained low pitch variance — high = monotone. */
   monotoneRatio: number | null;
+  /** v2: true when monotoneRatio is the windowed measurement, false when the
+   *  short-clip fallback derived it from the global std (the tone core must
+   *  not charge a std-derived value as an independent signal). Absent = v1. */
+  monotoneWindowed?: boolean | null;
   /** % of statement-end intonations rising — high = upspeak penalty. */
   upspeakRatio: number | null;
   rmsMean: number | null;

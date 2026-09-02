@@ -168,6 +168,7 @@ export function mergeProsody(
     articulationScore: worker.articulationScore ?? inline.articulationScore,
     // Worker contract v2 — pass-through (inline never produces these).
     featureVersion: worker.featureVersion ?? inline.featureVersion,
+    monotoneWindowed: worker.monotoneWindowed ?? inline.monotoneWindowed,
     finalFallRatio: worker.finalFallRatio ?? inline.finalFallRatio,
     segmentTails: worker.segmentTails ?? inline.segmentTails,
   };

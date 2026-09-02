@@ -45,6 +45,9 @@ export type ToneCoreSubScores = {
 
 export type ToneCoreResult = {
   score: number;
+  /** Pre-clamp sum — gates assert margins on this so a retune that erodes
+   *  flat detection cannot hide behind the [20,95] clamp. */
+  raw: number;
   subScores: ToneCoreSubScores;
   /** One line of evidence for logs / signals. */
   evidence: string;
@@ -87,30 +90,46 @@ const MONOTONE_TO_PENALTY: readonly Anchor[] = [
   [0.85, 11],
   [1.0, 14],
 ];
-/** Below 0.2 the silence-heuristic ratio is noise (TTS fixtures with ZERO
- *  aligned upspeak still read up to 0.25 raw); the aligned ratio, when
- *  present, is the trusted input. */
-const UPSPEAK_TO_PENALTY: readonly Anchor[] = [
-  [0.2, 0],
-  [0.35, 8],
-  [0.5, 18],
-  [0.65, 25],
+/** The two upspeak estimators run on different scales, so each gets its own
+ *  curve: the ALIGNED ratio (statement ends ∩ tails, ≥2 declaratives) is
+ *  trusted from 0.1; the silence-heuristic RAW fallback reads up to 0.25 on
+ *  clips with ZERO aligned upspeak, so it is uncharged below 0.3. */
+const ALIGNED_UPSPEAK_TO_PENALTY: readonly Anchor[] = [
+  [0.1, 0],
+  [0.25, 8],
+  [0.45, 18],
+  [0.6, 25],
 ];
-const FINAL_FALL_TO_BONUS: readonly Anchor[] = [
+const RAW_UPSPEAK_TO_PENALTY: readonly Anchor[] = [
+  [0.3, 0],
+  [0.45, 8],
+  [0.6, 18],
+  [0.75, 25],
+];
+/** Falling statement finals. The raw variant is produced by the same noisy
+ *  segmentation as raw upspeak, so its bonus is damped. */
+const ALIGNED_FINAL_FALL_TO_BONUS: readonly Anchor[] = [
   [0, 0],
   [0.25, 2],
   [0.5, 4],
   [0.8, 6],
 ];
-/** Intensity std (dB) → dynamics modifier, anchored to the MEASURED scale
- *  of this worker (50ms windows incl. silence dips: in-system p10 14,
- *  p50 22, p90 45 — v1's 2-10 dB anchors were an order off). */
+const RAW_FINAL_FALL_TO_BONUS: readonly Anchor[] = [
+  [0, 0],
+  [0.5, 2],
+  [0.8, 3],
+];
+/** Intensity std (dB), anchored to the MEASURED scale of this worker (50ms
+ *  windows INCLUDING silence dips: in-system p10 14 / p50 22 / p90 45).
+ *  Honest note: on this measurement the statistic is dominated by
+ *  speech-vs-silence contrast, not vocal volume dynamics — the PSOLA
+ *  constant-volume fixtures read 16-21 dB — so its weight is small (±2)
+ *  pending a real dynamics measure (voiced-only intensity std). */
 const RMS_STD_DB_TO_DYNAMICS: readonly Anchor[] = [
-  [8, -4],
-  [14, -1],
-  [20, 0],
-  [26, 2],
-  [40, 4],
+  [8, -2],
+  [14, 0],
+  [26, 1],
+  [40, 2],
 ];
 /** Articulation proxy re-anchored to observed values (p50 0.13) and halved
  *  in weight (±3 vs the old ±6): a crude high-frequency-energy heuristic. */
@@ -137,21 +156,34 @@ export function scoreToneFromProsody(
   if (!features) return null;
   const pitchStd = finiteOrNull(features.pitchStdSemitones);
   if (pitchStd == null) return null;
-  const range = finiteOrNull(features.pitchRangeSemitones);
-  let variety = interp(pitchStd, PITCH_STD_TO_VARIETY);
-  // A wide cleaned range with a modest std still means the voice moves; the
-  // v2 cleaned range runs 17-19 st on expressive clips (one flat fixture
-  // reaches 10.9), so the lift starts at 12.
-  if (range != null && range >= 12 && pitchStd < 3) variety += 4;
+  const variety = interp(pitchStd, PITCH_STD_TO_VARIETY);
 
+  // Windowed monotone counts as an independent signal ONLY when it truly is
+  // one: v1 rows (no featureVersion) derived it from the same std charged
+  // above, and worker v2's short-clip fallback marks monotoneWindowed=false —
+  // charging those again is the double-count the v1 header forbade.
   const monotone = finiteOrNull(features.monotoneRatio);
-  const monotonePenalty = monotone != null ? interp(monotone, MONOTONE_TO_PENALTY) : 0;
-  const upspeak =
-    finiteOrNull(features.upspeakRatioAligned) ?? finiteOrNull(features.upspeakRatio);
-  const upspeakPenalty = upspeak != null ? interp(upspeak, UPSPEAK_TO_PENALTY) : 0;
-  const finalFall =
-    finiteOrNull(features.finalFallRatioAligned) ?? finiteOrNull(features.finalFallRatio);
-  const finalFallBonus = finalFall != null ? interp(finalFall, FINAL_FALL_TO_BONUS) : 0;
+  const monotoneIsIndependent =
+    (features.featureVersion ?? 1) >= 2 && features.monotoneWindowed !== false;
+  const monotonePenalty =
+    monotone != null && monotoneIsIndependent ? interp(monotone, MONOTONE_TO_PENALTY) : 0;
+
+  const upspeakAligned = finiteOrNull(features.upspeakRatioAligned);
+  const upspeakRaw = finiteOrNull(features.upspeakRatio);
+  const upspeakPenalty =
+    upspeakAligned != null
+      ? interp(upspeakAligned, ALIGNED_UPSPEAK_TO_PENALTY)
+      : upspeakRaw != null
+        ? interp(upspeakRaw, RAW_UPSPEAK_TO_PENALTY)
+        : 0;
+  const fallAligned = finiteOrNull(features.finalFallRatioAligned);
+  const fallRaw = finiteOrNull(features.finalFallRatio);
+  const finalFallBonus =
+    fallAligned != null
+      ? interp(fallAligned, ALIGNED_FINAL_FALL_TO_BONUS)
+      : fallRaw != null
+        ? interp(fallRaw, RAW_FINAL_FALL_TO_BONUS)
+        : 0;
   const rmsStdDb = finiteOrNull(features.rmsStd);
   const dynamics = rmsStdDb != null ? interp(rmsStdDb, RMS_STD_DB_TO_DYNAMICS) : 0;
   const artic = finiteOrNull(features.articulationScore);
@@ -160,11 +192,13 @@ export function scoreToneFromProsody(
   const raw =
     variety - monotonePenalty - upspeakPenalty + finalFallBonus + dynamics + articulation;
   const score = Math.max(20, Math.min(95, Math.round(raw)));
+  const upspeakShown = upspeakAligned ?? upspeakRaw;
+  const fallShown = fallAligned ?? fallRaw;
   const evidence = [
     `pitch std ${pitchStd.toFixed(2)} st`,
-    monotone != null ? `monotone ${(monotone * 100).toFixed(0)}%` : null,
-    upspeak != null ? `upspeak ${(upspeak * 100).toFixed(0)}%` : null,
-    finalFall != null ? `falling finals ${(finalFall * 100).toFixed(0)}%` : null,
+    monotone != null ? `monotone ${(monotone * 100).toFixed(0)}%${monotoneIsIndependent ? "" : " (std-derived)"}` : null,
+    upspeakShown != null ? `upspeak ${(upspeakShown * 100).toFixed(0)}%${upspeakAligned != null ? " (aligned)" : ""}` : null,
+    fallShown != null ? `falling finals ${(fallShown * 100).toFixed(0)}%${fallAligned != null ? " (aligned)" : ""}` : null,
     rmsStdDb != null ? `volume std ${rmsStdDb.toFixed(1)} dB` : null,
     artic != null ? `articulation ${(artic * 100).toFixed(0)}` : null,
   ]
@@ -172,6 +206,7 @@ export function scoreToneFromProsody(
     .join(", ");
   return {
     score,
+    raw,
     subScores: { variety, monotonePenalty, upspeakPenalty, finalFallBonus, dynamics, articulation },
     evidence,
   };
@@ -181,27 +216,33 @@ export function scoreToneFromProsody(
  *  model's narrative explains a number the core has replaced. */
 export function buildToneFeedback(features: ProsodyFeatures): string {
   const std = features.pitchStdSemitones ?? 0;
-  const monotone = features.monotoneRatio ?? 0;
-  const upspeak = features.upspeakRatioAligned ?? features.upspeakRatio ?? 0;
+  const monotoneIsIndependent =
+    (features.featureVersion ?? 1) >= 2 && features.monotoneWindowed !== false;
+  const monotone = monotoneIsIndependent ? (features.monotoneRatio ?? 0) : 0;
+  const upspeakAligned = features.upspeakRatioAligned;
+  const upspeak = upspeakAligned ?? features.upspeakRatio ?? 0;
+  // Same noise floors as the scoring curves so the sentence never names a
+  // behavior the score did not charge (and vice versa).
+  const upspeaky = upspeakAligned != null ? upspeak > 0.1 : upspeak > 0.3;
   const finalFall = features.finalFallRatioAligned ?? features.finalFallRatio ?? null;
-  const pitch =
-    std >= 3 && monotone <= 0.5
-      ? "Your pitch moved well across the answer"
-      : std >= 1.5 && monotone <= 0.85
-        ? "Your pitch moved a little but stayed mostly level"
-        : "Your pitch barely moved, so the delivery sounded flat";
+  const flat = monotone > 0.85 || std < 1.5;
+  const mid = !flat && (monotone > 0.5 || std < 3);
+  const pitch = flat
+    ? "Your pitch barely moved, so the delivery sounded flat"
+    : mid
+      ? "Your pitch moved a little but stayed mostly level"
+      : "Your pitch moved well across the answer";
   const extras: string[] = [];
-  if (monotone > 0.85 && std >= 1.5) extras.push("long stretches stayed on one note");
-  if (upspeak > 0.35) extras.push("statements kept rising at the end like questions");
-  if (features.rmsStd != null && features.rmsStd < 10) extras.push("your volume stayed at one level");
-  const action =
-    upspeak > 0.35
-      ? "Finish statements on a falling note so they sound decided."
-      : std < 3 || monotone > 0.85
-        ? "Land the key words harder and let the pitch drop at the end of each statement."
-        : finalFall != null && finalFall >= 0.5
-          ? "Keep that range and those decided endings; they carry the answer."
-          : "Keep that vocal range; it is what makes the answer easy to listen to.";
+  if (mid && monotone > 0.5) extras.push("long stretches stayed on one note");
+  if (upspeaky) extras.push("statements kept rising at the end like questions");
+  if (features.rmsStd != null && features.rmsStd < 14) extras.push("your volume stayed at one level");
+  const action = upspeaky
+    ? "Finish statements on a falling note so they sound decided."
+    : flat || mid
+      ? "Land the key words harder and let the pitch drop at the end of each statement."
+      : finalFall != null && finalFall >= 0.5
+        ? "Keep that range and those decided endings; they carry the answer."
+        : "Keep that vocal range; it is what makes the answer easy to listen to.";
   return `${pitch}${extras.length ? ", and " + extras.join(", ") : ""}. ${action}`;
 }
 
