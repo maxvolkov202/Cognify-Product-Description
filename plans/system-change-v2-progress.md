@@ -1715,3 +1715,45 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     finalFallRatio, featureVersion 2 in a SIDE-BY-SIDE Modal app; Node cache version guard
     (PROSODY_FEATURE_VERSION_MAX) + TS scoring-time alignment; GW1–GW3 via extract-compare, then
     GF2 + GC1 (both calibration suites) BEFORE any prod URL flip.
+
+- **2026-09-02 — Prosody v2 Phase 2: worker v2 built + validated; STOPPED at GF2 per the
+  two-failures rule** (`feat/prosody-worker-v2`, branch pushed, PR held as draft — no prod flip,
+  no merge).
+  - **Worker v2** (`infra/prosody-worker/main_v2.py` + `modal_app_v2.py`, side-by-side; v1
+    untouched): single pitch pass at 75–500Hz + 12 st octave-outlier cleaning (root cause of the
+    flat-fixture mis-extraction: v1's default 600Hz ceiling admitted ~590Hz harmonic frames —
+    reproduced and verified against ground truth), truly windowed monotoneRatio, segmentTails,
+    finalFallRatio, featureVersion 2. **Node side:** zod/type/mergeProsody accept the additive v2
+    fields (z.object strips unknown keys — found before it bit), `featureVersionAllowed` cache
+    guard (PROSODY_FEATURE_VERSION_MAX, pure + tested), `prosody-align.ts` scoring-time alignment
+    (statement ends from punctuated words ∩ segmentTails; questions excluded from the upspeak
+    denominator), attached post-render (zero prompt bytes). 31-assertion unit suite wired in.
+  - **Gate table (local v2 worker via scratch venv + static ffmpeg; Modal deploy blocked — see
+    below):**
+    | gate | result |
+    |---|---|
+    | GW1 (feature availability) | **PASS** 100/100 in-system audio reps (prod v1 vs local v2 A/B) |
+    | GW2 (windowed monotone) | **PASS** flat 1.0 on 5/5 (≥0.9); expressive 0.14–0.22 on 5/5 (≤0.3); pitch std matches fixture ground truth 15/15 |
+    | GW3 (aligned upspeak) | OPEN — needs v2-warmed seeded reps (deployed worker); silence-heuristic upspeak unchanged vs v1 |
+    | GC1 calibrate-audio-tone | **green under v2** (0 failures/0 warnings, [toneSource: prosody] 15/15), before AND after the firewall prompt change |
+    | GC1 calibrate-scoring | ambient 4–6/48 failures, SAME on main and branch with identical env (different reps each run — provider-side drift since the 08-30 47/48; pre-existing, not branch-caused; text-bank prompt bytes unchanged by the branch). Flagged as its own follow-up. |
+    | GF2 (content dims ±15) | **FAILED TWICE — STOP.** Battery 1 (median-of-5 per side): structure −20 on the PSOLA-flat strong clip — real halo, evidence-adjacent. Retune: scope constraint added INSIDE the prosody block header (the rubric-level firewall at score-shared ~511 already said this and was ignored under extreme evidence). Battery 2 (median-of-5): the halo fix HELD (structure max delta 10, flat-clip case resolved) but clarity +17 appeared on interview-rushed (v2 HIGHER). |
+  - **Why this looks like gate mechanics, not a v2 defect:** three batteries produced three
+    DIFFERENT single-cell violations (qa-rushed clarity +16 → gone at n=5; band-flat structure
+    −20 → fixed by firewall; interview-rushed clarity +17, favoring v2), each 1–2 points over the
+    ±15 floor, both directions, 60 cells tested per battery. Meanwhile the manifest's own
+    cross-style invariance (≤8) is violated by PROD TODAY under v1 (clarity spread up to 23);
+    under v2 + firewall the worst spread is 16 — v2 is measurably closer to invariant than the
+    live system. Per the plan §6 this is still the stop point, not a judgment call to make alone.
+  - **Also blocked/flagged:** (a) Modal deploy of the side-by-side app needs one-time auth —
+    `pip3 install --user modal && python3 -m modal token new` (interactive; no token on this
+    machine, v1 was not deployed from here); (b) the ambient calibrate-scoring drift (4–6/48 on
+    main) deserves a look independent of prosody; (c) e2e-harness@cognify.test prod password
+    rotation still pending (09-02 note above).
+  - **Next:** Max decides on GF2 (options in the Phase-2 stop report): (1) pre-register a
+    reproducibility rule for the gate (a violation must repeat in two independent median-of-5
+    batteries in the same cell+direction) and re-run once; (2) accept with the firewall given
+    v2 improves invariance vs prod; (3) shrink the LLM's prosody-evidence surface (e.g. stop
+    rendering monotone% — the deterministic core consumes it in Phase 3 anyway) and re-run GF2;
+    (4) hold Phase 2 pending deeper investigation. Phase 3 (tone-core v2) is NOT blocked by GF2
+    mechanics — it is post-processing — but flag-flip sequencing stays as planned.

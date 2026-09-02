@@ -93,7 +93,12 @@ export function renderProsodyBlock(
   features: ProsodyFeatures | null,
 ): string | null {
   if (!features) return null;
-  const lines: string[] = ["PROSODY (objective audio measurements):"];
+  // Scope note lives ON the block, not only in the rubric: the rubric-level
+  // firewall alone did not stop content-dim halo on extreme evidence
+  // (prosody-v2 GF2, 2026-09-02: PSOLA-flat clip moved structure -20).
+  const lines: string[] = [
+    "PROSODY (objective audio measurements; evidence for delivery and tone ONLY - a monotone, expressive, or rushed voice must not move clarity, structure, conciseness, or thinking_quality):",
+  ];
   lines.push(
     // WS9 — one target band everywhere (was 150-160 here vs 130-165 on the
     // rate line and in the rubric).
