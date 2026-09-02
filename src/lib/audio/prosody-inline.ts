@@ -166,5 +166,9 @@ export function mergeProsody(
     rmsMean: worker.rmsMean ?? inline.rmsMean,
     rmsStd: worker.rmsStd ?? inline.rmsStd,
     articulationScore: worker.articulationScore ?? inline.articulationScore,
+    // Worker contract v2 — pass-through (inline never produces these).
+    featureVersion: worker.featureVersion ?? inline.featureVersion,
+    finalFallRatio: worker.finalFallRatio ?? inline.finalFallRatio,
+    segmentTails: worker.segmentTails ?? inline.segmentTails,
   };
 }

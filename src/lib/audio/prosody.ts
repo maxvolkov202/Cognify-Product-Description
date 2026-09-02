@@ -45,6 +45,22 @@ export type ProsodyFeatures = {
   rmsStd: number | null;
   /** Heuristic 0-1; higher = clearer consonant articulation. */
   articulationScore: number | null;
+  // ——— Worker contract v2 (prosody-v2 plan P2; additive, self-versioned).
+  //     NONE of these render into the prompt evidence block — the aligned
+  //     ratios feed the deterministic tone core (Phase 3), not the LLM.
+  /** Version of the worker feature set that produced the worker fields.
+   *  Absent/undefined = v1 (pre-versioning rows). Travels inside the
+   *  cache JSONB — no schema change. */
+  featureVersion?: number | null;
+  /** Statement-final falling-intonation share (silence-heuristic). */
+  finalFallRatio?: number | null;
+  /** Per voiced-segment tail slopes; scoring-time alignment intersects
+   *  these with Deepgram statement ends (the warm runs pre-transcript). */
+  segmentTails?: { endMs: number; tailSlopeHzPerSec: number }[] | null;
+  /** Aligned ratios — computed Node-side at scoring time from
+   *  segmentTails ∩ punctuated word timings (src/lib/audio/prosody-align.ts). */
+  upspeakRatioAligned?: number | null;
+  finalFallRatioAligned?: number | null;
   // ——— Ch.S5 Hume.ai emotion-vector path (parallel to raw DSP fields) ———
   /** Mean per-emotion score across all windows. Length-48 array; order
    *  matches HUME_EMOTION_NAMES. Null when Hume not active. */
@@ -77,7 +93,12 @@ export function renderProsodyBlock(
   features: ProsodyFeatures | null,
 ): string | null {
   if (!features) return null;
-  const lines: string[] = ["PROSODY (objective audio measurements):"];
+  // Scope note lives ON the block, not only in the rubric: the rubric-level
+  // firewall alone did not stop content-dim halo on extreme evidence
+  // (prosody-v2 GF2, 2026-09-02: PSOLA-flat clip moved structure -20).
+  const lines: string[] = [
+    "PROSODY (objective audio measurements; evidence for delivery and tone ONLY - a monotone, expressive, or rushed voice must not move clarity, structure, conciseness, or thinking_quality):",
+  ];
   lines.push(
     // WS9 — one target band everywhere (was 150-160 here vs 130-165 on the
     // rate line and in the rubric).

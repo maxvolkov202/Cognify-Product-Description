@@ -1715,3 +1715,68 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     finalFallRatio, featureVersion 2 in a SIDE-BY-SIDE Modal app; Node cache version guard
     (PROSODY_FEATURE_VERSION_MAX) + TS scoring-time alignment; GW1–GW3 via extract-compare, then
     GF2 + GC1 (both calibration suites) BEFORE any prod URL flip.
+
+- **2026-09-02 — Prosody v2 Phase 2: worker v2 built + validated; STOPPED at GF2 per the
+  two-failures rule** (`feat/prosody-worker-v2`, branch pushed, PR held as draft — no prod flip,
+  no merge).
+  - **Worker v2** (`infra/prosody-worker/main_v2.py` + `modal_app_v2.py`, side-by-side; v1
+    untouched): single pitch pass at 75–500Hz + 12 st octave-outlier cleaning (root cause of the
+    flat-fixture mis-extraction: v1's default 600Hz ceiling admitted ~590Hz harmonic frames —
+    reproduced and verified against ground truth), truly windowed monotoneRatio, segmentTails,
+    finalFallRatio, featureVersion 2. **Node side:** zod/type/mergeProsody accept the additive v2
+    fields (z.object strips unknown keys — found before it bit), `featureVersionAllowed` cache
+    guard (PROSODY_FEATURE_VERSION_MAX, pure + tested), `prosody-align.ts` scoring-time alignment
+    (statement ends from punctuated words ∩ segmentTails; questions excluded from the upspeak
+    denominator), attached post-render (zero prompt bytes). 31-assertion unit suite wired in.
+  - **Gate table (local v2 worker via scratch venv + static ffmpeg; Modal deploy blocked — see
+    below):**
+    | gate | result |
+    |---|---|
+    | GW1 (feature availability) | **PASS** 100/100 in-system audio reps (prod v1 vs local v2 A/B) |
+    | GW2 (windowed monotone) | **PASS** flat 1.0 on 5/5 (≥0.9); expressive 0.14–0.22 on 5/5 (≤0.3); pitch std matches fixture ground truth 15/15 |
+    | GW3 (aligned upspeak) | **PASS 15/15** (2026-09-02 later): first run exposed a segmentation flaw — v1's code splits voiced runs on ANY unvoiced frame (its own docstring claims ≥300ms), so 20–40s clips yielded 1–5 tails and nothing aligned. v2 now bridges gaps <300ms (pause-bounded segments); statement-end alignment works (evaluated with stored Deepgram words + local v2 worker on the seeded reps): aligned upspeak = 0 on all declarative clips (TTS has none — correct). **Bonus finding: finalFallRatioAligned separates flat/expressive perfectly (flat ≈0, expressive 0.8–1.0)** — constant-F0 audio has no falling finals; strong Phase 3 / P7 signal. Fixtures-run after the fix: 15/15 ok (upspeak nulls gone). |
+    | GC1 calibrate-audio-tone | **green under v2** (0 failures/0 warnings, [toneSource: prosody] 15/15), before AND after the firewall prompt change |
+    | GC1 calibrate-scoring | ambient 4–6/48 failures, SAME on main and branch with identical env (different reps each run — provider-side drift since the 08-30 47/48; pre-existing, not branch-caused; text-bank prompt bytes unchanged by the branch). Flagged as its own follow-up. |
+    | GF2 (content dims ±15) | **FAILED TWICE — STOP.** Battery 1 (median-of-5 per side): structure −20 on the PSOLA-flat strong clip — real halo, evidence-adjacent. Retune: scope constraint added INSIDE the prosody block header (the rubric-level firewall at score-shared ~511 already said this and was ignored under extreme evidence). Battery 2 (median-of-5): the halo fix HELD (structure max delta 10, flat-clip case resolved) but clarity +17 appeared on interview-rushed (v2 HIGHER). |
+  - **Why this looks like gate mechanics, not a v2 defect:** three batteries produced three
+    DIFFERENT single-cell violations (qa-rushed clarity +16 → gone at n=5; band-flat structure
+    −20 → fixed by firewall; interview-rushed clarity +17, favoring v2), each 1–2 points over the
+    ±15 floor, both directions, 60 cells tested per battery. Meanwhile the manifest's own
+    cross-style invariance (≤8) is violated by PROD TODAY under v1 (clarity spread up to 23);
+    under v2 + firewall the worst spread is 16 — v2 is measurably closer to invariant than the
+    live system. Per the plan §6 this is still the stop point, not a judgment call to make alone.
+  - **Also blocked/flagged:** (a) Modal deploy of the side-by-side app needs one-time auth —
+    `pip3 install --user modal && python3 -m modal token new` (interactive; no token on this
+    machine, v1 was not deployed from here); (b) the ambient calibrate-scoring drift (4–6/48 on
+    main) deserves a look independent of prosody; (c) e2e-harness@cognify.test prod password
+    rotation still pending (09-02 note above).
+  - **2026-09-02 (later) — Max: "proceed" → GF2 option 1 taken. PRE-REGISTERED BEFORE running
+    (this line commits the rule ahead of the data): one further independent median-of-5 battery
+    per side runs under the firewall prompt; **GF2 passes unless some content-dim cell exceeds
+    ±15 in the new battery AND the same cell violated in the same direction in the previous
+    (firewall) battery.** A brand-new single-cell excursion does not fail the gate (that is the
+    multiple-comparisons artifact the rule exists to filter); the interview-rushed clarity +17
+    must reproduce for GF2 to fail. One run, no further reruns either way.
+  - **2026-09-02 (later) — GF2 PASS under the pre-registered rule; Phase 2 gates all green.**
+    Battery 3 (fresh, independent, median-of-5 per side, final v2 worker incl. the segmentation
+    fix): ZERO content-dim cells over the ±15 floor (max |median Δ|: clarity 13, structure 10,
+    conciseness 5, thinking 10) — the battery-2 outlier (interview-rushed clarity +17) did not
+    reproduce, confirming the multiple-comparisons read. Verdict file:
+    scripts/qa/prosody-v2/out/gf2-final-verdict.json. Gate table now: GW1 ✓ GW2 ✓ GW3 ✓ GF2 ✓
+    GC1 ✓ with one explained diff (P6's predicted case): the final post-segmentation-fix
+    audio-tone run is 14/15 — `band-competent-okay-pitch__expressive` scores tone 60 vs the
+    bank's ≤55 cap, and that cap is a v1 measurement artifact (its rationale literally cites
+    v1's upspeakRatio 0.5; v2's pause-bounded tails all FALL, −55..−407 Hz/s → upspeak 0.0,
+    finalFall 1.0 — verified directly). The clip is not an upspeak specimen. **Bank note:**
+    re-promote the audio-tone expectations in Phase 3 alongside the tone-core v2 retune
+    (promote-audio-reps.mjs); the upspeak-penalty regression moves to a deterministic tone-core
+    unit test where it belongs. Tone pair separations under final v2: 30/25/32/37 (+ the
+    formerly-failing pair). calibrate-scoring ambient drift noted above, equal on main. Also this session (Max said
+    "proceed"): e2e-harness@cognify.test prod password ROTATED (old committed one verified
+    rejected; new secret in .env.local as E2E_TEST_PASSWORD/SEED_PASSWORD, gitignored).
+    Remaining for the phase: PR #111 review + merge, Modal side-by-side deploy (token flow
+    started, awaiting Max's browser approval), preview/prod URL flip, re-seed example reps.
+  - **Next:** merge PR #111 after /code-review, deploy cognify-prosody-worker-v2 on Modal
+    (needs Max's token approval), flip PROSODY_WORKER_URL preview → soak → prod (FF_TONE_PROSODY_CORE
+    stays OFF), re-seed example reps under v2, then Phase 3 (tone-core v2 curves — use
+    finalFallRatioAligned).

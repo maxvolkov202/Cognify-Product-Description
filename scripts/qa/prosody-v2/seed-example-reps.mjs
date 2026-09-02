@@ -32,8 +32,8 @@ const SEED_EMAIL = process.env.SEED_EMAIL ?? "e2e-harness@cognify.test";
 // No default and NO provisioning: the account must already exist, and a password
 // committed to this public repo must never be the credential for a prod account.
 // (auth.setup.ts's committed default predates this script and is dev/preview-only.)
-const SEED_PASSWORD = process.env.SEED_PASSWORD;
-if (!SEED_PASSWORD) throw new Error("SEED_PASSWORD required — this script never provisions accounts and carries no default credential");
+const SEED_PASSWORD = env.SEED_PASSWORD; // shell env or .env.local (gitignored) — never a committed default
+if (!SEED_PASSWORD) throw new Error("SEED_PASSWORD required (shell env or .env.local) — this script never provisions accounts and carries no default credential");
 if (!SEED_EMAIL.endsWith("@cognify.test")) throw new Error("seeding account must be @cognify.test (P8)");
 
 // DB-host interlock (mirrors tests/e2e/authed/auth.setup.ts): compare the SHELL

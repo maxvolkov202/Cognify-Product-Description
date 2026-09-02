@@ -43,7 +43,7 @@ import {
   blendScores,
   RATE_MEASURABLE_MIN_MS,
 } from "@/lib/scoring/deterministic";
-import { getCachedProsody } from "@/lib/audio/prosody-cache";
+import { featureVersionAllowed, getCachedProsody, storeProsodyFeatures } from "@/lib/audio/prosody-cache";
 import { embedText } from "@/lib/ai/rag/retrieve";
 import { cosineSimilarity, relevanceBelowFloor, applyRelevanceFloor } from "@/lib/scoring/relevance";
 import { isRelevanceFloorEnabled } from "@/lib/flags";
@@ -70,6 +70,7 @@ import {
   mergeProsody,
   synthesizeProsodyBaseline,
 } from "@/lib/audio/prosody-inline";
+import { withAlignedTailRatios } from "@/lib/audio/prosody-align";
 import { getWordCount, durationToMinutes } from "@/lib/scoring/signals/_helpers";
 import {
   hasWorkerProsody,
@@ -1443,13 +1444,18 @@ export async function buildUserPrompt(
       ? (input.audioPath && process.env.FF_PROSODY_WORKER === "true"
           ? getCachedProsody(input.audioPath)
           : Promise.resolve<Partial<ProsodyFeatures> | null>(null))
-          .then((cached) =>
-            cached ??
-            extractWorkerProsody({
+          .then(async (cached) => {
+            if (cached) return cached;
+            const fresh = await extractWorkerProsody({
               audioUrl: input.audioUrl!,
               durationMs: input.durationMs,
-            }),
-          )
+            });
+            // Heal the cache (miss OR version-guard miss) so the next scoring of
+            // this rep is a hit again — fire-and-forget, off the scoring path.
+            if (fresh && input.audioPath && process.env.FF_PROSODY_WORKER === "true")
+              storeProsodyFeatures(input.audioPath, fresh);
+            return fresh;
+          })
           .then((r) => {
             prosodyMs = Date.now() - prosodyStart;
             return r;
@@ -1484,8 +1490,15 @@ export async function buildUserPrompt(
   // synthesizeProsodyBaseline derives rate + fillers from the
   // transcript with the SAME tokenizer + filler lexicon as the timed
   // path, so grading semantics don't fork by transport.
+  // P1 guard also applies to persisted features handed back by retry/rescore
+  // paths (reps.ts) — they bypass the cache read and would otherwise bypass
+  // PROSODY_FEATURE_VERSION_MAX after a revert.
+  const inputProsodyFeatures =
+    input.prosodyFeatures && featureVersionAllowed(input.prosodyFeatures)
+      ? input.prosodyFeatures
+      : undefined;
   const prosodyFeatures =
-    input.prosodyFeatures ??
+    inputProsodyFeatures ??
     (inlineProsody
       ? mergeProsody(inlineProsody, workerProsody)
       : workerProsody
@@ -1497,6 +1510,14 @@ export async function buildUserPrompt(
             workerProsody,
           )
         : null);
+  // Prosody v2 (P2) — aligned upspeak/finalFall from cached segmentTails ∩
+  // punctuated word timings. Attached AFTER the block render inputs are
+  // settled and never rendered by renderProsodyBlock ⇒ zero prompt bytes;
+  // the deterministic tone core is the consumer (Phase 3).
+  const prosodyFeaturesAligned = withAlignedTailRatios(
+    prosodyFeatures,
+    input.words ?? null,
+  );
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
   const userPrompt = [
@@ -1541,7 +1562,9 @@ export async function buildUserPrompt(
   return {
     userPrompt,
     rubricBlock,
-    prosodyFeatures,
+    // The aligned variant only ADDS fields (upspeakRatioAligned etc.) — the
+    // prompt was rendered above from the same underlying values.
+    prosodyFeatures: prosodyFeaturesAligned,
     ragResult,
     textSignals,
     signalsFlagOn,
