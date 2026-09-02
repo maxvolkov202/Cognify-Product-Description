@@ -6,7 +6,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { sql, maskEmail, OUT_DIR } from "./db.mjs";
+import { sql, maskEmail, OUT_DIR, isTestEmail, isRealRep, MOCK_MODEL_VERSIONS } from "./db.mjs";
 
 const reps = await sql`
   select r.id, r.audio_url, r.created_at, r.composite_score, r.model_version, u.email,
@@ -28,9 +28,9 @@ const tones = reps.length
 await sql.end();
 
 const toneByRep = new Map(tones.map((t) => [t.rep_id, t.score]));
-const isTest = (e) => (e ?? "").endsWith("@cognify.test");
-const real = reps.filter((r) => !isTest(r.email) && !["seed-demo-v1", "mock-fallback-v1"].includes(r.model_version));
-const test = reps.filter((r) => isTest(r.email));
+const isTest = isTestEmail;
+const real = reps.filter(isRealRep);
+const test = reps.filter((r) => isTestEmail(r.email));
 const byUser = new Map();
 for (const r of reps) byUser.set(r.email, (byUser.get(r.email) ?? 0) + 1);
 

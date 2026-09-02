@@ -38,7 +38,7 @@ const rows = reps.map((r: any) => {
     delta_core_minus_llm: core && r.tone_llm != null ? core.score - r.tone_llm : null,
   };
 });
-const stats = (xs: number[]) => ({ n: xs.length, mean: mean(xs), sd: sd(xs), min: Math.min(...xs), max: Math.max(...xs), p50: pctl(xs, 50) });
+const stats = (xs: number[]) => ({ n: xs.length, mean: mean(xs), sd: sd(xs), min: xs.length ? Math.min(...xs) : null, max: xs.length ? Math.max(...xs) : null, p50: pctl(xs, 50) });
 const llmReal = rows.filter((r: any) => r.real && r.tone_llm != null).map((r: any) => r.tone_llm);
 const coreAll = rows.filter((r: any) => r.tone_core != null).map((r: any) => r.tone_core);
 const modeShare = (xs: number[]) => { const c = new Map<number, number>(); xs.forEach((x) => c.set(x, (c.get(x) ?? 0) + 1)); return xs.length ? Math.max(...c.values()) / xs.length : null; };
