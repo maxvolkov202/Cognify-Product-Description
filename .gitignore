@@ -104,3 +104,4 @@ plans/calibration/human-labeling-2026-09/*
 
 # grading-audit script outputs
 scripts/qa/grading-audit/out/
+scripts/qa/prosody-v2/out/
