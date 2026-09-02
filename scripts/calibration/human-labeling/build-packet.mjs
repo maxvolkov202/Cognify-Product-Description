@@ -2,6 +2,17 @@
  * Grading plan WS2 — build the human-labeling packet. DB read-only.
  *
  *   node scripts/calibration/human-labeling/build-packet.mjs [--n 60] [--seed 20260901]
+ *   node scripts/calibration/human-labeling/build-packet.mjs --resign [--ttl-days 7]
+ *
+ * --resign refreshes the signed audio URLs on the FROZEN packet: it reads sample.json and
+ * model-scores.hidden.json as-is, re-signs the audio paths, and rewrites sample.json plus both
+ * sheets byte-identically except the URLs. It opens no DB connection and never resamples —
+ * a plain run re-queries live reps and re-runs the seeded shuffle, which silently changes the
+ * sample once new reps exist. Use --resign for any refresh after the packet is frozen.
+ *
+ * Guards: once sample.json exists the plain build refuses to run without --force (the freeze is
+ * enforced, not advisory); a sheet whose rater columns hold any data is never rewritten (the
+ * files are gitignored — an overwrite would be unrecoverable).
  *
  * Reads prod `cognify_v2` via DATABASE_URL in .env.local (that IS prod —
  * SELECT only here). Writes to plans/calibration/human-labeling-2026-09/:
@@ -19,17 +30,76 @@
  */
 import postgres from "postgres";
 import { createClient } from "@supabase/supabase-js";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { OUT_DIR, DIMS, compositeBand, loadEnvLocal, mulberry32, toCsv } from "./_shared.mjs";
+import { OUT_DIR, DIMS, LABEL_COLUMNS, compositeBand, loadEnvLocal, mulberry32, parseArgs, parseTtlDays, sheetHasLabels, signStoragePaths, toCsv } from "./_shared.mjs";
 
-const args = Object.fromEntries(process.argv.slice(2).map((a, i, xs) => (a.startsWith("--") ? [a.slice(2), xs[i + 1]] : [])).filter((p) => p.length));
+const args = parseArgs(process.argv.slice(2), { flags: ["resign", "force"], options: ["n", "seed", "ttl-days"] });
 const N = parseInt(args.n ?? "60", 10);
 const SEED = parseInt(args.seed ?? "20260901", 10);
-const AUDIO_TTL_S = 7 * 24 * 3600;
+const RESIGN = args.resign === true;
+const AUDIO_TTL_S = parseTtlDays(args["ttl-days"]);
 
 const env = { ...loadEnvLocal(), ...process.env };
 env.SUPABASE_URL ??= env.NEXT_PUBLIC_SUPABASE_URL;
+
+/** Sign storage paths (7-day default). strict: every path must sign or we abort. */
+async function signPaths(paths, { strict = false } = {}) {
+  const signed = new Map();
+  if (!paths.length) return signed;
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (strict) throw new Error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing");
+    console.warn("[packet] SUPABASE_URL / SERVICE_ROLE_KEY missing — audio links left blank");
+    return signed;
+  }
+  const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  return signStoragePaths(admin, "rep-audio", paths, AUDIO_TTL_S, { strict });
+}
+
+/** The blind sheets are a pure function of sample.json + model-scores.hidden.json, so a
+ *  --resign rebuild reproduces them byte-identically except the audio_link column. */
+function writeSheets(sampleOut, hidden, { protectFilled = false } = {}) {
+  const sheetCols = ["order", "rep_id", "prompt", "transcript", "audio_link", "duration_s", "headline", "coach_focus",
+    "clarity_band", "structure_band", "conciseness_band", "thinking_band", "pacing_band", "tone_band",
+    "headline_accurate", "coach_focus_right_lever", "hallucinated_claim", "notes"];
+  const sheetRows = sampleOut.map((s) => {
+    const h = hidden[s.rep_id];
+    const cf = h.coach_focus;
+    return {
+      order: s.order, rep_id: s.rep_id, prompt: s.prompt, transcript: s.transcript, audio_link: s.audio_link ?? "",
+      duration_s: s.duration_s,
+      headline: h.headline ?? "",
+      coach_focus: cf ? [cf.behavior, cf.why, cf.action].filter(Boolean).join(" ") || cf.text || "" : "",
+    };
+  });
+  for (const rater of ["A", "B"]) {
+    const p = resolve(OUT_DIR, `labeling-sheet-${rater}.csv`);
+    if (protectFilled && existsSync(p) && sheetHasLabels(p, LABEL_COLUMNS)) {
+      console.warn(`[packet] labeling-sheet-${rater}.csv has filled label cells — left untouched (its audio_link column is now stale; copy fresh links from sample.json if that sheet is still in use)`);
+      continue;
+    }
+    writeFileSync(p, toCsv(sheetRows, sheetCols));
+  }
+}
+
+// ── --resign: refresh URLs on the frozen packet; no DB, no resample, nothing else touched ──
+if (RESIGN) {
+  const samplePath = resolve(OUT_DIR, "sample.json");
+  const frozen = JSON.parse(readFileSync(samplePath, "utf8"));
+  const hidden = JSON.parse(readFileSync(resolve(OUT_DIR, "model-scores.hidden.json"), "utf8"));
+  const paths = frozen.reps.filter((r) => r.audio_path).map((r) => r.audio_path);
+  if (!paths.length && frozen.reps.some((r) => r.audio_link)) throw new Error("no audio_path values found but reps carry audio_link — sample.json shape drifted; refusing a silent no-op refresh");
+  const signed = await signPaths(paths, { strict: true });
+  for (const r of frozen.reps) if (r.audio_path) r.audio_link = signed.get(r.audio_path) ?? null;
+  writeFileSync(samplePath, JSON.stringify(frozen, null, 2));
+  writeSheets(frozen.reps, hidden, { protectFilled: true });
+  console.log(`[packet] --resign: refreshed ${signed.size} audio links (ttl ${AUDIO_TTL_S / 86400}d); sample.json + unprotected sheets rewritten, nothing else touched`);
+  process.exit(0);
+}
+
+if (existsSync(resolve(OUT_DIR, "sample.json")) && args.force !== true)
+  throw new Error("sample.json exists — the packet is FROZEN. A plain build re-queries live reps and re-runs the seeded shuffle, silently resampling. Use --resign to refresh links, or --force only to deliberately rebuild the sample from scratch.");
+
 if (!env.DATABASE_URL) throw new Error("DATABASE_URL missing");
 const sql = postgres(env.DATABASE_URL, { ssl: "require", max: 2, prepare: false, idle_timeout: 5 });
 
@@ -87,16 +157,7 @@ for (const q of quotas) picked.push(...q.rs.slice(0, q.take));
 const sample = shuffle(picked).slice(0, N);
 
 // ── audio signed links (7 days) ──
-let signed = new Map();
-if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
-  const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-  const paths = sample.filter((r) => r.audio_url).map((r) => r.audio_url);
-  if (paths.length) {
-    const { data, error } = await admin.storage.from("rep-audio").createSignedUrls(paths, AUDIO_TTL_S);
-    if (error) console.warn("[packet] signing failed:", error.message);
-    for (const d of data ?? []) if (d.signedUrl) signed.set(d.path, d.signedUrl);
-  }
-} else console.warn("[packet] SUPABASE_URL / SERVICE_ROLE_KEY missing — audio links left blank");
+const signed = await signPaths(sample.filter((r) => r.audio_url).map((r) => r.audio_url));
 
 // ── outputs ──
 mkdirSync(OUT_DIR, { recursive: true });
@@ -131,20 +192,7 @@ for (const r of sample) {
 }
 writeFileSync(resolve(OUT_DIR, "model-scores.hidden.json"), JSON.stringify(hidden, null, 2));
 
-const sheetCols = ["order", "rep_id", "prompt", "transcript", "audio_link", "duration_s", "headline", "coach_focus",
-  "clarity_band", "structure_band", "conciseness_band", "thinking_band", "pacing_band", "tone_band",
-  "headline_accurate", "coach_focus_right_lever", "hallucinated_claim", "notes"];
-const sheetRows = sampleOut.map((s) => {
-  const h = hidden[s.rep_id];
-  const cf = h.coach_focus;
-  return {
-    order: s.order, rep_id: s.rep_id, prompt: s.prompt, transcript: s.transcript, audio_link: s.audio_link ?? "",
-    duration_s: s.duration_s,
-    headline: h.headline ?? "",
-    coach_focus: cf ? [cf.behavior, cf.why, cf.action].filter(Boolean).join(" ") || cf.text || "" : "",
-  };
-});
-for (const rater of ["A", "B"]) writeFileSync(resolve(OUT_DIR, `labeling-sheet-${rater}.csv`), toCsv(sheetRows, sheetCols));
+writeSheets(sampleOut, hidden);
 
 const cellCounts = {};
 for (const r of sample) { const k = cellKey(strataOf(r)); cellCounts[k] = (cellCounts[k] ?? 0) + 1; }

@@ -1619,3 +1619,49 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   incorporated. No audio-in model arm (family-refuted 07-16; one-clip smoke for the record in
   Phase 1). **Next:** Phase 0 (`chore/labeling-packet-resign`) — build `--resign` mode BEFORE
   ~09-04 link expiry, then Phase 1 harness.
+
+- **2026-09-01 — Prosody v2 Phase 0: yardsticks secured** (`chore/labeling-packet-resign`).
+  - **`build-packet.mjs --resign` built first** (plan §3.4): reads the frozen `sample.json` +
+    `model-scores.hidden.json`, refreshes signed audio URLs only, rewrites sample + both sheets;
+    no DB connection, no resample; strict signing (aborts rather than write dead links);
+    `--ttl-days` supported (default 7).
+  - **Packet re-signed** ahead of the ~09-04 expiry. Verify: byte-compare before/after shows the
+    11 signed URLs as the ONLY diff in `sample.json` / `labeling-sheet-A.csv` / `-B.csv`
+    (model-scores.hidden.json, strata.md, README byte-identical); all 11 links HEAD-check 200;
+    new expiry 2026-09-09.
+  - **Fixture tone mini-sheet built** (`build-fixture-minisheet.mjs`): the 15 audio-grading
+    fixtures uploaded to `rep-audio/fixtures/tone-mini-2026-09/` under masked seeded-shuffle
+    names (filenames encode flat/expressive/rushed — direct links would unblind),
+    `fixture-mini-sheet-A.csv` (Max) / `-B.csv` (Owen) + `fixture-mini-key.hidden.json`
+    (gitignored). Verify: 15 rows, A==B, all 15 links HEAD-check 200 (exp 2026-09-09), no style
+    strings leak into the sheet. Storage writes were additive under the `fixtures/` prefix only;
+    DB untouched.
+  - **Found while verifying: the packet data files were tracked in the public repo.** PR #78's
+    commit (`f38c43e9`, 08-28) force-added `sample.json`, both labeling sheets,
+    `model-scores.hidden.json`, and `strata.md` past the gitignore rule — real user transcripts,
+    the hidden model scores, and signed audio URLs (live until ~09-04) have been public on
+    GitHub since 08-28. This PR untracks them (`git rm --cached`; ignore rule confirmed to catch
+    them once untracked) so they leave HEAD, but **git history still contains them — Max
+    decision needed:** make the repo private, or scrub history (filter-repo + force push), or
+    accept; the committed signed URLs self-expire ~09-04, the transcripts do not.
+  - Phase 0 verify: links open ✓ · mini-sheet renders ✓ · byte-compare URLs-only ✓. No numbered
+    gates in this phase.
+  - **/code-review on the PR: 10 findings (8 CONFIRMED, 2 PLAUSIBLE), all fixed pre-merge.** The
+    three high ones were data-loss paths around the gitignored artifacts: --resign clobbering
+    filled sheets (now: a sheet with any rater data is never rewritten), no freeze guard on the
+    plain build (now: refuses when sample.json exists unless --force; argv parser rejects
+    malformed flags instead of falling through), and mini-sheet rebuilds silently remapping
+    clips behind live URLs (now: key file freezes the build, --force clears the storage prefix
+    first, --resign refreshes links from the key). Also fixed: duration_s column dropped from the
+    mini-sheet (flat/expressive twins share exact durations — partial unblind, confirmed against
+    features.json), TTL validation, order-keyed strict signing (dedupe + per-path check), missing
+    mkdirSync, zero-paths no-op guard, helpers hoisted to _shared.mjs, and a leak guard
+    asserting only README.md stays tracked in the packet dir — shipped as a unit test in the
+    suite (tests/labeling-packet-untracked.test.ts) because no local token has the `workflow`
+    scope to push a GitHub Actions file; the workflow is staged at docs/ci/leak-guard.yml with
+    activation steps (gh auth refresh -s workflow, then git mv). Mini-sheet regenerated post-fix
+    (same seed → identical clip mapping; links re-verified 15/15, exp 2026-09-09).
+  - **Next:** Phase 1 (`feat/prosody-qa-harness`) — inventory/extract-compare/score-compare/
+    fixtures-run/seed-example-reps + BASELINE snapshot (features, tone scores, audio-path latency
+    p50/p90 = the GL1 anchor) + the one-clip gpt-4o-audio-preview smoke. Max + Owen: fill sheets
+    A/B + the fixture mini-sheet (~15 min) — GH fuel, nothing else blocks on them until Phase 6.
