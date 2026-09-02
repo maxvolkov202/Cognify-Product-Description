@@ -1757,10 +1757,26 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (firewall) battery.** A brand-new single-cell excursion does not fail the gate (that is the
     multiple-comparisons artifact the rule exists to filter); the interview-rushed clarity +17
     must reproduce for GF2 to fail. One run, no further reruns either way.
-  - **Next:** Max decides on GF2 (options in the Phase-2 stop report): (1) pre-register a
-    reproducibility rule for the gate (a violation must repeat in two independent median-of-5
-    batteries in the same cell+direction) and re-run once; (2) accept with the firewall given
-    v2 improves invariance vs prod; (3) shrink the LLM's prosody-evidence surface (e.g. stop
-    rendering monotone% — the deterministic core consumes it in Phase 3 anyway) and re-run GF2;
-    (4) hold Phase 2 pending deeper investigation. Phase 3 (tone-core v2) is NOT blocked by GF2
-    mechanics — it is post-processing — but flag-flip sequencing stays as planned.
+  - **2026-09-02 (later) — GF2 PASS under the pre-registered rule; Phase 2 gates all green.**
+    Battery 3 (fresh, independent, median-of-5 per side, final v2 worker incl. the segmentation
+    fix): ZERO content-dim cells over the ±15 floor (max |median Δ|: clarity 13, structure 10,
+    conciseness 5, thinking 10) — the battery-2 outlier (interview-rushed clarity +17) did not
+    reproduce, confirming the multiple-comparisons read. Verdict file:
+    scripts/qa/prosody-v2/out/gf2-final-verdict.json. Gate table now: GW1 ✓ GW2 ✓ GW3 ✓ GF2 ✓
+    GC1 ✓ with one explained diff (P6's predicted case): the final post-segmentation-fix
+    audio-tone run is 14/15 — `band-competent-okay-pitch__expressive` scores tone 60 vs the
+    bank's ≤55 cap, and that cap is a v1 measurement artifact (its rationale literally cites
+    v1's upspeakRatio 0.5; v2's pause-bounded tails all FALL, −55..−407 Hz/s → upspeak 0.0,
+    finalFall 1.0 — verified directly). The clip is not an upspeak specimen. **Bank note:**
+    re-promote the audio-tone expectations in Phase 3 alongside the tone-core v2 retune
+    (promote-audio-reps.mjs); the upspeak-penalty regression moves to a deterministic tone-core
+    unit test where it belongs. Tone pair separations under final v2: 30/25/32/37 (+ the
+    formerly-failing pair). calibrate-scoring ambient drift noted above, equal on main. Also this session (Max said
+    "proceed"): e2e-harness@cognify.test prod password ROTATED (old committed one verified
+    rejected; new secret in .env.local as E2E_TEST_PASSWORD/SEED_PASSWORD, gitignored).
+    Remaining for the phase: PR #111 review + merge, Modal side-by-side deploy (token flow
+    started, awaiting Max's browser approval), preview/prod URL flip, re-seed example reps.
+  - **Next:** merge PR #111 after /code-review, deploy cognify-prosody-worker-v2 on Modal
+    (needs Max's token approval), flip PROSODY_WORKER_URL preview → soak → prod (FF_TONE_PROSODY_CORE
+    stays OFF), re-seed example reps under v2, then Phase 3 (tone-core v2 curves — use
+    finalFallRatioAligned).
