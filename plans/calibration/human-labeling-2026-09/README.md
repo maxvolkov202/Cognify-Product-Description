@@ -11,6 +11,7 @@ a private drive; only the scripts and this README are committed.
 
 ```
 node scripts/calibration/human-labeling/build-packet.mjs        # DB read-only; signs 7-day audio links
+node scripts/calibration/human-labeling/build-packet.mjs --resign  # frozen packet: refresh signed URLs ONLY (no DB, no resample)
 node scripts/calibration/human-labeling/scoring.mjs             # after both sheets are filled → metrics.baseline.json
 BASE_URL=... CALIBRATION_GUEST_ID=... node scripts/calibration/human-labeling/rescore.mjs --label <ws-name>
 ```
@@ -32,3 +33,18 @@ Listen to the audio when there is a link; otherwise read the transcript. Then fi
 
 Do not compare notes until both sheets are done. `scoring.mjs` lists every rep where you are more than one band
 apart; settle those together in `adjudicated.csv` (`rep_id` + the six band columns) and re-run.
+
+Once labeling has started, never re-run the plain build: it re-queries live reps and re-runs the seeded
+shuffle, which silently resamples. `--resign` reads the frozen `sample.json` and refreshes the signed
+audio URLs only; everything else stays byte-identical.
+
+## Fixture tone mini-sheet (prosody v2, GH1 fuel)
+
+```
+node scripts/calibration/human-labeling/build-fixture-minisheet.mjs   # uploads masked clips, signs 7-day links
+```
+
+`fixture-mini-sheet-A.csv` (Max) and `-B.csv` (Owen): 15 clips, about 15 minutes. Listen to each clip, then
+fill `tone_0_100` (same 0-100 scale as the Tone dimension) and `rationale_one_word`. The clips are the
+`tests/fixtures/audio-grading/` fixtures under masked shuffled names so the sheet stays blind. Do not open
+`fixture-mini-key.hidden.json` or the fixtures folder until both sheets are done, and do not compare notes.
