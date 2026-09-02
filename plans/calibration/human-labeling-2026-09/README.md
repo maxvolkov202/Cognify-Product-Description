@@ -34,9 +34,11 @@ Listen to the audio when there is a link; otherwise read the transcript. Then fi
 Do not compare notes until both sheets are done. `scoring.mjs` lists every rep where you are more than one band
 apart; settle those together in `adjudicated.csv` (`rep_id` + the six band columns) and re-run.
 
-Once labeling has started, never re-run the plain build: it re-queries live reps and re-runs the seeded
-shuffle, which silently resamples. `--resign` reads the frozen `sample.json` and refreshes the signed
-audio URLs only; everything else stays byte-identical.
+Once the packet exists the plain build refuses to run (it would re-query live reps and re-run the seeded
+shuffle, silently resampling); `--force` overrides deliberately. `--resign` reads the frozen `sample.json`
+and refreshes the signed audio URLs only; everything else stays byte-identical, and a sheet that already
+holds rater data is never rewritten. Same for the mini-sheet builder: rebuild needs `--force` (it clears
+and re-uploads the masked clips), `--resign` refreshes links from the existing key.
 
 ## Fixture tone mini-sheet (prosody v2, GH1 fuel)
 

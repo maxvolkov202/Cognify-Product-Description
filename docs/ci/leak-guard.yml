@@ -1,0 +1,22 @@
+# STAGED, not active: GitHub rejects workflow pushes from tokens without the `workflow`
+# scope (current gh token: gist, read:org, repo). To activate: `gh auth refresh -h github.com
+# -s workflow`, then `git mv docs/ci/leak-guard.yml .github/workflows/leak-guard.yml` and push.
+# Until then tests/labeling-packet-untracked.test.ts enforces the same assertion locally.
+# The labeling packet data files (real user transcripts, hidden model scores, signed audio URLs)
+# must never be tracked — PR #78 force-added them past .gitignore once already. Only the README
+# and this guard keep the directory in the public repo.
+name: leak-guard
+on: [push, pull_request]
+jobs:
+  packet-data-not-tracked:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: only README.md may be tracked in the labeling packet dir
+        run: |
+          extra=$(git ls-files plans/calibration/human-labeling-2026-09 | grep -v '^plans/calibration/human-labeling-2026-09/README.md$' || true)
+          if [ -n "$extra" ]; then
+            echo "Tracked packet data files (must stay untracked; see .gitignore and the packet README):"
+            echo "$extra"
+            exit 1
+          fi

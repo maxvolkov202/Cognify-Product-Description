@@ -145,3 +145,68 @@ export function weightedKappa(a, b, k = 5) {
   }
   return den === 0 ? 1 : 1 - num / den;
 }
+
+// ── argv / signing / sheet-safety helpers (shared by the packet + mini-sheet builders) ──
+
+/** Strict argv parser: --flag, --opt value, --opt=value. Unknown or malformed tokens abort
+ *  instead of silently falling through to a destructive default path. */
+export function parseArgs(argv, { flags = [], options = [] } = {}) {
+  const args = {};
+  for (let i = 0; i < argv.length; i++) {
+    const m = argv[i].match(/^--([a-z][a-z0-9-]*)(?:=(.*))?$/);
+    if (!m) throw new Error(`unrecognized argument: ${argv[i]}`);
+    const [, key, inline] = m;
+    if (flags.includes(key)) {
+      if (inline != null && inline !== "true") throw new Error(`--${key} takes no value`);
+      args[key] = true;
+    } else if (options.includes(key)) {
+      const v = inline ?? argv[++i];
+      if (v == null || v.startsWith("--")) throw new Error(`--${key} needs a value`);
+      args[key] = v;
+    } else throw new Error(`unknown option --${key} (known: ${[...flags, ...options].map((k) => "--" + k).join(" ")})`);
+  }
+  return args;
+}
+
+/** TTL in seconds from a --ttl-days value; rejects NaN/zero/negative so links can't be signed dead. */
+export function parseTtlDays(v) {
+  const days = parseFloat(v ?? "7");
+  if (!Number.isFinite(days) || days <= 0) throw new Error(`--ttl-days must be a positive number, got: ${v}`);
+  return days * 24 * 3600;
+}
+
+/** Fisher-Yates with a caller-supplied PRNG (pass mulberry32(seed) for reproducibility). */
+export function seededShuffle(xs, rng) {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/** Sign storage paths, keyed by the REQUESTED path (order-based — never trust the echoed path).
+ *  Dedupes first; strict mode aborts naming the unsigned paths so no dead links are written. */
+export async function signStoragePaths(admin, bucket, paths, ttlS, { strict = false } = {}) {
+  const unique = [...new Set(paths)];
+  if (!unique.length) return new Map();
+  const { data, error } = await admin.storage.from(bucket).createSignedUrls(unique, ttlS);
+  if (error) {
+    if (strict) throw new Error(`signing failed: ${error.message}`);
+    console.warn("[sign] failed:", error.message);
+  }
+  const signed = new Map();
+  for (const [i, d] of (data ?? []).entries()) if (d?.signedUrl) signed.set(unique[i], d.signedUrl);
+  if (strict) {
+    const missing = unique.filter((p) => !signed.has(p));
+    if (missing.length) throw new Error(`unsigned paths (${missing.length}): ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? " …" : ""} — aborting so no dead links are written`);
+  }
+  return signed;
+}
+
+/** True when any row of the CSV has a non-empty cell in one of the given label columns —
+ *  the guard that keeps re-sign/rebuild runs from clobbering rater work in gitignored files. */
+export function sheetHasLabels(path, cols) {
+  const rows = parseCsv(readFileSync(path, "utf8"));
+  return rows.some((r) => cols.some((c) => (r[c] ?? "") !== ""));
+}
+
+/** Rater-editable columns of the main labeling sheets. */
+export const LABEL_COLUMNS = [...Object.values(DIM_COLUMNS), ...BINARIES, "notes"];
