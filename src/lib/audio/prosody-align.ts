@@ -114,7 +114,9 @@ export function alignSegmentTails(
     if (slope > TAIL_SLOPE_RISING_HZ_S) rising++;
     if (slope < TAIL_SLOPE_FALLING_HZ_S) falling++;
   }
-  if (alignedDeclarative === 0) return null;
+  // v1 refused to emit a ratio below 2 segments; the aligned path keeps that
+  // floor — a single declarative would let one +60 Hz/s tail swing tone by −25.
+  if (alignedDeclarative < 2) return null;
   return {
     upspeakRatioAligned: rising / alignedDeclarative,
     finalFallRatioAligned: falling / alignedDeclarative,

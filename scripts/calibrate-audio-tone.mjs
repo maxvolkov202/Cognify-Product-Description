@@ -200,19 +200,11 @@ async function main() {
       byScript.get(r.scriptId)[r.style] = r;
     }
     const pairs = [];
-    const specimenScripts = new Set(
-      reps.filter((r) => r.upspeakSpecimen).map((r) => r.scriptId),
-    );
+    // 2026-09-02: the upspeakSpecimen carve-out is retired (worker v2 refuted
+    // the v1 measurement it encoded) — every script's pairs face the gates.
     if (!JSON_OUT) console.log("\n=== Pair separations ===");
     for (const [scriptId, styles] of byScript) {
       const { flat, expressive, rushed } = styles;
-      if (specimenScripts.has(scriptId)) {
-        if (!JSON_OUT)
-          console.log(
-            `SKIP        ${scriptId}: expressive clip is an upspeak specimen (DNA rule 4) — pair gates not applicable`,
-          );
-        continue;
-      }
       if (flat && expressive && flat.tone != null && expressive.tone != null) {
         const sep = expressive.tone - flat.tone;
         const fail = sep < TONE_PAIR_MIN;

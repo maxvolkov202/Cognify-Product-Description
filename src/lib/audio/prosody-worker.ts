@@ -44,6 +44,7 @@ const workerResponseSchema = z.object({
   // because z.object() STRIPS unknown keys — without these the warm path
   // would silently drop segmentTails/featureVersion before caching.
   featureVersion: z.number().int().optional(),
+  monotoneWindowed: z.boolean().nullable().optional(),
   finalFallRatio: z.number().min(0).max(1).nullable().optional(),
   segmentTails: z
     .array(z.object({ endMs: z.number(), tailSlopeHzPerSec: z.number() }))

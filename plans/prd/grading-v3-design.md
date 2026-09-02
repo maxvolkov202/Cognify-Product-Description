@@ -116,7 +116,7 @@ not an endorsement of those relative judgments.
 15/15 per-clip assertions green, all 4 valid tone pairs separate ≥ +25 (gate ≥10):
 flat clips grade 25–40 tone, expressive 60–70, `toneSource: prosody` end to end.
 `band-competent-okay-pitch__expressive` turned out to measure upspeakRatio 0.5 at the
-worker — re-tagged as a DNA-rule-4 upspeak specimen (tone ≤55 asserted, pairs skipped).
+worker — re-tagged as a DNA-rule-4 upspeak specimen (tone ≤55 asserted, pairs skipped). [2026-09-02: carve-out RETIRED — worker v2's pause-bounded segmentation refuted the 0.5 measurement (all tails fall); the clip is a normal expressive rep and the upspeak-penalty regression lives in tests/tone-core.test.ts.]
 Pacing pairs are advisory-only: the TTS expressive clips aren't rate-controlled (one
 measures 184wpm) and production delivery is deterministically overridden from word
 timings. Also fixed en route: worker prosody was silently DISCARDED whenever word

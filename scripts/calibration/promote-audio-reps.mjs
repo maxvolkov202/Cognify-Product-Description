@@ -18,8 +18,9 @@
  *   - durationMs     : measured clip duration (features.json), NOT the
  *                      source rep's duration — pacing math needs the
  *                      real WPM of the clip
- *   - assertions     : per-clip tone bounds (flat ≤55, expressive ≥70).
- *                      Pair-separation rules live in the harness.
+ *   - assertions     : per-clip tone bounds (flat ≤55, expressive ≥60 —
+ *                      60 leaves ±10 blend headroom). Pair-separation rules
+ *                      live in the harness.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -40,22 +41,19 @@ const audioReps = manifest.fixtures.map((f) => {
   if (!promptText) throw new Error(`no bank rep for scriptId ${f.scriptId}`);
   const feat = features[f.file];
   if (!feat?.durationSec) throw new Error(`no measured duration for ${f.file}`);
-  // band-competent-okay-pitch__expressive measured upspeakRatio 0.5 at
-  // the worker (the TTS rendition genuinely rises on half its sentence
-  // ends) — DNA rule 4 caps upspeaky variety LOW, so it serves as an
-  // upspeak specimen instead of an expressive-positive clip, and its
-  // pairs are excluded from separation gates.
-  const isUpspeakSpecimen =
-    f.scriptId === "band-competent-okay-pitch" && f.style === "expressive";
-  const assertions = isUpspeakSpecimen
-    ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "DNA rule 4 upspeak specimen: worker measures upspeakRatio 0.5 — strong variety must NOT cancel the upspeak penalty" }]
-    : f.style === "flat"
-      ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive" }]
+  // 2026-09-02 (prosody v2 Phase 3): the former band-competent-expressive
+  // "upspeak specimen" carve-out is RETIRED — v1's upspeakRatio 0.5 on that
+  // clip was an artifact of segmentation that split on every unvoiced frame;
+  // worker v2's pause-bounded tails all FALL on it (upspeak 0.0, finalFall
+  // 1.0, verified directly). The upspeak-penalty regression it guarded lives
+  // in tests/tone-core.test.ts as a deterministic assertion now.
+  const assertions =
+    f.style === "flat"
+      ? [{ kind: "maxScore", dimension: "tone", max: 55, rationale: "PSOLA pitch-flattened true monotone (measured vectors: tests/fixtures/audio-grading/features-v2.json) must not score expressive" }]
       : f.style === "expressive"
-        ? [{ kind: "minScore", dimension: "tone", min: 60, rationale: "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate" }]
+        ? [{ kind: "minScore", dimension: "tone", min: 60, rationale: "validated expressive delivery under worker v2 (measured vectors: tests/fixtures/audio-grading/features-v2.json); min 60 leaves blend headroom — pair separation vs flat is the primary gate" }]
         : []; // rushed clips are pair-only (delivery separation vs expressive)
   return {
-    ...(isUpspeakSpecimen ? { upspeakSpecimen: true } : {}),
     id: `audio-tone__${f.scriptId}__${f.style}`,
     kind: "audio-tone",
     scriptId: f.scriptId,
