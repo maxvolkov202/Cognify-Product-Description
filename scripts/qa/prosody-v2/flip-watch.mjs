@@ -31,7 +31,7 @@ const rows = await sql`
   left join cognify_v2.audio_prosody_cache c on c.path = r.audio_url
   where r.audio_url is not null
     and coalesce(u.email, '') not like '%@cognify.test'
-    and r.model_version not in ${sql(MOCK_MODEL_VERSIONS)}
+    and coalesce(r.model_version, '') not in ${sql(MOCK_MODEL_VERSIONS)}
     ${args.since ? sql`and r.created_at >= ${args.since}` : sql``}
   order by r.created_at desc limit ${LIMIT}`;
 const [{ n: totalAudio }] = await sql`
