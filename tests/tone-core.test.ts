@@ -22,7 +22,7 @@ function check(name: string, cond: boolean, detail?: string) {
 const mk = (std: number, o: Partial<ProsodyFeatures> = {}): ProsodyFeatures => ({
   wordsPerMinute: 150, fillerCount: 0, fillerRatePerMinute: 0, pauseCount: 3, longPauseCount: 0, pauseTotalMs: 900, meanPauseMs: 300,
   pitchMeanHz: 180, pitchStdSemitones: std, pitchRangeSemitones: std * 4,
-  monotoneRatio: 0.2, upspeakRatio: 0.1, rmsMean: 62, rmsStd: 20, articulationScore: 0.15,
+  monotoneRatio: 0.2, monotoneWindowed: true, upspeakRatio: 0.1, rmsMean: 62, rmsStd: 20, articulationScore: 0.15,
   featureVersion: 2,
   ...o,
 });
@@ -57,11 +57,13 @@ const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsod
     `${T(3, { finalFallRatioAligned: 0.8 }).score} vs ${T(3, { finalFallRatioAligned: 0 }).score}`);
   check("raw falling-final bonus is damped (≤3)", T(3, { finalFallRatio: 0.8 }).score - T(3, { finalFallRatio: 0 }).score <= 3);
   // v1-shaped features must not be double-counted: their monotoneRatio IS the std.
-  check("v1 features (no featureVersion): std-derived monotone uncharged",
-    T(1.0, { featureVersion: null, monotoneRatio: 1 }).score === T(1.0, { featureVersion: null, monotoneRatio: 0.2 }).score,
-    `${T(1.0, { featureVersion: null, monotoneRatio: 1 }).score} vs ${T(1.0, { featureVersion: null, monotoneRatio: 0.2 }).score}`);
+  check("v1 features (no monotoneWindowed flag): std-derived monotone uncharged",
+    T(1.0, { featureVersion: null, monotoneWindowed: undefined, monotoneRatio: 1 }).score === T(1.0, { featureVersion: null, monotoneWindowed: undefined, monotoneRatio: 0.2 }).score,
+    `${T(1.0, { featureVersion: null, monotoneWindowed: undefined, monotoneRatio: 1 }).score}`);
   check("v2 short-clip fallback (monotoneWindowed=false) uncharged",
     T(1.0, { monotoneWindowed: false, monotoneRatio: 1 }).score === T(1.0, { monotoneWindowed: false, monotoneRatio: 0.2 }).score);
+  check("interim v2 rows (fv 2, flag absent) uncharged — strict opt-in",
+    T(1.0, { monotoneWindowed: undefined, monotoneRatio: 1 }).score === T(1.0, { monotoneWindowed: undefined, monotoneRatio: 0.2 }).score);
   check("flat volume (8 dB on this scale) docks, lively (40 dB) lifts", T(3, { rmsStd: 8 }).score < T(3).score && T(3, { rmsStd: 40 }).score > T(3).score);
   check("articulation: 0.4 beats 0.03, halved weight (≤ 6 apart)",
     T(3, { articulationScore: 0.4 }).score > T(3, { articulationScore: 0.03 }).score &&
@@ -103,7 +105,7 @@ const T = (std: number, o: Partial<ProsodyFeatures> = {}) => scoreToneFromProsod
   const fbMid = buildToneFeedback(mk(3.5, { monotoneRatio: 0.6 }));
   check("mid-tier monotone reads as one coherent sentence",
     /moved a little/.test(fbMid) && /long stretches stayed on one note/.test(fbMid) && /Land the key words/.test(fbMid), fbMid);
-  const fbV1 = buildToneFeedback(mk(3.2, { featureVersion: null, monotoneRatio: 1 }));
+  const fbV1 = buildToneFeedback(mk(3.2, { featureVersion: null, monotoneWindowed: undefined, monotoneRatio: 1 }));
   check("v1 features: std-derived monotone never flips the sentence to flat", /moved well/.test(fbV1), fbV1);
   check("no em-dash in generated tone copy", !/—/.test(fb) && !/—/.test(fbUp) && !/—/.test(fbMid));
 }

@@ -150,6 +150,15 @@ export function hasToneCoreEvidence(features: ProsodyFeatures | null): boolean {
 const finiteOrNull = (v: number | null | undefined): number | null =>
   typeof v === "number" && Number.isFinite(v) ? v : null;
 
+/** Windowed monotone counts as an independent signal ONLY when the worker
+ *  explicitly marked it windowed. Strict opt-in: v1 rows (no flag) derived it
+ *  from the same std the variety curve charges, worker v2's short-clip
+ *  fallback marks false, and interim v2 cache rows warmed before the flag
+ *  shipped stay uncharged rather than risk the double-count. */
+function hasWindowedMonotone(features: ProsodyFeatures): boolean {
+  return features.monotoneWindowed === true;
+}
+
 export function scoreToneFromProsody(
   features: ProsodyFeatures | null,
 ): ToneCoreResult | null {
@@ -158,13 +167,8 @@ export function scoreToneFromProsody(
   if (pitchStd == null) return null;
   const variety = interp(pitchStd, PITCH_STD_TO_VARIETY);
 
-  // Windowed monotone counts as an independent signal ONLY when it truly is
-  // one: v1 rows (no featureVersion) derived it from the same std charged
-  // above, and worker v2's short-clip fallback marks monotoneWindowed=false —
-  // charging those again is the double-count the v1 header forbade.
   const monotone = finiteOrNull(features.monotoneRatio);
-  const monotoneIsIndependent =
-    (features.featureVersion ?? 1) >= 2 && features.monotoneWindowed !== false;
+  const monotoneIsIndependent = hasWindowedMonotone(features);
   const monotonePenalty =
     monotone != null && monotoneIsIndependent ? interp(monotone, MONOTONE_TO_PENALTY) : 0;
 
@@ -216,9 +220,7 @@ export function scoreToneFromProsody(
  *  model's narrative explains a number the core has replaced. */
 export function buildToneFeedback(features: ProsodyFeatures): string {
   const std = features.pitchStdSemitones ?? 0;
-  const monotoneIsIndependent =
-    (features.featureVersion ?? 1) >= 2 && features.monotoneWindowed !== false;
-  const monotone = monotoneIsIndependent ? (features.monotoneRatio ?? 0) : 0;
+  const monotone = hasWindowedMonotone(features) ? (features.monotoneRatio ?? 0) : 0;
   const upspeakAligned = features.upspeakRatioAligned;
   const upspeak = upspeakAligned ?? features.upspeakRatio ?? 0;
   // Same noise floors as the scoring curves so the sentence never names a
