@@ -61,7 +61,9 @@ if (args.resign === true) {
   const key = JSON.parse(readFileSync(KEY_PATH, "utf8"));
   const signed = await signStoragePaths(admin, "rep-audio", key.clips.map(storagePathOf), TTL_S, { strict: true });
   writeSheets(key.clips, signed);
-  console.log(`[mini-sheet] --resign: refreshed ${signed.size} clip links (ttl ${TTL_S / 86400}d); key untouched`);
+  // filled sheets are never rewritten, so the fresh links always land here too
+  writeFileSync(resolve(OUT_DIR, "fixture-mini-links.json"), JSON.stringify(key.clips.map((c) => ({ order: c.order, clip_id: c.clip_id, clip_link: signed.get(storagePathOf(c)) })), null, 2));
+  console.log(`[mini-sheet] --resign: refreshed ${signed.size} clip links (ttl ${TTL_S / 86400}d); key untouched; links also in fixture-mini-links.json`);
   process.exit(0);
 }
 
