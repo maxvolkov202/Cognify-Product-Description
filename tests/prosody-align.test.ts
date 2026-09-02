@@ -28,7 +28,7 @@ const approx = (a: number | null | undefined, b: number) =>
     { word: "Really?", endMs: 1800 },
     { word: "Yes!", endMs: 2500 },
     { word: 'quote."', endMs: 3300 },
-    { word: "trailing", endMs: 4000 },
+    { word: "Trailing", endMs: 4000 },
   ]);
   assert(ends.length === 4, "four terminal-punctuation words found");
   assert(ends[0]!.endMs === 900 && !ends[0]!.isQuestion, "period = declarative");
@@ -37,6 +37,58 @@ const approx = (a: number | null | undefined, b: number) =>
   assert(ends[3]!.endMs === 3300, "closing quote after period still terminal");
   assert(statementEndsFromWords([]).length === 0, "empty words = no ends");
   assert(statementEndsFromWords(null).length === 0, "null words = no ends");
+}
+{
+  // Abbreviations and mid-sentence periods must NOT count as statement ends.
+  const ends = statementEndsFromWords([
+    { word: "Dr.", endMs: 300 },
+    { word: "Smith", endMs: 600 },
+    { word: "from", endMs: 800 },
+    { word: "Acme", endMs: 1000 },
+    { word: "Inc.", endMs: 1200 },
+    { word: "arrived.", endMs: 1600 },
+    { word: "The", endMs: 1900 },
+    { word: "U.S.", endMs: 2200 },
+    { word: "economy", endMs: 2600 },
+    { word: "grew.", endMs: 3000 },
+  ]);
+  assert(ends.length === 2, "only the two real sentence ends survive");
+  assert(ends[0]!.endMs === 1600 && ends[1]!.endMs === 3000, "abbreviation periods skipped (Dr., Inc., U.S.)");
+  // Lowercase continuation after a period = not a boundary (Deepgram capitalizes sentence starts).
+  const lc = statementEndsFromWords([
+    { word: "etc.", endMs: 500 },
+    { word: "and", endMs: 700 },
+    { word: "more.", endMs: 1000 },
+  ]);
+  assert(lc.length === 1 && lc[0]!.endMs === 1000, "period followed by lowercase word is mid-sentence");
+}
+{
+  // Distance-greedy matching: an earlier declarative must not steal the tail
+  // that sits ON a later question (theft scenario from the Phase 2 review).
+  // With one rising tail exactly at the question's end, the question claims it
+  // (distance 0 beats the declarative's 100), no declarative aligns, and the
+  // result is null — NOT upspeakRatioAligned = 1.0 on upspeak-free audio.
+  const stolen = alignSegmentTails(
+    [{ endMs: 1000, tailSlopeHzPerSec: 200 }],
+    [
+      { endMs: 900, isQuestion: false },
+      { endMs: 1000, isQuestion: true },
+    ],
+  );
+  assert(stolen === null, "question claims its own rising tail; no false upspeak");
+  // With a tail for each, both align and only the declarative counts.
+  const both = alignSegmentTails(
+    [
+      { endMs: 880, tailSlopeHzPerSec: -100 },
+      { endMs: 1000, tailSlopeHzPerSec: 200 },
+    ],
+    [
+      { endMs: 900, isQuestion: false },
+      { endMs: 1000, isQuestion: true },
+    ],
+  );
+  assert(both != null && both!.alignedCount === 2 && both!.declarativeCount === 1, "each end claims its nearest tail");
+  assert(approx(both!.upspeakRatioAligned, 0) && approx(both!.finalFallRatioAligned, 1), "declarative falls; question's rise excluded");
 }
 
 // ——— alignSegmentTails ————————————————————————————————————

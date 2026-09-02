@@ -57,7 +57,9 @@ GAP_BRIDGE_FRAMES = 30           # unvoiced gaps <300ms (stops, breaths) do NOT 
 TAIL_MAX_FRAMES = 30             # last ~300ms
 TAIL_SLOPE_RISING_HZ_S = 50.0    # v1 used >0.5 Hz/frame at 10ms frames = 50 Hz/s
 TAIL_SLOPE_FALLING_HZ_S = -50.0
-SEGMENT_TAILS_CAP = 100          # ~60 expected at the 180s cap; hard bound the payload
+SEGMENT_TAILS_CAP = 200          # ~60 expected at the 180s cap; hard payload bound — matches the
+                                 # Node zod .max(200); ratios are computed over this SAME capped
+                                 # list so shipped ratios stay reproducible from shipped tails
 
 app = FastAPI(title="cognify-prosody-worker", version="2.0.0")
 
@@ -106,7 +108,12 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
         if authorization != f"Bearer {WORKER_TOKEN}":
             raise HTTPException(status_code=401, detail="unauthorized")
 
-    audio_path = _download(req.audioUrl)
+    try:
+        audio_path = _download(req.audioUrl)
+    except Exception as exc:  # noqa: BLE001
+        # Expired signed URL / storage timeout: graceful nulls, never a 500.
+        print(f"[prosody-worker-v2] download failed: {exc}")
+        return Response(**NULL_RESPONSE)
     try:
         sound = _load_sound(audio_path)
     except Exception as exc:  # noqa: BLE001
@@ -137,7 +144,7 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
         rmsMean=rms.get("mean"),
         rmsStd=rms.get("std"),
         articulationScore=articulation,
-        segmentTails=[SegmentTail(**t) for t in tails[:SEGMENT_TAILS_CAP]] or None,
+        segmentTails=[SegmentTail(**t) for t in tails] or None,
     )
 
 
@@ -197,7 +204,14 @@ def _windowed_monotone(track: dict[str, Any]) -> float | None:
                 monotone += 1
         start += step
     if evaluable < 3:
-        return None
+        # Too short for windows (<~1.5s of voicing): fall back to the v1-style ramp
+        # from the global std so short reps keep monotone evidence instead of null.
+        std = track["stdSemitones"]
+        if std <= 1.5:
+            return 1.0
+        if std >= 4.5:
+            return 0.0
+        return float(1.0 - (std - 1.5) / 3.0)
     return monotone / evaluable
 
 
@@ -226,16 +240,21 @@ def _segment_tails(track: dict[str, Any]) -> list[dict[str, float]]:
     for start, end in segments:  # inclusive frame indices
         if end - start + 1 < SEGMENT_MIN_FRAMES:
             continue
-        span = f0_all[max(start, end - TAIL_MAX_FRAMES + 1) : end + 1]
-        tail = span[span > 0]
-        if len(tail) < 5:
+        lo = max(start, end - TAIL_MAX_FRAMES + 1)
+        idx = np.arange(lo, end + 1)
+        # Fit ONLY cleaned-voiced frames (an octave-artifact frame in the tail would
+        # swing the slope), against the REAL time axis (bridged gaps must not compress
+        # the x spacing and inflate Hz/sec).
+        sel = idx[keep[lo : end + 1]]
+        if len(sel) < 5:
             continue
-        xs = np.arange(len(tail))
-        slope_hz_per_frame = float(np.polyfit(xs, tail, 1)[0])
+        slope_hz_per_sec = float(np.polyfit(times[sel], f0_all[sel], 1)[0])
         tails.append({
             "endMs": float(times[end] * 1000.0),
-            "tailSlopeHzPerSec": slope_hz_per_frame * 100.0,  # 10ms frames
+            "tailSlopeHzPerSec": slope_hz_per_sec,
         })
+        if len(tails) >= SEGMENT_TAILS_CAP:
+            break
     return tails
 
 
@@ -311,12 +330,16 @@ def _transcode_to_wav(src_path: str) -> str:
 def _download(url: str) -> str:
     fd, path = tempfile.mkstemp(suffix=".webm")
     os.close(fd)
-    with httpx.Client(timeout=DOWNLOAD_TIMEOUT_S) as client:
-        with client.stream("GET", url) as response:
-            response.raise_for_status()
-            with open(path, "wb") as f:
-                for chunk in response.iter_bytes():
-                    f.write(chunk)
+    try:
+        with httpx.Client(timeout=DOWNLOAD_TIMEOUT_S) as client:
+            with client.stream("GET", url) as response:
+                response.raise_for_status()
+                with open(path, "wb") as f:
+                    for chunk in response.iter_bytes():
+                        f.write(chunk)
+    except Exception:
+        _safe_unlink(path)
+        raise
     return path
 
 

@@ -43,7 +43,7 @@ async function main() {
     });
     if (!res.ok) { results.push({ file: rep.file, error: `worker ${res.status}` }); continue; }
     const features = await res.json();
-    const words = (row.words as any[]).map((w) => ({ word: w.word ?? w.punctuated_word ?? "", endMs: w.endMs ?? Math.round((w.end ?? 0) * 1000) }));
+    const words = (row.words as any[]).map((w) => ({ word: w.punctuated_word ?? w.word ?? "", endMs: w.endMs ?? Math.round((w.end ?? 0) * 1000) }));
     const ends = statementEndsFromWords(words);
     const aligned = alignSegmentTails(features.segmentTails ?? null, ends);
     results.push({
@@ -64,5 +64,9 @@ async function main() {
   };
   writeFileSync(resolve(OUT_DIR, "gw3-aligned.json"), JSON.stringify(summary, null, 2));
   console.log(`GW3: ${pass.length}/${evaluable.length} evaluable clips within ≤0.25 → ${resolve(OUT_DIR, "gw3-aligned.json")}`);
+  if (evaluable.length === 0) {
+    console.error("GW3 VACUOUS: zero clips aligned — a gate that measured nothing must not read as a pass");
+    process.exit(2);
+  }
 }
 main().catch((e) => { console.error(e); process.exit(1); });

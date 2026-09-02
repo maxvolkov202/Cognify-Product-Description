@@ -28,21 +28,34 @@ export const TAIL_SLOPE_RISING_HZ_S = 50;
 export const TAIL_SLOPE_FALLING_HZ_S = -50;
 
 const STATEMENT_END_RE = /[.?!…]["')\]]*$/;
+const PERIOD_ONLY_RE = /\.["')\]]*$/;
+/** Common abbreviations whose trailing period is not a sentence boundary. */
+const ABBREVIATIONS = new Set([
+  "dr", "mr", "mrs", "ms", "jr", "sr", "st", "vs", "etc", "inc", "co", "corp",
+  "dept", "approx", "est", "no", "e.g", "i.e", "u.s", "u.k", "a.m", "p.m",
+]);
 
 /** End timestamps (ms) of words that close a statement, from punctuated
- *  Deepgram words. Question marks are EXCLUDED from the upspeak denominator's
- *  source set by callers that want declarative-only — here we keep every
- *  terminal mark and report questions separately so the core can decide. */
+ *  Deepgram words. A period on a known abbreviation, or one followed by a
+ *  lowercase word, is treated as mid-sentence (an "etc." before a pause would
+ *  otherwise claim that pause's segment tail). Question marks are reported
+ *  separately so callers can exclude interrogatives from the upspeak
+ *  denominator — a rising question is correct intonation. */
 export function statementEndsFromWords(
   words: AlignableWord[] | null | undefined,
 ): { endMs: number; isQuestion: boolean }[] {
   if (!words?.length) return [];
   const ends: { endMs: number; isQuestion: boolean }[] = [];
-  for (const w of words) {
-    const token = (w.word ?? "").trim();
-    if (STATEMENT_END_RE.test(token)) {
-      ends.push({ endMs: w.endMs, isQuestion: /\?["')\]]*$/.test(token) });
+  for (let i = 0; i < words.length; i++) {
+    const token = (words[i]!.word ?? "").trim();
+    if (!STATEMENT_END_RE.test(token)) continue;
+    if (PERIOD_ONLY_RE.test(token) && !/[?!…]/.test(token)) {
+      const bare = token.replace(/["')\]]*$/, "").replace(/\.$/, "").toLowerCase();
+      if (ABBREVIATIONS.has(bare)) continue;
+      const next = (words[i + 1]?.word ?? "").trim();
+      if (next && /^[a-z]/.test(next)) continue;
     }
+    ends.push({ endMs: words[i]!.endMs, isQuestion: /\?["')\]]*$/.test(token) });
   }
   return ends;
 }
@@ -68,29 +81,34 @@ export function alignSegmentTails(
   toleranceMs: number = ALIGN_TOLERANCE_MS,
 ): AlignedTailRatios | null {
   if (!segmentTails?.length || !statementEnds.length) return null;
-  const tails = [...segmentTails].sort((a, b) => a.endMs - b.endMs);
-  const claimed = new Set<number>();
+  // Global nearest-first matching: pair (statement, tail) candidates by distance
+  // and claim greedily by DISTANCE, never by transcript order — an earlier
+  // declarative must not steal the tail that sits on a later question (or vice
+  // versa). Questions participate in claiming precisely so their rising tails
+  // are consumed rather than misattributed; they are then excluded from the
+  // declarative denominator.
+  const pairs: { s: number; t: number; d: number }[] = [];
+  for (let s = 0; s < statementEnds.length; s++) {
+    for (let ti = 0; ti < segmentTails.length; ti++) {
+      const d = Math.abs(segmentTails[ti]!.endMs - statementEnds[s]!.endMs);
+      if (d <= toleranceMs) pairs.push({ s, t: ti, d });
+    }
+  }
+  pairs.sort((a, b) => a.d - b.d);
+  const claimedTails = new Set<number>();
+  const claimedStatements = new Set<number>();
   let rising = 0;
   let falling = 0;
   let alignedDeclarative = 0;
   let aligned = 0;
-  for (const s of statementEnds) {
-    let best = -1;
-    let bestDist = Infinity;
-    for (let i = 0; i < tails.length; i++) {
-      if (claimed.has(i)) continue;
-      const d = Math.abs(tails[i]!.endMs - s.endMs);
-      if (d < bestDist) {
-        bestDist = d;
-        best = i;
-      }
-    }
-    if (best < 0 || bestDist > toleranceMs) continue;
-    claimed.add(best);
+  for (const pr of pairs) {
+    if (claimedTails.has(pr.t) || claimedStatements.has(pr.s)) continue;
+    claimedTails.add(pr.t);
+    claimedStatements.add(pr.s);
     aligned++;
-    if (s.isQuestion) continue; // a rising question is correct intonation, not upspeak
+    if (statementEnds[pr.s]!.isQuestion) continue;
     alignedDeclarative++;
-    const slope = tails[best]!.tailSlopeHzPerSec;
+    const slope = segmentTails[pr.t]!.tailSlopeHzPerSec;
     if (slope > TAIL_SLOPE_RISING_HZ_S) rising++;
     if (slope < TAIL_SLOPE_FALLING_HZ_S) falling++;
   }

@@ -10,6 +10,8 @@ first (extract-compare --worker-b-url); flip PROSODY_WORKER_URL only after
 GW1-GW3 + GF2 + GC1 pass (plan §5 Phase 2).
 """
 
+from pathlib import Path
+
 import modal
 
 image = (
@@ -22,7 +24,7 @@ image = (
         "httpx==0.27.2",
         "pydantic==2.9.2",
     )
-    .add_local_file("main_v2.py", remote_path="/root/main_v2.py")
+    .add_local_file(str(Path(__file__).parent / "main_v2.py"), remote_path="/root/main_v2.py")
 )
 
 app = modal.App(name="cognify-prosody-worker-v2", image=image)

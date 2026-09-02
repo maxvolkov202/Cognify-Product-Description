@@ -71,6 +71,27 @@ export async function warmProsody(input: {
   );
 }
 
+/** Best-effort writeback for scoring-time extractions (cache miss or version-guard
+ *  miss): heals the row so only the FIRST post-revert scoring of a rep pays the
+ *  in-request extraction; without this a guarded v2 row stays 'ready' forever and
+ *  every rescore re-extracts. Never awaited on the scoring path; never throws. */
+export function storeProsodyFeatures(
+  path: string,
+  features: Partial<ProsodyFeatures>,
+): void {
+  void safeDb(async () => {
+    await db
+      .insert(audioProsodyCache)
+      .values({ path, features: features as Record<string, unknown>, status: "ready", error: null })
+      .onConflictDoUpdate({
+        target: audioProsodyCache.path,
+        set: { features: features as Record<string, unknown>, status: "ready", error: null, updatedAt: new Date() },
+      });
+    console.log(`[prosody-cache] healed path=${path}`);
+    return true;
+  }, false);
+}
+
 /** Prosody-v2 plan P1 — revert-correctness guard. The cache is keyed by path
  *  only, so after an env-only revert (PROSODY_WORKER_URL → v1) already-warmed
  *  v2 rows would keep serving v2 features. PROSODY_FEATURE_VERSION_MAX (env,
