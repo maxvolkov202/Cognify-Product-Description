@@ -1909,3 +1909,14 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     2. `FF_LIVE_REP_METRICS=false npm run dev` — same flow shows NO strip (pixel-identical
        skeleton).
     3. Prod (flag off): record a rep on www.cognifygym.com — no strip.
+
+- **2026-09-02 — Prosody v2 Phase 4 SHIPPED** (PR #114 squash-merged → `main@c95bc499`; review:
+  10 findings fixed + verified in round 2, e2e re-run green). One deploy hiccup: `std` became
+  unused in buildToneFeedback during the review refactor — local `next lint` passed it but
+  Vercel's build lint failed (deployment 1cg69dd7l errored, prod alias never moved); fixed in
+  PR #115, redeploy `cognify-v2-hh89i229b` READY, health 200. Prod behavior unchanged (both
+  Phase 3+4 flags OFF in prod). Re-seed batch phase4-panel: 15/15, all featureVersion 2.
+  **Plan state: Phases 0-4 complete. Phase 6 (validation + flip) is blocked on the human sheets
+  (A/B + fixture mini-sheet, links expire 2026-09-09 — Max + Owen at 0%); at the flip,
+  FF_TONE_PROSODY_CORE and FF_LIVE_REP_METRICS go on TOGETHER. Phase 5 (Confidence) waits on
+  Max's explicit go.**
