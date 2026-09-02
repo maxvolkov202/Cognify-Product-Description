@@ -1734,7 +1734,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     |---|---|
     | GW1 (feature availability) | **PASS** 100/100 in-system audio reps (prod v1 vs local v2 A/B) |
     | GW2 (windowed monotone) | **PASS** flat 1.0 on 5/5 (≥0.9); expressive 0.14–0.22 on 5/5 (≤0.3); pitch std matches fixture ground truth 15/15 |
-    | GW3 (aligned upspeak) | OPEN — needs v2-warmed seeded reps (deployed worker); silence-heuristic upspeak unchanged vs v1 |
+    | GW3 (aligned upspeak) | **PASS 15/15** (2026-09-02 later): first run exposed a segmentation flaw — v1's code splits voiced runs on ANY unvoiced frame (its own docstring claims ≥300ms), so 20–40s clips yielded 1–5 tails and nothing aligned. v2 now bridges gaps <300ms (pause-bounded segments); statement-end alignment works (evaluated with stored Deepgram words + local v2 worker on the seeded reps): aligned upspeak = 0 on all declarative clips (TTS has none — correct). **Bonus finding: finalFallRatioAligned separates flat/expressive perfectly (flat ≈0, expressive 0.8–1.0)** — constant-F0 audio has no falling finals; strong Phase 3 / P7 signal. Fixtures-run after the fix: 15/15 ok (upspeak nulls gone). |
     | GC1 calibrate-audio-tone | **green under v2** (0 failures/0 warnings, [toneSource: prosody] 15/15), before AND after the firewall prompt change |
     | GC1 calibrate-scoring | ambient 4–6/48 failures, SAME on main and branch with identical env (different reps each run — provider-side drift since the 08-30 47/48; pre-existing, not branch-caused; text-bank prompt bytes unchanged by the branch). Flagged as its own follow-up. |
     | GF2 (content dims ±15) | **FAILED TWICE — STOP.** Battery 1 (median-of-5 per side): structure −20 on the PSOLA-flat strong clip — real halo, evidence-adjacent. Retune: scope constraint added INSIDE the prosody block header (the rubric-level firewall at score-shared ~511 already said this and was ignored under extreme evidence). Battery 2 (median-of-5): the halo fix HELD (structure max delta 10, flat-clip case resolved) but clarity +17 appeared on interview-rushed (v2 HIGHER). |
@@ -1750,6 +1750,13 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     machine, v1 was not deployed from here); (b) the ambient calibrate-scoring drift (4–6/48 on
     main) deserves a look independent of prosody; (c) e2e-harness@cognify.test prod password
     rotation still pending (09-02 note above).
+  - **2026-09-02 (later) — Max: "proceed" → GF2 option 1 taken. PRE-REGISTERED BEFORE running
+    (this line commits the rule ahead of the data): one further independent median-of-5 battery
+    per side runs under the firewall prompt; **GF2 passes unless some content-dim cell exceeds
+    ±15 in the new battery AND the same cell violated in the same direction in the previous
+    (firewall) battery.** A brand-new single-cell excursion does not fail the gate (that is the
+    multiple-comparisons artifact the rule exists to filter); the interview-rushed clarity +17
+    must reproduce for GF2 to fail. One run, no further reruns either way.
   - **Next:** Max decides on GF2 (options in the Phase-2 stop report): (1) pre-register a
     reproducibility rule for the gate (a violation must repeat in two independent median-of-5
     batteries in the same cell+direction) and re-run once; (2) accept with the firewall given

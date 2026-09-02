@@ -50,7 +50,10 @@ MONOTONE_WINDOW_S = 1.0
 MONOTONE_STEP_S = 0.25
 MONOTONE_STD_ST = 1.5            # windowed std below this = monotone window
 MONOTONE_MIN_VOICED = 40         # of ~100 frames/window; else window not evaluable
-SEGMENT_MIN_FRAMES = 50          # >=500ms voiced run = a "statement" candidate
+SEGMENT_MIN_FRAMES = 50          # >=500ms segment span = a "statement" candidate
+GAP_BRIDGE_FRAMES = 30           # unvoiced gaps <300ms (stops, breaths) do NOT split a segment —
+                                 # v1 split on every unvoiced frame, so statement ends rarely had
+                                 # a matching tail and alignment starved (GW3, 2026-09-02)
 TAIL_MAX_FRAMES = 30             # last ~300ms
 TAIL_SLOPE_RISING_HZ_S = 50.0    # v1 used >0.5 Hz/frame at 10ms frames = 50 Hz/s
 TAIL_SLOPE_FALLING_HZ_S = -50.0
@@ -199,34 +202,40 @@ def _windowed_monotone(track: dict[str, Any]) -> float | None:
 
 
 def _segment_tails(track: dict[str, Any]) -> list[dict[str, float]]:
-    """Silence-bounded voiced segments (>=500ms) with the F0 slope over the last
-    ~300ms of each, in Hz/sec. The Node scorer intersects endMs with Deepgram
-    statement ends; the worker itself stays transcript-free (warm-time constraint)."""
+    """Pause-bounded segments (voiced runs bridged across <300ms unvoiced gaps,
+    total span >=500ms) with the F0 slope over the last ~300ms of voiced frames,
+    in Hz/sec. Segment ends sit at real pauses, which is where statement ends sit —
+    that is what makes Node-side alignment with Deepgram word ends possible. The
+    worker itself stays transcript-free (warm-time constraint)."""
     keep = track["keep"]
     f0_all = track["f0_all"]
     times = track["times"]
+    voiced_idx = np.flatnonzero(keep)
+    if len(voiced_idx) == 0:
+        return []
+    segments: list[tuple[int, int]] = []
+    seg_start = int(voiced_idx[0])
+    prev = int(voiced_idx[0])
+    for i in voiced_idx[1:]:
+        if int(i) - prev > GAP_BRIDGE_FRAMES:
+            segments.append((seg_start, prev))
+            seg_start = int(i)
+        prev = int(i)
+    segments.append((seg_start, prev))
     tails: list[dict[str, float]] = []
-    i = 0
-    n = len(keep)
-    while i < n:
-        if keep[i]:
-            start = i
-            while i < n and keep[i]:
-                i += 1
-            end = i  # exclusive
-            if end - start >= SEGMENT_MIN_FRAMES:
-                tail_n = min(TAIL_MAX_FRAMES, (end - start) // 3)
-                tail = f0_all[end - tail_n : end]
-                tail = tail[tail > 0]
-                if len(tail) >= 5:
-                    xs = np.arange(len(tail))
-                    slope_hz_per_frame = float(np.polyfit(xs, tail, 1)[0])
-                    tails.append({
-                        "endMs": float(times[end - 1] * 1000.0),
-                        "tailSlopeHzPerSec": slope_hz_per_frame * 100.0,  # 10ms frames
-                    })
-        else:
-            i += 1
+    for start, end in segments:  # inclusive frame indices
+        if end - start + 1 < SEGMENT_MIN_FRAMES:
+            continue
+        span = f0_all[max(start, end - TAIL_MAX_FRAMES + 1) : end + 1]
+        tail = span[span > 0]
+        if len(tail) < 5:
+            continue
+        xs = np.arange(len(tail))
+        slope_hz_per_frame = float(np.polyfit(xs, tail, 1)[0])
+        tails.append({
+            "endMs": float(times[end] * 1000.0),
+            "tailSlopeHzPerSec": slope_hz_per_frame * 100.0,  # 10ms frames
+        })
     return tails
 
 
