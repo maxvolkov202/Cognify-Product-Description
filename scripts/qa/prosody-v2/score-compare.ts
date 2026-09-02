@@ -8,14 +8,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 // @ts-ignore .mjs helper without types
-import { sql, maskEmail, OUT_DIR, pctl, sd, mean } from "./db.mjs";
+import { sql, maskEmail, OUT_DIR, pctl, sd, mean, isRealRep, isTestEmail } from "./db.mjs";
 import { scoreToneFromProsody, blendToneWithModel } from "../../../src/lib/scoring/tone-core";
 
 async function main() {
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, xs) => (a.startsWith("--") ? [a.slice(2), xs[i + 1]] : [])).filter((p) => p.length > 0));
 
 const reps = await sql`
-  select r.id, r.audio_url, r.created_at, u.email, d.score as tone_llm,
+  select r.id, r.audio_url, r.created_at, r.model_version, u.email, d.score as tone_llm,
          c.features, t.graded_from_audio
   from cognify_v2.reps r
   join cognify_v2.users u on u.id = r.user_id
@@ -26,11 +26,10 @@ const reps = await sql`
   order by r.created_at desc`;
 await sql.end();
 
-const isTest = (e: string | null) => (e ?? "").endsWith("@cognify.test");
 const rows = reps.map((r: any) => {
   const core = r.features ? scoreToneFromProsody(r.features) : null;
   return {
-    rep_id: r.id, email: maskEmail(r.email), test: isTest(r.email), created_at: r.created_at,
+    rep_id: r.id, email: maskEmail(r.email), test: isTestEmail(r.email), real: isRealRep(r), created_at: r.created_at,
     tone_llm: r.tone_llm, graded_from_audio: r.graded_from_audio,
     has_cached_features: r.features != null,
     tone_core: core?.score ?? null,
@@ -40,7 +39,7 @@ const rows = reps.map((r: any) => {
   };
 });
 const stats = (xs: number[]) => ({ n: xs.length, mean: mean(xs), sd: sd(xs), min: Math.min(...xs), max: Math.max(...xs), p50: pctl(xs, 50) });
-const llmReal = rows.filter((r: any) => !r.test && r.tone_llm != null).map((r: any) => r.tone_llm);
+const llmReal = rows.filter((r: any) => r.real && r.tone_llm != null).map((r: any) => r.tone_llm);
 const coreAll = rows.filter((r: any) => r.tone_core != null).map((r: any) => r.tone_core);
 const modeShare = (xs: number[]) => { const c = new Map<number, number>(); xs.forEach((x) => c.set(x, (c.get(x) ?? 0) + 1)); return xs.length ? Math.max(...c.values()) / xs.length : null; };
 
@@ -50,8 +49,13 @@ if (args.fixtures) {
   fixtures = fr.results.map((x: any) => ({ file: x.file, style: x.style, scriptId: x.scriptId, tone_core: scoreToneFromProsody(x.features)?.score ?? null }));
   const byScript = new Map<string, any>();
   for (const f of fixtures) { if (!byScript.has(f.scriptId)) byScript.set(f.scriptId, {}); byScript.get(f.scriptId)[f.style] = f.tone_core; }
-  const pairs = [...byScript.entries()].map(([s, v]) => ({ scriptId: s, flat: v.flat, expressive: v.expressive, separation: v.expressive != null && v.flat != null ? v.expressive - v.flat : null }));
-  fixtures = { per_fixture: fixtures, gf1_baseline: { pairs, flat_max: Math.max(...fixtures.filter((f: any) => f.style === "flat").map((f: any) => f.tone_core)), expressive_min: Math.min(...fixtures.filter((f: any) => f.style === "expressive").map((f: any) => f.tone_core)), min_separation: Math.min(...pairs.map((p) => p.separation ?? -999)) } };
+  const pairs = [...byScript.entries()].map(([s, v]) => ({ scriptId: s, flat: v.flat ?? null, expressive: v.expressive ?? null, separation: v.expressive != null && v.flat != null ? v.expressive - v.flat : null }));
+  // A null tone_core means the extraction yielded no usable pitch — report it as a
+  // failure, never coerce it into the aggregates (Math.max/min would read it as 0).
+  const flatVals = fixtures.filter((f: any) => f.style === "flat" && f.tone_core != null).map((f: any) => f.tone_core);
+  const exprVals = fixtures.filter((f: any) => f.style === "expressive" && f.tone_core != null).map((f: any) => f.tone_core);
+  const seps = pairs.map((p) => p.separation).filter((s): s is number => s != null);
+  fixtures = { per_fixture: fixtures, extraction_failures: fixtures.filter((f: any) => f.tone_core == null).map((f: any) => f.file), gf1_baseline: { pairs, flat_max: flatVals.length ? Math.max(...flatVals) : null, expressive_min: exprVals.length ? Math.min(...exprVals) : null, min_separation: seps.length ? Math.min(...seps) : null, pairs_evaluable: seps.length } };
 }
 
 const summary = {

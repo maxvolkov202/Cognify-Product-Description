@@ -10,7 +10,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { sql, OUT_DIR, pctl } from "./db.mjs";
+import { sql, OUT_DIR, pctl, isRealRep, isTestEmail } from "./db.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, xs) => (a.startsWith("--") ? [a.slice(2), xs[i + 1]] : [])).filter((p) => p.length));
 const load = (k) => (args[k] ? JSON.parse(readFileSync(resolve(args[k]), "utf8")) : null);
@@ -19,14 +19,16 @@ const fixtures = load("fixtures"), scores = load("scores"), inventory = load("in
 // Audio-path scoring latency from telemetry (server + client), real vs test.
 const tel = await sql`
   select t.total_server_duration_ms as server_ms, t.client_e2e_ms, t.prosody_ms, t.graded_from_audio,
-         coalesce(u.email, '') like '%@cognify.test' as is_test, t.created_at
+         u.email, r.model_version, t.created_at
   from cognify_v2.scoring_telemetry t
   join cognify_v2.reps r on r.id = t.rep_id
   left join cognify_v2.users u on u.id = r.user_id
   where r.audio_url is not null`;
 await sql.end();
 const lat = (rows, key) => { const xs = rows.map((r) => r[key]).filter((v) => v != null && v > 0); return { n: xs.length, p50: pctl(xs, 50), p90: pctl(xs, 90) }; };
-const real = tel.filter((t) => !t.is_test), test = tel.filter((t) => t.is_test);
+// real = the full definition (email AND model_version) — mock/seed reps take a
+// different scoring path and would contaminate the GL1 anchor.
+const real = tel.filter((t) => isRealRep(t)), test = tel.filter((t) => isTestEmail(t.email));
 const seedRows = seedBatch?.reps ?? [];
 
 const baseline = {
@@ -45,7 +47,7 @@ const baseline = {
     prosody_ms: { all: lat(tel, "prosody_ms"), seed_batch: lat(seedRows, "prosody_ms") },
     graded_from_audio_rate: { real: real.length ? real.filter((t) => t.graded_from_audio).length / real.length : null, seed_batch: seedRows.length ? seedRows.filter((r) => r.graded_from_audio).length / seedRows.length : null },
   },
-  seed_batch: seedBatch ? { tag: seedBatch.tag, succeeded: seedBatch.succeeded, attempted: seedBatch.attempted, tones: seedRows.map((r) => ({ file: (seedBatch.fixtures.find((f) => f.ok) ? undefined : undefined), tone: r.tone, graded_from_audio: r.graded_from_audio })) } : null,
+  seed_batch: seedBatch ? { tag: seedBatch.tag, succeeded: seedBatch.succeeded, attempted: seedBatch.attempted, tones: seedRows.map((r) => ({ file: r.file ?? null, style: r.style ?? null, tone: r.tone, graded_from_audio: r.graded_from_audio })) } : null,
 };
 const out = resolve(OUT_DIR, "baseline-2026-09.json");
 writeFileSync(out, JSON.stringify(baseline, null, 2));

@@ -20,9 +20,11 @@ const cache = await sql`
   select path, status, features->>'featureVersion' as feature_version,
          (features->>'pitchStdSemitones') is not null as has_pitch, created_at, updated_at
   from cognify_v2.audio_prosody_cache order by created_at`;
-const tones = await sql`
-  select d.rep_id, d.score from cognify_v2.dimension_scores d
-  where d.dimension = 'tone' and d.rep_id in ${sql(reps.map((r) => r.id))}`;
+const tones = reps.length
+  ? await sql`
+      select d.rep_id, d.score from cognify_v2.dimension_scores d
+      where d.dimension = 'tone' and d.rep_id in ${sql(reps.map((r) => r.id))}`
+  : [];
 await sql.end();
 
 const toneByRep = new Map(tones.map((t) => [t.rep_id, t.score]));

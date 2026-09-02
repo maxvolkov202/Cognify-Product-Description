@@ -10,7 +10,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { env, ROOT, OUT_DIR } from "./db.mjs";
+import { env, ROOT, OUT_DIR } from "./env.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, xs) => (a.startsWith("--") ? [a.slice(2), xs[i + 1]] : [])).filter((p) => p.length));
 const MODEL = args.model ?? "gpt-4o-audio-preview";

@@ -17,11 +17,10 @@
  * .env.local's host (same interlock as auth.setup.ts); the account must be @cognify.test.
  */
 import { chromium } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { env, sql, ROOT, OUT_DIR } from "./db.mjs";
+import { env, sql, ROOT, OUT_DIR, loadEnvFile } from "./db.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, xs) => (a.startsWith("--") ? [a.slice(2), xs[i + 1]] : [])).filter((p) => p.length));
 const BASE_URL = process.env.SEED_BASE_URL;
@@ -30,13 +29,19 @@ const HEADED = "headed" in args;
 const FILTER = args.filter ?? "";
 const TAG = args.tag ?? new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const SEED_EMAIL = process.env.SEED_EMAIL ?? "e2e-harness@cognify.test";
-const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "cognify-e2e-9f3k2m8x!A";
+// No default and NO provisioning: the account must already exist, and a password
+// committed to this public repo must never be the credential for a prod account.
+// (auth.setup.ts's committed default predates this script and is dev/preview-only.)
+const SEED_PASSWORD = process.env.SEED_PASSWORD;
+if (!SEED_PASSWORD) throw new Error("SEED_PASSWORD required — this script never provisions accounts and carries no default credential");
 if (!SEED_EMAIL.endsWith("@cognify.test")) throw new Error("seeding account must be @cognify.test (P8)");
 
-// DB-host interlock (mirrors tests/e2e/authed/auth.setup.ts): a shell-exported
-// DATABASE_URL pointing somewhere else means we'd verify against the wrong DB.
+// DB-host interlock (mirrors tests/e2e/authed/auth.setup.ts): compare the SHELL
+// value against the value parsed from the .env.local FILE — process.env wins the
+// env merge, so comparing against env.DATABASE_URL would compare it to itself.
 const hostOf = (u) => { try { return new URL(u).hostname.toLowerCase(); } catch { return u?.match(/@\[?([^/@\s:\]?]+)/)?.[1]?.toLowerCase() ?? null; } };
-if (process.env.DATABASE_URL && hostOf(process.env.DATABASE_URL) !== hostOf(env.DATABASE_URL))
+const fileDbUrl = loadEnvFile(resolve(ROOT, ".env.local")).DATABASE_URL;
+if (process.env.DATABASE_URL && fileDbUrl && hostOf(process.env.DATABASE_URL) !== hostOf(fileDbUrl))
   throw new Error("shell DATABASE_URL host differs from .env.local — unset it first");
 
 const manifest = JSON.parse(readFileSync(resolve(ROOT, "tests/fixtures/audio-grading/manifest.json"), "utf8"));
@@ -57,11 +62,6 @@ function wavFor(file) {
   }
   return dst;
 }
-
-// Ensure the account exists (idempotent; same call as auth.setup.ts).
-const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
-const { error: createErr } = await admin.auth.admin.createUser({ email: SEED_EMAIL, password: SEED_PASSWORD, email_confirm: true, user_metadata: { name: "Prosody Harness" } });
-if (createErr && !/already.*registered|already.*exists/i.test(createErr.message)) throw new Error(`account provisioning: ${createErr.message}`);
 
 // Log in once through the real UI; keep storageState for the per-clip launches.
 const STATE = resolve(OUT_DIR, ".auth-seed.json");
@@ -147,6 +147,13 @@ for (let i = 0; i < 12; i++) {
   if (rows.length >= results.filter((r) => r.ok).length && rows.every((r) => r.client_e2e_ms != null)) break;
   await new Promise((res) => setTimeout(res, 5_000));
 }
+// Attribute rep rows to fixtures: seeding is sequential, so the k-th successful
+// fixture produced the k-th rep (rows are created_at-ordered). Only attribute on
+// an exact count match; otherwise leave rows unattributed rather than guess.
+const okFixtures = results.filter((r) => r.ok);
+if (rows.length === okFixtures.length)
+  rows = rows.map((r, i) => ({ file: okFixtures[i].file, style: okFixtures[i].style, script_id: okFixtures[i].scriptId, ...r }));
+else console.warn(`[seed] rep count (${rows.length}) != successful fixtures (${okFixtures.length}) — batch rows left unattributed`);
 const batch = {
   tag: TAG, base_url: BASE_URL, seeded_at: runStart.toISOString(), account: SEED_EMAIL,
   attempted: results.length, succeeded: results.filter((r) => r.ok).length,

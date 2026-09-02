@@ -5,7 +5,11 @@
  * (part of the GL1 baseline). Read-only + signed-URL reads; no DB writes.
  *
  *   PROSODY_ENV_FILE=<pulled prod env> node scripts/qa/prosody-v2/fixtures-run.mjs
- *   ... [--worker-url URL] [--worker-token TOK] [--label v2]   # point at a candidate worker
+ *   ... [--worker-url URL] [--worker-token TOK] [--label v2] [--gates]
+ *
+ * Default runs are BASELINE RECORDS and always exit 0 (v1 is expected to miss these
+ * checks — that is the finding, not a failure). Pass --gates for Phase 2 gate runs:
+ * then any failed check exits 1.
  *
  * Ground-truth comparisons (v1 EXPECTATIONS — these are baseline records, not the
  * GW gates; GW2/GW3 pass/fail applies to worker v2 in Phase 2):
@@ -56,4 +60,4 @@ const summary = { generated_at: new Date().toISOString(), worker: { url: WORKER_
 const out = resolve(OUT_DIR, `fixtures-${LABEL}-${new Date().toISOString().slice(0, 10)}.json`);
 writeFileSync(out, JSON.stringify(summary, null, 2));
 console.log(`${summary.pass}/${summary.total} fixtures ok · worker latency p50 ${summary.latency_ms.p50}ms p90 ${summary.latency_ms.p90}ms → ${out}`);
-process.exit(summary.pass === summary.total ? 0 : 1);
+process.exit("gates" in args && summary.pass !== summary.total ? 1 : 0);

@@ -1682,7 +1682,7 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     |---|---|
     | worker v1 vs fixture ground truth | 6/15 ok — monotoneRatio is std-derived (expressive reads 0.28–0.53, want ≤0.3), upspeak null on 4/15, and 2 PSOLA-flat wavs extract std 1.2–1.68 vs 0.07–0.1 truth |
     | worker v1 extraction latency | p50 1460ms · p90 1678ms (7s cold start) |
-    | LLM tone, real reps (n=48) | mean 62.8 · sd 10.0 · range 38–75 · mode share 37.5% |
+    | LLM tone, real reps (n=30) | mean 57.3 · sd 8.9 · range 38–75 · p50 58 · mode share 20% (first cut mistakenly counted 18 mock/seed reps as real — corrected in the review pass) |
     | tone-core v1 on cached features (n=31) | sd 11.3 · mode share 13% |
     | GF1 with v1 curves+features | FAIL: flat_max 51 (≤45), expressive_min 49 (≥65), min sep 21 (≥25) — driven by the mis-extracted flat fixtures |
     | **GL1 anchor (seed batch, n=15)** | **server p50 9070ms · p90 10033ms**; client e2e p50 10474ms; prosody_ms p50 3423ms |
@@ -1699,6 +1699,18 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     trigger unchanged.
   - Phase 1 verify: baseline table (features + latency) ✓ · smoke recorded ✓ · example reps
     visible in UI with scores ✓ · zero non-test writes ✓.
+  - **/code-review on the PR: 10 findings, all fixed pre-merge**, three of which corrected the
+    recorded baseline: nearest-rank percentiles (the old formula could report a max as p90),
+    the real-cohort split now applies BOTH halves of the real-rep definition (email + model
+    version — the LLM-tone row above changed), and seed-batch rows now carry fixture
+    attribution. Also: the DB-host interlock actually compares shell vs .env.local file now
+    (was comparing the shell to itself), seed-example-reps carries NO default credential and
+    never provisions accounts (SEED_PASSWORD required), fixtures-run baseline runs exit 0
+    (--gates for Phase 2), per-feature cache-drift tolerances, empty-DB guards, and
+    audio-model-smoke no longer requires a DB. **Security note for Max:** auth.setup.ts's
+    committed default password works on PROD for e2e-harness@cognify.test (pre-existing: prod
+    e2e has been run with it; repo is public) — rotate that account's password and pass it via
+    E2E_TEST_PASSWORD/SEED_PASSWORD env instead.
   - **Next:** Phase 2 (`feat/prosody-worker-v2`) — windowed monotone, segmentTails,
     finalFallRatio, featureVersion 2 in a SIDE-BY-SIDE Modal app; Node cache version guard
     (PROSODY_FEATURE_VERSION_MAX) + TS scoring-time alignment; GW1–GW3 via extract-compare, then
