@@ -1920,3 +1920,32 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
   (A/B + fixture mini-sheet, links expire 2026-09-09 — Max + Owen at 0%); at the flip,
   FF_TONE_PROSODY_CORE and FF_LIVE_REP_METRICS go on TOGETHER. Phase 5 (Confidence) waits on
   Max's explicit go.**
+
+- **2026-09-02 — Prosody v2 Phase 6 prep + packet-file incident** (`feat/phase6-prep`, PR #117;
+  Max: sheets deferred — "cannot go into the sheets right now nor can Owen").
+  - **Incident:** the five gitignored packet data files (sample.json, sheets A/B,
+    model-scores.hidden.json, strata.md) were found MISSING from the working tree (cause
+    unidentified; discovered while building the GH1 dry-run). Restored from a same-day scratch
+    backup, re-signed (11/11 links live, exp 2026-09-09T22:23Z), and a durable copy now lives at
+    `~/Documents/Cognify grading docs/human-labeling-backup-2026-09-02/`. Check the packet dir
+    before distributing sheets; refresh the durable copy after labeling.
+  - **GH1 evaluator** (`gh1-compare.mjs`) built + hardened per /code-review (10 findings, all
+    addressed): the v2 candidate reproduces prod's FULL path (fresh worker extraction →
+    withAlignedTailRatios with the rep's stored words → core → blend); adjudicated.csv is
+    authoritative; the fixture baseline is VERIFIED un-blended (aborts if the seed batch carries
+    [toneCore: tags — confirmed clean on phase4-panel: prod flag off); extraction/signing
+    failures are reported and the verdict aborts unless BOTH arms contribute; band range
+    validated; band-agreement tie-break PRE-REGISTERED before any sheet is filled (match the
+    adjudicated band, or either rater's band when unadjudicated — midpoint means land exactly on
+    band boundaries). Dry-run on synthetic sheets: 26/26 rows, 0 drops (verdict itself is
+    meaningless there by construction).
+  - **flip-watch.mjs**: real-rep filter in SQL (LIMIT counts real reps — flip-day rows are
+    dominated by @cognify.test seeds), fallback share via the canonical
+    `model_used startsWith('anthropic-fallback:')` (telemetry.ts), strict argv parsing.
+  - **Revert drill rehearsed locally**: v1 Modal app healthy; `featureVersionAllowed` refuses a
+    real v2 cache row at max=1; v1 re-extraction of that rep's audio succeeds and is admissible.
+    Full env-flip drill in preview remains Phase 6's step.
+  - **Handoff:** `plans/prosody-v2-handoff-2026-09-02.md` (state, tooling, ops notes, paste-ready
+    prompt). **Next:** wait for sheets (re-sign BOTH packet + mini-sheet if past ~09-08);
+    then Phase 6 = gh1-compare → retune-if-needed → preview drill → both flags on → calibration
+    re-run → flip-watch → decision-log entry → Bob demo. Phase 5 only on Max's explicit go.
