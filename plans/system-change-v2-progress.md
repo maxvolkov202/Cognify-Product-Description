@@ -1780,3 +1780,33 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     (needs Max's token approval), flip PROSODY_WORKER_URL preview → soak → prod (FF_TONE_PROSODY_CORE
     stays OFF), re-seed example reps under v2, then Phase 3 (tone-core v2 curves — use
     finalFallRatioAligned).
+
+- **2026-09-02 — Prosody v2 Phase 2 SHIPPED: worker v2 live in prod** (PR #111 squash-merged →
+  `main@e799e41e`; second review round: 10 findings all fixed + verified, 2 residual notes
+  applied — transient download failures now 502 so the warm never caches 'ready' nulls, "no"
+  dropped from the abbreviation list; slope now fit on cleaned frames against the real time
+  axis; distance-greedy tail claiming with theft tests; cache heals after in-request extraction;
+  the version guard also gates retry-path persisted features).
+  - **Modal:** token approved by Max; `cognify-prosody-worker-v2` deployed side-by-side
+    (v1 app untouched); fixtures 15/15 + GW3 15/15 re-verified on the deployed artifact.
+  - **Prod flip:** `PROSODY_WORKER_URL` → v2 app URL (re-added as sensitive — value not
+    pullable; verified FUNCTIONALLY instead), deploy `cognify-v2-regsq352e` READY, health 200.
+  - **Re-seed (end-of-phase, fresh uploads):** 15/15 through the flipped prod;
+    **featureVersion=2 on every cache row** (flip took effect, no newline corruption),
+    graded_from_audio 14/15 (the 1 miss = first-rep cold-start race, prosody_ms ≈ timeout —
+    known WS5/WS8 behavior, unchanged by v2).
+  - **GL1:** total server p50 11130 vs anchor 9070 — but the decomposition attributes it
+    entirely to the model call (model p50 5433→7987, provider variance by time of day);
+    **prosody_ms p50 3423→3029 (v2 is ~400ms FASTER)**. The component v2 touches improved;
+    recorded as PASS-by-attribution with this note rather than silently.
+  - **Revert lever spot-checked on real prod rows:** featureVersionAllowed(max=1) refuses the
+    v2 row and serves the v1 row; heal path means one in-request re-extract per rep post-revert.
+    Full drill rehearsal stays Phase 6.
+  - Phase 2 verify: GW1 ✓ GW2 ✓ GW3 ✓ (deployed) · GF2 ✓ (pre-registered rule) · GC1 ✓ (1
+    explained diff, bank note) · flip live · re-seed verified · revert lever verified.
+  - **Next:** Phase 3 (`feat/tone-core-v2`) — retune tone-core curves on v2 features (fixture
+    vectors committed as JSON), add windowed-monotone as an independent signal, use
+    upspeakRatioAligned + finalFallRatioAligned (the flat≈0/expressive≈1 finalFall separation is
+    the strongest new signal), halve articulation weight, GF1/GP1 gates, re-promote the
+    audio-tone bank (stale v1-artifact expectation noted 09-02). Sheets A/B + mini-sheet still
+    unfilled (Max + Owen) — links expire 2026-09-09.
