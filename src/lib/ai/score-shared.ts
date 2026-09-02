@@ -70,6 +70,7 @@ import {
   mergeProsody,
   synthesizeProsodyBaseline,
 } from "@/lib/audio/prosody-inline";
+import { withAlignedTailRatios } from "@/lib/audio/prosody-align";
 import { getWordCount, durationToMinutes } from "@/lib/scoring/signals/_helpers";
 import {
   hasWorkerProsody,
@@ -1497,6 +1498,14 @@ export async function buildUserPrompt(
             workerProsody,
           )
         : null);
+  // Prosody v2 (P2) — aligned upspeak/finalFall from cached segmentTails ∩
+  // punctuated word timings. Attached AFTER the block render inputs are
+  // settled and never rendered by renderProsodyBlock ⇒ zero prompt bytes;
+  // the deterministic tone core is the consumer (Phase 3).
+  const prosodyFeaturesAligned = withAlignedTailRatios(
+    prosodyFeatures,
+    input.words ?? null,
+  );
   const prosodyBlock = renderProsodyBlock(prosodyFeatures);
 
   const userPrompt = [
@@ -1541,7 +1550,9 @@ export async function buildUserPrompt(
   return {
     userPrompt,
     rubricBlock,
-    prosodyFeatures,
+    // The aligned variant only ADDS fields (upspeakRatioAligned etc.) — the
+    // prompt was rendered above from the same underlying values.
+    prosodyFeatures: prosodyFeaturesAligned,
     ragResult,
     textSignals,
     signalsFlagOn,

@@ -40,6 +40,16 @@ const workerResponseSchema = z.object({
   rmsMean: z.number().nullable(),
   rmsStd: z.number().nullable(),
   articulationScore: z.number().min(0).max(1).nullable(),
+  // Worker contract v2 (additive; absent on v1 responses). Declared here
+  // because z.object() STRIPS unknown keys — without these the warm path
+  // would silently drop segmentTails/featureVersion before caching.
+  featureVersion: z.number().int().optional(),
+  finalFallRatio: z.number().min(0).max(1).nullable().optional(),
+  segmentTails: z
+    .array(z.object({ endMs: z.number(), tailSlopeHzPerSec: z.number() }))
+    .max(200)
+    .nullable()
+    .optional(),
 });
 
 export type WorkerProsodyResult = z.infer<typeof workerResponseSchema>;

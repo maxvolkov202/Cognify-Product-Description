@@ -71,8 +71,26 @@ export async function warmProsody(input: {
   );
 }
 
+/** Prosody-v2 plan P1 — revert-correctness guard. The cache is keyed by path
+ *  only, so after an env-only revert (PROSODY_WORKER_URL → v1) already-warmed
+ *  v2 rows would keep serving v2 features. PROSODY_FEATURE_VERSION_MAX (env,
+ *  default unlimited) marks rows above it as misses → the in-request fallback
+ *  re-extracts with whichever worker the URL currently points at.
+ *  Rows without a featureVersion are v1 (pre-versioning) and always usable. */
+export function featureVersionAllowed(
+  features: Partial<ProsodyFeatures> | null,
+  maxRaw: string | undefined = process.env.PROSODY_FEATURE_VERSION_MAX,
+): boolean {
+  if (!features) return true;
+  const max = Number.parseInt(maxRaw ?? "", 10);
+  if (!Number.isFinite(max)) return true; // unset/garbage = unlimited
+  const version = typeof features.featureVersion === "number" ? features.featureVersion : 1;
+  return version <= max;
+}
+
 /** Fast read for the scorer. Returns the bundle only when the warm-up
- *  finished successfully; pending/failed/missing → null (caller falls back). */
+ *  finished successfully; pending/failed/missing → null (caller falls back).
+ *  Rows above PROSODY_FEATURE_VERSION_MAX are treated as misses (see guard). */
 export async function getCachedProsody(
   path: string,
 ): Promise<Partial<ProsodyFeatures> | null> {
@@ -83,9 +101,16 @@ export async function getCachedProsody(
       .where(eq(audioProsodyCache.path, path))
       .limit(1);
     if (!row || row.status !== "ready" || !row.features) return null;
+    const features = row.features as Partial<ProsodyFeatures>;
+    if (!featureVersionAllowed(features)) {
+      console.log(
+        `[prosody-cache] version-guard miss path=${path} featureVersion=${features.featureVersion ?? 1} max=${process.env.PROSODY_FEATURE_VERSION_MAX}`,
+      );
+      return null;
+    }
     // Same latency signal as before: a hit is visible in logs, so a
     // regression back to in-request cold starts stays distinguishable.
     console.log(`[prosody-cache] hit path=${path}`);
-    return row.features as Partial<ProsodyFeatures>;
+    return features;
   }, null);
 }
