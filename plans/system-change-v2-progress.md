@@ -1865,3 +1865,36 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     the grading skeleton, e2e panel-before-scores, GL1 panel-visible-<2s. Then Phase 6 needs the
     filled sheets (A/B + mini-sheet, expire 2026-09-09) for GH1. Phase 5 (Confidence) still needs
     Max's explicit go.
+
+- **2026-09-02 — Prosody v2 Phase 3 SHIPPED** (PR #113 squash-merged → `main@25da8442`; prod
+  deploy `cognify-v2-10fl7wbpc` — behavior unchanged, FF_TONE_PROSODY_CORE off in prod; new
+  warms now cache `monotoneWindowed`). Review round 2 residuals closed pre-merge: STRICT
+  monotoneWindowed opt-in (interim fv2 cache rows uncharged rather than double-counted; 7-day
+  cache churn clears them before Phase 6), vectors regenerated in one run (all 15 carry the
+  flag), shared hasWindowedMonotone helper, PRD specimen note updated. 68-assertion suite.
+
+- **2026-09-02 — Prosody v2 Phase 4: measured-delivery panel** (`feat/live-rep-metrics`).
+  - **P4 shipped behind `FF_LIVE_REP_METRICS`** (defaultOnOutsideProduction; OFF in prod until
+    Phase 6): a "Measured from your recording" strip inside the grading skeleton at
+    transcript-ready — pace vs the 130-165 band, fillers/min, pauses (suppressed when word
+    timings are absent, never faked), and pitch variety once the upload warm resolves. Pitch
+    phrasing uses the SAME cuts as tone-core v2 (incl. the strict monotoneWindowed rule) so the
+    strip never disagrees with the eventual score. Plain language, no em-dashes.
+  - **Mechanics:** the flag is server-resolved and rides the new read-only owner-scoped
+    `/api/rep-metrics` route (flag + warm-cache pitch for `reps/<user.id>/…` paths only —
+    RepSurface has many client parents, so the endpoint carries the flag instead of prop-threading
+    env into client code). Component polls the cache read (1.5s interval, 25s budget); flag OFF ⇒
+    the component renders nothing (no DOM). Zero scoring-path changes ⇒ no calibration impact.
+  - **Gates:** GL1 panel-timing — the strip renders in the SAME React commit as the
+    scoring-status line at transcript-ready (structurally <2s; no async dependency for the
+    inline chips); e2e extended: skill-lab-loop now asserts the strip is visible while the
+    feedback CTA is still absent (panel-before-scores) — green in 38.8s on a live-scored rep.
+    17-assertion live-metrics unit suite wired in.
+  - Example reps re-seeded end-of-phase (see batch below).
+  - **Verify checklist for Max (~5 min):**
+    1. Local dev: record any rep — during "Scoring based on proprietary rubric" a strip shows
+       pace/fillers/pauses immediately and "Listening for pitch variety" resolves to a pitch
+       line within a few seconds.
+    2. `FF_LIVE_REP_METRICS=false npm run dev` — same flow shows NO strip (pixel-identical
+       skeleton).
+    3. Prod (flag off): record a rep on www.cognifygym.com — no strip.

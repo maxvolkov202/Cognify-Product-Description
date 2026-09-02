@@ -121,3 +121,12 @@ export function isToneProsodyCoreEnabled(): boolean {
 export function isRelevanceFloorEnabled(): boolean {
   return defaultOnOutsideProduction("FF_RELEVANCE_FLOOR");
 }
+
+/** Prosody v2 Phase 4 (P4) — the "Measured delivery" strip shown in the
+ *  grading skeleton at transcript-ready: pace vs the 130-165 band, fillers,
+ *  pauses, and pitch variety once the upload-time prosody warm resolves.
+ *  Display-only; zero scoring-path changes. ON in dev/preview, OFF in prod
+ *  until the Phase 6 promotion. */
+export function isLiveRepMetricsEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_LIVE_REP_METRICS");
+}

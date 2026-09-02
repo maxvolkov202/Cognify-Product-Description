@@ -43,6 +43,12 @@ for (const count of [1, 5]) {
   await page.getByTestId("insight-ready").click();
 
     await recordRep(page);
+    // Prosody v2 Phase 4 (GL1) — the Measured-delivery strip renders in the
+    // grading skeleton BEFORE any scores exist: assert it while the feedback
+    // CTA is still absent (scoring takes ~10s; the strip lands at
+    // transcript-ready in the same render as the scoring status line).
+    await expect(page.getByTestId("measured-delivery")).toBeVisible({ timeout: 60_000 });
+    expect(await page.getByRole("button", { name: /Retry this rep/i }).count()).toBe(0);
     await awaitFeedback(page, /Retry this rep/i);
     await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();
