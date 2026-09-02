@@ -32,7 +32,9 @@ const PERIOD_ONLY_RE = /\.["')\]]*$/;
 /** Common abbreviations whose trailing period is not a sentence boundary. */
 const ABBREVIATIONS = new Set([
   "dr", "mr", "mrs", "ms", "jr", "sr", "st", "vs", "etc", "inc", "co", "corp",
-  "dept", "approx", "est", "no", "e.g", "i.e", "u.s", "u.k", "a.m", "p.m",
+  // NOTE: "no" is deliberately absent — "No." is a common one-word sentence in
+  // rep audio; the lowercase-continuation rule below covers "no." mid-sentence.
+  "dept", "approx", "est", "e.g", "i.e", "u.s", "u.k", "a.m", "p.m",
 ]);
 
 /** End timestamps (ms) of words that close a statement, from punctuated

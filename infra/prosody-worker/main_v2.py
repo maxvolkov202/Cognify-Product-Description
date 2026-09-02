@@ -111,9 +111,14 @@ def analyze(req: Request, authorization: str | None = Header(default=None)) -> R
     try:
         audio_path = _download(req.audioUrl)
     except Exception as exc:  # noqa: BLE001
-        # Expired signed URL / storage timeout: graceful nulls, never a 500.
+        # A download failure is usually TRANSIENT (expired signed URL, storage
+        # blip). Return 502 — Node treats non-2xx as "no result", so the warm
+        # marks the row failed and the scorer retries in-request later. A 200
+        # all-null here would be cached as status='ready' nulls forever.
+        # Graceful nulls stay reserved for permanent audio problems (unreadable
+        # codec in _load_sound below).
         print(f"[prosody-worker-v2] download failed: {exc}")
-        return Response(**NULL_RESPONSE)
+        raise HTTPException(status_code=502, detail="audio download failed")
     try:
         sound = _load_sound(audio_path)
     except Exception as exc:  # noqa: BLE001
