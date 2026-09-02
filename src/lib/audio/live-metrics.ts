@@ -1,9 +1,14 @@
 /**
  * Prosody v2 Phase 4 — pure formatting for the "Measured delivery" strip.
- * Plain language only (PRD §11.3): the numbers come from the same inline
- * extraction the scorer uses; the words here are for the user.
+ * Plain language only (PRD §11.3). Every number here is computed with the
+ * SAME machinery the Delivery score uses — the scored filler lexicon, the
+ * rate-measurable floor, the well-paced band, and tone-core's pitch tiers —
+ * imported, never copied, so the strip cannot contradict the score.
  */
 import type { ProsodyFeatures } from "./prosody";
+import { countScoredFillers } from "@/lib/scoring/signals/audio";
+import { RATE_MEASURABLE_MIN_MS, WELL_PACED_BAND } from "@/lib/scoring/deterministic";
+import { classifyPitchVariety } from "@/lib/scoring/tone-core";
 
 export type LiveDeliveryMetrics = {
   paceLabel: string;
@@ -11,40 +16,56 @@ export type LiveDeliveryMetrics = {
   pauseLabel: string | null;
 };
 
-/** The rubric's well-paced band (WS9: one band everywhere). */
-export const PACE_BAND = { min: 130, max: 165 } as const;
-
-export function buildLiveDeliveryMetrics(inline: ProsodyFeatures): LiveDeliveryMetrics {
-  const wpm = Math.round(inline.wordsPerMinute);
-  const paceQualifier =
-    wpm > PACE_BAND.max ? "fast" : wpm < PACE_BAND.min ? "unhurried" : "on pace";
-  const fillers = inline.fillerCount;
-  return {
-    paceLabel: `Pace ${wpm} wpm, ${paceQualifier} (well-paced is ${PACE_BAND.min}-${PACE_BAND.max})`,
-    fillerLabel:
-      fillers === 0
-        ? "No fillers"
-        : `${fillers} filler${fillers === 1 ? "" : "s"} (${inline.fillerRatePerMinute.toFixed(1)} per minute)`,
-    pauseLabel:
-      inline.pauseDataAvailable === false
-        ? null
-        : inline.pauseCount === 0
-          ? "No long pauses"
-          : `${inline.pauseCount} pause${inline.pauseCount === 1 ? "" : "s"}${inline.longPauseCount > 0 ? `, ${inline.longPauseCount} over 1.5s` : ""}`,
-  };
+export function buildLiveDeliveryMetrics(
+  inline: ProsodyFeatures,
+  input: { words: { word: string }[]; durationMs: number },
+): LiveDeliveryMetrics {
+  // The scorer refuses a rate verdict under 8s (neutral 85, "too short to
+  // measure"); the strip must not pronounce one either.
+  const paceLabel =
+    input.durationMs < RATE_MEASURABLE_MIN_MS
+      ? "Too short to measure a steady pace"
+      : (() => {
+          const wpm = inline.wordsPerMinute;
+          const qualifier =
+            wpm > WELL_PACED_BAND.max ? "fast" : wpm < WELL_PACED_BAND.min ? "unhurried" : "on pace";
+          return `Pace ${Math.round(wpm)} wpm, ${qualifier} (well-paced is ${WELL_PACED_BAND.min}-${WELL_PACED_BAND.max})`;
+        })();
+  // Fillers via the SCORED lexicon (signals/audio.ts) — prosody-inline's own
+  // broader list counts "like"/"so", which the Delivery feedback does not.
+  const fillers = countScoredFillers(input.words.map((w) => w.word).join(" "));
+  const minutes = input.durationMs / 60_000;
+  const fillerLabel =
+    fillers === 0
+      ? "No fillers"
+      : `${fillers} filler${fillers === 1 ? "" : "s"} (${(minutes > 0 ? fillers / minutes : 0).toFixed(1)} per minute)`;
+  // Only LONG pauses are worth flagging — ordinary clause breaths are
+  // credited by the pacing score, not criticized.
+  const pauseLabel =
+    inline.pauseDataAvailable === false
+      ? null
+      : inline.longPauseCount === 0
+        ? "No long pauses"
+        : `${inline.longPauseCount} long pause${inline.longPauseCount === 1 ? "" : "s"} (over 1.5s)`;
+  return { paceLabel, fillerLabel, pauseLabel };
 }
 
-/** Qualitative pitch-variety phrase from the warm cache's measurements.
- *  Same cuts as the tone core's curves so the strip never disagrees with
- *  the eventual score. */
+/** Copy for tone-core's pitch tiers (one definition of the tiers, there). */
 export function describePitchVariety(
   pitchStdSemitones: number | null | undefined,
   monotoneRatio: number | null | undefined,
   monotoneWindowed: boolean | null | undefined,
 ): string | null {
-  if (pitchStdSemitones == null || !Number.isFinite(pitchStdSemitones)) return null;
-  const monotone = monotoneWindowed === true ? (monotoneRatio ?? 0) : 0;
-  if (monotone > 0.85 || pitchStdSemitones < 1.5) return "Pitch stayed flat";
-  if (monotone > 0.5 || pitchStdSemitones < 3) return "Pitch moved a little";
-  return "Pitch varied well";
+  const tier = classifyPitchVariety({
+    pitchStdSemitones: pitchStdSemitones ?? null,
+    monotoneRatio: monotoneRatio ?? null,
+    monotoneWindowed,
+    featureVersion: 2,
+  });
+  if (tier === null) return null;
+  return tier === "flat"
+    ? "Pitch stayed flat"
+    : tier === "level"
+      ? "Pitch moved a little"
+      : "Pitch varied well";
 }

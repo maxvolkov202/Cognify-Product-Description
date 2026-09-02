@@ -1885,16 +1885,27 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     RepSurface has many client parents, so the endpoint carries the flag instead of prop-threading
     env into client code). Component polls the cache read (1.5s interval, 25s budget); flag OFF ⇒
     the component renders nothing (no DOM). Zero scoring-path changes ⇒ no calibration impact.
-  - **Gates:** GL1 panel-timing — the strip renders in the SAME React commit as the
-    scoring-status line at transcript-ready (structurally <2s; no async dependency for the
-    inline chips); e2e extended: skill-lab-loop now asserts the strip is visible while the
-    feedback CTA is still absent (panel-before-scores) — green in 38.8s on a live-scored rep.
-    17-assertion live-metrics unit suite wired in.
+  - **Gates:** GL1 panel-timing — the chips depend on ONE fast flag fetch (server-resolved,
+    3s-bounded via timeoutSignal), and the e2e asserts the strip is visible within 2s of the
+    scoring status line appearing (raceless, anchored to the status element; E2E_LIVE_METRICS=0
+    skips the block where the flag is off, e.g. prod runs). 21-assertion live-metrics unit suite.
+  - **/code-review: 10 findings, all fixed pre-merge.** The ones that mattered: the strip counted
+    fillers with prosody-inline's broad lexicon while the Delivery feedback uses the scored one
+    ("like"/"so" excluded) — now imports countScoredFillers; it pronounced pace verdicts on <8s
+    reps the scorer refuses to judge — now mirrors RATE_MEASURABLE_MIN_MS; the pause chip
+    described all ≥400ms gaps while claiming "long pauses" — now long pauses only; pitch tiers
+    and the pace band are IMPORTED from tone-core/deterministic (classifyPitchVariety,
+    WELL_PACED_BAND exported) instead of copied; /api/rep-metrics gained a rate limit, terminal
+    states (unavailable/failed stop the poll — incl. FF_PROSODY_WORKER off, where the pitch line
+    can never resolve), and the client got timeout-bounded fetches, backoff, a mount-anchored
+    budget, and an attempt token so a stale upload can't attach the previous rep's audio path.
   - Example reps re-seeded end-of-phase (see batch below).
   - **Verify checklist for Max (~5 min):**
-    1. Local dev: record any rep — during "Scoring based on proprietary rubric" a strip shows
-       pace/fillers/pauses immediately and "Listening for pitch variety" resolves to a pitch
-       line within a few seconds.
+    1. Local dev WITH the worker env set (FF_PROSODY_WORKER=true PROSODY_WORKER_URL=<v2 url>
+       PROSODY_WORKER_TOKEN=<tok>): record any rep — during "Scoring based on proprietary
+       rubric" a strip shows pace/fillers/pauses immediately and "Listening for pitch variety"
+       resolves to a pitch line within a few seconds. Without the worker env the pitch line is
+       omitted (the route reports it unavailable; the chips still show).
     2. `FF_LIVE_REP_METRICS=false npm run dev` — same flow shows NO strip (pixel-identical
        skeleton).
     3. Prod (flag off): record a rep on www.cognifygym.com — no strip.

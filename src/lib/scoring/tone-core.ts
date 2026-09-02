@@ -155,7 +155,7 @@ const finiteOrNull = (v: number | null | undefined): number | null =>
  *  from the same std the variety curve charges, worker v2's short-clip
  *  fallback marks false, and interim v2 cache rows warmed before the flag
  *  shipped stay uncharged rather than risk the double-count. */
-function hasWindowedMonotone(features: ProsodyFeatures): boolean {
+export function hasWindowedMonotone(features: ProsodyFeatures): boolean {
   return features.monotoneWindowed === true;
 }
 
@@ -216,6 +216,20 @@ export function scoreToneFromProsody(
   };
 }
 
+/** The pitch-variety tiers, on the SAME cuts the scoring curves use. Exported
+ *  so display surfaces (the measured-delivery strip) can never disagree with
+ *  the feedback tiers — one definition, several consumers. */
+export function classifyPitchVariety(
+  features: Pick<ProsodyFeatures, "pitchStdSemitones" | "monotoneRatio" | "monotoneWindowed" | "featureVersion">,
+): "flat" | "level" | "varied" | null {
+  const std = features.pitchStdSemitones;
+  if (std == null || !Number.isFinite(std)) return null;
+  const monotone = hasWindowedMonotone(features as ProsodyFeatures) ? (features.monotoneRatio ?? 0) : 0;
+  if (monotone > 0.85 || std < 1.5) return "flat";
+  if (monotone > 0.5 || std < 3) return "level";
+  return "varied";
+}
+
 /** Plain-language Tone sentence from the measurements, used when the
  *  model's narrative explains a number the core has replaced. */
 export function buildToneFeedback(features: ProsodyFeatures): string {
@@ -227,8 +241,9 @@ export function buildToneFeedback(features: ProsodyFeatures): string {
   // behavior the score did not charge (and vice versa).
   const upspeaky = upspeakAligned != null ? upspeak > 0.1 : upspeak > 0.3;
   const finalFall = features.finalFallRatioAligned ?? features.finalFallRatio ?? null;
-  const flat = monotone > 0.85 || std < 1.5;
-  const mid = !flat && (monotone > 0.5 || std < 3);
+  const tier = classifyPitchVariety(features);
+  const flat = tier === "flat";
+  const mid = tier === "level";
   const pitch = flat
     ? "Your pitch barely moved, so the delivery sounded flat"
     : mid
