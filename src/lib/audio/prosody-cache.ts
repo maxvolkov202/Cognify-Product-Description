@@ -92,6 +92,24 @@ export function storeProsodyFeatures(
   }, false);
 }
 
+/** Raw cache state for DISPLAY surfaces (the measured-delivery strip): status
+ *  plus features, no version guard and no ready-flattening — a display can
+ *  honestly show measured pitch from any feature version, and needs to know
+ *  pending/failed to stop polling. Scoring reads stay on getCachedProsody. */
+export async function getProsodyCacheState(
+  path: string,
+): Promise<{ status: string; features: Partial<ProsodyFeatures> | null } | null> {
+  return safeDb(async () => {
+    const [row] = await db
+      .select({ features: audioProsodyCache.features, status: audioProsodyCache.status })
+      .from(audioProsodyCache)
+      .where(eq(audioProsodyCache.path, path))
+      .limit(1);
+    if (!row) return null;
+    return { status: row.status, features: (row.features as Partial<ProsodyFeatures>) ?? null };
+  }, null);
+}
+
 /** Prosody-v2 plan P1 — revert-correctness guard. The cache is keyed by path
  *  only, so after an env-only revert (PROSODY_WORKER_URL → v1) already-warmed
  *  v2 rows would keep serving v2 features. PROSODY_FEATURE_VERSION_MAX (env,

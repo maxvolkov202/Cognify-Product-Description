@@ -1865,3 +1865,47 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     the grading skeleton, e2e panel-before-scores, GL1 panel-visible-<2s. Then Phase 6 needs the
     filled sheets (A/B + mini-sheet, expire 2026-09-09) for GH1. Phase 5 (Confidence) still needs
     Max's explicit go.
+
+- **2026-09-02 — Prosody v2 Phase 3 SHIPPED** (PR #113 squash-merged → `main@25da8442`; prod
+  deploy `cognify-v2-10fl7wbpc` — behavior unchanged, FF_TONE_PROSODY_CORE off in prod; new
+  warms now cache `monotoneWindowed`). Review round 2 residuals closed pre-merge: STRICT
+  monotoneWindowed opt-in (interim fv2 cache rows uncharged rather than double-counted; 7-day
+  cache churn clears them before Phase 6), vectors regenerated in one run (all 15 carry the
+  flag), shared hasWindowedMonotone helper, PRD specimen note updated. 68-assertion suite.
+
+- **2026-09-02 — Prosody v2 Phase 4: measured-delivery panel** (`feat/live-rep-metrics`).
+  - **P4 shipped behind `FF_LIVE_REP_METRICS`** (defaultOnOutsideProduction; OFF in prod until
+    Phase 6): a "Measured from your recording" strip inside the grading skeleton at
+    transcript-ready — pace vs the 130-165 band, fillers/min, pauses (suppressed when word
+    timings are absent, never faked), and pitch variety once the upload warm resolves. Pitch
+    phrasing uses the SAME cuts as tone-core v2 (incl. the strict monotoneWindowed rule) so the
+    strip never disagrees with the eventual score. Plain language, no em-dashes.
+  - **Mechanics:** the flag is server-resolved and rides the new read-only owner-scoped
+    `/api/rep-metrics` route (flag + warm-cache pitch for `reps/<user.id>/…` paths only —
+    RepSurface has many client parents, so the endpoint carries the flag instead of prop-threading
+    env into client code). Component polls the cache read (1.5s interval, 25s budget); flag OFF ⇒
+    the component renders nothing (no DOM). Zero scoring-path changes ⇒ no calibration impact.
+  - **Gates:** GL1 panel-timing — the chips depend on ONE fast flag fetch (server-resolved,
+    3s-bounded via timeoutSignal), and the e2e asserts the strip is visible within 2s of the
+    scoring status line appearing (raceless, anchored to the status element; E2E_LIVE_METRICS=0
+    skips the block where the flag is off, e.g. prod runs). 21-assertion live-metrics unit suite.
+  - **/code-review: 10 findings, all fixed pre-merge.** The ones that mattered: the strip counted
+    fillers with prosody-inline's broad lexicon while the Delivery feedback uses the scored one
+    ("like"/"so" excluded) — now imports countScoredFillers; it pronounced pace verdicts on <8s
+    reps the scorer refuses to judge — now mirrors RATE_MEASURABLE_MIN_MS; the pause chip
+    described all ≥400ms gaps while claiming "long pauses" — now long pauses only; pitch tiers
+    and the pace band are IMPORTED from tone-core/deterministic (classifyPitchVariety,
+    WELL_PACED_BAND exported) instead of copied; /api/rep-metrics gained a rate limit, terminal
+    states (unavailable/failed stop the poll — incl. FF_PROSODY_WORKER off, where the pitch line
+    can never resolve), and the client got timeout-bounded fetches, backoff, a mount-anchored
+    budget, and an attempt token so a stale upload can't attach the previous rep's audio path.
+  - Example reps re-seeded end-of-phase (see batch below).
+  - **Verify checklist for Max (~5 min):**
+    1. Local dev WITH the worker env set (FF_PROSODY_WORKER=true PROSODY_WORKER_URL=<v2 url>
+       PROSODY_WORKER_TOKEN=<tok>): record any rep — during "Scoring based on proprietary
+       rubric" a strip shows pace/fillers/pauses immediately and "Listening for pitch variety"
+       resolves to a pitch line within a few seconds. Without the worker env the pitch line is
+       omitted (the route reports it unavailable; the chips still show).
+    2. `FF_LIVE_REP_METRICS=false npm run dev` — same flow shows NO strip (pixel-identical
+       skeleton).
+    3. Prod (flag off): record a rep on www.cognifygym.com — no strip.

@@ -25,7 +25,7 @@ Facts not to re-derive:
   applied with apply-migration.mjs (append-only) and probed by verify-prod-migrations.mjs.
 - Run local calibration with `npm run dev` (plain `next dev` skips build:knowledge). /code-review kept
   reviewing merged files; use a targeted agent on `git diff main...<branch>` instead.
-- Prod e2e: PW_BASE_URL=https://www.cognifygym.com PW_STORAGE_STATE=tests/e2e/authed/.auth/prod-fresh2.json
+- Prod e2e: PW_BASE_URL=https://www.cognifygym.com PW_STORAGE_STATE=tests/e2e/authed/.auth/prod-fresh2.json (add E2E_LIVE_METRICS=0 while FF_LIVE_REP_METRICS is off in prod — the measured-delivery assertions skip)
   npx playwright test tests/e2e/authed/<spec> --config playwright.p5.config.ts (fake mic; harness
   accounts; the daily-workout specs consume that account's day). Every shipped phase gets a prod e2e
   pass; delete/refresh the storage states if auth fails.

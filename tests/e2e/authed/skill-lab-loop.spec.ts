@@ -43,6 +43,20 @@ for (const count of [1, 5]) {
   await page.getByTestId("insight-ready").click();
 
     await recordRep(page);
+    // Prosody v2 Phase 4 (GL1) — the strip must be up within 2s of the
+    // scoring status line (transcript-ready), i.e. long before any scores.
+    // Raceless: anchored to the status line, not to a count() snapshot.
+    // Set E2E_LIVE_METRICS=0 for environments with FF_LIVE_REP_METRICS off
+    // (prod runs: the flag is off by design until Phase 6).
+    if (process.env.E2E_LIVE_METRICS !== "0") {
+      await page
+        .getByText(/Scoring based on proprietary rubric|Scoring in the background/)
+        .first()
+        .waitFor({ timeout: 240_000 });
+      const shownAt = Date.now();
+      await page.getByTestId("measured-delivery").waitFor({ state: "visible", timeout: 5_000 });
+      expect(Date.now() - shownAt).toBeLessThan(2_000);
+    }
     await awaitFeedback(page, /Retry this rep/i);
     await expect(page.getByText(/Coach's Focus/i).first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" }).first()).toBeVisible();

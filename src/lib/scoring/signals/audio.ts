@@ -109,6 +109,13 @@ const RESTART_MARKERS: readonly RegExp[] = [
   /\bscratch that\b/i,
 ];
 
+/** The filler count the Delivery score and its feedback actually use — any
+ *  surface previewing that score (the measured-delivery strip) must count
+ *  with THIS lexicon, not its own. */
+export function countScoredFillers(transcript: string): number {
+  return countLexiconMatches(transcript, FILLER_LEXICON);
+}
+
 function countLexiconMatches(
   transcript: string,
   lexicon: readonly string[],
@@ -167,7 +174,7 @@ export function extractSignals(input: {
   const wpm = wordCount / durationMin;
 
   // Lexicon matches — fully deterministic
-  const fillerCount = countLexiconMatches(transcript, FILLER_LEXICON);
+  const fillerCount = countScoredFillers(transcript);
   const hedgeCount = countLexiconMatches(transcript, HEDGE_LEXICON);
 
   // Pause distribution from inter-word gaps

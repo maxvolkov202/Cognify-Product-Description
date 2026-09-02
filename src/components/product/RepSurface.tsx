@@ -28,6 +28,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils/cn";
 import { RepHintsBar } from "./RepHintsBar";
 import { timeoutSignal, isTimeoutAbort } from "@/lib/util/timeout-signal";
+import { MeasuredDeliveryStrip } from "@/components/product/MeasuredDeliveryStrip";
 
 /** Grading plan 1b — client budgets for the two pre-score fetches. Both
  *  used to be unbounded; a stalled request left the page with nothing
@@ -266,6 +267,16 @@ export function RepSurface({
     : maxDurationMs;
 
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  // Prosody v2 Phase 4 — inputs for the Measured-delivery strip shown in the
+  // grading skeleton (display-only; set fresh at each transcript-ready).
+  const [liveRep, setLiveRep] = useState<{
+    words: { word: string; startMs: number; endMs: number }[];
+    durationMs: number;
+  } | null>(null);
+  const [liveAudioPath, setLiveAudioPath] = useState<string | null>(null);
+  // Guards the upload continuation below: a previous attempt's slow upload
+  // must never land its audio path on the NEXT attempt's strip.
+  const liveAttemptRef = useRef(0);
   // WS8 — the audio upload for the current attempt, started the moment the
   // recording completes so it runs in parallel with transcription instead
   // of after it. Both scoring paths await this promise.
@@ -590,6 +601,19 @@ export function RepSurface({
     // touching any network/DB.
     if (abortedRef.current) return;
     currentRecordingRef.current = result;
+
+    // Phase 4 — feed the Measured-delivery strip (renders only when
+    // FF_LIVE_REP_METRICS resolves on the server; see /api/rep-metrics).
+    const liveAttempt = ++liveAttemptRef.current;
+    setLiveRep({ words, durationMs: result.durationMs });
+    setLiveAudioPath(null);
+    void uploadRef.current
+      ?.then((up) => {
+        if (liveAttemptRef.current === liveAttempt && !abortedRef.current) {
+          setLiveAudioPath(up.path);
+        }
+      })
+      .catch(() => {});
 
     // ——— Async fork (authenticated users only) ————————————————
     // When the NEXT_PUBLIC_USE_ASYNC_SCORING flag is on AND the user has a
@@ -1016,6 +1040,8 @@ export function RepSurface({
     phase.kind === "scoring" ||
     phase.kind === "saving" ||
     phase.kind === "processing-async";
+  const isSkeletonPhase =
+    phase.kind === "scoring" || phase.kind === "saving" || phase.kind === "processing-async";
 
   // Modes that show the Suggested Framework strip alongside the prompt:
   // Daily Workout AND Application Lab (Phase 5b). Other modes (Build-a-Rep,
@@ -1268,13 +1294,18 @@ export function RepSurface({
               "Scoring in the background. Realtime updates incoming…"}
           </div>
           <LoadingEvidence />
+          {isSkeletonPhase && liveRep && (
+            <MeasuredDeliveryStrip
+              words={liveRep.words}
+              durationMs={liveRep.durationMs}
+              audioPath={liveAudioPath}
+            />
+          )}
           {/* All six dimensions are revealed together once the full grade
               returns (no split deterministic preview) — the user sees a
               single skeleton while grading runs, then final scores at once,
               so no dimension appears to "change" after the fact. */}
-          {(phase.kind === "scoring" ||
-            phase.kind === "saving" ||
-            phase.kind === "processing-async") && <FeedbackSkeleton />}
+          {isSkeletonPhase && <FeedbackSkeleton />}
         </>
       )}
 

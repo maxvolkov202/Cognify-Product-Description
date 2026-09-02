@@ -45,6 +45,10 @@ const MAX_SCORE = 98;
  *  the number and the copy agree. */
 export const RATE_MEASURABLE_MIN_MS = 8_000;
 
+/** The rubric's well-paced band (WS9: one band everywhere). Display surfaces
+ *  previewing the pacing score import THIS, never a fresh copy. */
+export const WELL_PACED_BAND = { min: 130, max: 165 } as const;
+
 function clamp(n: number): number {
   return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.round(n)));
 }
