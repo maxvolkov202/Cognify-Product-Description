@@ -233,7 +233,6 @@ export function classifyPitchVariety(
 /** Plain-language Tone sentence from the measurements, used when the
  *  model's narrative explains a number the core has replaced. */
 export function buildToneFeedback(features: ProsodyFeatures): string {
-  const std = features.pitchStdSemitones ?? 0;
   const monotone = hasWindowedMonotone(features) ? (features.monotoneRatio ?? 0) : 0;
   const upspeakAligned = features.upspeakRatioAligned;
   const upspeak = upspeakAligned ?? features.upspeakRatio ?? 0;
