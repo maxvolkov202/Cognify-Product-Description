@@ -1608,3 +1608,14 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     `--arm=median-of-n` bench usage examples → signals-drop). `vercel deploy --prod` READY
     (`cognify-v2-75o3ozxrt`, aliased www.cognifygym.com; `/` and `/api/health` 200). Prod e2e
     `skill-lab-loop` green 2/2 (1-rep + 5-rep sessions, retry flow, 2.4 min, gpt-4o serving).
+
+- **2026-09-01 — Prosody v2 plan finalized** (`docs/prosody-v2-plan`): Bob's Praat/audio-model
+  feedback resolved into `plans/prosody-v2-plan-2026-09.md` — worker v2 extraction (windowed
+  monotone, segmentTails → Node-side aligned upspeak), tone-core v2 behind FF_TONE_PROSODY_CORE,
+  FF_LIVE_REP_METRICS panel, pre-registered gates GW/GF/GP/GL/GC/GH, env-only revert incl.
+  PROSODY_FEATURE_VERSION_MAX cache guard. /code-review (low) surfaced 9 plan defects (revert
+  cache hole, stale-cache example reps, warm-path transcript impossibility, build-packet resign
+  gap, GC1 audio-tone scoping, GF2 phase timing, 2 citation fixes, D22 supersession entry) — all
+  incorporated. No audio-in model arm (family-refuted 07-16; one-clip smoke for the record in
+  Phase 1). **Next:** Phase 0 (`chore/labeling-packet-resign`) — build `--resign` mode BEFORE
+  ~09-04 link expiry, then Phase 1 harness.
