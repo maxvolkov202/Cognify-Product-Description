@@ -956,7 +956,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
         }
       ]
     },
@@ -975,7 +975,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1006,12 +1006,11 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
         }
       ]
     },
     {
-      "upspeakSpecimen": true,
       "id": "audio-tone__band-competent-okay-pitch__expressive",
       "kind": "audio-tone",
       "scriptId": "band-competent-okay-pitch",
@@ -1023,10 +1022,10 @@
       "storagePath": "calibration-audio/band-competent-okay-pitch__expressive.mp3",
       "assertions": [
         {
-          "kind": "maxScore",
+          "kind": "minScore",
           "dimension": "tone",
-          "max": 55,
-          "rationale": "DNA rule 4 upspeak specimen: worker measures upspeakRatio 0.5 — strong variety must NOT cancel the upspeak penalty"
+          "min": 60,
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1057,7 +1056,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
         }
       ]
     },
@@ -1076,7 +1075,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1107,7 +1106,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
         }
       ]
     },
@@ -1126,7 +1125,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },
@@ -1157,7 +1156,7 @@
           "kind": "maxScore",
           "dimension": "tone",
           "max": 55,
-          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st) must not score expressive"
+          "rationale": "PSOLA pitch-flattened true monotone (pitchStd ≤0.25 st, windowed monotone 1.0) must not score expressive"
         }
       ]
     },
@@ -1176,7 +1175,7 @@
           "kind": "minScore",
           "dimension": "tone",
           "min": 60,
-          "rationale": "validated expressive delivery (pitchStd ≥2.9 st); min is 60 not 70 because the runtime worker measures monotoneRatio 0.4-0.5 on these TTS clips (stricter window rule than the offline validator) — pair separation vs flat is the primary gate"
+          "rationale": "validated expressive delivery (pitchStd ≥2.9 st, windowed monotone ≤0.25, falling finals ≥0.5 under worker v2); min 60 leaves blend headroom — pair separation vs flat is the primary gate"
         }
       ]
     },

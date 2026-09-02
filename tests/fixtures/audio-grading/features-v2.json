@@ -1,0 +1,246 @@
+{
+ "source": "worker v2 (cognify-prosody-worker-v2) over tests/fixtures/audio-grading, 2026-09-02",
+ "note": "committed as JSON so tone-core unit tests never need audio or a worker",
+ "fixtures": {
+  "band-strong-clean-pitch__flat.wav": {
+   "style": "flat",
+   "scriptId": "band-strong-clean-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 143.08452282654164,
+    "pitchStdSemitones": 0.07168734682156636,
+    "pitchRangeSemitones": 1.315486263945207,
+    "monotoneRatio": 1,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0,
+    "rmsMean": 60.889590451792486,
+    "rmsStd": 19.847217621546108,
+    "articulationScore": 0.16436714518528517
+   }
+  },
+  "band-strong-clean-pitch__expressive.mp3": {
+   "style": "expressive",
+   "scriptId": "band-strong-clean-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 145.15352557156274,
+    "pitchStdSemitones": 3.045380514512519,
+    "pitchRangeSemitones": 17.765505917141553,
+    "monotoneRatio": 0.15942028985507245,
+    "upspeakRatio": 0.25,
+    "finalFallRatio": 0.5,
+    "rmsMean": 61.27364609343042,
+    "rmsStd": 20.11451753936205,
+    "articulationScore": 0.15735063535079863
+   }
+  },
+  "band-strong-clean-pitch__rushed.mp3": {
+   "style": "rushed",
+   "scriptId": "band-strong-clean-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 139.56423362258437,
+    "pitchStdSemitones": 3.3136520564133853,
+    "pitchRangeSemitones": 18.42494421237006,
+    "monotoneRatio": 0.057692307692307696,
+    "upspeakRatio": 0.14285714285714285,
+    "finalFallRatio": 0.8571428571428571,
+    "rmsMean": 64.3431255195181,
+    "rmsStd": 16.46478126513298,
+    "articulationScore": 0.10801728039508329
+   }
+  },
+  "band-competent-okay-pitch__flat.wav": {
+   "style": "flat",
+   "scriptId": "band-competent-okay-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 140.8440577065227,
+    "pitchStdSemitones": 0.1583335558802345,
+    "pitchRangeSemitones": 5.029550557845967,
+    "monotoneRatio": 1,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0,
+    "rmsMean": 63.89182579970531,
+    "rmsStd": 15.728842976417194,
+    "articulationScore": 0.17355146163048607
+   }
+  },
+  "band-competent-okay-pitch__expressive.mp3": {
+   "style": "expressive",
+   "scriptId": "band-competent-okay-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 143.95697971179723,
+    "pitchStdSemitones": 2.8999313253266092,
+    "pitchRangeSemitones": 18.41658189289572,
+    "monotoneRatio": 0.171875,
+    "upspeakRatio": 0,
+    "finalFallRatio": 1,
+    "rmsMean": 64.27422098394698,
+    "rmsStd": 16.04567328284943,
+    "articulationScore": 0.14531135580066779
+   }
+  },
+  "band-competent-okay-pitch__rushed.mp3": {
+   "style": "rushed",
+   "scriptId": "band-competent-okay-pitch",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 145.20212449001085,
+    "pitchStdSemitones": 3.0261867783058554,
+    "pitchRangeSemitones": 18.53200105081425,
+    "monotoneRatio": 0.2916666666666667,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0.5,
+    "rmsMean": 63.19135520610253,
+    "rmsStd": 18.09346601033053,
+    "articulationScore": 0.1646540583699475
+   }
+  },
+  "qa-strong-pricing-question__flat.wav": {
+   "style": "flat",
+   "scriptId": "qa-strong-pricing-question",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 138.99556157878814,
+    "pitchStdSemitones": 0.25083310336154135,
+    "pitchRangeSemitones": 10.877244487806024,
+    "monotoneRatio": 1,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0.07692307692307693,
+    "rmsMean": 59.622666846534024,
+    "rmsStd": 19.939840550565595,
+    "articulationScore": 0.16233244170272643
+   }
+  },
+  "qa-strong-pricing-question__expressive.mp3": {
+   "style": "expressive",
+   "scriptId": "qa-strong-pricing-question",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 139.72703974984523,
+    "pitchStdSemitones": 3.0508447060450945,
+    "pitchRangeSemitones": 17.417202668253196,
+    "monotoneRatio": 0.21875,
+    "upspeakRatio": 0.08333333333333333,
+    "finalFallRatio": 0.9166666666666666,
+    "rmsMean": 60.026132202139316,
+    "rmsStd": 20.177523783501048,
+    "articulationScore": 0.15004072047614408
+   }
+  },
+  "qa-strong-pricing-question__rushed.mp3": {
+   "style": "rushed",
+   "scriptId": "qa-strong-pricing-question",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 144.69688383836723,
+    "pitchStdSemitones": 3.0840334877918774,
+    "pitchRangeSemitones": 18.19736328806673,
+    "monotoneRatio": 0.09090909090909091,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0.7777777777777778,
+    "rmsMean": 62.1567243740859,
+    "rmsStd": 19.302178458084622,
+    "articulationScore": 0.13006535708730527
+   }
+  },
+  "interview-competent-tell-me-about-yourself__flat.wav": {
+   "style": "flat",
+   "scriptId": "interview-competent-tell-me-about-yourself",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 141.331633171656,
+    "pitchStdSemitones": 0.0999263908553003,
+    "pitchRangeSemitones": 2.284196843917809,
+    "monotoneRatio": 1,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0,
+    "rmsMean": 62.053561592847146,
+    "rmsStd": 16.656413616837163,
+    "articulationScore": 0.135270559271788
+   }
+  },
+  "interview-competent-tell-me-about-yourself__expressive.mp3": {
+   "style": "expressive",
+   "scriptId": "interview-competent-tell-me-about-yourself",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 142.9889317129756,
+    "pitchStdSemitones": 3.2495017760490907,
+    "pitchRangeSemitones": 19.00324090186811,
+    "monotoneRatio": 0.1595744680851064,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0.6666666666666666,
+    "rmsMean": 62.482675562736176,
+    "rmsStd": 16.972134699161842,
+    "articulationScore": 0.11207322170293027
+   }
+  },
+  "interview-competent-tell-me-about-yourself__rushed.mp3": {
+   "style": "rushed",
+   "scriptId": "interview-competent-tell-me-about-yourself",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 145.4578768046782,
+    "pitchStdSemitones": 3.3735352439915705,
+    "pitchRangeSemitones": 18.33674563185165,
+    "monotoneRatio": 0,
+    "upspeakRatio": 0,
+    "finalFallRatio": 1,
+    "rmsMean": 62.13071788433691,
+    "rmsStd": 18.206935006797625,
+    "articulationScore": 0.13533518401580868
+   }
+  },
+  "persuasive-strong-budget-cut-defense__flat.wav": {
+   "style": "flat",
+   "scriptId": "persuasive-strong-budget-cut-defense",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 138.19473442211182,
+    "pitchStdSemitones": 0.09294489841062621,
+    "pitchRangeSemitones": 2.6027994770363545,
+    "monotoneRatio": 1,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0,
+    "rmsMean": 58.85445853438342,
+    "rmsStd": 20.806073858136536,
+    "articulationScore": 0.10318876787929987
+   }
+  },
+  "persuasive-strong-budget-cut-defense__expressive.mp3": {
+   "style": "expressive",
+   "scriptId": "persuasive-strong-budget-cut-defense",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 139.7242780171133,
+    "pitchStdSemitones": 3.3687612817750314,
+    "pitchRangeSemitones": 16.934618770565052,
+    "monotoneRatio": 0.14173228346456693,
+    "upspeakRatio": 0.058823529411764705,
+    "finalFallRatio": 0.7058823529411765,
+    "rmsMean": 59.27237361521134,
+    "rmsStd": 21.10537603167353,
+    "articulationScore": 0.08576561054082399
+   }
+  },
+  "persuasive-strong-budget-cut-defense__rushed.mp3": {
+   "style": "rushed",
+   "scriptId": "persuasive-strong-budget-cut-defense",
+   "features": {
+    "featureVersion": 2,
+    "pitchMeanHz": 136.04322446564436,
+    "pitchStdSemitones": 2.666121995230385,
+    "pitchRangeSemitones": 17.21919590229688,
+    "monotoneRatio": 0.3018867924528302,
+    "upspeakRatio": 0,
+    "finalFallRatio": 0.8181818181818182,
+    "rmsMean": 59.34530990918953,
+    "rmsStd": 31.501384022169493,
+    "articulationScore": 0.030665353919745342
+   }
+  }
+ }
+}
