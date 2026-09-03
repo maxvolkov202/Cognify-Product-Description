@@ -2083,3 +2083,33 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     Bob demo whenever — the system demonstrably works end-to-end. Phase 5 (Confidence) still
     needs an explicit go. WS8 latency + the ambient calibrate-scoring drift remain their own
     open items.
+
+- **2026-09-03 — Prosody v2 Phase 5 (Confidence assist) PRE-REGISTRATION** (`feat/confidence-assist`;
+  Max's explicit go: "go now just ultrathink it" — P7's after-GH ordering waived by the owner, GH1
+  unchanged as a standing obligation). **This block is committed BEFORE the code and BEFORE any
+  battery runs; the numbers below are the gates.**
+  - **Design (settled before code):** "Confidence" = the v1 name of today's `thinking_quality`
+    (terminology-map line 33) — NO new dimension, no UI change. The assist adds acoustic
+    grounding for that dimension's "sounded sure of themselves" facet ONLY: a new
+    `statement endings: N% falling finals` evidence line (from `finalFallRatioAligned` ??
+    `finalFallRatio` — the flat≈0/expressive≈1 separator found in GW3) plus a scope-exception
+    sentence, both INSIDE the prosody block (user message). The system rubric — including the
+    PROSODY EVIDENCE SCOPE ban and edge-rule 2b — stays byte-untouched (protects the text bank
+    AND provider prompt caching). The exception is bounded and corroborative: at most ±5 on
+    thinking_quality, only when the acoustics CORROBORATE what the words already show, and
+    NEVER against rule 2b (exploratory thinking-out-loud phrasing with tentative acoustics stays
+    protected — no deduction). Volume steadiness rides the EXISTING volume line (bytes
+    unchanged); the exception sentence licenses its use for the facet.
+  - **Ship vehicle:** new flag `FF_CONFIDENCE_ACOUSTICS` (defaultOnOutsideProduction; OFF in
+    prod until this phase's gates pass, then env add + deploy). Flag OFF ⇒ prosody block
+    byte-identical to today (unit-asserted). Assist active iff flag AND a finals value exists
+    (v1-feature reps render identically even flag-on). Alignment moves BEFORE render (pure
+    reorder; renderer ignores aligned fields unless the assist is on — byte-safety unit-tested).
+  - **Pre-registered gates:**
+    | gate | measure | pass |
+    |---|---|---|
+    | G5-BYTES | flag OFF (and flag ON with v1 features): rendered prosody block + full prompt bytes vs main | byte-identical (unit test) |
+    | G5-HALO | gf2-compare, 15 audio-bank clips, median-of-5 per arm (flag OFF vs ON), same worker/guest/day | clarity, structure, conciseness AND thinking_quality medians all within the ±15 floor (the in-prompt cap is ±5, so ±15 is generous headroom) |
+    | G5-DIR | same ON-arm medians, per script pair (identical words) | thinking(expressive) − thinking(flat) ≥ 0 in ≥3/5 pairs AND no pair < −10 |
+    | G5-GC1 | BOTH calibration suites with the flag ON (dev) | green, or diffs explained + bank/tracker note (ambient 4–6/48 drift on calibrate-scoring acknowledged as the baseline) |
+  - Failure rule unchanged (plan §6): any gate failing twice after retuning ⇒ STOP, options to Max.
