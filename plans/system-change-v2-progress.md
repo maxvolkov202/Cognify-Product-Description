@@ -2113,3 +2113,32 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     | G5-DIR | same ON-arm medians, per script pair (identical words) | thinking(expressive) − thinking(flat) ≥ 0 in ≥3/5 pairs AND no pair < −10 |
     | G5-GC1 | BOTH calibration suites with the flag ON (dev) | green, or diffs explained + bank/tracker note (ambient 4–6/48 drift on calibrate-scoring acknowledged as the baseline) |
   - Failure rule unchanged (plan §6): any gate failing twice after retuning ⇒ STOP, options to Max.
+
+- **2026-09-03 — Prosody v2 Phase 5 (Confidence assist) EXECUTED — gates green after one
+  retune** (`feat/confidence-assist`).
+  - **Implementation:** `FF_CONFIDENCE_ACOUSTICS` flag; `renderProsodyBlock(features, opts)`
+    renders `statement endings: N% falling finals` + a minimal bounded exception line
+    immediately after it (assist active iff flag AND a finals value exists);
+    `score-shared.ts` renders from the ALIGNED features object (withAlignedTailRatios is
+    provably additive — unit-asserted byte-identity) and passes the flag. System rubric
+    untouched (text bank + prompt cache preserved). 15-assertion unit suite wired into
+    `npm test`; assist-firing proven by promptBytes (+~590 on the ON arm for the same clip).
+  - **Battery 1 (exception at block END, re-mentioning the content-dim ban): G5-HALO FAILED**
+    — 4 content cells over ±15 (structure +20/+17, clarity +16/+17), all UPWARD and
+    concentrated on flat clips; invariance analysis showed clarity cross-style spread
+    actually IMPROVED (halo reduction) but structure/conciseness did not. Diagnosis:
+    end-of-block salience — the exception's closing sentence re-mentioned
+    "clarity, structure, or conciseness", re-anchoring exactly those dims. G5-DIR passed
+    (5/5 pairs ≥0, max +7).
+  - **Retune 1 (pre-registered single retune): exception cut to its minimal form** — no
+    content-dim mention anywhere outside the header ban, moved from block-end to directly
+    after the finals line, ~half the bytes. A unit test now enforces "content dims are
+    never re-mentioned outside the header".
+  - **Battery 2 (fresh 5-run ON arm vs the same-day 5-run OFF arm) — gate table:**
+    | gate | result |
+    |---|---|
+    | G5-BYTES | **PASS** (unit: flag off ⇒ byte-identical; v1 features ⇒ byte-identical even flag-on; aligned-object render ⇒ byte-identical) |
+    | G5-HALO | **PASS**: max \|median Δ\| clarity 13 · structure 13 · conciseness 5 · thinking 5 (floor ±15); delivery 7 / tone 12 also calm |
+    | G5-DIR | **PASS**: thinking(expr−flat) = 0/+2/+5/+3/+7 — 5/5 ≥ 0, worst 0, max +7; the ±5 cap holds (thinking max Δ 5) |
+    | G5-GC1 | **PASS**: calibrate-audio-tone ALL PASS 15/15 (flag ON); calibrate-scoring 44/48 with the SAME failing reps + directions as the same-night pre-P5 run (text reps carry no prosody block; bytes unit-proven identical) = the pre-acknowledged ambient 4–6/48 drift |
+  - Full unit suite + tsc + lint green.

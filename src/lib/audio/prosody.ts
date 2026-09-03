@@ -95,8 +95,15 @@ export function hasWorkerProsody(features: ProsodyFeatures | null): boolean {
 /** Render prosody features into a compact prompt block for the AI. */
 export function renderProsodyBlock(
   features: ProsodyFeatures | null,
+  opts?: { confidenceAssist?: boolean },
 ): string | null {
   if (!features) return null;
+  // Prosody v2 Phase 5 — the assist is active only when the caller opts in
+  // AND a finals value exists (v2 features); v1-feature reps and every
+  // opts-less caller render byte-identically to the pre-Phase-5 block.
+  const finalsRatio =
+    features.finalFallRatioAligned ?? features.finalFallRatio ?? null;
+  const assist = opts?.confidenceAssist === true && finalsRatio != null;
   // Scope note lives ON the block, not only in the rubric: the rubric-level
   // firewall alone did not stop content-dim halo on extreme evidence
   // (prosody-v2 GF2, 2026-09-02: PSOLA-flat clip moved structure -20).
@@ -137,6 +144,14 @@ export function renderProsodyBlock(
   if (features.upspeakRatio != null) {
     lines.push(
       `  upspeak ratio: ${(features.upspeakRatio * 100).toFixed(0)}% (high = penalize Tone)`,
+    );
+  }
+  if (assist && finalsRatio != null) {
+    lines.push(
+      `  statement endings: ${(finalsRatio * 100).toFixed(0)}% falling finals (falling = decisive close; low + upspeak = trailing off)`,
+    );
+    lines.push(
+      "  confidence assist (narrow exception to the thinking_quality clause above): the statement-endings and volume-steadiness measurements may adjust thinking_quality by at most ±5, and only when they CORROBORATE the words — hedging language with trailing finals, or decisive wording with falling finals. Exploratory thinking-out-loud phrasing keeps edge-rule 2b protection: no acoustic deduction.",
     );
   }
   if (features.rmsMean != null && features.rmsStd != null) {

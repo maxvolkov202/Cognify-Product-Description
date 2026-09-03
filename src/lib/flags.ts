@@ -114,6 +114,16 @@ export function isToneProsodyCoreEnabled(): boolean {
   return defaultOnOutsideProduction("FF_TONE_PROSODY_CORE");
 }
 
+/** Prosody v2 Phase 5 (P7) — the Confidence assist: renders the
+ *  statement-endings evidence line plus a bounded scope exception inside
+ *  the PROSODY block so the LLM can ground thinking_quality's "sounded
+ *  sure of themselves" facet (±5 max, corroborative only — edge-rule 2b
+ *  still protects exploratory thinking-out-loud reps). Flag OFF ⇒ the
+ *  block is byte-identical to the pre-Phase-5 render. */
+export function isConfidenceAcousticsEnabled(): boolean {
+  return defaultOnOutsideProduction("FF_CONFIDENCE_ACOUSTICS");
+}
+
 /** Grading plan WS6 — deterministic off-topic floor from prompt↔transcript
  *  embedding similarity. The similarity is always measured and tagged on
  *  the rep; the floor itself stays OFF in production until the threshold

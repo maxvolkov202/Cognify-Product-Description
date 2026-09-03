@@ -53,7 +53,7 @@ import {
   buildToneFeedback,
   TONE_LLM_ADJUST_MAX,
 } from "@/lib/scoring/tone-core";
-import { isToneProsodyCoreEnabled } from "@/lib/flags";
+import { isConfidenceAcousticsEnabled, isToneProsodyCoreEnabled } from "@/lib/flags";
 import { softTruncateScoringResponse } from "@/lib/scoring/soft-truncate";
 import {
   SUB_SKILL_TO_DIMENSION,
@@ -1511,14 +1511,19 @@ export async function buildUserPrompt(
           )
         : null);
   // Prosody v2 (P2) — aligned upspeak/finalFall from cached segmentTails ∩
-  // punctuated word timings. Attached AFTER the block render inputs are
-  // settled and never rendered by renderProsodyBlock ⇒ zero prompt bytes;
-  // the deterministic tone core is the consumer (Phase 3).
+  // punctuated word timings. withAlignedTailRatios only ADDS *Aligned fields
+  // (never touches rendered ones), so rendering from the aligned object is
+  // byte-identical to the pre-Phase-5 render unless the Phase 5 confidence
+  // assist is on — the assist (flag + finals value present) adds the
+  // statement-endings line and the bounded thinking_quality scope exception.
+  // The deterministic tone core consumes the aligned fields as before.
   const prosodyFeaturesAligned = withAlignedTailRatios(
     prosodyFeatures,
     input.words ?? null,
   );
-  const prosodyBlock = renderProsodyBlock(prosodyFeatures);
+  const prosodyBlock = renderProsodyBlock(prosodyFeaturesAligned, {
+    confidenceAssist: isConfidenceAcousticsEnabled(),
+  });
 
   const userPrompt = [
     modeBlock,
