@@ -2160,3 +2160,27 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     conjunct dropped. Post-fix: 18-assertion suite (incl. the no-volume variant), tone-core
     suite, tsc, lint all green; confirming calibrate-audio-tone run on the FINAL post-review
     text: ALL PASS 15/15.
+
+- **2026-09-03 — Prosody v2 Phase 5 SHIPPED + FLIPPED** (PR #119 squash-merged →
+  `main@c883c7db`; prod deploy `cognify-v2-38nmlsjif` READY, aliased www.cognifygym.com,
+  health 200; `FF_CONFIDENCE_ACOUSTICS=true` added to production via the printf method —
+  SENSITIVE like the others, so verified functionally).
+  - **Re-seed (end-of-phase, fresh uploads, batch `phase5-assist`):** 15/15 seeded;
+    featureVersion=2 on 15/15; `[toneCore:]` + graded_from_audio 14/15 (the same single
+    cold-start race as every batch). Tone unchanged and healthy (flat 30–32 + one text-tier
+    60, expressive 60–82). **Functional witness for the new flag:** thinking(expressive) >
+    thinking(flat) on 5/5 script pairs (+5..+15 single-run, direction matching the assist and
+    the G5-DIR medians; the OFF arm's battery showed no such consistent direction).
+  - **Verify checklist for Max (~5 min):**
+    1. Record one deliberately hedgy/trailing rep and one decisive rep on the same prompt in
+       prod — the decisive one should read a few points higher on Thinking Quality with
+       otherwise-similar content; Tone behaves as before.
+    2. `npm test` — 18-assertion confidence-acoustics suite in the chain.
+    3. Revert lever for THIS feature alone: remove `FF_CONFIDENCE_ACOUSTICS` (or set false)
+       in prod env + redeploy — prompts return byte-identical to the Phase-4 flip state.
+  - **Plan state: Phases 0–6 ALL EXECUTED.** The prosody v2 plan is fully built and live in
+    production. Remaining: GH1 (standing, per D27 — `gh1-compare --seed-batch
+    phase3-tone-core` when sheets/mini-sheet get filled; a Phase-5-aware caveat: the assist
+    changes thinking evidence, NOT tone scoring — GH1's tone verdict is unaffected);
+    flip-watch after ~10 real post-flip audio reps; Bob demo on Max's word. Open items
+    unchanged: ambient calibrate-scoring drift, WS8 latency, PR #78 history decision.
