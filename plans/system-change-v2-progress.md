@@ -364,11 +364,19 @@ phase) → check the phase off here. Never commit to main directly.
   filled") — Max chose to wrap the build rather than wait on the human sheets ("just continue with
   the rest of it and lets retain the old code somewhere safe, and do as diligent testing yourself
   as we can"). GH1 is a STANDING OBLIGATION, not a cancelled gate: when sheets A/B + the fixture
-  mini-sheet are filled, `gh1-compare` runs; a MAE failure triggers retune (GF/GP re-run) or
-  revert. Old code retained: git tag `prosody-v1-safe-2026-09-02` (pushed; revert recipe in the
-  tag message), v1 Modal app live and deployable, env-only revert incl. the
-  `PROSODY_FEATURE_VERSION_MAX=1` cache guard — drilled end-to-end on the prod-serving path the
-  same day (see the 2026-09-03 session-log entry).
+  mini-sheet are filled, run `gh1-compare --seed-batch phase3-tone-core` (see the 2026-09-03
+  session-log housekeeping note for why not the phase4-panel default); the FULL pre-registered
+  verdict applies — band agreement ≥70% AND v2 MAE ≤12 AND v2 MAE ≤ current-pipeline MAE —
+  and failing ANY of the three triggers retune (GF/GP re-run) or revert. Old code retained:
+  git tag `prosody-v1-safe-2026-09-02` (pushed; revert recipe in the tag message), v1 Modal app
+  live and deployable. Revert is the env flips (`FF_TONE_PROSODY_CORE` off,
+  `PROSODY_WORKER_URL` → v1 app, `PROSODY_FEATURE_VERSION_MAX=1`, `FF_LIVE_REP_METRICS` off)
+  **plus `vercel deploy --prod`** — Vercel env changes need a redeploy to take effect (the
+  plan's "no deploy" clause is wrong; plan carries a 2026-09-03 amendment note). Drilled
+  end-to-end on the prod-serving path the same session (see the 2026-09-03 session-log entry).
+  This also records that D22's PACING clause ("tone and pacing must be graded from audio") was
+  already superseded in practice: pacing is the deterministic `scorePacing` on measured
+  rate/pauses (WS4, rubric v4.2.0) — measured audio-derived signals, not LLM audio grading.
 
 ## Current-state map (from 2026-07-15 codebase audit)
 
@@ -1994,10 +2002,17 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     real hole if async scoring is ever enabled, including after a revert.
   - **Flip mechanics:** `printf 'true' | vercel env add FF_TONE_PROSODY_CORE production` (and
     FF_LIVE_REP_METRICS). Both stored as SENSITIVE (project-level default — `vercel env pull`
-    returns `[SENSITIVE]`), so the trailing-newline grep is IMPOSSIBLE; verified FUNCTIONALLY
-    instead (the flags parse with strict `=== "true"`): deploy `cognify-v2-2a862rjqu` →
-    target=production, Ready, aliased www.cognifygym.com, health 200; seeded reps show
-    `[toneCore: N (...)]` tags in prod signals ⇒ the value parses exactly.
+    returns `[SENSITIVE]`), so the trailing-newline grep is IMPOSSIBLE for these; verified
+    FUNCTIONALLY instead: deploy `cognify-v2-2a862rjqu` → target=production, Ready, aliased
+    www.cognifygym.com, health 200; seeded reps show `[toneCore: N (...)]` tags in prod
+    signals ⇒ the stored value parses as ON. **Parser semantics for the record**
+    (`defaultOnOutsideProduction`, flags.ts): exact `"true"`/`"1"` → on, exact
+    `"false"`/`"0"` → off, ANY other value (incl. a corrupted `"true\n"`) falls through to
+    the environment default — which is OFF in production but ON in preview/dev (fail-open
+    outside prod). So for SENSITIVE flags the functional smoke (tag/behavior present in prod)
+    is the ONLY reliable verification, and a corrupted value in prod shows up as the flag
+    silently staying off — recipe for the next sensitive flag: flip, deploy, then smoke a
+    flag-dependent surface before trusting it.
   - **Re-seed (end-of-phase, fresh uploads, batch `phase6-flip`):** 15/15 seeded;
     featureVersion=2 on 15/15 cache rows; graded_from_audio + `[toneCore:]` tag 14/15 (the 1
     miss = the same first-rep cold-start race every batch has). Live prod tone under the core:
@@ -2014,11 +2029,14 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     pattern as prior explained diffs. Local-worker recipe for next time: scratch venv +
     parselmouth 0.4.7 + `eval_type_backport` (py3.9 vs `X | None` annotations) + imageio-ffmpeg
     static ffmpeg 7.1.
-  - **Prod e2e:** skill-lab-loop 4/4 green (2.6 min) against the production deployment WITH
-    `E2E_LIVE_METRICS=1` — the measured-delivery panel asserted visible before scores, twice
-    (1-rep + 5-rep sessions). Gotcha recorded: auth.setup refuses `cognifygym.com` by hostname —
-    prod e2e runs use the DEPLOYMENT url (`cognify-v2-<id>-…vercel.app`), which is how earlier
-    "prod e2e green" runs did it too.
+  - **Prod e2e:** skill-lab-loop 4/4 green (2.6 min) against the production deployment — the
+    measured-delivery panel asserted visible before scores, twice (1-rep + 5-rep sessions).
+    Semantics for the record: the panel assertion is opt-OUT and default-ON (the spec gates on
+    `E2E_LIVE_METRICS !== "0"`); post-flip, prod runs simply DROP the `E2E_LIVE_METRICS=0`
+    opt-out that the pre-flip runs needed — and after any REVERT that opt-out must come back
+    or the suite fails on the (correctly) missing panel. Gotcha recorded: auth.setup refuses
+    `cognifygym.com` by hostname — prod e2e runs use the DEPLOYMENT url
+    (`cognify-v2-<id>-…vercel.app`), which is how earlier "prod e2e green" runs did it too.
   - **flip-watch:** initial run at flip time — 0 real post-flip audio reps yet (the 6 rows in
     the since-window are tonight's PRE-flip beta reps; also noted: my cross-check query dropped
     them via `model_version NOT ILIKE` on NULL — flip-watch's `coalesce` filter is the correct
@@ -2033,11 +2051,24 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     five distinct users each with real intra-user spread. No pacing rebuild warranted — the
     plan's non-goal now backed by n=21 live reps instead of n=6. Pacing accuracy vs HUMAN
     judgment still rides the sheets (pacing_band column) when they land.
-  - **Housekeeping this session:** two extra tone dimension_scores rows were written to one
-    seeded test rep (7c18bdad…) by the drill's score-internal replay — test data, left in
-    place; that rep's cache row was intentionally healed to v1 by the drill (its batch is
-    superseded by `phase6-flip` anyway). `.env.development.local` used for the drill/calibration
-    envs was removed after each use.
+  - **Housekeeping this session — GH1 BASELINE REDIRECT (matters later):** the drill's
+    score-internal replay wrote extra dimension_scores rows onto seeded rep 7c18bdad… and
+    healed its cache row to v1. That rep belongs to `seed-batch-phase4-panel` — gh1-compare's
+    DEFAULT pure-LLM baseline — so phase4-panel is now CONTAMINATED on that one rep, and no
+    replacement flag-off batch can be seeded while the flag is ON (gh1-compare hard-aborts on
+    `[toneCore:]`-tagged batches, which phase6-flip is, 14/15). **The clean baseline is
+    `phase3-tone-core`** (verified this session: 15 reps, exactly one tone row each, 0 tagged —
+    seeded under prod flag-off, untouched by the drill). GH1 must therefore run as
+    `gh1-compare --seed-batch phase3-tone-core` (D27 records the same). Keep
+    `out/seed-batch-phase3-tone-core.json` — it is now the flag-off baseline of record and
+    cannot be regenerated without a prod revert. `.env.development.local` used for the
+    drill/calibration envs was removed after each use.
+  - **Dates/timezone for this entry:** all "2026-09-03" times are UTC; locally this was the
+    evening of 2026-09-02 EDT (hence the tag name `prosody-v1-safe-2026-09-02` and 09-02
+    commit timestamps — same session, no gap). The flip deploy landed ~01:15 UTC 09-03, so
+    `flip-watch --since 2026-09-03` (UTC midnight) also catches ~75 min of PRE-flip reps —
+    the 6 rows in the initial run are exactly that window; judge post-flip behavior by
+    tone_core_tagged, not by presence in the window.
   - **Verify checklist for Max (~10 min):**
     1. Record a rep on www.cognifygym.com — during scoring, the "Measured from your recording"
        strip appears (pace/fillers/pauses, then pitch variety); after scoring, the Tone signals
@@ -2046,7 +2077,8 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
        pitch-barely-moving feedback, animated ≥65.
     3. `npm test` — full suite green, incl. the 68-assertion tone-core suite.
     4. Sheets when you and Owen can (~2h each + 15-min mini-sheet; re-sign BOTH with `--resign`
-       if past ~09-08) → I run gh1-compare and retune/revert if it fails.
+       if past ~09-08) → I run `gh1-compare --seed-batch phase3-tone-core`; failing ANY of its
+       three criteria (band agreement ≥70%, MAE ≤12, v2 MAE ≤ current) ⇒ retune or revert.
   - **Next:** GH1 when sheets land (standing, per D27). flip-watch after ~10 real audio reps.
     Bob demo whenever — the system demonstrably works end-to-end. Phase 5 (Confidence) still
     needs an explicit go. WS8 latency + the ambient calibrate-scoring drift remain their own
