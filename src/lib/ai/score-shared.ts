@@ -1510,13 +1510,10 @@ export async function buildUserPrompt(
             workerProsody,
           )
         : null);
-  // Prosody v2 (P2) — aligned upspeak/finalFall from cached segmentTails ∩
-  // punctuated word timings. withAlignedTailRatios only ADDS *Aligned fields
-  // (never touches rendered ones), so rendering from the aligned object is
-  // byte-identical to the pre-Phase-5 render unless the Phase 5 confidence
-  // assist is on — the assist (flag + finals value present) adds the
-  // statement-endings line and the bounded thinking_quality scope exception.
-  // The deterministic tone core consumes the aligned fields as before.
+  // Prosody v2 (P2/P5) — aligned ratios attached before render; byte-safety
+  // and assist-gating rules live on renderProsodyBlock (prosody.ts), which
+  // owns that narrative. The deterministic tone core consumes the aligned
+  // fields as before.
   const prosodyFeaturesAligned = withAlignedTailRatios(
     prosodyFeatures,
     input.words ?? null,

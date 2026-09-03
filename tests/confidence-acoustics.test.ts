@@ -9,8 +9,6 @@
  */
 import { renderProsodyBlock, type ProsodyFeatures } from "../src/lib/audio/prosody";
 import { withAlignedTailRatios } from "../src/lib/audio/prosody-align";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 let passed = 0;
 function assert(condition: unknown, message: string): asserts condition {
@@ -34,7 +32,7 @@ const baseFeatures: ProsodyFeatures = {
   rmsMean: 0.061,
   rmsStd: 0.02,
   articulationScore: 0.13,
-} as ProsodyFeatures;
+};
 
 // ——— G5-BYTES: flag off ⇒ byte-identical, opts-less caller ⇒ byte-identical ———
 {
@@ -43,7 +41,7 @@ const baseFeatures: ProsodyFeatures = {
     featureVersion: 2,
     finalFallRatio: 0.85,
     finalFallRatioAligned: 0.9,
-  } as ProsodyFeatures;
+  };
   const plain = renderProsodyBlock(v2);
   const offExplicit = renderProsodyBlock(v2, { confidenceAssist: false });
   const preP5 = renderProsodyBlock({ ...v2, finalFallRatio: null, finalFallRatioAligned: null } as ProsodyFeatures);
@@ -55,7 +53,7 @@ const baseFeatures: ProsodyFeatures = {
 
 // ——— assist on but v1 features (no finals value) ⇒ still byte-identical ———
 {
-  const v1 = { ...baseFeatures } as ProsodyFeatures;
+  const v1 = { ...baseFeatures };
   const off = renderProsodyBlock(v1);
   const on = renderProsodyBlock(v1, { confidenceAssist: true });
   assert(off === on, "assist on + v1 features (no finals): byte-identical render");
@@ -67,7 +65,7 @@ const baseFeatures: ProsodyFeatures = {
     ...baseFeatures,
     finalFallRatio: 0.4,
     finalFallRatioAligned: 0.9,
-  } as ProsodyFeatures;
+  };
   const on = renderProsodyBlock(v2, { confidenceAssist: true });
   assert(on != null && on.includes("statement endings: 90% falling finals"), "aligned ratio preferred over raw");
   assert(on.includes("confidence assist (narrow exception"), "exception text present when assist active");
@@ -82,7 +80,7 @@ const baseFeatures: ProsodyFeatures = {
 
 // ——— raw fallback when aligned is absent ———
 {
-  const v2 = { ...baseFeatures, finalFallRatio: 0.25 } as ProsodyFeatures;
+  const v2 = { ...baseFeatures, finalFallRatio: 0.25 };
   const on = renderProsodyBlock(v2, { confidenceAssist: true });
   assert(on != null && on.includes("statement endings: 25% falling finals"), "raw finals used when no aligned value");
 }
@@ -95,7 +93,7 @@ const baseFeatures: ProsodyFeatures = {
     rmsMean: null,
     rmsStd: null,
     finalFallRatio: 0.7,
-  } as ProsodyFeatures;
+  };
   const on = renderProsodyBlock(noRms, { confidenceAssist: true });
   assert(on != null && !on.includes("volume mean"), "no volume line without rms fields");
   assert(!on.includes("volume-steadiness"), "exception omits volume-steadiness when no volume line exists");
@@ -113,7 +111,7 @@ const baseFeatures: ProsodyFeatures = {
       { endMs: 5000, tailSlopeHzPerSec: -120 },
       { endMs: 9000, tailSlopeHzPerSec: 40 },
     ],
-  } as ProsodyFeatures;
+  };
   const words = [
     { word: "First.", endMs: 2010 },
     { word: "Second.", endMs: 5040 },
@@ -142,12 +140,15 @@ const baseFeatures: ProsodyFeatures = {
   );
 }
 
-// ——— no stale copy drift: the plan pre-registration promises ±5; keep the
-//     rendered cap and this suite in lockstep via a single source check ———
+// ——— no stale copy drift: the pre-registration promises ±5 — assert it on
+//     the RENDERED block (behavior), not on source text ———
 {
-  const src = readFileSync(resolve(__dirname, "../src/lib/audio/prosody.ts"), "utf8");
-  const caps = src.match(/at most ±5/g) ?? [];
-  assert(caps.length === 1, "exactly one ±5 cap statement in the renderer source");
+  const on = renderProsodyBlock(
+    { ...baseFeatures, finalFallRatio: 0.8 },
+    { confidenceAssist: true },
+  );
+  const caps = on?.match(/±5/g) ?? [];
+  assert(caps.length === 1, "exactly one ±5 cap statement in the rendered block");
 }
 
 console.log(`✓ all ${passed} confidence-acoustics assertions pass`);

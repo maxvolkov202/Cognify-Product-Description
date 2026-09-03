@@ -113,10 +113,18 @@ export function renderProsodyBlock(
   // Prosody v2 Phase 5 — the assist is active only when the caller opts in
   // AND a finals value exists (v2 features); v1-feature reps and every
   // opts-less caller render byte-identically to the pre-Phase-5 block.
-  // The ±5 cap in the assist text is prose-guided, not post-parse clamped —
-  // the structural bound is the thinking hybrid blend (blendScores, 60%
-  // deterministic / 40% LLM): even a prose-ignoring ±12 LLM move lands as
-  // ≤±5 in the saved score. G5-HALO/G5-DIR measured the behavior directly.
+  // The ±5 cap in the assist text is prose-guided and EMPIRICALLY held, not
+  // post-parse clamped: prod thinking is pure-LLM (DEFAULT_HYBRID_CONFIG
+  // thinkingMode "llm" since WS6 — no blend damper runs), and a code clamp
+  // is impossible because the acoustic contribution has no per-request
+  // counterfactual. The G5-HALO/G5-DIR batteries measured the cap on this
+  // exact path (max thinking Δ5 over 15 clips × 5 runs × 2 arms);
+  // FF_CONFIDENCE_ACOUSTICS is the kill switch if live behavior drifts.
+  // Denominator note: the upspeak line above stays the RAW silence-heuristic
+  // ratio (its rubric mapping is tuned to raw; the aligned upspeak feeds the
+  // deterministic tone core only), while the finals line renders the aligned
+  // value — the two are NOT comparable percentages, which is why the assist
+  // text no longer cross-references upspeak.
   const finalsRatio = preferredFinalFallRatio(features);
   const assist = opts?.confidenceAssist === true && finalsRatio != null;
   const hasVolume = features.rmsMean != null && features.rmsStd != null;
@@ -166,13 +174,18 @@ export function renderProsodyBlock(
     lines.push(
       `  statement endings: ${(finalsRatio * 100).toFixed(0)}% falling finals (falling = decisive close; low = trailing off)`,
     );
+    // Two fixed sentence variants (never spliced) so this calibration-
+    // sensitive copy is reviewable as whole sentences; the choice tracks
+    // hasVolume, the same condition that gates the volume line above.
     lines.push(
-      `  confidence assist (narrow exception to the thinking_quality clause above): the statement-endings${hasVolume ? " and volume-steadiness" : ""} measurement${hasVolume ? "s" : ""} may adjust thinking_quality by at most ±5, and only when ${hasVolume ? "they CORROBORATE" : "it CORROBORATES"} the words — hedging language with trailing finals, or decisive wording with falling finals. Exploratory thinking-out-loud phrasing keeps edge-rule 2b protection: no acoustic deduction.`,
+      hasVolume
+        ? "  confidence assist (narrow exception to the thinking_quality clause above): the statement-endings and volume-steadiness measurements may adjust thinking_quality by at most ±5, and only when they CORROBORATE the words — hedging language with trailing finals, or decisive wording with falling finals. Exploratory thinking-out-loud phrasing keeps edge-rule 2b protection: no acoustic deduction."
+        : "  confidence assist (narrow exception to the thinking_quality clause above): the statement-endings measurement may adjust thinking_quality by at most ±5, and only when it CORROBORATES the words — hedging language with trailing finals, or decisive wording with falling finals. Exploratory thinking-out-loud phrasing keeps edge-rule 2b protection: no acoustic deduction.",
     );
   }
-  if (features.rmsMean != null && features.rmsStd != null) {
+  if (hasVolume) {
     lines.push(
-      `  volume mean ${features.rmsMean.toFixed(3)} std ${features.rmsStd.toFixed(3)} (low std = locked-flat volume)`,
+      `  volume mean ${features.rmsMean!.toFixed(3)} std ${features.rmsStd!.toFixed(3)} (low std = locked-flat volume)`,
     );
   }
   if (features.articulationScore != null) {
