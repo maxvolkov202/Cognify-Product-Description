@@ -355,6 +355,29 @@ phase) → check the phase off here. Never commit to main directly.
   re-run was meant to detect. The honest tool for "noise or shift?" is a targeted rerun on BOTH
   arms, which is what settled `indep-earnings-explainer-empty`.
 
+- **D27 — Tone scored by the measured deterministic core; GH1 deferred post-flip (Max, 2026-09-03).**
+  Supersedes D22's literal text on tone: tone is now scored by the deterministic prosody core
+  (`tone-core.ts` v2 on worker-v2 features, `FF_TONE_PROSODY_CORE`) with the LLM providing a ±10
+  narrative blend — still "graded from audio" in D22's spirit, no longer "the LLM grades tone from
+  audio evidence." The prod flip was authorized on the P5 evidence ladder (GF+GW+GP+GC all green;
+  plan §2 P5: "Flip for beta after GF+GW+GP+GC pass; GH validates/retunes when the sheets are
+  filled") — Max chose to wrap the build rather than wait on the human sheets ("just continue with
+  the rest of it and lets retain the old code somewhere safe, and do as diligent testing yourself
+  as we can"). GH1 is a STANDING OBLIGATION, not a cancelled gate: when sheets A/B + the fixture
+  mini-sheet are filled, run `gh1-compare --seed-batch phase3-tone-core` (see the 2026-09-03
+  session-log housekeeping note for why not the phase4-panel default); the FULL pre-registered
+  verdict applies — band agreement ≥70% AND v2 MAE ≤12 AND v2 MAE ≤ current-pipeline MAE —
+  and failing ANY of the three triggers retune (GF/GP re-run) or revert. Old code retained:
+  git tag `prosody-v1-safe-2026-09-02` (pushed; revert recipe in the tag message), v1 Modal app
+  live and deployable. Revert is the env flips (`FF_TONE_PROSODY_CORE` off,
+  `PROSODY_WORKER_URL` → v1 app, `PROSODY_FEATURE_VERSION_MAX=1`, `FF_LIVE_REP_METRICS` off)
+  **plus `vercel deploy --prod`** — Vercel env changes need a redeploy to take effect (the
+  plan's "no deploy" clause is wrong; plan carries a 2026-09-03 amendment note). Drilled
+  end-to-end on the prod-serving path the same session (see the 2026-09-03 session-log entry).
+  This also records that D22's PACING clause ("tone and pacing must be graded from audio") was
+  already superseded in practice: pacing is the deterministic `scorePacing` on measured
+  rate/pauses (WS4, rubric v4.2.0) — measured audio-derived signals, not LLM audio grading.
+
 ## Current-state map (from 2026-07-15 codebase audit)
 
 - **Training engine v2** (insight → first rep → compact feedback → encouraged optional retry →
@@ -1949,3 +1972,114 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     prompt). **Next:** wait for sheets (re-sign BOTH packet + mini-sheet if past ~09-08);
     then Phase 6 = gh1-compare → retune-if-needed → preview drill → both flags on → calibration
     re-run → flip-watch → decision-log entry → Bob demo. Phase 5 only on Max's explicit go.
+
+- **2026-09-03 — Prosody v2 Phase 6 EXECUTED (modified per D27): both flags ON in prod**
+  (`feat/prosody-v2-flip`). Max's call: wrap the build now, GH1 when the sheets land (P5
+  sanctions the ordering — see D27). "Old code somewhere safe" → git tag
+  `prosody-v1-safe-2026-09-02` at `26442b12` (pushed; v1 worker source + flag-off path + the
+  env-only revert recipe in the tag message); v1 Modal app verified healthy same day.
+  - **Pre-flip battery (all fresh this session):** full unit suite green (68 tone-core, 41
+    pacing, 37 align/guard, 21 live-metrics, leak guard). Fixtures 15/15 vs ground truth on the
+    DEPLOYED v2 worker (GW2 re-holds: flat mono=1.0, expressive ≤0.29; extraction p50 1416ms).
+    GF1 through the merged tone-core on that same-day deployed extraction: flat_max 20 ·
+    expressive_min 67 · min separation 47, 5/5 pairs. Distribution re-check: real reps grew to
+    n=36 (beta), LLM tone still clumped (sd 8.9, mode share 25%) vs core sd 18.6 / mode 8%.
+  - **Revert drill EXECUTED on the prod-serving sync path** (local server + prod DB + full
+    revert env: flag off, v1 `PROSODY_WORKER_URL`, `PROSODY_FEATURE_VERSION_MAX=1`): a
+    v2-warmed test rep re-scored → server log shows `version-guard miss featureVersion=2 max=1`
+    → in-request v1 extraction served (tone 40, "Monotone — sustained flat pitch",
+    `[toneSource: prosody]`, NO `[toneCore:]` tag) → cache healed to v1 features (fv cleared,
+    fresh updated_at). All four drill verdicts true. **The plan's "preview drill" was impossible
+    as written:** this project's Vercel PREVIEW environment was never configured (only
+    Resend/KV vars exist there — no DB, no keys; deploys have always gone straight to prod), so
+    the drill ran locally at equal fidelity; Vercel env-flip mechanics are proven by the flip
+    itself. **Cold-start caveat:** immediately post-revert, the FIRST rep on a scaled-to-zero
+    v1 worker exceeds the 5s in-request budget → that one rep scores text-tier tone (same class
+    as today's cold starts; the container is warm from then on).
+  - **Latent gap (pre-existing, noted not fixed):** the ASYNC scoring path
+    (`/api/score-internal`) never passes `audioPath`, so it bypasses cache read, version guard,
+    and heal entirely. Dormant in prod (`NEXT_PUBLIC_USE_ASYNC_SCORING=false` everywhere) but a
+    real hole if async scoring is ever enabled, including after a revert.
+  - **Flip mechanics:** `printf 'true' | vercel env add FF_TONE_PROSODY_CORE production` (and
+    FF_LIVE_REP_METRICS). Both stored as SENSITIVE (project-level default — `vercel env pull`
+    returns `[SENSITIVE]`), so the trailing-newline grep is IMPOSSIBLE for these; verified
+    FUNCTIONALLY instead: deploy `cognify-v2-2a862rjqu` → target=production, Ready, aliased
+    www.cognifygym.com, health 200; seeded reps show `[toneCore: N (...)]` tags in prod
+    signals ⇒ the stored value parses as ON. **Parser semantics for the record**
+    (`defaultOnOutsideProduction`, flags.ts): exact `"true"`/`"1"` → on, exact
+    `"false"`/`"0"` → off, ANY other value (incl. a corrupted `"true\n"`) falls through to
+    the environment default — which is OFF in production but ON in preview/dev (fail-open
+    outside prod). So for SENSITIVE flags the functional smoke (tag/behavior present in prod)
+    is the ONLY reliable verification, and a corrupted value in prod shows up as the flag
+    silently staying off — recipe for the next sensitive flag: flip, deploy, then smoke a
+    flag-dependent surface before trusting it.
+  - **Re-seed (end-of-phase, fresh uploads, batch `phase6-flip`):** 15/15 seeded;
+    featureVersion=2 on 15/15 cache rows; graded_from_audio + `[toneCore:]` tag 14/15 (the 1
+    miss = the same first-rep cold-start race every batch has). Live prod tone under the core:
+    flat 30/30/30/33 (+ one 60 = the text-tier race miss), expressive 60–75, rushed 59–75;
+    prosody_ms p50 1323ms.
+  - **GC1 at flip (BOTH suites, dev server with FF_DETERMINISTIC_SIGNALS=true + PERCENT=100
+    per the D26 lesson, local v2 worker on :8080):** `calibrate-scoring` 44/48 — the 4 failures
+    sit inside the documented ambient 4–6/48 provider drift on main with identical env (and the
+    flip changes zero prompt bytes on this suite by construction: FF_TONE_PROSODY_CORE is
+    post-processing, the panel is display-only). `calibrate-audio-tone` run 1: 14/15 with one
+    boundary miss (band-competent expressive: core 67, LLM blend took its full −10 → 57 vs the
+    bank's min 60; its PAIR separation — the primary gate — passed at +27); targeted full
+    re-run: **ALL PASS 15/15** (the clip scored 70), confirming run-to-run blend noise, same
+    pattern as prior explained diffs. Local-worker recipe for next time: scratch venv +
+    parselmouth 0.4.7 + `eval_type_backport` (py3.9 vs `X | None` annotations) + imageio-ffmpeg
+    static ffmpeg 7.1.
+  - **Prod e2e:** skill-lab-loop 4/4 green (2.6 min) against the production deployment — the
+    measured-delivery panel asserted visible before scores, twice (1-rep + 5-rep sessions).
+    Semantics for the record: the panel assertion is opt-OUT and default-ON (the spec gates on
+    `E2E_LIVE_METRICS !== "0"`); post-flip, prod runs simply DROP the `E2E_LIVE_METRICS=0`
+    opt-out that the pre-flip runs needed — and after any REVERT that opt-out must come back
+    or the suite fails on the (correctly) missing panel. Gotcha recorded: auth.setup refuses
+    `cognifygym.com` by hostname — prod e2e runs use the DEPLOYMENT url
+    (`cognify-v2-<id>-…vercel.app`), which is how earlier "prod e2e green" runs did it too.
+  - **flip-watch:** initial run at flip time — 0 real post-flip audio reps yet (the 6 rows in
+    the since-window are tonight's PRE-flip beta reps; also noted: my cross-check query dropped
+    them via `model_version NOT ILIKE` on NULL — flip-watch's `coalesce` filter is the correct
+    one). **Standing item:** run `node scripts/qa/prosody-v2/flip-watch.mjs --since 2026-09-03`
+    once ~10 real audio reps have landed; judge tone spread / graded_from_audio /
+    fallback share / warm-hit rate there.
+  - **Pacing investigated (Max: "pacing would usually give the same score regardless"):** he
+    was right historically AND it is already fixed. All-time real delivery scores n=95: the
+    value 92 appears 65× (68% mode share, sd 5.8) — pacing's own 92-clump. Weekly: nearly every
+    week through Aug 16 was ≥80% exactly-92. From the week of Aug 23 (the WS4 delivery work:
+    timeBudgetMs flow + deterministic rate scoring): 21 reps, only three 92s, range 68–97,
+    five distinct users each with real intra-user spread. No pacing rebuild warranted — the
+    plan's non-goal now backed by n=21 live reps instead of n=6. Pacing accuracy vs HUMAN
+    judgment still rides the sheets (pacing_band column) when they land.
+  - **Housekeeping this session — GH1 BASELINE REDIRECT (matters later):** the drill's
+    score-internal replay wrote extra dimension_scores rows onto seeded rep 7c18bdad… and
+    healed its cache row to v1. That rep belongs to `seed-batch-phase4-panel` — gh1-compare's
+    DEFAULT pure-LLM baseline — so phase4-panel is now CONTAMINATED on that one rep, and no
+    replacement flag-off batch can be seeded while the flag is ON (gh1-compare hard-aborts on
+    `[toneCore:]`-tagged batches, which phase6-flip is, 14/15). **The clean baseline is
+    `phase3-tone-core`** (verified this session: 15 reps, exactly one tone row each, 0 tagged —
+    seeded under prod flag-off, untouched by the drill). GH1 must therefore run as
+    `gh1-compare --seed-batch phase3-tone-core` (D27 records the same). Keep
+    `out/seed-batch-phase3-tone-core.json` — it is now the flag-off baseline of record and
+    cannot be regenerated without a prod revert. `.env.development.local` used for the
+    drill/calibration envs was removed after each use.
+  - **Dates/timezone for this entry:** all "2026-09-03" times are UTC; locally this was the
+    evening of 2026-09-02 EDT (hence the tag name `prosody-v1-safe-2026-09-02` and 09-02
+    commit timestamps — same session, no gap). The flip deploy landed ~01:15 UTC 09-03, so
+    `flip-watch --since 2026-09-03` (UTC midnight) also catches ~75 min of PRE-flip reps —
+    the 6 rows in the initial run are exactly that window; judge post-flip behavior by
+    tone_core_tagged, not by presence in the window.
+  - **Verify checklist for Max (~10 min):**
+    1. Record a rep on www.cognifygym.com — during scoring, the "Measured from your recording"
+       strip appears (pace/fillers/pauses, then pitch variety); after scoring, the Tone signals
+       line carries `[toneCore: N (...)]`.
+    2. Record one deliberately FLAT rep and one animated rep — flat should read tone ≤45 with
+       pitch-barely-moving feedback, animated ≥65.
+    3. `npm test` — full suite green, incl. the 68-assertion tone-core suite.
+    4. Sheets when you and Owen can (~2h each + 15-min mini-sheet; re-sign BOTH with `--resign`
+       if past ~09-08) → I run `gh1-compare --seed-batch phase3-tone-core`; failing ANY of its
+       three criteria (band agreement ≥70%, MAE ≤12, v2 MAE ≤ current) ⇒ retune or revert.
+  - **Next:** GH1 when sheets land (standing, per D27). flip-watch after ~10 real audio reps.
+    Bob demo whenever — the system demonstrably works end-to-end. Phase 5 (Confidence) still
+    needs an explicit go. WS8 latency + the ambient calibrate-scoring drift remain their own
+    open items.

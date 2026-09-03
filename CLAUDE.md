@@ -10,7 +10,7 @@ system.** When making a product-behavior decision, read the relevant PRD section
 over convenience or existing code patterns. If the PRD is ambiguous or conflicts with code, surface
 the conflict to Max instead of guessing.
 
-- Active build tracker: `plans/system-change-v2-progress.md` (phases, decision log D20–D23, per-phase
+- Active build tracker: `plans/system-change-v2-progress.md` (phases, decision log D20–D27, per-phase
   verify checklists). Update it as work lands.
 - Naming bridge (PRD terms ↔ code ↔ DB): `plans/prd/terminology-map.md`. User-facing copy uses PRD
   terms; code/DB identifiers stay stable (e.g. UI "Pacing" = code `delivery`).
@@ -22,7 +22,11 @@ the conflict to Max instead of guessing.
 
 - Hidden-skill taxonomy: the PRD §5.5 ~149-skill taxonomy is canonical (D20).
 - Prompt slate = 5 options (D21, overrides PRD's 4/6).
-- Grading: OpenAI primary, single unified pass, tone/pacing graded from audio; Anthropic fallback (D22).
+- Grading: OpenAI primary, single unified pass; Anthropic fallback (D22). Tone and pacing are graded
+  from MEASURED audio, not by the LLM: tone = deterministic prosody core + LLM ±10 blend behind
+  `FF_TONE_PROSODY_CORE` (D27, supersedes D22's literal "graded from audio" wording in D22's own
+  spirit); pacing = deterministic `scorePacing` on measured rate/pauses (WS4, rubric v4.2.0). Do not
+  route tone or pacing back through LLM grading — that would relitigate D27, not restore D22.
 - Legacy prompt System A (`src/lib/ai/prompts/*`, rep-type planners) is being retired (D23).
 
 ## Engineering conventions

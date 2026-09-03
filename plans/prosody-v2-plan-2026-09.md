@@ -1,5 +1,21 @@
 # Prosody v2 — Tone & Pacing from measured audio (plan, 2026-09-01)
 
+> **AMENDED 2026-09-03 (D27) — read before treating §5/§6 as current.**
+> 1. **Phase 6 was executed in P5's order, not §5's order:** the flip happened on the green
+>    GF+GW+GP+GC gates with Max's explicit go; GH1 is a STANDING post-flip obligation (run
+>    `gh1-compare --seed-batch phase3-tone-core` when the sheets are filled; a failed GH1
+>    verdict — band agreement <70% OR MAE >12 OR v2 MAE > current — triggers retune + GF/GP
+>    re-run, or revert). §6's "done when GH1 passes and the flip survives its watch window"
+>    still stands; only the ordering changed.
+> 2. **There is no Vercel preview environment in this project** (it was never configured — no
+>    DB/keys). "Preview drill"/"preview soak" steps are impossible as written; the equivalent
+>    drill runs locally against the prod DB with the revert env (done 2026-09-03, all checks
+>    green). Plan future phases without preview steps.
+> 3. **The §4 revert recipe's "All env-only; no deploy" is WRONG on the last clause:** Vercel
+>    env changes require a redeploy to take effect. Revert = the §4 env flips **then
+>    `vercel deploy --prod`**. (The handoff doc and the `prosody-v1-safe-2026-09-02` tag
+>    message state it correctly.)
+
 Origin: CTO (Bob) feedback on scoring — "Python + Praat for acoustic analysis, AI for content;
 fallback gpt-4o-audio-preview; show something while processing." Decision: **we implement this
 ourselves; no Bob round-trips.** Bob has served as the resource; he gets a demo when it works.
