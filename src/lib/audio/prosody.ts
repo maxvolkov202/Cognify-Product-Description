@@ -50,8 +50,11 @@ export type ProsodyFeatures = {
   /** Heuristic 0-1; higher = clearer consonant articulation. */
   articulationScore: number | null;
   // ——— Worker contract v2 (prosody-v2 plan P2; additive, self-versioned).
-  //     NONE of these render into the prompt evidence block — the aligned
-  //     ratios feed the deterministic tone core (Phase 3), not the LLM.
+  //     Default render: none of these reach the prompt evidence block — the
+  //     aligned ratios feed the deterministic tone core (Phase 3). Phase 5's
+  //     confidence assist (FF_CONFIDENCE_ACOUSTICS, opts.confidenceAssist) is
+  //     the ONE sanctioned exception: it renders the preferred finals ratio
+  //     as the statement-endings line. Flag off ⇒ zero prompt bytes, as before.
   /** Version of the worker feature set that produced the worker fields.
    *  Absent/undefined = v1 (pre-versioning rows). Travels inside the
    *  cache JSONB — no schema change. */
@@ -93,10 +96,30 @@ export function hasWorkerProsody(features: ProsodyFeatures | null): boolean {
 }
 
 /** Render prosody features into a compact prompt block for the AI. */
+/** Finals-ratio preference shared by the renderer and the deterministic tone
+ *  core (tone-core.ts) — ONE policy so the LLM's rendered evidence and the
+ *  core never score the same rep from different finals values. */
+export function preferredFinalFallRatio(
+  features: Pick<ProsodyFeatures, "finalFallRatio" | "finalFallRatioAligned">,
+): number | null {
+  return features.finalFallRatioAligned ?? features.finalFallRatio ?? null;
+}
+
 export function renderProsodyBlock(
   features: ProsodyFeatures | null,
+  opts?: { confidenceAssist?: boolean },
 ): string | null {
   if (!features) return null;
+  // Prosody v2 Phase 5 — the assist is active only when the caller opts in
+  // AND a finals value exists (v2 features); v1-feature reps and every
+  // opts-less caller render byte-identically to the pre-Phase-5 block.
+  // The ±5 cap in the assist text is prose-guided, not post-parse clamped —
+  // the structural bound is the thinking hybrid blend (blendScores, 60%
+  // deterministic / 40% LLM): even a prose-ignoring ±12 LLM move lands as
+  // ≤±5 in the saved score. G5-HALO/G5-DIR measured the behavior directly.
+  const finalsRatio = preferredFinalFallRatio(features);
+  const assist = opts?.confidenceAssist === true && finalsRatio != null;
+  const hasVolume = features.rmsMean != null && features.rmsStd != null;
   // Scope note lives ON the block, not only in the rubric: the rubric-level
   // firewall alone did not stop content-dim halo on extreme evidence
   // (prosody-v2 GF2, 2026-09-02: PSOLA-flat clip moved structure -20).
@@ -137,6 +160,14 @@ export function renderProsodyBlock(
   if (features.upspeakRatio != null) {
     lines.push(
       `  upspeak ratio: ${(features.upspeakRatio * 100).toFixed(0)}% (high = penalize Tone)`,
+    );
+  }
+  if (assist) {
+    lines.push(
+      `  statement endings: ${(finalsRatio * 100).toFixed(0)}% falling finals (falling = decisive close; low = trailing off)`,
+    );
+    lines.push(
+      `  confidence assist (narrow exception to the thinking_quality clause above): the statement-endings${hasVolume ? " and volume-steadiness" : ""} measurement${hasVolume ? "s" : ""} may adjust thinking_quality by at most ±5, and only when ${hasVolume ? "they CORROBORATE" : "it CORROBORATES"} the words — hedging language with trailing finals, or decisive wording with falling finals. Exploratory thinking-out-loud phrasing keeps edge-rule 2b protection: no acoustic deduction.`,
     );
   }
   if (features.rmsMean != null && features.rmsStd != null) {

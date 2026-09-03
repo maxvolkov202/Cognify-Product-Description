@@ -2083,3 +2083,80 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     Bob demo whenever — the system demonstrably works end-to-end. Phase 5 (Confidence) still
     needs an explicit go. WS8 latency + the ambient calibrate-scoring drift remain their own
     open items.
+
+- **2026-09-03 — Prosody v2 Phase 5 (Confidence assist) PRE-REGISTRATION** (`feat/confidence-assist`;
+  Max's explicit go: "go now just ultrathink it" — P7's after-GH ordering waived by the owner, GH1
+  unchanged as a standing obligation). **This block is committed BEFORE the code and BEFORE any
+  battery runs; the numbers below are the gates.**
+  - **Design (settled before code):** "Confidence" = the v1 name of today's `thinking_quality`
+    (terminology-map line 33) — NO new dimension, no UI change. The assist adds acoustic
+    grounding for that dimension's "sounded sure of themselves" facet ONLY: a new
+    `statement endings: N% falling finals` evidence line (from `finalFallRatioAligned` ??
+    `finalFallRatio` — the flat≈0/expressive≈1 separator found in GW3) plus a scope-exception
+    sentence, both INSIDE the prosody block (user message). The system rubric — including the
+    PROSODY EVIDENCE SCOPE ban and edge-rule 2b — stays byte-untouched (protects the text bank
+    AND provider prompt caching). The exception is bounded and corroborative: at most ±5 on
+    thinking_quality, only when the acoustics CORROBORATE what the words already show, and
+    NEVER against rule 2b (exploratory thinking-out-loud phrasing with tentative acoustics stays
+    protected — no deduction). Volume steadiness rides the EXISTING volume line (bytes
+    unchanged); the exception sentence licenses its use for the facet.
+  - **Ship vehicle:** new flag `FF_CONFIDENCE_ACOUSTICS` (defaultOnOutsideProduction; OFF in
+    prod until this phase's gates pass, then env add + deploy). Flag OFF ⇒ prosody block
+    byte-identical to today (unit-asserted). Assist active iff flag AND a finals value exists
+    (v1-feature reps render identically even flag-on). Alignment moves BEFORE render (pure
+    reorder; renderer ignores aligned fields unless the assist is on — byte-safety unit-tested).
+  - **Pre-registered gates:**
+    | gate | measure | pass |
+    |---|---|---|
+    | G5-BYTES | flag OFF (and flag ON with v1 features): rendered prosody block + full prompt bytes vs main | byte-identical (unit test) |
+    | G5-HALO | gf2-compare, 15 audio-bank clips, median-of-5 per arm (flag OFF vs ON), same worker/guest/day | clarity, structure, conciseness AND thinking_quality medians all within the ±15 floor (the in-prompt cap is ±5, so ±15 is generous headroom) |
+    | G5-DIR | same ON-arm medians, per script pair (identical words) | thinking(expressive) − thinking(flat) ≥ 0 in ≥3/5 pairs AND no pair < −10 |
+    | G5-GC1 | BOTH calibration suites with the flag ON (dev) | green, or diffs explained + bank/tracker note (ambient 4–6/48 drift on calibrate-scoring acknowledged as the baseline) |
+  - Failure rule unchanged (plan §6): any gate failing twice after retuning ⇒ STOP, options to Max.
+
+- **2026-09-03 — Prosody v2 Phase 5 (Confidence assist) EXECUTED — gates green after one
+  retune** (`feat/confidence-assist`).
+  - **Implementation:** `FF_CONFIDENCE_ACOUSTICS` flag; `renderProsodyBlock(features, opts)`
+    renders `statement endings: N% falling finals` + a minimal bounded exception line
+    immediately after it (assist active iff flag AND a finals value exists);
+    `score-shared.ts` renders from the ALIGNED features object (withAlignedTailRatios is
+    provably additive — unit-asserted byte-identity) and passes the flag. System rubric
+    untouched (text bank + prompt cache preserved). 15-assertion unit suite wired into
+    `npm test`; assist-firing proven by promptBytes (+~590 on the ON arm for the same clip).
+  - **Battery 1 (exception at block END, re-mentioning the content-dim ban): G5-HALO FAILED**
+    — 4 content cells over ±15 (structure +20/+17, clarity +16/+17), all UPWARD and
+    concentrated on flat clips; invariance analysis showed clarity cross-style spread
+    actually IMPROVED (halo reduction) but structure/conciseness did not. Diagnosis:
+    end-of-block salience — the exception's closing sentence re-mentioned
+    "clarity, structure, or conciseness", re-anchoring exactly those dims. G5-DIR passed
+    (5/5 pairs ≥0, max +7).
+  - **Retune 1 (pre-registered single retune): exception cut to its minimal form** — no
+    content-dim mention anywhere outside the header ban, moved from block-end to directly
+    after the finals line, ~half the bytes. A unit test now enforces "content dims are
+    never re-mentioned outside the header".
+  - **Battery 2 (fresh 5-run ON arm vs the same-day 5-run OFF arm) — gate table:**
+    | gate | result |
+    |---|---|
+    | G5-BYTES | **PASS** (unit: flag off ⇒ byte-identical; v1 features ⇒ byte-identical even flag-on; aligned-object render ⇒ byte-identical) |
+    | G5-HALO | **PASS**: max \|median Δ\| clarity 13 · structure 13 · conciseness 5 · thinking 5 (floor ±15); delivery 7 / tone 12 also calm |
+    | G5-DIR | **PASS**: thinking(expr−flat) = 0/+2/+5/+3/+7 — 5/5 ≥ 0, worst 0, max +7; the ±5 cap holds (thinking max Δ 5) |
+    | G5-GC1 | **PASS**: calibrate-audio-tone ALL PASS 15/15 (flag ON); calibrate-scoring 44/48 with the SAME failing reps + directions as the same-night pre-P5 run (text reps carry no prosody block; bytes unit-proven identical) = the pre-acknowledged ambient 4–6/48 drift |
+  - Full unit suite + tsc + lint green.
+  - **/code-review (PR #119): 7 findings, all addressed pre-merge.** The substantive ones:
+    (1) the ±5 cap is prose-only with no post-parse clamp — resolved by DOCUMENTING the real
+    structural bound instead of inventing an unmeasurable clamp: thinking is
+    `blendScores(det, llm, 0.6)`, so even a prose-ignoring ±12 LLM move lands as ≤±5 in the
+    saved score (comment added at the render site; the tracker's "cap holds" claim is
+    empirical, from G5-DIR/HALO, plus this damper); (2) the finals line cross-referenced the
+    RAW upspeak line (different denominators — contradictory evidence possible) — the
+    parenthetical no longer references upspeak; (3) the exception mentioned "volume-steadiness"
+    even when the rms fields (and hence the volume line) are absent — mention is now
+    conditional on the volume line existing (singular/plural phrasing follows); (4) the
+    finals-preference chain was duplicated between renderer and tone-core — extracted to a
+    shared `preferredFinalFallRatio` used by both; (5) two stale byte-safety comments
+    (prosody-align.ts, prosody.ts v2-fields note) contradicted the new render behavior —
+    rewritten to state the Phase-5 exception and its calibration consequence; (6) the test
+    fixture cast masked a missing required `pauseTotalMs` — supplied; (7) redundant guard
+    conjunct dropped. Post-fix: 18-assertion suite (incl. the no-volume variant), tone-core
+    suite, tsc, lint all green; confirming calibrate-audio-tone run on the FINAL post-review
+    text: ALL PASS 15/15.

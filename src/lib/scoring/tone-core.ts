@@ -25,7 +25,7 @@
  * `upspeakRatio`, `rmsMean`/`rmsStd`, `articulationScore`) — the audit found
  * the tone knowledge MD cited fields that do not exist.
  */
-import type { ProsodyFeatures } from "@/lib/audio/prosody";
+import { preferredFinalFallRatio, type ProsodyFeatures } from "@/lib/audio/prosody";
 
 export type ToneCoreSubScores = {
   /** Pitch variability (std in semitones): the main signal. */
@@ -239,7 +239,7 @@ export function buildToneFeedback(features: ProsodyFeatures): string {
   // Same noise floors as the scoring curves so the sentence never names a
   // behavior the score did not charge (and vice versa).
   const upspeaky = upspeakAligned != null ? upspeak > 0.1 : upspeak > 0.3;
-  const finalFall = features.finalFallRatioAligned ?? features.finalFallRatio ?? null;
+  const finalFall = preferredFinalFallRatio(features);
   const tier = classifyPitchVariety(features);
   const flat = tier === "flat";
   const mid = tier === "level";
