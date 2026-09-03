@@ -2142,3 +2142,21 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     | G5-DIR | **PASS**: thinking(expr−flat) = 0/+2/+5/+3/+7 — 5/5 ≥ 0, worst 0, max +7; the ±5 cap holds (thinking max Δ 5) |
     | G5-GC1 | **PASS**: calibrate-audio-tone ALL PASS 15/15 (flag ON); calibrate-scoring 44/48 with the SAME failing reps + directions as the same-night pre-P5 run (text reps carry no prosody block; bytes unit-proven identical) = the pre-acknowledged ambient 4–6/48 drift |
   - Full unit suite + tsc + lint green.
+  - **/code-review (PR #119): 7 findings, all addressed pre-merge.** The substantive ones:
+    (1) the ±5 cap is prose-only with no post-parse clamp — resolved by DOCUMENTING the real
+    structural bound instead of inventing an unmeasurable clamp: thinking is
+    `blendScores(det, llm, 0.6)`, so even a prose-ignoring ±12 LLM move lands as ≤±5 in the
+    saved score (comment added at the render site; the tracker's "cap holds" claim is
+    empirical, from G5-DIR/HALO, plus this damper); (2) the finals line cross-referenced the
+    RAW upspeak line (different denominators — contradictory evidence possible) — the
+    parenthetical no longer references upspeak; (3) the exception mentioned "volume-steadiness"
+    even when the rms fields (and hence the volume line) are absent — mention is now
+    conditional on the volume line existing (singular/plural phrasing follows); (4) the
+    finals-preference chain was duplicated between renderer and tone-core — extracted to a
+    shared `preferredFinalFallRatio` used by both; (5) two stale byte-safety comments
+    (prosody-align.ts, prosody.ts v2-fields note) contradicted the new render behavior —
+    rewritten to state the Phase-5 exception and its calibration consequence; (6) the test
+    fixture cast masked a missing required `pauseTotalMs` — supplied; (7) redundant guard
+    conjunct dropped. Post-fix: 18-assertion suite (incl. the no-volume variant), tone-core
+    suite, tsc, lint all green; confirming calibrate-audio-tone run on the FINAL post-review
+    text: ALL PASS 15/15.

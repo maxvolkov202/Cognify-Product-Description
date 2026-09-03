@@ -25,6 +25,7 @@ const baseFeatures: ProsodyFeatures = {
   pauseCount: 4,
   longPauseCount: 1,
   meanPauseMs: 620,
+  pauseTotalMs: 2480,
   pitchMeanHz: 142,
   pitchStdSemitones: 3.1,
   pitchRangeSemitones: 9.4,
@@ -84,6 +85,21 @@ const baseFeatures: ProsodyFeatures = {
   const v2 = { ...baseFeatures, finalFallRatio: 0.25 } as ProsodyFeatures;
   const on = renderProsodyBlock(v2, { confidenceAssist: true });
   assert(on != null && on.includes("statement endings: 25% falling finals"), "raw finals used when no aligned value");
+}
+
+// ——— no-volume variant: exception must not reference volume-steadiness when
+//     the volume line itself is absent (rms fields null) ———
+{
+  const noRms = {
+    ...baseFeatures,
+    rmsMean: null,
+    rmsStd: null,
+    finalFallRatio: 0.7,
+  } as ProsodyFeatures;
+  const on = renderProsodyBlock(noRms, { confidenceAssist: true });
+  assert(on != null && !on.includes("volume mean"), "no volume line without rms fields");
+  assert(!on.includes("volume-steadiness"), "exception omits volume-steadiness when no volume line exists");
+  assert(on.includes("it CORROBORATES"), "singular phrasing in the no-volume variant");
 }
 
 // ——— withAlignedTailRatios remains additive: render of aligned object with assist

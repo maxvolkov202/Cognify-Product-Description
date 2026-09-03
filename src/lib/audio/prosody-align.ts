@@ -127,8 +127,12 @@ export function alignSegmentTails(
 }
 
 /** Attach aligned ratios onto a features object when both halves exist.
- *  Returns the same reference otherwise. NEVER touches fields the prompt
- *  evidence block renders (calibration guardrail: zero prompt-byte impact). */
+ *  Returns the same reference otherwise. Only ADDS the *Aligned fields —
+ *  never mutates existing ones — so the default render is byte-identical
+ *  (calibration guardrail). Since Phase 5, renderProsodyBlock DOES render
+ *  the preferred finals ratio when the confidence assist is on
+ *  (FF_CONFIDENCE_ACOUSTICS) — changing aligned-ratio computation changes
+ *  scoring-prompt bytes under that flag and needs a calibration cycle. */
 export function withAlignedTailRatios(
   features: ProsodyFeatures | null,
   words: AlignableWord[] | null | undefined,
