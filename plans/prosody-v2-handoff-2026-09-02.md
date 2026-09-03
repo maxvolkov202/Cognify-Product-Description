@@ -1,5 +1,14 @@
 # Prosody v2 — handoff after Phases 0-4 (2026-09-02)
 
+> **SUPERSEDED 2026-09-03 (D27): the flip has happened.** `FF_TONE_PROSODY_CORE` and
+> `FF_LIVE_REP_METRICS` are BOTH ON in prod (deploy `cognify-v2-2a862rjqu`), authorized on the
+> P5 evidence ladder with Max's go; GH1 is now a STANDING post-flip obligation (run
+> `gh1-compare` when the sheets are filled; MAE failure ⇒ retune or revert). Revert drill was
+> executed end-to-end on the prod-serving path; old code is tagged `prosody-v1-safe-2026-09-02`
+> and the v1 Modal app stays live. Pacing's historical 92-clump was confirmed real and already
+> fixed by the late-Aug WS4 work (no rebuild needed). Full record: the 2026-09-03 entry in
+> `plans/system-change-v2-progress.md`. The tooling and ops notes below remain current.
+
 State of `plans/prosody-v2-plan-2026-09.md` (the contract; decisions P1-P8 + gates pre-registered
 there). Full narrative + gate tables: `plans/system-change-v2-progress.md` entries dated
 2026-09-01/02. This file is the operational handoff.
