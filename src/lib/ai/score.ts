@@ -147,9 +147,10 @@ export async function scoreRepWithMetrics(
  * prompt + score assembly byte-for-byte. The public scoreRepWithMetrics
  * dispatcher routes here for the control arm and for any user not bucketed
  * into a variant. Keeping this composition on the control config
- * ({deliveryMode:"deterministic", thinkingMode:"blend"}) is what preserves
- * the calibration guardrail: reference reps (scored with the variant flag
- * off) exercise exactly this path.
+ * (DEFAULT_HYBRID_CONFIG: {deliveryMode:"deterministic", thinkingMode:"llm"}
+ * — WS6 removed the thinking blend) is what preserves the calibration
+ * guardrail: reference reps (scored with the variant flag off) exercise
+ * exactly this path.
  */
 async function scoreRepControl(input: ScoreRepInput): Promise<ScoreRepResult> {
   // Control == the single-call flow with no reference anchors and the

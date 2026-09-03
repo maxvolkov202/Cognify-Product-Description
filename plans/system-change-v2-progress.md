@@ -2143,11 +2143,13 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     | G5-GC1 | **PASS**: calibrate-audio-tone ALL PASS 15/15 (flag ON); calibrate-scoring 44/48 with the SAME failing reps + directions as the same-night pre-P5 run (text reps carry no prosody block; bytes unit-proven identical) = the pre-acknowledged ambient 4–6/48 drift |
   - Full unit suite + tsc + lint green.
   - **/code-review (PR #119): 7 findings, all addressed pre-merge.** The substantive ones:
-    (1) the ±5 cap is prose-only with no post-parse clamp — resolved by DOCUMENTING the real
-    structural bound instead of inventing an unmeasurable clamp: thinking is
-    `blendScores(det, llm, 0.6)`, so even a prose-ignoring ±12 LLM move lands as ≤±5 in the
-    saved score (comment added at the render site; the tracker's "cap holds" claim is
-    empirical, from G5-DIR/HALO, plus this damper); (2) the finals line cross-referenced the
+    (1) the ±5 cap is prose-only with no post-parse clamp — first "resolved" by citing the
+    60/40 thinking blend as a structural damper, WHICH WAS WRONG (see the round-2 correction
+    below: WS6 set prod thinkingMode to "llm"; the blend never runs). The honest resolution:
+    the cap is EMPIRICAL — G5-DIR/HALO measured max thinking Δ5 on the true pure-LLM prod
+    path (15 clips × 5 runs × 2 arms), a code clamp is impossible (the acoustic contribution
+    has no per-request counterfactual), and `FF_CONFIDENCE_ACOUSTICS` is the kill switch if
+    live behavior drifts; (2) the finals line cross-referenced the
     RAW upspeak line (different denominators — contradictory evidence possible) — the
     parenthetical no longer references upspeak; (3) the exception mentioned "volume-steadiness"
     even when the rms fields (and hence the volume line) are absent — mention is now
@@ -2160,3 +2162,45 @@ session. Requires Max + coordination on prod (Bob per earlier handoffs).*
     conjunct dropped. Post-fix: 18-assertion suite (incl. the no-volume variant), tone-core
     suite, tsc, lint all green; confirming calibrate-audio-tone run on the FINAL post-review
     text: ALL PASS 15/15.
+
+- **2026-09-03 — Prosody v2 Phase 5 SHIPPED + FLIPPED** (PR #119 squash-merged →
+  `main@c883c7db`; prod deploy `cognify-v2-38nmlsjif` READY, aliased www.cognifygym.com,
+  health 200; `FF_CONFIDENCE_ACOUSTICS=true` added to production via the printf method —
+  SENSITIVE like the others, so verified functionally).
+  - **Re-seed (end-of-phase, fresh uploads, batch `phase5-assist`):** 15/15 seeded;
+    featureVersion=2 on 15/15; `[toneCore:]` + graded_from_audio 14/15 (the same single
+    cold-start race as every batch). Tone unchanged and healthy (flat 30–32 + one text-tier
+    60, expressive 60–82). **Functional witness for the new flag:** thinking(expressive) >
+    thinking(flat) on 5/5 script pairs (+5..+15 single-run, direction matching the assist and
+    the G5-DIR medians; the OFF arm's battery showed no such consistent direction).
+  - **Verify checklist for Max (~5 min):**
+    1. Record one deliberately hedgy/trailing rep and one decisive rep on the same prompt in
+       prod — the decisive one should read a few points higher on Thinking Quality with
+       otherwise-similar content; Tone behaves as before.
+    2. `npm test` — 18-assertion confidence-acoustics suite in the chain.
+    3. Revert lever for THIS feature alone: remove `FF_CONFIDENCE_ACOUSTICS` (or set false)
+       in prod env + redeploy — prompts return byte-identical to the Phase-4 flip state.
+  - **Round-2 /code-review (close-out PR #120): 7 findings, all addressed.** The one that
+    mattered: the PR #119 comment and tracker bullet cited the 60/40 thinking blend as the
+    structural bound on the ±5 cap — FALSE: `DEFAULT_HYBRID_CONFIG` is
+    `{deliveryMode:"deterministic", thinkingMode:"llm"}` (WS6 removed the blend;
+    `blendScores` runs only under a "blend" config that prod never uses). Corrected in the
+    render-site comment, this tracker (finding-1 bullet rewritten), the stale
+    `score.ts` control-path docstring (claimed thinkingMode:"blend"), and memory (which
+    still listed the blend as a live clumping cause — also stale since WS6). The ±5 cap's
+    real status: prose-guided, empirically held (gate batteries ran on the true pure-LLM
+    path), kill-switched by the flag. Also fixed: `hasVolume` now gates BOTH the volume line
+    and the exception's volume mention (one condition, two sites); the exception is built
+    from two whole-sentence literals instead of spliced ternaries; the raw-upspeak vs
+    aligned-finals denominator difference is documented at the render site (values
+    deliberately unchanged — the gates measured this exact rendering); the test fixture and
+    variants are now uncast (typecheck honestly); the ±5 lockstep guard asserts on the
+    RENDERED block, not source text; the byte-safety narrative is owned by
+    renderProsodyBlock with pointers elsewhere. Rendered bytes UNCHANGED by this round
+    (byte-assertions green) ⇒ no recalibration required. 18-assertion suite, tsc, lint green.
+  - **Plan state: Phases 0–6 ALL EXECUTED.** The prosody v2 plan is fully built and live in
+    production. Remaining: GH1 (standing, per D27 — `gh1-compare --seed-batch
+    phase3-tone-core` when sheets/mini-sheet get filled; a Phase-5-aware caveat: the assist
+    changes thinking evidence, NOT tone scoring — GH1's tone verdict is unaffected);
+    flip-watch after ~10 real post-flip audio reps; Bob demo on Max's word. Open items
+    unchanged: ambient calibrate-scoring drift, WS8 latency, PR #78 history decision.
